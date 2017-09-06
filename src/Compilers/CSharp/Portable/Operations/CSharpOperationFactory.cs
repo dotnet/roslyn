@@ -692,17 +692,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 if (boundConversion.Operand.Kind == BoundKind.Lambda ||
                     boundConversion.Operand.Kind == BoundKind.UnboundLambda)
                 {
-                    // We need to determine if this is an expression tree conversion. If it's not an expression tree conversion,
-                    // then we're creating a delegate so we need to return an IDelegateCreationExpression instead of an
-                    // IConversionExpression
-                    ITypeSymbol baseType = boundConversion.Type;
-                    while (baseType.BaseType != null && baseType.BaseType.SpecialType != SpecialType.System_Object)
-                    {
-                        baseType = baseType.BaseType;
-                    }
-
-                    string metadataName = baseType.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat);
-                    if (WellKnownType.System_Linq_Expressions_Expression != WellKnownTypes.GetTypeFromMetadataName(metadataName))
+                    // We need to determine if this is a conversion to a delegate type. If it is, it's a delegate creation, so we
+                    // return an IDelegateCreationExpression instead of a conversion.
+                    if (boundConversion.Type.InheritsSpecialType(SpecialType.System_Delegate))
                     {
                         return new LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit);
                     }
