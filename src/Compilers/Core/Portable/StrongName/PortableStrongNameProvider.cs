@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            if (other.GetType() != this.GetType()) {
+            if (other.GetType() != this.GetType())
+            {
                 return false;
             }
 

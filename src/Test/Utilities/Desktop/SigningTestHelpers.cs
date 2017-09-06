@@ -71,8 +71,8 @@ namespace Roslyn.Test.Utilities
             private static bool PathEquals(string left, string right)
             {
                 return string.Equals(
-                    FileUtilities.NormalizeAbsolutePath(left), 
-                    FileUtilities.NormalizeAbsolutePath(right), 
+                    FileUtilities.NormalizeAbsolutePath(left),
+                    FileUtilities.NormalizeAbsolutePath(right),
                     StringComparison.OrdinalIgnoreCase);
             }
 

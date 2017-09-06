@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         public class VirtualizedStrongNameProvider : DesktopStrongNameProvider
         {
-            private class VirtualIOOperations: IOOperations
+            private class VirtualIOOperations : IOOperations
             {
                 private HashSet<string> _existingFullPaths;
                 public VirtualIOOperations(HashSet<string> existingFullPaths)

@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal abstract partial class CommonCompiler
     {
-        internal sealed class LoggingIOOperations: IOOperations 
+        internal sealed class LoggingIOOperations: IOOperations
         {
             private readonly TouchedFileLogger _loggerOpt;
 

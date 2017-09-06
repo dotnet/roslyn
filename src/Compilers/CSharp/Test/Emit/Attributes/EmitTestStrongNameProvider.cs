@@ -61,7 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private class TestDesktopStrongNameProvider : DesktopStrongNameProvider
         {
-            private class TestIOOperations: IOOperations {
+            private class TestIOOperations : IOOperations
+            {
                 Func<string, byte[]> m_readAllBytes = null;
 
                 internal TestIOOperations(Func<string, byte[]> readAllBytes = null)

@@ -154,8 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return compilation.WithOptions(
                 compilation.Options.WithStrongNameProvider(
                     compilation.Feature("BypassStrongName") == null ?
-                    (StrongNameProvider) new PortableStrongNameProvider(searchPaths, loggingOperations) :
-                    (StrongNameProvider) new DesktopStrongNameProvider(searchPaths, null, loggingOperations)));
+                    (StrongNameProvider)new PortableStrongNameProvider(searchPaths, loggingOperations) :
+                    (StrongNameProvider)new DesktopStrongNameProvider(searchPaths, null, loggingOperations)));
         }
 
         private SyntaxTree ParseFile(

@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis
         SignsPeBuilder,
     }
 
-    internal class IOOperations {
+    internal class IOOperations
+    {
         internal virtual byte[] ReadAllBytes(string fullPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));

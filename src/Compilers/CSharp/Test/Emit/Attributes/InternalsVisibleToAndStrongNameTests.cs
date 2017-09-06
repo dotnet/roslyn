@@ -1153,7 +1153,7 @@ public class C
                 {
                     //confirm file does not claim to be signed
                     Assert.Equal(0, (int)(flags & CorFlags.StrongNameSigned));
-                } 
+                }
                 else
                 {
                     // It should have been signed in the stream
@@ -1225,7 +1225,7 @@ public class Z
         public void SignModuleKeyContainerAttr_Legacy()
         {
             string s = @"[assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")] public class C {}";
-            
+
             var options = TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider);
             var parseOptions = TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE);
             var other = CreateStandardCompilation(s, options: options, parseOptions: parseOptions);
@@ -1301,7 +1301,7 @@ public class Z
 [assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")]
 public class C {}";
 
-            var options =TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider);
+            var options = TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider);
             var parseOptions = TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE);
 
             var other = CreateStandardCompilation(s, options: options, parseOptions: parseOptions);
@@ -1373,7 +1373,7 @@ public class C {}";
             var x = s_keyPairFile;
             string s = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""", x, @""")] public class C {}");
 
-            var options = TestOptions.ReleaseModule.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultDesktopProvider); 
+            var options = TestOptions.ReleaseModule.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultDesktopProvider);
             var parseOptions = TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE);
             var other = CreateStandardCompilation(s, options: options, parseOptions: parseOptions);
 
