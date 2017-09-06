@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -820,7 +820,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -850,7 +850,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(15994, "https://github.com/dotnet/roslyn/issues/15994")]
@@ -951,7 +951,7 @@ class Program
 
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(15994, "https://github.com/dotnet/roslyn/issues/15994")]
@@ -1003,7 +1003,7 @@ class Program
 
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(15336, "https://github.com/dotnet/roslyn/issues/15336")]
@@ -1895,7 +1895,7 @@ class C
         string a; 
         Method(out a, out string b);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(16676, "https://github.com/dotnet/roslyn/issues/16676")]
@@ -1920,7 +1920,7 @@ class C
         string a; /*leading*/  // trailing
         Method(out a, out string b);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(16676, "https://github.com/dotnet/roslyn/issues/16676")]
@@ -1947,7 +1947,7 @@ class C
         /*leading*/ // trailing
         Method(out a, out string b);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]

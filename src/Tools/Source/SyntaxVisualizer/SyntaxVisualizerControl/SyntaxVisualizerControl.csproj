@@ -11,7 +11,7 @@
     <RootNamespace>Roslyn.SyntaxVisualizer.Control</RootNamespace>
     <AssemblyName>Roslyn.SyntaxVisualizer.Control</AssemblyName>
     <UseVSHostingProcess>false</UseVSHostingProcess>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />

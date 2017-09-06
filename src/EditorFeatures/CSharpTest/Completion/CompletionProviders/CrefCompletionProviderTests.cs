@@ -460,5 +460,20 @@ class C
             await VerifyItemExistsAsync(text, "uint");
             await VerifyItemExistsAsync(text, "UInt32");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NoSuggestionAfterEmptyCref()
+        {
+            var text = @"
+using System;
+/// <see cref="""" $$
+class C 
+{ 
+    public void goo(int x) { }
+}
+";
+
+            await VerifyNoItemsExistAsync(text);
+        }
     }
 }

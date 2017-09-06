@@ -114,8 +114,7 @@ End class",
         Get
         End Get
     End Property
-End class",
-ignoreTrivia:=False)
+End class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
@@ -258,8 +257,7 @@ End class",
         End Set
     End Property
 End class",
-index:=1,
-ignoreTrivia:=False)
+index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
@@ -751,7 +749,7 @@ end class",
             return count
         End Get
     End Property
-end class", ignoreTrivia:=False)
+end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
