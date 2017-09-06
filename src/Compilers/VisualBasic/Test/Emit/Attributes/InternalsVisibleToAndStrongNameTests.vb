@@ -28,7 +28,7 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
     Private Shared ReadOnly s_publicKey As ImmutableArray(Of Byte) = SigningTestHelpers.PublicKey
 
     Private Shared Function GetDesktopProviderWithPath(keyFilePath As String) As StrongNameProvider
-        Return New DesktopStrongNameProvider(ImmutableArray.Create(keyFilePath), Nothing, New VirtualizedIOOperations())
+        Return New DesktopStrongNameProvider(ImmutableArray.Create(keyFilePath), Nothing, New VirtualizedStrongNameFileSystem())
     End Function
 
     Private Shared Sub VerifySigned(comp As Compilation, Optional expectedToBeSigned As Boolean = True)

@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -11,35 +13,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class PortableStrongNameProvider : StrongNameProvider
+    internal sealed class PortableStrongNameProvider : StrongNameProvider
     {
-        internal readonly ImmutableArray<string> _keySearchPaths;
-        internal IOOperations IOOp { get; private set; }
+        private readonly ImmutableArray<string> _keyFileSearchPaths;
+        internal StrongNameFileSystem FileSystem { get; private set; }
 
-        public override bool Equals(object other)
+        public PortableStrongNameProvider(ImmutableArray<string> keySearchPaths = default, StrongNameFileSystem strongNameFileSystem = default)
         {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (other.GetType() != this.GetType())
-            {
-                return false;
-            }
-
-            return Capability == (other as PortableStrongNameProvider).Capability;
+            FileSystem = strongNameFileSystem ?? new StrongNameFileSystem();
+            _keyFileSearchPaths = keySearchPaths.NullToEmpty();
         }
 
         public override int GetHashCode()
         {
             return 0;
-        }
-
-        public PortableStrongNameProvider(ImmutableArray<string> keySearchPaths = default, IOOperations ioOp = default)
-        {
-            IOOp = ioOp ?? new IOOperations();
-            _keySearchPaths = keySearchPaths.NullToEmpty();
         }
 
         internal override SigningCapability Capability => SigningCapability.SignsPeBuilder;
@@ -54,14 +41,14 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    string resolvedKeyFile = IOOp.ResolveStrongNameKeyFile(keyFilePath, _keySearchPaths);
+                    string resolvedKeyFile = FileSystem.ResolveStrongNameKeyFile(keyFilePath, _keyFileSearchPaths);
                     if (resolvedKeyFile == null)
                     {
                         throw new FileNotFoundException(CodeAnalysisResources.FileNotFound, keyFilePath);
                     }
 
                     Debug.Assert(PathUtilities.IsAbsolute(resolvedKeyFile));
-                    var fileContent = ImmutableArray.Create(IOOp.ReadAllBytes(resolvedKeyFile));
+                    var fileContent = ImmutableArray.Create(FileSystem.ReadAllBytes(resolvedKeyFile));
                     return StrongNameKeys.CreateHelper(fileContent, keyFilePath);
                 }
                 catch (Exception ex)
@@ -75,19 +62,19 @@ namespace Microsoft.CodeAnalysis
             return new StrongNameKeys(keyPair, publicKey, null, container, keyFilePath);
         }
 
-        internal override Stream CreateInputStream()
-        {
-            throw new InvalidOperationException();
-        }
-
-        internal override void SignStream(StrongNameKeys keys, Stream inputStream, Stream outputStream)
-        {
-            throw new InvalidOperationException();
-        }
-
         internal override void SignPeBuilder(ExtendedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privkey)
         {
             peBuilder.Sign(peBlob, content => SigningUtilities.CalculateRsaSignature(content, privkey));
+        }
+
+        internal override Stream CreateInputStream()
+        {
+            throw new NotSupportedException();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Object.Equals(this, obj);
         }
     }
 }

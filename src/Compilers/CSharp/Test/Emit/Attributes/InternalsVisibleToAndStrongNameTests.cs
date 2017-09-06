@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
 
         private static StrongNameProvider GetProviderWithPath(string keyFilePath) =>
-            new DesktopStrongNameProvider(ImmutableArray.Create(keyFilePath), null, ioOperations: new VirtualizedIOOperations());
+            new DesktopStrongNameProvider(ImmutableArray.Create(keyFilePath), null, strongNameFileSystem: new VirtualizedStrongNameFileSystem());
 
         #endregion
 
@@ -160,8 +160,7 @@ public class Test
             string keyFileName = Path.GetFileName(s_keyPairFile);
 
             string s = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""..\", keyFileName, @""")] public class C {}");
-            var parseOptions = TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE);
-            var syntaxTree = Parse(s, @"IVTAndStrongNameTests\AnotherTempDir\temp.cs", options: parseOptions);
+            var syntaxTree = Parse(s, @"IVTAndStrongNameTests\AnotherTempDir\temp.cs");
 
             var options = TestOptions.ReleaseDll
                 .WithStrongNameProvider(GetProviderWithPath(PathUtilities.CombineAbsoluteAndRelativePaths(keyFileDir, @"TempSubDir\")));
@@ -1063,8 +1062,7 @@ internal class C
 }}",
                 options: TestOptions.ReleaseDll
                          .WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile)
-                         .WithStrongNameProvider(s_defaultDesktopProvider),
-                parseOptions: TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE));
+                         .WithStrongNameProvider(s_defaultDesktopProvider));
 
             comp.VerifyEmitDiagnostics();
 
@@ -1123,19 +1121,26 @@ public class C
                 Assert.True(success.Success);
             }
 
-            AssertFileIsSigned(tempFile);
+            Assert.True(IsFileSigned(tempFile));
         }
 
-        private static void AssertFileIsSigned(TempFile file)
+        private static bool IsFileSigned(TempFile file)
         {
             //TODO should check to see that the output was actually signed
             using (var metadata = new FileStream(file.Path, FileMode.Open))
             {
-                var flags = new PEHeaders(metadata).CorHeader.Flags;
-                Assert.Equal(CorFlags.StrongNameSigned, flags & CorFlags.StrongNameSigned);
+                return IsStreamSigned(metadata);
             }
         }
 
+        private static bool IsStreamSigned(Stream moduleContents)
+        {
+            using (var metadata = ModuleMetadata.CreateFromStream(moduleContents))
+            {
+                var flags = metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags;
+                return CorFlags.StrongNameSigned == (flags & CorFlags.StrongNameSigned);
+            }
+        }
         private void ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(MemoryStream moduleContents, AttributeDescription expectedModuleAttr, bool legacyStrongName)
         {
             //a module doesn't get signed for real. It should have either a keyfile or keycontainer attribute
@@ -1170,11 +1175,13 @@ public class Z
 {
 }";
 
+                StrongNameProvider provider = legacyStrongName ? s_defaultDesktopProvider : s_defaultPortableProvider;
+
                 //now that the module checks out, ensure that adding it to a compilation outputting a dll
                 //results in a signed assembly.
                 var assemblyComp = CreateStandardCompilation(source,
                     new[] { metadata.GetReference() },
-                    TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider));
+                    TestOptions.ReleaseDll.WithStrongNameProvider(provider));
 
                 using (var finalStrm = tempFile.Open())
                 {
@@ -1185,7 +1192,7 @@ public class Z
             success.Diagnostics.Verify();
 
             Assert.True(success.Success);
-            AssertFileIsSigned(tempFile);
+            Assert.True(IsFileSigned(tempFile));
         }
 
         [Fact]
@@ -1211,8 +1218,7 @@ public class Z
             string s = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""", x, @""")] public class C {}");
 
             var options = TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider);
-            var parseOptions = TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE);
-            var other = CreateStandardCompilation(s, options: options, parseOptions: parseOptions);
+            var other = CreateStandardCompilation(s, options: options);
 
             var outStrm = new MemoryStream();
             var success = other.Emit(outStrm);
@@ -1227,8 +1233,7 @@ public class Z
             string s = @"[assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")] public class C {}";
 
             var options = TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider);
-            var parseOptions = TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE);
-            var other = CreateStandardCompilation(s, options: options, parseOptions: parseOptions);
+            var other = CreateStandardCompilation(s, options: options);
 
             var outStrm = new MemoryStream();
             var success = other.Emit(outStrm);
@@ -1276,6 +1281,38 @@ public class Z
             other.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("bogus", CodeAnalysisResources.FileNotFound));
         }
 
+        [Fact()]
+        public void AttemptToStrongNameWithOnlyPublicKey()
+        {
+            string s = "public class C {}";
+
+            var options = TestOptions.ReleaseModule.WithCryptoKeyFile(PublicKeyFile).WithStrongNameProvider(s_defaultPortableProvider);
+            var other = CreateStandardCompilation(s, options: options);
+
+            var outStrm = new MemoryStream();
+            var success = other.Emit(outStrm);
+            outStrm.Position = 0;
+
+            Assert.True(success.Success);
+            Assert.False(IsStreamSigned(outStrm));
+        }
+
+        [Fact()]
+        public void AttemptToStrongNameWithOnlyPublicKey_Legacy()
+        {
+            string s = "public class C {}";
+
+            var options = TestOptions.ReleaseModule.WithCryptoKeyFile(PublicKeyFile).WithStrongNameProvider(s_defaultDesktopProvider);
+            var other = CreateStandardCompilation(s, options: options);
+
+            var outStrm = new MemoryStream();
+            var success = other.Emit(outStrm);
+            outStrm.Position = 0;
+
+            Assert.True(success.Success);
+            Assert.False(IsStreamSigned(outStrm));
+        }
+
         [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
         [Fact()]
         public void SignModuleKeyContainerCmdLine_Legacy()
@@ -1283,8 +1320,7 @@ public class Z
             string s = "public class C {}";
 
             var options = TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider);
-            var parseOptions = TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE);
-            var other = CreateStandardCompilation(s, options: options, parseOptions: parseOptions);
+            var other = CreateStandardCompilation(s, options: options);
 
             var outStrm = new MemoryStream();
             var success = other.Emit(outStrm);
@@ -1302,9 +1338,8 @@ public class Z
 public class C {}";
 
             var options = TestOptions.ReleaseModule.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(s_defaultDesktopProvider);
-            var parseOptions = TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE);
 
-            var other = CreateStandardCompilation(s, options: options, parseOptions: parseOptions);
+            var other = CreateStandardCompilation(s, options: options);
 
             var outStrm = new MemoryStream();
             var success = other.Emit(outStrm);
@@ -1339,8 +1374,7 @@ public class C {}";
             string s = "public class C {}";
 
             var options = TestOptions.ReleaseModule.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultDesktopProvider);
-            var parseOptions = TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE);
-            var other = CreateStandardCompilation(s, options: options, parseOptions: parseOptions);
+            var other = CreateStandardCompilation(s, options: options);
 
             var outStrm = new MemoryStream();
             var success = other.Emit(outStrm);
@@ -1374,8 +1408,7 @@ public class C {}";
             string s = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""", x, @""")] public class C {}");
 
             var options = TestOptions.ReleaseModule.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultDesktopProvider);
-            var parseOptions = TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE);
-            var other = CreateStandardCompilation(s, options: options, parseOptions: parseOptions);
+            var other = CreateStandardCompilation(s, options: options);
 
             var outStrm = new MemoryStream();
             var success = other.Emit(outStrm);
@@ -1570,7 +1603,6 @@ public class C
   static void Goo() {}
 }",
                 new MetadataReference[] { MscorlibRef_v4_0_30316_17626 },
-                parseOptions: TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE),
                 options: TestOptions.ReleaseDll.WithDelaySign(true).WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultDesktopProvider));
 
             using (var metadata = ModuleMetadata.CreateFromImage(other.EmitToArray()))
@@ -2098,7 +2130,7 @@ public class C
                 Assert.True(success.Success);
             }
 
-            AssertFileIsSigned(tempFile);
+            Assert.True(IsFileSigned(tempFile));
         }
 
         [Fact]
@@ -2143,9 +2175,8 @@ public class C
 }";
 
             var options = TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultDesktopProvider);
-            var parseOptions = TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE);
 
-            var other = CreateCompilation(source, options: options, parseOptions: parseOptions, references: new[] { MscorlibRef_v4_0_30316_17626 });
+            var other = CreateCompilation(source, options: options, references: new[] { MscorlibRef_v4_0_30316_17626 });
 
             var tempFile = Temp.CreateFile();
 

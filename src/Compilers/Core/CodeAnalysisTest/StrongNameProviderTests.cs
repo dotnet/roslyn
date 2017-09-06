@@ -3,9 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -35,44 +32,44 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var subdirSearchPath = ImmutableArray.Create(subdir);
 
             // using base directory; base path ignored
-            var path = provider.IOOp.ResolveStrongNameKeyFile(fileName, subdirSearchPath);
+            var path = provider.FileSystem.ResolveStrongNameKeyFile(fileName, subdirSearchPath);
             Assert.Equal(subFilePath, path, StringComparer.OrdinalIgnoreCase);
 
             // search paths
             var searchPathsSP = ImmutableArray.Create(@"C:\goo", dir, subdir);
 
-            path = provider.IOOp.ResolveStrongNameKeyFile(fileName, searchPathsSP);
+            path = provider.FileSystem.ResolveStrongNameKeyFile(fileName, searchPathsSP);
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
 
             // null base dir, no search paths
-            var searchPathsEmpty = ImmutableArray.Create<string>();
+            var searchPathsEmpty = ImmutableArray<string>.Empty;
 
             // relative path
-            path = provider.IOOp.ResolveStrongNameKeyFile(fileName, searchPathsEmpty);
+            path = provider.FileSystem.ResolveStrongNameKeyFile(fileName, searchPathsEmpty);
             Assert.Null(path);
 
             // full path
-            path = provider.IOOp.ResolveStrongNameKeyFile(filePath, searchPathsEmpty);
+            path = provider.FileSystem.ResolveStrongNameKeyFile(filePath, searchPathsEmpty);
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
 
             // null base dir
             var searchPathsNullBaseSP = ImmutableArray.Create(dir, subdir);
 
             // relative path
-            path = provider.IOOp.ResolveStrongNameKeyFile(fileName, searchPathsNullBaseSP);
+            path = provider.FileSystem.ResolveStrongNameKeyFile(fileName, searchPathsNullBaseSP);
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
 
             // full path
-            path = provider.IOOp.ResolveStrongNameKeyFile(filePath, searchPathsNullBaseSP);
+            path = provider.FileSystem.ResolveStrongNameKeyFile(filePath, searchPathsNullBaseSP);
             Assert.Equal(filePath, path, StringComparer.OrdinalIgnoreCase);
         }
 
         public class VirtualizedStrongNameProvider : DesktopStrongNameProvider
         {
-            private class VirtualIOOperations : IOOperations
+            private class VirtualStrongNameFileSystem : StrongNameFileSystem
             {
-                private HashSet<string> _existingFullPaths;
-                public VirtualIOOperations(HashSet<string> existingFullPaths)
+                private readonly HashSet<string> _existingFullPaths;
+                public VirtualStrongNameFileSystem(HashSet<string> existingFullPaths)
                 {
                     _existingFullPaths = existingFullPaths;
                 }
@@ -86,7 +83,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             public VirtualizedStrongNameProvider(
                 IEnumerable<string> existingFullPaths = null,
                 ImmutableArray<string> searchPaths = default(ImmutableArray<string>))
-                : base(searchPaths.NullToEmpty(), null, new VirtualIOOperations(new HashSet<string>(existingFullPaths, StringComparer.OrdinalIgnoreCase)))
+                : base(searchPaths.NullToEmpty(), null, new VirtualStrongNameFileSystem(new HashSet<string>(existingFullPaths, StringComparer.OrdinalIgnoreCase)))
             {
             }
         }

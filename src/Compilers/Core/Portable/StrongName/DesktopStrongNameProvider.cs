@@ -8,10 +8,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Interop;
 using Roslyn.Utilities;
-using System.Threading;
-using Microsoft.Cci;
-using System.Reflection.Metadata;
-using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -121,7 +117,7 @@ namespace Microsoft.CodeAnalysis
 
         private readonly ImmutableArray<string> _keyFileSearchPaths;
         private readonly string _tempPath;
-        internal IOOperations IOOp { get; private set; } = new IOOperations();
+        internal StrongNameFileSystem FileSystem { get; }
 
         // for testing/mocking
         internal Func<IClrStrongName> TestStrongNameInterfaceFactory;
@@ -141,14 +137,14 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        internal DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths, string tempPath, IOOperations ioOperations)
+        internal DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths, string tempPath, StrongNameFileSystem strongNameFileSystem)
         {
             if (!keyFileSearchPaths.IsDefault && keyFileSearchPaths.Any(path => !PathUtilities.IsAbsolute(path)))
             {
                 throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, nameof(keyFileSearchPaths));
             }
 
-            IOOp = ioOperations ?? new IOOperations();
+            FileSystem = strongNameFileSystem ?? new StrongNameFileSystem();
             _keyFileSearchPaths = keyFileSearchPaths.NullToEmpty();
             _tempPath = tempPath;
         }
@@ -175,14 +171,14 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    string resolvedKeyFile = IOOp.ResolveStrongNameKeyFile(keyFilePath, _keyFileSearchPaths);
+                    string resolvedKeyFile = FileSystem.ResolveStrongNameKeyFile(keyFilePath, _keyFileSearchPaths);
                     if (resolvedKeyFile == null)
                     {
                         throw new FileNotFoundException(CodeAnalysisResources.FileNotFound, keyFilePath);
                     }
 
                     Debug.Assert(PathUtilities.IsAbsolute(resolvedKeyFile));
-                    var fileContent = ImmutableArray.Create(IOOp.ReadAllBytes(resolvedKeyFile));
+                    var fileContent = ImmutableArray.Create(FileSystem.ReadAllBytes(resolvedKeyFile));
                     return StrongNameKeys.CreateHelper(fileContent, keyFilePath);
                 }
                 catch (Exception ex)
@@ -258,7 +254,7 @@ namespace Microsoft.CodeAnalysis
         // EDMAURER in the event that the key is supplied as a file,
         // this type could get an instance member that caches the file
         // contents to avoid reading the file twice - once to get the
-        // public key to establish the assembly name and another to do 
+        // public key to establish the assembly name and another to do
         // the actual signing
 
         // internal for testing
@@ -351,26 +347,14 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public override bool Equals(object obj)
-        {
-            // Explicitly check that we're not comparing against a derived type
-            if (obj == null || GetType() != obj.GetType())
-            {
-                return false;
-            }
-
-            var other = (DesktopStrongNameProvider)obj;
-            return _keyFileSearchPaths.SequenceEqual(other._keyFileSearchPaths, StringComparer.Ordinal);
-        }
-
         public override int GetHashCode()
         {
             return Hash.CombineValues(_keyFileSearchPaths, StringComparer.Ordinal);
         }
 
-        internal override void SignPeBuilder(ExtendedPEBuilder peWriter, BlobBuilder peBlob, RSAParameters privkey)
+        public override bool Equals(object obj)
         {
-            throw new InvalidOperationException();
+            return Object.Equals(this, obj);
         }
     }
 }

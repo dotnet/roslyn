@@ -14,12 +14,8 @@ using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-
-
     public partial class InternalsVisibleToAndStrongNameTests : CSharpTestBase
     {
-        private static readonly KeyValuePair<string, string>[] BYPASS_STRONGNAME_FEATURE = new[] { new KeyValuePair<string, string>("BypassStrongName", "+") };
-
         /// <summary>
         /// A strong name provider which throws an IOException while creating
         /// the input stream.
@@ -52,29 +48,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             internal override void SignStream(StrongNameKeys keys, Stream inputStream, Stream outputStream) =>
                 _underlyingProvider.SignStream(keys, inputStream, outputStream);
-
-            internal override void SignPeBuilder(ExtendedPEBuilder peBuilder, BlobBuilder peBlob, RSAParameters privkey)
-            {
-                throw new NotImplementedException();
-            }
         }
 
         private class TestDesktopStrongNameProvider : DesktopStrongNameProvider
         {
-            private class TestIOOperations : IOOperations
+            private class TestStrongNameFileSystem : StrongNameFileSystem
             {
-                Func<string, byte[]> m_readAllBytes = null;
+                private readonly Func<string, byte[]> _readAllBytes = null;
 
-                internal TestIOOperations(Func<string, byte[]> readAllBytes = null)
+                internal TestStrongNameFileSystem(Func<string, byte[]> readAllBytes = null)
                 {
-                    m_readAllBytes = readAllBytes;
+                    _readAllBytes = readAllBytes;
                 }
 
                 internal override byte[] ReadAllBytes(string fullPath)
                 {
-                    if (m_readAllBytes != null)
+                    if (_readAllBytes != null)
                     {
-                        return m_readAllBytes(fullPath);
+                        return _readAllBytes(fullPath);
                     }
                     else
                     {
@@ -92,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public TestDesktopStrongNameProvider(
                 Func<string, byte[]> readAllBytes = null,
-                ReadKeysFromContainerDelegate readKeysFromContainer = null): base(ImmutableArray<string>.Empty, null, new TestIOOperations(readAllBytes))
+                ReadKeysFromContainerDelegate readKeysFromContainer = null): base(ImmutableArray<string>.Empty, null, new TestStrongNameFileSystem(readAllBytes))
             {
                 m_readKeysFromContainer = readKeysFromContainer;
             }
@@ -147,9 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 .WithStrongNameProvider(provider)
                 .WithCryptoKeyContainer("RoslynTestContainer");
 
-            var parseOptions = TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE);
-
-            var comp = CreateStandardCompilation(src, options: options, parseOptions: parseOptions);
+            var comp = CreateStandardCompilation(src, options: options);
             comp.VerifyEmitDiagnostics(
                 // error CS7028: Error signing output with public key from container 'RoslynTestContainer' -- Crazy exception you could never have predicted!
                 Diagnostic(ErrorCode.ERR_PublicKeyContainerFailure).WithArguments("RoslynTestContainer", ex.Message).WithLocation(1, 1));
@@ -168,9 +157,7 @@ class C
                 .WithStrongNameProvider(testProvider)
                 .WithCryptoKeyContainer("RoslynTestContainer");
 
-            var parseOptions = TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE);
-
-            var comp = CreateStandardCompilation(src, options: options, parseOptions: parseOptions);
+            var comp = CreateStandardCompilation(src, options: options);
 
             comp.Emit(new MemoryStream()).Diagnostics.Verify(
                 // error CS8104: An error occurred while writing the Portable Executable file.

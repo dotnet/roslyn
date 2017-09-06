@@ -2223,7 +2223,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 RSAParameters? privateKeyOpt = null;
-                if (Options.StrongNameProvider?.Capability == SigningCapability.SignsPeBuilder)
+                if (Options.StrongNameProvider?.Capability == SigningCapability.SignsPeBuilder && !Options.PublicSign)
                 {
                     privateKeyOpt = StrongNameKeys.PrivateKey;
                     // PROTOTYPE(strongname): Report an error if PrivateKey is null, meaning that they passed in a public key file.
@@ -2466,6 +2466,7 @@ namespace Microsoft.CodeAnalysis
                     getPortablePdbStream = null;
                 }
 
+                // PROROTYPE(strongname): simplify this code
                 Func<Stream> getPeStream = () =>
                 {
                     if (metadataDiagnostics.HasAnyErrors())

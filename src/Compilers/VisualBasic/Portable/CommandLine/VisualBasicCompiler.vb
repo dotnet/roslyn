@@ -145,14 +145,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      WithXmlReferenceResolver(xmlFileResolver).
                      WithSourceReferenceResolver(sourceFileResolver))
 
-            Dim loggingOperations = New LoggingIOOperations(touchedFilesLogger)
+            Dim loggingOperations = New LoggingStrongNameFileSystem(touchedFilesLogger)
             Dim searchPaths = Arguments.KeyFileSearchPaths
+
+            Dim fallback =
+                (result.Feature("BypassStrongName") <> Nothing) Or
+                (result.Options.CryptoKeyContainer <> Nothing)
 
             Return result.WithOptions(
                 result.Options.WithStrongNameProvider(
-                    If(result.Feature("BypassStrongName") = Nothing,
-                        CType(New PortableStrongNameProvider(searchPaths, loggingOperations), StrongNameProvider),
-                        CType(New DesktopStrongNameProvider(searchPaths, Nothing, loggingOperations), StrongNameProvider))))
+                    If(fallback,
+                        CType(New DesktopStrongNameProvider(searchPaths, Nothing, loggingOperations), StrongNameProvider),
+                        CType(New PortableStrongNameProvider(searchPaths, loggingOperations), StrongNameProvider))))
         End Function
 
         Private Sub PrintReferences(resolvedReferences As List(Of MetadataReference), consoleOutput As TextWriter)

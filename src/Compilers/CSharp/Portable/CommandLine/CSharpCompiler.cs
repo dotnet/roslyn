@@ -137,7 +137,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-
             var compilation = CSharpCompilation.Create(
                 Arguments.CompilationName,
                 trees.WhereNotNull(),
@@ -148,14 +147,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     WithXmlReferenceResolver(xmlFileResolver).
                     WithSourceReferenceResolver(sourceFileResolver));
 
-            var loggingOperations = new LoggingIOOperations(touchedFilesLogger);
+            var loggingOperations = new LoggingStrongNameFileSystem(touchedFilesLogger);
             var searchPaths = Arguments.KeyFileSearchPaths;
+
+            bool fallback =
+                (compilation.Feature("BypassStrongName") != null) ||
+                (compilation.Options.CryptoKeyContainer != null);
 
             return compilation.WithOptions(
                 compilation.Options.WithStrongNameProvider(
-                    compilation.Feature("BypassStrongName") == null ?
-                    (StrongNameProvider)new PortableStrongNameProvider(searchPaths, loggingOperations) :
-                    (StrongNameProvider)new DesktopStrongNameProvider(searchPaths, null, loggingOperations)));
+                    fallback ?
+                    (StrongNameProvider)new DesktopStrongNameProvider(searchPaths, tempPath: null, strongNameFileSystem: loggingOperations) :
+                    (StrongNameProvider)new PortableStrongNameProvider(searchPaths, loggingOperations)));
         }
 
         private SyntaxTree ParseFile(

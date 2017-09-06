@@ -8,13 +8,13 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 using Microsoft.CodeAnalysis.Emit;
 using static Microsoft.Cci.SigningUtilities;
-using System.Security.Cryptography;
+using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
@@ -282,8 +282,8 @@ namespace Microsoft.Cci
             // or .OBJ (the output of running cvtres.exe on a .RES file). A .RES file is parsed and processed into
             // a set of objects implementing IWin32Resources. These are then ordered and the final image form is constructed
             // and written to the resource section. Resources in .OBJ form are already very close to their final output
-            // form. Rather than reading them and parsing them into a set of objects similar to those produced by 
-            // processing a .RES file, we process them like the native linker would, copy the relevant sections from 
+            // form. Rather than reading them and parsing them into a set of objects similar to those produced by
+            // processing a .RES file, we process them like the native linker would, copy the relevant sections from
             // the .OBJ into our output and apply some fixups.
 
             var nativeResourceSectionOpt = module.Win32ResourceSection;

@@ -1,6 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Security.Cryptography;
@@ -28,20 +29,16 @@ namespace Microsoft.Cci
         {
             using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
             {
-                var stream = new MemoryStream();
-
                 foreach (var blob in content)
                 {
                     var segment = blob.GetBytes();
-
-                    stream.Write(segment.Array, segment.Offset, segment.Count);
-
                     hash.AppendData(segment.Array, segment.Offset, segment.Count);
                 }
 
                 return hash.GetHashAndReset();
             }
         }
+
         internal static int CalculateStrongNameSignatureSize(CommonPEModuleBuilder module, RSAParameters? privateKey)
         {
             ISourceAssemblySymbolInternal assembly = module.SourceAssemblyOpt;
@@ -67,7 +64,6 @@ namespace Microsoft.Cci
             {
                 keySize = privateKey.Value.Modulus.Length;
             }
-
 
             if (keySize == 0)
             {

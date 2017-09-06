@@ -756,10 +756,9 @@ namespace Microsoft.CodeAnalysis
                             var refPeStreamProviderOpt = finalRefPeFilePath != null ? new CompilerEmitStreamProvider(this, finalRefPeFilePath) : null;
 
                             RSAParameters? privateKeyOpt = null;
-                            if (compilation.Options.StrongNameProvider?.Capability == SigningCapability.SignsPeBuilder)
+                            if (compilation.Options.StrongNameProvider?.Capability == SigningCapability.SignsPeBuilder && !compilation.Options.PublicSign)
                             {
                                 privateKeyOpt = compilation.StrongNameKeys.PrivateKey;
-                                // PROTOTYPE(strongname): Report an error if PrivateKey is null, meaning that they passed in a public key file.
                             }
 
                             try

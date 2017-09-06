@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
-using System;
+using System.Collections.Immutable;
 using System.IO;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using static Roslyn.Test.Utilities.SigningTestHelpers;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -44,7 +42,7 @@ class C
     public static void Main(string[] args) { }
 }";
             var tempDir = Temp.CreateDirectory();
-            var provider = new DesktopStrongNameProvider(ImmutableArray<string>.Empty, tempDir.Path, new VirtualizedIOOperations());
+            var provider = new DesktopStrongNameProvider(ImmutableArray<string>.Empty, tempDir.Path, new VirtualizedStrongNameFileSystem());
 
             var options = TestOptions
                 .DebugExe
@@ -62,7 +60,7 @@ class C
 {
     public static void Main(string[] args) { }
 }";
-            var provider = new DesktopStrongNameProvider(ImmutableArray<string>.Empty, null, new VirtualizedIOOperations());
+            var provider = new DesktopStrongNameProvider(ImmutableArray<string>.Empty, null, new VirtualizedStrongNameFileSystem());
             var options = TestOptions
                 .DebugExe
                 .WithStrongNameProvider(provider)
