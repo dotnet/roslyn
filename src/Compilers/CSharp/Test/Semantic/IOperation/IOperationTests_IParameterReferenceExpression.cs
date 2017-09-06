@@ -159,9 +159,8 @@ IOperation:  (OperationKind.None) (Syntax: 'from cust i ... t cust.Name')
                     InConversion: null
                     OutConversion: null
                   IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument) (Syntax: 'cust.Name')
-                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func<Customer, System.String>) (Syntax: 'cust.Name')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'cust.Name')
+                    IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func<Customer, System.String>) (Syntax: 'cust.Name')
+                      Target: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'cust.Name')
                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'cust.Name')
                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'cust.Name')
                               ReturnedValue: IPropertyReferenceExpression: System.String Customer.Name { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'cust.Name')

@@ -685,13 +685,34 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundConversion.Operand));
                 SyntaxNode syntax = boundConversion.Syntax;
+                ITypeSymbol type = boundConversion.Type;
+                Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
+
+                // If this is a lambda conversion, we need to check to see if it's a delegate conversion.
+                if (boundConversion.Operand.Kind == BoundKind.Lambda ||
+                    boundConversion.Operand.Kind == BoundKind.UnboundLambda)
+                {
+                    // We need to determine if this is an expression tree conversion. If it's not an expression tree conversion,
+                    // then we're creating a delegate so we need to return an IDelegateCreationExpression instead of an
+                    // IConversionExpression
+                    ITypeSymbol baseType = boundConversion.Type;
+                    while (baseType.BaseType != null && baseType.BaseType.SpecialType != SpecialType.System_Object)
+                    {
+                        baseType = baseType.BaseType;
+                    }
+
+                    string metadataName = baseType.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat);
+                    if (WellKnownType.System_Linq_Expressions_Expression != WellKnownTypes.GetTypeFromMetadataName(metadataName))
+                    {
+                        return new LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit);
+                    }
+                }
+
                 Conversion conversion = boundConversion.Conversion;
                 bool isExplicit = boundConversion.ExplicitCastInCode;
                 bool isTryCast = false;
                 // Checked conversions only matter if the conversion is a Numeric conversion. Don't have true unless the conversion is actually numeric.
                 bool isChecked = conversion.IsNumeric && boundConversion.Checked;
-                ITypeSymbol type = boundConversion.Type;
-                Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
                 return new LazyCSharpConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
             }
         }
