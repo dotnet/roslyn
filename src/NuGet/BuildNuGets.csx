@@ -191,7 +191,11 @@ var errors = new List<string>();
 void ReportError(string message)
 {
     errors.Add(message);
+    PrintError(message);
+}
 
+void PrintError(string message)
+{
     var color = Console.ForegroundColor;
     Console.ForegroundColor = ConsoleColor.Red;
     Console.Error.WriteLine(message);
@@ -271,7 +275,7 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
         {
             string packageArgs = commonArgs.Replace($"-prop version=\"{BuildVersion}\"", $"-prop version=\"{GetPackageVersion(Path.GetFileNameWithoutExtension(file))}\"");
 
-            p.StartInfo.FileName = Path.GetFullPath(Path.Combine(SolutionRoot, "nuget.exe"));
+            p.StartInfo.FileName = Path.GetFullPath(Path.Combine(SolutionRoot, @"Binaries\Tools\nuget.exe"));
             p.StartInfo.Arguments = $@"pack {file} {packageArgs}";
         }
         else
@@ -392,7 +396,7 @@ catch
 
 foreach (var error in errors)
 {
-    ReportError(error);
+    PrintError(error);
 }
 
 Environment.Exit(exit);

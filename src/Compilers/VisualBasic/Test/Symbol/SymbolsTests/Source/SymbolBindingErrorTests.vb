@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Dim x0 As m1.Cls1     ' no errors
         Dim x1 As m1     ' error here
 
-        Sub Foo(x As m1, y as m1.Cls1)   ' one error here
+        Sub Goo(x As m1, y as m1.Cls1)   ' one error here
             Dim v0 As m1.Cls1     ' no errors
             Dim v1 As m1     ' error here           
         End Sub
@@ -46,7 +46,7 @@ BC30371: Module 'm1' cannot be used as a type.
         Dim x1 As m1     ' error here
                   ~~
 BC30371: Module 'm1' cannot be used as a type.
-        Sub Foo(x As m1, y as m1.Cls1)   ' one error here
+        Sub Goo(x As m1, y as m1.Cls1)   ' one error here
                      ~~
 
                                  </errors>
@@ -58,7 +58,7 @@ BC30371: Module 'm1' cannot be used as a type.
         Dim x1 As m1     ' error here
                   ~~
 BC30371: Module 'm1' cannot be used as a type.
-        Sub Foo(x As m1, y as m1.Cls1)   ' one error here
+        Sub Goo(x As m1, y as m1.Cls1)   ' one error here
                      ~~
 BC42024: Unused local variable: 'v0'.
             Dim v0 As m1.Cls1     ' no errors
@@ -97,7 +97,7 @@ Module m1
 
     Dim x1 As System.Void     ' error here
 
-    Sub Foo(x As Void)   ' error here
+    Sub Goo(x As Void)   ' error here
         Dim v1 As Void     ' error here           
         Dim v2 As Void1     ' error here           
     End Sub
@@ -110,7 +110,7 @@ BC31422: 'System.Void' can only be used in a GetType expression.
     Dim x1 As System.Void     ' error here
               ~~~~~~~~~~~
 BC31422: 'System.Void' can only be used in a GetType expression.
-    Sub Foo(x As Void)   ' error here
+    Sub Goo(x As Void)   ' error here
                  ~~~~
                                  </errors>
 
@@ -121,7 +121,7 @@ BC31422: 'System.Void' can only be used in a GetType expression.
     Dim x1 As System.Void     ' error here
               ~~~~~~~~~~~
 BC31422: 'System.Void' can only be used in a GetType expression.
-    Sub Foo(x As Void)   ' error here
+    Sub Goo(x As Void)   ' error here
                  ~~~~
 BC42024: Unused local variable: 'v1'.
         Dim v1 As Void     ' error here           

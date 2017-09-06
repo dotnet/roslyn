@@ -29,14 +29,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         public async Task TestEnumWithLeadingComments()
         {
             const string code = @"
-{|span1:// Foo
+{|span1:// Goo
 // Bar|}
 {|hint2:$$enum E{|textspan2:
 {
 }|}|}";
 
             await VerifyBlockSpansAsync(code,
-                Region("span1", "// Foo ...", autoCollapse: true),
+                Region("span1", "// Goo ...", autoCollapse: true),
                 Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
@@ -46,13 +46,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
             const string code = @"
 {|hint1:$$enum E{|textspan1:
 {
-    {|span2:// Foo
+    {|span2:// Goo
     // Bar|}
 }|}|}";
 
             await VerifyBlockSpansAsync(code,
                 Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
-                Region("span2", "// Foo ...", autoCollapse: true));
+                Region("span2", "// Goo ...", autoCollapse: true));
         }
     }
 }

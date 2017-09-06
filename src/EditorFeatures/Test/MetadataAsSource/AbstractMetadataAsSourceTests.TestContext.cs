@@ -94,33 +94,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 return string.Join(" ", tokens);
             }
 
-            public void VerifyResult(MetadataAsSourceFile file, string expected, bool ignoreTrivia = true)
+            public void VerifyResult(MetadataAsSourceFile file, string expected)
             {
                 var actual = File.ReadAllText(file.FilePath).Trim();
                 var actualSpan = file.IdentifierLocation.SourceSpan;
 
-                if (ignoreTrivia)
-                {
-                    // Compare tokens and verify location relative to the generated tokens
-                    expected = GetSpaceSeparatedTokens(expected);
-                    actual = GetSpaceSeparatedTokens(actual.Insert(actualSpan.Start, "[|").Insert(actualSpan.End + 2, "|]"));
-                }
-                else
-                {
-                    // Compare exact texts and verify that the location returned is exactly that
-                    // indicated by expected
-                    MarkupTestFile.GetSpan(expected.TrimStart().TrimEnd(), out expected, out var expectedSpan);
-                    Assert.Equal(expectedSpan.Start, actualSpan.Start);
-                    Assert.Equal(expectedSpan.End, actualSpan.End);
-                }
-
+                // Compare exact texts and verify that the location returned is exactly that
+                // indicated by expected
+                MarkupTestFile.GetSpan(expected, out expected, out var expectedSpan);
                 Assert.Equal(expected, actual);
+                Assert.Equal(expectedSpan.Start, actualSpan.Start);
+                Assert.Equal(expectedSpan.End, actualSpan.End);
             }
 
-            public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, string expected, bool ignoreTrivia = true, Project project = null)
+            public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, string expected, Project project = null)
             {
                 var result = await GenerateSourceAsync(symbolMetadataName, project);
-                VerifyResult(result, expected, ignoreTrivia);
+                VerifyResult(result, expected);
             }
 
             public void VerifyDocumentReused(MetadataAsSourceFile a, MetadataAsSourceFile b)

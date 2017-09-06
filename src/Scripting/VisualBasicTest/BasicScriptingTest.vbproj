@@ -8,8 +8,8 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests</AssemblyName>
-    <TargetFramework>netstandard1.3</TargetFramework>
-    <RoslynProjectType>UnitTestDesktop</RoslynProjectType>
+    <TargetFramework>net461</TargetFramework>
+    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

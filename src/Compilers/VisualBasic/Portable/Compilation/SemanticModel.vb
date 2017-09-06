@@ -1890,6 +1890,8 @@ _Default:
             Else
                 ' They provided a name.  Find all the arities for that name, and then look all of those up.
                 Dim info = LookupSymbolsInfo.GetInstance()
+                info.FilterName = name
+
                 Me.AddLookupSymbolsInfo(position, info, container, options)
 
                 Dim results = ArrayBuilder(Of Symbol).GetInstance(info.Count)
@@ -2786,7 +2788,7 @@ _Default:
         '''    Event E3(bar As Integer) Implements I1.E   '  "bar" means nothing here. Only type matters.
         '''
         '''    Sub moo()
-        '''        RaiseEvent E3(qwer:=123)  ' qwer binds to parameter on I1.EEventhandler.invoke(foo)
+        '''        RaiseEvent E3(qwer:=123)  ' qwer binds to parameter on I1.EEventhandler.invoke(goo)
         '''    End Sub
         '''End Class
         ''' 

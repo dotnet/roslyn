@@ -6278,6 +6278,28 @@ BC37289: Tuple element name 'M' is inferred. Please use language version 15.3 or
         End Sub
 
         <Fact>
+        Public Sub InferredName_Conversion()
+            Dim source = <compilation>
+                             <file>
+Imports System.Collections.Generic
+Class C
+    Shared Sub F(items As (Integer, IList(Of Object)))
+    End Sub
+    Shared Sub Test()
+        Dim items = New List(Of Object)()
+        Dim group = (1, items)
+        F(group)
+    End Sub
+End Class
+    </file>
+                         </compilation>
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source,
+                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef},
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+            comp.AssertTheseEmitDiagnostics(<errors/>)
+        End Sub
+
+        <Fact>
         Public Sub LongTupleWithArgumentEvaluation()
 
             Dim verifier = CompileAndVerify(
@@ -7564,7 +7586,7 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
         End Sub
 
         <Fact>
-        Public Sub TupleInferredLambdStrictOn()
+        Public Sub TupleInferredLambdaStrictOn()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -7600,7 +7622,7 @@ BC36642: Option Strict On requires each lambda expression parameter to be declar
         End Sub
 
         <Fact()>
-        Public Sub TupleInferredLambdStrictOff()
+        Public Sub TupleInferredLambdaStrictOff()
 
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -8876,7 +8898,7 @@ namespace ClassLibrary1
 {
     public class Class1
     {
-        public (int Alice, int Bob) foo = (2, 3);
+        public (int Alice, int Bob) goo = (2, 3);
 
         public (int Alice, int Bob) Bar() => (4, 5);
 
@@ -8886,7 +8908,7 @@ namespace ClassLibrary1
 
     public class Class2
     {
-        public (int Alice, int q, int w, int e, int f, int g, int h, int j, int Bob) foo = SetBob(11);
+        public (int Alice, int q, int w, int e, int f, int g, int h, int j, int Bob) goo = SetBob(11);
 
         public (int Alice, int q, int w, int e, int f, int g, int h, int j, int Bob) Bar() => SetBob(12);
 
@@ -8925,16 +8947,16 @@ Module Module1
 
     Sub Main()
         Dim x As New ClassLibrary1.Class1
-        System.Console.WriteLine(x.foo.Alice)
-        System.Console.WriteLine(x.foo.Bob)
+        System.Console.WriteLine(x.goo.Alice)
+        System.Console.WriteLine(x.goo.Bob)
         System.Console.WriteLine(x.Bar.Alice)
         System.Console.WriteLine(x.Bar.Bob)
         System.Console.WriteLine(x.Baz.Alice)
         System.Console.WriteLine(x.Baz.Bob)
 
         Dim y As New ClassLibrary1.Class2
-        System.Console.WriteLine(y.foo.Alice)
-        System.Console.WriteLine(y.foo.Bob)
+        System.Console.WriteLine(y.goo.Alice)
+        System.Console.WriteLine(y.goo.Bob)
         System.Console.WriteLine(y.Bar.Alice)
         System.Console.WriteLine(y.Bar.Bob)
         System.Console.WriteLine(y.Baz.Alice)
@@ -8990,7 +9012,7 @@ Imports System.Threading.Tasks
 
 Namespace ClassLibrary1
     Public Class Class1
-        Public foo As (Alice As Integer, Bob As Integer) = (2, 3)
+        Public goo As (Alice As Integer, Bob As Integer) = (2, 3)
 
         Public Function Bar() As (Alice As Integer, Bob As Integer)
             Return (4, 5)
@@ -9004,7 +9026,7 @@ Namespace ClassLibrary1
     End Class
 
     Public Class Class2
-        Public foo As (Alice As Integer, q As Integer, w As Integer, e As Integer, f As Integer, g As Integer, h As Integer, j As Integer, Bob As Integer) = SetBob(11)
+        Public goo As (Alice As Integer, q As Integer, w As Integer, e As Integer, f As Integer, g As Integer, h As Integer, j As Integer, Bob As Integer) = SetBob(11)
 
         Public Function Bar() As (Alice As Integer, q As Integer, w As Integer, e As Integer, f As Integer, g As Integer, h As Integer, j As Integer, Bob As Integer)
             Return SetBob(12)
@@ -9047,16 +9069,16 @@ Module Module1
 
     Sub Main()
         Dim x As New ClassLibrary1.Class1
-        System.Console.WriteLine(x.foo.Alice)
-        System.Console.WriteLine(x.foo.Bob)
+        System.Console.WriteLine(x.goo.Alice)
+        System.Console.WriteLine(x.goo.Bob)
         System.Console.WriteLine(x.Bar.Alice)
         System.Console.WriteLine(x.Bar.Bob)
         System.Console.WriteLine(x.Baz.Alice)
         System.Console.WriteLine(x.Baz.Bob)
 
         Dim y As New ClassLibrary1.Class2
-        System.Console.WriteLine(y.foo.Alice)
-        System.Console.WriteLine(y.foo.Bob)
+        System.Console.WriteLine(y.goo.Alice)
+        System.Console.WriteLine(y.goo.Bob)
         System.Console.WriteLine(y.Bar.Alice)
         System.Console.WriteLine(y.Bar.Bob)
         System.Console.WriteLine(y.Baz.Alice)
@@ -9174,17 +9196,17 @@ namespace ClassLibrary1
 {
     public class Class1
     {
-        public (int Alice, (int Alice, int Bob) Bob) foo = (2, (2, 3));
+        public (int Alice, (int Alice, int Bob) Bob) goo = (2, (2, 3));
 
         public ((int Alice, int Bob)[] Alice, int Bob) Bar() => (new(int, int)[] { (4, 5) }, 5);
 
         public (int Alice, List<(int Alice, int Bob)?> Bob) Baz => (6, new List<(int Alice, int Bob)?>() { (8, 9) });
 
-        public static event Action<(int i0, int i1, int i2, int i3, int i4, int i5, int i6, int i7, (int Alice, int Bob) Bob)> foo1;
+        public static event Action<(int i0, int i1, int i2, int i3, int i4, int i5, int i6, int i7, (int Alice, int Bob) Bob)> goo1;
 
         public static void raise()
         {
-            foo1((0, 1, 2, 3, 4, 5, 6, 7, (8, 42)));
+            goo1((0, 1, 2, 3, 4, 5, 6, 7, (8, 42)));
         }
     }
 }
@@ -9199,14 +9221,14 @@ Module Module1
 
     Sub Main()
         Dim x As New ClassLibrary1.Class1
-        System.Console.WriteLine(x.foo.Bob.Bob)
-        System.Console.WriteLine(x.foo.Item2.Item2)
+        System.Console.WriteLine(x.goo.Bob.Bob)
+        System.Console.WriteLine(x.goo.Item2.Item2)
         System.Console.WriteLine(x.Bar.Alice(0).Bob)
         System.Console.WriteLine(x.Bar.Item1(0).Item2)
         System.Console.WriteLine(x.Baz.Bob(0).Value)
         System.Console.WriteLine(x.Baz.Item2(0).Value)
 
-        AddHandler ClassLibrary1.Class1.foo1, Sub(p)
+        AddHandler ClassLibrary1.Class1.goo1, Sub(p)
                                                   System.Console.WriteLine(p.Bob.Bob)
                                                   System.Console.WriteLine(p.Rest.Item2.Bob)
                                               End Sub
@@ -9251,7 +9273,7 @@ Imports System.Threading.Tasks
 
 Namespace ClassLibrary1
     Public Class Class1
-        Public foo As (Alice As Integer, Bob As (Alice As Integer, Bob As Integer)) = (2, (2, 3))
+        Public goo As (Alice As Integer, Bob As (Alice As Integer, Bob As Integer)) = (2, (2, 3))
 
         Public Function Bar() As (Alice As (Alice As Integer, Bob As Integer)(), Bob As Integer)
             Return (New(Integer, Integer)() {(4, 5)}, 5)
@@ -9263,10 +9285,10 @@ Namespace ClassLibrary1
             End Get
         End Property
 
-        Public Shared Event foo1 As Action(Of (i0 As Integer, i1 As Integer, i2 As Integer, i3 As Integer, i4 As Integer, i5 As Integer, i6 As Integer, i7 As Integer, Bob As (Alice As Integer, Bob As Integer)))
+        Public Shared Event goo1 As Action(Of (i0 As Integer, i1 As Integer, i2 As Integer, i3 As Integer, i4 As Integer, i5 As Integer, i6 As Integer, i7 As Integer, Bob As (Alice As Integer, Bob As Integer)))
 
         Public Shared Sub raise()
-            RaiseEvent foo1((0, 1, 2, 3, 4, 5, 6, 7, (8, 42)))
+            RaiseEvent goo1((0, 1, 2, 3, 4, 5, 6, 7, (8, 42)))
         End Sub
     End Class
 End Namespace
@@ -9281,14 +9303,14 @@ Module Module1
 
     Sub Main()
         Dim x As New ClassLibrary1.Class1
-        System.Console.WriteLine(x.foo.Bob.Bob)
-        System.Console.WriteLine(x.foo.Item2.Item2)
+        System.Console.WriteLine(x.goo.Bob.Bob)
+        System.Console.WriteLine(x.goo.Item2.Item2)
         System.Console.WriteLine(x.Bar.Alice(0).Bob)
         System.Console.WriteLine(x.Bar.Item1(0).Item2)
         System.Console.WriteLine(x.Baz.Bob(0).Value)
         System.Console.WriteLine(x.Baz.Item2(0).Value)
 
-        AddHandler ClassLibrary1.Class1.foo1, Sub(p)
+        AddHandler ClassLibrary1.Class1.goo1, Sub(p)
                                                   System.Console.WriteLine(p.Bob.Bob)
                                                   System.Console.WriteLine(p.Rest.Item2.Bob)
                                               End Sub
@@ -9335,7 +9357,7 @@ namespace ClassLibrary1
 {
     public class Class1
     {
-        public (int Alice, int alice) foo = (2, 3);
+        public (int Alice, int alice) goo = (2, 3);
     }
 }
 
@@ -9349,12 +9371,12 @@ Module Module1
 
     Sub Main()
         Dim x As New ClassLibrary1.Class1
-        System.Console.WriteLine(x.foo.Item1)
-        System.Console.WriteLine(x.foo.Item2)
-        System.Console.WriteLine(x.foo.Alice)
-        System.Console.WriteLine(x.foo.alice)
+        System.Console.WriteLine(x.goo.Item1)
+        System.Console.WriteLine(x.goo.Item2)
+        System.Console.WriteLine(x.goo.Alice)
+        System.Console.WriteLine(x.goo.alice)
 
-        Dim f = x.foo
+        Dim f = x.goo
         System.Console.WriteLine(f.Item1)
         System.Console.WriteLine(f.Item2)
         System.Console.WriteLine(f.Alice)
@@ -9371,8 +9393,8 @@ End Module
                             referencedAssemblies:=s_valueTupleRefsAndDefault)
 
             vbCompilation.VerifyDiagnostics(
-    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "x.foo.Alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer)").WithLocation(8, 34),
-    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "x.foo.alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer)").WithLocation(9, 34),
+    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "x.goo.Alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer)").WithLocation(8, 34),
+    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "x.goo.alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer)").WithLocation(9, 34),
     Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "f.Alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer)").WithLocation(14, 34),
     Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "f.alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer)").WithLocation(15, 34)
 )
@@ -9394,7 +9416,7 @@ namespace ClassLibrary1
 {
     public class Class1
     {
-        public (int Alice, int alice, int) foo = (2, 3, 4);
+        public (int Alice, int alice, int) goo = (2, 3, 4);
     }
 }
 
@@ -9408,13 +9430,13 @@ Module Module1
 
     Sub Main()
         Dim x As New ClassLibrary1.Class1
-        System.Console.WriteLine(x.foo.Item1)
-        System.Console.WriteLine(x.foo.Item2)
-        System.Console.WriteLine(x.foo.Item3)
-        System.Console.WriteLine(x.foo.Alice)
-        System.Console.WriteLine(x.foo.alice)
+        System.Console.WriteLine(x.goo.Item1)
+        System.Console.WriteLine(x.goo.Item2)
+        System.Console.WriteLine(x.goo.Item3)
+        System.Console.WriteLine(x.goo.Alice)
+        System.Console.WriteLine(x.goo.alice)
 
-        Dim f = x.foo
+        Dim f = x.goo
         System.Console.WriteLine(f.Item1)
         System.Console.WriteLine(f.Item2)
         System.Console.WriteLine(f.Item3)
@@ -9432,8 +9454,8 @@ End Module
                             referencedAssemblies:=s_valueTupleRefsAndDefault)
 
             vbCompilation.VerifyDiagnostics(
-    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "x.foo.Alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer, Integer)").WithLocation(9, 34),
-    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "x.foo.alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer, Integer)").WithLocation(10, 34),
+    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "x.goo.Alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer, Integer)").WithLocation(9, 34),
+    Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "x.goo.alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer, Integer)").WithLocation(10, 34),
     Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "f.Alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer, Integer)").WithLocation(16, 34),
     Diagnostic(ERRID.ERR_MetadataMembersAmbiguous3, "f.alice").WithArguments("Alice", "structure", "(Alice As Integer, alice As Integer, Integer)").WithLocation(17, 34)
                 )

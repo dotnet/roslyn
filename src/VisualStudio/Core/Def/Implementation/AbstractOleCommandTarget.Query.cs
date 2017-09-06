@@ -233,14 +233,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var result = VSConstants.S_OK;
 
             var guidCmdGroup = pguidCmdGroup;
-            Func<CommandState> executeNextCommandTarget = () =>
+            CommandState executeNextCommandTarget()
             {
                 result = NextCommandTarget.QueryStatus(ref guidCmdGroup, commandCount, prgCmds, commandText);
 
                 var isAvailable = ((OLECMDF)prgCmds[0].cmdf & OLECMDF.OLECMDF_ENABLED) == OLECMDF.OLECMDF_ENABLED;
                 var isChecked = ((OLECMDF)prgCmds[0].cmdf & OLECMDF.OLECMDF_LATCHED) == OLECMDF.OLECMDF_LATCHED;
                 return new CommandState(isAvailable, isChecked, GetText(commandText));
-            };
+            }
 
             CommandState commandState;
             var subjectBuffer = GetSubjectBufferContainingCaret();

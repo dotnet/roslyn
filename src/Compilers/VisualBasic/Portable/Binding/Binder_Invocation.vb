@@ -1770,14 +1770,14 @@ ProduceBoundNode:
             For i As Integer = 0 To bestSymbols.Length - 1 Step 1
 
                 ' in delegate context we just output for each candidates
-                ' BC30794: No accessible 'foo' is most specific: 
-                '     Public Sub foo(p As Integer)
-                '     Public Sub foo(p As Integer)
+                ' BC30794: No accessible 'goo' is most specific: 
+                '     Public Sub goo(p As Integer)
+                '     Public Sub goo(p As Integer)
                 '
                 ' in other contexts we give more information, e.g.
-                ' BC30794: No accessible 'foo' is most specific: 
-                '     Public Sub foo(p As Integer): <reason>
-                '     Public Sub foo(p As Integer): <reason>
+                ' BC30794: No accessible 'goo' is most specific: 
+                '     Public Sub goo(p As Integer): <reason>
+                '     Public Sub goo(p As Integer): <reason>
                 Dim bestSymbol As Symbol = bestSymbols(i)
                 Dim bestSymbolIsExtension As Boolean = bestSymbol.IsReducedExtensionMethod
 
@@ -1875,9 +1875,9 @@ ProduceBoundNode:
                     ' When reporting errors for an AddressOf, Dev 10 shows different error messages depending on how many
                     ' errors there are per candidate.
                     ' One narrowing error will be shown like:
-                    '     'Public Sub foo6(p As Integer, p2 As Byte)': Option Strict On disallows implicit conversions from 'Integer' to 'Byte'.
+                    '     'Public Sub goo6(p As Integer, p2 As Byte)': Option Strict On disallows implicit conversions from 'Integer' to 'Byte'.
                     ' More than one narrowing issues in the parameters are abbreviated with:
-                    '     'Public Sub foo6(p As Byte, p2 As Byte)': Method does not have a signature compatible with the delegate.
+                    '     'Public Sub goo6(p As Byte, p2 As Byte)': Method does not have a signature compatible with the delegate.
 
                     If delegateSymbol Is Nothing OrElse Not sealedCandidateDiagnostics.Skip(1).Any() Then
                         If isExtension Then
@@ -2020,15 +2020,30 @@ ProduceBoundNode:
                 Dim paramIndex = 0
                 Dim someArgumentsBad As Boolean = False
                 Dim someParamArrayArgumentsBad As Boolean = False
+                Dim seenOutOfPositionNamedArgIndex As Integer = -1
 
                 Dim candidateSymbol As Symbol = candidate.UnderlyingSymbol
                 Dim candidateIsExtension As Boolean = candidate.IsExtensionMethod
 
                 For i As Integer = 0 To arguments.Length - 1 Step 1
 
+                    ' A named argument which is used in-position counts as positional
                     If Not argumentNames.IsDefault AndAlso argumentNames(i) IsNot Nothing Then
-                        ' First named argument
-                        Exit For
+                        If Not candidate.TryGetNamedParamIndex(argumentNames(i), paramIndex) Then
+                            Exit For
+                        End If
+
+                        If paramIndex <> i Then
+                            ' all remaining arguments must be named
+                            seenOutOfPositionNamedArgIndex = i
+                            Exit For
+                        End If
+
+                        If paramIndex = candidate.ParameterCount - 1 AndAlso candidate.Parameters(paramIndex).IsParamArray Then
+                            Exit For
+                        End If
+
+                        Debug.Assert(parameterToArgumentMap(paramIndex) = -1)
                     End If
 
                     If paramIndex = candidate.ParameterCount Then
@@ -2055,7 +2070,7 @@ ProduceBoundNode:
 
                             If Not argumentNames.IsDefault AndAlso argumentNames(i) IsNot Nothing Then
                                 ' First named argument
-                                Exit While
+                                Continue For
                             End If
 
                             If arguments(i).Kind = BoundKind.OmittedArgument Then
@@ -2079,8 +2094,6 @@ ProduceBoundNode:
                     positionalArguments += 1
                 Next
 
-                Debug.Assert(argumentNames.IsDefault OrElse positionalArguments < arguments.Length)
-
                 Dim skippedSomeArguments As Boolean = False
 
                 '§11.8.2 Applicable Methods
@@ -2093,8 +2106,11 @@ ProduceBoundNode:
                     Debug.Assert(argumentNames(i) Is Nothing OrElse argumentNames(i).Length > 0)
 
                     If argumentNames(i) Is Nothing Then
-                        ' Unnamed argument follows named arguments, parser should have detected an error.
-                        Debug.Assert(arguments(i).Syntax.Parent.ContainsDiagnostics)
+                        ' Unnamed argument follows out-of-position named arguments
+                        If Not someArgumentsBad Then
+                            ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(seenOutOfPositionNamedArgIndex).Syntax),
+                                         ERRID.ERR_BadNonTrailingNamedArgument, argumentNames(seenOutOfPositionNamedArgIndex))
+                        End If
                         Return
                     End If
 
@@ -2437,7 +2453,6 @@ ProduceBoundNode:
                 parameterToArgumentMap.Free()
             End Try
         End Sub
-
 
         ''' <summary>
         ''' Should be in sync with OverloadResolution.MatchArgumentToByRefParameter
@@ -3010,10 +3025,17 @@ ProduceBoundNode:
                                 End If
 
                                 argumentNamesLocationsBuilder.Add(id.GetLocation())
+                            ElseIf argumentNamesBuilder IsNot Nothing Then
+                                argumentNamesBuilder.Add(Nothing)
+                                argumentNamesLocationsBuilder.Add(Nothing)
                             End If
 
                         Case SyntaxKind.OmittedArgument
                             boundArgumentsBuilder.Add(New BoundOmittedArgument(argumentSyntax, Nothing))
+                            If argumentNamesBuilder IsNot Nothing Then
+                                argumentNamesBuilder.Add(Nothing)
+                                argumentNamesLocationsBuilder.Add(Nothing)
+                            End If
 
                         Case SyntaxKind.RangeArgument
                             ' NOTE: Redim statement supports range argument, like: Redim x(0 To 3)(0 To 6)
@@ -3023,6 +3045,10 @@ ProduceBoundNode:
                             Dim rangeArgument = DirectCast(argumentSyntax, RangeArgumentSyntax)
                             CheckRangeArgumentLowerBound(rangeArgument, diagnostics)
                             boundArgumentsBuilder.Add(BindValue(rangeArgument.UpperBound, diagnostics))
+                            If argumentNamesBuilder IsNot Nothing Then
+                                argumentNamesBuilder.Add(Nothing)
+                                argumentNamesLocationsBuilder.Add(Nothing)
+                            End If
 
                         Case Else
                             Throw ExceptionUtilities.UnexpectedValue(argumentSyntax.Kind)

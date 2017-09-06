@@ -60,8 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
             AnalyzerService = analyzerService;
 
-            uint solutionEventsCookie;
-            if (ErrorHandler.Succeeded(_vsSolution.AdviseSolutionEvents(this, out solutionEventsCookie)))
+            if (ErrorHandler.Succeeded(_vsSolution.AdviseSolutionEvents(this, out var solutionEventsCookie)))
             {
                 _solutionEventsCookie = solutionEventsCookie;
             }
@@ -76,8 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 throw new ArgumentNullException(nameof(vsTextView));
             }
 
-            IVsTextLines textLines;
-            if (ErrorHandler.Failed(vsTextView.GetBuffer(out textLines)))
+            if (ErrorHandler.Failed(vsTextView.GetBuffer(out var textLines)))
             {
                 return;
             }
@@ -88,19 +86,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 return;
             }
 
-            object monikerObj;
             Guid monikerGuid = typeof(IVsUserData).GUID;
-            if (ErrorHandler.Failed(userData.GetData(ref monikerGuid, out monikerObj)))
+            if (ErrorHandler.Failed(userData.GetData(ref monikerGuid, out var monikerObj)))
             {
                 return;
             }
 
             string filePath = monikerObj as string;
-            uint itemId;
-            uint docCookie;
-            IVsHierarchy hierarchy;
 
-            _rdt.Value.FindDocument(filePath, out hierarchy, out itemId, out docCookie);
+            _rdt.Value.FindDocument(filePath, out var hierarchy, out var itemId, out var docCookie);
 
             AbstractProject project = GetXamlProject(hierarchy);
             if (project == null)

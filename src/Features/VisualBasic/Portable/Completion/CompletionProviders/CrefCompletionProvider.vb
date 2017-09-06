@@ -116,8 +116,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If token.Parent.IsKind(SyntaxKind.XmlString) AndAlso token.Parent.IsParentKind(SyntaxKind.XmlAttribute) Then
                 Dim xmlAttribute = DirectCast(token.Parent.Parent, XmlAttributeSyntax)
                 Dim xmlName = TryCast(xmlAttribute.Name, XmlNameSyntax)
+                Dim xmlValue = TryCast(xmlAttribute.Value, XmlStringSyntax)
 
-                If xmlName?.LocalName.ValueText = "cref" Then
+                If xmlName?.LocalName.ValueText = "cref" AndAlso xmlValue?.StartQuoteToken = token Then
                     Return True
                 End If
             End If

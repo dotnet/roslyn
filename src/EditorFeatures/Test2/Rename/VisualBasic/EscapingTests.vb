@@ -17,9 +17,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-Module {|Escape:$$Foo|}
+Module {|Escape:$$Goo|}
     Sub Blah()
-        {|stmt1:Foo|}.Blah()
+        {|stmt1:Goo|}.Blah()
     End Sub
 End Module
                                </Document>
@@ -38,9 +38,9 @@ End Module
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-Module Foo
+Module Goo
     Sub {|Escape:$$Blah|}()
-        Foo.{|stmt1:Blah|}()
+        Goo.{|stmt1:Blah|}()
     End Sub
 End Module
                                </Document>
@@ -169,9 +169,9 @@ End Class
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-Module Foo
+Module Goo
     Sub {|Escape:$$Blah|}()
-        Foo.{|stmt1:Blah|}()
+        Goo.{|stmt1:Blah|}()
     End Sub
 End Module
                                </Document>
@@ -194,10 +194,10 @@ End Module
                         <Document>
                                Module M
                                    Sub Main
-                                       {|stmt1:Foo|}(1) = 1
+                                       {|stmt1:Goo|}(1) = 1
                                    End Sub
                                 
-                                   WriteOnly Property [|$$Foo|](ParamArray x As Integer()) As Integer
+                                   WriteOnly Property [|$$Goo|](ParamArray x As Integer()) As Integer
                                        Set(ByVal value As Integer)
                                        End Set
                                    End Property
@@ -221,10 +221,10 @@ End Module
                         <Document>
                                        Module M
                                            Sub Main
-                                               {|stmt1:Foo|}(1) = 1
+                                               {|stmt1:Goo|}(1) = 1
                                            End Sub
                                         
-                                           WriteOnly Property [|$$Foo|](ParamArray x As Integer()) As Integer
+                                           WriteOnly Property [|$$Goo|](ParamArray x As Integer()) As Integer
                                                Set(ByVal value As Integer)
                                                End Set
                                            End Property
@@ -248,10 +248,10 @@ End Module
                         <Document>
                                    Module M
                                        Sub Main
-                                           {|escaped:Foo|}(1) = ""
+                                           {|escaped:Goo|}(1) = ""
                                        End Sub
                                     
-                                       WriteOnly Property {|stmt:$$Foo$|}(x%)
+                                       WriteOnly Property {|stmt:$$Goo$|}(x%)
                                            Set(ByVal value$)
                                            End Set
                                        End Property
@@ -275,10 +275,10 @@ End Module
                         <Document>
                                    Module M
                                        Sub Main
-                                           {|unresolved:Foo|}(1) = ""
+                                           {|unresolved:Goo|}(1) = ""
                                        End Sub
                                     
-                                       WriteOnly Property {|unresolved2:$$Foo$|}(x%)
+                                       WriteOnly Property {|unresolved2:$$Goo$|}(x%)
                                            Set(ByVal value$)
                                            End Set
                                        End Property
@@ -325,10 +325,10 @@ End Module
 Module M
     Sub Main
         Dim [Rem]
-        {|Resolve:Foo|}
+        {|Resolve:Goo|}
     End Sub
  
-    Sub {|Escape:Foo$$|}
+    Sub {|Escape:Goo$$|}
     End Sub
 End Module
                                    </Document>
@@ -351,10 +351,10 @@ End Module
 Module M
     Sub Main
         Dim [New]
-        {|Resolve:Foo|}
+        {|Resolve:Goo|}
     End Sub
  
-    Sub {|Escape:Foo$$|}
+    Sub {|Escape:Goo$$|}
     End Sub
 End Module
                            </Document>
@@ -377,10 +377,10 @@ End Module
 Class M
     Sub Main()
         Dim [Rem]
-        {|Replacement:Foo|}()
+        {|Replacement:Goo|}()
     End Sub
  
-    Sub {|Escaped:$$Foo|}()
+    Sub {|Escaped:$$Goo|}()
     End Sub
 End Class
                             </Document>
@@ -403,10 +403,10 @@ End Class
 Class M
     Sub Main
         Dim [If]
-        {|Resolve:Foo|}
+        {|Resolve:Goo|}
     End Sub
  
-    Sub {|Escape:Foo$$|}
+    Sub {|Escape:Goo$$|}
     End Sub
 End Class
                                </Document>
@@ -534,9 +534,9 @@ End Module
                         <Document><![CDATA[
 Module M
     Sub Main()
-        {|stmt1:Foo|}()
+        {|stmt1:Goo|}()
     End Sub
-    Sub [|$$Foo|]() ' Rename Foo to Mid
+    Sub [|$$Goo|]() ' Rename Goo to Mid
     End Sub
 End Module
                                ]]></Document>

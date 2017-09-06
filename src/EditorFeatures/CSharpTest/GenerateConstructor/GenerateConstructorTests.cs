@@ -85,7 +85,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructor
 {
     private int v;
 
-    public C(int v) => this.v = v; void M()
+    public C(int v) => this.v = v;
+
+    void M()
     {
         new C(1);
     }
@@ -137,21 +139,21 @@ input,
 {
     void M()
     {
-        new [|C(foo: 1)|];
+        new [|C(goo: 1)|];
     }
 }",
 @"class C
 {
-    private int foo;
+    private int goo;
 
-    public C(int foo)
+    public C(int goo)
     {
-        this.foo = foo;
+        this.goo = goo;
     }
 
     void M()
     {
-        new C(foo: 1);
+        new C(goo: 1);
     }
 }");
         }
@@ -164,13 +166,13 @@ input,
 {
     void M()
     {
-        new [|D(foo: 1)|];
+        new [|D(goo: 1)|];
     }
 }
 
 class D
 {
-    private int foo;
+    private int goo;
 }";
             await TestActionCountAsync(input, 1);
             await TestInRegularAndScriptAsync(
@@ -179,17 +181,17 @@ class D
 {
     void M()
     {
-        new D(foo: 1);
+        new D(goo: 1);
     }
 }
 
 class D
 {
-    private int foo;
+    private int goo;
 
-    public D(int foo)
+    public D(int goo)
     {
-        this.foo = foo;
+        this.goo = goo;
     }
 }");
         }
@@ -1305,8 +1307,7 @@ class Derived : Base
     {
         new C(1);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(5864, "DevDiv_Projects/Roslyn")]
@@ -1787,7 +1788,7 @@ class A
             await TestInRegularAndScriptAsync(
 @"class C<T1, T2>
 {
-    public void Foo(T1 t1, T2 t2)
+    public void Goo(T1 t1, T2 t2)
     {
         A a = new [|A|](t1, t2);
     }
@@ -1798,7 +1799,7 @@ internal class A
 }",
 @"class C<T1, T2>
 {
-    public void Foo(T1 t1, T2 t2)
+    public void Goo(T1 t1, T2 t2)
     {
         A a = new A(t1, t2);
     }
@@ -1824,7 +1825,7 @@ internal class A
             await TestInRegularAndScriptAsync(
 @"class C<T1, T2>
 {
-    public void Foo(T1 t1, T2 t2)
+    public void Goo(T1 t1, T2 t2)
     {
         A a = new [|A|](t1, t2);
     }
@@ -1835,7 +1836,7 @@ internal class A
 }",
 @"class C<T1, T2>
 {
-    public void Foo(T1 t1, T2 t2)
+    public void Goo(T1 t1, T2 t2)
     {
         A a = new A(t1, t2);
     }
@@ -1934,7 +1935,7 @@ struct Apartment
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         new [|D|](1, 2, 3);
     }
@@ -1953,7 +1954,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         var d = new D([|v|]: new D(u: 1));
     }
@@ -1969,7 +1970,7 @@ class D
 }",
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         var d = new D(v: new D(u: 1));
     }
@@ -2427,7 +2428,7 @@ class Program
         this.wde = wde;
     }
 }
-", ignoreTrivia: false);
+");
         }
 
         [WorkItem(528257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528257")]
@@ -2435,7 +2436,7 @@ class Program
         public async Task TestGenerateInInaccessibleType()
         {
             await TestInRegularAndScriptAsync(
-@"class Foo
+@"class Goo
 {
     class Bar
     {
@@ -2446,10 +2447,10 @@ class A
 {
     static void Main(string[] args)
     {
-        var s = new [|Foo.Bar(5)|];
+        var s = new [|Goo.Bar(5)|];
     }
 }",
-@"class Foo
+@"class Goo
 {
     class Bar
     {
@@ -2466,7 +2467,7 @@ class A
 {
     static void Main(string[] args)
     {
-        var s = new Foo.Bar(5);
+        var s = new Goo.Bar(5);
     }
 }");
         }
@@ -2518,7 +2519,7 @@ class C
             await TestInRegularAndScriptAsync(
 @"class Class1
 {
-    private void Foo(string value)
+    private void Goo(string value)
     {
         var rewriter = new [|Derived|](value);
     }
@@ -2539,7 +2540,7 @@ class C
 }",
 @"class Class1
 {
-    private void Foo(string value)
+    private void Goo(string value)
     {
         var rewriter = new Derived(value);
     }
@@ -3260,18 +3261,20 @@ class P {
     }
 } ",
 @"class C {
-    public C ( int prop ) {
-        Prop = prop ;
-    } 
+    public C(int prop)
+    {
+        Prop = prop;
+    }
+
     public int Prop { get ; }
 }
 
-class P {
-    static void M ( ) {
+class P { 
+    static void M ( ) { 
         var prop = 42 ;
         var c = new C ( prop ) ;
     }
-}");
+} ");
         }
     }
 }

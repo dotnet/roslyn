@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -14,23 +15,26 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal struct TokenSemanticInfo
     {
         public static readonly TokenSemanticInfo Empty = new TokenSemanticInfo(
-            null, null, ImmutableArray<ISymbol>.Empty, null);
+            null, null, ImmutableArray<ISymbol>.Empty, null, default(TextSpan));
 
         public readonly ISymbol DeclaredSymbol;
         public readonly IAliasSymbol AliasSymbol;
         public readonly ImmutableArray<ISymbol> ReferencedSymbols;
         public readonly ITypeSymbol Type;
+        public readonly TextSpan Span;
 
         public TokenSemanticInfo(
             ISymbol declaredSymbol, 
             IAliasSymbol aliasSymbol,
             ImmutableArray<ISymbol> referencedSymbols,
-            ITypeSymbol type)
+            ITypeSymbol type,
+            TextSpan span)
         {
             DeclaredSymbol = declaredSymbol;
             AliasSymbol = aliasSymbol;
             ReferencedSymbols = referencedSymbols;
             Type = type;
+            Span = span;
         }
 
         public ImmutableArray<ISymbol> GetSymbols(bool includeType)
@@ -187,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // information for VB event handlers.  Namely, if you have:
             //
             // Event X]()
-            // Sub Foo()
+            // Sub Goo()
             //      Dim y = New $$XEventHandler(AddressOf bar)
             // End Sub
             //
@@ -207,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return new TokenSemanticInfo(declaredSymbol, aliasSymbol, allSymbols, type);
+            return new TokenSemanticInfo(declaredSymbol, aliasSymbol, allSymbols, type, token.Span);
         }
 
         public static SemanticModel GetOriginalSemanticModel(this SemanticModel semanticModel)

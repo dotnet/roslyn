@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
         Public Async Function NoCommentsOrAttributes() As Task
             Dim code = "
 Class C
-    Event $$foo(x As Integer)
+    Event $$goo(x As Integer)
 End Class
 "
 
@@ -34,8 +34,8 @@ End Class
         Public Async Function WithAttributes() As Task
             Dim code = "
 Class C
-    {|hint:{|textspan:<Foo>
-    |}Event $$foo(x As Integer)|}
+    {|hint:{|textspan:<Goo>
+    |}Event $$goo(x As Integer)|}
 End Class
 "
 
@@ -49,8 +49,8 @@ End Class
 Class C
     {|hint:{|textspan:' Summary:
     '     This is a summary.
-    <Foo>
-    |}Event $$foo(x As Integer)|}
+    <Goo>
+    |}Event $$goo(x As Integer)|}
 End Class
 "
 
@@ -64,8 +64,8 @@ End Class
 Class C
     {|hint:{|textspan:' Summary:
     '     This is a summary.
-    <Foo>
-    |}Private Event $$foo(x As Integer)|}
+    <Goo>
+    |}Private Event $$goo(x As Integer)|}
 End Class
 "
 

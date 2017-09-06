@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this IMethodSymbol method, ISymbol accessibleWithin,
             params INamedTypeSymbol[] removeAttributeTypes)
         {
-            Func<AttributeData, bool> shouldRemoveAttribute = a =>
+            bool shouldRemoveAttribute(AttributeData a) =>
                 removeAttributeTypes.Any(attr => attr != null && attr.Equals(a.AttributeClass)) || !a.AttributeClass.IsAccessibleWithin(accessibleWithin);
 
             return method.RemoveAttributesCore(
@@ -244,10 +244,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // be more specific if, for example, it was actually written with concrete types (like 'int') 
             // versus the other which may have been instantiated from a type parameter.   i.e.
             //
-            // class C<T> { void Foo(T t); void Foo(int t); }
+            // class C<T> { void Goo(T t); void Goo(int t); }
             //
-            // THe latter Foo is more specific when comparing "C<int>.Foo(int t)" (method1) vs 
-            // "C<int>.Foo(int t)" (method2).
+            // THe latter Goo is more specific when comparing "C<int>.Goo(int t)" (method1) vs 
+            // "C<int>.Goo(int t)" (method2).
             p1 = method1.OriginalDefinition.Parameters;
             p2 = method2.OriginalDefinition.Parameters;
             return p1.Select(p => p.Type).ToList().AreMoreSpecificThan(p2.Select(p => p.Type).ToList());

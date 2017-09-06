@@ -62,12 +62,12 @@ Public Class VisualBasicParseOptionsTests
         AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), New KeyValuePair(Of String, Object)("TARGET", "module")}, symbols.AsEnumerable)
 
         symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication,
-                                                   {New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123)})
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
+                                                   {New KeyValuePair(Of String, Object)("VBC_VER", "Goo"), New KeyValuePair(Of String, Object)("TARGET", 123)})
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Goo"), New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
 
         symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication,
-                                                   New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123))
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
+                                                   New KeyValuePair(Of String, Object)("VBC_VER", "Goo"), New KeyValuePair(Of String, Object)("TARGET", 123))
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Goo"), New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
 
         symbols = AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication, empty)
         AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), New KeyValuePair(Of String, Object)("TARGET", "exe")}, symbols.AsEnumerable)

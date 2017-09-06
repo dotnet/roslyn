@@ -1739,13 +1739,13 @@ class Test
             string source = @"
 public class Parent
 {
-    public int Foo(int? d = 0) { return (int)d; }
+    public int Goo(int? d = 0) { return (int)d; }
 }
 ";
             string source2 = @"
 public class Parent
 {
-    public int Foo(int? d = 0) { return (int)d; }
+    public int Goo(int? d = 0) { return (int)d; }
 }
 
 public class Test
@@ -1753,7 +1753,7 @@ public class Test
     public static void Main()
     {
         Parent p = new Parent();
-        System.Console.Write(p.Foo(0));
+        System.Console.Write(p.Goo(0));
     }
 }
 ";

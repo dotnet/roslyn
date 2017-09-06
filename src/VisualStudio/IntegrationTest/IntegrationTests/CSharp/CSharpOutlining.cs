@@ -54,11 +54,11 @@ namespace ClassLibrary1[|
     public class Class1[|
     {
 #if DEBUG
-{|Release:        void Foo(){|Debug:
+{|Release:        void Goo(){|Debug:
         {
         }|}
         
-        void Foo2(){|Debug:
+        void Goo2(){|Debug:
         {
         }|}|}
 #else

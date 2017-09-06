@@ -213,7 +213,7 @@ class Program
 {
     void Method()
     {
-        [|var|] x = new Foo();
+        [|var|] x = new Goo();
     }
 }", new TestParameters(options: ExplicitTypeEverywhere()));
         }
@@ -741,8 +741,8 @@ class C
     {
         var customers = new List<Customer>();
         IEnumerable<Customer> expr = from c in customers
-                                     where c.City == ""London""
-                                     select c;
+                   where c.City == ""London""
+                   select c;
     }
 
     private class Customer

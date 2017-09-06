@@ -32,8 +32,7 @@ End Class",
         Return z IsNot Nothing AndAlso
                a = z.a
     End Function
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <WorkItem(541991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541991")>
@@ -79,7 +78,7 @@ End Class",
         Return -1757793268 + a.GetHashCode()
     End Function
 End Class",
-index:=1, ignoreTrivia:=False)
+index:=1)
         End Function
 
         <WorkItem(545205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545205")>
@@ -90,11 +89,14 @@ index:=1, ignoreTrivia:=False)
     [|Dim x As New V|]
 End Class",
 "Imports System.Collections.Generic
+
 Partial Class c1(Of V As {New}, U)
     Dim x As New V
+
     Public Overrides Function Equals(obj As Object) As Boolean
         Dim c = TryCast(obj, c1(Of V, U))
-        Return c IsNot Nothing AndAlso EqualityComparer(Of V).Default.Equals(x, c.x)
+        Return c IsNot Nothing AndAlso
+               EqualityComparer(Of V).Default.Equals(x, c.x)
     End Function
 End Class")
         End Function
@@ -201,8 +203,7 @@ Structure Program
     End Operator
 End Structure",
 chosenSymbols:=Nothing,
-optionsCallback:=Sub(options) EnableOption(options, GenerateOperatorsId),
-ignoreTrivia:=False)
+optionsCallback:=Sub(options) EnableOption(options, GenerateOperatorsId))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
@@ -233,8 +234,7 @@ structure Program
     End Function
 End structure",
 chosenSymbols:=Nothing,
-optionsCallback:=Sub(Options) EnableOption(Options, ImplementIEquatableId),
-ignoreTrivia:=False)
+optionsCallback:=Sub(Options) EnableOption(Options, ImplementIEquatableId))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
@@ -266,8 +266,7 @@ Class Program
     End Function
 End Class",
 chosenSymbols:=Nothing,
-optionsCallback:=Sub(Options) EnableOption(Options, ImplementIEquatableId),
-ignoreTrivia:=False)
+optionsCallback:=Sub(Options) EnableOption(Options, ImplementIEquatableId))
         End Function
     End Class
 End Namespace

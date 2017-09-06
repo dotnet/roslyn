@@ -1947,7 +1947,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' and returns it instead of rebinding it. 
         ''' 
         ''' FOr example, we might have:
-        '''    While x > foo()
+        '''    While x > goo()
         '''      y = y * x
         '''      z = z + y
         '''    End While

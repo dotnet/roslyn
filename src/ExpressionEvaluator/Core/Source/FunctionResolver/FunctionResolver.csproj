@@ -34,8 +34,8 @@
     <Compile Include="..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKindFacts.cs">
       <Link>CSharp\Compiler\SyntaxKindFacts.cs</Link>
     </Compile>
-    <Compile Include="..\ExpressionCompiler\MetadataUtilities_Exceptions.cs">
-      <Link>ExpressionCompiler\MetadataUtilities_Exceptions.cs</Link>
+    <Compile Include="..\ExpressionCompiler\DkmExceptionUtilities.cs">
+      <Link>ExpressionCompiler\DkmExceptionUtilities.cs</Link>
     </Compile>
     <VsdConfigXml Include="CSharp\FunctionResolver.vsdconfigxml" />
     <VsdConfigXml Include="VisualBasic\FunctionResolver.vsdconfigxml" />

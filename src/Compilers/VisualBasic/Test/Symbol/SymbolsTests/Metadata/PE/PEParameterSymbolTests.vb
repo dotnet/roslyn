@@ -2,6 +2,7 @@
 
 Imports System.Reflection
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.Desktop
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests

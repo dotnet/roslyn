@@ -162,6 +162,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add file banner.
+        /// </summary>
+        internal static string Add_file_banner {
+            get {
+                return ResourceManager.GetString("Add_file_banner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add missing cases.
         /// </summary>
         internal static string Add_missing_cases {
@@ -2910,6 +2919,16 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Switching between a lambda and a local function will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_c" +
+                        "ontinuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Take &apos;{0}&apos;.
         /// </summary>
         internal static string Take_0 {
@@ -3346,6 +3365,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use {0}.
+        /// </summary>
+        internal static string Use_0 {
+            get {
+                return ResourceManager.GetString("Use_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use auto property.
         /// </summary>
         internal static string Use_auto_property {
@@ -3586,6 +3614,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Warning_colon_Declaration_changes_scope_and_may_change_meaning {
             get {
                 return ResourceManager.GetString("Warning_colon_Declaration_changes_scope_and_may_change_meaning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: Method overrides symbol from metadata.
+        /// </summary>
+        internal static string Warning_Method_overrides_symbol_from_metadata {
+            get {
+                return ResourceManager.GetString("Warning_Method_overrides_symbol_from_metadata", resourceCulture);
             }
         }
         

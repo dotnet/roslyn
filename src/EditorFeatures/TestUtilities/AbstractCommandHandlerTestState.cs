@@ -41,14 +41,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         /// 
         /// For instance, the following will create a TextView that has a multiline selection with the cursor at the end.
         /// 
-        /// Sub Foo
+        /// Sub Goo
         ///     {|Selection:SomeMethodCall()
         ///     AnotherMethodCall()$$|}
         /// End Sub
         ///
         /// You can use multiple selection spans to create box selections.
         ///
-        /// Sub Foo
+        /// Sub Goo
         ///     {|Selection:$$box|}11111
         ///     {|Selection:sel|}111
         ///     {|Selection:ect|}1
@@ -262,6 +262,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         {
             var caretPosition = Workspace.Documents.Single(d => d.CursorPosition.HasValue).CursorPosition.Value;
             return SubjectBuffer.CurrentSnapshot.GetLineFromPosition(caretPosition).GetText();
+        }
+
+        public (string TextBeforeCaret, string TextAfterCaret) GetLineTextAroundCaretPosition()
+        {
+            int bufferCaretPosition = GetCaretPoint().BufferPosition;
+            var line = SubjectBuffer.CurrentSnapshot.GetLineFromPosition(bufferCaretPosition);
+            var lineCaretPosition = bufferCaretPosition - line.Start.Position;
+
+            var text = line.GetText();
+            var textBeforeCaret = text.Substring(0, lineCaretPosition);
+            var textAfterCaret = text.Substring(lineCaretPosition, text.Length - lineCaretPosition);
+
+            return (textBeforeCaret, textAfterCaret);
         }
 
         public string GetDocumentText()

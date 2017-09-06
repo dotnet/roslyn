@@ -3780,7 +3780,10 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>Inconsistent accessibility: event type '{1}' is less accessible than event '{0}'</value>
   </data>
   <data name="ERR_NamedArgumentSpecificationBeforeFixedArgument" xml:space="preserve">
-    <value>Named argument specifications must appear after all fixed arguments have been specified</value>
+    <value>Named argument specifications must appear after all fixed arguments have been specified. Please use language version {0} or greater to allow non-trailing named arguments.</value>
+  </data>
+  <data name="ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation" xml:space="preserve">
+    <value>Named argument specifications must appear after all fixed arguments have been specified in a dynamic invocation.</value>
   </data>
   <data name="ERR_BadNamedArgument" xml:space="preserve">
     <value>The best overload for '{0}' does not have a parameter named '{1}'</value>
@@ -3793,6 +3796,9 @@ You should consider suppressing the warning only if you're sure that you don't w
   </data>
   <data name="ERR_NamedArgumentUsedInPositional" xml:space="preserve">
     <value>Named argument '{0}' specifies a parameter for which a positional argument has already been given</value>
+  </data>
+  <data name="ERR_BadNonTrailingNamedArgument" xml:space="preserve">
+    <value>Named argument '{0}' is used out-of-position but is followed by an unnamed argument</value>
   </data>
   <data name="ERR_DefaultValueUsedWithAttributes" xml:space="preserve">
     <value>Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute</value>
@@ -4818,7 +4824,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</value>
   </data>
   <data name="ERR_RefReturnParameter2" xml:space="preserve">
-    <value>Cannot return or a member of parameter '{0}' by reference because it is not a ref or out parameter</value>
+    <value>Cannot return a member of parameter '{0}' by reference because it is not a ref or out parameter</value>
   </data>
   <data name="ERR_RefReturnLocal" xml:space="preserve">
     <value>Cannot return local '{0}' by reference because it is not a ref local</value>
@@ -4986,7 +4992,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>/sourcelink switch is only supported when emitting PDB.</value>
   </data>
   <data name="ERR_CannotEmbedWithoutPdb" xml:space="preserve">
-    <value>/embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded).</value>
+    <value>/embed switch is only supported when emitting a PDB.</value>
   </data>
   <data name="ERR_InvalidInstrumentationKind" xml:space="preserve">
     <value>Invalid instrumentation kind: {0}</value>
@@ -5107,5 +5113,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_InvalidDebugInfo" xml:space="preserve">
     <value>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}'</value>
+  </data>
+  <data name="ERR_DynamicLocalFunctionTypeParameter" xml:space="preserve">
+    <value>Cannot pass argument with dynamic type to generic local function '{0}' with inferred type arguments.</value>
+  </data>
+  <data name="IDS_FeatureLeadingDigitSeparator" xml:space="preserve">
+    <value>leading digit separator</value>
   </data>
 </root>
