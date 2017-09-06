@@ -5562,6 +5562,7 @@ class C
             x = 0;
             /*</bind>*/
         }
+        x++;
     }
 }");
             Assert.Equal("x", GetSymbolNamesJoined(results.Captured));
@@ -5569,8 +5570,8 @@ class C
             Assert.Equal(null, GetSymbolNamesJoined(results.DataFlowsOut));
             Assert.Equal("y", GetSymbolNamesJoined(results.ReadInside));
             Assert.Equal("x, y", GetSymbolNamesJoined(results.WrittenInside));
-            Assert.Equal(null, GetSymbolNamesJoined(results.ReadOutside));
-            Assert.Equal("this", GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("x", GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal("this, x", GetSymbolNamesJoined(results.WrittenOutside));
             Assert.Equal("x, y", GetSymbolNamesJoined(results.AlwaysAssigned));
         }
 
