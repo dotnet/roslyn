@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -277,9 +277,8 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Function <generated method>() As ?, IsInvalid) (Syntax: 'Function() F()')
-  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IAnonymousFunctionExpression (Symbol: Function () As ?) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function() F()')
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Function <generated method>() As ?, IsInvalid) (Syntax: 'Function() F()')
+  Target: IAnonymousFunctionExpression (Symbol: Function () As ?) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function() F()')
       IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Function() F()')
         Locals: Local_1: <anonymous local> As ?
         IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'F()')
@@ -291,7 +290,8 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'Function() F()')
           Statement: null
         IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Function() F()')
-          ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: ?, IsInvalid) (Syntax: 'Function() F()')]]>.Value
+          ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: ?, IsInvalid) (Syntax: 'Function() F()')
+]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
 BC30491: Expression does not produce a value.

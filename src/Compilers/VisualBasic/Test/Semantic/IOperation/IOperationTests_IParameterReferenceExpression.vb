@@ -103,9 +103,8 @@ IOperation:  (OperationKind.None) (Syntax: 'From cust I ... t cust.Name')
                                 IParameterReferenceExpression: customers (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.List(Of Customer)) (Syntax: 'customers')
               Arguments(1):
                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument) (Syntax: 'cust.Name')
-                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of Customer, System.String)) (Syntax: 'cust.Name')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      Operand: IOperation:  (OperationKind.None) (Syntax: 'cust.Name')
+                    IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of Customer, System.String)) (Syntax: 'cust.Name')
+                      Target: IOperation:  (OperationKind.None) (Syntax: 'cust.Name')
                           Children(1):
                               IOperation:  (OperationKind.None) (Syntax: 'cust.Name')
                                 Children(1):
@@ -205,9 +204,8 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
                                           IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'x')
                         Arguments(1):
                             IArgument (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument) (Syntax: 'y.Length')
-                              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String, System.Int32)) (Syntax: 'y.Length')
-                                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                Operand: IOperation:  (OperationKind.None) (Syntax: 'y.Length')
+                              IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String, System.Int32)) (Syntax: 'y.Length')
+                                Target: IOperation:  (OperationKind.None) (Syntax: 'y.Length')
                                     Children(1):
                                         IPropertyReferenceExpression: ReadOnly Property System.String.Length As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'y.Length')
                                           Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'y')
@@ -253,9 +251,8 @@ IOperation:  (OperationKind.None) (Syntax: 'From y In x ... nto Count()')
                                 IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'x')
               Arguments(2):
                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument) (Syntax: 'x')
-                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String, <anonymous type: Key w As System.String(), Key z As System.String>)) (Syntax: 'x')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      Operand: IOperation:  (OperationKind.None) (Syntax: 'x')
+                    IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String, <anonymous type: Key w As System.String(), Key z As System.String>)) (Syntax: 'x')
+                      Target: IOperation:  (OperationKind.None) (Syntax: 'x')
                           Children(1):
                               IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String>) (Syntax: 'Group By w  ... nto Count()')
                                 Initializers(2):
@@ -268,9 +265,8 @@ IOperation:  (OperationKind.None) (Syntax: 'From y In x ... nto Count()')
                     InConversion: null
                     OutConversion: null
                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument) (Syntax: 'Group By w  ... nto Count()')
-                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of <anonymous type: Key w As System.String(), Key z As System.String>, System.Collections.Generic.IEnumerable(Of System.String), <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (Syntax: 'Group By w  ... nto Count()')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      Operand: IOperation:  (OperationKind.None) (Syntax: 'Group By w  ... nto Count()')
+                    IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key w As System.String(), Key z As System.String>, System.Collections.Generic.IEnumerable(Of System.String), <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (Syntax: 'Group By w  ... nto Count()')
+                      Target: IOperation:  (OperationKind.None) (Syntax: 'Group By w  ... nto Count()')
                           Children(1):
                               IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>) (Syntax: 'Group By w  ... nto Count()')
                                 Initializers(3):
@@ -377,9 +373,8 @@ Class Class1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... nction() x)')
-  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IAnonymousFunctionExpression (Symbol: Function () As System.Object) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function() x')
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... nction() x)')
+  Target: IAnonymousFunctionExpression (Symbol: Function () As System.Object) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function() x')
       IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function() x')
         Locals: Local_1: <anonymous local> As System.Object
         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x')
@@ -408,9 +403,8 @@ Class Class1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... essOf Me.M)')
-  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IOperation:  (OperationKind.None) (Syntax: 'AddressOf Me.M')
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... essOf Me.M)')
+  Target: IOperation:  (OperationKind.None) (Syntax: 'AddressOf Me.M')
       Children(1):
           IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: Class1) (Syntax: 'Me')
 ]]>.Value

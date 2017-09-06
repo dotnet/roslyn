@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Linq.Enumerable
 Imports System.Xml.Linq
@@ -1123,9 +1123,8 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Func(Of System.Int32)) (Syntax: '.Field2 = F ... nd Function')
             Left: IFieldReferenceExpression: C1.Field2 As System.Func(Of System.Int32) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Int32)) (Syntax: 'Field2')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1 With ... d Function}')
-            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.Int32)) (Syntax: 'Function()  ... nd Function')
-                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: IAnonymousFunctionExpression (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function()  ... nd Function')
+            Right: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32)) (Syntax: 'Function()  ... nd Function')
+                Target: IAnonymousFunctionExpression (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function()  ... nd Function')
                     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function()  ... nd Function')
                       Locals: Local_1: <anonymous local> As System.Int32
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return .Field')
@@ -1393,9 +1392,8 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field = Fu ... nd Function')
             Left: IFieldReferenceExpression: C2.Field As System.Func(Of System.Object) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: 'Field')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'As New C2 W ... d Function}')
-            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.Object)) (Syntax: 'Function()' ... nd Function')
-                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: IAnonymousFunctionExpression (Symbol: Function () As System.Object) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function()' ... nd Function')
+            Right: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Object)) (Syntax: 'Function()' ... nd Function')
+                Target: IAnonymousFunctionExpression (Symbol: Function () As System.Object) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function()' ... nd Function')
                     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function()' ... nd Function')
                       Locals: Local_1: <anonymous local> As System.Object
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return .Field')
@@ -1410,9 +1408,8 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Func(Of System.Object)) (Syntax: '.Field2 = F ... nd Function')
             Left: IFieldReferenceExpression: C2.Field2 As System.Func(Of System.Object) (OperationKind.FieldReferenceExpression, Type: System.Func(Of System.Object)) (Syntax: 'Field2')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'As New C2 W ... d Function}')
-            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.Object)) (Syntax: 'Function() ... nd Function')
-                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: IAnonymousFunctionExpression (Symbol: Function () As System.Object) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function() ... nd Function')
+            Right: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Object)) (Syntax: 'Function() ... nd Function')
+                Target: IAnonymousFunctionExpression (Symbol: Function () As System.Object) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function() ... nd Function')
                     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function() ... nd Function')
                       Locals: Local_1: <anonymous local> As System.Object
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return .Field')

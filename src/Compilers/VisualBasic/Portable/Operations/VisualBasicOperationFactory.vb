@@ -530,8 +530,14 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundConversionOperation(boundConversion As BoundConversion) As IConversionExpression
+        Private Function CreateBoundConversionOperation(boundConversion As BoundConversion) As IOperation
             Dim operand As Lazy(Of IOperation)
+            Dim syntax As SyntaxNode = boundConversion.Syntax
+            Dim type As ITypeSymbol = boundConversion.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundConversion.ConstantValueOpt)
+            Dim isImplicit As Boolean = boundConversion.WasCompilerGenerated
+
+
             Dim methodSymbol As MethodSymbol
 
             If (boundConversion.ConversionKind And VisualBasic.ConversionKind.UserDefined) = VisualBasic.ConversionKind.UserDefined Then
@@ -543,14 +549,16 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 operand = New Lazy(Of IOperation)(Function() Create(boundConversion.Operand))
             End If
 
+            If type.InheritsSpecialType(SpecialType.System_Delegate) Then
+                ' If we're converting a lambda expression to a delegate type, we're creating a delegate. We return a delegate
+                ' creation expression for this scenario
+                Return New LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit)
+            End If
+
             Dim conversion = New Conversion(New KeyValuePair(Of VisualBasic.ConversionKind, MethodSymbol)(boundConversion.ConversionKind, methodSymbol))
-            Dim syntax As SyntaxNode = boundConversion.Syntax
             Dim isExplicit As Boolean = boundConversion.ExplicitCastInCode
             Dim isTryCast As Boolean = False
             Dim isChecked As Boolean = False
-            Dim type As ITypeSymbol = boundConversion.Type
-            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundConversion.ConstantValueOpt)
-            Dim isImplicit As Boolean = boundConversion.WasCompilerGenerated
             Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
