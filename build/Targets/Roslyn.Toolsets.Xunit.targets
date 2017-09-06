@@ -12,10 +12,39 @@
     <!-- xUnit.net WPF Runner -->
     <XUnitWpfPath>$(NuGetPackageRoot)\xunit.runner.wpf\$(xunitrunnerwpfVersion)\tools\xunit.runner.wpf.exe</XUnitWpfPath>
     <XUnitWpfArguments>"$(OutDir)\$(AssemblyName).dll"</XUnitWpfArguments>
-  </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="xunit.runner.wpf" Version="$(xunitrunnerwpfVersion)" PrivateAssets="all" />
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
+
+    <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net461' AND '$(RuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">win7</RuntimeIdentifier>
+  </PropertyGroup>
+    
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
+    <Content Include="$(NetStandard20RefPath)\netstandard.dll">
+      <Link>ref/%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NetStandard20RefPath)\mscorlib.dll">
+      <Link>ref/%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NetStandard20RefPath)\System.Runtime.dll">
+      <Link>ref/%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NetStandard20RefPath)\System.Dynamic.Runtime.dll">
+      <Link>ref/%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(MicrosoftCSharpRefPath)\Microsoft.CSharp.dll">
+      <Link>ref/%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
   </ItemGroup>
 
   <Target Name="Test" DependsOnTargets="Build">
@@ -27,8 +56,7 @@
   <Target Name="AddDefaultTestAppConfig">
     <PropertyGroup>
       <_AlreadyHasAppConfig Condition="'%(None.Filename)%(None.Extension)' == 'app.config'">true</_AlreadyHasAppConfig>
-      <_DefaultAppConfigFile Condition="'$(TargetFramework)' == 'net46'">$(MSBuildThisFileDirectory)..\Defaults\Net460\app.config</_DefaultAppConfigFile>
-      <_DefaultAppConfigFile Condition="'$(TargetFramework)' == 'net462'">$(MSBuildThisFileDirectory)..\Defaults\Net462\app.config</_DefaultAppConfigFile>
+      <_DefaultAppConfigFile Condition="'$(TargetFramework)' != 'netcoreapp2.0'">$(MSBuildThisFileDirectory)..\Defaults\Desktop\app.config</_DefaultAppConfigFile>
       <_DefaultAppConfigFile Condition="'$(TargetFramework)' == 'netcoreapp2.0'">$(MSBuildThisFileDirectory)..\Defaults\Portable\app.config</_DefaultAppConfigFile>
     </PropertyGroup>
 
