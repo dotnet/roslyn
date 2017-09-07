@@ -69,9 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((object)delegateInvokeMethodOpt != null)
             {
-                var analyzedArguments = new AnalyzedArguments();
+                var analyzedArguments = AnalyzedArguments.GetInstance();
                 GetDelegateArguments(source.Syntax, analyzedArguments, delegateInvokeMethodOpt.Parameters, binder.Compilation);
                 var resolution = binder.ResolveMethodGroup(source, analyzedArguments, isMethodGroupConversion: true, inferWithDynamic: true, useSiteDiagnostics: ref useSiteDiagnostics);
+                analyzedArguments.Free();
                 return resolution;
             }
             else

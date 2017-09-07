@@ -1231,14 +1231,14 @@ class C
         d.Goo(System.Console.WriteLine());
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (7,15): error CS1978: Cannot use an expression of type '__arglist' as an argument to a dynamically dispatched operation.
                 //         d.Goo(__arglist(123, 456));
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "__arglist(123, 456)").WithArguments("__arglist"),
-                // (8,31): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
-                //         d.Goo(x: 123, y: 456, 789);
-                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "789"),
+                // (8,31): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //         d.Foo(x: 123, y: 456, 789);
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "789").WithArguments("7.2").WithLocation(8, 31),
                 // (9,19): error CS0165: Use of unassigned local variable 'z'
                 //         d.Goo(ref z);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z"),

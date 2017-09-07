@@ -244,8 +244,7 @@ class Program
             return;
         }
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -273,8 +272,7 @@ class Program
             return;
         }
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -302,8 +300,7 @@ class Program
             return;
         }
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -329,8 +326,7 @@ class Program
             return;
         }
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -356,8 +352,7 @@ class Program
             return;
         }
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -383,8 +378,7 @@ class Program
             return;
         }
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -411,8 +405,7 @@ class Program
         }
         while (true);
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -455,8 +448,7 @@ class Fizz : IDisposable
     {
         throw new NotImplementedException();
     }
-}",
-   ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -517,8 +509,7 @@ class Buzz : IDisposable
     {
         throw new NotImplementedException();
     }
-}",
-            ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -547,8 +538,7 @@ class Program
             return;
         }
     }
-}",
-   ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
@@ -583,8 +573,7 @@ class Program
                 return;
             }
     }
-}",
-            ignoreTrivia: false);
+}");
         }
     }
 }

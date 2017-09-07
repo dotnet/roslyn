@@ -79,7 +79,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
             }
 
-            if (token.IsMandatoryNamedParameterPosition())
+            // Consider refining this logic to mandate completion with an argument name, if preceded by an out-of-position name
+            // See https://github.com/dotnet/roslyn/issues/20657
+            var languageVersion = ((CSharpParseOptions)document.Project.ParseOptions).LanguageVersion;
+            if (languageVersion < LanguageVersion.CSharp7_2 && token.IsMandatoryNamedParameterPosition())
             {
                 context.IsExclusive = true;
             }

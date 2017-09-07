@@ -23984,5 +23984,36 @@ public class C
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1<T, U>((T, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, (U, int)))", "C.M1<T, U>(((T, int), int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, U))").WithLocation(7, 9)
                 );
         }
+
+        [Fact]
+        [WorkItem(21785, "https://github.com/dotnet/roslyn/issues/21785")]
+        void TypelessTupleInArrayInitializer()
+        {
+            string source = @"
+class C
+{
+    static (int A, object B)[] mTupleArray = { (A: 0, B: null) };
+
+    private static void Main()
+    {
+        System.Console.Write(mTupleArray[0].B == null);
+    }
+}";
+            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "True");
+
+            var tree = comp.SyntaxTrees[0];
+
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var node = nodes.OfType<TupleExpressionSyntax>().Single();
+
+            Assert.Equal("(A: 0, B: null)", node.ToString());
+            var tupleSymbol = model.GetTypeInfo(node);
+            Assert.Null(tupleSymbol.Type);
+
+            Assert.Equal("(System.Int32 A, System.Object B)", tupleSymbol.ConvertedType.ToTestDisplayString());
+        }
     }
 }

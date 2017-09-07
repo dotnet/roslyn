@@ -256,6 +256,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause)
         {
+            CheckNamedArgumentsForDynamicInvocation(arguments, diagnostics);
+
             bool hasErrors = false;
             if (expression.Kind == BoundKind.MethodGroup)
             {
@@ -331,6 +333,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 applicableMethods,
                 type: Compilation.DynamicType,
                 hasErrors: hasErrors);
+        }
+
+        private void CheckNamedArgumentsForDynamicInvocation(AnalyzedArguments arguments, DiagnosticBag diagnostics)
+        {
+            if (arguments.Names.Count == 0)
+            {
+                return;
+            }
+
+            if (!Compilation.LanguageVersion.AllowNonTrailingNamedArguments())
+            {
+                return;
+            }
+
+            bool seenName = false;
+            for (int i = 0; i < arguments.Names.Count; i++)
+            {
+                if (arguments.Names[i] != null)
+                {
+                    seenName = true;
+                }
+                else if (seenName)
+                {
+                    Error(diagnostics, ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation, arguments.Arguments[i].Syntax);
+                    return;
+                }
+            }
         }
 
         private ImmutableArray<BoundExpression> BuildArgumentsForDynamicInvocation(AnalyzedArguments arguments, DiagnosticBag diagnostics)
