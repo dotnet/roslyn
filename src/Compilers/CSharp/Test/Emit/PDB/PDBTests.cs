@@ -3125,8 +3125,11 @@ class Student : Person { public double GPA; }
 ";
             // we just want this to compile without crashing/asserting
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb("Program.Operate",
-@"<symbols>
+            c.VerifyPdb("Program.Operate", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Operate"" parameterNames=""p"">
       <customDebugInfo>
@@ -3151,19 +3154,19 @@ class Student : Person { public double GPA; }
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" />
-        <entry offset=""0xd"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" />
-        <entry offset=""0xe"" hidden=""true"" />
-        <entry offset=""0x1c"" hidden=""true"" />
-        <entry offset=""0x41"" hidden=""true"" />
-        <entry offset=""0x48"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" />
-        <entry offset=""0x61"" startLine=""24"" startColumn=""17"" endLine=""24"" endColumn=""27"" />
-        <entry offset=""0x71"" hidden=""true"" />
-        <entry offset=""0x7b"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""27"" />
-        <entry offset=""0x8b"" hidden=""true"" />
-        <entry offset=""0x96"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""27"" />
-        <entry offset=""0xa7"" startLine=""33"" startColumn=""17"" endLine=""33"" endColumn=""27"" />
-        <entry offset=""0xb7"" startLine=""35"" startColumn=""5"" endLine=""35"" endColumn=""6"" />
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0xd"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xe"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1c"" hidden=""true"" document=""1"" />
+        <entry offset=""0x41"" hidden=""true"" document=""1"" />
+        <entry offset=""0x48"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" document=""1"" />
+        <entry offset=""0x61"" startLine=""24"" startColumn=""17"" endLine=""24"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x71"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7b"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x8b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x96"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""27"" document=""1"" />
+        <entry offset=""0xa7"" startLine=""33"" startColumn=""17"" endLine=""33"" endColumn=""27"" document=""1"" />
+        <entry offset=""0xb7"" startLine=""35"" startColumn=""5"" endLine=""35"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xba"">
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0xba"" attributes=""0"" />
@@ -3173,7 +3176,8 @@ class Student : Person { public double GPA; }
       </scope>
     </method>
   </methods>
-</symbols>");
+</symbols>
+");
         }
 
         [Fact, WorkItem(17090, "https://github.com/dotnet/roslyn/issues/17090"), WorkItem(19731, "https://github.com/dotnet/roslyn/issues/19731")]

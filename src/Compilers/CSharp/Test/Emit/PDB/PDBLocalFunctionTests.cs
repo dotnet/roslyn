@@ -37,6 +37,9 @@ class C : B
 
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""B"" name="".ctor"" parameterNames=""f"">
       <customDebugInfo>
@@ -45,9 +48,9 @@ class C : B
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""26"" />
-        <entry offset=""0x7"" startLine=""6"" startColumn=""27"" endLine=""6"" endColumn=""28"" />
-        <entry offset=""0x8"" startLine=""6"" startColumn=""29"" endLine=""6"" endColumn=""30"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x7"" startLine=""6"" startColumn=""27"" endLine=""6"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x8"" startLine=""6"" startColumn=""29"" endLine=""6"" endColumn=""30"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x9"">
         <namespace name=""System"" />
@@ -71,12 +74,12 @@ class C : B
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" />
-        <entry offset=""0x14"" startLine=""13"" startColumn=""30"" endLine=""13"" endColumn=""43"" />
-        <entry offset=""0x27"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" />
-        <entry offset=""0x28"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""19"" />
-        <entry offset=""0x33"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""23"" />
-        <entry offset=""0x47"" startLine=""20"" startColumn=""5"" endLine=""20"" endColumn=""6"" />
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x14"" startLine=""13"" startColumn=""30"" endLine=""13"" endColumn=""43"" document=""1"" />
+        <entry offset=""0x27"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x28"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x33"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x47"" startLine=""20"" startColumn=""5"" endLine=""20"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x48"">
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x48"" attributes=""0"" />
@@ -90,7 +93,7 @@ class C : B
         <forward declaringType=""B"" methodName="".ctor"" parameterNames=""f"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""18"" startColumn=""20"" endLine=""18"" endColumn=""21"" />
+        <entry offset=""0x0"" startLine=""18"" startColumn=""20"" endLine=""18"" endColumn=""21"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""C+&lt;&gt;c__DisplayClass1_0"" name=""&lt;.ctor&gt;b__0"">
@@ -98,7 +101,7 @@ class C : B
         <forward declaringType=""B"" methodName="".ctor"" parameterNames=""f"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""13"" startColumn=""41"" endLine=""13"" endColumn=""42"" />
+        <entry offset=""0x0"" startLine=""13"" startColumn=""41"" endLine=""13"" endColumn=""42"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""C+&lt;&gt;c__DisplayClass1_0"" name=""&lt;.ctor&gt;g__f|1"">
@@ -106,7 +109,7 @@ class C : B
         <forward declaringType=""B"" methodName="".ctor"" parameterNames=""f"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""16"" startColumn=""20"" endLine=""16"" endColumn=""21"" />
+        <entry offset=""0x0"" startLine=""16"" startColumn=""20"" endLine=""16"" endColumn=""21"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""C+&lt;&gt;c__DisplayClass1_0"" name=""&lt;.ctor&gt;g__g|2"">
@@ -114,11 +117,12 @@ class C : B
         <forward declaringType=""B"" methodName="".ctor"" parameterNames=""f"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""17"" startColumn=""20"" endLine=""17"" endColumn=""23"" />
+        <entry offset=""0x0"" startLine=""17"" startColumn=""20"" endLine=""17"" endColumn=""23"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
-</symbols>");
+</symbols>
+");
         }
 
         [Fact]
@@ -149,6 +153,9 @@ class C
             // note that the two closures have a different syntax offset
             c.VerifyPdb("C.F", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""F"">
       <customDebugInfo>
@@ -168,21 +175,21 @@ class C
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""16"" />
-        <entry offset=""0x2"" startLine=""10"" startColumn=""28"" endLine=""10"" endColumn=""39"" />
-        <entry offset=""0xf"" hidden=""true"" />
-        <entry offset=""0x11"" hidden=""true"" />
-        <entry offset=""0x17"" startLine=""10"" startColumn=""18"" endLine=""10"" endColumn=""24"" />
-        <entry offset=""0x20"" hidden=""true"" />
-        <entry offset=""0x26"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
-        <entry offset=""0x27"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""24"" />
-        <entry offset=""0x30"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""19"" />
-        <entry offset=""0x43"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""19"" />
-        <entry offset=""0x56"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" />
-        <entry offset=""0x57"" hidden=""true"" />
-        <entry offset=""0x5b"" startLine=""10"" startColumn=""25"" endLine=""10"" endColumn=""27"" />
-        <entry offset=""0x61"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""16"" document=""1"" />
+        <entry offset=""0x2"" startLine=""10"" startColumn=""28"" endLine=""10"" endColumn=""39"" document=""1"" />
+        <entry offset=""0xf"" hidden=""true"" document=""1"" />
+        <entry offset=""0x11"" hidden=""true"" document=""1"" />
+        <entry offset=""0x17"" startLine=""10"" startColumn=""18"" endLine=""10"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x20"" hidden=""true"" document=""1"" />
+        <entry offset=""0x26"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x27"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x30"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x43"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x56"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x57"" hidden=""true"" document=""1"" />
+        <entry offset=""0x5b"" startLine=""10"" startColumn=""25"" endLine=""10"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x61"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x62"">
         <scope startOffset=""0x11"" endOffset=""0x57"">
@@ -224,6 +231,9 @@ class C
             // note that the two closures have a different syntax offset
             c.VerifyPdb("C.F", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""F"">
       <customDebugInfo>
@@ -243,19 +253,19 @@ class C
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
-        <entry offset=""0x1"" hidden=""true"" />
-        <entry offset=""0x7"" startLine=""10"" startColumn=""14"" endLine=""10"" endColumn=""24"" />
-        <entry offset=""0xe"" startLine=""10"" startColumn=""26"" endLine=""10"" endColumn=""32"" />
-        <entry offset=""0x15"" hidden=""true"" />
-        <entry offset=""0x17"" hidden=""true"" />
-        <entry offset=""0x1d"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
-        <entry offset=""0x1e"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""24"" />
-        <entry offset=""0x26"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""18"" />
-        <entry offset=""0x39"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
-        <entry offset=""0x3a"" startLine=""10"" startColumn=""34"" endLine=""10"" endColumn=""58"" />
-        <entry offset=""0x64"" hidden=""true"" />
-        <entry offset=""0x67"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7"" startLine=""10"" startColumn=""14"" endLine=""10"" endColumn=""24"" document=""1"" />
+        <entry offset=""0xe"" startLine=""10"" startColumn=""26"" endLine=""10"" endColumn=""32"" document=""1"" />
+        <entry offset=""0x15"" hidden=""true"" document=""1"" />
+        <entry offset=""0x17"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1d"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1e"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x26"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x39"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x3a"" startLine=""10"" startColumn=""34"" endLine=""10"" endColumn=""58"" document=""1"" />
+        <entry offset=""0x64"" hidden=""true"" document=""1"" />
+        <entry offset=""0x67"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x68"">
         <scope startOffset=""0x1"" endOffset=""0x67"">
@@ -311,6 +321,9 @@ class C
 
             c.VerifyPdb("C.F", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""F"">
       <customDebugInfo>
@@ -330,19 +343,19 @@ class C
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" />
-        <entry offset=""0x6"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
-        <entry offset=""0x7"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""20"" />
-        <entry offset=""0xf"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""15"" />
-        <entry offset=""0x22"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""19"" />
-        <entry offset=""0x2f"" hidden=""true"" />
-        <entry offset=""0x3b"" startLine=""19"" startColumn=""17"" endLine=""19"" endColumn=""28"" />
-        <entry offset=""0x43"" startLine=""21"" startColumn=""17"" endLine=""21"" endColumn=""23"" />
-        <entry offset=""0x56"" startLine=""22"" startColumn=""17"" endLine=""22"" endColumn=""23"" />
-        <entry offset=""0x58"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""28"" />
-        <entry offset=""0x60"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""23"" />
-        <entry offset=""0x73"" startLine=""28"" startColumn=""17"" endLine=""28"" endColumn=""23"" />
-        <entry offset=""0x75"" startLine=""30"" startColumn=""5"" endLine=""30"" endColumn=""6"" />
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x6"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x7"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""20"" document=""1"" />
+        <entry offset=""0xf"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""15"" document=""1"" />
+        <entry offset=""0x22"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x2f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3b"" startLine=""19"" startColumn=""17"" endLine=""19"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x43"" startLine=""21"" startColumn=""17"" endLine=""21"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x56"" startLine=""22"" startColumn=""17"" endLine=""22"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x58"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x60"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x73"" startLine=""28"" startColumn=""17"" endLine=""28"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x75"" startLine=""30"" startColumn=""5"" endLine=""30"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x76"">
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x76"" attributes=""0"" />
@@ -389,13 +402,16 @@ class C
             // note that the two closures have a different syntax offset
             c.VerifyPdb("C.F", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""F"" parameterNames=""a, b"">
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""G"" parameterNames=""f"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""41"" endLine=""7"" endColumn=""42"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""41"" endLine=""7"" endColumn=""42"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""C"" name=""F"">
@@ -415,23 +431,23 @@ class C
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
-        <entry offset=""0x1"" hidden=""true"" />
-        <entry offset=""0x7"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""36"" />
-        <entry offset=""0x12"" startLine=""12"" startColumn=""38"" endLine=""12"" endColumn=""46"" />
-        <entry offset=""0x1d"" hidden=""true"" />
-        <entry offset=""0x23"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
-        <entry offset=""0x24"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""24"" />
-        <entry offset=""0x2e"" startLine=""19"" startColumn=""13"" endLine=""19"" endColumn=""19"" />
-        <entry offset=""0x40"" startLine=""20"" startColumn=""13"" endLine=""20"" endColumn=""19"" />
-        <entry offset=""0x52"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""19"" />
-        <entry offset=""0x64"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" />
-        <entry offset=""0x67"" hidden=""true"" />
-        <entry offset=""0x7b"" hidden=""true"" />
-        <entry offset=""0x7c"" hidden=""true"" />
-        <entry offset=""0x7e"" hidden=""true"" />
-        <entry offset=""0x92"" hidden=""true"" />
-        <entry offset=""0x93"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""36"" document=""1"" />
+        <entry offset=""0x12"" startLine=""12"" startColumn=""38"" endLine=""12"" endColumn=""46"" document=""1"" />
+        <entry offset=""0x1d"" hidden=""true"" document=""1"" />
+        <entry offset=""0x23"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x24"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x2e"" startLine=""19"" startColumn=""13"" endLine=""19"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x40"" startLine=""20"" startColumn=""13"" endLine=""20"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x52"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x64"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x67"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7c"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7e"" hidden=""true"" document=""1"" />
+        <entry offset=""0x92"" hidden=""true"" document=""1"" />
+        <entry offset=""0x93"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x94"">
         <scope startOffset=""0x1"" endOffset=""0x93"">
