@@ -40,12 +40,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Language
     Friend Module FeatureExtensions
 
         <Extension>
-        Private Function IsPrototype(feature As Feature) As Boolean
-            Select Case feature
-                Case Feature.IOperation
-                    Return True
-            End Select
-            Return False
+        Private Function RequiresExplicitFeatureFlag(feature As Feature) As Boolean
+            Return feature = Feature.IOperation
         End Function
 
         <Extension>
@@ -101,8 +97,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Language
                 Case Feature.InferredTupleNames
                     Return LanguageVersion.VisualBasic15_3
                 Case Else
-                    If feature.IsPrototype Then Return CType(Integer.MinValue, LanguageVersion)
-
+                    ' Return a "dummy" version for any prototype feature.
+                    If feature.RequiresExplicitFeatureFlag Then Return CType(_RequireExplictFeatureFlag, LanguageVersion)
+                    ' Otherwise throw the Unexpected Value.
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
 
@@ -195,8 +192,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Language
             Return CheckVersionNumbers(required, current)
         End Function
 
+        Private Const _RequireExplictFeatureFlag As Integer = Integer.MinValue
+
         Private Function CheckVersionNumbers(required As LanguageVersion, current As LanguageVersion) As Boolean
-            Return (Integer.MinValue < required) AndAlso (required <= current)
+            ' This check ensures that any prototype feature, requires an explicit feature flag to be present.
+            Return (_RequireExplictFeatureFlag < required) And (required <= current)
         End Function
 
         ''' <summary>
@@ -273,10 +273,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Language
         End Function
 
         ''' <summary>
-        ''' Is a language <paramref name="feature"/> unavailable to use with these <paramref name="options"/>.
+        ''' Is a language <paramref name="feature"/> unavailable to use with these <paramref name="options"/>?
         ''' </summary>
         ''' <returns>
-        ''' Return a feature unavailable <see cref="Diagnostic"/> at <paramref name="location"/>, otherwise nothing.
+        ''' Should a feature be unavailable, a feature unavailable <see cref="Diagnostic"/> at <paramref name="location"/> is return.
+        ''' Otherwise nothing is return.
         ''' </returns>
         ''' <param name="feature">Language feature to check is available.</param>
         ''' <param name="options">The parse options being used.</param>
