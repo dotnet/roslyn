@@ -35,6 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         IOperation
         InferredTupleNames
         LeadingDigitSeparator
+        NonTrailingNamedArguments
     End Enum
 
     Friend Module FeatureExtensions
@@ -91,7 +92,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case Feature.InferredTupleNames
                     Return LanguageVersion.VisualBasic15_3
 
-                Case Feature.LeadingDigitSeparator
+                Case Feature.LeadingDigitSeparator,
+                    Feature.NonTrailingNamedArguments
                     Return LanguageVersion.VisualBasic15_5
 
                 Case Else

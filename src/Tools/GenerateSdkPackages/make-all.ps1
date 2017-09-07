@@ -59,7 +59,7 @@ try {
 
     $list = Get-Content (Join-Path $PSScriptRoot "files.txt")
     $dropPath = "\\cpvsbuild\drops\VS\$branch\raw\$version\binaries.x86ret\bin\i386"
-    $nuget = Join-Path $PSScriptRoot "..\..\..\nuget.exe"
+    $nuget = Join-Path $PSScriptRoot "..\..\..\Binaries\Tools\nuget.exe"
     $fakeSign = Join-Path (Get-PackageDir "FakeSign") "Tools\FakeSign.exe"
 
     $shortVersion = $version.Substring(0, $version.IndexOf('.'))

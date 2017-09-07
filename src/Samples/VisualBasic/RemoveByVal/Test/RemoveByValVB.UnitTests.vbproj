@@ -10,7 +10,7 @@
     <NonShipping>true</NonShipping>
     <MyType>Windows</MyType>
     <OptionStrict>Off</OptionStrict>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <NoWarn>$(NoWarn);41999,42016,42030,42104,42108,42109</NoWarn>

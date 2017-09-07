@@ -5608,9 +5608,9 @@ namespace System
 ";
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics(
-                // (9,13): error CS0152: The switch statement contains multiple cases with the label value 'default:'
+                // (9,13): error CS0152: The switch statement contains multiple cases with the label value 'default'
                 //             default:
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default:").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default").WithLocation(9, 13)
                 );
         }
 
