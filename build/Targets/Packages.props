@@ -36,8 +36,8 @@
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
     <MicrosoftDiagnosticsTracingTraceEventVersion>1.0.35</MicrosoftDiagnosticsTracingTraceEventVersion>
     <MicrosoftDiaSymReaderVersion>1.2.0-beta1-62008-01</MicrosoftDiaSymReaderVersion>
-    <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta1-62016-01</MicrosoftDiaSymReaderConverterXmlVersion>
-    <MicrosoftDiaSymReaderNativeVersion>1.7.0-private-25621</MicrosoftDiaSymReaderNativeVersion>
+    <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta1-62106-02</MicrosoftDiaSymReaderConverterXmlVersion>
+    <MicrosoftDiaSymReaderNativeVersion>1.7.0-beta-25631</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion>1.4.0-beta1-62016-01</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftDotNetIBCMerge>4.7.2-alpha-00001</MicrosoftDotNetIBCMerge>
     <MicrosoftDotNetVersionToolsVersion>1.0.27-prerelease-01811-02</MicrosoftDotNetVersionToolsVersion>
