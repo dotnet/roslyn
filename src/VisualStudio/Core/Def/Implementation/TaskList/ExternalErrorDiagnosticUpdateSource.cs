@@ -418,26 +418,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             public bool SupportedDiagnosticId(ProjectId projectId, string id)
             {
-                if (_diagnosticIdMap.TryGetValue(projectId, out var ids))
+                lock (_diagnosticIdMap)
                 {
-                    return ids.Contains(id);
+                    if (_diagnosticIdMap.TryGetValue(projectId, out var ids))
+                    {
+                        return ids.Contains(id);
+                    }
+
+                    // set ids set
+                    var map = new HashSet<string>();
+                    _diagnosticIdMap.Add(projectId, map);
+
+                    var project = _solution.GetProject(projectId);
+                    if (project == null)
+                    {
+                        // projectId no longer exist, return false;
+                        return false;
+                    }
+
+                    var descriptorMap = _owner._diagnosticService.GetDiagnosticDescriptors(project);
+                    map.UnionWith(descriptorMap.Values.SelectMany(v => v.Select(d => d.Id)));
+
+                    return map.Contains(id);
                 }
-
-                // set ids set
-                var map = new HashSet<string>();
-                _diagnosticIdMap.Add(projectId, map);
-
-                var project = _solution.GetProject(projectId);
-                if (project == null)
-                {
-                    // projectId no longer exist, return false;
-                    return false;
-                }
-
-                var descriptorMap = _owner._diagnosticService.GetDiagnosticDescriptors(project);
-                map.UnionWith(descriptorMap.Values.SelectMany(v => v.Select(d => d.Id)));
-
-                return map.Contains(id);
             }
 
             public ImmutableArray<DiagnosticData> GetBuildDiagnostics()

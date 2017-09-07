@@ -1030,8 +1030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return semanticModel;
                     });
 
-                    MethodSymbol symbolToProduce = methodSymbol.PartialDefinitionPart ?? methodSymbol;
-                    _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, symbolToProduce, lazySemanticModel));
+                    _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol, lazySemanticModel));
                 }
 
                 // Don't lower if we're not emitting or if there were errors. 

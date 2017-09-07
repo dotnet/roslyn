@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     syntax.Modifiers.Any(SyntaxKind.OverrideKeyword))
                 {
                     diagnostics.Add(
-                        ErrorCode.ERR_OverrideWithConstraints, 
+                        ErrorCode.ERR_OverrideWithConstraints,
                         syntax.ConstraintClauses[0].WhereKeyword.GetLocation());
                 }
             }
@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     AddDeclarationDiagnostics(diagnosticsOpt);
                 }
-                if (IsPartialDefinition && (object)PartialImplementationPart == null)
+                if (IsPartialDefinition)
                 {
                     DeclaringCompilation.SymbolDeclaredEvent(this);
                 }

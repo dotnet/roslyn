@@ -1335,7 +1335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (localFunction != null)
             {
-                lambdaOrLambdaBodySyntax = (SyntaxNode)localFunction.Body ?? localFunction.ExpressionBody;
+                lambdaOrLambdaBodySyntax = (SyntaxNode)localFunction.Body ?? localFunction.ExpressionBody?.Expression;
                 isLambdaBody = true;
             }
             else if (LambdaUtilities.IsQueryPairLambda(syntax))

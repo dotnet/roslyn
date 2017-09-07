@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected virtual bool IsAttributeConditionallyOmitted(NamedTypeSymbol attributeType, SyntaxTree syntaxTree, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        protected bool IsAttributeConditionallyOmitted(NamedTypeSymbol attributeType, SyntaxTree syntaxTree, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // When early binding attributes, we don't want to determine if the attribute type is conditional and if so, must be emitted or not.
             // Invoking IsConditional property on attributeType can lead to a cycle, hence we delay this computation until after early binding.
@@ -273,6 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var boundConstructorArguments = AnalyzedArguments.GetInstance();
             var boundNamedArguments = ImmutableArray<BoundExpression>.Empty;
+
             if (attributeArgumentList != null)
             {
                 ArrayBuilder<BoundExpression> boundNamedArgumentsBuilder = null;
@@ -282,6 +283,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We will still generate errors for each duplicate named attribute argument,
                 // matching Dev10 compiler behavior.
                 bool hadError = false;
+
+                // Only report the first "non-trailing named args required C# 7.2" error,
+                // so as to avoid "cascading" errors.
+                bool hadLangVersionError = false;
 
                 var shouldHaveName = false;
 
@@ -295,10 +300,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // Constructor argument
-                        hadError |= this.BindArgumentAndName(
+                        this.BindArgumentAndName(
                             boundConstructorArguments,
                             diagnostics,
-                            hadError,
+                            ref hadError,
+                            ref hadLangVersionError,
                             argument,
                             BindArgumentExpression(diagnostics, argument.Expression, RefKind.None, allowArglist: false),
                             argument.NameColon,

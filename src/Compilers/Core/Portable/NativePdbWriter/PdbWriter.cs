@@ -752,7 +752,7 @@ namespace Microsoft.Cci
         [DllImport(DiaSymReaderModuleName64, EntryPoint = "CreateSymWriter")]
         private extern static void CreateSymWriter64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
 
-        private static string DiaSymReaderModuleName 
+        private static string DiaSymReaderModuleName
             => (IntPtr.Size == 4) ? DiaSymReaderModuleName32 : DiaSymReaderModuleName64;
 
         private static string LoadedDiaSymReaderModuleName
@@ -778,14 +778,25 @@ namespace Microsoft.Cci
             {
                 try
                 {
-                    var guid = new Guid(SymWriterClsid);
-                    if (IntPtr.Size == 4)
+                    try
                     {
-                        CreateSymWriter32(ref guid, out symWriter);
+                        var guid = new Guid(SymWriterClsid);
+                        if (IntPtr.Size == 4)
+                        {
+                            CreateSymWriter32(ref guid, out symWriter);
+                        }
+                        else
+                        {
+                            CreateSymWriter64(ref guid, out symWriter);
+                        }
                     }
-                    else
+                    catch (DllNotFoundException e)
                     {
-                        CreateSymWriter64(ref guid, out symWriter);
+                        symWriter = TryLoadFromAlternativePath();
+                        if (symWriter == null)
+                        {
+                            s_MicrosoftDiaSymReaderNativeLoadFailure = e.Message;
+                        }
                     }
                 }
                 catch (Exception e)
@@ -799,6 +810,56 @@ namespace Microsoft.Cci
             {
                 // Try to find a registered CLR implementation
                 symWriter = Activator.CreateInstance(GetCorSymWriterSxSType());
+            }
+
+            return symWriter;
+        }
+
+        [DllImport("kernel32")]
+        private static extern IntPtr LoadLibrary(string path);
+
+        [DllImport("kernel32")]
+        private static extern bool FreeLibrary(IntPtr hModule);
+
+        [DllImport("kernel32")]
+        private static extern IntPtr GetProcAddress(IntPtr hModule, string procedureName);
+
+        private delegate void CreateSymWriterDelegate(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
+
+        private static object TryLoadFromAlternativePath()
+        {
+            var dir = Environment.GetEnvironmentVariable("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH");
+            if (string.IsNullOrEmpty(dir))
+            {
+                return null;
+            }
+
+            var moduleHandle = LoadLibrary(Path.Combine(dir, DiaSymReaderModuleName));
+            if (moduleHandle == IntPtr.Zero)
+            {
+                Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+            }
+
+            object symWriter = null;
+            try
+            {
+                var createAddress = GetProcAddress(moduleHandle, "CreateSymWriter");
+                if (createAddress == IntPtr.Zero)
+                {
+                    Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+                }
+
+                var creator = Marshal.GetDelegateForFunctionPointer<CreateSymWriterDelegate>(createAddress);
+
+                var guid = new Guid(SymWriterClsid);
+                creator(ref guid, out symWriter);
+            }
+            finally
+            {
+                if (symWriter == null && !FreeLibrary(moduleHandle))
+                {
+                    Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+                }
             }
 
             return symWriter;

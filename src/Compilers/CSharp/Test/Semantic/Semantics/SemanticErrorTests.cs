@@ -15674,16 +15674,19 @@ class C
 public class C
 {
     public static int Main()
-        {
-            Test(age: 5,"""");
+    {
+        Test(age: 5,"""");
         return 0;
-        }
-    public static void Test(int age , string Name)
+    }
+    public static void Test(int age, string Name)
     { }
-
 }";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = 1738, Line = 6, Column = 25 } });
+            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular6);
+            comp.VerifyDiagnostics(
+                // (6,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //         Test(age: 5,"");
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, @"""""").WithArguments("7.2").WithLocation(6, 21)
+                );
         }
 
         [Fact]
@@ -21958,7 +21961,8 @@ public class Program
                 Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithArguments("Program.BarP").WithLocation(13, 42),
                 // (13,46): error CS0149: Method name expected
                 //         var f = new Func<string, string>(ref BarP, ref BarP.Invoke);
-                Diagnostic(ErrorCode.ERR_MethodNameExpected, "BarP, ref BarP.Invoke").WithLocation(13, 46));
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "BarP, ref BarP.Invoke").WithLocation(13, 46)
+                );
         }
 
         [WorkItem(538430, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538430")]

@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         Patterns,
         DefaultLiteral,
         AsyncMain,
+        NonTrailingNamedArgs,
         PEVerifyCompat,
         RefConditionalOperator,
     }

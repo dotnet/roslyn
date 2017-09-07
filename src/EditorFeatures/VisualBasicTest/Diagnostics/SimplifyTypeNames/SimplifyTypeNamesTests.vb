@@ -1127,8 +1127,7 @@ Namespace OuterNamespace
 End Namespace
 
 </Text>.Value.Replace(vbLf, vbCrLf),
-        index:=1,
-        ignoreTrivia:=False)
+        index:=1)
         End Function
 
         <WorkItem(542138, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542138")>
@@ -2095,7 +2094,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, ignoreTrivia:=False, options:=PreferIntrinsicPredefinedTypeInDeclaration())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicPredefinedTypeInDeclaration())
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2119,7 +2118,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, ignoreTrivia:=False, options:=PreferIntrinsicPredefinedTypeInDeclaration())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicPredefinedTypeInDeclaration())
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2141,7 +2140,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, ignoreTrivia:=False, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2161,7 +2160,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, ignoreTrivia:=False, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(1012713, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012713")>
@@ -2247,7 +2246,7 @@ Module Program
     End Sub
 End Module
 </Code>
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, ignoreTrivia:=False, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2269,7 +2268,7 @@ Module Program
     End Sub
 End Module
 </Code>
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, ignoreTrivia:=False, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(956667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956667")>

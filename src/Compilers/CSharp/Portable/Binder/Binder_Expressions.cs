@@ -2158,15 +2158,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowArglist,
             bool isDelegateCreation = false)
         {
-            // Only report the first "duplicate name" or "named before positional" error, 
+            // Only report the first "duplicate name" or "named before positional" error,
             // so as to avoid "cascading" errors.
             bool hadError = false;
 
-            for (int i = 0, l = arguments.Count; i < l; i++)
-            {
-                var argumentSyntax = arguments[i];
+            // Only report the first "non-trailing named args required C# 7.2" error,
+            // so as to avoid "cascading" errors.
+            bool hadLangVersionError = false;
 
-                hadError = BindArgumentAndName(result, diagnostics, hadError, argumentSyntax, allowArglist, isDelegateCreation: isDelegateCreation);
+            foreach (var argumentSyntax in arguments)
+            {
+                BindArgumentAndName(result, diagnostics, ref hadError, ref hadLangVersionError,
+                    argumentSyntax, allowArglist, isDelegateCreation: isDelegateCreation);
             }
         }
 
@@ -2197,10 +2200,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool BindArgumentAndName(
+        private void BindArgumentAndName(
             AnalyzedArguments result,
             DiagnosticBag diagnostics,
-            bool hadError,
+            ref bool hadError,
+            ref bool hadLangVersionError,
             ArgumentSyntax argumentSyntax,
             bool allowArglist,
             bool isDelegateCreation = false)
@@ -2213,10 +2217,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression boundArgument = BindArgumentValue(diagnostics, argumentSyntax, allowArglist, refKind);
 
-            hadError |= BindArgumentAndName(
+            BindArgumentAndName(
                 result,
                 diagnostics,
-                hadError,
+                ref hadError,
+                ref hadLangVersionError,
                 argumentSyntax,
                 boundArgument,
                 argumentSyntax.NameColon,
@@ -2230,7 +2235,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundKind.PropertyAccess:
                     case BoundKind.IndexerAccess:
-                        return CheckValueKind(argumentSyntax, arg, BindValueKind.RefOrOut, false, diagnostics);
+                        hadError = !CheckValueKind(argumentSyntax, arg, BindValueKind.RefOrOut, false, diagnostics);
+                        return;
                 }
             }
 
@@ -2238,8 +2244,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 argumentSyntax.Expression.CheckDeconstructionCompatibleArgument(diagnostics);
             }
-
-            return hadError;
         }
 
         private BoundExpression BindArgumentValue(DiagnosticBag diagnostics, ArgumentSyntax argumentSyntax, bool allowArglist, RefKind refKind)
@@ -2382,10 +2386,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Bind a named/positional argument.
         // Prevent cascading diagnostic by considering the previous
         // error state and returning the updated error state.
-        private bool BindArgumentAndName(
+        private void BindArgumentAndName(
             AnalyzedArguments result,
             DiagnosticBag diagnostics,
-            bool hadError,
+            ref bool hadError,
+            ref bool hadLangVersionError,
             CSharpSyntaxNode argumentSyntax,
             BoundExpression boundArgumentExpression,
             NameColonSyntax nameColonSyntax,
@@ -2444,15 +2449,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (hasNameCollision)
+                if (hasNameCollision && !hadError)
                 {
-                    if (!hadError)
-                    {
-                        // CS: Named argument '{0}' cannot be specified multiple times
-                        Error(diagnostics, ErrorCode.ERR_DuplicateNamedArgument, nameColonSyntax.Name, name);
-
-                        hadError = true;
-                    }
+                    // CS: Named argument '{0}' cannot be specified multiple times
+                    Error(diagnostics, ErrorCode.ERR_DuplicateNamedArgument, nameColonSyntax.Name, name);
+                    hadError = true;
                 }
 
                 result.Names.Add(nameColonSyntax.Name);
@@ -2460,19 +2461,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (hasNames)
             {
                 // We just saw a fixed-position argument after a named argument.
-                if (!hadError)
+                if (!hadLangVersionError && !Compilation.LanguageVersion.AllowNonTrailingNamedArguments())
                 {
                     // CS1738: Named argument specifications must appear after all fixed arguments have been specified
-                    Error(diagnostics, ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, argumentSyntax);
-                    hadError = true;
+                    Error(diagnostics, ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, argumentSyntax,
+                        new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNonTrailingNamedArguments.RequiredVersion()));
+
+                    hadLangVersionError = true;
                 }
 
                 result.Names.Add(null);
             }
 
             result.Arguments.Add(boundArgumentExpression);
-
-            return hadError;
         }
 
         /// <summary>
@@ -4673,6 +4674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             AnalyzedArguments analyzedArguments = AnalyzedArguments.GetInstance();
             BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments);
+
             bool hasArguments = analyzedArguments.Arguments.Count > 0;
             analyzedArguments.Free();
 
@@ -6694,9 +6696,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments,
             DiagnosticBag diagnostics)
         {
-            ImmutableArray<string> argumentNames = analyzedArguments.GetNames();
-            ImmutableArray<RefKind> argumentRefKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
-
             OverloadResolutionResult<PropertySymbol> overloadResolutionResult = OverloadResolutionResult<PropertySymbol>.GetInstance();
             bool allowRefOmittedArguments = receiverOpt.IsExpressionOfComImportType();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -6715,6 +6714,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindDynamicIndexer(syntax, receiverOpt, analyzedArguments, finalApplicableCandidates, diagnostics);
             }
 
+            ImmutableArray<string> argumentNames = analyzedArguments.GetNames();
+            ImmutableArray<RefKind> argumentRefKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
             if (!overloadResolutionResult.Succeeded)
             {
                 // If the arguments had an error reported about them then suppress further error

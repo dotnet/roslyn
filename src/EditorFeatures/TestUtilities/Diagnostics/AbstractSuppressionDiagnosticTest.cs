@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         protected Task TestAsync(string initial, string expected)
         {
-            return TestAsync(initial, expected, parseOptions: null, index: CodeActionIndex, ignoreTrivia: false);
+            return TestAsync(initial, expected, parseOptions: null, index: CodeActionIndex);
         }
 
         internal abstract Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
