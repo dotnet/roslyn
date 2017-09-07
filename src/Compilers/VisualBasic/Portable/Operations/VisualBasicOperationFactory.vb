@@ -119,6 +119,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return CreateBoundDirectCastOperation(DirectCast(boundNode, BoundDirectCast))
                 Case BoundKind.Conversion
                     Return CreateBoundConversionOperation(DirectCast(boundNode, BoundConversion))
+                Case BoundKind.DelegateCreationExpression
+                    Return CreateBoundDelegateCreationExpressionOperation(DirectCast(boundNode, BoundDelegateCreationExpression))
                 Case BoundKind.TernaryConditionalExpression
                     Return CreateBoundTernaryConditionalExpressionOperation(DirectCast(boundNode, BoundTernaryConditionalExpression))
                 Case BoundKind.TypeOf
@@ -536,8 +538,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim type As ITypeSymbol = boundConversion.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundConversion.ConstantValueOpt)
             Dim isImplicit As Boolean = boundConversion.WasCompilerGenerated
-
-
             Dim methodSymbol As MethodSymbol
 
             If (boundConversion.ConversionKind And VisualBasic.ConversionKind.UserDefined) = VisualBasic.ConversionKind.UserDefined Then
@@ -560,6 +560,26 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim isTryCast As Boolean = False
             Dim isChecked As Boolean = False
             Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundDelegateCreationExpressionOperation(boundDelegateCreationExpression As BoundDelegateCreationExpression) As IDelegateCreationExpression
+            Dim syntax As SyntaxNode = boundDelegateCreationExpression.Syntax
+            Dim type As ITypeSymbol = boundDelegateCreationExpression.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundDelegateCreationExpression.ConstantValueOpt)
+            Dim isImplicit As Boolean = boundDelegateCreationExpression.WasCompilerGenerated
+
+            Dim target As Lazy(Of IOperation) = New Lazy(Of IOperation)(
+                Function()
+                    Dim method As IMethodSymbol = boundDelegateCreationExpression.Method
+                    Dim isVirtual As Boolean = method IsNot Nothing AndAlso
+                                               (method.IsAbstract OrElse method.IsOverride OrElse method.IsVirtual) AndAlso
+                                               Not boundDelegateCreationExpression.SuppressVirtualCalls
+                    Dim instance As Lazy(Of IOperation) =
+                        New Lazy(Of IOperation)(Function() Create(If(boundDelegateCreationExpression.ReceiverOpt, boundDelegateCreationExpression.MethodGroupOpt?.ReceiverOpt)))
+                    Return New LazyMethodBindingExpression(method, isVirtual, instance, method, _semanticModel, syntax, type, constantValue, isImplicit)
+                End Function)
+
+            Return New LazyDelegateCreationExpression(target, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundTernaryConditionalExpressionOperation(boundTernaryConditionalExpression As BoundTernaryConditionalExpression) As IConditionalExpression

@@ -294,7 +294,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Integer = b + c')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Int32
@@ -969,7 +969,9 @@ End Module]]>.Value
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ac ... ddressOf M2')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action
-    Initializer: IOperation:  (OperationKind.None) (Syntax: 'AddressOf M2')
+    Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'AddressOf M2')
+        Target: IMethodBindingExpression: Sub Program.M2() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf M2')
+            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -995,7 +997,9 @@ End Module]]>.Value
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ac ... ddressOf M2')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action(Of System.Int32)
-    Initializer: IOperation:  (OperationKind.None) (Syntax: 'AddressOf M2')
+    Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.Int32)) (Syntax: 'AddressOf M2')
+        Target: IMethodBindingExpression: Sub Program.M2() (OperationKind.MethodBindingExpression, Type: System.Action(Of System.Int32)) (Syntax: 'AddressOf M2')
+            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1055,7 +1059,9 @@ End Module]]>.Value
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ac ... ddressOf M2')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action
-    Initializer: IOperation:  (OperationKind.None) (Syntax: 'AddressOf M2')
+    Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'AddressOf M2')
+        Target: IMethodBindingExpression: Function Program.M2() As System.Int32 (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf M2')
+            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1083,7 +1089,9 @@ End Module]]>.Value
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Fu ... ddressOf M2')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Func(Of System.Int64)
-    Initializer: IOperation:  (OperationKind.None) (Syntax: 'AddressOf M2')
+    Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int64)) (Syntax: 'AddressOf M2')
+        Target: IMethodBindingExpression: Function Program.M2() As System.Int32 (OperationKind.MethodBindingExpression, Type: System.Func(Of System.Int64)) (Syntax: 'AddressOf M2')
+            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1171,7 +1179,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ar ... teger(1) {}')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Array
@@ -1204,7 +1212,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ar ... ger(1)() {}')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Array
@@ -1664,7 +1672,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim s1 As S ...  Char(1) {}')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 's1')
     Variables: Local_1: s1 As System.String
@@ -2082,7 +2090,7 @@ Module Module1
 End Module
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim expr As ... um) num < 5')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'expr')
     Variables: Local_1: expr As System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean))
@@ -2342,21 +2350,25 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 #End Region
 
         Private Class ExpectedSymbolVerifier
-            Public Shared Function ConversionExpressionChildSelector(conv As IConversionExpression) As IOperation
-                Return conv.Operand
+            Public Shared Function ConversionOrDelegateChildSelector(conv As IOperation) As IOperation
+                If (conv.Kind = OperationKind.ConversionExpression) Then
+                    Return DirectCast(conv, IConversionExpression).Operand
+                Else
+                    Return DirectCast(conv, IDelegateCreationExpression).Target
+                End If
             End Function
 
             Private ReadOnly _operationSelector As Func(Of IOperation, IConversionExpression)
 
-            Private ReadOnly _conversionChildSelector As Func(Of IConversionExpression, IOperation)
+            Private ReadOnly _operationChildSelector As Func(Of IOperation, IOperation)
 
             Private ReadOnly _syntaxSelector As Func(Of SyntaxNode, SyntaxNode)
 
             Public Sub New(Optional operationSelector As Func(Of IOperation, IConversionExpression) = Nothing,
-                           Optional conversionChildSelector As Func(Of IConversionExpression, IOperation) = Nothing,
+                           Optional operationChildSelector As Func(Of IOperation, IOperation) = Nothing,
                            Optional syntaxSelector As Func(Of SyntaxNode, SyntaxNode) = Nothing)
                 _operationSelector = operationSelector
-                _conversionChildSelector = If(conversionChildSelector = Nothing, AddressOf ConversionExpressionChildSelector, conversionChildSelector)
+                _operationChildSelector = If(operationChildSelector, AddressOf ConversionOrDelegateChildSelector)
                 _syntaxSelector = syntaxSelector
 
             End Sub
@@ -2369,7 +2381,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Dim conversion = GetAndInvokeOperationSelector(operation)
 
                 Assert.Equal(conversion.Type, typeInfo.ConvertedType)
-                Assert.Equal(_conversionChildSelector(conversion).Type, typeInfo.Type)
+                Assert.Equal(_operationChildSelector(conversion).Type, typeInfo.Type)
             End Sub
 
             Private Function GetAndInvokeSyntaxSelector(syntax As SyntaxNode) As SyntaxNode
@@ -2387,17 +2399,15 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 End If
             End Function
 
-            Private Function GetAndInvokeOperationSelector(operation As IOperation) As IConversionExpression
+            Private Function GetAndInvokeOperationSelector(operation As IOperation) As IOperation
                 If _operationSelector IsNot Nothing Then
                     Return _operationSelector(operation)
                 Else
                     Select Case operation.Kind
                         Case OperationKind.VariableDeclarationStatement
-                            Dim initializer As IOperation = DirectCast(operation, IVariableDeclarationStatement).Declarations.Single().Initializer
-                            Return DirectCast(initializer, IConversionExpression)
+                            Return DirectCast(operation, IVariableDeclarationStatement).Declarations.Single().Initializer
                         Case OperationKind.ReturnStatement
-                            Dim value As IOperation = DirectCast(operation, IReturnStatement).ReturnedValue
-                            Return DirectCast(value, IConversionExpression)
+                            Return DirectCast(operation, IReturnStatement).ReturnedValue
                         Case Else
                             Throw New ArgumentException($"Cannot handle operation of type {operation.GetType()}")
                     End Select

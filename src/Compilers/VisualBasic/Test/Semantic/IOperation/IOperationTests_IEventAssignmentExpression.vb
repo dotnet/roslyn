@@ -32,9 +32,9 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'AddHandler  .
   Expression: IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: null) (Syntax: 'AddHandler  ... AddressOf M')
       Event Reference: IEventReferenceExpression: Event TestClass.TestEvent As System.Action (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
           Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'TestEvent')
-      Handler: IOperation:  (OperationKind.None) (Syntax: 'AddressOf M')
-          Children(1):
-              IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
+      Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'AddressOf M')
+          Target: IMethodBindingExpression: Sub TestClass.M() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf M')
+              Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -65,9 +65,9 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'RemoveHandl .
   Expression: IEventAssignmentExpression (EventRemove)) (OperationKind.EventAssignmentExpression, Type: null) (Syntax: 'RemoveHandl ... AddressOf M')
       Event Reference: IEventReferenceExpression: Event TestClass.TestEvent As System.Action (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
           Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'TestEvent')
-      Handler: IOperation:  (OperationKind.None) (Syntax: 'AddressOf M')
-          Children(1):
-              IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
+      Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'AddressOf M')
+          Target: IMethodBindingExpression: Sub TestClass.M() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf M')
+              Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -98,9 +98,9 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'AddHandler  .
   Expression: IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: null) (Syntax: 'AddHandler  ... AddressOf M')
       Event Reference: IEventReferenceExpression: Event TestClass.TestEvent As System.Action (Static) (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
           Instance Receiver: null
-      Handler: IOperation:  (OperationKind.None) (Syntax: 'AddressOf M')
-          Children(1):
-              IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
+      Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'AddressOf M')
+          Target: IMethodBindingExpression: Sub TestClass.M() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf M')
+              Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -131,9 +131,9 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'RemoveHandl .
   Expression: IEventAssignmentExpression (EventRemove)) (OperationKind.EventAssignmentExpression, Type: null) (Syntax: 'RemoveHandl ... AddressOf M')
       Event Reference: IEventReferenceExpression: Event TestClass.TestEvent As System.Action (Static) (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
           Instance Receiver: null
-      Handler: IOperation:  (OperationKind.None) (Syntax: 'AddressOf M')
-          Children(1):
-              IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
+      Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'AddressOf M')
+          Target: IMethodBindingExpression: Sub TestClass.M() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf M')
+              Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -198,9 +198,9 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'AddHandler  .
   Expression: IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: null) (Syntax: 'AddHandler  ... AddressOf M')
       Event Reference: IEventReferenceExpression: Event TestClass.TestEvent As System.Action (Static) (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'Me.TestEvent')
           Instance Receiver: null
-      Handler: IOperation:  (OperationKind.None) (Syntax: 'AddressOf M')
-          Children(1):
-              IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
+      Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'AddressOf M')
+          Target: IMethodBindingExpression: Sub TestClass.M() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf M')
+              Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -234,9 +234,9 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Ad
   Expression: IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: null, IsInvalid) (Syntax: 'AddHandler  ... AddressOf M')
       Event Reference: IEventReferenceExpression: Event TestClass.TestEvent As System.Action (OperationKind.EventReferenceExpression, Type: System.Action, IsInvalid) (Syntax: 'TestClass.TestEvent')
           Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'TestClass')
-      Handler: IOperation:  (OperationKind.None) (Syntax: 'AddressOf M')
-          Children(1):
-              IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
+      Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'AddressOf M')
+          Target: IMethodBindingExpression: Sub TestClass.M() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf M')
+              Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
