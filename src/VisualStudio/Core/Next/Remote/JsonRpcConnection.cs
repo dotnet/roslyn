@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,13 +21,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remoteDataRpc;
 
         public JsonRpcConnection(
+            TraceSource logger,
             object callbackTarget,
             Stream serviceStream,
             ReferenceCountedDisposable<RemotableDataJsonRpc> dataRpc)
         {
             Contract.ThrowIfNull(dataRpc);
 
-            _serviceRpc = new ServiceJsonRpcEx(serviceStream, callbackTarget);
+            _serviceRpc = new ServiceJsonRpcEx(logger, serviceStream, callbackTarget);
             _remoteDataRpc = dataRpc;
         }
 
@@ -73,8 +75,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             private readonly object _callbackTarget;
 
-            public ServiceJsonRpcEx(Stream stream, object callbackTarget)
-                : base(stream, callbackTarget, useThisAsCallback: false)
+            public ServiceJsonRpcEx(TraceSource logger, Stream stream, object callbackTarget)
+                : base(logger, stream, callbackTarget, useThisAsCallback: false)
             {
                 // this one doesn't need cancellation token since it has nothing to cancel
                 _callbackTarget = callbackTarget;

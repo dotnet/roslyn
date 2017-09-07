@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +14,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote.Services;
 using Microsoft.CodeAnalysis.Remote.Storage;
-using Microsoft.CodeAnalysis.Remote.Telemetry;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
@@ -60,68 +58,89 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public string Connect(string host, string serializedSession)
         {
-            _primaryInstance = InstanceId;
-
-            var existing = Interlocked.CompareExchange(ref _host, host, null);
-
-            SetGlobalContext(serializedSession);
-
-            if (existing != null && existing != host)
+            return RunService(() =>
             {
-                LogError($"{host} is given for {existing}");
-            }
+                _primaryInstance = InstanceId;
 
-            // log telemetry that service hub started
-            RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(SetSessionInfo));
+                var existing = Interlocked.CompareExchange(ref _host, host, null);
 
-            return _host;
-        }
+                SetGlobalContext(serializedSession);
 
-        public async Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken)
-        {
-            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
-            {
-                var solutionController = (ISolutionController)RoslynServices.SolutionService;
-                await solutionController.UpdatePrimaryWorkspaceAsync(checksum, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        public async Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken)
-        {
-            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
-            {
-                var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, cancellationToken).ConfigureAwait(false);
-
-                foreach (var asset in assets)
+                if (existing != null && existing != host)
                 {
-                    AssetStorage.TryAddGlobalAsset(asset.Item1, asset.Item2);
+                    LogError($"{host} is given for {existing}");
                 }
-            }
+
+                // log telemetry that service hub started
+                RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(SetSessionInfo));
+
+                return _host;
+            }, CancellationToken.None);
+        }
+
+        public Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async () =>
+            {
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
+                {
+                    var solutionController = (ISolutionController)RoslynServices.SolutionService;
+                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, cancellationToken).ConfigureAwait(false);
+                }
+            }, cancellationToken);
+        }
+
+        public Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async () =>
+            {
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
+                {
+                    var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, cancellationToken).ConfigureAwait(false);
+
+                    foreach (var asset in assets)
+                    {
+                        AssetStorage.TryAddGlobalAsset(asset.Item1, asset.Item2);
+                    }
+                }
+            }, cancellationToken);
         }
 
         public void RegisterPrimarySolutionId(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken)
         {
-            var persistentStorageService = GetPersistentStorageService();
-            persistentStorageService?.RegisterPrimarySolution(solutionId);
-            RemotePersistentStorageLocationService.UpdateStorageLocation(solutionId, storageLocation);
+            RunService(() =>
+            {
+                var persistentStorageService = GetPersistentStorageService();
+                persistentStorageService?.RegisterPrimarySolution(solutionId);
+                RemotePersistentStorageLocationService.UpdateStorageLocation(solutionId, storageLocation);
+            }, cancellationToken);
         }
 
         public void UnregisterPrimarySolutionId(SolutionId solutionId, bool synchronousShutdown, CancellationToken cancellationToken)
         {
-            var persistentStorageService = GetPersistentStorageService();
-            persistentStorageService?.UnregisterPrimarySolution(solutionId, synchronousShutdown);
+            RunService(() =>
+            {
+                var persistentStorageService = GetPersistentStorageService();
+                persistentStorageService?.UnregisterPrimarySolution(solutionId, synchronousShutdown);
+            }, cancellationToken);
         }
 
         public void OnGlobalOperationStarted(string unused)
         {
-            var globalOperationNotificationService = GetGlobalOperationNotificationService();
-            globalOperationNotificationService?.OnStarted();
+            RunService(() =>
+            {
+                var globalOperationNotificationService = GetGlobalOperationNotificationService();
+                globalOperationNotificationService?.OnStarted();
+            }, CancellationToken.None);
         }
 
         public void OnGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled)
         {
-            var globalOperationNotificationService = GetGlobalOperationNotificationService();
-            globalOperationNotificationService?.OnStopped(operations, cancelled);
+            RunService(() =>
+            {
+                var globalOperationNotificationService = GetGlobalOperationNotificationService();
+                globalOperationNotificationService?.OnStopped(operations, cancelled);
+            }, CancellationToken.None);
         }
 
         private static Func<FunctionId, bool> GetLoggingChecker()
@@ -208,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var persistentStorageService = workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
             return persistentStorageService;
         }
-        
+
         private RemoteGlobalOperationNotificationService GetGlobalOperationNotificationService()
         {
             var workspace = SolutionService.PrimaryWorkspace;
