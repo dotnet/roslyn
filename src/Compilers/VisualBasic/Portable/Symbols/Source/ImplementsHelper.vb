@@ -468,12 +468,10 @@ DoneWithErrorReporting:
                 ElseIf ((implementedProperty.GetMethod Is Nothing) Xor (implementedProperty.SetMethod Is Nothing)) AndAlso
                        implementingProperty.GetMethod IsNot Nothing AndAlso implementingProperty.SetMethod IsNot Nothing Then
                     With implementedMemberSyntax
-                        Dim result = Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite.
+                        If Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite.
                                          CheckFeatureAvailability(DirectCast(.SyntaxTree, VisualBasicSyntaxTree).Options,
-                                                                  .GetLocation())
-                        If result IsNot Nothing Then
+                                                                  .GetLocation(), diagBag) Then
                             errorReported = True
-                            diagBag.Add(result)
                         End If
                     End With
                 End If

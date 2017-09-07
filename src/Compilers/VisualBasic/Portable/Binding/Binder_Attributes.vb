@@ -787,10 +787,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         Dim cast = DirectCast(node.Syntax, PredefinedCastExpressionSyntax)
 
                                         If cast.Keyword.Kind = SyntaxKind.CObjKeyword Then
-                                            Dim result = Feature.CObjInAttributeArguments.
-                                                                 CheckFeatureAvailability(DirectCast(cast.SyntaxTree, VisualBasicSyntaxTree).Options,
-                                                                                          cast.Keyword.GetLocation())
-                                            If result IsNot Nothing Then diagBag.Add(result)
+                                            Feature.CObjInAttributeArguments.CheckFeatureAvailability(DirectCast(cast.SyntaxTree, VisualBasicSyntaxTree).Options,
+                                                                                          cast.Keyword.GetLocation(), diagBag)
                                         End If
                                     End If
                                     node = conv.Operand

@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Language
                 Case Feature.InferredTupleNames
                     Return LanguageVersion.VisualBasic15_3
                 Case Else
-                    ' Return a "dummy" version for any prototype feature.
+                    ' Return a "dummy" version for any feature that requires an explicit feature flag.
                     If feature.RequiresExplicitFeatureFlag Then Return CType(_RequireExplictFeatureFlag, LanguageVersion)
                     ' Otherwise throw the Unexpected Value.
                     Throw ExceptionUtilities.UnexpectedValue(feature)
@@ -273,18 +273,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Language
         End Function
 
         ''' <summary>
-        ''' Is a language <paramref name="feature"/> unavailable to use with these <paramref name="options"/>?
+        ''' Checks the availability of a language <paramref name="feature"/> with these <paramref name="options"/>.
         ''' </summary>
         ''' <returns>
-        ''' Should a feature be unavailable, a feature unavailable <see cref="Diagnostic"/> at <paramref name="location"/> is return.
-        ''' Otherwise nothing is return.
+        ''' A <see cref="System.Boolean"/> indicating the availability.
+        ''' Should a feature be unavailable, a feature unavailable <see cref="Diagnostic"/> at <paramref name="location"/>
+        ''' is placed into the <paramref name="diagBag"/>.
         ''' </returns>
         ''' <param name="feature">Language feature to check is available.</param>
         ''' <param name="options">The parse options being used.</param>
         ''' <param name="location">The location to report the diagnostic.</param>
+        ''' <param name="diagbag">Where to place the <see cref="Diagnostic"/>.</param>
         <Extension>
-        Friend Function CheckFeatureAvailability(feature As Feature, options As VisualBasicParseOptions, location As Location) As Diagnostic
-            Return If(feature.IsAvailable(options), Nothing, ReportFeatureUnavailable(feature, options, location))
+        Friend Function CheckFeatureAvailability(feature As Feature, options As VisualBasicParseOptions, location As Location, diagBag As DiagnosticBag) As Boolean
+            Dim result = feature.IsAvailable(options)
+            If Not result Then diagBag.Add(ReportFeatureUnavailable(feature, options, location))
+            Return result
         End Function
 
 #End Region
