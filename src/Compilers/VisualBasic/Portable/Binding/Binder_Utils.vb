@@ -686,58 +686,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' default type is object.
-                Return GetSpecialType(specialType.System_Object, identifier, diagBag)
+                Return GetSpecialType(SpecialType.System_Object, identifier, diagBag)
             End If
         End Function
 
         Public Shared Function GetSpecialTypeForTypeCharacter(typeChar As TypeCharacter, ByRef typeCharacterString As String) As SpecialType
-            Dim specialType As SpecialType = specialType.None
+            Dim specialType As SpecialType = SpecialType.None
 
             Select Case typeChar
                 Case TypeCharacter.Decimal
-                    specialType = specialType.System_Decimal
+                    specialType = SpecialType.System_Decimal
                     typeCharacterString = "@"
                 Case TypeCharacter.DecimalLiteral
-                    specialType = specialType.System_Decimal
+                    specialType = SpecialType.System_Decimal
                     typeCharacterString = "D"
                 Case TypeCharacter.Double
-                    specialType = specialType.System_Double
+                    specialType = SpecialType.System_Double
                     typeCharacterString = "#"
                 Case TypeCharacter.DoubleLiteral
-                    specialType = specialType.System_Double
+                    specialType = SpecialType.System_Double
                     typeCharacterString = "R"
                 Case TypeCharacter.Integer
-                    specialType = specialType.System_Int32
+                    specialType = SpecialType.System_Int32
                     typeCharacterString = "%"
                 Case TypeCharacter.IntegerLiteral
-                    specialType = specialType.System_Int32
+                    specialType = SpecialType.System_Int32
                     typeCharacterString = "I"
                 Case TypeCharacter.Long
-                    specialType = specialType.System_Int64
+                    specialType = SpecialType.System_Int64
                     typeCharacterString = "&"
                 Case TypeCharacter.LongLiteral
-                    specialType = specialType.System_Int64
+                    specialType = SpecialType.System_Int64
                     typeCharacterString = "L"
                 Case TypeCharacter.ShortLiteral
-                    specialType = specialType.System_Int16
+                    specialType = SpecialType.System_Int16
                     typeCharacterString = "S"
                 Case TypeCharacter.Single
-                    specialType = specialType.System_Single
+                    specialType = SpecialType.System_Single
                     typeCharacterString = "!"
                 Case TypeCharacter.SingleLiteral
-                    specialType = specialType.System_Single
+                    specialType = SpecialType.System_Single
                     typeCharacterString = "F"
                 Case TypeCharacter.String
-                    specialType = specialType.System_String
+                    specialType = SpecialType.System_String
                     typeCharacterString = "$"
                 Case TypeCharacter.UIntegerLiteral
-                    specialType = specialType.System_UInt32
+                    specialType = SpecialType.System_UInt32
                     typeCharacterString = "UI"
                 Case TypeCharacter.ULongLiteral
-                    specialType = specialType.System_UInt64
+                    specialType = SpecialType.System_UInt64
                     typeCharacterString = "UL"
                 Case TypeCharacter.UShortLiteral
-                    specialType = specialType.System_UInt16
+                    specialType = SpecialType.System_UInt16
                     typeCharacterString = "US"
                 Case TypeCharacter.None
                     typeCharacterString = Nothing
