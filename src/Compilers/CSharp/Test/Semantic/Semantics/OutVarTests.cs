@@ -2363,7 +2363,7 @@ class Test : System.Attribute
     public Test(out int p) { p = 100; }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics(
                 // (4,11): error CS1041: Identifier expected; 'out' is a keyword
                 //     [Test(out var x3)]
@@ -2425,18 +2425,18 @@ class Test : System.Attribute
                 // (6,18): error CS0103: The name 'var' does not exist in the current context
                 //     [Test(p: out var x5)]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 18),
-                // (6,18): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
+                // (6,18): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //     [Test(p: out var x5)]
-                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "var").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "var").WithArguments("7.2").WithLocation(6, 18),
                 // (6,22): error CS0103: The name 'x5' does not exist in the current context
                 //     [Test(p: out var x5)]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(6, 22),
                 // (6,6): error CS1729: 'Test' does not contain a constructor that takes 3 arguments
                 //     [Test(p: out var x5)]
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test(p: out var x5)").WithArguments("Test", "3").WithLocation(6, 6),
-                // (7,18): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
+                // (7,18): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //     [Test(p: out int x6)]
-                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "int").WithLocation(7, 18),
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "int").WithArguments("7.2").WithLocation(7, 18),
                 // (7,22): error CS0103: The name 'x6' does not exist in the current context
                 //     [Test(p: out int x6)]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(7, 22),
@@ -18567,12 +18567,12 @@ public class Cls
 }";
             var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
-                                                            parseOptions: TestOptions.Regular);
+                                                            parseOptions: TestOptions.Regular7_1);
 
             compilation.VerifyDiagnostics(
-                // (6,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
+                // (6,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         Test1(x: 1, out var y);
-                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "out var y").WithLocation(6, 21),
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "out var y").WithArguments("7.2").WithLocation(6, 21),
                 // (6,25): error CS1620: Argument 2 must be passed with the 'ref' keyword
                 //         Test1(x: 1, out var y);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "var y").WithArguments("2", "ref").WithLocation(6, 25)

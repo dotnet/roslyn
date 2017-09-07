@@ -21,6 +21,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
             try
             {
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                if (root == null)
+                {
+                    return default;
+                }
+
                 var token = root.FindToken(position);
 
                 var expression = token.Parent as ExpressionSyntax;

@@ -896,33 +896,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var provider = _owner;
                 using (var asyncToken = _owner.OperationListener.BeginAsyncOperation(nameof(GetSuggestedActionCategoriesAsync)))
                 {
-                    var selection = await GetSpanAsync(range).ConfigureAwait(false);
-                    if (selection != null)
+                    var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    using (var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
                     {
-                        var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                        using (var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+                        var linkedToken = linkedTokenSource.Token;
+
+                        var errorTask = Task.Run(
+                            () => GetFixLevelAsync(provider, document, range, linkedToken), linkedToken);
+
+                        var selection = await GetSpanAsync(range).ConfigureAwait(false);
+                        Task<string> refactoringTask = Task.FromResult((string)null);
+                        if (selection != null && requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
                         {
-                            var linkedToken = linkedTokenSource.Token;
-
-                            var errorTask = Task.Run(
-                                () => GetFixLevelAsync(provider, document, range, linkedToken), linkedToken);
-
-                            var refactoringTask = Task.Run(
-                                () => TryGetRefactoringSuggestedActionCategoryAsync(provider, document, selection, linkedToken),
-                                linkedToken);
-
-                            // If we happen to get the result of the error task before the refactoring task,
-                            // and that result is non-null, we can just cancel the refactoring task.
-                            var result = await errorTask.ConfigureAwait(false) ?? await refactoringTask.ConfigureAwait(false);
-                            linkedTokenSource.Cancel();
-                            return result == null
-                                ? null
-                                : _suggestedActionCategoryRegistry.CreateSuggestedActionCategorySet(result);
+                            refactoringTask = Task.Run(
+                                    () => TryGetRefactoringSuggestedActionCategoryAsync(provider, document, selection, linkedToken),
+                                    linkedToken);
                         }
+                        
+                        // If we happen to get the result of the error task before the refactoring task,
+                        // and that result is non-null, we can just cancel the refactoring task.
+                        var result = await errorTask.ConfigureAwait(false) ?? await refactoringTask.ConfigureAwait(false);
+                        linkedTokenSource.Cancel();
+                        return result == null
+                            ? null
+                            : _suggestedActionCategoryRegistry.CreateSuggestedActionCategorySet(result);
                     }
                 }
-
-                return null;
             }
         }
     }
