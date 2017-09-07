@@ -24,7 +24,7 @@ efforts behind them.
 | [blittable](https://github.com/dotnet/csharplang/pull/206) | None | Proposal | None | | [jaredpar](https://github.com/jaredpar) |
 | strongname | [strongname](https://github.com/dotnet/roslyn/tree/features/strongname) | In Progress | [Ty Overby](https://github.com/tyoverby) | | [jaredpar](https://github.com/jaredpar) |
 | [interior pointer](https://github.com/dotnet/csharplang/pull/264) | None | Proposal | [vsadov](https://github.com/vsadov) | [jaredpar](https://github.com/jaredpar) | [jaredpar](https://github.com/jaredpar) |
-| [non-trailing named arguments](https://github.com/dotnet/csharplang/blob/master/proposals/non-trailing-named-arguments.md) | [non-trailing](https://github.com/dotnet/roslyn/tree/features/non-trailing) | Prototype | [jcouv](https://github.com/jcouv) | TBD | [jcouv](https://github.com/jcouv) |
+| [non-trailing named arguments](https://github.com/dotnet/csharplang/blob/master/proposals/non-trailing-named-arguments.md) | master | Merged | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | [jcouv](https://github.com/jcouv) |
 
 # C# 8.0
 

@@ -23,5 +23,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         DefaultLiteral,
         AsyncMain,
         IOperation,
+        NonTrailingNamedArgs,
     }
 }
