@@ -181,7 +181,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitUsingStatement(operation);
         }
 
-        public override void VisitFixedStatement(IFixedStatement operation)
+        // https://github.com/dotnet/roslyn/issues/21281
+        internal override void VisitFixedStatement(IFixedStatement operation)
         {
             base.VisitFixedStatement(operation);
         }

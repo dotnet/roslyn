@@ -1,12 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Implementation.Debugging;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -70,12 +73,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Debugging
         protected abstract IEnumerable<ISymbol> GetMembers(INamedTypeSymbol type, string name);
         protected abstract bool HasMethodBody(IMethodSymbol method, CancellationToken cancellationToken);
 
-        public async Task<IEnumerable<BreakpointResolutionResult>> DoAsync(CancellationToken cancellationToken)
-        {
-            var methods = await this.ResolveMethodsAsync(cancellationToken).ConfigureAwait(false);
-            return methods.Select(CreateBreakpoint).ToImmutableArrayOrEmpty();
-        }
-
         private BreakpointResolutionResult CreateBreakpoint(ISymbol methodSymbol)
         {
             var location = methodSymbol.Locations.First(loc => loc.IsInSource);
@@ -87,59 +84,72 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Debugging
             return BreakpointResolutionResult.CreateSpanResult(document, textSpan, vsDebugName);
         }
 
-        private async Task<IEnumerable<ISymbol>> ResolveMethodsAsync(CancellationToken cancellationToken)
+        public async Task<ImmutableArray<BreakpointResolutionResult>> DoAsync(CancellationToken cancellationToken)
         {
-            this.ParseText(out var nameParts, out var parameterCount);
+            try
+            {
+                ParseText(out var nameParts, out var parameterCount);
 
-            // Notes:  In C#, indexers can't be resolved by any name.  This is acceptable, because the old language
-            //         service wasn't able to resolve them either.  In VB, parameterized properties will work in
-            //         the same way as any other property.
-            //         Destructors in C# can be resolved using the method name "Finalize". The resulting string
-            //         representation will use C# language format ("C.~C()").  I verified that this works with
-            //         "Break at Function" (breakpoint is correctly set and can be hit), so I don't see a reason
-            //         to prohibit this (even though the old language service didn't support it).
-            var members = await FindMembersAsync(nameParts, cancellationToken).ConfigureAwait(false);
+                // Notes:  In C#, indexers can't be resolved by any name.  This is acceptable, because the old language
+                //         service wasn't able to resolve them either.  In VB, parameterized properties will work in
+                //         the same way as any other property.
+                //         Destructors in C# can be resolved using the method name "Finalize". The resulting string
+                //         representation will use C# language format ("C.~C()").  I verified that this works with
+                //         "Break at Function" (breakpoint is correctly set and can be hit), so I don't see a reason
+                //         to prohibit this (even though the old language service didn't support it).
+                var members = await FindMembersAsync(nameParts, cancellationToken).ConfigureAwait(false);
 
-            // Filter down the list of symbols to "applicable methods", specifically:
-            // - "regular" methods
-            // - constructors
-            // - destructors
-            // - properties
-            // - operators?
-            // - conversions?
-            // where "applicable" means that the method or property represents a valid place to set a breakpoint
-            // and that it has the expected number of parameters
-            return members.Where(m => IsApplicable(m, parameterCount, cancellationToken));
+                // Filter down the list of symbols to "applicable methods", specifically:
+                // - "regular" methods
+                // - constructors
+                // - destructors
+                // - properties
+                // - operators?
+                // - conversions?
+                // where "applicable" means that the method or property represents a valid place to set a breakpoint
+                // and that it has the expected number of parameters
+                return members.Where(m => IsApplicable(m, parameterCount, cancellationToken)).
+                    Select(CreateBreakpoint).ToImmutableArrayOrEmpty();
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                return ImmutableArray<BreakpointResolutionResult>.Empty;
+            }
         }
 
         private async Task<IEnumerable<ISymbol>> FindMembersAsync(
             IList<NameAndArity> nameParts, CancellationToken cancellationToken)
         {
-            if (nameParts.Count == 0)
+            try
             {
-                // If there were no name parts, then we don't have any members to return.
-                // We only expect to hit this condition when the name provided does not parse.
-                return SpecializedCollections.EmptyList<ISymbol>();
+                switch (nameParts.Count)
+                {
+                    case 0:
+                        // If there were no name parts, then we don't have any members to return.
+                        // We only expect to hit this condition when the name provided does not parse.
+                        return SpecializedCollections.EmptyList<ISymbol>();
+
+                    case 1:
+                        // They're just searching for a method name.  Have to look through every type to find
+                        // it.
+                        return FindMembers(await GetAllTypesAsync(cancellationToken).ConfigureAwait(false), nameParts[0]);
+
+                    case 2:
+                        // They have a type name and a method name.  Find a type with a matching name and a
+                        // method in that type.
+                        var types = await GetAllTypesAsync(cancellationToken).ConfigureAwait(false);
+                        types = types.Where(t => MatchesName(t, nameParts[0], _identifierComparer));
+                        return FindMembers(types, nameParts[1]);
+
+                    default:
+                        // They have a namespace or nested type qualified name.  Walk up to the root namespace trying to match.
+                        var containers = await _solution.GetGlobalNamespacesAsync(cancellationToken).ConfigureAwait(false);
+                        return FindMembers(containers, nameParts.ToArray());
+                }
             }
-            else if (nameParts.Count == 1)
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
-                // They're just searching for a method name.  Have to look through every type to find
-                // it.
-                return FindMembers(await GetAllTypesAsync(cancellationToken).ConfigureAwait(false), nameParts[0]);
-            }
-            else if (nameParts.Count == 2)
-            {
-                // They have a type name and a method name.  Find a type with a matching name and a
-                // method in that type.
-                var types = await GetAllTypesAsync(cancellationToken).ConfigureAwait(false);
-                types = types.Where(t => MatchesName(t, nameParts[0], _identifierComparer));
-                return FindMembers(types, nameParts[1]);
-            }
-            else
-            {
-                // They have a namespace or nested type qualified name.  Walk up to the root namespace trying to match.
-                var containers = await _solution.GetGlobalNamespacesAsync(cancellationToken).ConfigureAwait(false);
-                return FindMembers(containers, nameParts.ToArray());
+                return ImmutableArray<ISymbol>.Empty;
             }
         }
 

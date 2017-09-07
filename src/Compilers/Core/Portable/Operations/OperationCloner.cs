@@ -144,7 +144,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new UsingStatement(Visit(operation.Body), Visit(operation.Declaration), Visit(operation.Value), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitFixedStatement(IFixedStatement operation, object argument)
+        // https://github.com/dotnet/roslyn/issues/21281
+        internal override IOperation VisitFixedStatement(IFixedStatement operation, object argument)
         {
             return new FixedStatement(Visit(operation.Variables), Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
