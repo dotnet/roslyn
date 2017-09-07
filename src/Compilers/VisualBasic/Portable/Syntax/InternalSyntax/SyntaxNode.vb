@@ -167,39 +167,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             GreenStats.NoteGreen(Me)
         End Sub
 
-        ''' <summary>
-        ''' Get all syntax errors associated with this node, or any child nodes, grand-child nodes, etc. The errors
-        ''' are not in order.
-        ''' </summary>
-        Friend Overridable Function GetSyntaxErrors() As IList(Of DiagnosticInfo)
-            If Not ContainsDiagnostics Then
-                Return Nothing
-            End If
-
-            Dim accumulatedErrors As New List(Of DiagnosticInfo)
-            AddSyntaxErrors(accumulatedErrors)
-            Return accumulatedErrors
-        End Function
-
-        Friend Overridable Sub AddSyntaxErrors(accumulatedErrors As List(Of DiagnosticInfo))
-            If Me.GetDiagnostics IsNot Nothing Then
-                accumulatedErrors.AddRange(Me.GetDiagnostics)
-            End If
-
-            Dim cnt = SlotCount()
-
-            If cnt = 0 Then
-                Return
-            Else
-                For i As Integer = 0 To cnt - 1
-                    Dim child = GetSlot(i)
-                    If child IsNot Nothing AndAlso child.ContainsDiagnostics Then
-                        DirectCast(child, VisualBasicSyntaxNode).AddSyntaxErrors(accumulatedErrors)
-                    End If
-                Next
-            End If
-        End Sub
-
         Private Function GetDebuggerDisplay() As String
             Dim text = ToFullString()
             If text.Length > 400 Then

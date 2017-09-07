@@ -248,27 +248,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return FullWidth - _text.Length - _leadingTriviaWidth()
         End Function
 
-        Friend NotOverridable Overrides Sub AddSyntaxErrors(accumulatedErrors As List(Of DiagnosticInfo))
-            If Me.GetDiagnostics IsNot Nothing Then
-                accumulatedErrors.AddRange(Me.GetDiagnostics)
-            End If
-
-            Dim leadingTrivia = GetLeadingTrivia()
-            If leadingTrivia IsNot Nothing Then
-                Dim triviaList = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(leadingTrivia)
-                For i = 0 To triviaList.Count - 1
-                    DirectCast(triviaList.ItemUntyped(i), VisualBasicSyntaxNode).AddSyntaxErrors(accumulatedErrors)
-                Next
-            End If
-            Dim trailingTrivia = GetTrailingTrivia()
-            If trailingTrivia IsNot Nothing Then
-                Dim triviaList = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(trailingTrivia)
-                For i = 0 To triviaList.Count - 1
-                    DirectCast(triviaList.ItemUntyped(i), VisualBasicSyntaxNode).AddSyntaxErrors(accumulatedErrors)
-                Next
-            End If
-        End Sub
-
         Protected Overrides Sub WriteTokenTo(writer As System.IO.TextWriter, leading As Boolean, trailing As Boolean)
             If leading Then
                 Dim leadingTrivia = GetLeadingTrivia()

@@ -638,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                                 // eat one token and try to parse declaration or statement again:
                                 var skippedToken = EatToken();
-                                if (reportUnexpectedToken && !skippedToken.ContainsDiagnostics)
+                                if (reportUnexpectedToken && !skippedToken.ContainsErrorDiagnostics(considerTrivia: false))
                                 {
                                     skippedToken = this.AddError(skippedToken,
                                         IsScript ? ErrorCode.ERR_GlobalDefinitionOrStatementExpected : ErrorCode.ERR_EOFExpected);
@@ -2290,7 +2290,8 @@ parse_member_name:;
                     }
 
                     var incompleteMember = _syntaxFactory.IncompleteMember(attributes, modifiers.ToList(), type.IsMissing ? null : type);
-                    if (incompleteMember.ContainsDiagnostics)
+
+                    if (incompleteMember.ContainsErrorDiagnostics(considerTrivia: false))
                     {
                         return incompleteMember;
                     }
@@ -2321,7 +2322,7 @@ parse_member_name:;
                 // then we want async to be a modifier and Task<MISSING> to be a type.
                 if (!sawRef &&
                     identifierOrThisOpt != null &&
-                    (typeParameterListOpt != null && typeParameterListOpt.ContainsDiagnostics
+                    (typeParameterListOpt != null && typeParameterListOpt.ContainsErrorDiagnostics()
                       || this.CurrentToken.Kind != SyntaxKind.OpenParenToken && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken) &&
                     ReconsiderTypeAsAsyncModifier(ref modifiers, ref type, ref explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt))
                 {
@@ -3330,7 +3331,7 @@ parse_member_name:;
                         break;
                     }
 
-                    var token = (first && !this.CurrentToken.ContainsDiagnostics) ? this.EatTokenWithPrejudice(expected) : this.EatToken();
+                    var token = (first && !this.CurrentToken.ContainsErrorDiagnostics()) ? this.EatTokenWithPrejudice(expected) : this.EatToken();
                     first = false;
                     nodes.Add(token);
                 }
@@ -6499,7 +6500,7 @@ tryAgain:
             }
 
             // Cases (2), (3) and (4):
-            if (!beginsWithAwait || !result.ContainsDiagnostics)
+            if (!beginsWithAwait || !result.ContainsErrorDiagnostics(considerTrivia: false))
             {
                 return result;
             }
@@ -6518,7 +6519,7 @@ tryAgain:
             result = ParseStatementNoDeclaration(allowAnyExpression: false);
             IsInAsync = false;
 
-            if (!result.ContainsDiagnostics)
+            if (!result.ContainsErrorDiagnostics(considerTrivia: false))
             {
                 // We are in case (5). We do not report that we have an "await" expression in a non-async
                 // method at parse time; rather we do that in BindAwait(), during the initial round of
@@ -6531,7 +6532,7 @@ tryAgain:
 
             this.Reset(ref resetPointBeforeStatement);
             result = ParseLocalDeclarationStatement();
-            Debug.Assert(result.ContainsDiagnostics);
+            Debug.Assert(result.ContainsErrorDiagnostics(considerTrivia: false));
 
             return result;
         }
@@ -8492,7 +8493,7 @@ tryAgain:
                 for (int i = 0; i < paramListSyntax.Count; i++)
                 {
                     // "await x(y)" still parses as a parameter list, so check to see if it's a valid parameter (like "x(t y)")
-                    forceLocalFunc |= !paramListSyntax[i].ContainsDiagnostics;
+                    forceLocalFunc |= !paramListSyntax[i].ContainsErrorDiagnostics(considerTrivia: false);
                     if (forceLocalFunc)
                         break;
                 }

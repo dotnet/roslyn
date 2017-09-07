@@ -98,12 +98,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return Me._text
         End Function
 
-        Friend NotOverridable Overrides Sub AddSyntaxErrors(accumulatedErrors As List(Of DiagnosticInfo))
-            If Me.GetDiagnostics IsNot Nothing Then
-                accumulatedErrors.AddRange(Me.GetDiagnostics)
-            End If
-        End Sub
-
         Public NotOverridable Overrides Function Accept(visitor As VisualBasicSyntaxVisitor) As VisualBasicSyntaxNode
             Return visitor.VisitSyntaxTrivia(Me)
         End Function

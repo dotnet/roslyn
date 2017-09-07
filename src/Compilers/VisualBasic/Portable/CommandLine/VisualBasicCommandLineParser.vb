@@ -1900,7 +1900,7 @@ lVbRuntimePlus:
                                 '       so we have to use different criteria here; if we don't want to match Dev11 
                                 '       errors we may simplify the code below
                                 Dim errorSkipped As Boolean = False
-                                For Each diag In expression.VbGreen.GetSyntaxErrors
+                                For Each diag In expression.VbGreen.GetAllSyntaxErrors
                                     If diag.Code <> ERRID.ERR_ExpectedExpression AndAlso diag.Code <> ERRID.ERR_BadCCExpression Then
                                         diagnosticBuilder.Add(New DiagnosticWithInfo(ErrorFactory.ErrorInfo(ERRID.ERR_ConditionalCompilationConstantNotValid, diag, parsedTokensAsString.ToString), Location.None))
                                     Else
