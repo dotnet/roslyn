@@ -5537,6 +5537,8 @@ class C
 }");
             Assert.Equal("x, y", GetSymbolNamesJoined(results.Captured));
             Assert.Equal(null, GetSymbolNamesJoined(results.VariablesDeclared));
+            // TODO(https://github.com/dotnet/roslyn/issues/14214): This is wrong.
+            // Both x and y should flow out.
             Assert.Equal("y", GetSymbolNamesJoined(results.DataFlowsOut));
             Assert.Equal("x, y", GetSymbolNamesJoined(results.ReadInside));
             Assert.Equal("x, y", GetSymbolNamesJoined(results.WrittenInside));
