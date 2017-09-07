@@ -12,7 +12,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Internal.VBErrorFactsGenerator</RootNamespace>
     <AssemblyName>VBErrorFactsGenerator</AssemblyName>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
-    <TargetFramework>netcoreapp1.1</TargetFramework>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
     <RuntimeIdentifiers>win7-x64;ubuntu.14.04-x64;ubuntu.16.04-x64;osx.10.12-x64</RuntimeIdentifiers>
     <NonShipping>true</NonShipping>
   </PropertyGroup>
@@ -23,7 +23,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.App" Version="$(MicrosoftNETCoreAppVersion)" />
-    <PackageReference Include="NETStandard.Library" Version="$(NETStandardLibraryVersion)" />
   </ItemGroup>
   <Import Project="..\..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>
