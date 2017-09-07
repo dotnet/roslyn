@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -639,7 +639,7 @@ class Program
 
             var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false);
 
-            comp.VerifyIL("Program.<M>g__M10_0(in int, in (int Alice, int Bob))", @"
+            comp.VerifyIL("Program.<M>g__M1|0_0(in int, in (int Alice, int Bob))", @"
 {
   // Code size       12 (0xc)
   .maxstack  1

@@ -584,7 +584,7 @@ public class Test
             var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
             CompileAndVerify(text, verify: false, options: options, symbolValidator: module =>
             {
-                var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("<M>g__Inner0_0");
+                var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("<M>g__Inner|0_0");
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
                 Assert.True(method.ReturnsByRefReadonly);
 
@@ -612,7 +612,7 @@ public class Test
             var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
             CompileAndVerify(text, options: options, symbolValidator: module =>
             {
-                var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("<M>g__Inner0_0").GetParameters().Single();
+                var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("<M>g__Inner|0_0").GetParameters().Single();
                 Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
 
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Internal, parameter.GetAttributes(), module.ContainingAssembly.Name);
@@ -639,7 +639,7 @@ public class Test
             var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
             CompileAndVerify(text, verify: false, options: options, symbolValidator: module =>
             {
-                var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("<M>g__Inner1_0");
+                var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("<M>g__Inner|1_0");
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
                 Assert.True(method.ReturnsByRefReadonly);
 
@@ -673,7 +673,7 @@ public class Test
             var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
             CompileAndVerify(codeB, verify: false, additionalRefs: new[] { referenceA }, options: options, symbolValidator: module =>
             {
-                var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("<M>g__Inner0_0");
+                var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("<M>g__Inner|0_0");
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
                 Assert.True(method.ReturnsByRefReadonly);
 
