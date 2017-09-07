@@ -3631,5 +3631,364 @@ class C
   IL_0070:  ret
 }");
         }
+
+        [Fact]
+        public void TwoStructClosures()
+        {
+            var source0 = @"
+public class C 
+    {
+    public void M()            
+    {
+        int x = 0;
+        {
+            int y = 0;
+            // Captures two struct closures
+            int L() => x + y;
+        }
+    }
+}
+";
+      
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 1;
+
+    static object F()
+    {
+        return G(<N:0>a => a + G(<N:1>b => 2</N:1>)</N:0>);
+    }
+}");
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // 3 method updates:
+            // Note that even if the change is in the inner lambda such a change will usually impact sequence point 
+            // spans in outer lambda and the method body. So although the IL doesn't change we usually need to update the outer methods.
+            CheckEncLogDefinitions(reader1,
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default));
+
+
+        }
+
+        [Fact]
+        public void ThisClosureAndStructClosure()
+        {
+            var source0 = @"
+public class C 
+{
+    int x = 0;
+    public void M() 
+    {
+        int y = 0;
+        // This + struct closures
+        int L() => x + y;
+        L();
+    }
+}
+";
+
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 1;
+
+    static object F()
+    {
+        return G(<N:0>a => a + G(<N:1>b => 2</N:1>)</N:0>);
+    }
+}");
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // 3 method updates:
+            // Note that even if the change is in the inner lambda such a change will usually impact sequence point 
+            // spans in outer lambda and the method body. So although the IL doesn't change we usually need to update the outer methods.
+            CheckEncLogDefinitions(reader1,
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default));
+
+
+        }
+
+        [Fact]
+        public void ThisOnlyClosure()
+        {
+            var source0 = @"
+public class C 
+{
+    int x = 0;
+    public void M() 
+    {
+        // This-only closure
+        int L() => x;
+        L();
+    }
+}
+";
+
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 1;
+
+    static object F()
+    {
+        return G(<N:0>a => a + G(<N:1>b => 2</N:1>)</N:0>);
+    }
+}");
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // 3 method updates:
+            // Note that even if the change is in the inner lambda such a change will usually impact sequence point 
+            // spans in outer lambda and the method body. So although the IL doesn't change we usually need to update the outer methods.
+            CheckEncLogDefinitions(reader1,
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default));
+
+
+        }
+
+        [Fact]
+        public void LocatedInSameClosureEnvironment()
+        {
+            var source0 = @"
+using System;
+public class C 
+{
+    public void M(int x) 
+    {
+        Func<int> f = () => x;
+        // Located in same closure environment
+        int L() => x;
+        L();
+    }
+}
+";
+
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 1;
+
+    static object F()
+    {
+        return G(<N:0>a => a + G(<N:1>b => 2</N:1>)</N:0>);
+    }
+}");
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // 3 method updates:
+            // Note that even if the change is in the inner lambda such a change will usually impact sequence point 
+            // spans in outer lambda and the method body. So although the IL doesn't change we usually need to update the outer methods.
+            CheckEncLogDefinitions(reader1,
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default));
+
+
+        }
+
+        [Fact]
+        public void SameClassEnvironmentWithStruct()
+        {
+            var source0 = @"
+using System;
+public class C 
+{
+    public void M(int x) 
+    {
+        {
+            int y = 0;
+            Func<int> f = () => x;
+            // Same class environment, with struct env
+            int L() => x + y;
+            L();
+        }
+    }
+}
+";
+
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 1;
+
+    static object F()
+    {
+        return G(<N:0>a => a + G(<N:1>b => 2</N:1>)</N:0>);
+    }
+}");
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // 3 method updates:
+            // Note that even if the change is in the inner lambda such a change will usually impact sequence point 
+            // spans in outer lambda and the method body. So although the IL doesn't change we usually need to update the outer methods.
+            CheckEncLogDefinitions(reader1,
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default));
+
+
+        }
+
+
+        [Fact]
+        public void CaptureStructAndThroughClassEnvChain()
+        {
+            var source0 = @"
+using System;
+public class C 
+{
+    public void M(int x) 
+    {
+        {
+            int y = 0;
+            Func<int> f = () => x;
+            {
+                Func<int> f2 = () => x + y;
+                int z = 0;
+                // Capture struct and through class env chain
+                int L() => x + y + z;
+                L();
+            }
+        }
+    }
+}
+";
+
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    static int G(Func<int, int> f) => 1;
+
+    static object F()
+    {
+        return G(<N:0>a => a + G(<N:1>b => 2</N:1>)</N:0>);
+    }
+}");
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // 3 method updates:
+            // Note that even if the change is in the inner lambda such a change will usually impact sequence point 
+            // spans in outer lambda and the method body. So although the IL doesn't change we usually need to update the outer methods.
+            CheckEncLogDefinitions(reader1,
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default));
+
+
+        }
     }
 }
