@@ -1149,7 +1149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Select Case container.TypeKind
-                Case TYPEKIND.Module
+                Case TypeKind.Module
                     ' Don't allow overloads in module
                     If (flags And SourceMemberFlags.Overloads) <> 0 Then
                         ReportModifierError(modifierList, ERRID.ERR_OverloadsModifierInModule, diagBag, SyntaxKind.OverloadsKeyword)
@@ -1168,7 +1168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     memberModifiers = New MemberModifiers(flags, memberModifiers.ComputedFlags Or SourceMemberFlags.Shared)
 
-                Case TYPEKIND.Interface
+                Case TypeKind.Interface
                     If (flags And SourceMemberFlags.InvalidInInterface) <> 0 Then
                         ReportModifierError(modifierList, If(isProperty, ERRID.ERR_BadInterfacePropertyFlags1, ERRID.ERR_BadInterfaceMethodFlags1), diagBag, InvalidModifiersInInterface)
                         flags = flags And Not SourceMemberFlags.InvalidInInterface
@@ -1177,7 +1177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Interface members are always public and always implicitly MustOverride.
                     memberModifiers = New MemberModifiers(flags, memberModifiers.ComputedFlags Or SourceMemberFlags.MustOverride)
 
-                Case TYPEKIND.Structure
+                Case TypeKind.Structure
                     If (flags And SourceMemberFlags.Protected) <> 0 AndAlso (flags And SourceMemberFlags.Overrides) = 0 Then
                         ReportModifierError(modifierList, If(isProperty, ERRID.ERR_StructCantUseVarSpecifier1, ERRID.ERR_StructureCantUseProtected), diagBag, SyntaxKind.ProtectedKeyword)
 
@@ -1229,7 +1229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim flags = memberModifiers.FoundFlags
 
             Select Case container.TypeKind
-                Case TYPEKIND.Module
+                Case TypeKind.Module
                     ' Members in module are implicitly Shared, and cannot be explicitly Shared.
                     If (flags And SourceMemberFlags.InvalidInModule) <> 0 Then
                         ReportModifierError(modifierList, ERRID.ERR_ModuleCantUseEventSpecifier1, diagBag, InvalidModifiersInModule)
@@ -1241,7 +1241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     memberModifiers = New MemberModifiers(flags, memberModifiers.ComputedFlags Or SourceMemberFlags.Shared)
 
-                Case TYPEKIND.Interface
+                Case TypeKind.Interface
                     If (flags And SourceMemberFlags.InvalidInInterface) <> 0 Then
                         ReportModifierError(modifierList, ERRID.ERR_InterfaceCantUseEventSpecifier1, diagBag, InvalidModifiersInInterface)
                         flags = flags And Not SourceMemberFlags.InvalidInInterface
@@ -1250,7 +1250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Interface members are always public and always implicitly MustOverride.
                     memberModifiers = New MemberModifiers(flags, memberModifiers.ComputedFlags Or SourceMemberFlags.MustOverride)
 
-                Case TYPEKIND.Structure
+                Case TypeKind.Structure
                     If (flags And SourceMemberFlags.Protected) <> 0 Then
                         ReportModifierError(modifierList, ERRID.ERR_StructureCantUseProtected, diagBag, SyntaxKind.ProtectedKeyword)
 
