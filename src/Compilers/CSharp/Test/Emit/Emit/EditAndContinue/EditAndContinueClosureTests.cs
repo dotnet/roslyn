@@ -3635,10 +3635,10 @@ class C
         [Fact]
         public void TwoStructClosures()
         {
-            var source0 = @"
+            var source0 = MarkedSource(@"
 public class C 
     {
-    public void M()            
+    public void F()            
     {
         int x = 0;
         {
@@ -3647,19 +3647,19 @@ public class C
             int L() => x + y;
         }
     }
-}
-";
-      
+}");
+
             var source1 = MarkedSource(@"
-using System;
-
-class C
-{
-    static int G(Func<int, int> f) => 1;
-
-    static object F()
+public class C 
     {
-        return G(<N:0>a => a + G(<N:1>b => 2</N:1>)</N:0>);
+    public void F()            
+    {
+        int x = 0;
+        {
+            int y = 0;
+            // Captures two struct closures
+            int L() => x + y + 1;
+        }
     }
 }");
             var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
@@ -3679,45 +3679,50 @@ class C
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
 
-            // 3 method updates:
-            // Note that even if the change is in the inner lambda such a change will usually impact sequence point 
-            // spans in outer lambda and the method body. So although the IL doesn't change we usually need to update the outer methods.
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default));
-
-
+                Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(4, TableIndex.Field, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(3, TableIndex.NestedClass, EditAndContinueOperation.Default),
+                Row(4, TableIndex.NestedClass, EditAndContinueOperation.Default));
         }
 
         [Fact]
         public void ThisClosureAndStructClosure()
         {
-            var source0 = @"
+            var source0 = MarkedSource(@"
 public class C 
 {
     int x = 0;
-    public void M() 
+    public void F() 
     {
         int y = 0;
         // This + struct closures
         int L() => x + y;
         L();
     }
-}
-";
+}");
 
             var source1 = MarkedSource(@"
-using System;
-
-class C
+public class C 
 {
-    static int G(Func<int, int> f) => 1;
-
-    static object F()
+    int x = 0;
+    public void F() 
     {
-        return G(<N:0>a => a + G(<N:1>b => 2</N:1>)</N:0>);
+        int y = 0;
+        // This + struct closures
+        int L() => x + y + 1;
+        L();
     }
 }");
             var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
@@ -3737,44 +3742,45 @@ class C
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
 
-            // 3 method updates:
-            // Note that even if the change is in the inner lambda such a change will usually impact sequence point 
-            // spans in outer lambda and the method body. So although the IL doesn't change we usually need to update the outer methods.
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default));
-
-
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(4, TableIndex.Field, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(5, TableIndex.Field, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default));
         }
 
         [Fact]
         public void ThisOnlyClosure()
         {
-            var source0 = @"
+            var source0 = MarkedSource(@"
 public class C 
 {
     int x = 0;
-    public void M() 
+    public void F() 
     {
         // This-only closure
         int L() => x;
         L();
     }
-}
-";
+}");
 
             var source1 = MarkedSource(@"
-using System;
-
-class C
+public class C 
 {
-    static int G(Func<int, int> f) => 1;
-
-    static object F()
+    int x = 0;
+    public void F() 
     {
-        return G(<N:0>a => a + G(<N:1>b => 2</N:1>)</N:0>);
+        // This-only closure
+        int L() => x + 1;
+        L();
     }
 }");
             var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
@@ -3794,45 +3800,39 @@ class C
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
 
-            // 3 method updates:
-            // Note that even if the change is in the inner lambda such a change will usually impact sequence point 
-            // spans in outer lambda and the method body. So although the IL doesn't change we usually need to update the outer methods.
             CheckEncLogDefinitions(reader1,
-                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default));
-
-
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]
         public void LocatedInSameClosureEnvironment()
         {
-            var source0 = @"
+            var source0 = MarkedSource(@"
 using System;
 public class C 
 {
-    public void M(int x) 
+    public void F(int x) 
     {
         Func<int> f = () => x;
         // Located in same closure environment
         int L() => x;
         L();
     }
-}
-";
+}");
 
             var source1 = MarkedSource(@"
 using System;
-
-class C
+public class C 
 {
-    static int G(Func<int, int> f) => 1;
-
-    static object F()
+    public void F(int x) 
     {
-        return G(<N:0>a => a + G(<N:1>b => 2</N:1>)</N:0>);
+        Func<int> f = () => x;
+        // Located in same closure environment
+        int L() => x + 1;
+        L();
     }
 }");
             var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
@@ -3857,21 +3857,28 @@ class C
             // spans in outer lambda and the method body. So although the IL doesn't change we usually need to update the outer methods.
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default));
-
-
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default));
         }
 
         [Fact]
         public void SameClassEnvironmentWithStruct()
         {
-            var source0 = @"
+            var source0 = MarkedSource(@"
 using System;
 public class C 
 {
-    public void M(int x) 
+    public void F(int x) 
     {
         {
             int y = 0;
@@ -3881,19 +3888,21 @@ public class C
             L();
         }
     }
-}
-";
+}");
 
             var source1 = MarkedSource(@"
 using System;
-
-class C
+public class C 
 {
-    static int G(Func<int, int> f) => 1;
-
-    static object F()
+    public void F(int x) 
     {
-        return G(<N:0>a => a + G(<N:1>b => 2</N:1>)</N:0>);
+        {
+            int y = 0;
+            Func<int> f = () => x;
+            // Same class environment, with struct env
+            int L() => x + y + 1;
+            L();
+        }
     }
 }");
             var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
@@ -3913,27 +3922,35 @@ class C
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
 
-            // 3 method updates:
-            // Note that even if the change is in the inner lambda such a change will usually impact sequence point 
-            // spans in outer lambda and the method body. So although the IL doesn't change we usually need to update the outer methods.
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(4, TableIndex.Field, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default));
-
-
+                Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(3, TableIndex.NestedClass, EditAndContinueOperation.Default),
+                Row(4, TableIndex.NestedClass, EditAndContinueOperation.Default));
         }
-
 
         [Fact]
         public void CaptureStructAndThroughClassEnvChain()
         {
-            var source0 = @"
+            var source0 = MarkedSource(@"
 using System;
 public class C 
 {
-    public void M(int x) 
+    public void F(int x) 
     {
         {
             int y = 0;
@@ -3947,19 +3964,25 @@ public class C
             }
         }
     }
-}
-";
+}");
 
             var source1 = MarkedSource(@"
 using System;
-
-class C
+public class C 
 {
-    static int G(Func<int, int> f) => 1;
-
-    static object F()
+    public void F(int x) 
     {
-        return G(<N:0>a => a + G(<N:1>b => 2</N:1>)</N:0>);
+        {
+            int y = 0;
+            Func<int> f = () => x;
+            {
+                Func<int> f2 = () => x + y;
+                int z = 0;
+                // Capture struct and through class env chain
+                int L() => x + y + z + 1;
+                L();
+            }
+        }
     }
 }");
             var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
@@ -3979,16 +4002,36 @@ class C
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
 
-            // 3 method updates:
-            // Note that even if the change is in the inner lambda such a change will usually impact sequence point 
-            // spans in outer lambda and the method body. So although the IL doesn't change we usually need to update the outer methods.
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default));
-
-
+                Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(8, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(5, TableIndex.Field, EditAndContinueOperation.Default),
+                Row(7, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(6, TableIndex.Field, EditAndContinueOperation.Default),
+                Row(7, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(7, TableIndex.Field, EditAndContinueOperation.Default),
+                Row(8, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(8, TableIndex.Field, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(4, TableIndex.NestedClass, EditAndContinueOperation.Default),
+                Row(5, TableIndex.NestedClass, EditAndContinueOperation.Default),
+                Row(6, TableIndex.NestedClass, EditAndContinueOperation.Default));
         }
     }
 }
