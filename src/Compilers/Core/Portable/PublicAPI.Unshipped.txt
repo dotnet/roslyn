@@ -78,7 +78,6 @@ Microsoft.CodeAnalysis.OperationKind.EventReferenceExpression = 268 -> Microsoft
 Microsoft.CodeAnalysis.OperationKind.ExpressionStatement = 17 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.FieldInitializer = 1025 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.FieldReferenceExpression = 264 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.OperationKind.FixedStatement = 48 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.IfStatement = 5 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.IncrementExpression = 518 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.InstanceReferenceExpression = 277 -> Microsoft.CodeAnalysis.OperationKind
@@ -281,9 +280,6 @@ Microsoft.CodeAnalysis.Semantics.IFieldInitializer.InitializedFields.get -> Syst
 Microsoft.CodeAnalysis.Semantics.IFieldReferenceExpression
 Microsoft.CodeAnalysis.Semantics.IFieldReferenceExpression.Field.get -> Microsoft.CodeAnalysis.IFieldSymbol
 Microsoft.CodeAnalysis.Semantics.IFieldReferenceExpression.IsDeclaration.get -> bool
-Microsoft.CodeAnalysis.Semantics.IFixedStatement
-Microsoft.CodeAnalysis.Semantics.IFixedStatement.Body.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.Semantics.IFixedStatement.Variables.get -> Microsoft.CodeAnalysis.Semantics.IVariableDeclarationStatement
 Microsoft.CodeAnalysis.Semantics.IForEachLoopStatement
 Microsoft.CodeAnalysis.Semantics.IForEachLoopStatement.Collection.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IForEachLoopStatement.IterationVariable.get -> Microsoft.CodeAnalysis.ILocalSymbol
@@ -535,7 +531,6 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitEventReferenceExp
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitExpressionStatement(Microsoft.CodeAnalysis.Semantics.IExpressionStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitFieldInitializer(Microsoft.CodeAnalysis.Semantics.IFieldInitializer operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitFieldReferenceExpression(Microsoft.CodeAnalysis.Semantics.IFieldReferenceExpression operation) -> void
-virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitFixedStatement(Microsoft.CodeAnalysis.Semantics.IFixedStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitForEachLoopStatement(Microsoft.CodeAnalysis.Semantics.IForEachLoopStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitForLoopStatement(Microsoft.CodeAnalysis.Semantics.IForLoopStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitIfStatement(Microsoft.CodeAnalysis.Semantics.IIfStatement operation) -> void
@@ -624,7 +619,6 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.Vi
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitExpressionStatement(Microsoft.CodeAnalysis.Semantics.IExpressionStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitFieldInitializer(Microsoft.CodeAnalysis.Semantics.IFieldInitializer operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitFieldReferenceExpression(Microsoft.CodeAnalysis.Semantics.IFieldReferenceExpression operation, TArgument argument) -> TResult
-virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitFixedStatement(Microsoft.CodeAnalysis.Semantics.IFixedStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitForEachLoopStatement(Microsoft.CodeAnalysis.Semantics.IForEachLoopStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitForLoopStatement(Microsoft.CodeAnalysis.Semantics.IForLoopStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitIfStatement(Microsoft.CodeAnalysis.Semantics.IIfStatement operation, TArgument argument) -> TResult

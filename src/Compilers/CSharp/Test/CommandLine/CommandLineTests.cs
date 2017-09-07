@@ -9480,6 +9480,52 @@ class C
                 result.Output.Trim());
         }
 
+        [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=484417")]
+        [ConditionalFact(typeof(WindowsOnly), typeof(IsEnglishLocal))]
+        public void MicrosoftDiaSymReaderNativeAltLoadPath()
+        {
+            var dir = Temp.CreateDirectory();
+            var cscDir = Path.GetDirectoryName(s_CSharpCompilerExecutable);
+            
+            // copy csc and dependencies except for DSRN:
+            foreach (var filePath in Directory.EnumerateFiles(cscDir))
+            {
+                var fileName = Path.GetFileName(filePath);
+
+                if (fileName.StartsWith("csc") ||
+                    fileName.StartsWith("System.") ||
+                    fileName.StartsWith("Microsoft.") && !fileName.StartsWith("Microsoft.DiaSymReader.Native"))
+                {
+                    dir.CopyFile(filePath);
+                }
+            }
+
+            dir.CreateFile("Source.cs").WriteAllText("class C { void F() { } }");
+
+            var cscCopy = Path.Combine(dir.Path, "csc.exe");
+
+            var arguments = "/nologo /t:library /debug:full Source.cs";
+
+            // env variable not set (deterministic) -- DSRN is required:
+            var result = ProcessUtilities.Run(cscCopy, arguments + " /deterministic", workingDirectory: dir.Path);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                "error CS0041: Unexpected error writing debug information -- 'Unable to load DLL 'Microsoft.DiaSymReader.Native.amd64.dll': " +
+                "The specified module could not be found. (Exception from HRESULT: 0x8007007E)'", result.Output.Trim());
+
+            // env variable not set (non-deterministic) -- globally registered SymReader is picked up:
+            result = ProcessUtilities.Run(cscCopy, arguments, workingDirectory: dir.Path);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", result.Output.Trim());
+
+            // env variable set:
+            result = ProcessUtilities.Run(
+                cscCopy,
+                arguments + " /deterministic",
+                workingDirectory: dir.Path, 
+                additionalEnvironmentVars: new[] { KeyValuePair.Create("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", cscDir) });
+
+            Assert.Equal("", result.Output.Trim());
+        }
+
         public class QuotedArgumentTests
         {
             private void VerifyQuotedValid<T>(string name, string value, T expected, Func<CSharpCommandLineArguments, T> getValue)

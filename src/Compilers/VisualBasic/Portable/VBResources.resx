@@ -714,8 +714,14 @@
   <data name="ERR_ExpectedExitKind" xml:space="preserve">
     <value>'Exit' must be followed by 'Sub', 'Function', 'Property', 'Do', 'For', 'While', 'Select', or 'Try'.</value>
   </data>
-  <data name="ERR_ExpectedNamedArgument" xml:space="preserve">
+  <data name="ERR_ExpectedNamedArgumentInAttributeList" xml:space="preserve">
     <value>Named argument expected.</value>
+  </data>
+  <data name="ERR_NamedArgumentSpecificationBeforeFixedArgumentInLateboundInvocation" xml:space="preserve">
+    <value>Named argument specifications must appear after all fixed arguments have been specified in a late bound invocation.</value>
+  </data>
+  <data name="ERR_ExpectedNamedArgument" xml:space="preserve">
+    <value>Named argument expected. Please use language version {0} or greater to use non-trailing named arguments.</value>
   </data>
   <data name="ERR_BadMethodFlags1" xml:space="preserve">
     <value>'{0}' is not valid on a method declaration.</value>
@@ -5479,6 +5485,9 @@
   <data name="ERR_NoNetModuleOutputWhenRefOutOrRefOnly" xml:space="preserve">
     <value>Cannot compile net modules when using /refout or /refonly.</value>
   </data>
+  <data name="ERR_BadNonTrailingNamedArgument" xml:space="preserve">
+    <value>Named argument '{0}' is used out-of-position but is followed by an unnamed argument</value>
+  </data>
   <data name="ERR_BadDocumentationMode" xml:space="preserve">
     <value>Provided documentation mode is unsupported or invalid: '{0}'.</value>
   </data>
@@ -5505,5 +5514,8 @@
   </data>
   <data name="IArgumentIsNotVisualBasicArgument" xml:space="preserve">
     <value>{0} is not a valid Visual Basic argument</value>
+  </data>
+  <data name="FEATURE_LeadingDigitSeparator" xml:space="preserve">
+    <value>leading digit separator</value>
   </data>
 </root>

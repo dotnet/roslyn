@@ -2703,10 +2703,29 @@ Done:
             Dim paramIndex = 0
 
             For i As Integer = 0 To arguments.Length - 1 Step 1
-
                 If Not argumentNames.IsDefault AndAlso argumentNames(i) IsNot Nothing Then
-                    ' First named argument
-                    Exit For
+                    ' A named argument
+
+                    If Not candidate.Candidate.TryGetNamedParamIndex(argumentNames(i), paramIndex) Then
+                        ' ERRID_NamedParamNotFound1
+                        ' ERRID_NamedParamNotFound2
+                        candidate.State = CandidateAnalysisResultState.ArgumentMismatch
+                        GoTo Bailout
+                    End If
+
+                    If paramIndex <> i Then
+                        ' all remaining arguments must be named
+                        Exit For
+                    End If
+
+                    If paramIndex = candidate.Candidate.ParameterCount - 1 AndAlso
+                    candidate.Candidate.Parameters(paramIndex).IsParamArray Then
+                        ' ERRID_NamedParamArrayArgument
+                        candidate.State = CandidateAnalysisResultState.ArgumentMismatch
+                        GoTo Bailout
+                    End If
+
+                    Debug.Assert(parameterToArgumentMap(paramIndex) = -1)
                 End If
 
                 positionalArguments += 1
@@ -2736,8 +2755,6 @@ Done:
                     paramIndex += 1
                 End If
             Next
-
-            Debug.Assert(argumentNames.IsDefault OrElse positionalArguments < arguments.Length)
 
             '§11.8.2 Applicable Methods
             '2.	Next, match each named argument to a parameter with the given name. 
@@ -2811,7 +2828,6 @@ Bailout:
             End If
 
         End Sub
-
 
         ''' <summary>
         ''' Match candidate's parameters to arguments §11.8.2 Applicable Methods.

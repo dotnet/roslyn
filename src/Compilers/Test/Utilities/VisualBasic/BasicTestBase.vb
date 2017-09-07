@@ -858,9 +858,8 @@ Public MustInherit Class BasicTestBaseBase
         If node Is Nothing Then
             Return (Nothing, Nothing)
         End If
-
-        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
-        Dim semanticModel = compilation.GetSemanticModel(tree)
+        
+        Dim semanticModel = compilation.GetSemanticModel(node.SyntaxTree)
         Dim operation = semanticModel.GetOperationInternal(node)
         If operation IsNot Nothing Then
             Return (operation, node)

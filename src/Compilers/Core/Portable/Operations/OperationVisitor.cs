@@ -135,7 +135,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitFixedStatement(IFixedStatement operation)
+        // Make public after review: https://github.com/dotnet/roslyn/issues/21281
+        internal virtual void VisitFixedStatement(IFixedStatement operation)
         {
             DefaultVisit(operation);
         }
@@ -600,7 +601,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitFixedStatement(IFixedStatement operation, TArgument argument)
+        // Make public after review: https://github.com/dotnet/roslyn/issues/21281
+        internal virtual TResult VisitFixedStatement(IFixedStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

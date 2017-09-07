@@ -134,7 +134,7 @@ public class C1
 ";
             string expectedOperationTree = @"
 ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'lock () ... }')
-  Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+  Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
       Children(0)
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
@@ -198,7 +198,7 @@ ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'lock (o)
 ')
   Expression: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
   Body: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '')
-      Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?) (Syntax: '')
+      Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: null) (Syntax: '')
           Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {

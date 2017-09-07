@@ -1003,15 +1003,15 @@ End Class]]>.Value
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef}))
             Dim result = GetOperationAndSyntaxForTest(Of InvocationExpressionSyntax)(compilation, fileName)
 
-            Dim operatorNodes = compilation.SyntaxTrees(0).GetRoot().DescendantNodes.Where(Function(n As SyntaxNode) As Boolean
-                                                                                           return n.Kind = SyntaxKind.OperatorStatement
-                                                                                        End Function).ToList()
-            Dim semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees(0))
-            
             Dim expectedInKind = ConversionKind.Widening Or ConversionKind.UserDefined
-            Dim exptectedInMethod = CType(semanticModel.GetDeclaredSymbolFromSyntaxNode(operatorNodes(0)), IMethodSymbol)
+            Dim exptectedInMethod = compilation.GetSymbolsWithName(Function (name As string)
+                                                                       Return name = "op_Implicit"
+                                                                   End Function, SymbolFilter.Member).Single()
+
             Dim expectedOutKind = ConversionKind.Narrowing Or ConversionKind.UserDefined
-            Dim expectedOutMethod = CType(semanticModel.GetDeclaredSymbolFromSyntaxNode(operatorNodes(1)), IMethodSymbol)
+            Dim expectedOutMethod = compilation.GetSymbolsWithName(Function (name As string)
+                                                                       Return name = "op_Explicit"
+                                                                   End Function, SymbolFilter.Member).Single()
 
             Dim invocation = CType(result.operation, IInvocationExpression)
             Dim argument = invocation.ArgumentsInEvaluationOrder(0)
@@ -1023,6 +1023,42 @@ End Class]]>.Value
             Dim outConversion = argument.GetOutConversion()
             Assert.Same(expectedOutMethod, outConversion.MethodSymbol)
             Assert.Equal(expectedOutKind, outConversion.Kind)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub TestCloneInOutConversion()
+            Dim source = <![CDATA[
+Class C
+    Public Shared Widening Operator CType(ByVal c As C) As Integer
+        Return 0
+    End Operator
+
+    Public Shared Narrowing Operator CType(ByVal i As Integer) As C
+        Return New C()
+    End Operator
+End Class
+
+Class Program
+    Sub M1()
+        Dim x = New C()
+        Dim y = New C()
+        Dim z = New C()
+        M2(x, y, z)
+    End Sub
+
+    Sub M2(ByRef a As Integer, ByRef b As Double, ByRef c As C)
+    End Sub
+End Class]]>.Value            
+
+            Dim fileName = "a.vb"
+            Dim syntaxTree = Parse(source, fileName, options:=Nothing)
+
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef}))
+            Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
+            Dim model = compilation.GetSemanticModel(tree)
+
+            VerifyClone(model)
         End Sub
     End Class
 End Namespace

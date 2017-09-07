@@ -2027,7 +2027,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Synta
           Initializer: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom:
       IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
-        Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+        Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
             Children(0)
       IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'j > 5')
         Expression: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, IsInvalid) (Syntax: 'j > 5')

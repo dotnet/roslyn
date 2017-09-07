@@ -102,10 +102,12 @@ echo "Using Runtime Identifier: ${RUNTIME_ID}"
 RESTORE_ARGS="-r ${RUNTIME_ID} -v Minimal --disable-parallel"
 echo "Restoring BaseToolset.csproj"
 dotnet restore ${RESTORE_ARGS} ${THIS_DIR}/build/ToolsetPackages/BaseToolset.csproj
+echo "Restoring CoreToolset.csproj"
+dotnet restore ${RESTORE_ARGS} ${THIS_DIR}/build/ToolsetPackages/CoreToolset.csproj
 echo "Restoring CrossPlatform.sln"
 dotnet restore ${RESTORE_ARGS} ${THIS_DIR}/CrossPlatform.sln
 
-BUILD_ARGS="-c ${BUILD_CONFIGURATION} -r ${RUNTIME_ID} /nologo /consoleloggerparameters:Verbosity=minimal;summary /filelogger /fileloggerparameters:Verbosity=normal;logFile=${BUILD_LOG_PATH} /p:RoslynRuntimeIdentifier=${RUNTIME_ID} /maxcpucount:1"
+BUILD_ARGS="--no-restore -c ${BUILD_CONFIGURATION} -r ${RUNTIME_ID} /nologo /consoleloggerparameters:Verbosity=minimal;summary /filelogger /fileloggerparameters:Verbosity=normal;logFile=${BUILD_LOG_PATH} /maxcpucount:1"
 
 echo "Building bootstrap CscCore"
 dotnet publish ${SRC_PATH}/Compilers/CSharp/CscCore -o ${BOOTSTRAP_PATH}/csc ${BUILD_ARGS}
