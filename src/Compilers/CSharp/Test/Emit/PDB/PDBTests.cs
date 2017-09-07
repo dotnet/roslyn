@@ -3079,6 +3079,103 @@ class Student : Person { public double GPA; }
 </symbols>");
         }
 
+        [Fact]
+        public void SwitchWithPatternAndLocalFunctions()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    private static List<List<int>> l = new List<List<int>>();
+
+    static void Main(string[] args)
+    {
+        Student s = new Student();
+        s.Name = ""Bozo"";
+        s.GPA = 2.3;
+        Operate(s);  
+    }
+
+    static System.Func<string> Operate(Person p)
+    {
+        switch (p)
+        {
+            case Student s when s.GPA > 3.5:
+                string f1() => $""Student {s.Name} ({s.GPA:N1})"";
+                return f1;
+            case Student s:
+                string f2() => $""Student {s.Name} ({s.GPA:N1})"";
+                return f2;
+            case Teacher t:
+                string f3() => $""Teacher {t.Name} of {t.Subject}"";
+                return f3;
+            default:
+                string f4() => $""Person {p.Name}"";
+                return f4;
+        }
+    }
+}
+
+class Person { public string Name; }
+class Teacher : Person { public string Subject; }
+class Student : Person { public double GPA; }
+";
+            // we just want this to compile without crashing/asserting
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb("Program.Operate",
+@"<symbols>
+  <methods>
+    <method containingType=""Program"" name=""Operate"" parameterNames=""p"">
+      <customDebugInfo>
+        <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
+        <encLocalSlotMap>
+          <slot kind=""30"" offset=""0"" />
+          <slot kind=""30"" offset=""475"" />
+          <slot kind=""35"" offset=""11"" />
+          <slot kind=""35"" offset=""11"" />
+          <slot kind=""35"" offset=""11"" />
+          <slot kind=""1"" offset=""11"" />
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>2</methodOrdinal>
+          <closure offset=""0"" />
+          <closure offset=""475"" />
+          <lambda offset=""111"" closure=""1"" />
+          <lambda offset=""234"" closure=""1"" />
+          <lambda offset=""357"" closure=""1"" />
+          <lambda offset=""475"" closure=""0"" />
+        </encLambdaMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0xd"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" />
+        <entry offset=""0xe"" hidden=""true"" />
+        <entry offset=""0x1c"" hidden=""true"" />
+        <entry offset=""0x41"" hidden=""true"" />
+        <entry offset=""0x48"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" />
+        <entry offset=""0x61"" startLine=""24"" startColumn=""17"" endLine=""24"" endColumn=""27"" />
+        <entry offset=""0x71"" hidden=""true"" />
+        <entry offset=""0x7b"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""27"" />
+        <entry offset=""0x8b"" hidden=""true"" />
+        <entry offset=""0x96"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""27"" />
+        <entry offset=""0xa7"" startLine=""33"" startColumn=""17"" endLine=""33"" endColumn=""27"" />
+        <entry offset=""0xb7"" startLine=""35"" startColumn=""5"" endLine=""35"" endColumn=""6"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xba"">
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0xba"" attributes=""0"" />
+        <scope startOffset=""0xe"" endOffset=""0xb7"">
+          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0xe"" il_end=""0xb7"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
         [Fact, WorkItem(17090, "https://github.com/dotnet/roslyn/issues/17090"), WorkItem(19731, "https://github.com/dotnet/roslyn/issues/19731")]
         public void SwitchWithConstantPattern()
         {
