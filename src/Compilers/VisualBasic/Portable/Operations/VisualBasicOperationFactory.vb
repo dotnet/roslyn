@@ -549,7 +549,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 operand = New Lazy(Of IOperation)(Function() Create(boundConversion.Operand))
             End If
 
-            If type.InheritsSpecialType(SpecialType.System_Delegate) Then
+            If (boundConversion.Operand.Kind = BoundKind.Lambda OrElse
+                boundConversion.Operand.Kind = BoundKind.QueryLambda OrElse
+                boundConversion.Operand.Kind = BoundKind.RelaxationLambda OrElse
+                boundConversion.Operand.Kind = BoundKind.UnboundLambda OrElse
+                boundConversion.Operand.Kind = BoundKind.DelegateCreationExpression) AndAlso
+               type.InheritsSpecialType(SpecialType.System_Delegate) Then
                 ' If we're converting a lambda expression to a delegate type, we're creating a delegate. We return a delegate
                 ' creation expression for this scenario
                 Return New LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit)

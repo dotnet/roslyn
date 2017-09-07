@@ -79,7 +79,7 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
             Dim expectedDiagnostics = <![CDATA[
 BC36670: Nested sub does not have a signature that is compatible with delegate 'Action'.
         Dim a As Action = Sub(i As Integer) Console.WriteLine("")'BIND:"Sub(i As Integer) Console.WriteLine("")"
-                                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of SingleLineLambdaExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -114,7 +114,7 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
             Dim expectedDiagnostics = <![CDATA[
 BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'String'.
         Dim a As Func(Of String) = Function() 1'BIND:"Function() 1"
-                                                                  ~
+                                              ~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of SingleLineLambdaExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
