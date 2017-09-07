@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return invokeMethod.Parameters;
         }
 
-        public static bool TryGetElementTypesIfTupleOrCompatible(this TypeSymbol type, out ImmutableArray<TypeSymbol> elementTypes)
+        public static bool TryGetElementTypesIfTupleOrCompatible(this TypeSymbol type, out ImmutableArray<TypeSymbolWithAnnotations> elementTypes)
         {
             if (type.IsTupleType)
             {
@@ -389,11 +389,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!type.IsTupleCompatible(out cardinality))
             {
                 // source not a tuple or compatible
-                elementTypes = default(ImmutableArray<TypeSymbol>);
+                elementTypes = default(ImmutableArray<TypeSymbolWithAnnotations>);
                 return false;
             }
 
-            var elementTypesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(cardinality);
+            var elementTypesBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(cardinality);
             TupleTypeSymbol.AddElementTypes((NamedTypeSymbol)type, elementTypesBuilder);
 
             Debug.Assert(elementTypesBuilder.Count == cardinality);
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-       public static ImmutableArray<TypeSymbol> GetElementTypesOfTupleOrCompatible(this TypeSymbol type)
+       public static ImmutableArray<TypeSymbolWithAnnotations> GetElementTypesOfTupleOrCompatible(this TypeSymbol type)
         {
             if (type.IsTupleType)
             {
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // PERF: if allocations here become nuisance, consider caching the results
             //       in the type symbols that can actually be tuple compatible
-            var elementTypesBuilder = ArrayBuilder<TypeSymbol>.GetInstance();
+            var elementTypesBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
             TupleTypeSymbol.AddElementTypes((NamedTypeSymbol)type, elementTypesBuilder);
 
             return elementTypesBuilder.ToImmutableAndFree();

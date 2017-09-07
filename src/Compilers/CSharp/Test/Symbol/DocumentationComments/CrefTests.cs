@@ -5874,7 +5874,7 @@ enum E { }
             compilation.VerifyDiagnostics();
 
             var expectedSymbol = compilation.GetSpecialType(SpecialType.System_String).
-                InstanceConstructors.Single(ctor => ctor.ParameterCount == 1 && ctor.ParameterTypes[0].IsArray());
+                InstanceConstructors.Single(ctor => ctor.ParameterCount == 1 && ctor.ParameterTypes[0].TypeSymbol.IsArray());
 
             var cref = GetCrefSyntaxes(compilation).Single();
 

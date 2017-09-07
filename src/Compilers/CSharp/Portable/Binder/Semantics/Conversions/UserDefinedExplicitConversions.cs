@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                TypeSymbol convertsFrom = op.ParameterTypes[0];
+                TypeSymbol convertsFrom = op.ParameterTypes[0].TypeSymbol;
                 TypeSymbol convertsTo = op.ReturnType.TypeSymbol;
                 Conversion fromConversion = EncompassingExplicitConversion(sourceExpression, source, convertsFrom, ref useSiteDiagnostics);
                 Conversion toConversion = EncompassingExplicitConversion(null, convertsTo, target, ref useSiteDiagnostics);

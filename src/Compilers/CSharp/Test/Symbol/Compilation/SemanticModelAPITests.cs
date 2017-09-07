@@ -3486,7 +3486,7 @@ class Derived : Test
             var expr = identifier.FirstAncestorOrSelf<ArgumentSyntax>().Parent.Parent;
 
             var exprInfo = model.GetSymbolInfo(expr);
-            var firstParamType = ((Symbol)exprInfo.CandidateSymbols.Single()).GetParameterTypes().First();
+            var firstParamType = ((Symbol)exprInfo.CandidateSymbols.Single()).GetParameterTypes().First().TypeSymbol;
             Assert.Equal(actionType, firstParamType);
 
             var identifierInfo = model.GetTypeInfo(identifier);

@@ -3491,13 +3491,13 @@ namespace System.Runtime.InteropServices.WindowsRuntime
             Assert.Equal(tokenType, addMethod.ReturnType.TypeSymbol);
             Assert.False(addMethod.ReturnsVoid);
             Assert.Equal(1, addMethod.ParameterCount);
-            Assert.Equal(eventType.TypeSymbol, addMethod.ParameterTypes.Single());
+            Assert.Equal(eventType.TypeSymbol, addMethod.ParameterTypes.Single().TypeSymbol);
 
             var removeMethod = @event.RemoveMethod;
             Assert.Equal(voidType, removeMethod.ReturnType.TypeSymbol);
             Assert.True(removeMethod.ReturnsVoid);
             Assert.Equal(1, removeMethod.ParameterCount);
-            Assert.Equal(tokenType, removeMethod.ParameterTypes.Single());
+            Assert.Equal(tokenType, removeMethod.ParameterTypes.Single().TypeSymbol);
 
             if (@event.HasAssociatedField)
             {
@@ -3522,13 +3522,13 @@ namespace System.Runtime.InteropServices.WindowsRuntime
             Assert.Equal(voidType, addMethod.ReturnType.TypeSymbol);
             Assert.True(addMethod.ReturnsVoid);
             Assert.Equal(1, addMethod.ParameterCount);
-            Assert.Equal(eventType, addMethod.ParameterTypes.Single());
+            Assert.Equal(eventType, addMethod.ParameterTypes.Single().TypeSymbol);
 
             var removeMethod = @event.RemoveMethod;
             Assert.Equal(voidType, removeMethod.ReturnType.TypeSymbol);
             Assert.True(removeMethod.ReturnsVoid);
             Assert.Equal(1, removeMethod.ParameterCount);
-            Assert.Equal(eventType, removeMethod.ParameterTypes.Single());
+            Assert.Equal(eventType, removeMethod.ParameterTypes.Single().TypeSymbol);
 
             if (@event.HasAssociatedField)
             {

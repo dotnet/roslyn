@@ -197,12 +197,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // until after the body is bound, but the symbol is created before the body
         // is bound.  Fill in the return type post hoc in these scenarios; the
         // IDE might inspect the symbol and want to know the return type.
-        internal void SetInferredReturnType(RefKind refKind, TypeSymbol inferredReturnType)
+        internal void SetInferredReturnType(RefKind refKind, TypeSymbolWithAnnotations inferredReturnType)
         {
             Debug.Assert((object)inferredReturnType != null);
             Debug.Assert((object)_returnType == ReturnTypeIsBeingInferred);
             _refKind = refKind;
-            _returnType = TypeSymbolWithAnnotations.Create(inferredReturnType);
+            _returnType = inferredReturnType;
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 && lambda._syntax == _syntax
                 && lambda._refKind == _refKind
                 && lambda.ReturnType.TypeSymbol == this.ReturnType.TypeSymbol
-                && System.Linq.ImmutableArrayExtensions.SequenceEqual(lambda.ParameterTypes, this.ParameterTypes)
+                && System.Linq.ImmutableArrayExtensions.SequenceEqual(lambda.ParameterTypes, this.ParameterTypes, (p1, p2) => p1.TypeSymbol.Equals(p2.TypeSymbol))
                 && Equals(lambda.ContainingSymbol, this.ContainingSymbol);
         }
 

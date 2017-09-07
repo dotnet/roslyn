@@ -794,7 +794,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // without being violated on the method. Report that the constraint is violated on the 
             // formal parameter type.
 
-            TypeSymbol formalParameterType = method.ParameterTypes[result.Result.BadParameter];
+            TypeSymbol formalParameterType = method.ParameterTypes[result.Result.BadParameter].TypeSymbol;
             formalParameterType.CheckAllConstraints(conversions, location, diagnostics);
 
             return true;

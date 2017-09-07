@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Get the types of the parameters of a member symbol.  Should be a method, property, or event.
         /// </summary>
-        internal static ImmutableArray<TypeSymbol> GetParameterTypes(this Symbol member)
+        internal static ImmutableArray<TypeSymbolWithAnnotations> GetParameterTypes(this Symbol member)
         {
             switch (member.Kind)
             {
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Property:
                     return ((PropertySymbol)member).ParameterTypes;
                 case SymbolKind.Event:
-                    return ImmutableArray<TypeSymbol>.Empty;
+                    return ImmutableArray<TypeSymbolWithAnnotations>.Empty;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool HasUnsafeParameter(this Symbol member)
         {
-            foreach (TypeSymbol parameterType in member.GetParameterTypes())
+            foreach (var parameterType in member.GetParameterTypes())
             {
                 if (parameterType.IsUnsafe())
                 {

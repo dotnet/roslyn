@@ -2215,15 +2215,15 @@ class Derived2 : Base
             var event1 = derived1.GetMember<EventSymbol>("E");
             Assert.Equal(baseEventType, event1.Type.TypeSymbol);
             Assert.Equal(baseEventType, event1.AssociatedField.Type.TypeSymbol);
-            Assert.Equal(baseEventType, event1.AddMethod.ParameterTypes.Single());
-            Assert.Equal(baseEventType, event1.RemoveMethod.ParameterTypes.Single());
+            Assert.Equal(baseEventType, event1.AddMethod.ParameterTypes.Single().TypeSymbol);
+            Assert.Equal(baseEventType, event1.RemoveMethod.ParameterTypes.Single().TypeSymbol);
 
             var derived2 = global.GetMember<NamedTypeSymbol>("Derived2");
             var event2 = derived2.GetMember<EventSymbol>("E");
             Assert.Equal(baseEventType, event2.Type.TypeSymbol);
             Assert.Null(event2.AssociatedField);
-            Assert.Equal(baseEventType, event2.AddMethod.ParameterTypes.Single());
-            Assert.Equal(baseEventType, event2.RemoveMethod.ParameterTypes.Single());
+            Assert.Equal(baseEventType, event2.AddMethod.ParameterTypes.Single().TypeSymbol);
+            Assert.Equal(baseEventType, event2.RemoveMethod.ParameterTypes.Single().TypeSymbol);
         }
 
         [Fact]

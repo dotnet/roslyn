@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 diagnostics.Add(ErrorCode.ERR_BadVisEventType, location, this, this.Type.TypeSymbol);
             }
-            else if (!this.Type.TypeSymbol.IsDelegateType() && !this.Type.TypeSymbol.IsErrorType())
+            else if (!this.Type.TypeSymbol.IsDelegateType() && !this.Type.IsErrorType())
             {
                 // Suppressed for error types.
                 diagnostics.Add(ErrorCode.ERR_EventNotDelegate, location, this);

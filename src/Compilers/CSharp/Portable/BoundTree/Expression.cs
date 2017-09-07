@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //      is undefined.
                     if ((object)optionalParametersMethod == null 
                         || n.HasAnyErrors
-                        || parameters.Any(p => p.Type.TypeSymbol.IsErrorType())
+                        || parameters.Any(p => p.Type.IsErrorType())
                         || optionalParametersMethod.GetUseSiteDiagnostic()?.DefaultSeverity == DiagnosticSeverity.Error)
                     {
                         // optionalParametersMethod can be null if we are writing to a readonly indexer or reading from an writeonly indexer,

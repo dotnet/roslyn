@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Element types.
         /// </summary>
-        private readonly ImmutableArray<TypeSymbol> _elementTypes;
+        private readonly ImmutableArray<TypeSymbolWithAnnotations> _elementTypes;
 
         private ImmutableArray<Symbol> _lazyMembers;
         private ImmutableArray<FieldSymbol> _lazyDefaultElementFields;
@@ -55,15 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal const string TupleTypeName = "ValueTuple";
         internal const string RestFieldName = "Rest";
 
-        private TupleTypeSymbol(Location locationOpt, NamedTypeSymbol underlyingType, ImmutableArray<Location> elementLocations,
-            ImmutableArray<string> elementNames, ImmutableArray<TypeSymbol> elementTypes, ImmutableArray<bool> errorPositions)
-            : this(locationOpt == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(locationOpt),
-                  underlyingType, elementLocations, elementNames, elementTypes, errorPositions)
-        {
-        }
-
         private TupleTypeSymbol(ImmutableArray<Location> locations, NamedTypeSymbol underlyingType, ImmutableArray<Location> elementLocations,
-            ImmutableArray<string> elementNames, ImmutableArray<TypeSymbol> elementTypes, ImmutableArray<bool> errorPositions)
+            ImmutableArray<string> elementNames, ImmutableArray<TypeSymbolWithAnnotations> elementTypes, ImmutableArray<bool> errorPositions)
             : base(underlyingType)
         {
             Debug.Assert(elementLocations.IsDefault || elementLocations.Length == elementTypes.Length);
@@ -82,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static NamedTypeSymbol Create(
             Location locationOpt,
-            ImmutableArray<TypeSymbol> elementTypes,
+            ImmutableArray<TypeSymbolWithAnnotations> elementTypes,
             ImmutableArray<Location> elementLocations,
             ImmutableArray<string> elementNames,
             CSharpCompilation compilation,
@@ -136,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(tupleCompatibleType.IsTupleCompatible());
 
-            ImmutableArray<TypeSymbol> elementTypes;
+            ImmutableArray<TypeSymbolWithAnnotations> elementTypes;
 
             if (tupleCompatibleType.Arity == RestPosition)
             {
@@ -144,14 +137,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 tupleCompatibleType = EnsureRestExtensionsAreTuples(tupleCompatibleType);
 
                 var extensionTupleElementTypes = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].TypeSymbol.TupleElementTypes;
-                var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(RestPosition - 1 + extensionTupleElementTypes.Length);
-                typesBuilder.AddRange(tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(TypeMap.AsTypeSymbol), RestPosition - 1);
+                var typesBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(RestPosition - 1 + extensionTupleElementTypes.Length);
+                typesBuilder.AddRange(tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics, RestPosition - 1);
                 typesBuilder.AddRange(extensionTupleElementTypes);
                 elementTypes = typesBuilder.ToImmutableAndFree();
             }
             else
             {
-                elementTypes = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(TypeMap.AsTypeSymbol);
+                elementTypes = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics;
             }
 
             return new TupleTypeSymbol(locations, tupleCompatibleType, elementLocations, elementNames, elementTypes, errorPositions);
@@ -230,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(newElementNames.IsDefault || this._elementTypes.Length == newElementNames.Length);
 
-            return new TupleTypeSymbol(newLocation, _underlyingType, newElementLocations, newElementNames, _elementTypes, default(ImmutableArray<bool>));
+            return new TupleTypeSymbol(newLocation == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(newLocation), _underlyingType, newElementLocations, newElementNames, _elementTypes, default(ImmutableArray<bool>));
         }
 
         /// <summary>
@@ -261,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Gets flattened type arguments of the underlying type
         /// which correspond to the types of the tuple elements left-to-right
         /// </summary>
-        internal static void AddElementTypes(NamedTypeSymbol underlyingTupleType, ArrayBuilder<TypeSymbol> tupleElementTypes)
+        internal static void AddElementTypes(NamedTypeSymbol underlyingTupleType, ArrayBuilder<TypeSymbolWithAnnotations> tupleElementTypes)
         {
             NamedTypeSymbol currentType = underlyingTupleType;
 
@@ -274,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var regularElements = Math.Min(currentType.Arity, TupleTypeSymbol.RestPosition - 1);
-                tupleElementTypes.AddRange(currentType.TypeArguments.SelectAsArray(TypeMap.AsTypeSymbol), regularElements);
+                tupleElementTypes.AddRange(currentType.TypeArguments, regularElements);
 
                 if (currentType.Arity == TupleTypeSymbol.RestPosition)
                 {
@@ -319,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ///
         /// Pass a null diagnostic bag and syntax node if you don't care about diagnostics.
         /// </summary>
-        private static NamedTypeSymbol GetTupleUnderlyingType(ImmutableArray<TypeSymbol> elementTypes, CSharpSyntaxNode syntax, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        private static NamedTypeSymbol GetTupleUnderlyingType(ImmutableArray<TypeSymbolWithAnnotations> elementTypes, CSharpSyntaxNode syntax, CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
             int numElements = elementTypes.Length;
             int remainder;
@@ -347,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 do
                 {
-                    ImmutableArray<TypeSymbol> chainedTypes = ImmutableArray.Create(elementTypes, (loop - 1) * (RestPosition - 1), RestPosition - 1).Add(currentSymbol);
+                    var chainedTypes = ImmutableArray.Create(elementTypes, (loop - 1) * (RestPosition - 1), RestPosition - 1).Add(TypeSymbolWithAnnotations.Create(currentSymbol));
 
                     currentSymbol = chainedTupleType.Construct(chainedTypes);
                     loop--;
@@ -686,7 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TupleElementTypes
+        public override ImmutableArray<TypeSymbolWithAnnotations> TupleElementTypes
         {
             get
             {

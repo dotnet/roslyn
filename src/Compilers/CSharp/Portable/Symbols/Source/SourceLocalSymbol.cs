@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // always deduce the same type, or deduce that the type is an error.
 
             Debug.Assert((object)originalType == null ||
-                originalType.TypeSymbol.IsErrorType() && newType.TypeSymbol.IsErrorType() ||
+                originalType.IsErrorType() && newType.IsErrorType() ||
                 originalType.TypeSymbol == newType.TypeSymbol);
 
             if ((object)originalType == null)

@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         @checked);
                 }
 
-                if (rewrittenOperand.Type != conversion.Method.ParameterTypes[0])
+                if (rewrittenOperand.Type != conversion.Method.ParameterTypes[0].TypeSymbol)
                 {
                     rewrittenOperand = MakeConversionNode(
                         rewrittenOperand,
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Lifted conversion, wrap return type in Nullable
                 // The conversion only needs to happen for non-nullable valuetypes
                 if (rewrittenOperand.Type.IsNullableType() &&
-                        conversion.Method.ParameterTypes[0].Equals(rewrittenOperand.Type.GetNullableUnderlyingType(), TypeCompareKind.AllIgnoreOptions) &&
+                        conversion.Method.ParameterTypes[0].TypeSymbol.Equals(rewrittenOperand.Type.GetNullableUnderlyingType(), TypeCompareKind.AllIgnoreOptions) &&
                         !userDefinedConversionRewrittenType.IsNullableType() &&
                         userDefinedConversionRewrittenType.IsValueType)
                 {
@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < numElements; i++)
             {
                 var fieldAccess = MakeTupleFieldAccessAndReportUseSiteDiagnostics(savedTuple, syntax, srcElementFields[i]);
-                var convertedFieldAccess = MakeConversionNode(syntax, fieldAccess, elementConversions[i], destElementTypes[i], @checked, explicitCastInCode);
+                var convertedFieldAccess = MakeConversionNode(syntax, fieldAccess, elementConversions[i], destElementTypes[i].TypeSymbol, @checked, explicitCastInCode);
                 fieldAccessorsBuilder.Add(convertedFieldAccess);
             }
 
@@ -1001,7 +1001,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)conversion.Method != null && !conversion.Method.ReturnsVoid && conversion.Method.ParameterCount == 1);
             if (rewrittenOperand.Type.IsNullableType())
             {
-                var parameterType = conversion.Method.ParameterTypes[0];
+                var parameterType = conversion.Method.ParameterTypes[0].TypeSymbol;
                 if (parameterType.Equals(rewrittenOperand.Type.GetNullableUnderlyingType(), TypeCompareKind.AllIgnoreOptions) &&
                     !parameterType.IsNullableType() &&
                     parameterType.IsValueType)
@@ -1147,7 +1147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenOperand = MakeConversionNode(rewrittenOperand, source.StrippedType(), @checked);
             }
 
-            rewrittenOperand = MakeConversionNode(rewrittenOperand, method.ParameterTypes[0], @checked);
+            rewrittenOperand = MakeConversionNode(rewrittenOperand, method.ParameterTypes[0].TypeSymbol, @checked);
 
             var returnType = method.ReturnType.TypeSymbol;
             Debug.Assert((object)returnType != null);

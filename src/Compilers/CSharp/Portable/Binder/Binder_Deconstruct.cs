@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type.IsTupleType)
             {
                 // tuple literal such as `(1, 2)`, `(null, null)`, `(x.P, y.M())`
-                tupleOrDeconstructedTypes = type.TupleElementTypes;
+                tupleOrDeconstructedTypes = type.TupleElementTypes.SelectAsArray(TypeMap.AsTypeSymbol);
                 SetInferredTypes(variables, tupleOrDeconstructedTypes, diagnostics);
 
                 if (variables.Count != tupleOrDeconstructedTypes.Length)
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // constructs the final tuple type and checks constraints.
             return TupleTypeSymbol.Create(
                 locationOpt: null,
-                elementTypes: typesBuilder.ToImmutableAndFree(),
+                elementTypes: typesBuilder.ToImmutableAndFree().SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations),
                 elementLocations: default(ImmutableArray<Location>),
                 elementNames: default(ImmutableArray<string>),
                 compilation: compilation,
@@ -540,7 +540,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var inferredPositions = tupleNames.SelectAsArray(n => n != null);
 
             var type = TupleTypeSymbol.Create(syntax.Location,
-                typesBuilder.ToImmutableAndFree(), locationsBuilder.ToImmutableAndFree(),
+                typesBuilder.ToImmutableAndFree().SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations),
+                locationsBuilder.ToImmutableAndFree(),
                 tupleNames, this.Compilation,
                 shouldCheckConstraints: !ignoreDiagnosticsFromTuple,
                 errorPositions: disallowInferredNames ? inferredPositions : default,

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return hash;
             }
-            hash = Hash.Combine(member.ParameterTypes[0].GetHashCode(), hash);
+            hash = Hash.Combine(member.ParameterTypes[0].TypeSymbol.GetHashCode(), hash);
             return hash;
         }
     }

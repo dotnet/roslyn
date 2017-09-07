@@ -230,10 +230,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     bool hasUnacceptableParameterType = false;
 
-                    foreach (TypeSymbol paramType in constructor.ParameterTypes) // Public caller would select type out of parameters.
+                    foreach (var paramType in constructor.ParameterTypes) // Public caller would select type out of parameters.
                     {
                         if (paramType.TypeKind == TypeKind.Array ||
-                            paramType.GetAttributeParameterTypedConstantKind(_compilation) == TypedConstantKind.Error)
+                            paramType.TypeSymbol.GetAttributeParameterTypedConstantKind(_compilation) == TypedConstantKind.Error)
                         {
                             hasUnacceptableParameterType = true;
                             break;
@@ -1282,8 +1282,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             code = ErrorCode.Void;
 
-            ImmutableArray<TypeSymbol> xParameterTypes;
-            ImmutableArray<TypeSymbol> yParameterTypes;
+            ImmutableArray<TypeSymbolWithAnnotations> xParameterTypes;
+            ImmutableArray<TypeSymbolWithAnnotations> yParameterTypes;
             ImmutableArray<RefKind> xRefKinds;
             ImmutableArray<RefKind> yRefKinds;
             switch (x.Kind)
@@ -1326,8 +1326,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < numParams; i++)
             {
-                TypeSymbol xType = xParameterTypes[i];
-                TypeSymbol yType = yParameterTypes[i];
+                TypeSymbol xType = xParameterTypes[i].TypeSymbol;
+                TypeSymbol yType = yParameterTypes[i].TypeSymbol;
 
                 TypeKind typeKind = xType.TypeKind;
                 if (yType.TypeKind != typeKind)

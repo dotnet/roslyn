@@ -260,7 +260,10 @@ class C
                 case SymbolKind.Method:
                     var methodSymbol = (MethodSymbol)symbol;
                     typeSymbols.Add(methodSymbol.ReturnType.TypeSymbol);
-                    typeSymbols.AddRange(methodSymbol.ParameterTypes);
+                    foreach (var parameterType in methodSymbol.ParameterTypes)
+                    {
+                        typeSymbols.Add(parameterType.TypeSymbol);
+                    }
                     break;
                 case SymbolKind.NamedType:
                     var namedType = (NamedTypeSymbol)symbol;
@@ -471,7 +474,7 @@ class C
                 Assert.True(firstTuple.IsTupleType);
                 Assert.True(firstTuple.TupleElementNames.IsDefault);
                 Assert.Equal(2, firstTuple.TupleElementTypes.Length);
-                var secondTuple = firstTuple.TupleElementTypes[1];
+                var secondTuple = firstTuple.TupleElementTypes[1].TypeSymbol;
                 Assert.True(secondTuple.IsTupleType);
                 Assert.True(secondTuple.TupleElementNames.IsDefault);
                 Assert.Equal(2, secondTuple.TupleElementTypes.Length);
