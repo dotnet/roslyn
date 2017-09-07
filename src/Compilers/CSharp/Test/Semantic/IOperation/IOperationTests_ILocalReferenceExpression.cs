@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -30,7 +30,10 @@ public class C1
 }
 ";
             string expectedOperationTree = @"
-ILocalReferenceExpression: i (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var i')
+IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: 'var i')
+  ILocalReferenceExpression: i (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var i')
+  InConversion: null
+  OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

@@ -470,13 +470,15 @@ IForEachLoopStatement (Iteration variable: MissingType x) (LoopKind.ForEach) (Op
   Body: IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       Locals: Local_1: System.Boolean b
       IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'bool b = !x ... uals(null);')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'bool b = !x ... uals(null);')
+        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b = !x.Equals(null)')
           Variables: Local_1: System.Boolean b
           Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean) (Syntax: '!x.Equals(null)')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: IUnaryOperatorExpression (UnaryOperatorKind.Not) (OperationKind.UnaryOperatorExpression, Type: System.Object) (Syntax: '!x.Equals(null)')
                   Operand: IInvocationExpression ( ? C.()) (OperationKind.InvocationExpression, Type: ?) (Syntax: 'x.Equals(null)')
                       Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'x.Equals')
+                          Children(1):
+                              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: MissingType) (Syntax: 'x')
                       Arguments(1):
                           IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: 'null')
                             ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')

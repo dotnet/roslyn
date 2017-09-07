@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 isImplicit: expression.WasCompilerGenerated);
         }
 
-        private IVariableDeclaration CreateVariableDeclaration(BoundLocalDeclaration boundLocalDeclaration)
+        private IVariableDeclaration CreateVariableDeclaration(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
         {
-            return OperationFactory.CreateVariableDeclaration(boundLocalDeclaration.LocalSymbol, Create(boundLocalDeclaration.InitializerOpt), _semanticModel, boundLocalDeclaration.Syntax);
+            return OperationFactory.CreateVariableDeclaration(boundLocalDeclaration.LocalSymbol, Create(boundLocalDeclaration.InitializerOpt), _semanticModel, syntax);
         }
 
         private IOperation CreateBoundCallInstanceOperation(BoundCall boundCall)

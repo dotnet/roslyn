@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -666,7 +667,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 bool isChecked = conversion.IsNumeric && boundConversion.Checked;
                 ITypeSymbol type = boundConversion.Type;
                 Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
-                return new LazyCSharpConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
+                return new LazyCSharpConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit || !isExplicit);
             }
         }
 
@@ -1311,18 +1312,21 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             if (boundLocalDeclaration.Syntax.Kind() == SyntaxKind.LocalDeclarationStatement)
             {
-                Lazy<ImmutableArray<IVariableDeclaration>> declarations = new Lazy<ImmutableArray<IVariableDeclaration>>(() => ImmutableArray.Create(CreateVariableDeclaration(boundLocalDeclaration)));
-                SyntaxNode syntax = boundLocalDeclaration.Syntax;
+                var statement = (LocalDeclarationStatementSyntax)boundLocalDeclaration.Syntax;
+                var variableDeclarator = statement.Declaration.Variables.First();
+
+                Lazy<ImmutableArray<IVariableDeclaration>> declarations = new Lazy<ImmutableArray<IVariableDeclaration>>(() => ImmutableArray.Create(CreateVariableDeclaration(boundLocalDeclaration, variableDeclarator)));
+
                 ITypeSymbol type = null;
                 Optional<object> constantValue = default(Optional<object>);
                 bool isImplicit = boundLocalDeclaration.WasCompilerGenerated;
-                return new LazyVariableDeclarationStatement(declarations, _semanticModel, syntax, type, constantValue, isImplicit);
+                return new LazyVariableDeclarationStatement(declarations, _semanticModel, statement, type, constantValue, isImplicit);
             }
             else
             {
                 // we can get here if someone asked about 1 variable declarator on multi local declaration
                 Debug.Assert(boundLocalDeclaration.Syntax.Kind() == SyntaxKind.VariableDeclarator);
-                return CreateVariableDeclaration(boundLocalDeclaration);
+                return CreateVariableDeclaration(boundLocalDeclaration, boundLocalDeclaration.Syntax);
             }
         }
 

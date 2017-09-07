@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override IOperation GetOperationWorker(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
         {
-            var bindingRoot = GetBindingRootOrFieldInitializer(node);
+            var bindingRoot = GetBindingRootOrInitializer(node);
 
             var statementOrRootOperation = GetStatementOrRootOperation(bindingRoot, options, cancellationToken);
             if (statementOrRootOperation == null)
@@ -973,18 +973,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             return statementOrRootOperation.DescendantsAndSelf().FirstOrDefault(o => !o.IsImplicit && o.Syntax == node);
         }
 
-        private CSharpSyntaxNode GetBindingRootOrFieldInitializer(CSharpSyntaxNode node)
+        private CSharpSyntaxNode GetBindingRootOrInitializer(CSharpSyntaxNode node)
         {
             var bindingRoot = GetBindingRoot(node);
 
+            // if binding root is parameter, make it equal value
+            var parameter = bindingRoot as ParameterSyntax;
+            if (parameter != null && parameter.Default?.FullSpan.Contains(node.Span) == true)
+            {
+                // we need to do this since node map doesn't contain bound node for parameter
+                bindingRoot = parameter.Default;
+            }
+
             // if binding root is field variable declarator, make it initializer
             var variableDeclarator = bindingRoot as VariableDeclaratorSyntax;
-            if (variableDeclarator != null && 
-                variableDeclarator.Parent?.Parent.IsKind(SyntaxKind.FieldDeclaration) == true &&
-                variableDeclarator.Initializer?.FullSpan.Contains(node.Span) == true)
+            if (variableDeclarator != null && variableDeclarator.Initializer?.FullSpan.Contains(node.Span) == true)
             {
-                // we need to do this since node map doesn't contain bound node for field variable declarator
-                bindingRoot = variableDeclarator.Initializer;
+                if (variableDeclarator.Parent?.Parent.IsKind(SyntaxKind.FieldDeclaration) == true ||
+                    variableDeclarator.Parent?.Parent.IsKind(SyntaxKind.EventFieldDeclaration) == true)
+                {
+                    // we need to do this since node map doesn't contain bound node for field variable declarator
+                    bindingRoot = variableDeclarator.Initializer;
+                }
+            }
+
+            // if binding root is enum member decleration, make it equal value
+            var enumMember = bindingRoot as EnumMemberDeclarationSyntax;
+            if (enumMember != null && enumMember.EqualsValue?.FullSpan.Contains(node.Span) == true)
+            {
+                // we need to do this since node map doesn't contain bound node for enum member decl
+                bindingRoot = enumMember.EqualsValue;
+            }
+
+            // if binding root is property member decleration, make it equal value
+            var propertyMember = bindingRoot as PropertyDeclarationSyntax;
+            if (propertyMember != null && propertyMember.Initializer?.FullSpan.Contains(node.Span) == true)
+            {
+                // we need to do this since node map doesn't contain bound node for property initializer
+                bindingRoot = propertyMember.Initializer;
             }
 
             return bindingRoot;
@@ -992,7 +1018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private IOperation GetStatementOrRootOperation(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
         {
-            Debug.Assert(node == GetBindingRootOrFieldInitializer(node));
+            Debug.Assert(node == GetBindingRootOrInitializer(node));
 
             CSharpSyntaxNode bindableNode;
 
@@ -1591,7 +1617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             while (node != null);
 
-            done:
+done:
             return GetEnclosingBinderInternalWithinRoot(AdjustStartingNodeAccordingToNewRoot(startingNode, queryClause.Syntax),
                                       position, queryClause.Binder, queryClause.Syntax);
         }

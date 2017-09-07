@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -51,8 +51,11 @@ public void M2(out int i )
 M2(out /*<bind>*/int i/*</bind>*/);
 ";
             string expectedOperationTree = @"
-IFieldReferenceExpression: System.Int32 Script.i (IsDeclaration: True) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'int i')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Script) (Syntax: 'i')
+IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: 'int i')
+  IFieldReferenceExpression: System.Int32 Script.i (IsDeclaration: True) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'int i')
+    Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Script) (Syntax: 'i')
+  InConversion: null
+  OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -94,8 +97,11 @@ public void M2(out int i )
 M2(out /*<bind>*/var i/*</bind>*/);
 ";
             string expectedOperationTree = @"
-IFieldReferenceExpression: System.Int32 Script.i (IsDeclaration: True) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'var i')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Script) (Syntax: 'i')
+IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: 'var i')
+  IFieldReferenceExpression: System.Int32 Script.i (IsDeclaration: True) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'var i')
+    Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Script) (Syntax: 'i')
+  InConversion: null
+  OutConversion: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

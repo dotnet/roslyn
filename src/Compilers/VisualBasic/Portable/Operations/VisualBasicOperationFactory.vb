@@ -1100,7 +1100,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundGotoStatementOperation(boundGotoStatement As BoundGotoStatement) As IBranchStatement
             Dim target As ILabelSymbol = boundGotoStatement.Label
-            Dim branchKind As BranchKind = branchKind.GoTo
+            Dim branchKind As BranchKind = BranchKind.GoTo
             Dim syntax As SyntaxNode = boundGotoStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
@@ -1110,7 +1110,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundContinueStatementOperation(boundContinueStatement As BoundContinueStatement) As IBranchStatement
             Dim target As ILabelSymbol = boundContinueStatement.Label
-            Dim branchKind As BranchKind = branchKind.Continue
+            Dim branchKind As BranchKind = BranchKind.Continue
             Dim syntax As SyntaxNode = boundContinueStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
@@ -1120,7 +1120,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundExitStatementOperation(boundExitStatement As BoundExitStatement) As IBranchStatement
             Dim target As ILabelSymbol = boundExitStatement.Label
-            Dim branchKind As BranchKind = branchKind.Break
+            Dim branchKind As BranchKind = BranchKind.Break
             Dim syntax As SyntaxNode = boundExitStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()

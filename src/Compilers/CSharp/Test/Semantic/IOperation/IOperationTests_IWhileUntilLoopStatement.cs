@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -122,7 +122,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
   Body: IBlockStatement (2 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       Locals: Local_1: System.Int32 value
       IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int value = ++index;')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'int value = ++index;')
+        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'value = ++index')
           Variables: Local_1: System.Int32 value
           Initializer: IIncrementExpression (PrefixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++index')
               Target: ILocalReferenceExpression: index (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'index')
@@ -171,7 +171,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
   Body: IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       Locals: Local_1: System.Int32 value
       IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int value = ++index;')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'int value = ++index;')
+        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'value = ++index')
           Variables: Local_1: System.Int32 value
           Initializer: IIncrementExpression (PrefixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++index')
               Target: ILocalReferenceExpression: index (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'index')
@@ -232,7 +232,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
   Body: IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       Locals: Local_1: System.Int32 value
       IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int value = ++index;')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'int value = ++index;')
+        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'value = ++index')
           Variables: Local_1: System.Int32 value
           Initializer: IIncrementExpression (PrefixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++index')
               Target: ILocalReferenceExpression: index (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'index')
@@ -470,7 +470,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
   Body: IBlockStatement (2 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       Locals: Local_1: System.Int32 value
       IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int value = ++index;')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'int value = ++index;')
+        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'value = ++index')
           Variables: Local_1: System.Int32 value
           Initializer: IIncrementExpression (PrefixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++index')
               Target: ILocalReferenceExpression: index (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'index')
@@ -600,7 +600,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
         Expression: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'i++')
             Target: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0;')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'int j = 0;')
+        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 0')
           Variables: Local_1: System.Int32 j
           Initializer: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
       IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while (j <  ... }')
@@ -667,7 +667,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
         Expression: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'i++')
             Target: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0;')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'int j = 0;')
+        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 0')
           Variables: Local_1: System.Int32 j
           Initializer: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
       IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) (OperationKind.LoopStatement) (Syntax: 'while (j <  ... }')
