@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyEventAssignmentExpression(eventReference, handlerValue, adds, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-            private IParameterReferenceExpression CreateBoundParameterOperation(BoundParameter boundParameter)
+        private IParameterReferenceExpression CreateBoundParameterOperation(BoundParameter boundParameter)
         {
             IParameterSymbol parameter = boundParameter.ParameterSymbol;
             SyntaxNode syntax = boundParameter.Syntax;
@@ -682,8 +682,23 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
             else
             {
-                Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundConversion.Operand));
                 SyntaxNode syntax = boundConversion.Syntax;
+
+                if (syntax.IsMissing)
+                {
+                    // If the underlying syntax IsMissing, then that means we're in case where the compiler generated a piece of syntax to fill in for
+                    // an error, such as this case:
+                    //
+                    //  int i = ;
+                    //
+                    // Semantic model has a special case here that we match: if the underlying syntax is missing, don't create a conversion expression,
+                    // and instead directly return the operand, which will be a BoundBadExpression. When we generate a node for the BoundBadExpression,
+                    // the resulting IOperation will also have a null Type.
+                    Debug.Assert(boundConversion.Operand.Kind == BoundKind.BadExpression);
+                    return Create(boundConversion.Operand);
+                }
+
+                Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundConversion.Operand));
                 Conversion conversion = boundConversion.Conversion;
                 bool isExplicit = boundConversion.ExplicitCastInCode;
                 bool isTryCast = false;
@@ -862,7 +877,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             Lazy<ImmutableArray<IOperation>> children = new Lazy<ImmutableArray<IOperation>>(() => boundBadExpression.ChildBoundNodes.SelectAsArray(n => Create(n)));
             SyntaxNode syntax = boundBadExpression.Syntax;
-            ITypeSymbol type = boundBadExpression.Type;
+            // We match semantic model here: if the expression IsMissing, we have a null type, rather than the ErrorType of the bound node.
+            ITypeSymbol type = syntax.IsMissing ? null : boundBadExpression.Type;
             Optional<object> constantValue = ConvertToOptional(boundBadExpression.ConstantValue);
             bool isImplicit = boundBadExpression.WasCompilerGenerated;
             return new LazyInvalidExpression(children, _semanticModel, syntax, type, constantValue, isImplicit);
