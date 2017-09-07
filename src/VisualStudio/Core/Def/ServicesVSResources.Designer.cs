@@ -2266,7 +2266,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         ///2. Open a Visual Studio Developer Command Prompt
         ///3. Set environment variable “TraceDesignTime” to true (set TraceDesignTime=true)
         ///4. Delete .vs directory/.suo file
-        ///5. Restart VS from the command prompt you set the environment varaible (devenv)
+        ///5. Restart VS from the command prompt you set the environment variable (devenv)
         ///6. Open the solution
         ///7. Check &apos;{0}&apos; and look for the failed tasks (FAILED).
         /// </summary>
