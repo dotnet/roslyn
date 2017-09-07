@@ -40,8 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp.NameLiteralArgument
             {
                 var argument = (ArgumentSyntax)root.FindNode(diagnostic.Location.SourceSpan);
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var invocation = (InvocationExpressionSyntax)argument.Parent.Parent;
+                switch(argument.Parent.Parent)
+                {
+                    case InvocationExpressionSyntax invocation:
                 var index = invocation.ArgumentList.Arguments.IndexOf(argument);
+
+                }
 
                 var methodSymbol = (IMethodSymbol)semanticModel.GetSymbolInfo(invocation).Symbol;
                 var parameterName = methodSymbol.Parameters[index].Name;

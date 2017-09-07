@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NameLiteralArgument
             => false;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.InvocationExpression);
+            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.InvocationExpression, SyntaxKind.ObjectCreationExpression);
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
@@ -39,22 +39,49 @@ namespace Microsoft.CodeAnalysis.CSharp.NameLiteralArgument
             }
 
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
-            ReportDiagnosticsIfNeeded((InvocationExpressionSyntax)context.Node, context, optionSet, syntaxTree);
-        }
-
-        private void ReportDiagnosticsIfNeeded(InvocationExpressionSyntax invocation, SyntaxNodeAnalysisContext context, OptionSet optionSet, SyntaxTree syntaxTree)
-        {
             if (!optionSet.GetOption(CSharpCodeStyleOptions.PreferNamingLiteralArguments).Value)
             {
                 return;
             }
 
-            var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             if (parseOptions.LanguageVersion < LanguageVersion.CSharp7_2)
             {
                 return;
             }
 
+            switch (context.Node)
+            {
+                case InvocationExpressionSyntax invocation:
+                    ReportDiagnosticIfNeeded(invocation, context, optionSet);
+                    break;
+
+                case ObjectCreationExpressionSyntax creation:
+                    ReportDiagnosticIfNeeded(creation, context, optionSet);
+                    break;
+            }
+        }
+
+        private void ReportDiagnosticIfNeeded(ObjectCreationExpressionSyntax creation, SyntaxNodeAnalysisContext context, OptionSet optionSet)
+        {
+            var ctorInfo = context.SemanticModel.GetSymbolInfo(creation);
+            if (ctorInfo.Symbol is null)
+            {
+                return;
+            }
+
+            var ctorSymbol = ctorInfo.Symbol;
+            if (ctorSymbol.Kind != SymbolKind.Method)
+            {
+                return;
+            }
+
+            var arguments = creation.ArgumentList.Arguments;
+            var methodSymbol = (IMethodSymbol)ctorSymbol;
+            ReportDiagnosticIfNeeded(context, optionSet, methodSymbol, arguments);
+        }
+
+        private void ReportDiagnosticIfNeeded(InvocationExpressionSyntax invocation, SyntaxNodeAnalysisContext context, OptionSet optionSet)
+        {
             var method = context.SemanticModel.GetSymbolInfo(invocation);
             if (method.Symbol is null)
             {
@@ -66,9 +93,13 @@ namespace Microsoft.CodeAnalysis.CSharp.NameLiteralArgument
             {
                 return;
             }
-
-            var methodSymbol = (IMethodSymbol)symbol;
             var arguments = invocation.ArgumentList.Arguments;
+            var methodSymbol = (IMethodSymbol)symbol;
+            ReportDiagnosticIfNeeded(context, optionSet, methodSymbol, arguments);
+        }
+
+        private void ReportDiagnosticIfNeeded(SyntaxNodeAnalysisContext context, OptionSet optionSet, IMethodSymbol methodSymbol, SeparatedSyntaxList<ArgumentSyntax> arguments)
+        {
             var parameters = methodSymbol.Parameters;
             for (int i = 0; i < arguments.Count; i++)
             {
