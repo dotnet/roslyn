@@ -1640,11 +1640,20 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prefere local function over anonymous function.
+        ///   Looks up a localized string similar to Prefer local function over anonymous function.
         /// </summary>
         internal static string Prefer_local_function_over_anonymous_function {
             get {
                 return ResourceManager.GetString("Prefer_local_function_over_anonymous_function", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer naming literal arguments.
+        /// </summary>
+        internal static string Prefer_naming_literal_arguments {
+            get {
+                return ResourceManager.GetString("Prefer_naming_literal_arguments", resourceCulture);
             }
         }
         

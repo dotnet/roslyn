@@ -2183,6 +2183,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Name literal argument.
+        /// </summary>
+        internal static string Name_literal_argument {
+            get {
+                return ResourceManager.GetString("Name_literal_argument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to namespace.
         /// </summary>
         internal static string namespace_ {
