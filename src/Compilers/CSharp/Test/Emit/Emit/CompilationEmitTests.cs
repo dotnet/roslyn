@@ -587,6 +587,7 @@ public class C
         [InlineData("public int M() { return 1; }", "public int M() { error(); }", Match.BothMetadataAndRefOut)]
         [InlineData("private void M() { }", "", Match.RefOut)]
         [InlineData("internal void M() { }", "", Match.RefOut)]
+        [InlineData("private protected void M() { }", "", Match.RefOut)]
         [InlineData("private void M() { dynamic x = 1; }", "", Match.RefOut)] // no reference added from method bodies
         [InlineData(@"private void M() { var x = new { id = 1 }; }", "", Match.RefOut)]
         [InlineData("private int P { get { Error(); } set { Error(); } }", "", Match.RefOut)] // errors in methods bodies don't matter
@@ -783,6 +784,7 @@ public class D
 
         [Theory]
         [InlineData("internal void M() { }", "", Match.Different)]
+        [InlineData("private protected void M() { }", "", Match.Different)]
         public void RefAssembly_InvariantToSomeChangesWithInternalsVisibleTo(string left, string right, Match expectedMatch)
         {
             string sourceTemplate = @"
@@ -817,12 +819,12 @@ public class C
 
             string name = GetUniqueName();
             string source1 = sourceTemplate.Replace("CHANGE", change1);
-            CSharpCompilation comp1 = CreateStandardCompilation(Parse(source1),
+            CSharpCompilation comp1 = CreateStandardCompilation(Parse(source1, options: TestOptions.RegularLatest),
                 options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
             ImmutableArray<byte> image1 = comp1.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers));
 
             var source2 = sourceTemplate.Replace("CHANGE", change2);
-            Compilation comp2 = CreateStandardCompilation(Parse(source2),
+            Compilation comp2 = CreateStandardCompilation(Parse(source2, options: TestOptions.RegularLatest),
                 options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
             ImmutableArray<byte> image2 = comp2.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers));
 

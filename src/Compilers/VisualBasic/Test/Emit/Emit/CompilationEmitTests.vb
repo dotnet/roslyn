@@ -462,6 +462,11 @@ End Sub",
 "", Match.RefOut)
 
             CompareAssemblies(sourceTemplate,
+"Private Protected Sub M()
+End Sub",
+"", Match.RefOut)
+
+            CompareAssemblies(sourceTemplate,
 "Private Sub M()
 Dim product = New With {Key .Id = 1}
 End Sub",
@@ -712,7 +717,7 @@ End Class
         End Function
 
         <Fact>
-        Public Sub RefAssembly_InvariantToSomeChangesWithInternalsVisibleTo()
+        Public Sub RefAssembly_InvariantToSomeChangesWithInternalsVisibleTo_01()
             Dim sourceTemplate As String = "
 Imports System.Runtime.CompilerServices
 <assembly:InternalsVisibleToAttribute(""Friend"")>
@@ -722,6 +727,22 @@ End Class"
 
             CompareAssemblies(sourceTemplate,
 "Friend Function M() As Integer
+End Function",
+"", Match.Different)
+
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_InvariantToSomeChangesWithInternalsVisibleTo_02()
+            Dim sourceTemplate As String = "
+Imports System.Runtime.CompilerServices
+<assembly:InternalsVisibleToAttribute(""Friend"")>
+Public Class C
+    CHANGE
+End Class"
+
+            CompareAssemblies(sourceTemplate,
+"Private Protected Function M() As Integer
 End Function",
 "", Match.Different)
 
@@ -746,12 +767,12 @@ End Function",
             Dim name As String = GetUniqueName()
             Dim source1 As String = sourceTemplate.Replace("CHANGE", change1)
             Dim comp1 = CreateCompilationWithMscorlib(source1,
-                options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name)
+                options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
             Dim image1 As ImmutableArray(Of Byte) = comp1.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(includePrivateMembers))
 
             Dim source2 = sourceTemplate.Replace("CHANGE", change2)
             Dim comp2 = CreateCompilationWithMscorlib(source2,
-                            options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name)
+                            options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
             Dim image2 As ImmutableArray(Of Byte) = comp2.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(includePrivateMembers))
 
             If expectMatch Then
