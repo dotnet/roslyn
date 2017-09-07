@@ -1,8 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2217,6 +2219,34 @@ IInvocationExpression (void P.M2(System.Int32 x, [G<S>? s = null])) (OperationKi
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void GettingInOutConverionFromCSharpArgumentShouldThrowException()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        /*<bind>*/M2(1)/*</bind>*/;
+    }
+
+    static void M2(int x)
+    {
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            var (operation, syntaxNode) = GetOperationAndSyntaxForTest<InvocationExpressionSyntax>(compilation);
+
+            var invocation = (IInvocationExpression)operation;
+            var argument = invocation.ArgumentsInEvaluationOrder[0];
+
+            Assert.Throws<ArgumentException>(() => argument.GetInConversion());
+            Assert.Throws<ArgumentException>(() => argument.GetOutConversion());
         }
 
         private class IndexerAccessArgumentVerifier : OperationWalker

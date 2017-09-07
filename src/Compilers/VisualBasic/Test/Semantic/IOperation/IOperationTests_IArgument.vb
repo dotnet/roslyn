@@ -2,6 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Semantics
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -974,7 +975,7 @@ BC33037: Cannot copy the value of 'ByRef' parameter 'a' back to the matching arg
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
-        Public Sub TestCloneInOutConversion()
+        Public Sub GettingInOutConverionFromVBArgument()
             Dim source = <![CDATA[
 Class C
     Public Shared Widening Operator CType(ByVal c As C) As Integer
@@ -989,23 +990,39 @@ End Class
 Class Program
     Sub M1()
         Dim x = New C()
-        Dim y = New C()
-        Dim z = New C()
-        M2(x, y, z)
+        M2(x)'BIND:"M2(x)"
     End Sub
 
-    Sub M2(ByRef a As Integer, ByRef b As Double, ByRef c As C)
+    Sub M2(ByRef a As Integer)
     End Sub
-End Class]]>.Value            
+End Class]]>.Value
 
             Dim fileName = "a.vb"
             Dim syntaxTree = Parse(source, fileName, options:=Nothing)
 
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef}))
-            Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
-            Dim model = compilation.GetSemanticModel(tree)
+            Dim result = GetOperationAndSyntaxForTest(Of InvocationExpressionSyntax)(compilation, fileName)
 
-            VerifyClone(model)
+            Dim operatorNodes = compilation.SyntaxTrees(0).GetRoot().DescendantNodes.Where(Function(n As SyntaxNode) As Boolean
+                                                                                           return n.Kind = SyntaxKind.OperatorStatement
+                                                                                        End Function).ToList()
+            Dim semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees(0))
+            
+            Dim expectedInKind = ConversionKind.Widening Or ConversionKind.UserDefined
+            Dim exptectedInMethod = CType(semanticModel.GetDeclaredSymbolFromSyntaxNode(operatorNodes(0)), IMethodSymbol)
+            Dim expectedOutKind = ConversionKind.Narrowing Or ConversionKind.UserDefined
+            Dim expectedOutMethod = CType(semanticModel.GetDeclaredSymbolFromSyntaxNode(operatorNodes(1)), IMethodSymbol)
+
+            Dim invocation = CType(result.operation, IInvocationExpression)
+            Dim argument = invocation.ArgumentsInEvaluationOrder(0)
+
+            Dim inConversion = argument.GetInConversion()
+            Assert.Same(exptectedInMethod, inConversion.MethodSymbol)
+            Assert.Equal(expectedInKind, inConversion.Kind)
+
+            Dim outConversion = argument.GetOutConversion()
+            Assert.Same(expectedOutMethod, outConversion.MethodSymbol)
+            Assert.Equal(expectedOutKind, outConversion.Kind)
         End Sub
     End Class
 End Namespace
