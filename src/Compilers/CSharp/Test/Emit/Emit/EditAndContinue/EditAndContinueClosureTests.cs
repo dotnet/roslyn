@@ -3637,31 +3637,32 @@ class C
         {
             var source0 = MarkedSource(@"
 public class C 
-    {
+{
     public void F()            
-    {
-        int x = 0;
-        {
-            int y = 0;
+    <N:0>{</N:0>
+        int <N:1>x</N:1> = 0;
+        <N:2>{</N:2>
+            int <N:3>y</N:3> = 0;
             // Captures two struct closures
-            int L() => x + y;
+            <N:4>int L() => x + y;</N:4>
         }
     }
 }");
 
             var source1 = MarkedSource(@"
 public class C 
-    {
+{
     public void F()            
-    {
-        int x = 0;
-        {
-            int y = 0;
+<N:0>{</N:0>
+        int <N:1>x</N:1> = 0;
+        <N:2>{</N:2>
+            int <N:3>y</N:3> = 0;
             // Captures two struct closures
-            int L() => x + y + 1;
+            <N:4>int L() => x + y + 1;</N:4>
         }
     }
 }");
+
             var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var v0 = CompileAndVerify(compilation0);
@@ -3669,7 +3670,7 @@ public class C
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-
+ 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
             var diff1 = compilation1.EmitDifference(
@@ -3679,22 +3680,43 @@ public class C
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
 
+            diff1.VerifySynthesizedMembers(
+                "C.<>c__DisplayClass0_0: {x}",
+                "C.<>c__DisplayClass0_1: {y}",
+                "C: {<F>g__L|0_0, <>c__DisplayClass0_0, <>c__DisplayClass0_1}");
+
+            v0.VerifyIL("C.<F>g__L|0_0(ref C.<>c__DisplayClass0_0, ref C.<>c__DisplayClass0_1)", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x""
+  IL_0006:  ldarg.1
+  IL_0007:  ldfld      ""int C.<>c__DisplayClass0_1.y""
+  IL_000c:  add
+  IL_000d:  ret
+}");
+
+            diff1.VerifyIL("C.<F>g__L|0_0(ref C.<>c__DisplayClass0_0, ref C.<>c__DisplayClass0_1)", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x""
+  IL_0006:  ldarg.1
+  IL_0007:  ldfld      ""int C.<>c__DisplayClass0_1.y""
+  IL_000c:  add
+  IL_000d:  ldc.i4.1
+  IL_000e:  add
+  IL_000f:  ret
+}
+");
+
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                Row(3, TableIndex.Field, EditAndContinueOperation.Default),
-                Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                Row(4, TableIndex.Field, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(3, TableIndex.NestedClass, EditAndContinueOperation.Default),
-                Row(4, TableIndex.NestedClass, EditAndContinueOperation.Default));
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -3703,12 +3725,12 @@ public class C
             var source0 = MarkedSource(@"
 public class C 
 {
-    int x = 0;
+    int <N:0>x</N:0> = 0;
     public void F() 
-    {
-        int y = 0;
+    <N:1>{</N:1>
+        int <N:2>y</N:2> = 0;
         // This + struct closures
-        int L() => x + y;
+        <N:3>int L() => x + y;</N:3>
         L();
     }
 }");
@@ -3716,15 +3738,16 @@ public class C
             var source1 = MarkedSource(@"
 public class C 
 {
-    int x = 0;
+    int <N:0>x</N:0> = 0;
     public void F() 
-    {
-        int y = 0;
+    <N:1>{</N:1>
+        int <N:2>y</N:2> = 0;
         // This + struct closures
-        int L() => x + y + 1;
+        <N:3>int L() => x + y + 1;</N:3>
         L();
     }
 }");
+
             var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var v0 = CompileAndVerify(compilation0);
@@ -3742,19 +3765,43 @@ public class C
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
 
+            diff1.VerifySynthesizedMembers(
+                "C.<>c__DisplayClass1_0: {<>4__this, y}",
+                "C: {<F>g__L|1_0, <>c__DisplayClass1_0}");
+
+            v0.VerifyIL("C.<F>g__L|1_0(ref C.<>c__DisplayClass1_0)", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.x""
+  IL_0006:  ldarg.1
+  IL_0007:  ldfld      ""int C.<>c__DisplayClass1_0.y""
+  IL_000c:  add
+  IL_000d:  ret
+}
+");
+
+            diff1.VerifyIL("C.<F>g__L|1_0(ref C.<>c__DisplayClass1_0)", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.x""
+  IL_0006:  ldarg.1
+  IL_0007:  ldfld      ""int C.<>c__DisplayClass1_0.y""
+  IL_000c:  add
+  IL_000d:  ldc.i4.1
+  IL_000e:  add
+  IL_000f:  ret
+}
+");
+
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                Row(4, TableIndex.Field, EditAndContinueOperation.Default),
-                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                Row(5, TableIndex.Field, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default));
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -3763,11 +3810,11 @@ public class C
             var source0 = MarkedSource(@"
 public class C 
 {
-    int x = 0;
+    int <N:0>x</N:0> = 0;
     public void F() 
-    {
+    <N:1>{</N:1>
         // This-only closure
-        int L() => x;
+        <N:2>int L() => x;</N:2>
         L();
     }
 }");
@@ -3775,11 +3822,11 @@ public class C
             var source1 = MarkedSource(@"
 public class C 
 {
-    int x = 0;
+    int <N:0>x</N:0> = 0;
     public void F() 
-    {
+    <N:1>{</N:1>
         // This-only closure
-        int L() => x + 1;
+        <N:2>int L() => x + 1;</N:2>
         L();
     }
 }");
@@ -3800,10 +3847,33 @@ public class C
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
 
+            diff1.VerifySynthesizedMembers(
+                "C: {<F>g__L|1_0}");
+
+            v0.VerifyIL("C.<F>g__L|1_0()", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.x""
+  IL_0006:  ret
+}");
+            
+            diff1.VerifyIL("C.<F>g__L|1_0()", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.x""
+  IL_0006:  ldc.i4.1
+  IL_0007:  add
+  IL_0008:  ret
+}
+");
+
             CheckEncLogDefinitions(reader1,
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
@@ -3815,11 +3885,10 @@ using System;
 public class C 
 {
     public void F(int x) 
-    {
-        Func<int> f = () => x;
+    <N:0>{</N:0>
+        Func<int> f = <N:1>() => x</N:1>;
         // Located in same closure environment
-        int L() => x;
-        L();
+        <N:2>int L() => x;</N:2>
     }
 }");
 
@@ -3828,11 +3897,10 @@ using System;
 public class C 
 {
     public void F(int x) 
-    {
-        Func<int> f = () => x;
+    <N:0>{</N:0>
+        Func<int> f = <N:1>() => x</N:1>;
         // Located in same closure environment
-        int L() => x + 1;
-        L();
+        <N:2>int L() => x + 1;</N:2>
     }
 }");
             var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
@@ -3852,23 +3920,36 @@ public class C
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
 
-            // 3 method updates:
-            // Note that even if the change is in the inner lambda such a change will usually impact sequence point 
-            // spans in outer lambda and the method body. So although the IL doesn't change we usually need to update the outer methods.
+            diff1.VerifySynthesizedMembers(
+                "C.<>c__DisplayClass0_0: {x, <F>b__0, <F>g__L|1}",
+                "C: {<>c__DisplayClass0_0}");
+
+            v0.VerifyIL("C.<>c__DisplayClass0_0.<F>g__L|1()", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x""
+  IL_0006:  ret
+}");
+
+            diff1.VerifyIL("C.<>c__DisplayClass0_0.<F>g__L|1()", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x""
+  IL_0006:  ldc.i4.1
+  IL_0007:  add
+  IL_0008:  ret
+}
+");
+
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default));
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -3879,13 +3960,12 @@ using System;
 public class C 
 {
     public void F(int x) 
-    {
-        {
-            int y = 0;
-            Func<int> f = () => x;
+    <N:0>{</N:0>
+        <N:1>{</N:1>
+            int <N:2>y</N:2> = 0;
+            Func<int> f = <N:3>() => x</N:3>;
             // Same class environment, with struct env
-            int L() => x + y;
-            L();
+            <N:4>int L() => x + y;</N:4>
         }
     }
 }");
@@ -3895,13 +3975,12 @@ using System;
 public class C 
 {
     public void F(int x) 
-    {
-        {
-            int y = 0;
-            Func<int> f = () => x;
+    <N:0>{</N:0>
+        <N:1>{</N:1>
+            int <N:2>y</N:2> = 0;
+            Func<int> f = <N:3>() => x</N:3>;
             // Same class environment, with struct env
-            int L() => x + y + 1;
-            L();
+            <N:4>int L() => x + y + 1;</N:4>
         }
     }
 }");
@@ -3922,25 +4001,43 @@ public class C
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
 
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c__DisplayClass0_0, <>c__DisplayClass0_1}",
+                "C.<>c__DisplayClass0_0: {x, <F>b__0, <F>g__L|1}",
+                "C.<>c__DisplayClass0_1: {y}");
+
+            v0.VerifyIL("C.<>c__DisplayClass0_0.<F>g__L|1(ref C.<>c__DisplayClass0_1)", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x""
+  IL_0006:  ldarg.1
+  IL_0007:  ldfld      ""int C.<>c__DisplayClass0_1.y""
+  IL_000c:  add
+  IL_000d:  ret
+}");
+
+            diff1.VerifyIL("C.<>c__DisplayClass0_0.<F>g__L|1(ref C.<>c__DisplayClass0_1)", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x""
+  IL_0006:  ldarg.1
+  IL_0007:  ldfld      ""int C.<>c__DisplayClass0_1.y""
+  IL_000c:  add
+  IL_000d:  ldc.i4.1
+  IL_000e:  add
+  IL_000f:  ret
+}
+");
+
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                Row(3, TableIndex.Field, EditAndContinueOperation.Default),
-                Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                Row(4, TableIndex.Field, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(3, TableIndex.NestedClass, EditAndContinueOperation.Default),
-                Row(4, TableIndex.NestedClass, EditAndContinueOperation.Default));
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -3951,16 +4048,15 @@ using System;
 public class C 
 {
     public void F(int x) 
-    {
-        {
-            int y = 0;
-            Func<int> f = () => x;
-            {
-                Func<int> f2 = () => x + y;
-                int z = 0;
+    <N:0>{</N:0>
+        <N:1>{</N:1>
+            int <N:2>y</N:2> = 0;
+            Func<int> f = <N:3>() => x</N:3>;
+            <N:4>{</N:4>
+                Func<int> f2 = <N:5>() => x + y</N:5>;
+                int <N:6>z</N:6> = 0;
                 // Capture struct and through class env chain
-                int L() => x + y + z;
-                L();
+                <N:7>int L() => x + y + z;</N:7>
             }
         }
     }
@@ -3971,16 +4067,15 @@ using System;
 public class C 
 {
     public void F(int x) 
-    {
-        {
-            int y = 0;
-            Func<int> f = () => x;
-            {
-                Func<int> f2 = () => x + y;
-                int z = 0;
+<N:0>{</N:0>
+        <N:1>{</N:1>
+            int <N:2>y</N:2> = 0;
+            Func<int> f = <N:3>() => x</N:3>;
+            <N:4>{</N:4>
+                Func<int> f2 = <N:5>() => x + y</N:5>;
+                int <N:6>z</N:6> = 0;
                 // Capture struct and through class env chain
-                int L() => x + y + z + 1;
-                L();
+                <N:7>int L() => x + y + z + 1;</N:7>
             }
         }
     }
@@ -4002,36 +4097,53 @@ public class C
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
 
+            diff1.VerifySynthesizedMembers(
+                "C.<>c__DisplayClass0_2: {z}",
+                "C.<>c__DisplayClass0_0: {x, <F>b__0}",
+                "C: {<>c__DisplayClass0_0, <>c__DisplayClass0_1, <>c__DisplayClass0_2}",
+                "C.<>c__DisplayClass0_1: {y, CS$<>8__locals1, <F>b__1, <F>g__L|2}");
+
+            v0.VerifyIL("C.<>c__DisplayClass0_1.<F>g__L|2(ref C.<>c__DisplayClass0_2)", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_1.CS$<>8__locals1""
+  IL_0006:  ldfld      ""int C.<>c__DisplayClass0_0.x""
+  IL_000b:  ldarg.0
+  IL_000c:  ldfld      ""int C.<>c__DisplayClass0_1.y""
+  IL_0011:  add
+  IL_0012:  ldarg.1
+  IL_0013:  ldfld      ""int C.<>c__DisplayClass0_2.z""
+  IL_0018:  add
+  IL_0019:  ret
+}");
+
+            diff1.VerifyIL("C.<>c__DisplayClass0_1.<F>g__L|2(ref C.<>c__DisplayClass0_2)", @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_1.CS$<>8__locals1""
+  IL_0006:  ldfld      ""int C.<>c__DisplayClass0_0.x""
+  IL_000b:  ldarg.0
+  IL_000c:  ldfld      ""int C.<>c__DisplayClass0_1.y""
+  IL_0011:  add
+  IL_0012:  ldarg.1
+  IL_0013:  ldfld      ""int C.<>c__DisplayClass0_2.z""
+  IL_0018:  add
+  IL_0019:  ldc.i4.1
+  IL_001a:  add
+  IL_001b:  ret
+}
+");
+
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                Row(8, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                Row(5, TableIndex.Field, EditAndContinueOperation.Default),
-                Row(7, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                Row(6, TableIndex.Field, EditAndContinueOperation.Default),
-                Row(7, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                Row(7, TableIndex.Field, EditAndContinueOperation.Default),
-                Row(8, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                Row(8, TableIndex.Field, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(4, TableIndex.NestedClass, EditAndContinueOperation.Default),
-                Row(5, TableIndex.NestedClass, EditAndContinueOperation.Default),
-                Row(6, TableIndex.NestedClass, EditAndContinueOperation.Default));
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default));
         }
     }
 }
