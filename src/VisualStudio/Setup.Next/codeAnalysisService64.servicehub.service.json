@@ -1,6 +1,6 @@
 ﻿{
   "host": "desktopClr",
-  "hostId": "RoslynCodeAnalysisService64",
+  "hostId": "RoslynCodeAnalysisService",
   "hostGroupAllowed": true,
   "entryPoint": {
     "assemblyPath": "Microsoft.CodeAnalysis.Remote.ServiceHub.dll",

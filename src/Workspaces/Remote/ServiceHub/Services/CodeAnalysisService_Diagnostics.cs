@@ -54,10 +54,8 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        private async Task<int> SerializeDiagnosticResultAsync(string streamName, DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder> result, CancellationToken cancellationToken)
+        private async Task SerializeDiagnosticResultAsync(string streamName, DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder> result, CancellationToken cancellationToken)
         {
-            var count = 0;
-
             using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_SerializeDiagnosticResultAsync, GetResultLogInfo, result, cancellationToken))
             using (var stream = await DirectStream.GetAsync(streamName, cancellationToken).ConfigureAwait(false))
             {
@@ -72,8 +70,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
-
-            return count;
         }
 
         private static string GetResultLogInfo(DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder> result)
