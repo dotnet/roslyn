@@ -53,7 +53,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i A
             Instance Receiver: null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'myarray(i)')
-                  IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.Int32) (Syntax: 'myarray(i)')
+                  IArrayElementReferenceExpression (OperationKind.None) (Syntax: 'myarray(i)')
                     Array reference: ILocalReferenceExpression: myarray (OperationKind.LocalReferenceExpression, Type: System.Int32()) (Syntax: 'myarray')
                     Indices(1):
                         ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -125,7 +125,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i A
             Instance Receiver: null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'myarray(i)')
-                  IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.Int32) (Syntax: 'myarray(i)')
+                  IArrayElementReferenceExpression (OperationKind.None) (Syntax: 'myarray(i)')
                     Array reference: ILocalReferenceExpression: myarray (OperationKind.LocalReferenceExpression, Type: System.Int32()) (Syntax: 'myarray')
                     Indices(1):
                         ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')

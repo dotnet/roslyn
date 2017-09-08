@@ -1007,7 +1007,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Function()
                     ' We should not be filtering OperationKind.None statements.
                     ' https://github.com/dotnet/roslyn/issues/21776
-                    Return boundBlock.Statements.Select(Function(n) Create(n)).Where(Function(s) s.Kind <> OperationKind.None).ToImmutableArray()
+                    Return boundBlock.Statements.Select(Function(n) (s:=Create(n), bound:=n)).Where(Function(tuple) tuple.s.Kind <> OperationKind.None OrElse tuple.bound.Kind = BoundKind.TryStatement).Select(Function(tuple) tuple.s).ToImmutableArray()
                 End Function)
             Dim locals As ImmutableArray(Of ILocalSymbol) = boundBlock.Locals.As(Of ILocalSymbol)()
             Dim syntax As SyntaxNode = boundBlock.Syntax

@@ -578,7 +578,8 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: '
           Clauses:
               IPatternCaseClause (Label Symbol: case typeof(X):) (CaseKind.Pattern) (OperationKind.PatternCaseClause, IsInvalid) (Syntax: 'case typeof(X):')
                 Pattern: IConstantPattern (OperationKind.ConstantPattern, IsInvalid) (Syntax: 'case typeof(X):')
-                    Value: ITypeOfExpression (Type: X) (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'typeof(X)')
+                    Value: ITypeOfExpression (OperationKind.None, IsInvalid) (Syntax: 'typeof(X)')
+                        TypeOperand: X
                 Guard Expression: null
           Body:
               IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')

@@ -682,8 +682,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     if (operation != null &&
                         operation.Kind != OperationKind.None &&
                         operation.Kind != OperationKind.InvalidExpression &&
-                        operation.Kind != OperationKind.InvalidStatement &&
-                        operation.Kind != OperationKind.PlaceholderExpression)
+                        operation.Kind != OperationKind.InvalidStatement)
+                        //operation.Kind != OperationKind.PlaceholderExpression) https://github.com/dotnet/roslyn/issues/21294
                     {
                         Assert.True(set.Contains(operation));
                     }

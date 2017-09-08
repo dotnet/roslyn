@@ -1902,23 +1902,16 @@ End Class
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
+            ' https://github.com/dotnet/roslyn/issues/21294
             comp.VerifyAnalyzerDiagnostics({New ConditionalAccessOperationTestAnalyzer}, Nothing, Nothing, False,
                 Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "p?.Prop").WithLocation(24, 17),
-                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "p?.Prop").WithLocation(24, 17),
                 Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "p?.Field").WithLocation(25, 13),
-                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "p?.Field").WithLocation(25, 13),
                 Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "p?(0)").WithLocation(26, 13),
-                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "p?(0)").WithLocation(26, 13),
                 Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "p?.M0(Nothing)").WithLocation(27, 9),
-                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "p?.M0(Nothing)").WithLocation(27, 9),
                 Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "Field1?.Prop").WithLocation(29, 13),
-                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1?.Prop").WithLocation(29, 13),
                 Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "Field1?.Field").WithLocation(30, 13),
-                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1?.Field").WithLocation(30, 13),
                 Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "Field1?(0)").WithLocation(31, 13),
-                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1?(0)").WithLocation(31, 13),
-                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "Field1?.M0(Nothing)").WithLocation(32, 9),
-                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessInstanceOperationDescriptor.Id, "Field1?.M0(Nothing)").WithLocation(32, 9))
+                Diagnostic(ConditionalAccessOperationTestAnalyzer.ConditionalAccessOperationDescriptor.Id, "Field1?.M0(Nothing)").WithLocation(32, 9))
         End Sub
 
         <WorkItem(8955, "https://github.com/dotnet/roslyn/issues/8955")>

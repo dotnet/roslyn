@@ -216,7 +216,7 @@ class C
 ILocalFunctionStatement (Symbol: System.Threading.Tasks.Task<System.Int32> LocalAsync(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'async Task< ... }')
   IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
     IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'await Task.Delay(0);')
-      Expression: IAwaitExpression (OperationKind.AwaitExpression, Type: System.Void) (Syntax: 'await Task.Delay(0)')
+      Expression: IAwaitExpression (OperationKind.None) (Syntax: 'await Task.Delay(0)')
           AwaitedValue: IInvocationExpression (System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(System.Int32 millisecondsDelay)) (OperationKind.InvocationExpression, Type: System.Threading.Tasks.Task) (Syntax: 'Task.Delay(0)')
               Instance Receiver: null
               Arguments(1):

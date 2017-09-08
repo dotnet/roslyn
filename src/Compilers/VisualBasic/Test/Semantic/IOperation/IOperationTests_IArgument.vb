@@ -450,7 +450,7 @@ IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0])) (Operatio
             Operand: IOperation:  (OperationKind.None) (Syntax: 'x')
         OutConversion: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double) (Syntax: 'x')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: IPlaceholderExpression (OperationKind.PlaceholderExpression, Type: System.Int32) (Syntax: 'x')
+            Operand: IPlaceholderExpression (OperationKind.None) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
