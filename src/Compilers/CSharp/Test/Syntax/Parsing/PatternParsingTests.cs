@@ -9,9 +9,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.Patterns)]
-    public class PatternParsingTexts : ParsingTests
+    public class PatternParsingTests : ParsingTests
     {
-        public PatternParsingTexts(ITestOutputHelper output) : base(output)
+        public PatternParsingTests(ITestOutputHelper output) : base(output)
         {
         }
 

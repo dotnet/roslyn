@@ -369,6 +369,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ThrowExpression(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.ThrowKeyword), GenerateIdentifierName());
         }
         
+        private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ReturnExpressionSyntax GenerateReturnExpression()
+        {
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ReturnExpression(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.ReturnKeyword), null);
+        }
+        
+        private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BreakExpressionSyntax GenerateBreakExpression()
+        {
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.BreakExpression(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.BreakKeyword));
+        }
+        
+        private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ContinueExpressionSyntax GenerateContinueExpression()
+        {
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ContinueExpression(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.ContinueKeyword));
+        }
+        
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.WhenClauseSyntax GenerateWhenClause()
         {
             return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.WhenClause(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.WhenKeyword), GenerateIdentifierName());
@@ -1879,6 +1894,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.Equal(SyntaxKind.ThrowKeyword, node.ThrowKeyword.Kind);
             Assert.NotNull(node.Expression);
+            
+            AttachAndCheckDiagnostics(node);
+        }
+        
+        [Fact]
+        public void TestReturnExpressionFactoryAndProperties()
+        {
+            var node = GenerateReturnExpression();
+            
+            Assert.Equal(SyntaxKind.ReturnKeyword, node.ReturnKeyword.Kind);
+            Assert.Null(node.Expression);
+            
+            AttachAndCheckDiagnostics(node);
+        }
+        
+        [Fact]
+        public void TestBreakExpressionFactoryAndProperties()
+        {
+            var node = GenerateBreakExpression();
+            
+            Assert.Equal(SyntaxKind.BreakKeyword, node.BreakKeyword.Kind);
+            
+            AttachAndCheckDiagnostics(node);
+        }
+        
+        [Fact]
+        public void TestContinueExpressionFactoryAndProperties()
+        {
+            var node = GenerateContinueExpression();
+            
+            Assert.Equal(SyntaxKind.ContinueKeyword, node.ContinueKeyword.Kind);
             
             AttachAndCheckDiagnostics(node);
         }
@@ -5484,6 +5530,84 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestThrowExpressionIdentityRewriter()
         {
             var oldNode = GenerateThrowExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            Assert.Same(oldNode, newNode);
+        }
+        
+        [Fact]
+        public void TestReturnExpressionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateReturnExpression();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+            
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+        
+        [Fact]
+        public void TestReturnExpressionIdentityRewriter()
+        {
+            var oldNode = GenerateReturnExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            Assert.Same(oldNode, newNode);
+        }
+        
+        [Fact]
+        public void TestBreakExpressionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateBreakExpression();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+            
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+        
+        [Fact]
+        public void TestBreakExpressionIdentityRewriter()
+        {
+            var oldNode = GenerateBreakExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            Assert.Same(oldNode, newNode);
+        }
+        
+        [Fact]
+        public void TestContinueExpressionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateContinueExpression();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+            
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+        
+        [Fact]
+        public void TestContinueExpressionIdentityRewriter()
+        {
+            var oldNode = GenerateContinueExpression();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
             
@@ -9287,6 +9411,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ThrowExpression(SyntaxFactory.Token(SyntaxKind.ThrowKeyword), GenerateIdentifierName());
         }
         
+        private static ReturnExpressionSyntax GenerateReturnExpression()
+        {
+            return SyntaxFactory.ReturnExpression(SyntaxFactory.Token(SyntaxKind.ReturnKeyword), default(ExpressionSyntax));
+        }
+        
+        private static BreakExpressionSyntax GenerateBreakExpression()
+        {
+            return SyntaxFactory.BreakExpression(SyntaxFactory.Token(SyntaxKind.BreakKeyword));
+        }
+        
+        private static ContinueExpressionSyntax GenerateContinueExpression()
+        {
+            return SyntaxFactory.ContinueExpression(SyntaxFactory.Token(SyntaxKind.ContinueKeyword));
+        }
+        
         private static WhenClauseSyntax GenerateWhenClause()
         {
             return SyntaxFactory.WhenClause(SyntaxFactory.Token(SyntaxKind.WhenKeyword), GenerateIdentifierName());
@@ -10798,6 +10937,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ThrowKeyword, node.ThrowKeyword.Kind());
             Assert.NotNull(node.Expression);
             var newNode = node.WithThrowKeyword(node.ThrowKeyword).WithExpression(node.Expression);
+            Assert.Equal(node, newNode);
+        }
+        
+        [Fact]
+        public void TestReturnExpressionFactoryAndProperties()
+        {
+            var node = GenerateReturnExpression();
+            
+            Assert.Equal(SyntaxKind.ReturnKeyword, node.ReturnKeyword.Kind());
+            Assert.Null(node.Expression);
+            var newNode = node.WithReturnKeyword(node.ReturnKeyword).WithExpression(node.Expression);
+            Assert.Equal(node, newNode);
+        }
+        
+        [Fact]
+        public void TestBreakExpressionFactoryAndProperties()
+        {
+            var node = GenerateBreakExpression();
+            
+            Assert.Equal(SyntaxKind.BreakKeyword, node.BreakKeyword.Kind());
+            var newNode = node.WithBreakKeyword(node.BreakKeyword);
+            Assert.Equal(node, newNode);
+        }
+        
+        [Fact]
+        public void TestContinueExpressionFactoryAndProperties()
+        {
+            var node = GenerateContinueExpression();
+            
+            Assert.Equal(SyntaxKind.ContinueKeyword, node.ContinueKeyword.Kind());
+            var newNode = node.WithContinueKeyword(node.ContinueKeyword);
             Assert.Equal(node, newNode);
         }
         
@@ -14402,6 +14572,84 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestThrowExpressionIdentityRewriter()
         {
             var oldNode = GenerateThrowExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            Assert.Same(oldNode, newNode);
+        }
+        
+        [Fact]
+        public void TestReturnExpressionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateReturnExpression();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+            
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+        
+        [Fact]
+        public void TestReturnExpressionIdentityRewriter()
+        {
+            var oldNode = GenerateReturnExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            Assert.Same(oldNode, newNode);
+        }
+        
+        [Fact]
+        public void TestBreakExpressionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateBreakExpression();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+            
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+        
+        [Fact]
+        public void TestBreakExpressionIdentityRewriter()
+        {
+            var oldNode = GenerateBreakExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            Assert.Same(oldNode, newNode);
+        }
+        
+        [Fact]
+        public void TestContinueExpressionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateContinueExpression();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+            
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+        
+        [Fact]
+        public void TestContinueExpressionIdentityRewriter()
+        {
+            var oldNode = GenerateContinueExpression();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
             

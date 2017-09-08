@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImplicitNumeric,
         ImplicitEnumeration,
         ImplicitThrow,
+        ImplicitJump,
         ImplicitTupleLiteral,
         ImplicitTuple,
         ExplicitTupleLiteral,

@@ -839,6 +839,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ThrowExpression:
                     return Conversion.ImplicitThrow;
+
+                case BoundKind.BreakExpression:
+                case BoundKind.ReturnExpression:
+                case BoundKind.ContinueExpression:
+                    return Conversion.ImplicitJump;
             }
 
             return Conversion.NoConversion;

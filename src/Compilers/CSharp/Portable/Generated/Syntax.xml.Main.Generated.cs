@@ -448,6 +448,24 @@ namespace Microsoft.CodeAnalysis.CSharp
       return this.DefaultVisit(node);
     }
 
+    /// <summary>Called when the visitor visits a ReturnExpressionSyntax node.</summary>
+    public virtual TResult VisitReturnExpression(ReturnExpressionSyntax node)
+    {
+      return this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a BreakExpressionSyntax node.</summary>
+    public virtual TResult VisitBreakExpression(BreakExpressionSyntax node)
+    {
+      return this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a ContinueExpressionSyntax node.</summary>
+    public virtual TResult VisitContinueExpression(ContinueExpressionSyntax node)
+    {
+      return this.DefaultVisit(node);
+    }
+
     /// <summary>Called when the visitor visits a WhenClauseSyntax node.</summary>
     public virtual TResult VisitWhenClause(WhenClauseSyntax node)
     {
@@ -1671,6 +1689,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     /// <summary>Called when the visitor visits a ThrowExpressionSyntax node.</summary>
     public virtual void VisitThrowExpression(ThrowExpressionSyntax node)
+    {
+      this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a ReturnExpressionSyntax node.</summary>
+    public virtual void VisitReturnExpression(ReturnExpressionSyntax node)
+    {
+      this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a BreakExpressionSyntax node.</summary>
+    public virtual void VisitBreakExpression(BreakExpressionSyntax node)
+    {
+      this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a ContinueExpressionSyntax node.</summary>
+    public virtual void VisitContinueExpression(ContinueExpressionSyntax node)
     {
       this.DefaultVisit(node);
     }
@@ -3032,6 +3068,25 @@ namespace Microsoft.CodeAnalysis.CSharp
       var throwKeyword = this.VisitToken(node.ThrowKeyword);
       var expression = (ExpressionSyntax)this.Visit(node.Expression);
       return node.Update(throwKeyword, expression);
+    }
+
+    public override SyntaxNode VisitReturnExpression(ReturnExpressionSyntax node)
+    {
+      var returnKeyword = this.VisitToken(node.ReturnKeyword);
+      var expression = (ExpressionSyntax)this.Visit(node.Expression);
+      return node.Update(returnKeyword, expression);
+    }
+
+    public override SyntaxNode VisitBreakExpression(BreakExpressionSyntax node)
+    {
+      var breakKeyword = this.VisitToken(node.BreakKeyword);
+      return node.Update(breakKeyword);
+    }
+
+    public override SyntaxNode VisitContinueExpression(ContinueExpressionSyntax node)
+    {
+      var continueKeyword = this.VisitToken(node.ContinueKeyword);
+      return node.Update(continueKeyword);
     }
 
     public override SyntaxNode VisitWhenClause(WhenClauseSyntax node)
@@ -6493,6 +6548,66 @@ namespace Microsoft.CodeAnalysis.CSharp
     public static ThrowExpressionSyntax ThrowExpression(ExpressionSyntax expression)
     {
       return SyntaxFactory.ThrowExpression(SyntaxFactory.Token(SyntaxKind.ThrowKeyword), expression);
+    }
+
+    /// <summary>Creates a new ReturnExpressionSyntax instance.</summary>
+    public static ReturnExpressionSyntax ReturnExpression(SyntaxToken returnKeyword, ExpressionSyntax expression)
+    {
+      switch (returnKeyword.Kind())
+      {
+        case SyntaxKind.ReturnKeyword:
+          break;
+        default:
+          throw new ArgumentException("returnKeyword");
+      }
+      return (ReturnExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ReturnExpression((Syntax.InternalSyntax.SyntaxToken)returnKeyword.Node, expression == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
+    }
+
+
+    /// <summary>Creates a new ReturnExpressionSyntax instance.</summary>
+    public static ReturnExpressionSyntax ReturnExpression(ExpressionSyntax expression = default(ExpressionSyntax))
+    {
+      return SyntaxFactory.ReturnExpression(SyntaxFactory.Token(SyntaxKind.ReturnKeyword), expression);
+    }
+
+    /// <summary>Creates a new BreakExpressionSyntax instance.</summary>
+    public static BreakExpressionSyntax BreakExpression(SyntaxToken breakKeyword)
+    {
+      switch (breakKeyword.Kind())
+      {
+        case SyntaxKind.BreakKeyword:
+          break;
+        default:
+          throw new ArgumentException("breakKeyword");
+      }
+      return (BreakExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.BreakExpression((Syntax.InternalSyntax.SyntaxToken)breakKeyword.Node).CreateRed();
+    }
+
+
+    /// <summary>Creates a new BreakExpressionSyntax instance.</summary>
+    public static BreakExpressionSyntax BreakExpression()
+    {
+      return SyntaxFactory.BreakExpression(SyntaxFactory.Token(SyntaxKind.BreakKeyword));
+    }
+
+    /// <summary>Creates a new ContinueExpressionSyntax instance.</summary>
+    public static ContinueExpressionSyntax ContinueExpression(SyntaxToken continueKeyword)
+    {
+      switch (continueKeyword.Kind())
+      {
+        case SyntaxKind.ContinueKeyword:
+          break;
+        default:
+          throw new ArgumentException("continueKeyword");
+      }
+      return (ContinueExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ContinueExpression((Syntax.InternalSyntax.SyntaxToken)continueKeyword.Node).CreateRed();
+    }
+
+
+    /// <summary>Creates a new ContinueExpressionSyntax instance.</summary>
+    public static ContinueExpressionSyntax ContinueExpression()
+    {
+      return SyntaxFactory.ContinueExpression(SyntaxFactory.Token(SyntaxKind.ContinueKeyword));
     }
 
     /// <summary>Creates a new WhenClauseSyntax instance.</summary>

@@ -250,6 +250,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return _factory.ThrowExpression(operand.Expression, rewrittenType);
                     }
 
+                case ConversionKind.ImplicitJump:
+                    {
+                        switch (rewrittenOperand.Kind)
+                        {
+                            case BoundKind.BreakExpression:
+                                {
+                                    var operand = (BoundBreakExpression)rewrittenOperand;
+                                    return _factory.BreakExpression(operand, rewrittenType);
+                                }
+                            case BoundKind.ContinueExpression:
+                                {
+                                    var operand = (BoundContinueExpression)rewrittenOperand;
+                                    return _factory.ContinueExpression(operand, rewrittenType);
+                                }
+                            case BoundKind.ReturnExpression:
+                                {
+                                    var operand = (BoundReturnExpression)rewrittenOperand;
+                                    return _factory.ReturnExpression(operand, rewrittenType);
+                                }
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(rewrittenOperand.Kind);
+                        }
+                    }
+
                 case ConversionKind.ImplicitEnumeration:
                     // A conversion from constant zero to nullable is actually classified as an 
                     // implicit enumeration conversion, not an implicit nullable conversion. 

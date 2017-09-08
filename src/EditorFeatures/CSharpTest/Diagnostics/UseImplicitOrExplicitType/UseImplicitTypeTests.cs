@@ -1365,7 +1365,7 @@ class C
 
 class XElement
 {
-    internal static XElement Load() => return null;
+    internal static XElement Load() => null;
 }",
 @"class C
 {
@@ -1377,7 +1377,7 @@ class XElement
 
 class XElement
 {
-    internal static XElement Load() => return null;
+    internal static XElement Load() => null;
 }", options: ImplicitTypeWhereApparent());
         }
 

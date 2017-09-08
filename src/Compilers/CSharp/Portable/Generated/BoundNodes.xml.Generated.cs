@@ -166,6 +166,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WildcardPattern,
         DiscardExpression,
         ThrowExpression,
+        ReturnExpression,
+        BreakExpression,
+        ContinueExpression,
         OutVariablePendingInference,
         DeconstructionVariablePendingInference,
         OutDeconstructVarPendingInference,
@@ -5981,6 +5984,117 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundReturnExpression : BoundExpression
+    {
+        public BoundReturnExpression(SyntaxNode syntax, RefKind refKind, BoundExpression expressionOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ReturnExpression, syntax, type, hasErrors || expressionOpt.HasErrors())
+        {
+            this.RefKind = refKind;
+            this.ExpressionOpt = expressionOpt;
+        }
+
+
+        public RefKind RefKind { get; }
+
+        public BoundExpression ExpressionOpt { get; }
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitReturnExpression(this);
+        }
+
+        public BoundReturnExpression Update(RefKind refKind, BoundExpression expressionOpt, TypeSymbol type)
+        {
+            if (refKind != this.RefKind || expressionOpt != this.ExpressionOpt || type != this.Type)
+            {
+                var result = new BoundReturnExpression(this.Syntax, refKind, expressionOpt, type, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundBreakExpression : BoundExpression
+    {
+        public BoundBreakExpression(SyntaxNode syntax, GeneratedLabelSymbol label, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.BreakExpression, syntax, type, hasErrors)
+        {
+
+            Debug.Assert(label != null, "Field 'label' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Label = label;
+        }
+
+        public BoundBreakExpression(SyntaxNode syntax, GeneratedLabelSymbol label, TypeSymbol type)
+            : base(BoundKind.BreakExpression, syntax, type)
+        {
+
+            Debug.Assert(label != null, "Field 'label' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Label = label;
+        }
+
+
+        public GeneratedLabelSymbol Label { get; }
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitBreakExpression(this);
+        }
+
+        public BoundBreakExpression Update(GeneratedLabelSymbol label, TypeSymbol type)
+        {
+            if (label != this.Label || type != this.Type)
+            {
+                var result = new BoundBreakExpression(this.Syntax, label, type, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundContinueExpression : BoundExpression
+    {
+        public BoundContinueExpression(SyntaxNode syntax, GeneratedLabelSymbol label, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.ContinueExpression, syntax, type, hasErrors)
+        {
+
+            Debug.Assert(label != null, "Field 'label' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Label = label;
+        }
+
+        public BoundContinueExpression(SyntaxNode syntax, GeneratedLabelSymbol label, TypeSymbol type)
+            : base(BoundKind.ContinueExpression, syntax, type)
+        {
+
+            Debug.Assert(label != null, "Field 'label' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Label = label;
+        }
+
+
+        public GeneratedLabelSymbol Label { get; }
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitContinueExpression(this);
+        }
+
+        public BoundContinueExpression Update(GeneratedLabelSymbol label, TypeSymbol type)
+        {
+            if (label != this.Label || type != this.Type)
+            {
+                var result = new BoundContinueExpression(this.Syntax, label, type, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal abstract partial class VariablePendingInference : BoundExpression
     {
         protected VariablePendingInference(BoundKind kind, SyntaxNode syntax, Symbol variableSymbol, BoundExpression receiverOpt, bool hasErrors = false)
@@ -6379,6 +6493,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDiscardExpression(node as BoundDiscardExpression, arg);
                 case BoundKind.ThrowExpression: 
                     return VisitThrowExpression(node as BoundThrowExpression, arg);
+                case BoundKind.ReturnExpression: 
+                    return VisitReturnExpression(node as BoundReturnExpression, arg);
+                case BoundKind.BreakExpression: 
+                    return VisitBreakExpression(node as BoundBreakExpression, arg);
+                case BoundKind.ContinueExpression: 
+                    return VisitContinueExpression(node as BoundContinueExpression, arg);
                 case BoundKind.OutVariablePendingInference: 
                     return VisitOutVariablePendingInference(node as OutVariablePendingInference, arg);
                 case BoundKind.DeconstructionVariablePendingInference: 
@@ -6974,6 +7094,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node, arg);
         }
         public virtual R VisitThrowExpression(BoundThrowExpression node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
+        public virtual R VisitReturnExpression(BoundReturnExpression node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
+        public virtual R VisitBreakExpression(BoundBreakExpression node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
+        public virtual R VisitContinueExpression(BoundContinueExpression node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -7574,6 +7706,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitThrowExpression(BoundThrowExpression node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitReturnExpression(BoundReturnExpression node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitBreakExpression(BoundBreakExpression node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitContinueExpression(BoundContinueExpression node)
         {
             return this.DefaultVisit(node);
         }
@@ -8345,6 +8489,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitThrowExpression(BoundThrowExpression node)
         {
             this.Visit(node.Expression);
+            return null;
+        }
+        public override BoundNode VisitReturnExpression(BoundReturnExpression node)
+        {
+            this.Visit(node.ExpressionOpt);
+            return null;
+        }
+        public override BoundNode VisitBreakExpression(BoundBreakExpression node)
+        {
+            return null;
+        }
+        public override BoundNode VisitContinueExpression(BoundContinueExpression node)
+        {
             return null;
         }
         public override BoundNode VisitOutVariablePendingInference(OutVariablePendingInference node)
@@ -9219,6 +9376,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(expression, type);
+        }
+        public override BoundNode VisitReturnExpression(BoundReturnExpression node)
+        {
+            BoundExpression expressionOpt = (BoundExpression)this.Visit(node.ExpressionOpt);
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(node.RefKind, expressionOpt, type);
+        }
+        public override BoundNode VisitBreakExpression(BoundBreakExpression node)
+        {
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(node.Label, type);
+        }
+        public override BoundNode VisitContinueExpression(BoundContinueExpression node)
+        {
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(node.Label, type);
         }
         public override BoundNode VisitOutVariablePendingInference(OutVariablePendingInference node)
         {
@@ -10753,6 +10926,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("throwExpression", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
+                new TreeDumperNode("type", node.Type, null)
+            }
+            );
+        }
+        public override TreeDumperNode VisitReturnExpression(BoundReturnExpression node, object arg)
+        {
+            return new TreeDumperNode("returnExpression", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("refKind", node.RefKind, null),
+                new TreeDumperNode("expressionOpt", null, new TreeDumperNode[] { Visit(node.ExpressionOpt, null) }),
+                new TreeDumperNode("type", node.Type, null)
+            }
+            );
+        }
+        public override TreeDumperNode VisitBreakExpression(BoundBreakExpression node, object arg)
+        {
+            return new TreeDumperNode("breakExpression", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("label", node.Label, null),
+                new TreeDumperNode("type", node.Type, null)
+            }
+            );
+        }
+        public override TreeDumperNode VisitContinueExpression(BoundContinueExpression node, object arg)
+        {
+            return new TreeDumperNode("continueExpression", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("label", node.Label, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

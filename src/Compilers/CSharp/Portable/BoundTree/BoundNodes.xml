@@ -1605,6 +1605,17 @@
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
   </Node>
 
+  <Node Name="BoundReturnExpression" Base="BoundExpression">
+    <Field Name="RefKind" Type="RefKind"/>
+    <Field Name="ExpressionOpt" Type="BoundExpression" Null="allow"/>
+  </Node>
+  <Node Name="BoundBreakExpression" Base="BoundExpression">
+    <Field Name="Label" Type="GeneratedLabelSymbol" />
+  </Node>
+  <Node Name="BoundContinueExpression" Base="BoundExpression">
+    <Field Name="Label" Type="GeneratedLabelSymbol" />
+  </Node>
+
   <AbstractNode Name="VariablePendingInference" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
