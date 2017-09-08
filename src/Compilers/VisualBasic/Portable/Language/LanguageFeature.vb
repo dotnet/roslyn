@@ -38,12 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Language
 
     <HideModuleName>
     Friend Module FeatureExtensions
-
-        <Extension>
-        Private Function RequiresExplicitFeatureFlag(feature As Feature) As Boolean
-            Return feature = Feature.IOperation
-        End Function
-
+#Region "Information about a Feature."
         <Extension>
         Friend Function GetFeatureFlag(feature As Feature) As String
             Select Case feature
@@ -97,8 +92,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Language
                 Case Feature.InferredTupleNames
                     Return LanguageVersion.VisualBasic15_3
                 Case Else
-                    ' Return a "dummy" version for any feature that requires an explicit feature flag.
-                    If feature.RequiresExplicitFeatureFlag Then Return CType(_RequireExplictFeatureFlag, LanguageVersion)
                     ' Otherwise throw the Unexpected Value.
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
@@ -168,9 +161,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Language
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
         End Function
+#End Region
 
 #Region "Feature Checking Extensions"
 
+#Region "Checking against a Language Version"
         ''' <summary>
         ''' Check to see if a language <paramref name="feature"/> is available with the <see cref="LanguageVersion"/>
         ''' specified in the <paramref name="options"/> (<see cref="VisualBasicParseOptions"/>).
@@ -180,37 +175,59 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Language
         ''' <returns>True if the feature's language version is compatible with the specified language version.</returns>
         <Extension>
         Private Function IsInLanguageVersion(feature As Feature, options As VisualBasicParseOptions) As Boolean
-            Dim required = feature.GetLanguageVersion()
-            Dim current = options.LanguageVersion
-            Return CheckVersionNumbers(required, current)
+            Return CheckVersionNumbers(required:=feature.GetLanguageVersion(), current:=options.LanguageVersion)
         End Function
 
         <Extension>
         Private Function IsInLanguageVersion(feature As Feature, options As VisualBasicCompilation) As Boolean
-            Dim required = feature.GetLanguageVersion()
-            Dim current = options.LanguageVersion
-            Return CheckVersionNumbers(required, current)
+            Return CheckVersionNumbers(required:=feature.GetLanguageVersion(), current:=options.LanguageVersion)
         End Function
 
-        Private Const _RequireExplictFeatureFlag As Integer = Integer.MinValue
-
         Private Function CheckVersionNumbers(required As LanguageVersion, current As LanguageVersion) As Boolean
-            ' This check ensures that any prototype feature, requires an explicit feature flag to be present.
-            Return (_RequireExplictFeatureFlag < required) And (required <= current)
+            Return current >= required
+        End Function
+#End Region
+
+#Region "(feature).IsAvailable"
+        ''' <summary>
+        ''' Check to see if a language <paramref name="feature"/> is available with these <paramref name="options"/>.
+        ''' </summary>
+        ''' <remarks>
+        ''' Feature maybe enabled explicitly with a Feature Flag or enabled implicitly via a Language Version.
+        ''' </remarks>
+        ''' <param name="feature">Language feature to check is available.</param>
+        ''' <param name="options">The parse options being used.</param>
+        <Extension>
+        Friend Function IsAvailable(feature As Feature, options As VisualBasicParseOptions) As Boolean
+            Dim flag As String = Nothing
+            If TryGetFeatureFlag(feature, flag) Then Return CheckFeatures(flag, options)
+            Return feature.IsInLanguageVersion(options)
         End Function
 
         ''' <summary>
-        ''' Check to see if a language <paramref name="feature"/> is enabled via <see cref="VisualBasicParseOptions.Features"/>.
-        ''' Via a feature flag.
+        ''' Check to see if a language <paramref name="feature"/> is available with this <paramref name="compilation"/>.
         ''' </summary>
         ''' <param name="feature">Language feature to check is available.</param>
-        ''' <param name="options">The <see cref="VisualBasicParseOptions"/> to check.</param>
-        ''' <returns></returns>
+        ''' <param name="compilation">The <see cref="VisualBasicCompilation"/> being used.</param>
         <Extension>
-        Private Function CheckFeatures(feature As Feature, options As VisualBasicParseOptions) As Boolean
-            Dim featureFlag = feature.GetFeatureFlag()
-            Return If(featureFlag Is Nothing, False, options.Features.ContainsKey(featureFlag))
+        Friend Function IsAvailable(feature As Feature, compilation As VisualBasicCompilation) As Boolean
+            Return feature.IsInLanguageVersion(compilation)
         End Function
+#End Region
+
+#Region "Checking against Options.Features"
+        Private Function TryGetFeatureFlag(f As Feature, ByRef flag As String) As Boolean
+            flag = f.GetFeatureFlag()
+            Return flag IsNot Nothing
+        End Function
+
+        Private Function CheckFeatures(featureFlag As String, options As VisualBasicParseOptions) As Boolean
+            Debug.Assert(featureFlag IsNot Nothing, NameOf(featureFlag) & " can not be nothing.")
+            Return options.Features.ContainsKey(featureFlag)
+        End Function
+#End Region
+
+#Region "Reporting Unavailablity of a Feature."
 
         ''' <summary>Report the unavailability of a language feature.</summary>
         ''' <typeparam name="TNode">The <see cref="VisualBasicSyntaxNode"/> to use.</typeparam>
@@ -231,34 +248,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Language
             Return New VBDiagnostic(info, location)
         End Function
 
+#End Region
+
+#Region "Check availability of a Feature and report is unavailable."
         <Extension>
         Private Function GetNameAndRequiredVersion(feature As Feature) As (Info As DiagnosticInfo, Version As VisualBasicRequiredLanguageVersion)
             Return (ErrorFactory.ErrorInfo(feature.GetResourceId), VisualBasicRequiredLanguageVersion.For(feature))
         End Function
-
-        ''' <summary>
-        ''' Check to see if a language <paramref name="feature"/> is available with these <paramref name="options"/>.
-        ''' </summary>
-        ''' <remarks>
-        ''' Feature maybe enabled explicitly with a Feature Flag or enabled implicitly via a Language Version.
-        ''' </remarks>
-        ''' <param name="feature">Language feature to check is available.</param>
-        ''' <param name="options">The parse options being used.</param>
-        <Extension>
-        Friend Function IsAvailable(feature As Feature, options As VisualBasicParseOptions) As Boolean
-            Return feature.IsInLanguageVersion(options) OrElse feature.CheckFeatures(options)
-        End Function
-
-        ''' <summary>
-        ''' Check to see if a language <paramref name="feature"/> is available with this <paramref name="compilation"/>.
-        ''' </summary>
-        ''' <param name="feature">Language feature to check is available.</param>
-        ''' <param name="compilation">The <see cref="VisualBasicCompilation"/> being used.</param>
-        <Extension>
-        Friend Function IsAvailable(feature As Feature, compilation As VisualBasicCompilation) As Boolean
-            Return feature.IsInLanguageVersion(compilation)
-        End Function
-
         ''' <summary>
         ''' Check to see if a language <paramref name="feature"/> is available with the <paramref name="options"/> being used.
         ''' If unavailable the function return the node with an unavailable diagnostic attached to <paramref name="node"/>.
@@ -290,6 +286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Language
             If Not result Then diagBag.Add(ReportFeatureUnavailable(feature, options, location))
             Return result
         End Function
+#End Region
 
 #End Region
     End Module
