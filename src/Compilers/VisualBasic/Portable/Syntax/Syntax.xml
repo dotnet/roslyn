@@ -771,7 +771,7 @@ Unify Enum declarations with other block type declarations.
         <description>The "Inherits" keyword.</description>
       </child>
 
-      <child name="Types" list="true" separator-kind="CommaToken" separator-name="Commas" kind="NonArrayNonTupleTypeName">
+      <child name="Types" list="true" separator-kind="CommaToken" separator-name="Commas" kind="NonArrayTypeName">
         <description>A list of the types being inherited.</description>
       </child>
     </node-structure>
@@ -787,7 +787,7 @@ Unify Enum declarations with other block type declarations.
         <description>The "Implements" keyword.</description>
       </child>
 
-      <child name="Types" list="true" separator-kind="CommaToken" separator-name="Commas" kind="NonArrayNonTupleTypeName">
+      <child name="Types" list="true" separator-kind="CommaToken" separator-name="Commas" kind="NonArrayTypeName">
         <description>A list of the types being implemented.</description>
       </child>
     </node-structure>
@@ -5493,7 +5493,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Expression.Opcodes.CollectionInitializer" />
       </node-kind>
 
-      <child name="Type" kind="NonArrayNonTupleTypeName">
+      <child name="Type" kind="NonArrayTypeName">
         <description>The type of the object being initialized.</description>
         <lm-equiv name="InstanceType"></lm-equiv>
         <native-equiv name="InstanceType"></native-equiv>
@@ -5552,7 +5552,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Expression.Opcodes.NewArrayInitializer"></native-equiv>
       </node-kind>
 
-      <child name="Type" kind="NonArrayNonTupleTypeName">
+      <child name="Type" kind="NonArrayTypeName">
         <description>The element type of the array being created.</description>
         <lm-equiv name="ArrayType"></lm-equiv>
         <native-equiv name=""></native-equiv>

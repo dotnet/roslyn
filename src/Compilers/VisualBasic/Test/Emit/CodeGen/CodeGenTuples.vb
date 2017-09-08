@@ -1147,6 +1147,44 @@ BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression in
         End Sub
 
         <Fact>
+        Public Sub TupleDisallowedWithNew()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+
+Imports System
+Class C
+
+    Dim t1 = New (a1 as Integer, a2 as Integer)()
+    Dim t2 As New (a1 as Integer, a2 as Integer)
+
+    Sub M()
+        Dim t1 = New (a1 as Integer, a2 as Integer)()
+        Dim t2 As New (a1 as Integer, a2 as Integer)
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
+    Dim t1 = New (a1 as Integer, a2 as Integer)()
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
+    Dim t2 As New (a1 as Integer, a2 as Integer)
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
+        Dim t1 = New (a1 as Integer, a2 as Integer)()
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
+        Dim t2 As New (a1 as Integer, a2 as Integer)
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+        End Sub
+
+        <Fact>
         Public Sub TupleLiteralBinding()
 
             Dim verifier = CompileAndVerify(
