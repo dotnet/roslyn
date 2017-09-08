@@ -120,12 +120,29 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                         return;
                     }
                 }
-
+                
                 var argumentName = parameters[argumentIndex].Name;
-                context.RegisterRefactoring(
-                    new MyCodeAction(
-                        string.Format(FeaturesResources.Add_argument_name_0, argumentName),
-                        c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex)));
+
+                if (this.SupportsNonTrailingNamedArguments(root.SyntaxTree.Options) &&
+                    argumentIndex < argumentCount - 1)
+                {
+                    context.RegisterRefactoring(
+                        new MyCodeAction(
+                            string.Format(FeaturesResources.Add_argument_name_0, argumentName),
+                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: false)));
+
+                    context.RegisterRefactoring(
+                        new MyCodeAction(
+                            string.Format(FeaturesResources.Add_argument_name_0_including_trailing_arguments, argumentName),
+                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true)));
+                }
+                else
+                {
+                    context.RegisterRefactoring(
+                        new MyCodeAction(
+                            string.Format(FeaturesResources.Add_argument_name_0, argumentName),
+                            c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex, includingTrailingArguments: true)));
+                }
             }
 
             private Task<Document> AddNamedArgumentsAsync(
@@ -133,24 +150,39 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                 Document document,
                 TSimpleArgumentSyntax firstArgument,
                 ImmutableArray<IParameterSymbol> parameters,
-                int index)
+                int index,
+                bool includingTrailingArguments)
             {
                 var argumentList = (TArgumentListSyntax)firstArgument.Parent;
-                var newArgumentList = GetOrSynthesizeNamedArguments(parameters, argumentList, index);
+                var newArgumentList = GetOrSynthesizeNamedArguments(parameters, argumentList, index, includingTrailingArguments);
                 var newRoot = root.ReplaceNode(argumentList, newArgumentList);
                 return Task.FromResult(document.WithSyntaxRoot(newRoot));
             }
 
             private TArgumentListSyntax GetOrSynthesizeNamedArguments(
-                ImmutableArray<IParameterSymbol> parameters, TArgumentListSyntax argumentList, int index)
+                ImmutableArray<IParameterSymbol> parameters, TArgumentListSyntax argumentList,
+                int index, bool includingTrailingArguments)
             {
                 var arguments = GetArguments(argumentList);
                 var namedArguments = arguments
-                    .Select((argument, i) => i >= index && argument is TSimpleArgumentSyntax s && IsPositionalArgument(s)
-                        ? WithName(s, parameters[i].Name).WithTriviaFrom(argument)
+                    .Select((argument, i) => ShouldAddName(argument, i)
+                        ? WithName((TSimpleArgumentSyntax)argument, parameters[i].Name).WithTriviaFrom(argument)
                         : argument);
 
                 return WithArguments(argumentList, namedArguments, arguments.GetSeparators());
+
+                // local functions
+
+                bool ShouldAddName(TBaseArgumentSyntax argument, int currentIndex)
+                {
+                    if (currentIndex > index && !includingTrailingArguments)
+                    {
+                        return false;
+                    }
+
+
+                    return currentIndex >= index && argument is TSimpleArgumentSyntax s && IsPositionalArgument(s);
+                }
             }
 
             protected abstract TArgumentListSyntax WithArguments(
@@ -162,6 +194,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
             protected abstract bool IsPositionalArgument(TSimpleArgumentSyntax argument);
             protected abstract SeparatedSyntaxList<TBaseArgumentSyntax> GetArguments(TArgumentListSyntax argumentList);
             protected abstract SyntaxNode GetReceiver(SyntaxNode argument);
+            protected abstract bool SupportsNonTrailingNamedArguments(ParseOptions options);
         }
 
         private readonly IAnalyzer _argumentAnalyzer;

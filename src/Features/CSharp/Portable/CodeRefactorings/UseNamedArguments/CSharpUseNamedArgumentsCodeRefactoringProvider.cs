@@ -27,6 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseNamedArguments
 
             protected sealed override bool IsCloseParenOrComma(SyntaxToken token)
                 => token.IsKind(SyntaxKind.CloseParenToken, SyntaxKind.CommaToken);
+
+            protected override bool SupportsNonTrailingNamedArguments(ParseOptions options)
+                => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7_2;
         }
 
         private class ArgumentAnalyzer :

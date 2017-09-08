@@ -47,6 +47,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.UseNamedArguments
             Protected Overrides Function IsCloseParenOrComma(token As SyntaxToken) As Boolean
                 Return token.IsKind(SyntaxKind.CloseParenToken, SyntaxKind.CommaToken)
             End Function
+
+            Protected Overrides Function SupportsNonTrailingNamedArguments(options As ParseOptions) As Boolean
+                Return False
+            End Function
         End Class
 
         Public Sub New()
