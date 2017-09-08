@@ -180,7 +180,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                         return false;
                     }
 
-
                     return currentIndex >= index && argument is TSimpleArgumentSyntax s && IsPositionalArgument(s);
                 }
             }
