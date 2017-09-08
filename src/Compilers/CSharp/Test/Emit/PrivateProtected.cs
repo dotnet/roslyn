@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     internal private int Field2;
     private internal protected int Field3;
     internal protected private int Field4;
+    private public protected int Field5;
+    private readonly protected int Field6; // ok
 }
 ";
             CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
@@ -44,7 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadMemberProtection, "Field3").WithLocation(5, 36),
                 // (6,36): error CS0107: More than one protection modifier
                 //     internal protected private int Field4;
-                Diagnostic(ErrorCode.ERR_BadMemberProtection, "Field4").WithLocation(6, 36)
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "Field4").WithLocation(6, 36),
+                // (7,34): error CS0107: More than one protection modifier
+                //     private public protected int Field5;
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "Field5").WithLocation(7, 34)
                 );
         }
 
@@ -67,7 +72,7 @@ public class Derived : Base
     }
 }
 ";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 );
         }
@@ -79,19 +84,50 @@ public class Derived : Base
 @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""WantsIVTAccess"")]
 public class Base
 {
+    private protected const int Constant = 3;
     private protected int Field1;
     protected private int Field2;
+    private protected void Method() { }
+    private protected event System.Action Event1;
+    private protected int Property1 { set {} }
+    public int Property2 { private protected set {} get { return 4; } }
+    private protected int this[int x] { set { } get { return 6; } }
+    public int this[string x] { private protected set { } get { return 5; } }
+    private protected Base() { Event1?.Invoke(); }
 }";
             var baseCompilation = CreateStandardCompilation(source1, parseOptions: TestOptions.Regular7_2, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
+            var bb = (INamedTypeSymbol)baseCompilation.GlobalNamespace.GetMember("Base");
+            foreach (var member in bb.GetMembers())
+            {
+                switch (member.Name)
+                {
+                    case "Property2":
+                    case "get_Property2":
+                    case "this[]":
+                    case "get_Item":
+                        break;
+                    default:
+                        Assert.Equal(Accessibility.ProtectedAndInternal, member.DeclaredAccessibility);
+                        break;
+                }
+            }
 
             string source2 =
 @"public class Derived : Base
 {
     void M()
     {
-        Field1 = 1;
-        Field2 = 2;
+        Field1 = Constant;
+        Field2 = Constant;
+        Method();
+        Event1 += null;
+        Property1 = Constant;
+        Property2 = Constant;
+        this[1] = 2;
+        this[string.Empty] = 4;
     }
+    Derived(int x) : base() {}
+    Derived(long x) {} // implicit base()
 }
 ";
             CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
@@ -100,11 +136,50 @@ public class Base
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
             .VerifyDiagnostics(
                 // (5,9): error CS0122: 'Base.Field1' is inaccessible due to its protection level
-                //         Field1 = 1;
+                //         Field1 = Constant;
                 Diagnostic(ErrorCode.ERR_BadAccess, "Field1").WithArguments("Base.Field1").WithLocation(5, 9),
+                // (5,18): error CS0122: 'Base.Constant' is inaccessible due to its protection level
+                //         Field1 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(5, 18),
                 // (6,9): error CS0122: 'Base.Field2' is inaccessible due to its protection level
-                //         Field2 = 2;
-                Diagnostic(ErrorCode.ERR_BadAccess, "Field2").WithArguments("Base.Field2").WithLocation(6, 9)
+                //         Field2 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Field2").WithArguments("Base.Field2").WithLocation(6, 9),
+                // (6,18): error CS0122: 'Base.Constant' is inaccessible due to its protection level
+                //         Field2 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(6, 18),
+                // (7,9): error CS0122: 'Base.Method()' is inaccessible due to its protection level
+                //         Method();
+                Diagnostic(ErrorCode.ERR_BadAccess, "Method").WithArguments("Base.Method()").WithLocation(7, 9),
+                // (8,9): error CS0122: 'Base.Event1' is inaccessible due to its protection level
+                //         Event1 += null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Event1").WithArguments("Base.Event1").WithLocation(8, 9),
+                // (8,9): error CS0122: 'Base.Event1.add' is inaccessible due to its protection level
+                //         Event1 += null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Event1 += null").WithArguments("Base.Event1.add").WithLocation(8, 9),
+                // (9,9): error CS0122: 'Base.Property1' is inaccessible due to its protection level
+                //         Property1 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Property1").WithArguments("Base.Property1").WithLocation(9, 9),
+                // (9,21): error CS0122: 'Base.Constant' is inaccessible due to its protection level
+                //         Property1 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(9, 21),
+                // (10,9): error CS0272: The property or indexer 'Base.Property2' cannot be used in this context because the set accessor is inaccessible
+                //         Property2 = Constant;
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "Property2").WithArguments("Base.Property2").WithLocation(10, 9),
+                // (10,21): error CS0122: 'Base.Constant' is inaccessible due to its protection level
+                //         Property2 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(10, 21),
+                // (11,14): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+                //         this[1] = 2;
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "string").WithLocation(11, 14),
+                // (12,9): error CS0272: The property or indexer 'Base.this[string]' cannot be used in this context because the set accessor is inaccessible
+                //         this[string.Empty] = 4;
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "this[string.Empty]").WithArguments("Base.this[string]").WithLocation(12, 9),
+                // (14,22): error CS0122: 'Base.Base()' is inaccessible due to its protection level
+                //     Derived(int x) : base() {}
+                Diagnostic(ErrorCode.ERR_BadAccess, "base").WithArguments("Base.Base()").WithLocation(14, 22),
+                // (15,5): error CS0122: 'Base.Base()' is inaccessible due to its protection level
+                //     Derived(long x) {} // implicit base()
+                Diagnostic(ErrorCode.ERR_BadAccess, "Derived").WithArguments("Base.Base()").WithLocation(15, 5)
                 );
             CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
                 references: new[] { MetadataReference.CreateFromImage(baseCompilation.EmitToArray()) },
@@ -112,11 +187,50 @@ public class Base
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
             .VerifyDiagnostics(
                 // (5,9): error CS0122: 'Base.Field1' is inaccessible due to its protection level
-                //         Field1 = 1;
+                //         Field1 = Constant;
                 Diagnostic(ErrorCode.ERR_BadAccess, "Field1").WithArguments("Base.Field1").WithLocation(5, 9),
+                // (5,18): error CS0122: 'Base.Constant' is inaccessible due to its protection level
+                //         Field1 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(5, 18),
                 // (6,9): error CS0122: 'Base.Field2' is inaccessible due to its protection level
-                //         Field2 = 2;
-                Diagnostic(ErrorCode.ERR_BadAccess, "Field2").WithArguments("Base.Field2").WithLocation(6, 9)
+                //         Field2 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Field2").WithArguments("Base.Field2").WithLocation(6, 9),
+                // (6,18): error CS0122: 'Base.Constant' is inaccessible due to its protection level
+                //         Field2 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(6, 18),
+                // (7,9): error CS0122: 'Base.Method()' is inaccessible due to its protection level
+                //         Method();
+                Diagnostic(ErrorCode.ERR_BadAccess, "Method").WithArguments("Base.Method()").WithLocation(7, 9),
+                // (8,9): error CS0122: 'Base.Event1' is inaccessible due to its protection level
+                //         Event1 += null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Event1").WithArguments("Base.Event1").WithLocation(8, 9),
+                // (8,9): error CS0122: 'Base.Event1.add' is inaccessible due to its protection level
+                //         Event1 += null;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Event1 += null").WithArguments("Base.Event1.add").WithLocation(8, 9),
+                // (9,9): error CS0122: 'Base.Property1' is inaccessible due to its protection level
+                //         Property1 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Property1").WithArguments("Base.Property1").WithLocation(9, 9),
+                // (9,21): error CS0122: 'Base.Constant' is inaccessible due to its protection level
+                //         Property1 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(9, 21),
+                // (10,9): error CS0272: The property or indexer 'Base.Property2' cannot be used in this context because the set accessor is inaccessible
+                //         Property2 = Constant;
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "Property2").WithArguments("Base.Property2").WithLocation(10, 9),
+                // (10,21): error CS0122: 'Base.Constant' is inaccessible due to its protection level
+                //         Property2 = Constant;
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(10, 21),
+                // (11,14): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+                //         this[1] = 2;
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "string").WithLocation(11, 14),
+                // (12,9): error CS0272: The property or indexer 'Base.this[string]' cannot be used in this context because the set accessor is inaccessible
+                //         this[string.Empty] = 4;
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "this[string.Empty]").WithArguments("Base.this[string]").WithLocation(12, 9),
+                // (14,22): error CS0122: 'Base.Base()' is inaccessible due to its protection level
+                //     Derived(int x) : base() {}
+                Diagnostic(ErrorCode.ERR_BadAccess, "base").WithArguments("Base.Base()").WithLocation(14, 22),
+                // (15,5): error CS0122: 'Base.Base()' is inaccessible due to its protection level
+                //     Derived(long x) {} // implicit base()
+                Diagnostic(ErrorCode.ERR_BadAccess, "Derived").WithArguments("Base.Base()").WithLocation(15, 5)
                 );
 
             CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
@@ -192,9 +306,16 @@ public class Derived // : Base
 {
     static private protected int Field1 = 2;
 }
+sealed class D
+{
+    static private protected int Field2 = 2;
+}
 ";
             CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
+                // (7,34): warning CS0628: 'D.Field2': new protected member declared in sealed class
+                //     static private protected int Field2 = 2;
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "Field2").WithArguments("D.Field2").WithLocation(7, 34),
                 // (3,34): error CS1057: 'C.Field1': static classes cannot contain protected members
                 //     static private protected int Field1 = 2;
                 Diagnostic(ErrorCode.ERR_ProtectedInStatic, "Field1").WithArguments("C.Field1").WithLocation(3, 34)
@@ -308,12 +429,15 @@ public class C
 {
     internal class Internal {}
     protected class Protected {}
+    private protected class PrivateProtected {}
     private protected void M(Internal x) {} // ok
     private protected void M(Protected x) {} // ok
+    private protected void M(PrivateProtected x) {} // ok
     private protected class Nested
     {
         public void M(Internal x) {} // ok
         public void M(Protected x) {} // ok
+        private protected void M(PrivateProtected x) {} // ok
     }
 }
 ";
@@ -450,6 +574,219 @@ public class Container
                 );
             CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void VerifyPrivateProtectedIL()
+        {
+            var text = @"
+class Program
+{
+    private protected void M() {}
+    private protected int F;
+}
+";
+            var verifier = CompileAndVerify(
+                text,
+                parseOptions: TestOptions.Regular7_2,
+                expectedSignatures: new[]
+                {
+                    Signature("Program", "M", ".method famandassem hidebysig instance System.Void M() cil managed"),
+                    Signature("Program", "F", ".field famandassem instance System.Int32 F"),
+                });
+        }
+
+        [Fact]
+        public void VerifyPartialPartsMatch()
+        {
+            var source =
+@"class Outer
+{
+    private protected partial class Inner {}
+    private           partial class Inner {}
+}";
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+                .VerifyDiagnostics(
+                // (3,37): error CS0262: Partial declarations of 'Outer.Inner' have conflicting accessibility modifiers
+                //     private protected partial class Inner {}
+                Diagnostic(ErrorCode.ERR_PartialModifierConflict, "Inner").WithArguments("Outer.Inner").WithLocation(3, 37)
+                );
+            source =
+@"class Outer
+{
+    private protected partial class Inner {}
+    private protected partial class Inner {}
+}";
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+                .VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void VerifyProtectedSemantics()
+        {
+            var source =
+@"class Base
+{
+    private protected void M()
+    {
+        System.Console.WriteLine(this.GetType().Name);
+    }
+}
+
+class Derived : Base
+{
+    public void Main()
+    {
+        Derived derived = new Derived();
+        derived.M();
+        Base bb = new Base();
+        bb.M(); // error 1
+        Other other = new Other();
+        other.M(); // error 2
+    }
+}
+
+class Other : Base
+{
+}";
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+                .VerifyDiagnostics(
+                // (16,12): error CS1540: Cannot access protected member 'Base.M()' via a qualifier of type 'Base'; the qualifier must be of type 'Derived' (or derived from it)
+                //         bb.M(); // error 1
+                Diagnostic(ErrorCode.ERR_BadProtectedAccess, "M").WithArguments("Base.M()", "Base", "Derived").WithLocation(16, 12),
+                // (18,15): error CS1540: Cannot access protected member 'Base.M()' via a qualifier of type 'Other'; the qualifier must be of type 'Derived' (or derived from it)
+                //         other.M(); // error 2
+                Diagnostic(ErrorCode.ERR_BadProtectedAccess, "M").WithArguments("Base.M()", "Other", "Derived").WithLocation(18, 15)
+                );
+        }
+
+        [Fact]
+        public void HidingAbstract()
+        {
+            var source =
+@"abstract class A
+{
+    internal abstract void F();
+}
+abstract class B : A
+{
+    private protected new void F() { } // No CS0533
+}";
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+                .VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void HidingInaccessible()
+        {
+            string source1 =
+@"public class A
+{
+    private protected void F() { }
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, parseOptions: TestOptions.Regular7_2);
+            compilation1.VerifyDiagnostics();
+
+            string source2 =
+@"class B : A
+{
+    new void F() { } // CS0109
+}
+";
+            CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
+                references: new[] { new CSharpCompilationReference(compilation1) })
+            .VerifyDiagnostics(
+                // (3,14): warning CS0109: The member 'B.F()' does not hide an accessible member. The new keyword is not required.
+                //     new void F() { } // CS0109
+                Diagnostic(ErrorCode.WRN_NewNotRequired, "F").WithArguments("B.F()").WithLocation(3, 14)
+                );
+        }
+
+        [Fact]
+        public void UnimplementedInaccessible()
+        {
+            string source1 =
+@"public abstract class A
+{
+    private protected abstract void F();
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, parseOptions: TestOptions.Regular7_2);
+            compilation1.VerifyDiagnostics();
+
+            string source2 =
+@"class B : A // CS0534
+{
+}
+";
+            CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
+                references: new[] { new CSharpCompilationReference(compilation1) })
+            .VerifyDiagnostics(
+                // (1,7): error CS0534: 'B' does not implement inherited abstract member 'A.F()'
+                // class B : A // CS0534
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.F()").WithLocation(1, 7)
+                );
+        }
+
+        [Fact]
+        public void ImplementInaccessible()
+        {
+            string source1 =
+@"public abstract class A
+{
+    private protected abstract void F();
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, parseOptions: TestOptions.Regular7_2);
+            compilation1.VerifyDiagnostics();
+
+            string source2 =
+@"class B : A // CS0534
+{
+    override private protected void F() {}
+}
+";
+            CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
+                references: new[] { new CSharpCompilationReference(compilation1) })
+            .VerifyDiagnostics(
+                // (3,37): error CS0115: 'B.F()': no suitable method found to override
+                //     override private protected void F() {}
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "F").WithArguments("B.F()").WithLocation(3, 37),
+                // (1,7): error CS0534: 'B' does not implement inherited abstract member 'A.F()'
+                // class B : A // CS0534
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.F()").WithLocation(1, 7)
+                );
+        }
+
+        [Fact]
+        public void VerifyPPExtension()
+        {
+            string source = @"
+static class Extensions
+{
+    static private protected void SomeExtension(this string s) { } // error: no pp in static class
+}
+
+class Client
+{
+    public static void M(string s)
+    {
+        s.SomeExtension(); // error: no accessible SomeExtension
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular7_2)
+            .VerifyDiagnostics(
+                // (4,35): error CS1057: 'Extensions.SomeExtension(string)': static classes cannot contain protected members
+                //     static private protected void SomeExtension(this string s) { } // error: no pp in static class
+                Diagnostic(ErrorCode.ERR_ProtectedInStatic, "SomeExtension").WithArguments("Extensions.SomeExtension(string)").WithLocation(4, 35),
+                // (11,11): error CS0122: 'Extensions.SomeExtension(string)' is inaccessible due to its protection level
+                //         s.SomeExtension(); // error: no accessible SomeExtension
+                Diagnostic(ErrorCode.ERR_BadAccess, "SomeExtension").WithArguments("Extensions.SomeExtension(string)").WithLocation(11, 11)
                 );
         }
     }

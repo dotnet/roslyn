@@ -144,6 +144,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         diagBag As DiagnosticBag) As MemberModifiers
             Dim foundModifiers As SourceMemberFlags = Nothing
             Dim privateProtectedToken As SyntaxToken = Nothing
+            Dim privateOverridableModifier As SyntaxToken = Nothing
+            Dim privateMustOverrideModifier As SyntaxToken = Nothing
+            Dim privateNotOverridableModifier As SyntaxToken = Nothing
 
             ' Go through each modifiers, accumulating flags of what we've seen and reporting errors.
             For Each keywordSyntax In syntax
@@ -180,16 +183,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportDiagnostic(diagBag, keywordSyntax, ERRID.ERR_OverridesImpliesOverridable)
                 ElseIf (currentModifier And SourceMemberFlags.PrivateOverridableModifiers) <> 0 AndAlso
                        (foundModifiers And SourceMemberFlags.PrivateOverridableModifiers) <> 0 Then
-                    ReportDiagnostic(diagBag, keywordSyntax, ERRID.ERR_BadSpecifierCombo2, "Private", "Overridable")
+                    privateOverridableModifier = keywordSyntax
+                    foundModifiers = foundModifiers Or currentModifier
                 ElseIf (currentModifier And SourceMemberFlags.ShadowsAndOverrides) <> 0 AndAlso
                     (foundModifiers And SourceMemberFlags.ShadowsAndOverrides) <> 0 Then
                     ReportDiagnostic(diagBag, keywordSyntax, ERRID.ERR_BadSpecifierCombo2, "Overrides", "Shadows")
                 ElseIf (currentModifier And SourceMemberFlags.PrivateMustOverrideModifiers) <> 0 AndAlso
                        (foundModifiers And SourceMemberFlags.PrivateMustOverrideModifiers) <> 0 Then
-                    ReportDiagnostic(diagBag, keywordSyntax, ERRID.ERR_BadSpecifierCombo2, "Private", "MustOverride")
+                    privateMustOverrideModifier = keywordSyntax
+                    foundModifiers = foundModifiers Or currentModifier
                 ElseIf (currentModifier And SourceMemberFlags.PrivateNotOverridableModifiers) <> 0 AndAlso
                        (foundModifiers And SourceMemberFlags.PrivateNotOverridableModifiers) <> 0 Then
-                    ReportDiagnostic(diagBag, keywordSyntax, ERRID.ERR_BadSpecifierCombo2, "Private", "NotOverridable")
+                    privateNotOverridableModifier = keywordSyntax
+                    foundModifiers = foundModifiers Or currentModifier
                 ElseIf (currentModifier And (SourceMemberFlags.Iterator Or SourceMemberFlags.WriteOnly)) <> 0 AndAlso
                        (foundModifiers And (SourceMemberFlags.Iterator Or SourceMemberFlags.WriteOnly)) <> 0 Then
                     ReportDiagnostic(diagBag, keywordSyntax, ERRID.ERR_BadSpecifierCombo2, "Iterator", "WriteOnly")
@@ -227,6 +233,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 access = Accessibility.Private
             Else
                 access = defaultAccessibility
+            End If
+
+            If access = Accessibility.Private Then
+                If (foundModifiers And SourceMemberFlags.Overridable) <> 0 Then
+                    ReportDiagnostic(diagBag, privateOverridableModifier, ERRID.ERR_BadSpecifierCombo2, "Private", "Overridable")
+                ElseIf (foundModifiers And SourceMemberFlags.MustOverride) <> 0 Then
+                    ReportDiagnostic(diagBag, privateMustOverrideModifier, ERRID.ERR_BadSpecifierCombo2, "Private", "MustOverride")
+                ElseIf (foundModifiers And SourceMemberFlags.NotOverridable) <> 0 Then
+                    ReportDiagnostic(diagBag, privateNotOverridableModifier, ERRID.ERR_BadSpecifierCombo2, "Private", "NotOverridable")
+                End If
+                foundModifiers = foundModifiers And Not (SourceMemberFlags.Overridable Or SourceMemberFlags.MustOverride Or SourceMemberFlags.NotOverridable)
             End If
 
             ' Add accessibility into the flags.

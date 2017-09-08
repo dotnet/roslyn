@@ -574,7 +574,7 @@
     <value>Leading '.' or '!' can only appear inside a 'With' statement.</value>
   </data>
   <data name="ERR_DuplicateAccessCategoryUsed" xml:space="preserve">
-    <value>Only one of 'Public', 'Private', 'Protected', 'Friend', or 'Protected Friend' can be specified.</value>
+    <value>Only one of 'Public', 'Private', 'Protected', 'Friend', 'Protected Friend', or 'Private Protected' can be specified.</value>
   </data>
   <data name="ERR_DuplicateModifierCategoryUsed" xml:space="preserve">
     <value>Only one of 'NotOverridable', 'MustOverride', or 'Overridable' can be specified.</value>
@@ -1969,7 +1969,7 @@
     <value>'Set' parameter cannot be declared '{0}'.</value>
   </data>
   <data name="ERR_StructureCantUseProtected" xml:space="preserve">
-    <value>Method in a structure cannot be declared 'Protected' or 'Protected Friend'.</value>
+    <value>Method in a structure cannot be declared 'Protected', 'Protected Friend', or 'Private Protected'.</value>
   </data>
   <data name="ERR_BadInterfaceDelegateSpecifier1" xml:space="preserve">
     <value>Delegate in an interface cannot be declared '{0}'.</value>

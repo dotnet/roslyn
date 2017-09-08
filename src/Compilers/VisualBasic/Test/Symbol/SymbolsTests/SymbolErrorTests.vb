@@ -1750,6 +1750,12 @@ BC30260: 'V' is already declared as 'Protected V As Object' in this class.
                 Protected Friend Overridable Function scen4(Of t)(ByVal x As t) As String
                     Return "30266"
                 End Function
+                Private Protected Overridable Function scen5(Of t)(ByVal x As t) As String
+                    Return "30266"
+                End Function
+                Protected Overridable Function scen6(Of t)(ByVal x As t) As String
+                    Return "30266"
+                End Function
             End Class
             Partial Class derived
                 'COMPILEERROR: BC30266, "scen4"
@@ -1771,10 +1777,19 @@ BC30260: 'V' is already declared as 'Protected V As Object' in this class.
                 Protected Overrides Function scen1(Of t)(ByVal x As t) As String
                     Return "30266"
                 End Function
+                'COMPILEERROR: BC30266, "scen5"
+                Protected Overrides Function scen5(Of t)(ByVal x As t) As String
+                    Return "30266"
+                End Function
+                'COMPILEERROR: BC30266, "scen6"
+                Private Protected Overrides Function scen6(Of t)(ByVal x As t) As String
+                    Return "30266"
+                End Function
             End Class
         End Namespace
         ]]></file>
-    </compilation>)
+    </compilation>,
+        parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             Dim expectedErrors1 = <errors><![CDATA[
 BC30266: 'Protected Overrides Function scen4(Of t)(x As t) As String' cannot override 'Protected Friend Overridable Function scen4(Of t)(x As t) As String' because they have different access levels.
                 Protected Overrides Function scen4(Of t)(ByVal x As t) As String
@@ -1788,6 +1803,12 @@ BC30266: 'Public Overrides Function scen3(Of t)(x As t) As String' cannot overri
 BC30266: 'Protected Overrides Function scen1(Of t)(x As t) As String' cannot override 'Public Overridable Function scen1(Of t)(x As t) As String' because they have different access levels.
                 Protected Overrides Function scen1(Of t)(ByVal x As t) As String
                                              ~~~~~
+BC30266: 'Protected Overrides Function scen5(Of t)(x As t) As String' cannot override 'Private Protected Overridable Function scen5(Of t)(x As t) As String' because they have different access levels.
+                Protected Overrides Function scen5(Of t)(ByVal x As t) As String
+                                             ~~~~~
+BC30266: 'Private Protected Overrides Function scen6(Of t)(x As t) As String' cannot override 'Protected Overridable Function scen6(Of t)(x As t) As String' because they have different access levels.
+                Private Protected Overrides Function scen6(Of t)(ByVal x As t) As String
+                                                     ~~~~~
      ]]></errors>
 
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -10254,16 +10275,16 @@ BC31065: 'Set' parameter cannot be declared 'Optional'.
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC31067: Method in a structure cannot be declared 'Protected' or 'Protected Friend'.
+BC31067: Method in a structure cannot be declared 'Protected', 'Protected Friend', or 'Private Protected'.
             Protected Sub New(o)
             ~~~~~~~~~
-BC31067: Method in a structure cannot be declared 'Protected' or 'Protected Friend'.
+BC31067: Method in a structure cannot be declared 'Protected', 'Protected Friend', or 'Private Protected'.
             Protected Friend Sub New(x, y)
             ~~~~~~~~~~~~~~~~
-BC31067: Method in a structure cannot be declared 'Protected' or 'Protected Friend'.
+BC31067: Method in a structure cannot be declared 'Protected', 'Protected Friend', or 'Private Protected'.
             Protected Sub M()
             ~~~~~~~~~
-BC31067: Method in a structure cannot be declared 'Protected' or 'Protected Friend'.
+BC31067: Method in a structure cannot be declared 'Protected', 'Protected Friend', or 'Private Protected'.
             Protected Friend Function F()
             ~~~~~~~~~~~~~~~~
                  ]]></errors>
@@ -21952,7 +21973,7 @@ End Class
 BC30178: Specifier is duplicated.
     Public Public p as Integer
            ~~~~~~
-BC30176: Only one of 'Public', 'Private', 'Protected', 'Friend', or 'Protected Friend' can be specified.
+BC30176: Only one of 'Public', 'Private', 'Protected', 'Friend', 'Protected Friend', or 'Private Protected' can be specified.
     Public Private q as Integer
            ~~~~~~~
 BC30235: 'MustOverride' is not valid on a member variable declaration.
