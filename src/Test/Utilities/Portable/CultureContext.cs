@@ -17,7 +17,7 @@ namespace Roslyn.Test.Utilities
         }
 
         public CultureContext(string testCulture)
-            : this(new CultureInfo(testCulture))
+            : this(new CultureInfo(testCulture, false))
         { }
 
         public void Dispose()
