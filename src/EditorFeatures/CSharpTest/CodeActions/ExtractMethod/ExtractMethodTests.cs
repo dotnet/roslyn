@@ -1508,6 +1508,7 @@ class C
         [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
         public async Task ExtractLocalFunctionCallWithCapture()
         {
+            // PROTOTYPE: doesn't properly extract local function
             await TestInRegularAndScriptAsync(@"
 class C
 {
@@ -1522,10 +1523,10 @@ class C
     public static void Main(string[] args)
     {
         bool Local() => args == null;
-        {|Rename:NewMethod|}();
+        {|Rename:NewMethod|}(args);
     }
 
-    private static void NewMethod()
+    private static void NewMethod(string[] args)
     {
         {|Warning:Local();|}
     }
@@ -1611,14 +1612,15 @@ class Test
             int v = 0;
             for(int i=0 ; i<5; i++)
             {
-                {|Rename:NewMethod|}();
+                v = {|Rename:NewMethod|}(v, i);
             }
         }
     }
 
-    private static void NewMethod()
+    private static int NewMethod(int v, int i)
     {
         {|Warning:v = v + i|};
+        return v;
     }
 }");
         }
@@ -1651,12 +1653,12 @@ class Test
             int v = 0;
             for(int i=0 ; i<5; i++)
             {
-                v = {|Rename:NewMethod|}();
+                v = {|Rename:NewMethod|}(v, i);
             }
         }
     }
 
-    private static int NewMethod()
+    private static int NewMethod(int v, int i)
     {
         {|Warning:return v + i|};
     }
@@ -1691,12 +1693,12 @@ class Test
             int v = 0;
             for(int i=0 ; i<5; i++)
             {
-                i = {|Rename:NewMethod|}();
+                i = {|Rename:NewMethod|}(ref v, i);
             }
         }
     }
 
-    private static int NewMethod()
+    private static int NewMethod(ref int v, int i)
     {
         {|Warning:return v = v + i;|}
     }
