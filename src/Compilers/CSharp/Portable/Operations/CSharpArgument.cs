@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override CommonConversion OutConversion => new CommonConversion(exists: true, isIdentity: true, isNumeric: false, isReference: false, methodSymbol: null);
     }
 
-    internal sealed partial class CSharpArgument : BaseCSharpArgument
+    internal sealed class CSharpArgument : BaseCSharpArgument
     {
         public CSharpArgument(ArgumentKind argumentKind, IParameterSymbol parameter, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(argumentKind, parameter, semanticModel, syntax, type, constantValue, isImplicit)
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override IOperation ValueImpl { get; }
     }
 
-    internal sealed partial class LazyCSharpArgument : BaseCSharpArgument
+    internal sealed class LazyCSharpArgument : BaseCSharpArgument
     {
         private readonly Lazy<IOperation> _lazyValue;
 

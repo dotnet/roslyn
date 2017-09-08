@@ -861,12 +861,7 @@ Public MustInherit Class BasicTestBaseBase
         
         Dim semanticModel = compilation.GetSemanticModel(node.SyntaxTree)
         Dim operation = semanticModel.GetOperationInternal(node)
-        If operation IsNot Nothing Then
-            Return (operation, node)
-        Else
-            Return (Nothing, Nothing)
-        End If
-
+        Return (operation, node)
     End Function
 
 #End Region

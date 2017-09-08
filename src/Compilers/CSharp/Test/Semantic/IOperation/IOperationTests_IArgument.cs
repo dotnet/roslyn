@@ -2224,7 +2224,7 @@ IInvocationExpression (void P.M2(System.Int32 x, [G<S>? s = null])) (OperationKi
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void GettingInOutConverionFromCSharpArgumentShouldThrowException()
+        public void GettingInOutConversionFromCSharpArgumentShouldThrowException()
         {
             string source = @"
 class P
@@ -2245,6 +2245,7 @@ class P
             var invocation = (IInvocationExpression)operation;
             var argument = invocation.ArgumentsInEvaluationOrder[0];
 
+            // We are calling VB extension methods on IArgument in C# code, therefore exception is expteced here.
             Assert.Throws<ArgumentException>(() => argument.GetInConversion());
             Assert.Throws<ArgumentException>(() => argument.GetOutConversion());
         }

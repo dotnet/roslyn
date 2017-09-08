@@ -105,47 +105,37 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         isImplicit:=isImplicit)
                 Case Else
                     Dim lastParameterIndex = parameters.Length - 1
+                    Dim kind As ArgumentKind
+                    Dim parameter As ParameterSymbol
+
                     If index = lastParameterIndex AndAlso ParameterIsParamArray(parameters(lastParameterIndex)) Then
                         ' TODO: figure out if this is true:
                         '       a compiler generated argument for a ParamArray parameter is created iff
                         '       a list of arguments (including 0 argument) is provided for ParamArray parameter in source
                         '       https://github.com/dotnet/roslyn/issues/18550
-                        Dim kind = If(argument.WasCompilerGenerated AndAlso argument.Kind = BoundKind.ArrayCreation, ArgumentKind.ParamArray, ArgumentKind.Explicit)
-                        Dim parameter = parameters(lastParameterIndex)
-                        Dim value = Create(argument)
-
-                        Return New VisualBasicArgument(
-                            kind,
-                            parameter,
-                            value,
-                            inConversion:=New Conversion(Conversions.Identity),
-                            outConversion:=New Conversion(Conversions.Identity),
-                            semanticModel:=_semanticModel,
-                            syntax:=value.Syntax,
-                            type:=Nothing,
-                            constantValue:=Nothing,
-                            isImplicit:=isImplicit)
+                        kind = If(argument.WasCompilerGenerated AndAlso argument.Kind = BoundKind.ArrayCreation, ArgumentKind.ParamArray, ArgumentKind.Explicit)
+                        parameter = parameters(lastParameterIndex)
                     Else
                         ' TODO: figure our if this is true:
                         '       a compiler generated argument for an Optional parameter is created iff
                         '       the argument is omitted from the source
                         '       https://github.com/dotnet/roslyn/issues/18550
-                        Dim kind = If(argument.WasCompilerGenerated, ArgumentKind.DefaultValue, ArgumentKind.Explicit)
-                        Dim parameter = parameters(index)
-                        Dim value = Create(argument)
-
-                        Return New VisualBasicArgument(
-                            kind,
-                            parameter,
-                            value,
-                            inConversion:=New Conversion(Conversions.Identity),
-                            outConversion:=New Conversion(Conversions.Identity),
-                            semanticModel:=_semanticModel,
-                            syntax:=value.Syntax,
-                            type:=Nothing,
-                            constantValue:=Nothing,
-                            isImplicit:=isImplicit)
+                        kind = If(argument.WasCompilerGenerated, ArgumentKind.DefaultValue, ArgumentKind.Explicit)
+                        parameter = parameters(index)
                     End If
+                    
+                    Dim value = Create(argument)
+                    Return New VisualBasicArgument(
+                        kind,
+                        parameter,
+                        Create(argument),
+                        inConversion:=New Conversion(Conversions.Identity),
+                        outConversion:=New Conversion(Conversions.Identity),
+                        semanticModel:=_semanticModel,
+                        syntax:=value.Syntax,
+                        type:=Nothing,
+                        constantValue:=Nothing,
+                        isImplicit:=isImplicit)
             End Select
         End Function
 
