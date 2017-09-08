@@ -544,6 +544,14 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Dim userDefinedConversion As BoundUserDefinedConversion = DirectCast(boundConversion.Operand, BoundUserDefinedConversion)
                 methodSymbol = userDefinedConversion.Call.Method
                 operand = New Lazy(Of IOperation)(Function() Create(userDefinedConversion.Operand))
+            ElseIf boundConversion.ConversionKind = VisualBasic.ConversionKind.Identity AndAlso
+                   boundConversion.Operand.Kind = BoundKind.DelegateCreationExpression Then
+                ' In this scenario, we're something like New DelegateType(AddressOf Method)
+                ' We don't want to process both this conversion and the DelegateCreationExpression
+                ' as different delegate creation expressions. So we have the operand here be the
+                ' child of the BoundDelegateCreationExpression
+                methodSymbol = Nothing
+                operand = New Lazy(Of IOperation)(Function() CreateBoundDelegateCreationExpressionChildOperation(DirectCast(boundConversion.Operand, BoundDelegateCreationExpression)))
             Else
                 methodSymbol = Nothing
                 operand = New Lazy(Of IOperation)(Function() Create(boundConversion.Operand))
@@ -573,18 +581,24 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundDelegateCreationExpression.ConstantValueOpt)
             Dim isImplicit As Boolean = boundDelegateCreationExpression.WasCompilerGenerated
 
-            Dim target As Lazy(Of IOperation) = New Lazy(Of IOperation)(
-                Function()
-                    Dim method As IMethodSymbol = boundDelegateCreationExpression.Method
-                    Dim isVirtual As Boolean = method IsNot Nothing AndAlso
-                                               (method.IsAbstract OrElse method.IsOverride OrElse method.IsVirtual) AndAlso
-                                               Not boundDelegateCreationExpression.SuppressVirtualCalls
-                    Dim instance As Lazy(Of IOperation) =
-                        New Lazy(Of IOperation)(Function() Create(If(boundDelegateCreationExpression.ReceiverOpt, boundDelegateCreationExpression.MethodGroupOpt?.ReceiverOpt)))
-                    Return New LazyMethodBindingExpression(method, isVirtual, instance, method, _semanticModel, syntax, type, constantValue, isImplicit)
-                End Function)
+            Dim target As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() CreateBoundDelegateCreationExpressionChildOperation(boundDelegateCreationExpression))
 
             Return New LazyDelegateCreationExpression(target, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundDelegateCreationExpressionChildOperation(boundDelegateCreationExpression As BoundDelegateCreationExpression) As IMethodBindingExpression
+            Dim method As IMethodSymbol = boundDelegateCreationExpression.Method
+            Dim isVirtual As Boolean = method IsNot Nothing AndAlso
+                                               (method.IsAbstract OrElse method.IsOverride OrElse method.IsVirtual) AndAlso
+                                               Not boundDelegateCreationExpression.SuppressVirtualCalls
+            Dim instance As Lazy(Of IOperation) =
+                        New Lazy(Of IOperation)(Function() Create(If(boundDelegateCreationExpression.ReceiverOpt, boundDelegateCreationExpression.MethodGroupOpt?.ReceiverOpt)))
+            Dim syntax As SyntaxNode = boundDelegateCreationExpression.Syntax
+            Dim type As ITypeSymbol = boundDelegateCreationExpression.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundDelegateCreationExpression.ConstantValueOpt)
+            Dim isImplicit As Boolean = boundDelegateCreationExpression.WasCompilerGenerated
+            Return New LazyMethodBindingExpression(method, isVirtual, instance, method, _semanticModel, syntax, type, constantValue, isImplicit)
+
         End Function
 
         Private Function CreateBoundTernaryConditionalExpressionOperation(boundTernaryConditionalExpression As BoundTernaryConditionalExpression) As IConditionalExpression
