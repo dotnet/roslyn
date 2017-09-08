@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return BindObjectCreationExpression(node.Type, node.ArgumentList, type, node, diagnostics, Nothing)
         End Function
 
-        Private Sub DisallowNewOnTupleType(type As TypeSyntax, diagnostics As DiagnosticBag)
+        Private Shared Sub DisallowNewOnTupleType(type As TypeSyntax, diagnostics As DiagnosticBag)
             If type.Kind = SyntaxKind.TupleType Then
                 diagnostics.Add(ERRID.ERR_NewWithTupleTypeSyntax, type.Location)
             End If

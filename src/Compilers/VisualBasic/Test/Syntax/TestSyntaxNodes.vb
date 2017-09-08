@@ -172,8 +172,6 @@ End Class")
 Class C
     Dim x = New (Integer, Integer)(1) { }
 End Class")
-            Dim x = arrayCreationSyntax.GetRoot().Dump()
-
             arrayCreationSyntax.AssertTheseDiagnostics(<errors></errors>)
             SyntaxFactory.ArrayCreationExpression(tuple, SyntaxFactory.CollectionInitializer()) ' no exception
 
