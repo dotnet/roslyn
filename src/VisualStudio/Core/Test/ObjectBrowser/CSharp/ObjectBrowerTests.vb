@@ -5,6 +5,7 @@ Imports Roslyn.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
 Imports System.Threading.Tasks
+Imports System.Globalization
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.CSharp
     Public Class ObjectBrowserTests
@@ -545,7 +546,7 @@ class C
 </Code>
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code)),
-                    testCulture As New CultureContext("en-US")
+                    testCulture As New CultureContext(New CultureInfo("en-US", False))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetTypeList(0)

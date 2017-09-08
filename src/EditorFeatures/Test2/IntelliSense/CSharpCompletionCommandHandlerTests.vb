@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Globalization
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
@@ -2479,7 +2480,7 @@ class C
         <WorkItem(588, "https://github.com/dotnet/roslyn/issues/588")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestMatchWithTurkishIWorkaround1() As Task
-            Using New CultureContext("tr-TR")
+            Using New CultureContext(New CultureInfo("tr-TR", False))
                 Using state = TestState.CreateCSharpTestState(
                                <Document><![CDATA[
         class C
@@ -2498,7 +2499,7 @@ class C
         <WorkItem(588, "https://github.com/dotnet/roslyn/issues/588")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestMatchWithTurkishIWorkaround2() As Task
-            Using New CultureContext("tr-TR")
+            Using New CultureContext(New CultureInfo("tr-TR", False))
                 Using state = TestState.CreateCSharpTestState(
                                <Document><![CDATA[
         class C
