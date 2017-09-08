@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                         return;
                     }
                 }
-                
+
                 var argumentName = parameters[argumentIndex].Name;
 
                 if (this.SupportsNonTrailingNamedArguments(root.SyntaxTree.Options) &&
