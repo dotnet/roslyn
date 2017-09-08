@@ -1916,5 +1916,63 @@ class Program
     }
 }", TestOptions.Regular7_1);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestDeconstruction4()
+        {
+            await TestAsync(@"
+class Program
+{
+    void M()
+    {
+        [|var (x, y) = (1, 2);|]
+        System.Console.Write(x + y);
+    }
+}",
+@"
+class Program
+{
+    void M()
+    {
+        int x, y;
+        {|Rename:NewMethod|}(out x, out y);
+        System.Console.Write(x + y);
+    }
+
+    private static void NewMethod(out int x, out int y)
+    {
+        var (x, y) = (1, 2);
+    }
+}", TestOptions.Regular7_1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestDeconstruction5()
+        {
+            await TestAsync(@"
+class Program
+{
+    void M()
+    {
+        [|(var x, var y) = (1, 2);|]
+        System.Console.Write(x + y);
+    }
+}",
+@"
+class Program
+{
+    void M()
+    {
+        int x, y;
+        {|Rename:NewMethod|}(out x, out y);
+        System.Console.Write(x + y);
+    }
+
+    private static void NewMethod(out int x, out int y)
+    {
+        (x, y) = (1, 2);
+    }
+}", TestOptions.Regular7_1);
+        }
     }
 }
