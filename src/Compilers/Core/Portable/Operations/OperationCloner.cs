@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new ArrayElementReferenceExpression(Visit(operation.ArrayReference), VisitArray(operation.Indices), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation, object argument)
+        internal override IOperation VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation, object argument)
         {
             return new PointerIndirectionReferenceExpression(Visit(operation.Pointer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }

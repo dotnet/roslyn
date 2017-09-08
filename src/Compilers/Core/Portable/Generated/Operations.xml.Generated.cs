@@ -3495,7 +3495,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal abstract partial class BasePointerIndirectionReferenceExpression : Operation, IPointerIndirectionReferenceExpression
     {
         protected BasePointerIndirectionReferenceExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-                    base(OperationKind.PointerIndirectionReferenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
+            // API is internal for V1
+            // https://github.com/dotnet/roslyn/issues/21295
+            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 

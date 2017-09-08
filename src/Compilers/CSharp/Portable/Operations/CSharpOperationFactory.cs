@@ -155,8 +155,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundAwaitExpressionOperation((BoundAwaitExpression)boundNode);
                 case BoundKind.ArrayAccess:
                     return CreateBoundArrayAccessOperation((BoundArrayAccess)boundNode);
-                case BoundKind.PointerIndirectionOperator:
-                    return CreateBoundPointerIndirectionOperatorOperation((BoundPointerIndirectionOperator)boundNode);
                 case BoundKind.NameOfOperator:
                     return CreateBoundNameOfOperatorOperation((BoundNameOfOperator)boundNode);
                 case BoundKind.ThrowExpression:
