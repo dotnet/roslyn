@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ConvertNumericLiteral;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Roslyn.Test.Utilities;
@@ -21,9 +22,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
             await TestMissingInRegularAndScriptAsync(CreateTreeText("[||]" + initial));
         }
 
-        private async Task TestFixOneAsync(string initial, string expected, Refactoring refactoring)
+        private async Task TestFixOneAsync(string initial, string expected, Refactoring refactoring, LanguageVersion languageVersion = LanguageVersion.CSharp7)
         {
-            await TestInRegularAndScriptAsync(CreateTreeText("[||]" + initial), CreateTreeText(expected), index: (int)refactoring);
+            await TestAsync(
+                initialMarkup: CreateTreeText("[||]" + initial), 
+                expectedMarkup: CreateTreeText(expected),
+                index: (int)refactoring,
+                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion));
         }
 
         private static string CreateTreeText(string initial)
@@ -71,6 +76,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
         public async Task TestSeparateNibbles()
         {
             await TestFixOneAsync("0b10101010", "0b1010_1010", Refactoring.AddOrRemoveDigitSeparators);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertNumericLiteral)]
+        public async Task TestSeparateNibblesWithLeadingSeparator()
+        {
+            await TestFixOneAsync("0b10101010", "0b_1010_1010", Refactoring.AddOrRemoveDigitSeparators, LanguageVersion.CSharp7_2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertNumericLiteral)]
