@@ -1043,7 +1043,11 @@ class C
 }
 ", sequencePoints: "C+<F>d__0.MoveNext");
 
-                    v0.VerifyPdb("C+<F>d__0.MoveNext", @"<symbols>
+                    v0.VerifyPdb("C+<F>d__0.MoveNext", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C+&lt;F&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
@@ -1059,15 +1063,15 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" />
-        <entry offset=""0x7"" hidden=""true"" />
-        <entry offset=""0xe"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0xf"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""34"" />
-        <entry offset=""0x1b"" hidden=""true"" />
-        <entry offset=""0x6c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" />
-        <entry offset=""0x70"" hidden=""true"" />
-        <entry offset=""0x8a"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
-        <entry offset=""0x92"" hidden=""true"" />
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7"" hidden=""true"" document=""1"" />
+        <entry offset=""0xe"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xf"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x1b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x6c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x70"" hidden=""true"" document=""1"" />
+        <entry offset=""0x8a"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x92"" hidden=""true"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xa0"">
         <namespace name=""System.Threading.Tasks"" />
