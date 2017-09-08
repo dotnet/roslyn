@@ -730,8 +730,8 @@ namespace Microsoft.Cci
         {
             get;
         }
-        
-        //PROTOTYPE(readonlyRefs): need to add another API to distinguish readonly, for now treat them the same
+
+        //PROTOTYPE:https://github.com/dotnet/roslyn/issues/21976
         /// <summary>
         /// True if the return value is passed by reference (using a managed pointer).
         /// </summary>

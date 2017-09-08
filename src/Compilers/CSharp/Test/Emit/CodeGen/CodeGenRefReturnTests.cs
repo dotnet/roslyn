@@ -3099,7 +3099,7 @@ public class C
                 // (14,26): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref G(ref d.Length);
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "d.Length").WithLocation(14, 26),
-                // (14,20): error CS8521: Cannot use a result of 'C.G(ref dynamic)' in this context because it may expose variables referenced by parameter 'd' outside of their declaration scope
+                // (14,20): error CS8347: Cannot use a result of 'C.G(ref dynamic)' in this context because it may expose variables referenced by parameter 'd' outside of their declaration scope
                 //         return ref G(ref d.Length);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "G(ref d.Length)").WithArguments("C.G(ref dynamic)", "d").WithLocation(14, 20)
             );

@@ -19582,7 +19582,7 @@ namespace ForwardingNamespace
             var compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader: false);
 
             compilation.VerifyDiagnostics(
-                // (8,29): error CS8406: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (8,29): error CS8329: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             new Destination.TestClass();
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestClass").WithArguments("ForwarderModule.dll", "Forwarder, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Destination.TestClass", "Destination1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Destination2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 29),
                 // (8,29): error CS0234: The type or namespace name 'TestClass' does not exist in the namespace 'Destination' (are you missing an assembly reference?)
@@ -19645,7 +19645,7 @@ namespace ForwardingNamespace
             var compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader: false);
 
             compilation.VerifyDiagnostics(
-                // (8,29): error CS8406: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (8,29): error CS8329: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             new Destination.TestClass();
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestClass").WithArguments("ForwarderModule.dll", "Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Destination.TestClass", "Destination1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Destination2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 29),
                 // (8,29): error CS0234: The type or namespace name 'TestClass' does not exist in the namespace 'Destination' (are you missing an assembly reference?)
@@ -19715,7 +19715,7 @@ namespace A
             var referenceC2 = CompileIL(codeC2, prependDefaultHeader: false);
 
             CreateStandardCompilation(codeA, references: new MetadataReference[] { referenceB, referenceC2 }, assemblyName: "A").VerifyDiagnostics(
-                // (10,13): error CS8406: Module 'CModule.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (10,13): error CS8329: Module 'CModule.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             ClassB.MethodB(null);
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "ClassB.MethodB").WithArguments("CModule.dll", "C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C.ClassC", "D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
@@ -19817,7 +19817,7 @@ namespace C
 
             var ilModule = GetILModuleReference(ilSource, prependDefaultHeader: false);
             CreateStandardCompilation(string.Empty, references: new MetadataReference[] { ilModule }, assemblyName: "Forwarder").VerifyDiagnostics(
-                // error CS8406: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // error CS8329: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies).WithArguments("ForwarderModule.dll", "Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Testspace.TestType", "D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
         }
 
@@ -19894,7 +19894,7 @@ namespace UserSpace
                 assemblyName: "UserAssembly");
 
             userCompilation.VerifyDiagnostics(
-                // (8,37): error CS8406: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (8,37): error CS8329: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             var obj = new Testspace.TestType();
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestType").WithArguments("ForwarderModule.dll", "Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Testspace.TestType", "D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 37),
                 // (8,37): error CS0234: The type or namespace name 'TestType' does not exist in the namespace 'Testspace' (are you missing an assembly reference?)
@@ -19959,7 +19959,7 @@ namespace UserSpace
                 assemblyName: "UserAssembly");
 
             userCompilation.VerifyDiagnostics(
-                // (8,37): error CS8406: Module 'module12L.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D4, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (8,37): error CS8329: Module 'module12L.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D4, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             var obj = new Testspace.TestType();
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestType").WithArguments("module12L.dll", "Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Testspace.TestType", "D3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D4, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 // (8,37): error CS0234: The type or namespace name 'TestType' does not exist in the namespace 'Testspace' (are you missing an assembly reference?)
@@ -20039,7 +20039,7 @@ namespace A
 }";
 
             CreateStandardCompilation(codeA, references: new MetadataReference[] { referenceB, referenceC2, referenceD, referenceE }, assemblyName: "A").VerifyDiagnostics(
-                // (11,13): error CS8406: Module 'C.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'E, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (11,13): error CS8329: Module 'C.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'E, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             ClassB.MethodB(obj);
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "ClassB.MethodB").WithArguments("C.dll", "C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C.ClassC", "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "E, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(11, 13));
         }

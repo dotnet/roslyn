@@ -561,12 +561,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (checkingReceiver)
                     {
-                        //PROTOTYPE(span): need a better error message for invalid ref-like escapes (should not say "must be ref" since that is not a problem here)
+                        //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22057
                         Error(diagnostics, ErrorCode.ERR_RefReturnParameter2, parameter.Syntax, parameterSymbol.Name);
                     }
                     else
                     {
-                        //PROTOTYPE(span): need a better error message for invalid ref-like escapes (should not say "must be ref" since that is not a problem here)
+                        //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22057
                         Error(diagnostics, ErrorCode.ERR_RefReturnParameter, node, parameterSymbol.Name);
                     }
                     return false;
@@ -1662,7 +1662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         scopeOfTheContainingExpression);
             }
 
-            //PROTOTYPE(span): when all relevant cases are handles, consider making the switch above comprehensive and Assert or throw Unreachable on unhandled node kinds.
+            //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22077
 
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
             return scopeOfTheContainingExpression;
@@ -1844,7 +1844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics);
             }
 
-            //PROTOTYPE(span): when all relevant cases are handles, consider making the switch above comprehensive and Assert or throw Unreachable on unhandled node kinds.
+            //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22077
 
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
             Error(diagnostics, GetStandardRValueRefEscapeError(escapeTo), node);
@@ -1954,23 +1954,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         objectCreation.ArgsToParamsOpt,
                         scopeOfTheContainingExpression);
 
-                    //PROTOTYPE(span): handle object initializers. (no neeed to worry about collection init, the obj must be IEnumerable)
+                    //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22079
                     return escape;
 
-                //PROTOTYPE(span): add tests for the following cases
+                //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22078
 
                 case BoundKind.UnaryOperator:
                     return GetValEscape(((BoundUnaryOperator)expr).Operand, scopeOfTheContainingExpression);
 
                 case BoundKind.Conversion:
                     var conversion = (BoundConversion)expr;
-
-                    //PROTOTYPE(span): currently span-typed stackalloc is wrapped into a conversion node.
-                    //                 this check may not be needed if that changes
-                    if (conversion.ConversionKind == ConversionKind.StackAllocToSpanType)
-                    {
-                        return Binder.TopLevelScope;
-                    }
+                    Debug.Assert(conversion.ConversionKind != ConversionKind.StackAllocToSpanType, "StackAllocToSpanType unexpected");
 
                     return GetValEscape(conversion.Operand, scopeOfTheContainingExpression);
 
@@ -1992,14 +1986,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Math.Max(GetValEscape(binary.Left, scopeOfTheContainingExpression),
                                     GetValEscape(binary.Right, scopeOfTheContainingExpression));
 
-                    //PROTOTYPE(span): handle remaining expressions with operands - ...
-                    //      Note that requirement that the result is ref-like makes many cases, like array access or tuple literals are never applicable due to ref-like constraints.
-
-                    //PROTOTYPE: __refvalue. It is not possible to __makeref(span), but it is allowed to do __refvalue(tr, Span), perhaps it should not be allowed, looks like a bug.
-                    //           otherwise we need to decide how to treat that. Most likely as scopeOfTheContainingExpression
+                    //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22080
             }
 
-            //PROTOTYPE(span): when all relevant cases are handles, consider making the switch above comprehensive and Assert or throw Unreachable on unhandled node kinds.
+            //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22077
 
             // At this point we should have covered all the possible cases for anything that may return its operands or manufacture local references.
             return Binder.ExternalScope;
@@ -2147,10 +2137,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         escapeTo,
                         diagnostics);
 
-                    //PROTOTYPE(span):  handle object initializers. (no neeed to worry about collection init, the obj must be IEnumerable)
+                    //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22079
                     return escape;
 
-                //PROTOTYPE(span): add tests for the following cases
+                //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22078
 
                 case BoundKind.UnaryOperator:
                     var unary = (BoundUnaryOperator)expr;
@@ -2158,18 +2148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Conversion:
                     var conversion = (BoundConversion)expr;
-
-                    //PROTOTYPE(span): currently span-typed stackalloc is wrapped into a conversion node.
-                    //                 this check may not be needed if that changes
-                    if (conversion.ConversionKind == ConversionKind.StackAllocToSpanType)
-                    {
-                        if (escapeTo < Binder.TopLevelScope)
-                        {
-                            Error(diagnostics, ErrorCode.ERR_EscapeStackAlloc, node, expr.Type);
-                            return false;
-                        }
-                    }
-
+                    Debug.Assert(conversion.ConversionKind != ConversionKind.StackAllocToSpanType, "StackAllocToSpanType unexpected");
                     return CheckValEscape(node, conversion.Operand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
                 case BoundKind.AssignmentOperator:
@@ -2192,14 +2171,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CheckValEscape(binary.Left.Syntax, binary.Left, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
                            CheckValEscape(binary.Right.Syntax, binary.Right, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
-                    //PROTOTYPE(span): handle remaining expressions with operands - ...
+                    //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22077
                     //      Note that requirement that the result is ref-like makes many cases, like array access or tuple literals are never applicable due to ref-like constraints.
 
-                    //PROTOTYPE: __refvalue. It is not possible to __makeref(span), but it is allowed to do __refvalue(tr, Span), perhaps it should not be allowed, looks like a bug.
-                    //           otherwise we need to decide how to treat that. Most likely as scopeOfTheContainingExpression
+                    //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22080
             }
 
-            //PROTOTYPE(span): when all relevant cases are handles, consider making the switch above comprehensive and Assert or throw Unreachable on unhandled node kinds.
+            //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22077
 
             // At this point we should have covered all the possible cases for anything that may return its operands or manufacture local references.
             return true;

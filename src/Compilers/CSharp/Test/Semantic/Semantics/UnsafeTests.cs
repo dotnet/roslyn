@@ -7520,13 +7520,13 @@ unsafe class C
 }
 ";
             CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,19): error CS8520: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
+                // (6,19): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
                 //         { var p = (int*)stackalloc int[1]; }
                 Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(int*)stackalloc int[1]").WithArguments("int", "int*").WithLocation(6, 19),
-                // (7,19): error CS8520: Conversion of a stackalloc expression of type 'int' to type 'void*' is not possible.
+                // (7,19): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'void*' is not possible.
                 //         { var p = (void*)stackalloc int[1]; }
                 Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(void*)stackalloc int[1]").WithArguments("int", "void*").WithLocation(7, 19),
-                // (8,19): error CS8520: Conversion of a stackalloc expression of type 'int' to type 'C' is not possible.
+                // (8,19): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'C' is not possible.
                 //         { var p = (C)stackalloc int[1]; }
                 Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(C)stackalloc int[1]").WithArguments("int", "C").WithLocation(8, 19));
         }

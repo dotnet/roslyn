@@ -39,7 +39,7 @@ unsafe class Test
 }", TestOptions.UnsafeReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (11,24): error CS8520: Conversion of a stackalloc expression of type 'int' to type 'double*' is not possible.
+                // (11,24): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'double*' is not possible.
                 //         double* obj5 = stackalloc int[10];
                 Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[10]").WithArguments("int", "double*").WithLocation(11, 24));
 
@@ -113,7 +113,7 @@ unsafe class Test
 }", TestOptions.UnsafeReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (11,24): error CS8520: Conversion of a stackalloc expression of type 'int' to type 'double*' is not possible.
+                // (11,24): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'double*' is not possible.
                 //         double* obj5 = stackalloc int[10];
                 Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[10]").WithArguments("int", "double*").WithLocation(11, 24));
 
@@ -177,10 +177,10 @@ class Test
         short y = (short)stackalloc int[10];    // explicit
     }
 }", TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,20): error CS8520: Conversion of a stackalloc expression of type 'int' to type 'double' is not possible.
+                // (6,20): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'double' is not possible.
                 //         double x = stackalloc int[10];          // implicit
                 Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[10]").WithArguments("int", "double").WithLocation(6, 20),
-                // (7,19): error CS8520: Conversion of a stackalloc expression of type 'int' to type 'short' is not possible.
+                // (7,19): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'short' is not possible.
                 //         short y = (short)stackalloc int[10];    // explicit
                 Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(short)stackalloc int[10]").WithArguments("int", "short").WithLocation(7, 19));
         }
@@ -265,7 +265,7 @@ class Test
         var x = true ? stackalloc int [10] : (Span<int>)stackalloc short [5];
     }
 }", TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (7,46): error CS8520: Conversion of a stackalloc expression of type 'short' to type 'Span<int>' is not possible.
+                // (7,46): error CS8346: Conversion of a stackalloc expression of type 'short' to type 'Span<int>' is not possible.
                 //         var x = true ? stackalloc int [10] : (Span<int>)stackalloc short [5];
                 Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(Span<int>)stackalloc short [5]").WithArguments("short", "System.Span<int>").WithLocation(7, 46));
         }
@@ -377,7 +377,7 @@ public class Test
 }
 ";
             CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
-                // (6,39): error CS8520: Conversion of a stackalloc expression of type 'int' to type 'IDisposable' is not possible.
+                // (6,39): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'IDisposable' is not possible.
                 //         using (System.IDisposable v = stackalloc int[1])
                 Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[1]").WithArguments("int", "System.IDisposable").WithLocation(6, 39));
         }

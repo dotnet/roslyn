@@ -673,14 +673,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private static bool IsAssignableExpression(Binder binder, BoundExpression expression)
         {
-            //PROTOTYPE(readonlyRefs): is this comment still valid?
-            // NOTE: Surprisingly, binder.CheckValueKind will return true (!) for readonly fields 
-            // in contexts where they cannot be assigned - it simply reports a diagnostic.
-            // Presumably, this is done to avoid producing a confusing error message about the
-            // field not being an lvalue.
             var diagnostics = DiagnosticBag.GetInstance();
-            var result = binder.CheckValueKind(expression.Syntax, expression, Binder.BindValueKind.Assignable, checkingReceiver: false, diagnostics: diagnostics) &&
-                !diagnostics.HasAnyErrors();
+            var result = binder.CheckValueKind(expression.Syntax, expression, Binder.BindValueKind.Assignable, checkingReceiver: false, diagnostics: diagnostics);
             diagnostics.Free();
             return result;
         }

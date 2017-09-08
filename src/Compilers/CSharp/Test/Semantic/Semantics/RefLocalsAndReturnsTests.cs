@@ -619,22 +619,22 @@ public class Test
                 // (36,32): error CS8168: Cannot return local 'M1' by reference because it is not a ref local
                 //             return ref Goo(ref M1);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "M1").WithArguments("M1").WithLocation(36, 32),
-                // (36,24): error CS8521: Cannot use a result of 'Test.Goo<char>(ref char)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                // (36,24): error CS8347: Cannot use a result of 'Test.Goo<char>(ref char)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //             return ref Goo(ref M1);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "Goo(ref M1)").WithArguments("Test.Goo<char>(ref char)", "arg").WithLocation(36, 24),
                 // (41,32): error CS8169: Cannot return a member of local 'M2' by reference because it is not a ref local
                 //             return ref Goo(ref M2.x);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal2, "M2").WithArguments("M2").WithLocation(41, 32),
-                // (41,24): error CS8521: Cannot use a result of 'Test.Goo<char>(ref char)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                // (41,24): error CS8347: Cannot use a result of 'Test.Goo<char>(ref char)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //             return ref Goo(ref M2.x);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "Goo(ref M2.x)").WithArguments("Test.Goo<char>(ref char)", "arg").WithLocation(41, 24),
                 // (46,32): error CS8168: Cannot return local 'M2' by reference because it is not a ref local
                 //             return ref Goo(ref M2).x;
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "M2").WithArguments("M2").WithLocation(46, 32),
-                // (46,24): error CS8522: Cannot use a member of result of 'Test.Goo<Test.S1>(ref Test.S1)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                // (46,24): error CS8348: Cannot use a member of result of 'Test.Goo<Test.S1>(ref Test.S1)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //             return ref Goo(ref M2).x;
                 Diagnostic(ErrorCode.ERR_EscapeCall2, "Goo(ref M2)").WithArguments("Test.Goo<Test.S1>(ref Test.S1)", "arg").WithLocation(46, 24),
-                // (58,24): error CS8528: Cannot return 'this' by reference.
+                // (58,24): error CS8354: Cannot return 'this' by reference.
                 //             return ref this;
                 Diagnostic(ErrorCode.ERR_RefReturnThis, "this").WithArguments("this").WithLocation(58, 24)
                 );
@@ -1979,7 +1979,7 @@ class Program
                 // (8,26): error CS8166: Cannot return a parameter by reference 'i' because it is not a ref or out parameter
                 //         return ref d(ref i, ref j, o);
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "i").WithArguments("i").WithLocation(8, 26),
-                // (8,20): error CS8521: Cannot use a result of 'D.Invoke(ref int, ref int, object)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                // (8,20): error CS8347: Cannot use a result of 'D.Invoke(ref int, ref int, object)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
                 //         return ref d(ref i, ref j, o);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "d(ref i, ref j, o)").WithArguments("D.Invoke(ref int, ref int, object)", "i").WithLocation(8, 20)
                 );
@@ -2003,7 +2003,7 @@ class Program
                 // (7,26): error CS8168: Cannot return local 'j' by reference because it is not a ref local
                 //         return ref M(ref j);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "j").WithArguments("j").WithLocation(7, 26),
-                // (7,20): error CS8521: Cannot use a result of 'Program.M(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                // (7,20): error CS8347: Cannot use a result of 'Program.M(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
                 //         return ref M(ref j);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "M(ref j)").WithArguments("Program.M(ref int)", "i").WithLocation(7, 20)
             );
@@ -2042,7 +2042,7 @@ class Program
 ";
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (6,20): error CS8528: Cannot return 'this' by reference.
+                // (6,20): error CS8354: Cannot return 'this' by reference.
                 //         return ref this;
                 Diagnostic(ErrorCode.ERR_RefReturnThis, "this").WithArguments("this").WithLocation(6, 20)
             );

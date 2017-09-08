@@ -1131,7 +1131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //     we will not emit Obsolete even if Deprecated or Experimental was used.
                 //     we do not want to get into a scenario where different kinds of deprecation are combined together.
                 //
-                //PROTOTYPE(spans): do we want to produce some kind of warning in this case?
+                //PROTOTYPE:https://github.com/dotnet/roslyn/issues/21973
                 if (obsoleteData == null)
                 {
                     AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ObsoleteAttribute__ctor,

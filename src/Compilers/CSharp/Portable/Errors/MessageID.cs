@@ -139,12 +139,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureLeadingDigitSeparator = MessageBase + 12723,
         IDS_FeatureNonTrailingNamedArguments = MessageBase + 12724,
 
-        //PROTOTYPE(readonlyRef): make contiguous
-        IDS_FeatureReadonlyReferences = MessageBase + 12818,
-        IDS_FeatureRefStructs = MessageBase + 12819,
-        IDS_FeatureReadOnlyStructs = MessageBase + 12820,
-        IDS_FeatureRefExtensionMethods = MessageBase + 12821,
-        IDS_StackAllocExpression = MessageBase + 12822,
+        IDS_FeatureReadonlyReferences = MessageBase + 12725,
+        IDS_FeatureRefStructs = MessageBase + 12726,
+        IDS_FeatureReadOnlyStructs = MessageBase + 12727,
+        IDS_FeatureRefExtensionMethods = MessageBase + 12728,
+        IDS_StackAllocExpression = MessageBase + 12729,
     }
 
     // Message IDs may refer to strings that need to be localized.

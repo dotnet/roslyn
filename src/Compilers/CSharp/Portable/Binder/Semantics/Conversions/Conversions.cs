@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
 
-            //PROTOTYPE(span): generalize to all restricted types or it would be a compat break?
+            //PROTOTYPE:https://github.com/dotnet/roslyn/issues/21979
             //cannot capture span-like types.
             if (!method.IsStatic && methodGroup.Receiver.Type.IsByRefLikeType)
             {
