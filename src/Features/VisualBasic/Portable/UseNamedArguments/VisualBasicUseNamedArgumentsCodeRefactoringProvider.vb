@@ -3,10 +3,10 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
+Imports Microsoft.CodeAnalysis.UseNamedArguments
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.UseNamedArguments
+Namespace Microsoft.CodeAnalysis.VisualBasic.UseNamedArguments
     <ExtensionOrder(After:=PredefinedCodeRefactoringProviderNames.IntroduceVariable)>
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicUseNamedArgumentsCodeRefactoringProvider)), [Shared]>
     Friend Class VisualBasicUseNamedArgumentsCodeRefactoringProvider

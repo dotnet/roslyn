@@ -3,11 +3,12 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseNamedArguments;
+using Microsoft.CodeAnalysis.CSharp.UseNamedArguments;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseNamedArguments
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNamedArguments
 {
     public class UseNamedArgumentsTests : AbstractCSharpCodeActionTest
     {
