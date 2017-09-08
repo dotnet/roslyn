@@ -1,15 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 using StreamJsonRpc;
-using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
@@ -27,8 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly IRemotableDataService _remotableDataService;
         private readonly CancellationTokenSource _shutdownCancellationSource;
 
-        public RemotableDataJsonRpc(Microsoft.CodeAnalysis.Workspace workspace, Stream stream)
-            : base(stream, callbackTarget: null, useThisAsCallback: true)
+        public RemotableDataJsonRpc(Microsoft.CodeAnalysis.Workspace workspace, TraceSource logger, Stream stream)
+            : base(logger, stream, callbackTarget: null, useThisAsCallback: true)
         {
             _remotableDataService = workspace.Services.GetService<IRemotableDataService>();
 
@@ -58,15 +59,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     await stream.FlushAsync(source.Token).ConfigureAwait(false);
                 }
             }
-            catch (IOException)
+            catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {
-                // direct stream can throw if cancellation happens since direct stream still uses
-                // disconnection for cancellation
+                // only expected exception will be catched. otherwise, NFW and let it propagate
+                Debug.Assert(cancellationToken.IsCancellationRequested || ex is IOException);
             }
-            catch (OperationCanceledException)
+        }
+
+        private bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested)
             {
-                // this can happen if connection got shutdown
+                // any exception can happen if things are cancelled.
+                return true;
             }
+
+            if (ex is IOException)
+            {
+                // direct connection can be disconnected before cancellation token from remote host have
+                // passed to us
+                return true;
+            }
+
+            // log the exception
+            LogError("unexpected exception from RequestAsset: " + ex.ToString());
+
+            // report NFW
+            ex.ReportServiceHubNFW("RequestAssetFailed");
+            return false;
         }
 
         private async Task WriteAssetAsync(ObjectWriter writer, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
@@ -124,8 +144,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             Disconnect();
         }
 
-        protected override void OnDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
+        protected override void Disconnected(JsonRpcDisconnectedEventArgs e)
         {
+            if (e.Reason != DisconnectedReason.Disposed)
+            {
+                // log when this happens
+                LogDisconnectInfo(e, new StackTrace().ToString());
+            }
+
             _shutdownCancellationSource.Cancel();
         }
     }
