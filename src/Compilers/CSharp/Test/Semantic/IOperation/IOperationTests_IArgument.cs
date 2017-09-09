@@ -2245,7 +2245,7 @@ class P
             var invocation = (IInvocationExpression)operation;
             var argument = invocation.ArgumentsInEvaluationOrder[0];
 
-            // We are calling VB extension methods on IArgument in C# code, therefore exception is expteced here.
+            // We are calling VB extension methods on IArgument in C# code, therefore exception is expected here.
             Assert.Throws<ArgumentException>(() => argument.GetInConversion());
             Assert.Throws<ArgumentException>(() => argument.GetOutConversion());
         }
