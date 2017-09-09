@@ -74,7 +74,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
         Public Function ResolveBreakpointsAsync(
             solution As Solution,
             name As String,
-            Optional cancellationToken As CancellationToken = Nothing) As Task(Of ImmutableArray(Of BreakpointResolutionResult)) Implements IBreakpointResolutionService.ResolveBreakpointsAsync
+            Optional cancellationToken As CancellationToken = Nothing) As Task(Of IEnumerable(Of BreakpointResolutionResult)) Implements IBreakpointResolutionService.ResolveBreakpointsAsync
 
             Return New BreakpointResolver(solution, name).DoAsync(cancellationToken)
         End Function
