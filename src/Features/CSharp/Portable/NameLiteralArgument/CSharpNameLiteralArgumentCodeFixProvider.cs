@@ -11,12 +11,11 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.NameLiteralArgument
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.NameArguments), Shared]
     internal sealed class CSharpNameLiteralArgumentCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NameLiteralArgument
             return SpecializedTasks.EmptyTask;
         }
 
-        protected override async Task FixAllAsync(
+        protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
@@ -39,39 +38,28 @@ namespace Microsoft.CodeAnalysis.CSharp.NameLiteralArgument
 
             foreach (var diagnostic in diagnostics)
             {
-                var argument = (ArgumentSyntax)root.FindNode(diagnostic.Location.SourceSpan);
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var parameterName = diagnostic.Properties["ParameterName"];
+                var node = root.FindNode(diagnostic.Location.SourceSpan);
 
-                var parameterName = GetParameterName(argument, semanticModel);
-                var newArgument = SyntaxFactory.Argument(SyntaxFactory.NameColon(parameterName), default, argument.Expression);
-                editor.ReplaceNode(argument, newArgument);
-            }
-        }
+                SyntaxNode newArgument;
+                switch (node)
+                {
+                    case ArgumentSyntax argument:
+                        newArgument = argument.WithoutTrivia()
+                            .WithNameColon(SyntaxFactory.NameColon(parameterName)).WithTriviaFrom(argument);
+                        break;
+                    case AttributeArgumentSyntax argument:
+                        newArgument = argument.WithoutTrivia()
+                            .WithNameColon(SyntaxFactory.NameColon(parameterName)).WithTriviaFrom(argument);
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(node.Kind());
+                }
 
-        private string GetParameterName(ArgumentSyntax argument, SemanticModel semanticModel)
-        {
-            SeparatedSyntaxList<ArgumentSyntax> arguments;
-            switch (argument.Parent.Parent)
-            {
-                case InvocationExpressionSyntax invocation:
-                    arguments = invocation.ArgumentList.Arguments;
-                    break;
-                case ObjectCreationExpressionSyntax creation:
-                    arguments = creation.ArgumentList.Arguments;
-                    break;
-                case ConstructorInitializerSyntax creation:
-                    arguments = creation.ArgumentList.Arguments;
-                    break;
-                case ElementAccessExpressionSyntax access:
-                    arguments = access.ArgumentList.Arguments;
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(argument.Parent.Parent.Kind());
+                editor.ReplaceNode(node, newArgument);
             }
 
-            int index = arguments.IndexOf(argument);
-            var parameters = semanticModel.GetSymbolInfo(argument.Parent.Parent).Symbol.GetParameters();
-            return parameters[index].Name;
+            return Task.CompletedTask;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

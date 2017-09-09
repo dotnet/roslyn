@@ -29,7 +29,7 @@ class C
 {
     void M(int a, int b)
     {
-        M(a, [||]2);
+        M(a, [||]default);
     }
 }",
 @"
@@ -37,7 +37,7 @@ class C
 {
     void M(int a, int b)
     {
-        M(a, b: 2);
+        M(a, b: default);
     }
 }", parseOptions: s_parseOptions);
         }
@@ -69,22 +69,40 @@ class C
         {
             await TestAsync(
 @"
-[C(a, [||]2)]
-class C
+[C(C.a, [||]""hello"")]
+public class C : System.Attribute
 {
-    C(int a, int b)
+    public static int a = 0;
+    public C(int a, string b)
     {
     }
 }",
 @"
-[C(a, b: 2)]
-class C
+[C(C.a, b: ""hello"")]
+public class C : System.Attribute
 {
-    C(int a, int b)
+    public static int a = 0;
+    public C(int a, string b)
     {
     }
 }", parseOptions: s_parseOptions);
-            // REVIEW TODO
+        }
+
+        [Fact]
+        public async Task TestLiteralInAttribute2()
+        {
+            await TestActionCountAsync(
+@"
+[C(C.a, [||]P = 2)]
+public class C : System.Attribute
+{
+    public static int a = 0;
+    public int P { get; set; }
+    public C(int a)
+    {
+    }
+}",
+count: 0, parameters: new TestParameters(s_parseOptions));
         }
 
         [Fact]
@@ -225,6 +243,32 @@ class C
     void M(int a, int b, int c)
     {
         M(a, /*before*/ b: 2 /*after*/, /*before*/ c: 3 /*after*/);
+    }
+}", parseOptions: s_parseOptions);
+        }
+
+        [Fact]
+        public async Task TestFixAllWithTriviaAndNewlines()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        M(a,
+            /*before*/ {|FixAllInDocument:2|} /*after*/,
+            /*before*/ 3 /*after*/);
+    }
+}",
+@"
+class C
+{
+    void M(int a, int b, int c)
+    {
+        M(a,
+            /*before*/ b: 2 /*after*/,
+            /*before*/ c: 3 /*after*/);
     }
 }", parseOptions: s_parseOptions);
         }

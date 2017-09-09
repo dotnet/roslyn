@@ -1649,11 +1649,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prefer naming literal arguments.
+        ///   Looks up a localized string similar to Prefer named literal arguments (C# 7.2 or greater).
         /// </summary>
-        internal static string Prefer_naming_literal_arguments {
+        internal static string Prefer_named_literal_arguments_CSharp_7_2_or_greater {
             get {
-                return ResourceManager.GetString("Prefer_naming_literal_arguments", resourceCulture);
+                return ResourceManager.GetString("Prefer_named_literal_arguments_CSharp_7_2_or_greater", resourceCulture);
             }
         }
         

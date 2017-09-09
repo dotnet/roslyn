@@ -154,12 +154,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_prefer_inferred_anonymous_type_member_names"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferInferredAnonymousTypeMemberNames)}")});
 
-        public static readonly Option<CodeStyleOption<bool>> PreferNamingLiteralArguments = new Option<CodeStyleOption<bool>>(
-            nameof(CodeStyleOptions), nameof(PreferNamingLiteralArguments), defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
-            storageLocations: new OptionStorageLocation[] {
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_prefer_naming_literal_arguments"),
-                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferNamingLiteralArguments)}")});
-
         private static readonly SyntaxKind[] s_preferredModifierOrderDefault =
             {
                 SyntaxKind.PublicKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword,
@@ -199,7 +193,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return PreferInferredTupleNames;
             yield return PreferInferredAnonymousTypeMemberNames;
             yield return PreferLocalOverAnonymousFunction;
-            yield return PreferNamingLiteralArguments;
         }
 
         public static IEnumerable<Option<CodeStyleOption<ExpressionBodyPreference>>> GetExpressionBodyOptions()
