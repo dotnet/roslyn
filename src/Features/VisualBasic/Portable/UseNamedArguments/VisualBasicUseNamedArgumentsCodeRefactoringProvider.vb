@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNamedArguments
             End Function
 
             Protected Overrides Function SupportsNonTrailingNamedArguments(options As ParseOptions) As Boolean
-                Return False
+                Return DirectCast(options, VisualBasicParseOptions).LanguageVersion >= LanguageVersion.VisualBasic15_5
             End Function
         End Class
 
