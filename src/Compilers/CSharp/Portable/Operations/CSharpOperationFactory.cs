@@ -155,8 +155,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundAwaitExpressionOperation((BoundAwaitExpression)boundNode);
                 case BoundKind.ArrayAccess:
                     return CreateBoundArrayAccessOperation((BoundArrayAccess)boundNode);
-                case BoundKind.PointerIndirectionOperator:
-                    return CreateBoundPointerIndirectionOperatorOperation((BoundPointerIndirectionOperator)boundNode);
                 case BoundKind.NameOfOperator:
                     return CreateBoundNameOfOperatorOperation((BoundNameOfOperator)boundNode);
                 case BoundKind.ThrowExpression:
@@ -205,8 +203,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundTryStatementOperation((BoundTryStatement)boundNode);
                 case BoundKind.CatchBlock:
                     return CreateBoundCatchBlockOperation((BoundCatchBlock)boundNode);
-                case BoundKind.FixedStatement:
-                    return CreateBoundFixedStatementOperation((BoundFixedStatement)boundNode);
+                // https://github.com/dotnet/roslyn/issues/21281
+                //case BoundKind.FixedStatement:
+                //    return CreateBoundFixedStatementOperation((BoundFixedStatement)boundNode);
                 case BoundKind.UsingStatement:
                     return CreateBoundUsingStatementOperation((BoundUsingStatement)boundNode);
                 case BoundKind.ThrowStatement:
@@ -428,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyEventAssignmentExpression(eventReference, handlerValue, adds, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-            private IParameterReferenceExpression CreateBoundParameterOperation(BoundParameter boundParameter)
+        private IParameterReferenceExpression CreateBoundParameterOperation(BoundParameter boundParameter)
         {
             IParameterSymbol parameter = boundParameter.ParameterSymbol;
             SyntaxNode syntax = boundParameter.Syntax;
@@ -668,7 +667,6 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IOperation CreateBoundConversionOperation(BoundConversion boundConversion)
         {
-            ConversionKind conversionKind = GetConversionKind(boundConversion.ConversionKind);
             bool isImplicit = boundConversion.WasCompilerGenerated;
             if (boundConversion.ConversionKind == CSharp.ConversionKind.MethodGroup)
             {
@@ -682,8 +680,23 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
             else
             {
-                Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundConversion.Operand));
                 SyntaxNode syntax = boundConversion.Syntax;
+
+                if (syntax.IsMissing)
+                {
+                    // If the underlying syntax IsMissing, then that means we're in case where the compiler generated a piece of syntax to fill in for
+                    // an error, such as this case:
+                    //
+                    //  int i = ;
+                    //
+                    // Semantic model has a special case here that we match: if the underlying syntax is missing, don't create a conversion expression,
+                    // and instead directly return the operand, which will be a BoundBadExpression. When we generate a node for the BoundBadExpression,
+                    // the resulting IOperation will also have a null Type.
+                    Debug.Assert(boundConversion.Operand.Kind == BoundKind.BadExpression);
+                    return Create(boundConversion.Operand);
+                }
+
+                Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundConversion.Operand));
                 Conversion conversion = boundConversion.Conversion;
                 bool isExplicit = boundConversion.ExplicitCastInCode;
                 bool isTryCast = false;
@@ -862,7 +875,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             Lazy<ImmutableArray<IOperation>> children = new Lazy<ImmutableArray<IOperation>>(() => boundBadExpression.ChildBoundNodes.SelectAsArray(n => Create(n)));
             SyntaxNode syntax = boundBadExpression.Syntax;
-            ITypeSymbol type = boundBadExpression.Type;
+            // We match semantic model here: if the expression IsMissing, we have a null type, rather than the ErrorType of the bound node.
+            ITypeSymbol type = syntax.IsMissing ? null : boundBadExpression.Type;
             Optional<object> constantValue = ConvertToOptional(boundBadExpression.ConstantValue);
             bool isImplicit = boundBadExpression.WasCompilerGenerated;
             return new LazyInvalidExpression(children, _semanticModel, syntax, type, constantValue, isImplicit);
@@ -1064,7 +1078,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         private IBlockStatement CreateBoundBlockOperation(BoundBlock boundBlock)
         {
             Lazy<ImmutableArray<IOperation>> statements =
-                new Lazy<ImmutableArray<IOperation>>(() => boundBlock.Statements.Select(s => Create(s)).Where(s => s.Kind != OperationKind.None).ToImmutableArray());
+                new Lazy<ImmutableArray<IOperation>>(() => boundBlock.Statements.Select(s => (bound: s, operation: Create(s)))
+                                                                                // Filter out all OperationKind.None except fixed statements for now.
+                                                                                // https://github.com/dotnet/roslyn/issues/21776
+                                                                                .Where(s => s.operation.Kind != OperationKind.None || s.bound.Kind == BoundKind.FixedStatement)
+                                                                                .Select(s => s.operation).ToImmutableArray());
 
             ImmutableArray<ILocalSymbol> locals = boundBlock.Locals.As<ILocalSymbol>();
             SyntaxNode syntax = boundBlock.Syntax;

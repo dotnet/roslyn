@@ -27,6 +27,9 @@
     <Compile Include="..\..\Shared\BuildServerConnection.cs">
       <Link>BuildServerConnection.cs</Link>
     </Compile>
+    <Compile Include="..\..\Shared\CoreClrShim.cs">
+      <Link>CoreClrShim.cs</Link>
+    </Compile>
     <Compile Include="..\Portable\CorLightup.cs">
       <Link>CorLightup.cs</Link>
     </Compile>

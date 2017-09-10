@@ -198,7 +198,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitUsingStatement(operation);
         }
 
-        public override void VisitFixedStatement(IFixedStatement operation)
+        // https://github.com/dotnet/roslyn/issues/21281
+        internal override void VisitFixedStatement(IFixedStatement operation)
         {
             base.VisitFixedStatement(operation);
         }
@@ -249,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitArrayElementReferenceExpression(operation);
         }
 
-        public override void VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation)
+        internal override void VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation)
         {
             base.VisitPointerIndirectionReferenceExpression(operation);
         }

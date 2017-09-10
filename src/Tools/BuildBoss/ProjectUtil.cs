@@ -123,6 +123,24 @@ namespace BuildBoss
 
         internal XElement GetTargetFrameworks() => Document.XPathSelectElements("//mb:TargetFrameworks", Manager).FirstOrDefault();
 
+        internal IEnumerable<string> GetAllTargetFrameworks()
+        {
+            var targetFramework = GetTargetFramework();
+            if (targetFramework != null)
+            {
+                return new[] { targetFramework.Value.ToString() };
+            }
+
+            var targetFrameworks = GetTargetFrameworks();
+            if (targetFrameworks != null)
+            {
+                var all = targetFrameworks.Value.ToString().Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                return all;
+            }
+
+            throw new InvalidOperationException();
+        }
+
         internal IEnumerable<XElement> GetAllPropertyGroupElements()
         {
             var groups = Document.XPathSelectElements("//mb:PropertyGroup", Manager);

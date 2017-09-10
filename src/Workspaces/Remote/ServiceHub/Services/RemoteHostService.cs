@@ -232,10 +232,19 @@ namespace Microsoft.CodeAnalysis.Remote
                 //   "appBasePath": "%VSAPPIDDIR%"
                 //
 
-                var cookie = AddDllDirectory(AppDomain.CurrentDomain.BaseDirectory);
-                if (cookie == IntPtr.Zero)
+                var loadDir = AppDomain.CurrentDomain.BaseDirectory;
+
+                try
                 {
-                    throw new Win32Exception();
+                    if (AddDllDirectory(loadDir) == IntPtr.Zero)
+                    {
+                        throw new Win32Exception();
+                    }
+                }
+                catch (EntryPointNotFoundException)
+                {
+                    // AddDllDirectory API might not be available on Windows 7.
+                    Environment.SetEnvironmentVariable("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", loadDir);
                 }
             }
         }

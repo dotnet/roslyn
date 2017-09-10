@@ -762,7 +762,7 @@ IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (obj is  ... el
                   InConversion: null
                   OutConversion: null
   IfFalse: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '')
-      Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?) (Syntax: '')
+      Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: null) (Syntax: '')
           Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -802,10 +802,8 @@ class P
 ";
             string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if () ... }')
-  Condition: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: '')
-      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
-          Children(0)
+  Condition: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+      Children(0)
   IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a = 2;')
         Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'a = 2')
@@ -854,10 +852,10 @@ IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (a == 1) ... el
       Left: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'a')
       Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   IfTrue: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '')
-      Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?) (Syntax: '')
+      Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: null) (Syntax: '')
           Children(0)
   IfFalse: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '')
-      Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?) (Syntax: '')
+      Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: null) (Syntax: '')
           Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
