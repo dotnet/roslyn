@@ -2,24 +2,23 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.NameLiteralArgument
+namespace Microsoft.CodeAnalysis.NameArguments
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.NameArguments), Shared]
-    internal sealed class CSharpNameLiteralArgumentCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal abstract class AbstractNameArgumentsCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        internal abstract SyntaxNode MakeNamedArgument(string parameterName, SyntaxNode node);
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
-            = ImmutableArray.Create(IDEDiagnosticIds.NameLiteralArgumentDiagnosticId);
+            = ImmutableArray.Create(IDEDiagnosticIds.NameArgumentsDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -40,21 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NameLiteralArgument
             {
                 var parameterName = diagnostic.Properties["ParameterName"];
                 var node = root.FindNode(diagnostic.Location.SourceSpan);
-
-                SyntaxNode newArgument;
-                switch (node)
-                {
-                    case ArgumentSyntax argument:
-                        newArgument = argument.WithoutTrivia()
-                            .WithNameColon(SyntaxFactory.NameColon(parameterName)).WithTriviaFrom(argument);
-                        break;
-                    case AttributeArgumentSyntax argument:
-                        newArgument = argument.WithoutTrivia()
-                            .WithNameColon(SyntaxFactory.NameColon(parameterName)).WithTriviaFrom(argument);
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(node.Kind());
-                }
+                var newArgument = MakeNamedArgument(parameterName, node);
 
                 editor.ReplaceNode(node, newArgument);
             }

@@ -144,10 +144,29 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     new EditorConfigStorageLocation<CodeStyleOption<NamedArgumentsPreference>>("dotnet_style_prefer_named_arguments", s => ParseNamedArgumentsPreference(s)),
                     new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(PreferNamedArguments)}")});
 
-        private static Optional<CodeStyleOption<NamedArgumentsPreference>> ParseNamedArgumentsPreference(string s)
+        private static Optional<CodeStyleOption<NamedArgumentsPreference>> ParseNamedArgumentsPreference(string optionString)
         {
-            // TODO
-            return new CodeStyleOption<NamedArgumentsPreference>(NamedArgumentsPreference.Literals, NotificationOption.Warning);
+            if (TryGetCodeStyleValueAndOptionalNotification(optionString, out var value, out var notificationOpt))
+            {
+                if (value == "never")
+                {
+                    // If they provide 'never', they don't need a notification level.
+                    notificationOpt = notificationOpt ?? NotificationOption.None;
+                }
+
+                if (notificationOpt != null)
+                {
+                    switch (value)
+                    {
+                        case "never":
+                            return new CodeStyleOption<NamedArgumentsPreference>(NamedArgumentsPreference.Never, notificationOpt);
+                        case "for_literals":
+                            return new CodeStyleOption<NamedArgumentsPreference>(NamedArgumentsPreference.Literals, notificationOpt);
+                    }
+                }
+            }
+
+            return s_NamedArgumentsPreferenceDefault;
         }
 
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferIsNullCheckOverReferenceEqualityMethod = new PerLanguageOption<CodeStyleOption<bool>>(

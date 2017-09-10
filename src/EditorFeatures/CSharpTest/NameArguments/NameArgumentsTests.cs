@@ -3,19 +3,19 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.NameLiteralArgument;
+using Microsoft.CodeAnalysis.CSharp.NameArguments;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NameLiteralArgument
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NameArguments
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsNameLiteralArgument)]
-    public class NameLiteralArgumentTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    [Trait(Traits.Feature, Traits.Features.CodeActionsNameArguments)]
+    public class NameArgumentsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpNameLiteralArgumentDiagnosticAnalyzer(), new CSharpNameLiteralArgumentCodeFixProvider());
+            => (new CSharpNameArgumentsDiagnosticAnalyzer(), new CSharpNameArgumentsCodeFixProvider());
 
         private static readonly CSharpParseOptions s_parseOptions =
             CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
