@@ -82,6 +82,8 @@ class CSharpTyping2 : PerfTest
         foreach (var xml in Directory.EnumerateFiles(perfResults, "*.xml"))
         {
             Benchview.UploadBenchviewReport(xml, "typing");
+            var name = Path.GetFileName(xml);
+            File.Copy(xml, @"C:\PerfLogs");
         }
     }
 
