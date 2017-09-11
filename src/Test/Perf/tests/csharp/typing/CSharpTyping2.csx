@@ -84,6 +84,7 @@ class CSharpTyping2 : PerfTest
             Benchview.UploadBenchviewReport(xml, "typing");
             var name = Path.GetFileName(xml);
             File.Copy(xml, @"C:\PerfLogs");
+            RuntimeSettings.Logger.Log(name);
         }
     }
 
