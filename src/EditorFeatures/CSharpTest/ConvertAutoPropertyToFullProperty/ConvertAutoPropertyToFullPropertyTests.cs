@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFullPropertyTests
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFullProperty
 {
     public partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest
     {
@@ -706,13 +706,33 @@ class goo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task GetterOnlyExpressionBodies()
+        {
+            var text = @"
+class goo
+{
+    public int G[||]oo { get;}
+}
+";
+            var expected = @"
+class goo
+{
+    private readonly int _goo;
+
+    public int Goo => _goo;
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: PreferExpressionBodiesOnAccessorsAndMethods);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
         public async Task SetterOnly()
         {
             var text = @"
 class goo
 {
     public int G[||]oo
-````{
+    {
         set {}
     }
 }
@@ -728,7 +748,7 @@ class goo
 {
    private int _testgoo;
 
-   public int testf[||]oo {get => _testgoo; set => _testgoo = value; }
+   public int testg[||]oo {get => _testgoo; set => _testgoo = value; }
 }
 ";
             await TestMissingAsync(text);
@@ -926,7 +946,7 @@ class goo
             var text = @"
 interface IGoo
 {
-    public int Goo { get; s[||]et; set; }
+    public int Goo { get; s[||]et; }
 }
 ";
             await TestMissingAsync(text);

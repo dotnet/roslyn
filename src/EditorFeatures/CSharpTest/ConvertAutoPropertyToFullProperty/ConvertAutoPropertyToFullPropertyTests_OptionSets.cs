@@ -1,51 +1,53 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.NamingStyles;
-using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
-using Microsoft.CodeAnalysis.Editing;
+﻿// Copyright(c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt In the project root For license information
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFullPropertyTests
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.NamingStyles;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
+using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
+
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFullProperty
 {
     public partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest
     {
-        private IDictionary<OptionKey, object> PreferExpressionBodiedAccessorsWhenPossible =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
+        private IDictionary<OptionKey, object> PreferExpressionBodiedAccessorsWhenPossible
+            => OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
 
-        private IDictionary<OptionKey, object> PreferExpressionBodiedAccessorsWhenOnSingleLine =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+        private IDictionary<OptionKey, object> PreferExpressionBodiedAccessorsWhenOnSingleLine
+            => OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
 
-        private IDictionary<OptionKey, object> DoNotPreferExpressionBodiedAccessors =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
+        private IDictionary<OptionKey, object> DoNotPreferExpressionBodiedAccessors
+            => OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
 
-        private IDictionary<OptionKey, object> DoNotPreferExpressionBodiedAccessorsAndPropertyOpenBraceOnSameLine =>
-             OptionsSet(
+        private IDictionary<OptionKey, object> DoNotPreferExpressionBodiedAccessorsAndPropertyOpenBraceOnSameLine
+            => OptionsSet(
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
                 SingleOption(CSharpFormattingOptions.NewLinesForBracesInProperties, false));
 
-        private IDictionary<OptionKey, object> DoNotPreferExpressionBodiedAccessorsAndAccessorOpenBraceOnSameLine =>
-             OptionsSet(
+        private IDictionary<OptionKey, object> DoNotPreferExpressionBodiedAccessorsAndAccessorOpenBraceOnSameLine
+            => OptionsSet(
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
                 SingleOption(CSharpFormattingOptions.NewLinesForBracesInAccessors, false));
 
-        private IDictionary<OptionKey, object> UseCustomFieldName =>
-            OptionsSet(
+        private IDictionary<OptionKey, object> PreferExpressionBodiesOnAccessorsAndMethods
+            => OptionsSet(
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement),
+                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
+
+        private IDictionary<OptionKey, object> UseCustomFieldName
+            => OptionsSet(
                 SingleOption(SimplificationOptions.NamingPreferences, CreateCustomFieldNamingStylePreference()),
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
 
-        private IDictionary<OptionKey, object> UseCustomStaticFieldName =>
-            OptionsSet(
+        private IDictionary<OptionKey, object> UseCustomStaticFieldName
+            => OptionsSet(
                 SingleOption(SimplificationOptions.NamingPreferences, CreateCustomStaticFieldNamingStylePreference()),
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
 

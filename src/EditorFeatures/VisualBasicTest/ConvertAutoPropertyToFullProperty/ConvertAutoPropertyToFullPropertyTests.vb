@@ -2,7 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-Imports Microsoft.CodeAnalysis.VisualBasic.VisualBasicConvertAutoPropertyToFullPropertyCodeRefactoringProvider
+Imports Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatString
     Public Class ConvertAutoPropertyToFullPropertyTests
