@@ -270,7 +270,7 @@ Microsoft.CodeAnalysis.Semantics.IDeclarationPattern.DeclaredSymbol.get -> Micro
 Microsoft.CodeAnalysis.Semantics.IDefaultCaseClause
 Microsoft.CodeAnalysis.Semantics.IDefaultValueExpression
 Microsoft.CodeAnalysis.Semantics.IDoLoopStatement
-Microsoft.CodeAnalysis.Semantics.IDoLoopStatement.InvalidCondition.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IDoLoopStatement.IgnoredCondition.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IDoLoopStatement.Condition.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IDoLoopStatement.DoLoopKind.get -> Microsoft.CodeAnalysis.Semantics.DoLoopKind
 Microsoft.CodeAnalysis.Semantics.IDynamicMemberReferenceExpression
