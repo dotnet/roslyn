@@ -1560,9 +1560,6 @@ public class Test
         [Fact]
         public void RefReadOnlyDefinitionsInsideUserDefinedIsReadOnlyAttribute_Class_NoParent()
         {
-            // PROTOTYPE(readonlyRefs) when the following bug is fixed that test should fail:
-            // https://github.com/dotnet/roslyn/issues/19395
-
             var code = @"
 namespace System.Runtime.CompilerServices
 {
@@ -1876,9 +1873,6 @@ namespace System.Runtime.CompilerServices
         [Fact]
         public void RefReadOnlyDefinitionsInsideUserDefinedIsReadOnlyAttribute_Class_WrongParent()
         {
-            // PROTOTYPE(readonlyRefs) when the following bug is fixed that test should fail:
-            // https://github.com/dotnet/roslyn/issues/19395
-
             var code = @"
 namespace System.Runtime.CompilerServices
 {
@@ -1918,25 +1912,6 @@ namespace System.Runtime.CompilerServices
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, indexer.GetAttributes(), module.ContainingAssembly.Name);
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, indexer.Parameters.Single().GetAttributes(), module.ContainingAssembly.Name);
             });
-        }
-
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19394")]
-        public void RefReadOnlyDefinitionsInsideUserDefinedIsReadOnlyAttribute_Struct()
-        {
-            // PROTOTYPE(readonlyRefs) verify bug is fixed and enable the test
-            // https://github.com/dotnet/roslyn/issues/19394
-
-            var code = @"
-namespace System.Runtime.CompilerServices
-{
-    public struct IsReadOnlyAttribute
-    {
-        public ref readonly int Method(ref readonly int x) => ref x;
-    }
-}";
-
-            CreateStandardCompilation(code).VerifyEmitDiagnostics(/* there should be an error */);
-            Assert.False(true, "It must produce an error about not being able to find the correct signature");
         }
 
         [Fact]

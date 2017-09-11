@@ -319,9 +319,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!sourceExpression.Syntax.IsLegalSpanStackAllocPosition())
                     {
-                        // PROTOTYPE(span) short work around until we look into spilling stackalloc expressions
                         // Because the instruction cannot have any values on the stack before CLR execution.
                         // Limit it to assignments and conditional expressions for now.
+                        // https://github.com/dotnet/roslyn/issues/22046
 
                         HashSetExtensions.InitializeAndAdd(ref useSiteDiagnostics, new CSDiagnosticInfo(ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(SyntaxKind.StackAllocKeyword)));
                     }
