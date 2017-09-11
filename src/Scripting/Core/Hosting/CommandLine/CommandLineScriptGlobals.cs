@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         public PrintOptions PrintOptions { get; }
 
         /// <summary>
+        /// The scripting environment.
+        /// </summary>
+        public ScriptEnv ScriptEnv { get; }
+
+        /// <summary>
         /// Pretty-prints an object.
         /// </summary>
         public void Print(object value)
@@ -35,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             _outputWriter.WriteLine(_objectFormatter.FormatObject(value, PrintOptions));
         }
 
-        public CommandLineScriptGlobals(TextWriter outputWriter, ObjectFormatter objectFormatter)
+        public CommandLineScriptGlobals(TextWriter outputWriter, ObjectFormatter objectFormatter, ScriptEnv scriptEnv = null)
         {
             if (outputWriter == null)
             {
@@ -46,6 +51,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 throw new ArgumentNullException(nameof(objectFormatter));
             }
+
+            ScriptEnv = scriptEnv ?? new ScriptEnv(string.Empty);
 
             PrintOptions = new PrintOptions();
 

@@ -1,1 +1,5 @@
-
+Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.CommandLineScriptGlobals(System.IO.TextWriter outputWriter, Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter objectFormatter, Microsoft.CodeAnalysis.Scripting.Hosting.ScriptEnv scriptEnv = null) -> void
+Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.ScriptEnv.get -> Microsoft.CodeAnalysis.Scripting.Hosting.ScriptEnv
+Microsoft.CodeAnalysis.Scripting.Hosting.ScriptEnv
+Microsoft.CodeAnalysis.Scripting.Hosting.ScriptEnv.FilePath.get -> string
+Microsoft.CodeAnalysis.Scripting.Hosting.ScriptEnv.ScriptEnv(string filePath) -> void

@@ -178,8 +178,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         }
 
         private int RunScript(ScriptOptions options, SourceText code, ErrorLogger errorLogger, CancellationToken cancellationToken)
-        {
-            var globals = new CommandLineScriptGlobals(_console.Out, _objectFormatter);
+        {            
+            var globals = new CommandLineScriptGlobals(_console.Out, _objectFormatter, new ScriptEnv(options.FilePath));
             globals.Args.AddRange(_compiler.Arguments.ScriptArguments);
 
             var script = Script.CreateInitialScript<int>(_scriptCompiler, code, options, globals.GetType(), assemblyLoaderOpt: null);

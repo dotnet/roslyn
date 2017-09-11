@@ -990,5 +990,35 @@ Type ""#help"" for more information.
 1
 > ", runner.Console.Out.ToString());
         }
+
+        [Fact]
+        public void ScriptEnv_Script()
+        {
+            var script = Temp.CreateFile(extension: ".csx").WriteAllText("Print(ScriptEnv.FilePath)");
+            var runner = CreateRunner(new[] {script.Path});
+
+            var result = runner.RunInteractive();
+
+            Assert.Equal(0, result);
+           
+            var printedPath = runner.Console.Out.ToString()
+                .Replace("\\\\", "\\")
+                .Replace(Environment.NewLine, string.Empty)
+                .Replace("\"",string.Empty);
+
+            Assert.Equal(script.Path, printedPath);
+        }
+
+        [Fact]
+        public void ScriptEnv_Interactive()
+        {
+            var runner = CreateRunner(
+                args: new[] { "-i" },
+                input: "Print(ScriptEnv.FilePath)");
+
+            var printedPath = runner.Console.Out.ToString();
+
+            Assert.Equal(string.Empty, printedPath);
+        }
     }
 }
