@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         IOperation Body { get; }
         /// <summary>
-        /// Declarations local to the loop.
+        /// Declared locals.
         /// </summary>
         ImmutableArray<ILocalSymbol> Locals { get; }
     }

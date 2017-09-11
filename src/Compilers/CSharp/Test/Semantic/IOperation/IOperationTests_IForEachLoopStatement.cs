@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
@@ -885,6 +884,38 @@ IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        public void IForEachLoopStatement_WithNestedDeconstructDeclaration()
+        {
+            string source = @"
+class X
+{
+    public static void M((int, (int, int))[] x)
+    {
+        /*<bind>*/foreach (var (a, (b, c)) in x)
+        {
+        }/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (va ... }')
+  Locals: Local_1: System.Int32 a
+    Local_2: System.Int32 b
+    Local_3: System.Int32 c
+  LoopControlVariable: IOperation:  (OperationKind.None) (Syntax: 'var (a, (b, c))')
+  Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'x')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+      Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: (System.Int32, (System.Int32, System.Int32))[]) (Syntax: 'x')
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+  NextVariables(0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ForEachVariableStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_WithInvalidLoopControlVariable()
         {
             string source = @"
@@ -952,6 +983,38 @@ IBlockStatement (4 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax
                 // CS0103: The name 'j' does not exist in the current context
                 //         foreach (i, j in x)
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "j").WithArguments("j").WithLocation(6, 21)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        public void IForEachLoopStatement_WithInvalidLoopControlVariable_02()
+        {
+            string source = @"
+class X
+{
+    public static void M(int[] x)
+    /*<bind>*/{
+        foreach (x[0] in x)
+        {
+        }
+    }/*</bind>*/
+}
+";
+            string expectedOperationTree = @"
+IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ ... }')
+  IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'foreach (x[ ... }')
+    LoopControlVariable: null
+    Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'x')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+        Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32[]) (Syntax: 'x')
+    Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    NextVariables(0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(6, 23)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);

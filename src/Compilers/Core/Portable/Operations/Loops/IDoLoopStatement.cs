@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         DoLoopKind DoLoopKind { get; }
 
         /// <summary>
-        /// Additional conditional supplied for loop in error cases.
+        /// Additional conditional supplied for loop in error cases, which is ignored by the compiler.
         /// For example, for VB 'Do While' or 'Do Until' loop with syntax errors where both the top and bottom conditions are provided.
-        /// The top condition is preferred and exposed as <see cref="Condition"/> and the bottom condition is exposed by this property.
+        /// The top condition is preferred and exposed as <see cref="Condition"/> and the bottom condition is ignored and exposed by this property.
         /// This property should be null for all non-error cases.
         /// </summary>
-        IOperation InvalidCondition { get; }
+        IOperation IgnoredCondition { get; }
     }
 }
 

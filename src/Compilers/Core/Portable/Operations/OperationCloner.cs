@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitDoLoopStatement(IDoLoopStatement operation, object argument)
         {
-            return new DoLoopStatement(operation.DoLoopKind, Visit(operation.Condition), Visit(operation.Body), Visit(operation.InvalidCondition), operation.Locals, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new DoLoopStatement(operation.DoLoopKind, Visit(operation.Condition), Visit(operation.Body), Visit(operation.IgnoredCondition), operation.Locals, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitWhileLoopStatement(IWhileLoopStatement operation, object argument)

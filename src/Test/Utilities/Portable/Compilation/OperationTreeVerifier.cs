@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogLoopStatementHeader(operation);
 
             Visit(operation.Condition, "Condition");
-            Visit(operation.InvalidCondition, "InvalidCondition");
+            Visit(operation.IgnoredCondition, "IgnoredCondition");
             Visit(operation.Body, "Body");
         }
 

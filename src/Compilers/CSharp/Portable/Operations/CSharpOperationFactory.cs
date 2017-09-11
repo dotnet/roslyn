@@ -1173,13 +1173,13 @@ namespace Microsoft.CodeAnalysis.Semantics
             DoLoopKind doLoopKind = DoLoopKind.DoWhileBottomLoop;
             Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundDoStatement.Condition));
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundDoStatement.Body));
-            Lazy<IOperation> invalidCondition = new Lazy<IOperation>(() => null);
+            Lazy<IOperation> ignoredCondition = new Lazy<IOperation>(() => null);
             ImmutableArray<ILocalSymbol> locals = boundDoStatement.Locals.As<ILocalSymbol>();
             SyntaxNode syntax = boundDoStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundDoStatement.WasCompilerGenerated;
-            return new LazyDoLoopStatement(doLoopKind, condition, body, invalidCondition, locals, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyDoLoopStatement(doLoopKind, condition, body, ignoredCondition, locals, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IForLoopStatement CreateBoundForStatementOperation(BoundForStatement boundForStatement)

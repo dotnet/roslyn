@@ -5040,16 +5040,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         public DoLoopKind DoLoopKind { get; }
         protected abstract IOperation ConditionImpl { get; }
-        protected abstract IOperation InvalidConditionImpl { get; }
+        protected abstract IOperation IgnoredConditionImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
                 yield return Condition;
                 yield return Body;
-                if (InvalidCondition != null)
+                if (IgnoredCondition != null)
                 {
-                    yield return InvalidCondition;
+                    yield return IgnoredCondition;
                 }
             }
         }
@@ -5058,12 +5058,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         public IOperation Condition => Operation.SetParentOperation(ConditionImpl, this);
         /// <summary>
-        /// Additional conditional supplied for loop in error cases.
+        /// Additional conditional supplied for loop in error cases, which is ignored by the compiler.
         /// For example, for VB 'Do While' or 'Do Until' loop with syntax errors where both the top and bottom conditions are provided.
-        /// The top condition is preferred and exposed as <see cref="Condition"/> and the bottom condition is exposed by this property.
+        /// The top condition is preferred and exposed as <see cref="Condition"/> and the bottom condition is ignored and exposed by this property.
         /// This property should be null for all non-error cases.
         /// </summary>
-        public IOperation InvalidCondition => Operation.SetParentOperation(InvalidConditionImpl, this);
+        public IOperation IgnoredCondition => Operation.SetParentOperation(IgnoredConditionImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitDoLoopStatement(this);
@@ -5079,16 +5079,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class DoLoopStatement : BaseDoLoopStatement, IDoLoopStatement
     {
-        public DoLoopStatement(DoLoopKind doLoopKind, IOperation condition, IOperation body, IOperation invalidConditionOpt, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public DoLoopStatement(DoLoopKind doLoopKind, IOperation condition, IOperation body, IOperation ignoredConditionOpt, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(doLoopKind, locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
             ConditionImpl = condition;
             BodyImpl = body;
-            InvalidConditionImpl = invalidConditionOpt;
+            IgnoredConditionImpl = ignoredConditionOpt;
         }
         protected override IOperation ConditionImpl { get; }
         protected override IOperation BodyImpl { get; }
-        protected override IOperation InvalidConditionImpl { get; }
+        protected override IOperation IgnoredConditionImpl { get; }
     }
 
     /// <summary>
@@ -5098,18 +5098,18 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyCondition;
         private readonly Lazy<IOperation> _lazyBody;
-        private readonly Lazy<IOperation> _lazyInvalidCondition;
+        private readonly Lazy<IOperation> _lazyIgnoredCondition;
 
-        public LazyDoLoopStatement(DoLoopKind doLoopKind, Lazy<IOperation> condition, Lazy<IOperation> body, Lazy<IOperation> invalidCondition, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LazyDoLoopStatement(DoLoopKind doLoopKind, Lazy<IOperation> condition, Lazy<IOperation> body, Lazy<IOperation> ignoredCondition, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(doLoopKind, locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyCondition = condition ?? throw new System.ArgumentNullException(nameof(condition));
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
-            _lazyInvalidCondition = invalidCondition ?? throw new System.ArgumentNullException(nameof(invalidCondition));
+            _lazyIgnoredCondition = ignoredCondition ?? throw new System.ArgumentNullException(nameof(ignoredCondition));
         }
         protected override IOperation ConditionImpl => _lazyCondition.Value;
         protected override IOperation BodyImpl => _lazyBody.Value;
-        protected override IOperation InvalidConditionImpl => _lazyInvalidCondition.Value;
+        protected override IOperation IgnoredConditionImpl => _lazyIgnoredCondition.Value;
     }
 
     /// <summary>
