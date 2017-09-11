@@ -65,7 +65,7 @@ class CSharpTyping2 : PerfTest
         ETWActions.StartETWListener(VisualStudio);
         ETWActions.ForceGC(VisualStudio);
         VisualStudio.ExecuteCommand("Edit.GoTo", "9524");
-        //ETWActions.WaitForIdleCPU();
+        ETWActions.WaitForIdleCPU();
         var typingResults = Path.Combine(TempDirectory, "typingResults");
         var perfResults = Path.Combine(typingResults, "PerfResults");
         Directory.CreateDirectory(typingResults);
