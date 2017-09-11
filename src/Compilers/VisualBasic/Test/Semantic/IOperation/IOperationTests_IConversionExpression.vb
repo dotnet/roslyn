@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -2349,6 +2349,57 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        <Fact()>
+        Public Sub ConversionExpression_Implicit_WideningDelegateTypeConversion()
+            Dim source = <![CDATA[
+Option Strict On
+Module M1
+    Sub Method1()
+        Dim objectAction As Action(Of Object) = New Action(Of Object)(Sub(o As Object) Console.WriteLine(o))
+        Dim stringAction As Action(Of String) = objectAction'BIND:"objectAction"
+    End Sub
+
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.String)) (Syntax: 'objectAction')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+  Operand: ILocalReferenceExpression: objectAction (OperationKind.LocalReferenceExpression, Type: System.Action(Of System.Object)) (Syntax: 'objectAction')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of IdentifierNameSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact()>
+        Public Sub ConversionExpression_Implicit_WideningDelegateTypeConversion_InvalidConversion()
+            Dim source = <![CDATA[
+Option Strict On
+Module M1
+    Sub Method1()
+        Dim objectAction As Action(Of Object) = New Action(Of Object)(Sub(o As Object) Console.WriteLine(o))
+        Dim integerAction As Action(Of Integer) = objectAction'BIND:"objectAction"
+    End Sub
+
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.Int32), IsInvalid) (Syntax: 'objectAction')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: ILocalReferenceExpression: objectAction (OperationKind.LocalReferenceExpression, Type: System.Action(Of System.Object), IsInvalid) (Syntax: 'objectAction')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC36755: 'Action(Of Object)' cannot be converted to 'Action(Of Integer)' because 'Integer' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Delegate Sub Action(Of In T)(obj As T)'.
+        Dim integerAction As Action(Of Integer) = objectAction'BIND:"objectAction"
+                                                  ~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of IdentifierNameSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
 
 #End Region
 

@@ -935,5 +935,42 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInva
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ConversionExpression_Implicit_ReferenceLambdaToDelegateConversion_InvalidSyntax()
+        {
+            string source = @"
+class Program
+{
+    delegate void DType();
+    void Main()
+    {
+        DType /*<bind>*/d1 = () =>/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'DType /*<bi ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'DType /*<bi ... *</bind>*/;')
+    Variables: Local_1: Program.DType d1
+    Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Program.DType, IsInvalid) (Syntax: '() =>/*</bind>*/')
+        Target: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() =>/*</bind>*/')
+            IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '')
+              IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
+                Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+                    Children(0)
+              IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '')
+                ReturnedValue: null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1525: Invalid expression term ';'
+                //         DType /*<bind>*/d1 = () =>/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(7, 46)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+        }
     }
 }
