@@ -6,6 +6,7 @@
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>x86</PlatformTarget>
     <ProjectGuid>{DA0D2A70-A2F9-4654-A99A-3227EDF54FF1}</ProjectGuid>
+    <RuntimeIdentifier>win7-x86</RuntimeIdentifier>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.Test.Performance.Tests</RootNamespace>
     <AssemblyName>Roslyn.Test.Performance.Tests</AssemblyName>
