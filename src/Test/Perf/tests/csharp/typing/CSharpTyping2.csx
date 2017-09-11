@@ -65,14 +65,14 @@ class CSharpTyping2 : PerfTest
         ETWActions.StartETWListener(VisualStudio);
         ETWActions.ForceGC(VisualStudio);
         VisualStudio.ExecuteCommand("Edit.GoTo", "9524");
-        ETWActions.WaitForIdleCPU();
+        //ETWActions.WaitForIdleCPU();
         var typingResults = Path.Combine(TempDirectory, "typingResults");
         var perfResults = Path.Combine(typingResults, "PerfResults");
         Directory.CreateDirectory(typingResults);
         Directory.CreateDirectory(perfResults);
-        using (DelayTracker.Start(typingResults, Path.Combine("csharp", "typing", "TypingDelayAnalyzer.exe"), "typing"))
+        using (DelayTracker.Start(typingResults, Path.Combine(MyBinaries(), "UnitTests", "Perf.Tests", "csharp", "typing", "TypingDelayAnalyzer.exe"), "typing"))
         {
-            VisualStudio.Editor.PlayBackTyping(Path.Combine("csharp", "typing", "CSharpGoldilocksInput-MultipliedDelay.txt"));
+            VisualStudio.Editor.PlayBackTyping(Path.Combine(MyBinaries(), "UnitTests", "Perf.Tests", "csharp", "typing", "CSharpGoldilocksInput-MultipliedDelay.txt"));
         }
 
         //System.Windows.Forms.MessageBox.Show("Done waiting!");
