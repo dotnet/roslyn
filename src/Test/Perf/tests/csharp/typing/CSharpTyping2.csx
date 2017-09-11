@@ -63,7 +63,6 @@ class CSharpTyping2 : PerfTest
         VisualStudio.SolutionExplorer.OpenSolution(Path.Combine(roslynSolutions, "Roslyn-CSharp.sln"));
         VisualStudio.ExecuteCommand("File.OpenFile", Path.Combine(roslynSolutions, @"Source\Compilers\CSharp\Source\Parser\LanguageParser.cs"));
         ETWActions.StartETWListener(VisualStudio);
-        ETWActions.WaitForSolutionCrawler(VisualStudio);
         ETWActions.ForceGC(VisualStudio);
         VisualStudio.ExecuteCommand("Edit.GoTo", "9524");
         ETWActions.WaitForIdleCPU();
