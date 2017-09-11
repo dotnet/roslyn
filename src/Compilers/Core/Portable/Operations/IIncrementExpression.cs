@@ -1,11 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents an increment expression.
+    /// Represents an increment or decrement expression in C#.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
@@ -19,9 +17,29 @@ namespace Microsoft.CodeAnalysis.Semantics
         IOperation Target { get; }
 
         /// <summary>
-        /// Kind of increment.
+        /// <code>true</code> if this is a decrement expression.
+        /// <code>false</code> if this is an increment expression.
         /// </summary>
-        UnaryOperationKind IncrementOperationKind { get; }
+        bool IsDecrement { get; }
+
+        /// <summary>
+        /// <code>true</code> if this is a postfix expression.
+        /// <code>false</code> if this is a prefix expression.
+        /// </summary>
+        bool IsPostfix { get; }
+
+        /// <summary>
+        /// <code>true</code> if this is a 'lifted' increment operator.  When there is an 
+        /// operator that is defined to work on a value type, 'lifted' operators are 
+        /// created to work on the <see cref="System.Nullable{T}"/> versions of those
+        /// value types.
+        /// </summary>
+        bool IsLifted { get; }
+
+        /// <summary>
+        /// <code>true</code> if overflow checking is performed for the arithmetic operation.
+        /// </summary>
+        bool IsChecked { get; }
     }
 }
 

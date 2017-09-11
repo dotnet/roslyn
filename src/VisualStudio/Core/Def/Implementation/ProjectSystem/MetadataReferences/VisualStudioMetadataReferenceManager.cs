@@ -72,8 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // check existing metadata
             if (_metadataCache.TryGetSource(key, out var source))
             {
-                var metadata = source as RecoverableMetadataValueSource;
-                if (metadata != null)
+                if (source is RecoverableMetadataValueSource metadata)
                 {
                     return metadata.GetStorages();
                 }

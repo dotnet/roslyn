@@ -52,9 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     // We'll pop up the Add Reference dialog to let the user figure this out themselves.
                     // This is the same approach done in CVBErrorFixApply::ApplyAddMetaReferenceFix
 
-                    var uiHierarchy = visualStudioWorkspace.GetHierarchy(_projectId) as IVsUIHierarchy;
 
-                    if (uiHierarchy != null)
+                    if (visualStudioWorkspace.GetHierarchy(_projectId) is IVsUIHierarchy uiHierarchy)
                     {
                         var command = new OLECMD[1];
                         command[0].cmdID = (uint)VSConstants.VSStd2KCmdID.ADDREFERENCE;

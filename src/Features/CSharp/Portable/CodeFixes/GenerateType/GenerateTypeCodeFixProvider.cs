@@ -34,22 +34,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType
 
         protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)
         {
-            var qualified = node as QualifiedNameSyntax;
-            if (qualified != null)
+            switch (node)
             {
-                return true;
-            }
-
-            var simple = node as SimpleNameSyntax;
-            if (simple != null)
-            {
-                return !simple.IsParentKind(SyntaxKind.QualifiedName);
-            }
-
-            var memberAccess = node as MemberAccessExpressionSyntax;
-            if (memberAccess != null)
-            {
-                return true;
+                case QualifiedNameSyntax qualified:
+                    return true;
+                case SimpleNameSyntax simple:
+                    return !simple.IsParentKind(SyntaxKind.QualifiedName);
+                case MemberAccessExpressionSyntax memberAccess:
+                    return true;
             }
 
             return false;

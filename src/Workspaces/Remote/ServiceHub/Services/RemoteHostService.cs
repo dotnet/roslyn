@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Remote.Services;
 using Microsoft.CodeAnalysis.Remote.Storage;
 using Microsoft.CodeAnalysis.Remote.Telemetry;
 using Microsoft.CodeAnalysis.Storage;
@@ -110,6 +112,18 @@ namespace Microsoft.CodeAnalysis.Remote
             persistentStorageService?.UnregisterPrimarySolution(solutionId, synchronousShutdown);
         }
 
+        public void OnGlobalOperationStarted(string unused)
+        {
+            var globalOperationNotificationService = GetGlobalOperationNotificationService();
+            globalOperationNotificationService?.OnStarted();
+        }
+
+        public void OnGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled)
+        {
+            var globalOperationNotificationService = GetGlobalOperationNotificationService();
+            globalOperationNotificationService?.OnStopped(operations, cancelled);
+        }
+
         private static Func<FunctionId, bool> GetLoggingChecker()
         {
             try
@@ -194,6 +208,13 @@ namespace Microsoft.CodeAnalysis.Remote
             var persistentStorageService = workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
             return persistentStorageService;
         }
+        
+        private RemoteGlobalOperationNotificationService GetGlobalOperationNotificationService()
+        {
+            var workspace = SolutionService.PrimaryWorkspace;
+            var notificationService = workspace.Services.GetService<IGlobalOperationNotificationService>() as RemoteGlobalOperationNotificationService;
+            return notificationService;
+        }
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern IntPtr AddDllDirectory(string directory);
@@ -211,10 +232,19 @@ namespace Microsoft.CodeAnalysis.Remote
                 //   "appBasePath": "%VSAPPIDDIR%"
                 //
 
-                var cookie = AddDllDirectory(AppDomain.CurrentDomain.BaseDirectory);
-                if (cookie == IntPtr.Zero)
+                var loadDir = AppDomain.CurrentDomain.BaseDirectory;
+
+                try
                 {
-                    throw new Win32Exception();
+                    if (AddDllDirectory(loadDir) == IntPtr.Zero)
+                    {
+                        throw new Win32Exception();
+                    }
+                }
+                catch (EntryPointNotFoundException)
+                {
+                    // AddDllDirectory API might not be available on Windows 7.
+                    Environment.SetEnvironmentVariable("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", loadDir);
                 }
             }
         }

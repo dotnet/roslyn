@@ -285,5 +285,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             _compilation.VerifyOperationTree(symbolToVerify, expectedOperationTree, skipImplicitlyDeclaredSymbols);
         }
+
+        /// <summary>
+        /// Useful for verifying the expected variables are hoisted for closures, async, and iterator methods.
+        /// </summary>
+        public void VerifySynthesizedFields(string containingTypeName, params string[] expectedFields)
+        {
+            var types = TestData.Module.GetSynthesizedMembers();
+            Assert.Contains(types.Keys, t => containingTypeName == t.ToString());
+            var members = TestData.Module.GetSynthesizedMembers()
+                .Where(e => e.Key.ToString() == containingTypeName)
+                .Single()
+                .Value
+                .OfType<IFieldSymbol>()
+                .Select(f => $"{f.Type.ToString()} {f.Name}")
+                .ToList();
+            AssertEx.SetEqual(expectedFields, members);
+        }
     }
 }

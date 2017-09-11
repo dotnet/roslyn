@@ -92,11 +92,11 @@ namespace Roslyn.Utilities
         {
             Contract.ThrowIfNull(continuationAction, nameof(continuationAction));
 
-            Func<Task, bool> continuationFunction = antecedent =>
+            bool continuationFunction(Task antecedent)
             {
                 continuationAction(antecedent);
                 return true;
-            };
+            }
 
             return task.SafeContinueWith(continuationFunction, cancellationToken, continuationOptions, scheduler);
         }
@@ -164,7 +164,7 @@ namespace Roslyn.Utilities
 
             Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
 
-            Func<Task, TResult> outerFunction = t =>
+            TResult outerFunction(Task t)
             {
                 try
                 {
@@ -174,7 +174,7 @@ namespace Roslyn.Utilities
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            };
+            }
 
             // This is the only place in the code where we're allowed to call ContinueWith.
             return task.ContinueWith(outerFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler);

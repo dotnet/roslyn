@@ -67,8 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
             }
 
-            var provider = project as IProjectCodeModelProvider;
-            if (provider != null)
+            if (project is IProjectCodeModelProvider provider)
             {
                 var projectCodeModel = provider.ProjectCodeModel;
                 if (projectCodeModel.CanCreateFileCodeModelThroughProject(document.FilePath))

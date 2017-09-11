@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitLabelStatement(ILabelStatement operation)
+        public virtual void VisitLabeledStatement(ILabeledStatement operation)
         {
             DefaultVisit(operation);
         }
@@ -135,7 +135,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitFixedStatement(IFixedStatement operation)
+        // Make public after review: https://github.com/dotnet/roslyn/issues/21281
+        internal virtual void VisitFixedStatement(IFixedStatement operation)
         {
             DefaultVisit(operation);
         }
@@ -180,7 +181,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation)
+        // API moved internal for V1
+        // https://github.com/dotnet/roslyn/issues/21295
+        internal virtual void VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -565,7 +568,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitLabelStatement(ILabelStatement operation, TArgument argument)
+        public virtual TResult VisitLabeledStatement(ILabeledStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -610,7 +613,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitFixedStatement(IFixedStatement operation, TArgument argument)
+        // Make public after review: https://github.com/dotnet/roslyn/issues/21281
+        internal virtual TResult VisitFixedStatement(IFixedStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -655,7 +659,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation, TArgument argument)
+        // API moved internal for V1
+        // https://github.com/dotnet/roslyn/issues/21295
+        internal virtual TResult VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

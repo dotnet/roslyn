@@ -293,8 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             AssertIsForeground();
 
-            var visualStudioWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            if (visualStudioWorkspace != null)
+            if (document.Project.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace)
             {
                 var hostProject = visualStudioWorkspace.GetHostProject(document.Project.Id);
                 hierarchy = hostProject.Hierarchy;

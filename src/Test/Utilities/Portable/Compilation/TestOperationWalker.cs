@@ -83,7 +83,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitSingleValueCaseClause(ISingleValueCaseClause operation)
         {
             var caseKind = operation.CaseKind;
-            var equality = operation.Equality;
 
             base.VisitSingleValueCaseClause(operation);
         }
@@ -129,11 +128,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitForEachLoopStatement(operation);
         }
 
-        public override void VisitLabelStatement(ILabelStatement operation)
+        public override void VisitLabeledStatement(ILabeledStatement operation)
         {
             var label = operation.Label;
 
-            base.VisitLabelStatement(operation);
+            base.VisitLabeledStatement(operation);
         }
 
         public override void VisitBranchStatement(IBranchStatement operation)
@@ -182,7 +181,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitUsingStatement(operation);
         }
 
-        public override void VisitFixedStatement(IFixedStatement operation)
+        // https://github.com/dotnet/roslyn/issues/21281
+        internal override void VisitFixedStatement(IFixedStatement operation)
         {
             base.VisitFixedStatement(operation);
         }
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitArrayElementReferenceExpression(operation);
         }
 
-        public override void VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation)
+        internal override void VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation)
         {
             base.VisitPointerIndirectionReferenceExpression(operation);
         }
@@ -241,6 +241,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitLocalReferenceExpression(ILocalReferenceExpression operation)
         {
             var local = operation.Local;
+            var isDeclaration = operation.IsDeclaration;
 
             base.VisitLocalReferenceExpression(operation);
         }
@@ -261,8 +262,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitInstanceReferenceExpression(IInstanceReferenceExpression operation)
         {
-            var instanceReferenceKind = operation.InstanceReferenceKind;
-
             base.VisitInstanceReferenceExpression(operation);
         }
 
@@ -324,7 +323,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
-            var unaryOperationKind = operation.UnaryOperationKind;
+            var unaryOperationKind = operation.OperatorKind;
+            var isLifted = operation.IsLifted;
+            var isChecked = operation.IsChecked;
 
             base.VisitUnaryOperatorExpression(operation);
         }
@@ -333,7 +334,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
-            var binaryOperationKind = operation.BinaryOperationKind;
+            var binaryOperationKind = operation.OperatorKind;
+            var isLifted = operation.IsLifted;
+            var isChecked = operation.IsChecked;
+            var isCompareText = operation.IsCompareText;
 
             base.VisitBinaryOperatorExpression(operation);
         }
@@ -402,7 +406,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitLocalFunctionStatement(ILocalFunctionStatement operation)
         {
-            var localFunction = operation.LocalFunctionSymbol;
+            var localFunction = operation.Symbol;
 
             base.VisitLocalFunctionStatement(operation);
         }
@@ -535,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
-            var binaryOperationKind = operation.BinaryOperationKind;
+            var binaryOperationKind = operation.OperatorKind;
 
             base.VisitCompoundAssignmentExpression(operation);
         }
@@ -544,7 +548,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
-            var incrementOperationKind = operation.IncrementOperationKind;
+            var isDecrement = operation.IsDecrement;
+            var isPostFix = operation.IsPostfix;
 
             base.VisitIncrementExpression(operation);
         }

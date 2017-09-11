@@ -105,6 +105,9 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb("Program+_Closure$__+VB$StateMachine___Lambda$__0-0.MoveNext",
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <entryPoint declaringType="Program" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="Program+_Closure$__+VB$StateMachine___Lambda$__0-0" name="MoveNext">
@@ -116,11 +119,11 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x2c" startLine="7" startColumn="13" endLine="7" endColumn="33"/>
-                <entry offset="0x2d" startLine="8" startColumn="17" endLine="8" endColumn="24"/>
-                <entry offset="0x48" startLine="9" startColumn="17" endLine="9" endColumn="24"/>
-                <entry offset="0x68" startLine="10" startColumn="13" endLine="10" endColumn="25"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x2c" startLine="7" startColumn="13" endLine="7" endColumn="33" document="1"/>
+                <entry offset="0x2d" startLine="8" startColumn="17" endLine="8" endColumn="24" document="1"/>
+                <entry offset="0x48" startLine="9" startColumn="17" endLine="9" endColumn="24" document="1"/>
+                <entry offset="0x68" startLine="10" startColumn="13" endLine="10" endColumn="25" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x6a">
                 <importsforward declaringType="Program" methodName="Main" parameterNames="args"/>
@@ -172,6 +175,9 @@ End Module
             '                    Even though they do not really exist in IL, EE will rely on them for scoping     
             compilation.VerifyPdb("Module1+VB$StateMachine_1_Goo.MoveNext",
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
         <method containingType="Module1+VB$StateMachine_1_Goo" name="MoveNext">
@@ -193,27 +199,27 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x41" startLine="12" startColumn="5" endLine="12" endColumn="55"/>
-                <entry offset="0x42" startLine="13" startColumn="13" endLine="13" endColumn="19"/>
-                <entry offset="0x4e" startLine="14" startColumn="9" endLine="14" endColumn="20"/>
-                <entry offset="0x58" startLine="16" startColumn="9" endLine="16" endColumn="26"/>
-                <entry offset="0x6b" hidden="true"/>
-                <entry offset="0x80" startLine="17" startColumn="13" endLine="17" endColumn="20"/>
-                <entry offset="0xa0" startLine="18" startColumn="13" endLine="18" endColumn="20"/>
-                <entry offset="0xc0" startLine="19" startColumn="9" endLine="19" endColumn="13"/>
-                <entry offset="0xc1" hidden="true"/>
-                <entry offset="0xcf" hidden="true"/>
-                <entry offset="0xe0" hidden="true"/>
-                <entry offset="0xe3" startLine="21" startColumn="9" endLine="21" endColumn="28"/>
-                <entry offset="0xf5" hidden="true"/>
-                <entry offset="0x10e" startLine="22" startColumn="13" endLine="22" endColumn="44"/>
-                <entry offset="0x133" startLine="23" startColumn="13" endLine="23" endColumn="44"/>
-                <entry offset="0x158" startLine="24" startColumn="9" endLine="24" endColumn="13"/>
-                <entry offset="0x159" hidden="true"/>
-                <entry offset="0x167" hidden="true"/>
-                <entry offset="0x17b" hidden="true"/>
-                <entry offset="0x181" startLine="26" startColumn="5" endLine="26" endColumn="17"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x41" startLine="12" startColumn="5" endLine="12" endColumn="55" document="1"/>
+                <entry offset="0x42" startLine="13" startColumn="13" endLine="13" endColumn="19" document="1"/>
+                <entry offset="0x4e" startLine="14" startColumn="9" endLine="14" endColumn="20" document="1"/>
+                <entry offset="0x58" startLine="16" startColumn="9" endLine="16" endColumn="26" document="1"/>
+                <entry offset="0x6b" hidden="true" document="1"/>
+                <entry offset="0x80" startLine="17" startColumn="13" endLine="17" endColumn="20" document="1"/>
+                <entry offset="0xa0" startLine="18" startColumn="13" endLine="18" endColumn="20" document="1"/>
+                <entry offset="0xc0" startLine="19" startColumn="9" endLine="19" endColumn="13" document="1"/>
+                <entry offset="0xc1" hidden="true" document="1"/>
+                <entry offset="0xcf" hidden="true" document="1"/>
+                <entry offset="0xe0" hidden="true" document="1"/>
+                <entry offset="0xe3" startLine="21" startColumn="9" endLine="21" endColumn="28" document="1"/>
+                <entry offset="0xf5" hidden="true" document="1"/>
+                <entry offset="0x10e" startLine="22" startColumn="13" endLine="22" endColumn="44" document="1"/>
+                <entry offset="0x133" startLine="23" startColumn="13" endLine="23" endColumn="44" document="1"/>
+                <entry offset="0x158" startLine="24" startColumn="9" endLine="24" endColumn="13" document="1"/>
+                <entry offset="0x159" hidden="true" document="1"/>
+                <entry offset="0x167" hidden="true" document="1"/>
+                <entry offset="0x17b" hidden="true" document="1"/>
+                <entry offset="0x181" startLine="26" startColumn="5" endLine="26" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x183">
                 <importsforward declaringType="Module1" methodName="Main"/>
@@ -262,6 +268,9 @@ End Class
             ' Goal: We're looking for the double-mangled name "$VB$ResumableLocal_$VB$Closure_$0".
             compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_Lambda_Hoisted.MoveNext",
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_Lambda_Hoisted" name="MoveNext">
             <customDebugInfo>
@@ -270,15 +279,15 @@ End Class
                 </hoistedLocalScopes>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x19" hidden="true"/>
-                <entry offset="0x24" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
-                <entry offset="0x30" startLine="7" startColumn="13" endLine="7" endColumn="29"/>
-                <entry offset="0x3c" startLine="9" startColumn="13" endLine="9" endColumn="53"/>
-                <entry offset="0x43" startLine="11" startColumn="9" endLine="11" endColumn="20"/>
-                <entry offset="0x74" startLine="12" startColumn="9" endLine="12" endColumn="21"/>
-                <entry offset="0x85" startLine="13" startColumn="9" endLine="13" endColumn="21"/>
-                <entry offset="0x96" startLine="14" startColumn="5" endLine="14" endColumn="17"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x19" hidden="true" document="1"/>
+                <entry offset="0x24" startLine="6" startColumn="13" endLine="6" endColumn="29" document="1"/>
+                <entry offset="0x30" startLine="7" startColumn="13" endLine="7" endColumn="29" document="1"/>
+                <entry offset="0x3c" startLine="9" startColumn="13" endLine="9" endColumn="53" document="1"/>
+                <entry offset="0x43" startLine="11" startColumn="9" endLine="11" endColumn="20" document="1"/>
+                <entry offset="0x74" startLine="12" startColumn="9" endLine="12" endColumn="21" document="1"/>
+                <entry offset="0x85" startLine="13" startColumn="9" endLine="13" endColumn="21" document="1"/>
+                <entry offset="0x96" startLine="14" startColumn="5" endLine="14" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x98">
                 <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
@@ -319,15 +328,18 @@ End Class
             ' Goal: We're looking for the single-mangled name "$VB$Closure_0".
             compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_Lambda_NotHoisted.MoveNext",
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_Lambda_NotHoisted" name="MoveNext">
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x19" hidden="true"/>
-                <entry offset="0x1f" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
-                <entry offset="0x26" startLine="7" startColumn="13" endLine="7" endColumn="29"/>
-                <entry offset="0x2d" startLine="11" startColumn="9" endLine="11" endColumn="20"/>
-                <entry offset="0x54" startLine="12" startColumn="5" endLine="12" endColumn="17"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x19" hidden="true" document="1"/>
+                <entry offset="0x1f" startLine="6" startColumn="13" endLine="6" endColumn="29" document="1"/>
+                <entry offset="0x26" startLine="7" startColumn="13" endLine="7" endColumn="29" document="1"/>
+                <entry offset="0x2d" startLine="11" startColumn="9" endLine="11" endColumn="20" document="1"/>
+                <entry offset="0x54" startLine="12" startColumn="5" endLine="12" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x56">
                 <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
@@ -365,6 +377,9 @@ End Class
             ' Goal: We're looking for the single-mangled names "$VB$ResumableLocal_x$0" and "$VB$ResumableLocal_y$1".
             compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_NoLambda_Hoisted.MoveNext",
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_NoLambda_Hoisted" name="MoveNext">
             <customDebugInfo>
@@ -374,13 +389,13 @@ End Class
                 </hoistedLocalScopes>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x19" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
-                <entry offset="0x20" startLine="7" startColumn="13" endLine="7" endColumn="29"/>
-                <entry offset="0x27" startLine="8" startColumn="9" endLine="8" endColumn="20"/>
-                <entry offset="0x4e" startLine="9" startColumn="9" endLine="9" endColumn="21"/>
-                <entry offset="0x5a" startLine="10" startColumn="9" endLine="10" endColumn="21"/>
-                <entry offset="0x66" startLine="11" startColumn="5" endLine="11" endColumn="17"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x19" startLine="6" startColumn="13" endLine="6" endColumn="29" document="1"/>
+                <entry offset="0x20" startLine="7" startColumn="13" endLine="7" endColumn="29" document="1"/>
+                <entry offset="0x27" startLine="8" startColumn="9" endLine="8" endColumn="20" document="1"/>
+                <entry offset="0x4e" startLine="9" startColumn="9" endLine="9" endColumn="21" document="1"/>
+                <entry offset="0x5a" startLine="10" startColumn="9" endLine="10" endColumn="21" document="1"/>
+                <entry offset="0x66" startLine="11" startColumn="5" endLine="11" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x68">
                 <namespace name="System" importlevel="file"/>
@@ -419,14 +434,17 @@ End Class
             ' Goal: We're looking for the unmangled names "x" and "y".
             compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_NoLambda_NotHoisted.MoveNext",
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_NoLambda_NotHoisted" name="MoveNext">
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x19" startLine="6" startColumn="13" endLine="6" endColumn="29"/>
-                <entry offset="0x1b" startLine="7" startColumn="13" endLine="7" endColumn="29"/>
-                <entry offset="0x1d" startLine="8" startColumn="9" endLine="8" endColumn="20"/>
-                <entry offset="0x3a" startLine="9" startColumn="5" endLine="9" endColumn="17"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x19" startLine="6" startColumn="13" endLine="6" endColumn="29" document="1"/>
+                <entry offset="0x1b" startLine="7" startColumn="13" endLine="7" endColumn="29" document="1"/>
+                <entry offset="0x1d" startLine="8" startColumn="9" endLine="8" endColumn="20" document="1"/>
+                <entry offset="0x3a" startLine="9" startColumn="5" endLine="9" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3c">
                 <namespace name="System" importlevel="file"/>
@@ -475,6 +493,9 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb("Module1+VB$StateMachine_1_Goo.MoveNext",
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
         <method containingType="Module1+VB$StateMachine_1_Goo" name="MoveNext">
@@ -485,11 +506,11 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" hidden="true"/>
-                <entry offset="0x2c" startLine="13" startColumn="5" endLine="13" endColumn="55"/>
-                <entry offset="0x2d" startLine="14" startColumn="9" endLine="14" endColumn="16"/>
-                <entry offset="0x48" startLine="15" startColumn="9" endLine="15" endColumn="16"/>
-                <entry offset="0x63" startLine="16" startColumn="5" endLine="16" endColumn="17"/>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x2c" startLine="13" startColumn="5" endLine="13" endColumn="55" document="1"/>
+                <entry offset="0x2d" startLine="14" startColumn="9" endLine="14" endColumn="16" document="1"/>
+                <entry offset="0x48" startLine="15" startColumn="9" endLine="15" endColumn="16" document="1"/>
+                <entry offset="0x63" startLine="16" startColumn="5" endLine="16" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x65">
                 <importsforward declaringType="Module1" methodName="Main"/>

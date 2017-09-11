@@ -31,6 +31,306 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        [WorkItem(472056, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=472056")]
+        public void Repro472056()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace ConsoleApp2
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var task = WhyYouBreaky(new List<string>());
+
+            Console.WriteLine(task.Result);
+        }
+
+        static async Task<string> WhyYouBreaky(List<string> words)
+        {
+            await Task.Delay(1);
+            var word = """"; // moving me before the 'await' will make it work
+
+            words.Add(""Oh No!""); // I will crash here :(
+
+            return ""Great success!""; // Not so much.
+
+            void IDontEvenGetCalled()
+            {
+                // commenting out either of these lines will make it work
+                var a = word;
+                var b = words[0];
+            }
+        }
+    }
+}", options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "Great success!");
+        }
+
+        [Fact]
+        public void AsyncStructClosure()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static void Main() => M().Wait();
+
+    static async Task M()
+    {
+        int x = 2;
+        int y = 3;
+        int L() => x + y;
+        Console.WriteLine(L());
+        await Task.FromResult(false);
+    }
+}", options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "5");
+            // No field captures
+            verifier.VerifySynthesizedFields("C.<M>d__1",
+                "int <>1__state",
+                "System.Runtime.CompilerServices.AsyncTaskMethodBuilder <>t__builder",
+                "System.Runtime.CompilerServices.TaskAwaiter<bool> <>u__1");
+
+            comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static void Main() => M().Wait();
+
+    static async Task M()
+    {
+        int x = 2;
+        int y = 3;
+        int L() => x + y;
+        Console.WriteLine(L());
+        await Task.FromResult(false);
+        x++;
+        Console.WriteLine(x);
+    }
+}", options: TestOptions.ReleaseExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"5
+3");
+            verifier.VerifySynthesizedFields("C.<M>d__1",
+                "int <>1__state",
+                "System.Runtime.CompilerServices.AsyncTaskMethodBuilder <>t__builder",
+                // Display class capture
+                "C.<>c__DisplayClass1_0 <>8__1",
+                "System.Runtime.CompilerServices.TaskAwaiter<bool> <>u__1");
+
+            verifier.VerifySynthesizedFields("C.<>c__DisplayClass1_0",
+                "int x",
+                "int y");
+
+            comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static void Main() => M().Wait();
+
+    static async Task M()
+    {
+        int x = 2;
+        int y = 3;
+        int L() => x + y;
+        Console.WriteLine(L());
+        await Task.FromResult(false);
+        x = 5;
+        y = 7;
+        Console.WriteLine(L());
+    }
+}", options: TestOptions.ReleaseExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"5
+12");
+            // Nothing captured across await
+            verifier.VerifySynthesizedFields("C.<M>d__1",
+                "int <>1__state",
+                "System.Runtime.CompilerServices.AsyncTaskMethodBuilder <>t__builder",
+                "System.Runtime.CompilerServices.TaskAwaiter<bool> <>u__1");
+        }
+
+        [Fact]
+        public void IteratorStructClosure()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main()
+    {
+        foreach (var m in M())
+        {
+            Console.WriteLine(m);
+        }
+    }
+
+    static IEnumerable<int> M()
+    {
+        int x = 2;
+        int y = 3;
+        int L() => x + y;
+        yield return L();
+    }
+}", expectedOutput: "5");
+            // No field captures
+            verifier.VerifySynthesizedFields("C.<M>d__1",
+                "int <>1__state",
+                "int <>2__current",
+                "int <>l__initialThreadId");
+
+            verifier = CompileAndVerify(@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main()
+    {
+        foreach (var m in M())
+        {
+            Console.WriteLine(m);
+        }
+    }
+
+    static IEnumerable<int> M()
+    {
+        int x = 2;
+        int y = 3;
+        int L() => x + y;
+        yield return L();
+        x++;
+        yield return x;
+    }
+}", expectedOutput: @"5
+3");
+            verifier.VerifySynthesizedFields("C.<M>d__1",
+                "int <>1__state",
+                "int <>2__current",
+                "int <>l__initialThreadId",
+                // Display class capture
+                "C.<>c__DisplayClass1_0 <>8__1");
+
+            verifier.VerifySynthesizedFields("C.<>c__DisplayClass1_0",
+                "int x",
+                "int y");
+
+            verifier = CompileAndVerify(@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main()
+    {
+        foreach (var m in M())
+        {
+            Console.WriteLine(m);
+        }
+    }
+
+    static IEnumerable<int> M()
+    {
+        int x = 2;
+        int y = 3;
+        int L() => x + y;
+        yield return L();
+        x = 5;
+        y = 7;
+        yield return L();
+    }
+}", expectedOutput: @"5
+12");
+            // No captures
+            verifier.VerifySynthesizedFields("C.<M>d__1",
+                "int <>1__state",
+                "int <>2__current",
+                "int <>l__initialThreadId");
+        }
+
+        [Fact]
+        [WorkItem(21409, "https://github.com/dotnet/roslyn/issues/21409")]
+        public void Repro21409()
+        {
+            CompileAndVerify(
+@"
+using System;
+using System.Collections.Generic;
+
+namespace Buggles
+{
+    class Program
+    {
+        private static IEnumerable<int> Problem(IEnumerable<int> chunks)
+        {
+            var startOfChunk = 0;
+            var pendingChunks = new List<int>();
+
+            int GenerateChunk()
+            {
+                if (pendingChunks == null)
+                {
+                    Console.WriteLine(""impossible in local function"");
+                    return -1;
+                }
+                while (pendingChunks.Count > 0)
+                {
+                    pendingChunks.RemoveAt(0);
+                }
+                return startOfChunk;
+            }
+
+            foreach (var chunk in chunks)
+            {
+                if (chunk - startOfChunk <= 0)
+                {
+                    pendingChunks.Insert(0, chunk);
+                }
+                else
+                {
+                    yield return GenerateChunk();
+                }
+                startOfChunk = chunk;
+                if (pendingChunks == null)
+                {
+                    Console.WriteLine(""impossible in outer function"");
+                }
+                else
+                {
+                    pendingChunks.Insert(0, chunk);
+                }
+            }
+        }
+
+        private static void Main()
+        {
+            var xs = Problem(new[] { 0, 1, 2, 3 });
+            foreach (var x in xs)
+            {
+                Console.WriteLine(x);
+            }
+        }
+    }
+}
+", expectedOutput: @"
+0
+1
+2");
+        }
+
+        [Fact]
         [WorkItem(294554, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=294554")]
         public void ThisOnlyClosureBetweenStructCaptures()
         {
@@ -286,7 +586,7 @@ class C
   IL_0016:  call       ""void System.Console.WriteLine(int)""
   IL_001b:  ldarg.0
   IL_001c:  ldloca.s   V_0
-  IL_001e:  call       ""void C.<M>g__L12_0(ref C.<>c__DisplayClass2_0)""
+  IL_001e:  call       ""void C.<M>g__L1|2_0(ref C.<>c__DisplayClass2_0)""
   IL_0023:  ldarg.0
   IL_0024:  ldfld      ""int C._x""
   IL_0029:  call       ""void System.Console.WriteLine(int)""
@@ -294,39 +594,39 @@ class C
 }");
 
             // L1
-            verifier.VerifyIL("C.<M>g__L12_0(ref C.<>c__DisplayClass2_0)", @"
+            verifier.VerifyIL("C.<M>g__L1|2_0(ref C.<>c__DisplayClass2_0)", @"
 {
   // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""void C.<M>g__L22_1(ref C.<>c__DisplayClass2_0)""
+  IL_0002:  call       ""void C.<M>g__L2|2_1(ref C.<>c__DisplayClass2_0)""
   IL_0007:  ret
 }");
             // L2
-            verifier.VerifyIL("C.<M>g__L22_1(ref C.<>c__DisplayClass2_0)", @"
+            verifier.VerifyIL("C.<M>g__L2|2_1(ref C.<>c__DisplayClass2_0)", @"
 {
   // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""void C.<M>g__L32_3(ref C.<>c__DisplayClass2_0)""
+  IL_0002:  call       ""void C.<M>g__L3|2_3(ref C.<>c__DisplayClass2_0)""
   IL_0007:  ret
 }");
             // Skip some... L5
-            verifier.VerifyIL("C.<M>g__L52_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
+            verifier.VerifyIL("C.<M>g__L5|2_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
 {
   // Code size       10 (0xa)
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
   IL_0002:  ldarg.2
-  IL_0003:  call       ""int C.<M>g__L62_6(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)""
+  IL_0003:  call       ""int C.<M>g__L6|2_6(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)""
   IL_0008:  pop
   IL_0009:  ret
 }");
             // L6
-            verifier.VerifyIL("C.<M>g__L62_6(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
+            verifier.VerifyIL("C.<M>g__L6|2_6(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
 {
   // Code size       25 (0x19)
   .maxstack  4
@@ -4565,7 +4865,7 @@ class Program
   IL_0033:  ldloca.s   V_0
   IL_0035:  ldloca.s   V_1
   IL_0037:  ldloca.s   V_2
-  IL_0039:  call       ""void Program.<Main>g__Print0_0(ref Program.<>c__DisplayClass0_0, ref Program.<>c__DisplayClass0_1, ref Program.<>c__DisplayClass0_2)""
+  IL_0039:  call       ""void Program.<Main>g__Print|0_0(ref Program.<>c__DisplayClass0_0, ref Program.<>c__DisplayClass0_1, ref Program.<>c__DisplayClass0_2)""
   IL_003e:  ret
 }
 ");

@@ -224,7 +224,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => ExecuteOnActiveView(view =>
         {
             Type type = WellKnownTagNames.GetTagTypeByName(tagTypeName);
-            Func<IMappingTagSpan<ITag>, bool> filterTag = (tag) => { return tag.Tag.GetType().Equals(type); };
+            bool filterTag(IMappingTagSpan<ITag> tag) { return tag.Tag.GetType().Equals(type); }
             var service = GetComponentModelService<IViewTagAggregatorFactoryService>();
             var aggregator = service.CreateTagAggregator<ITag>(view);
             var allTags = aggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length));

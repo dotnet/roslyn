@@ -22169,16 +22169,13 @@ Module Module1
 
 End Module
     </file>
-    </compilation>)
+    </compilation>, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30518: Overload resolution failed because no accessible 'M1' can be called with these arguments:
-        M1(x:=2, 3) 'BIND:"M1(x:=2, 3)"
-        ~~
-BC30241: Named argument expected.
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         M1(x:=2, 3) 'BIND:"M1(x:=2, 3)"
                  ~
-BC30241: Named argument expected.
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         M2(x:=2, 3)
                  ~
 </expected>)
