@@ -9,10 +9,9 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.Test.Performance.Tests</RootNamespace>
     <AssemblyName>Roslyn.Test.Performance.Tests</AssemblyName>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Nonshipping>true</Nonshipping>
-    <RuntimeIdentifiers>win7-x86</RuntimeIdentifiers>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <ProjectGuid>{DA0D2A70-A2F9-4654-A99A-3227EDF54FF1}</ProjectGuid>
   </PropertyGroup>
