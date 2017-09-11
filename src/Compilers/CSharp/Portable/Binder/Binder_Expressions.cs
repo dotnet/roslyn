@@ -801,8 +801,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasNaturalType = true;
 
             var boundArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Count);
-            var elementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Count);
+            var elementTypes = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(arguments.Count);
             var elementLocations = ArrayBuilder<Location>.GetInstance(arguments.Count);
+            bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
 
             // prepare names
             var (elementNames, inferredPositions, hasErrors) = ExtractTupleElementNames(arguments, diagnostics);
@@ -833,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 boundArguments.Add(boundArgument);
 
-                var elementType = boundArgument.Type;
+                var elementType = boundArgument.GetTypeAndNullability(includeNullability);
                 elementTypes.Add(elementType);
 
                 if ((object)elementType == null)
@@ -850,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
 
-                tupleTypeOpt = TupleTypeSymbol.Create(node.Location, elements.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations), locations, elementNames,
+                tupleTypeOpt = TupleTypeSymbol.Create(node.Location, elements, locations, elementNames,
                     this.Compilation, syntax: node, diagnostics: diagnostics, shouldCheckConstraints: true,
                     errorPositions: disallowInferredNames ? inferredPositions : default(ImmutableArray<bool>));
             }
@@ -2747,7 +2748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (bestType.IsRestrictedType())
             {
                 // CS0611: Array elements cannot be of type '{0}'
-                Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node, bestType);
+                Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node, bestType.TypeSymbol);
             }
 
             var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, bestType, rank);

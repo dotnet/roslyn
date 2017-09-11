@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:    Finally, X is fixed and, if successful, the resulting type S is the resulting best common type for the expressions.
             // SPEC:    If no such S exists, the expressions have no best common type.
 
+            // All non-null types are candidates for best type inference.
             var candidateTypes = new HashSet<TypeSymbolWithAnnotations>(TypeSymbolWithAnnotations.EqualsComparer.Instance);
             foreach (BoundExpression expr in exprs)
             {

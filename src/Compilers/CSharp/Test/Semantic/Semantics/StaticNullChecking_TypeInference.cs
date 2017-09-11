@@ -827,6 +827,30 @@ static class E
         }
 
         [Fact]
+        public void TypeInference_Tuple()
+        {
+            var source =
+@"class C
+{
+    static (T, U) F<T, U>((T, U) t) => t;
+    static void G(string x, string? y)
+    {
+        var t = (x, y);
+        F(t).Item1.ToString();
+        F(t).Item2.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         F(t).Item2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(t).Item2").WithLocation(8, 9));
+        }
+
+        [Fact]
         public void TypeInference_ObjectCreation()
         {
             var source =
