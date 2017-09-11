@@ -336,12 +336,12 @@ namespace Roslyn.Test.Utilities
 
         public static void Fail(string message)
         {
-            Assert.False(true, message);
+            throw new Xunit.Sdk.XunitException(message);
         }
 
         public static void Fail(string format, params object[] args)
         {
-            Assert.False(true, string.Format(format, args));
+            throw new Xunit.Sdk.XunitException(string.Format(format, args));
         }
 
         public static void NotNull<T>(T @object, string message = null)

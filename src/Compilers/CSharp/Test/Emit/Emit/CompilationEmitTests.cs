@@ -1601,6 +1601,36 @@ public class PublicClass
                     "System.Diagnostics.DebuggableAttribute" },
                 compWithReal.SourceModule.GetReferencedAssemblySymbols().Last().GetAttributes().Select(a => a.AttributeClass.ToTestDisplayString()));
 
+            // Verify metadata (types, members, attributes) of the regular assembly with IncludePrivateMembers accidentally set to false.
+            // Note this can happen because of binary clients compiled against old EmitOptions ctor which had IncludePrivateMembers=false by default.
+            // In this case, IncludePrivateMembers is silently set to true when emitting
+            // See https://github.com/dotnet/roslyn/issues/20873
+            var emitRegularWithoutPrivateMembers = EmitOptions.Default.WithIncludePrivateMembers(false);
+            CompileAndVerify(comp, emitOptions: emitRegularWithoutPrivateMembers, verify: true);
+
+            var realImage2 = comp.EmitToImageReference(emitRegularWithoutPrivateMembers);
+            var compWithReal2 = CreateCompilation("", references: new[] { MscorlibRef, realImage2 },
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            AssertEx.Equal(
+                new[] { "<Module>", "<>f__AnonymousType0<<anonymous>j__TPar>", "PublicClass" },
+                compWithReal2.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMembers().Select(m => m.ToDisplayString()));
+
+            AssertEx.Equal(
+                new[] { "void PublicClass.PublicMethod()", "void PublicClass.PrivateMethod()",
+                    "void PublicClass.ProtectedMethod()", "void PublicClass.InternalMethod()",
+                    "void PublicClass.PublicEvent.add", "void PublicClass.PublicEvent.remove",
+                    "void PublicClass.InternalEvent.add", "void PublicClass.InternalEvent.remove",
+                    "PublicClass..ctor()",
+                    "event System.Action PublicClass.PublicEvent", "event System.Action PublicClass.InternalEvent" },
+                compWithReal2.GetMember<NamedTypeSymbol>("PublicClass").GetMembers()
+                    .Select(m => m.ToTestDisplayString()));
+
+            AssertEx.Equal(
+                new[] { "System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
+                    "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
+                    "System.Diagnostics.DebuggableAttribute" },
+                compWithReal2.SourceModule.GetReferencedAssemblySymbols().Last().GetAttributes().Select(a => a.AttributeClass.ToTestDisplayString()));
+
             // verify metadata (types, members, attributes) of the metadata-only assembly
             var emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(true);
             CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: true);
@@ -1958,15 +1988,16 @@ struct S
         }
 
         [Fact]
-        public void MustIncludePrivateMembersUnlessRefAssembly()
+        [WorkItem(20873, "https://github.com/dotnet/roslyn/issues/20873")]
+        public void IncludePrivateMembersSilentlyAssumedTrueWhenEmittingRegular()
         {
             CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
             using (var output = new MemoryStream())
             {
-                Assert.Throws<ArgumentException>(() => comp.Emit(output,
-                    options: EmitOptions.Default.WithIncludePrivateMembers(false)));
+                // no exception
+                _ = comp.Emit(output, options: EmitOptions.Default.WithIncludePrivateMembers(false));
             }
         }
 
