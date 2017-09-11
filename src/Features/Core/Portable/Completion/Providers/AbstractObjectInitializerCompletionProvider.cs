@@ -77,15 +77,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract Task<bool> IsExclusiveAsync(Document document, int position, CancellationToken cancellationToken);
 
         private bool IsLegalFieldOrProperty(ISymbol symbol, ISymbol within)
-        {
-            var type = symbol.GetMemberType();
-            if (type != null && type.CanSupportCollectionInitializer(within))
-            {
-                return true;
-            }
-
-            return symbol.IsWriteableFieldOrProperty() || CanSupportObjectInitializer(symbol);
-        }
+            => CanSupportCollectionInitializer(symbol, within) || symbol.IsWriteableFieldOrProperty() || CanSupportObjectInitializer(symbol, within);
 
         private static readonly CompletionItemRules s_rules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
 
@@ -97,14 +89,41 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 member.IsAccessibleWithin(containingType);
         }
 
-        private static bool CanSupportObjectInitializer(ISymbol symbol)
+        private static bool CanSupportObjectInitializer(ISymbol symbol, ISymbol within)
         {
             if (symbol is IPropertySymbol propertySymbol)
             {
-                return propertySymbol.GetMethod != null && !propertySymbol.Type.IsStructType();
+                return propertySymbol.GetMethod != null && !propertySymbol.Type.IsStructType() && HasAccesseblePropertiesOrFields(propertySymbol.Type, within);
             }
 
             return false;
+        }
+
+        private static bool HasAccesseblePropertiesOrFields(ITypeSymbol type, ISymbol within)
+        {
+            var types = new HashSet<ITypeSymbol>();
+            return HasAccesseblePropertiesOrFields(type, types);
+
+            bool HasAccesseblePropertiesOrFields(ITypeSymbol typeToCheck, HashSet<ITypeSymbol> alreadyCheckedTypes)
+            {
+                if (alreadyCheckedTypes.Contains(typeToCheck))
+                {
+                    return false;
+                }
+
+                alreadyCheckedTypes.Add(typeToCheck);
+                return typeToCheck.GetBaseTypesAndThis().SelectMany(x => x.GetMembers())
+                    .Where(member => member is IPropertySymbol || member is IFieldSymbol)
+                    .Any(member => member.IsWriteableFieldOrProperty() || 
+                            CanSupportCollectionInitializer(member, within) || 
+                            HasAccesseblePropertiesOrFields(member.GetMemberType(), alreadyCheckedTypes));
+            }
+        }
+
+        private static bool CanSupportCollectionInitializer(ISymbol symbol, ISymbol within)
+        {
+            var type = symbol.GetMemberType();
+            return type != null && type.CanSupportCollectionInitializer(within);
         }
     }
 }
