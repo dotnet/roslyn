@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 
@@ -7,6 +10,136 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public partial class StaticNullChecking : CSharpTestBase
     {
+        // PROTOTYPE(NullableReferenceTypes): `default(string)` should be non-nullable string.
+        [Fact(Skip = "TODO")]
+        public void Default_NonNullable()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        var s = default(string);
+        s.ToString();
+    }
+}";
+
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,17): warning CS8600: Cannot convert null to non-nullable reference.
+                //         var s = default(string);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(string)").WithLocation(5, 17));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
+            var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators);
+            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal(false, symbol.Type.IsNullable);
+        }
+
+        [Fact]
+        public void Default_Nullable()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        var s = default(string?);
+        s.ToString();
+    }
+}";
+
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(6, 9));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
+            var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators);
+            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal(true, symbol.Type.IsNullable);
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): `var s = string.Empty;`
+        // should declare non-nullable string.
+        [Fact(Skip = "TODO")]
+        public void LocalVar_NonNull()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        var s = string.Empty;
+        s.ToString();
+        s = null;
+        s.ToString();
+    }
+}";
+
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS8600: Cannot convert null to non-nullable reference.
+                //         s = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 13));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
+            var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
+            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal(false, symbol.Type.IsNullable);
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): `var s0 = b ? string.Empty : string.Empty;`
+        // should declare non-nullable string.
+        [Fact(Skip = "TODO")]
+        public void LocalVar_ConditionalOperator()
+        {
+            var source =
+@"class C
+{
+    static void F(bool b)
+    {
+        var s0 = b ? string.Empty : string.Empty;
+        var s1 = b ? string.Empty : null;
+        var s2 = b ? null : string.Empty;
+    }
+}";
+
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+
+            var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
+            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal(false, symbol.Type.IsNullable);
+
+            symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
+            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal(true, symbol.Type.IsNullable);
+
+            symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[2]);
+            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal(true, symbol.Type.IsNullable);
+        }
+
         [Fact]
         public void TypeInference_01()
         {
@@ -680,6 +813,36 @@ static class E
 }";
             var comp = CreateCompilationWithMscorlibAndSystemCore(
                 source,
+                parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics();
+        }
+
+        // Type inference results with and without nullability
+        // differ by tuple element names.
+        [Fact]
+        public void TypeInference_DifferByName()
+        {
+            var source =
+@"class Stack<T>
+{
+}
+static class E
+{
+    public static void Push<T>(this Stack<T> s, T t)
+    {
+    }
+}
+class C
+{
+    static void F(object o)
+    {
+        var s = new Stack<(object x, int y)>();
+        s.Push((o, -1));
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();
         }

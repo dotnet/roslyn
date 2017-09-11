@@ -2399,7 +2399,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If the first attempt succeeded, the result should be the same as
                 // the second attempt, although perhaps with different nullability.
-                if (!withNullability.TypeSymbol.Equals(withoutNullability.TypeSymbol))
+
+                // PROTOTYPE(NullableReferenceTypes): Currently, the results
+                // can differ by tuple names (or presumably, dynamic).
+                // See StaticNullChecking.TypeInference_DifferByName test.
+                if (!withNullability.TypeSymbol.Equals(withoutNullability.TypeSymbol, TypeCompareKind.IgnoreDynamicAndTupleNames))
                 {
                     // The two results differ other than nullability.
                     // Use the second result, for compatibility.
