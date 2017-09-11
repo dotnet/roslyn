@@ -1414,25 +1414,6 @@ tryAgain:
             }
         }
 
-        private static bool CanReuseTypeDeclaration(CSharp.Syntax.MemberDeclarationSyntax member)
-        {
-            if (member != null)
-            {
-                // on reuse valid type declaration (not bad namespace members)
-                switch (member.Kind())
-                {
-                    case SyntaxKind.ClassDeclaration:
-                    case SyntaxKind.StructDeclaration:
-                    case SyntaxKind.InterfaceDeclaration:
-                    case SyntaxKind.EnumDeclaration:
-                    case SyntaxKind.DelegateDeclaration:
-                        return true;
-                }
-            }
-
-            return false;
-        }
-
         private MemberDeclarationSyntax ParseTypeDeclaration(SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
             // "top-level" expressions and statements should never occur inside an asynchronous context
@@ -1970,32 +1951,27 @@ tryAgain:
         private static bool CanReuseMemberDeclaration(
             CSharp.Syntax.MemberDeclarationSyntax member)
         {
-            if (member != null)
+            switch (member?.Kind())
             {
-                switch (member.Kind())
-                {
-                    case SyntaxKind.ClassDeclaration:
-                    case SyntaxKind.StructDeclaration:
-                    case SyntaxKind.InterfaceDeclaration:
-                    case SyntaxKind.EnumDeclaration:
-                    case SyntaxKind.DelegateDeclaration:
-                    case SyntaxKind.FieldDeclaration:
-                    case SyntaxKind.EventFieldDeclaration:
-                    case SyntaxKind.PropertyDeclaration:
-                    case SyntaxKind.EventDeclaration:
-                    case SyntaxKind.IndexerDeclaration:
-                    case SyntaxKind.OperatorDeclaration:
-                    case SyntaxKind.ConversionOperatorDeclaration:
-                    case SyntaxKind.DestructorDeclaration:
-                    case SyntaxKind.MethodDeclaration:
-                    case SyntaxKind.ConstructorDeclaration:
-                        return true;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(member.Kind());
-                }
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.InterfaceDeclaration:
+                case SyntaxKind.EnumDeclaration:
+                case SyntaxKind.DelegateDeclaration:
+                case SyntaxKind.FieldDeclaration:
+                case SyntaxKind.EventFieldDeclaration:
+                case SyntaxKind.PropertyDeclaration:
+                case SyntaxKind.EventDeclaration:
+                case SyntaxKind.IndexerDeclaration:
+                case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
+                case SyntaxKind.DestructorDeclaration:
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.ConstructorDeclaration:
+                    return true;
+                default:
+                    return false;
             }
-
-            return false;
         }
 
         // Returns null if we can't parse anything (even partially).
@@ -2013,7 +1989,7 @@ tryAgain:
             if (this.IsIncrementalAndFactoryContextMatches)
             {
                 var member = this.CurrentNode as CSharp.Syntax.MemberDeclarationSyntax;
-                if (CanReuseMemberDeclaration(member) || CanReuseTypeDeclaration(member))
+                if (CanReuseMemberDeclaration(member))
                 {
                     return (MemberDeclarationSyntax)this.EatNode();
                 }
