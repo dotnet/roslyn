@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -27,7 +27,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   Arguments(1):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
   ArgumentNames(0)
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -61,7 +61,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   Arguments(1):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
   ArgumentNames(0)
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -96,7 +96,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
       IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'e')
   ArgumentNames(0)
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -133,7 +133,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   ArgumentNames(2):
     "d"
     "c"
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -171,7 +171,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
       IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'e')
   ArgumentNames(0)
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -244,7 +244,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   Arguments(1):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
   ArgumentNames(0)
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -285,7 +285,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
   ArgumentNames(0)
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -328,7 +328,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   ArgumentNames(2):
     "x2"
     "x"
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -372,7 +372,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   ArgumentNames(2):
     "x2"
     "x"
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -426,6 +426,54 @@ BC30518: Overload resolution failed because no accessible 'P1' can be called wit
         Dim x = c(c, d)'BIND:"c(c, d)"
                 ~
 ]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DynamicInvocationExpression_InvokeDelegateWithArgument()
+            Dim source = <![CDATA[
+Option Strict Off
+Imports System.Runtime.InteropServices
+
+Class C
+    Delegate Sub MySubDelegate(ByVal x As Integer)
+
+    Private Sub M(c As C, d As Object)
+        Dim x = c(d)(d)'BIND:"c(d)(d)"
+    End Sub
+
+    Default ReadOnly Property P1(x As Integer) As MySubDelegate
+        Get
+            Return Nothing
+        End Get
+    End Property
+
+    Default ReadOnly Property P1(x As String) As MySubDelegate
+        Get
+            Return Nothing
+        End Get
+    End Property
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'c(d)(d)')
+  Expression: IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'c(d)')
+      Expression: IDynamicMemberReferenceExpression (Member Name: "P1", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'c')
+          Type Arguments(0)
+          Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+      Arguments(1):
+          IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
+      ArgumentNames(0)
+      ArgumentRefKinds: null
+  Arguments(1):
+      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
+  ArgumentNames(0)
+  ArgumentRefKinds: null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
 
             VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub

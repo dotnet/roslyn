@@ -516,7 +516,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
   ArgumentNames(0)
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -545,7 +545,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   Arguments(1):
       IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
   ArgumentNames(0)
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -574,7 +574,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
   ArgumentNames(0)
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

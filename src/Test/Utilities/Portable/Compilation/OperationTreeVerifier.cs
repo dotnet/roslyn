@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Unindent();
         }
 
-        private void VisitArrayCommon<T>(ImmutableArray<T> list, string header, bool logElementCount, Action<T> arrayElementVisitor)
+        private void VisitArrayCommon<T>(ImmutableArray<T> list, string header, bool logElementCount, bool logNullForDefault, Action<T> arrayElementVisitor)
         {
             Debug.Assert(!string.IsNullOrEmpty(header));
 
@@ -280,7 +280,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
             else
             {
-                LogString($"{header}(0)");
+                var suffix = logNullForDefault && list.IsDefault ? ": null" : "(0)";
+                LogString($"{header}{suffix}");
                 LogNewLine();
             }
 
@@ -316,25 +317,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private void VisitArray<T>(ImmutableArray<T> list, string header, bool logElementCount)
+        private void VisitArray<T>(ImmutableArray<T> list, string header, bool logElementCount, bool logNullForDefault = false)
             where T: IOperation
         {
-            VisitArrayCommon(list, header, logElementCount, VisitOperationArrayElement);
+            VisitArrayCommon(list, header, logElementCount, logNullForDefault, VisitOperationArrayElement);
         }
 
-        private void VisitArray(ImmutableArray<ISymbol> list, string header, bool logElementCount)
+        private void VisitArray(ImmutableArray<ISymbol> list, string header, bool logElementCount, bool logNullForDefault = false)
         {
-            VisitArrayCommon(list, header, logElementCount, VisitSymbolArrayElement);
+            VisitArrayCommon(list, header, logElementCount, logNullForDefault, VisitSymbolArrayElement);
         }
 
-        private void VisitArray(ImmutableArray<string> list, string header, bool logElementCount)
+        private void VisitArray(ImmutableArray<string> list, string header, bool logElementCount, bool logNullForDefault = false)
         {
-            VisitArrayCommon(list, header, logElementCount, VisitStringArrayElement);
+            VisitArrayCommon(list, header, logElementCount, logNullForDefault, VisitStringArrayElement);
         }
 
-        private void VisitArray(ImmutableArray<RefKind> list, string header, bool logElementCount)
+        private void VisitArray(ImmutableArray<RefKind> list, string header, bool logElementCount, bool logNullForDefault = false)
         {
-            VisitArrayCommon(list, header, logElementCount, VisitRefKindArrayElement);
+            VisitArrayCommon(list, header, logElementCount, logNullForDefault, VisitRefKindArrayElement);
         }
 
         private void VisitInstanceExpression(IOperation instance)
@@ -625,7 +626,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             VisitArray(operation.Arguments, "Arguments", logElementCount: true);
             VisitArray(operation.ArgumentNames, "ArgumentNames", logElementCount: true);
-            VisitArray(operation.ArgumentRefKinds, "ArgumentRefKinds", logElementCount: true);
+            VisitArray(operation.ArgumentRefKinds, "ArgumentRefKinds", logElementCount: true, logNullForDefault: true);
 
             VerifyGetArgumentNamePublicApi(operation, operation.ArgumentNames);
             VerifyGetArgumentRefKindPublicApi(operation, operation.ArgumentRefKinds);
@@ -1247,7 +1248,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            VisitArrayCommon(operation.TypeArguments, "Type Arguments", true, VisitSymbolArrayElement);
+            VisitArrayCommon(operation.TypeArguments, "Type Arguments", logElementCount: true,logNullForDefault: false, arrayElementVisitor: VisitSymbolArrayElement);
 
             VisitInstanceExpression(operation.Instance);
         }

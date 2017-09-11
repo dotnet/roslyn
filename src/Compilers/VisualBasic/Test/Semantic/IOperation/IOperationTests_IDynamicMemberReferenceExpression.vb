@@ -27,7 +27,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
       Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -56,7 +56,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
       Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -85,7 +85,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
       Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -117,7 +117,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
       Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -147,7 +147,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
       IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
         Children(0)
   ArgumentNames(0)
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -183,7 +183,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
       Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -213,7 +213,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
       Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -243,7 +243,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
       Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -277,7 +277,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
           Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -308,10 +308,10 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
               Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
           Arguments(0)
           ArgumentNames(0)
-          ArgumentRefKinds(0)
+          ArgumentRefKinds: null
   Arguments(0)
   ArgumentNames(0)
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -341,7 +341,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
           Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
   Arguments(0)
   ArgumentNames(0)
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -376,7 +376,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   Arguments(1):
       ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
   ArgumentNames(0)
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -412,7 +412,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   Arguments(1):
       ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
   ArgumentNames(0)
-  ArgumentRefKinds(0)
+  ArgumentRefKinds: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
