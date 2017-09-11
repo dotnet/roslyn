@@ -1186,9 +1186,9 @@ class C
             string expectedOperationTree = @"
 IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'd1.N<S>()')
   Expression: IDynamicMemberReferenceExpression (Member Name: ""N"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd1.N<S>')
-    Type Arguments(1):
+      Type Arguments(1):
         Symbol: S
-    Instance Receiver: ILocalReferenceExpression: d1 (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd1')
+      Instance Receiver: ILocalReferenceExpression: d1 (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd1')
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -1253,22 +1253,22 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: d
       Instance Receiver: IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
   Arguments(1):
       IInvocationExpression (void System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'System.Cons ... WriteLine()')
-          Instance Receiver: null
-          Arguments(0)
+        Instance Receiver: null
+        Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1978: Cannot use an expression of type '__arglist' as an argument to a dynamically dispatched operation.
+                // file.cs(7,15): error CS1978: Cannot use an expression of type '__arglist' as an argument to a dynamically dispatched operation.
                 //         d.Goo(__arglist(123, 456));
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "__arglist(123, 456)").WithArguments("__arglist").WithLocation(7, 15),
-                // CS1738: Named argument specifications must appear after all fixed arguments have been specified
+                // file.cs(8,31): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         d.Goo(x: 123, y: 456, 789);
-                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "789").WithLocation(8, 31),
-                // CS1978: Cannot use an expression of type 'void' as an argument to a dynamically dispatched operation.
-                //         d.Goo(System.Console.WriteLine());
-                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "System.Console.WriteLine()").WithArguments("void").WithLocation(10, 15),
-                // CS0165: Use of unassigned local variable 'z'
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "789").WithArguments("7.2").WithLocation(8, 31),
+                // file.cs(10,25): error CS1978: Cannot use an expression of type 'void' as an argument to a dynamically dispatched operation.
+                //         /*<bind>*/d.Goo(System.Console.WriteLine());/*</bind>*/
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "System.Console.WriteLine()").WithArguments("void").WithLocation(10, 25),
+                // file.cs(9,19): error CS0165: Use of unassigned local variable 'z'
                 //         d.Goo(ref z);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(9, 19)
             };
@@ -1380,21 +1380,21 @@ IInvocationExpression ( ? A.B.()) (OperationKind.InvocationExpression, Type: ?, 
   Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M')
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'd')
-          ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
-          InConversion: null
-          OutConversion: null
+        ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
+        InConversion: null
+        OutConversion: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0120: An object reference is required for the non-static field, method, or property 'A.F'
+                // file.cs(15,13): error CS0120: An object reference is required for the non-static field, method, or property 'A.F'
                 //             F(d);
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("A.F").WithLocation(15, 13),
-                // CS0120: An object reference is required for the non-static field, method, or property 'A.P'
+                // file.cs(16,13): error CS0120: An object reference is required for the non-static field, method, or property 'A.P'
                 //             P(d);
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "P").WithArguments("A.P").WithLocation(16, 13),
-                // CS0120: An object reference is required for the non-static field, method, or property 'A.M(int)'
-                //             M(d);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "M(d)").WithArguments("A.M(int)").WithLocation(17, 13),
-                // CS0649: Field 'A.F' is never assigned to, and will always have its default value null
+                // file.cs(17,23): error CS0120: An object reference is required for the non-static field, method, or property 'A.M(int)'
+                //             /*<bind>*/M(d);/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "M(d)").WithArguments("A.M(int)").WithLocation(17, 23),
+                // file.cs(6,27): warning CS0649: Field 'A.F' is never assigned to, and will always have its default value null
                 //     public Action<object> F;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("A.F", "null").WithLocation(6, 27)
             };
