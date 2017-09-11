@@ -10,8 +10,7 @@
 #
 # However, right now the toolset packages must be built on Windows, and so the
 # files must be hard-coded to be cloned with LF
-src/Compilers/CSharp/CscCore/csc text eol=lf
-src/Compilers/VisualBasic/VbcCore/vbc text eol=lf
+*.sh text eol=lf
 build/NuGetAdditionalFiles/RunCsc text eol=lf
 build/NuGetAdditionalFiles/RunVbc text eol=lf
 
