@@ -1063,8 +1063,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             tokenOnLeftOfPosition = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position)
 
             If tokenOnLeftOfPosition.IsKind(SyntaxKind.OpenParenToken) Then
-                Return tokenOnLeftOfPosition.Parent.IsKind(SyntaxKind.ParenthesizedExpression,
-                                                           SyntaxKind.TupleExpression, SyntaxKind.TupleType)
+                ' If(bar$$
+                ' Exclude parenthesized expressions inside if statements
+                If (tokenOnLeftOfPosition.Parent.IsKind(SyntaxKind.ParenthesizedExpression)) Then
+                    Return Not tokenOnLeftOfPosition.Parent.Parent.IsKind(SyntaxKind.IfStatement)
+                End If
+
+                Return tokenOnLeftOfPosition.Parent.IsKind(SyntaxKind.TupleExpression, SyntaxKind.TupleType)
             End If
 
             Return tokenOnLeftOfPosition.IsKind(SyntaxKind.CommaToken) AndAlso

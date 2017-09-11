@@ -7672,5 +7672,22 @@ End Namespace
             End Using
 
         End Function
+
+        <WorkItem(432231, "https://devdiv.visualstudio.com/DevDiv/NET%20Developer%20Experience%20IDE/_queries?id=432231&_a=edit&triage=true")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function LocalVariableAfterIfWithTouchingParen() As Task
+            Dim text =
+<code><![CDATA[
+Module Module1
+    Class C
+        Sub Z()
+            Dim local = 1
+            If(loc$$
+        End Sub
+    End Class
+End Module]]></code>.Value
+
+            Await VerifyItemExistsAsync(text, "local")
+        End Function
     End Class
 End Namespace
