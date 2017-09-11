@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
             var isNullable = includeNullability ? expr.IsNullable() : null;
-            return TypeSymbolWithAnnotations.Create(type, expr.IsNullable());
+            return TypeSymbolWithAnnotations.Create(type, isNullable);
         }
 
         internal static bool? IsNullable(this BoundExpression expr)

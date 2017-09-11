@@ -191,9 +191,8 @@ class C
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1));
         }
 
-        // [Nullable] should not be required in C#7.
         [Fact]
-        public void NullableAttribute_NotRequiredCSharp7()
+        public void NullableAttribute_NotRequiredCSharp7_01()
         {
             var source =
 @"using System.Threading.Tasks;
@@ -206,6 +205,34 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular7);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void NullableAttribute_NotRequiredCSharp7_02()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    static async Task F<T>(Func<Task> f)
+    {
+        await G(async () =>
+        {
+            await f();
+            return default(object);
+        });
+    }
+    static async Task<TResult> G<TResult>(Func<Task<TResult>> f)
+    {
+        throw new NotImplementedException();
+    }
+}";
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular7);
+            comp.VerifyEmitDiagnostics(
+                // (13,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async Task<TResult> G<TResult>(Func<Task<TResult>> f)
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "G").WithLocation(13, 32));
         }
 
         [Fact]
