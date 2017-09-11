@@ -144,7 +144,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new UsingStatement(Visit(operation.Body), Visit(operation.Declaration), Visit(operation.Value), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitFixedStatement(IFixedStatement operation, object argument)
+        // https://github.com/dotnet/roslyn/issues/21281
+        internal override IOperation VisitFixedStatement(IFixedStatement operation, object argument)
         {
             return new FixedStatement(Visit(operation.Variables), Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
@@ -189,14 +190,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new ArrayElementReferenceExpression(Visit(operation.ArrayReference), VisitArray(operation.Indices), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation, object argument)
+        internal override IOperation VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation, object argument)
         {
             return new PointerIndirectionReferenceExpression(Visit(operation.Pointer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitLocalReferenceExpression(ILocalReferenceExpression operation, object argument)
         {
-            return new LocalReferenceExpression(operation.Local, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new LocalReferenceExpression(operation.Local, operation.IsDeclaration, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitParameterReferenceExpression(IParameterReferenceExpression operation, object argument)
@@ -211,12 +212,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitInstanceReferenceExpression(IInstanceReferenceExpression operation, object argument)
         {
-            return new InstanceReferenceExpression(operation.InstanceReferenceKind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new InstanceReferenceExpression(((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitFieldReferenceExpression(IFieldReferenceExpression operation, object argument)
         {
-            return new FieldReferenceExpression(operation.Field, Visit(operation.Instance), operation.Member, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new FieldReferenceExpression(operation.Field, operation.IsDeclaration, Visit(operation.Instance), operation.Member, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitMethodBindingExpression(IMethodBindingExpression operation, object argument)
@@ -276,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitIsTypeExpression(IIsTypeExpression operation, object argument)
         {
-            return new IsTypeExpression(Visit(operation.Operand), operation.IsType, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new IsTypeExpression(Visit(operation.Operand), operation.IsType, operation.IsNotTypeExpression, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitSizeOfExpression(ISizeOfExpression operation, object argument)

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -267,10 +267,8 @@ End Module]]>.Value
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As A =')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As Program.A
-    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.A, IsInvalid) (Syntax: '')
-        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
-            Children(0)
+    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+        Children(0)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -971,7 +969,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: a As System.Action
     Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'AddressOf M2')
         Target: IMethodBindingExpression: Sub Program.M2() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf M2')
-            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M2')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -999,7 +997,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: a As System.Action(Of System.Int32)
     Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.Int32)) (Syntax: 'AddressOf M2')
         Target: IMethodBindingExpression: Sub Program.M2() (OperationKind.MethodBindingExpression, Type: System.Action(Of System.Int32)) (Syntax: 'AddressOf M2')
-            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M2')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1062,7 +1060,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: a As System.Action
     Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'AddressOf M2')
         Target: IMethodBindingExpression: Function Program.M2() As System.Int32 (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf M2')
-            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M2')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1092,7 +1090,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: a As System.Func(Of System.Int64)
     Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int64)) (Syntax: 'AddressOf M2')
         Target: IMethodBindingExpression: Function Program.M2() As System.Int32 (OperationKind.MethodBindingExpression, Type: System.Func(Of System.Int64)) (Syntax: 'AddressOf M2')
-            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M2')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1157,7 +1155,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'AddressOf')
             Children(1):
-                IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+                IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
                   Children(0)
 ]]>.Value
 
@@ -2109,7 +2107,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
               ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'Function(num) num < 5')
                 Statement: null
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Function(num) num < 5')
-                ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'Function(num) num < 5')]]>.Value
+                ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'Function(num) num < 5')
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -2354,6 +2353,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         Public Sub ConversionExpression_Implicit_WideningDelegateTypeConversion()
             Dim source = <![CDATA[
 Option Strict On
+Imports System
 Module M1
     Sub Method1()
         Dim objectAction As Action(Of Object) = New Action(Of Object)(Sub(o As Object) Console.WriteLine(o))
@@ -2377,6 +2377,7 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
         Public Sub ConversionExpression_Implicit_WideningDelegateTypeConversion_InvalidConversion()
             Dim source = <![CDATA[
 Option Strict On
+Imports System
 Module M1
     Sub Method1()
         Dim objectAction As Action(Of Object) = New Action(Of Object)(Sub(o As Object) Console.WriteLine(o))

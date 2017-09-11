@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -25,7 +25,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ILockStatement (OperationKind.LockStatement) (Syntax: 'SyncLock o' ... nd SyncLock')
   Expression: IFieldReferenceExpression: C1.o As System.Object (OperationKind.FieldReferenceExpression, Type: System.Object) (Syntax: 'o')
-      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'o')
+      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'o')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'SyncLock o' ... nd SyncLock')
 ]]>.Value
 
@@ -132,7 +132,7 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'SyncLock'BI ... nd SyncLock')
-  Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+  Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
       Children(0)
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'SyncLock'BI ... nd SyncLock')
 ]]>.Value
@@ -252,7 +252,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ILockStatement (OperationKind.LockStatement) (Syntax: 'SyncLock M2 ... nd SyncLock')
   Expression: IInvocationExpression ( Function C1.M2() As System.Object) (OperationKind.InvocationExpression, Type: System.Object) (Syntax: 'M2()')
-      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'M2')
+      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'M2')
       Arguments(0)
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'SyncLock M2 ... nd SyncLock')
 ]]>.Value
@@ -283,7 +283,7 @@ ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'SyncLock M2 ..
   Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M2()')
       Children(1):
           IInvocationExpression ( Sub C1.M2()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M2()')
-            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid) (Syntax: 'M2')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid) (Syntax: 'M2')
             Arguments(0)
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'SyncLock M2 ... nd SyncLock')
 ]]>.Value

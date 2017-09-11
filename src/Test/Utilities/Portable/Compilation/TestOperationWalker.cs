@@ -181,7 +181,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitUsingStatement(operation);
         }
 
-        public override void VisitFixedStatement(IFixedStatement operation)
+        // https://github.com/dotnet/roslyn/issues/21281
+        internal override void VisitFixedStatement(IFixedStatement operation)
         {
             base.VisitFixedStatement(operation);
         }
@@ -232,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitArrayElementReferenceExpression(operation);
         }
 
-        public override void VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation)
+        internal override void VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation)
         {
             base.VisitPointerIndirectionReferenceExpression(operation);
         }
@@ -240,6 +241,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitLocalReferenceExpression(ILocalReferenceExpression operation)
         {
             var local = operation.Local;
+            var isDeclaration = operation.IsDeclaration;
 
             base.VisitLocalReferenceExpression(operation);
         }
@@ -260,8 +262,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitInstanceReferenceExpression(IInstanceReferenceExpression operation)
         {
-            var instanceReferenceKind = operation.InstanceReferenceKind;
-
             base.VisitInstanceReferenceExpression(operation);
         }
 

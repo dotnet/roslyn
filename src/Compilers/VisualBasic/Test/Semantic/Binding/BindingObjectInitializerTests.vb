@@ -199,10 +199,8 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field')
             Left: IFieldReferenceExpression: C2.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'Field')
                 Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() With {.Field}')
-            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
-                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
-                    Children(0)
+            Right: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+                Children(0)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -242,10 +240,8 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '.Field =')
             Left: IFieldReferenceExpression: C2.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
                 Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() With {.Field =}')
-            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
-                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
-                    Children(0)
+            Right: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+                Children(0)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1175,7 +1171,7 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
             Left: IFieldReferenceExpression: C1.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1() Wi ... ivateField}')
             Right: IFieldReferenceExpression: C2.PrivateField As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'PrivateField')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C2) (Syntax: 'PrivateField')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2) (Syntax: 'PrivateField')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

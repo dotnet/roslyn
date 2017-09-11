@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -28,7 +28,7 @@ public class C1
             string expectedOperationTree = @"
 ILockStatement (OperationKind.LockStatement) (Syntax: 'lock (o) ... }')
   Expression: IFieldReferenceExpression: System.Object C1.o (OperationKind.FieldReferenceExpression, Type: System.Object) (Syntax: 'o')
-      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'o')
+      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'o')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -134,7 +134,7 @@ public class C1
 ";
             string expectedOperationTree = @"
 ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'lock () ... }')
-  Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+  Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
       Children(0)
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
@@ -198,7 +198,7 @@ ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'lock (o)
 ')
   Expression: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
   Body: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '')
-      Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?) (Syntax: '')
+      Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: null) (Syntax: '')
           Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -264,7 +264,7 @@ public class C1
             string expectedOperationTree = @"
 ILockStatement (OperationKind.LockStatement) (Syntax: 'lock (M2()) ... }')
   Expression: IInvocationExpression ( System.Object C1.M2()) (OperationKind.InvocationExpression, Type: System.Object) (Syntax: 'M2()')
-      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'M2')
+      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'M2')
       Arguments(0)
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
@@ -293,7 +293,7 @@ public class C1
             string expectedOperationTree = @"
 ILockStatement (OperationKind.LockStatement, IsInvalid) (Syntax: 'lock (M2()) ... }')
   Expression: IInvocationExpression ( void C1.M2()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M2()')
-      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid) (Syntax: 'M2')
+      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid) (Syntax: 'M2')
       Arguments(0)
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";

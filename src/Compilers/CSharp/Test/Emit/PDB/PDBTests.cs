@@ -73,8 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 <symbols>
   <files>
     <file id=""1"" name=""Foo.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""" + checksum1 + @""" />
-    <file id=""2"" name=""Bar.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""" + checksum3 + @""" />
-    <file id=""3"" name=""Baz.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""" + checksum4 + @""" />
+    <file id=""2"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""3"" name=""Bar.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""" + checksum3 + @""" />
+    <file id=""4"" name=""Baz.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""" + checksum4 + @""" />
   </files>
 </symbols>", options: PdbToXmlOptions.ExcludeMethods);
         }
@@ -249,6 +250,9 @@ public class C
             var debug = CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugWinMD);
             debug.VerifyPdb(@"
 <symbols>
+    <files>
+      <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    </files>
     <methods>
     <method containingType=""C"" name=""F"">
       <customDebugInfo>
@@ -257,19 +261,19 @@ public class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""23"" />
-        <entry offset=""0x8"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""19"" />
-        <entry offset=""0xa"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""16"" />
-        <entry offset=""0xb"" startLine=""8"" startColumn=""27"" endLine=""8"" endColumn=""42"" />
-        <entry offset=""0x1f"" hidden=""true"" />
-        <entry offset=""0x24"" startLine=""8"" startColumn=""18"" endLine=""8"" endColumn=""23"" />
-        <entry offset=""0x29"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0x2a"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""45"" />
-        <entry offset=""0xe6"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
-        <entry offset=""0xe7"" hidden=""true"" />
-        <entry offset=""0xeb"" startLine=""8"" startColumn=""24"" endLine=""8"" endColumn=""26"" />
-        <entry offset=""0xf4"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x8"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""19"" document=""1"" />
+        <entry offset=""0xa"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""16"" document=""1"" />
+        <entry offset=""0xb"" startLine=""8"" startColumn=""27"" endLine=""8"" endColumn=""42"" document=""1"" />
+        <entry offset=""0x1f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x24"" startLine=""8"" startColumn=""18"" endLine=""8"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x29"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2a"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""45"" document=""1"" />
+        <entry offset=""0xe6"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xe7"" hidden=""true"" document=""1"" />
+        <entry offset=""0xeb"" startLine=""8"" startColumn=""24"" endLine=""8"" endColumn=""26"" document=""1"" />
+        <entry offset=""0xf4"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xf5"">
         <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0xf5"" attributes=""0"" />
@@ -285,6 +289,9 @@ public class C
             var release = CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseWinMD);
             release.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""F"">
       <customDebugInfo>
@@ -293,15 +300,15 @@ public class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""23"" />
-        <entry offset=""0x7"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""19"" />
-        <entry offset=""0x9"" startLine=""8"" startColumn=""27"" endLine=""8"" endColumn=""42"" />
-        <entry offset=""0x1d"" hidden=""true"" />
-        <entry offset=""0x22"" startLine=""8"" startColumn=""18"" endLine=""8"" endColumn=""23"" />
-        <entry offset=""0x26"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""45"" />
-        <entry offset=""0xdd"" hidden=""true"" />
-        <entry offset=""0xe1"" startLine=""8"" startColumn=""24"" endLine=""8"" endColumn=""26"" />
-        <entry offset=""0xea"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x7"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x9"" startLine=""8"" startColumn=""27"" endLine=""8"" endColumn=""42"" document=""1"" />
+        <entry offset=""0x1d"" hidden=""true"" document=""1"" />
+        <entry offset=""0x22"" startLine=""8"" startColumn=""18"" endLine=""8"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x26"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""45"" document=""1"" />
+        <entry offset=""0xdd"" hidden=""true"" document=""1"" />
+        <entry offset=""0xe1"" startLine=""8"" startColumn=""24"" endLine=""8"" endColumn=""26"" document=""1"" />
+        <entry offset=""0xea"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xeb"">
         <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0xeb"" attributes=""0"" />
@@ -327,6 +334,9 @@ public class C
             var debug = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugWinMD);
             debug.VerifyPdb(
 @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""F"">
       <customDebugInfo>
@@ -335,9 +345,9 @@ public class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""35"" />
-        <entry offset=""0x9"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x9"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xa"">
         <local name=""o"" il_index=""0"" il_start=""0x0"" il_end=""0xa"" attributes=""0"" />
@@ -349,6 +359,9 @@ public class C
             var release = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseWinMD);
             release.VerifyPdb(
 @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""F"">
       <customDebugInfo>
@@ -357,7 +370,7 @@ public class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -415,6 +428,9 @@ public class C
 
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <entryPoint declaringType=""C"" methodName=""F"" />
   <methods/>
 </symbols>", debugEntryPoint: f, options: PdbToXmlOptions.ExcludeScopes | PdbToXmlOptions.ExcludeSequencePoints | PdbToXmlOptions.ExcludeCustomDebugInformation);
@@ -435,6 +451,9 @@ public class C
 
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <entryPoint declaringType=""C"" methodName=""F"" />
   <methods/>
 </symbols>", debugEntryPoint: f, options: PdbToXmlOptions.ExcludeScopes | PdbToXmlOptions.ExcludeSequencePoints | PdbToXmlOptions.ExcludeCustomDebugInformation);
@@ -514,6 +533,9 @@ class Program
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Main", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -523,9 +545,9 @@ class Program
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""35"" />
-        <entry offset=""0x7"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x7"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x8"">
         <local name=""p"" il_index=""0"" il_start=""0x0"" il_end=""0x8"" attributes=""0"" />
@@ -565,6 +587,9 @@ class C
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.Method", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""Method"">
       <customDebugInfo>
@@ -578,21 +603,21 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""28"" />
-        <entry offset=""0x8"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""58"" />
-        <entry offset=""0x14"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""10"" />
-        <entry offset=""0x15"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""14"" />
-        <entry offset=""0x16"" startLine=""12"" startColumn=""17"" endLine=""12"" endColumn=""33"" />
-        <entry offset=""0x1d"" startLine=""13"" startColumn=""17"" endLine=""13"" endColumn=""60"" />
-        <entry offset=""0x29"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""14"" />
-        <entry offset=""0x2a"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""14"" />
-        <entry offset=""0x2b"" startLine=""17"" startColumn=""17"" endLine=""17"" endColumn=""31"" />
-        <entry offset=""0x2d"" startLine=""18"" startColumn=""17"" endLine=""18"" endColumn=""62"" />
-        <entry offset=""0x3e"" startLine=""19"" startColumn=""13"" endLine=""19"" endColumn=""14"" />
-        <entry offset=""0x3f"" startLine=""20"" startColumn=""13"" endLine=""20"" endColumn=""45"" />
-        <entry offset=""0x4a"" startLine=""21"" startColumn=""9"" endLine=""21"" endColumn=""10"" />
-        <entry offset=""0x4b"" startLine=""22"" startColumn=""5"" endLine=""22"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x8"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""58"" document=""1"" />
+        <entry offset=""0x14"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x15"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x16"" startLine=""12"" startColumn=""17"" endLine=""12"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x1d"" startLine=""13"" startColumn=""17"" endLine=""13"" endColumn=""60"" document=""1"" />
+        <entry offset=""0x29"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x2a"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x2b"" startLine=""17"" startColumn=""17"" endLine=""17"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x2d"" startLine=""18"" startColumn=""17"" endLine=""18"" endColumn=""62"" document=""1"" />
+        <entry offset=""0x3e"" startLine=""19"" startColumn=""13"" endLine=""19"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x3f"" startLine=""20"" startColumn=""13"" endLine=""20"" endColumn=""45"" document=""1"" />
+        <entry offset=""0x4a"" startLine=""21"" startColumn=""9"" endLine=""21"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x4b"" startLine=""22"" startColumn=""5"" endLine=""22"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x4c"">
         <local name=""version"" il_index=""0"" il_start=""0x0"" il_end=""0x4c"" attributes=""0"" />
@@ -627,6 +652,9 @@ class C
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor",
 @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
       <customDebugInfo>
@@ -638,9 +666,9 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""3"" startColumn=""5"" endLine=""3"" endColumn=""8"" />
-        <entry offset=""0x7"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" />
-        <entry offset=""0x8"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""3"" startColumn=""5"" endLine=""3"" endColumn=""8"" document=""1"" />
+        <entry offset=""0x7"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x8"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x9"">
         <scope startOffset=""0x7"" endOffset=""0x9"">
@@ -656,10 +684,10 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""16"" />
-        <entry offset=""0x7"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
-        <entry offset=""0x8"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""22"" />
-        <entry offset=""0xa"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""16"" document=""1"" />
+        <entry offset=""0x7"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x8"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""22"" document=""1"" />
+        <entry offset=""0xa"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xb"">
         <scope startOffset=""0x7"" endOffset=""0xb"">
@@ -692,6 +720,9 @@ class C
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor",
 @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
       <customDebugInfo>
@@ -703,10 +734,10 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""18"" />
-        <entry offset=""0xb"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""8"" />
-        <entry offset=""0x12"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
-        <entry offset=""0x13"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""18"" document=""1"" />
+        <entry offset=""0xb"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""8"" document=""1"" />
+        <entry offset=""0x12"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x13"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x14"">
         <scope startOffset=""0x12"" endOffset=""0x14"">
@@ -722,11 +753,11 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""18"" />
-        <entry offset=""0xb"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""16"" />
-        <entry offset=""0x12"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
-        <entry offset=""0x13"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""22"" />
-        <entry offset=""0x15"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""18"" document=""1"" />
+        <entry offset=""0xb"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""16"" document=""1"" />
+        <entry offset=""0x12"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x13"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""22"" document=""1"" />
+        <entry offset=""0x15"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x16"">
         <scope startOffset=""0x12"" endOffset=""0x16"">
@@ -782,6 +813,9 @@ class Program
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Hidden"">
       <customDebugInfo>
@@ -793,10 +827,10 @@ class Program
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""19"" />
-        <entry offset=""0x3"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""30"" />
-        <entry offset=""0xa"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x3"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""30"" document=""1"" />
+        <entry offset=""0xa"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xb"">
         <namespace name=""System"" />
@@ -812,10 +846,10 @@ class Program
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""19"" />
-        <entry offset=""0x3"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""30"" />
-        <entry offset=""0xa"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x3"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""30"" document=""1"" />
+        <entry offset=""0xa"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xb"">
         <local name=""y"" il_index=""0"" il_start=""0x0"" il_end=""0xb"" attributes=""0"" />
@@ -829,10 +863,10 @@ class Program
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""24"" startColumn=""9"" endLine=""24"" endColumn=""19"" />
-        <entry offset=""0x3"" startLine=""25"" startColumn=""9"" endLine=""25"" endColumn=""30"" />
-        <entry offset=""0xa"" startLine=""26"" startColumn=""5"" endLine=""26"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""24"" startColumn=""9"" endLine=""24"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x3"" startLine=""25"" startColumn=""9"" endLine=""25"" endColumn=""30"" document=""1"" />
+        <entry offset=""0xa"" startLine=""26"" startColumn=""5"" endLine=""26"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xb"">
         <local name=""z"" il_index=""0"" il_start=""0x0"" il_end=""0xb"" attributes=""0"" />
@@ -866,6 +900,9 @@ class C
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name="".cctor"">
       <customDebugInfo>
@@ -882,7 +919,7 @@ class C
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""9"" endColumn=""7"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""9"" endColumn=""7"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x16"">
         <namespace name=""System"" />
@@ -893,7 +930,7 @@ class C
         <forward declaringType=""C"" methodName="".cctor"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""66"" endLine=""7"" endColumn=""70"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""66"" endLine=""7"" endColumn=""70"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;.cctor&gt;b__2_0"" parameterNames=""x"">
@@ -906,11 +943,11 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""38"" />
-        <entry offset=""0x21"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""71"" />
-        <entry offset=""0x41"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""27"" />
-        <entry offset=""0x51"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x21"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""71"" document=""1"" />
+        <entry offset=""0x41"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x51"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x53"">
         <local name=""f"" il_index=""0"" il_start=""0x0"" il_end=""0x53"" attributes=""0"" />
@@ -922,7 +959,7 @@ class C
         <forward declaringType=""C"" methodName="".cctor"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""36"" endLine=""6"" endColumn=""37"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""36"" endLine=""6"" endColumn=""37"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;.cctor&gt;b__2_2"" parameterNames=""h"">
@@ -933,8 +970,8 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" />
-        <entry offset=""0xd"" startLine=""7"" startColumn=""61"" endLine=""7"" endColumn=""70"" />
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0xd"" startLine=""7"" startColumn=""61"" endLine=""7"" endColumn=""70"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x1a"">
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x1a"" attributes=""0"" />
@@ -961,6 +998,9 @@ class C
             // verify that both syntax offsets are the same
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""Main1"">
       <customDebugInfo>
@@ -972,9 +1012,9 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""44"" endLine=""4"" endColumn=""45"" />
-        <entry offset=""0x1"" startLine=""4"" startColumn=""57"" endLine=""4"" endColumn=""67"" />
-        <entry offset=""0x3"" startLine=""4"" startColumn=""79"" endLine=""4"" endColumn=""80"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""44"" endLine=""4"" endColumn=""45"" document=""1"" />
+        <entry offset=""0x1"" startLine=""4"" startColumn=""57"" endLine=""4"" endColumn=""67"" document=""1"" />
+        <entry offset=""0x3"" startLine=""4"" startColumn=""79"" endLine=""4"" endColumn=""80"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x4"">
         <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x4"" attributes=""0"" />
@@ -988,9 +1028,9 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""32"" endLine=""5"" endColumn=""33"" />
-        <entry offset=""0x1"" startLine=""5"" startColumn=""45"" endLine=""5"" endColumn=""55"" />
-        <entry offset=""0x3"" startLine=""5"" startColumn=""67"" endLine=""5"" endColumn=""68"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""32"" endLine=""5"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""45"" endLine=""5"" endColumn=""55"" document=""1"" />
+        <entry offset=""0x3"" startLine=""5"" startColumn=""67"" endLine=""5"" endColumn=""68"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x4"">
         <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x4"" attributes=""0"" />
@@ -1026,6 +1066,9 @@ class C2
             // verify that syntax offsets of both .cctor's are the same
             c.VerifyPdb("C1..cctor", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C1"" name="".cctor"">
       <customDebugInfo>
@@ -1040,9 +1083,9 @@ class C2
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""39"" />
-        <entry offset=""0x15"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""63"" />
-        <entry offset=""0x2a"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""39"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""39"" document=""1"" />
+        <entry offset=""0x15"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""63"" document=""1"" />
+        <entry offset=""0x2a"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""39"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x40"">
         <namespace name=""System"" />
@@ -1053,6 +1096,9 @@ class C2
 
             c.VerifyPdb("C2..cctor", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C2"" name="".cctor"">
       <customDebugInfo>
@@ -1065,9 +1111,9 @@ class C2
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""39"" />
-        <entry offset=""0x15"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""51"" />
-        <entry offset=""0x2a"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""39"" />
+        <entry offset=""0x0"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""39"" document=""1"" />
+        <entry offset=""0x15"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""51"" document=""1"" />
+        <entry offset=""0x2a"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""39"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -1110,6 +1156,9 @@ class Program
 
             v.VerifyPdb("Program.Main", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Main"">
       <customDebugInfo>
@@ -1121,9 +1170,9 @@ class Program
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""18"" />
-        <entry offset=""0x5"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x5"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -1162,6 +1211,9 @@ class C
 
             v.VerifyPdb("C.get_P", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""get_P"">
       <customDebugInfo>
@@ -1173,9 +1225,9 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""13"" endLine=""6"" endColumn=""14"" />
-        <entry offset=""0x1"" startLine=""6"" startColumn=""15"" endLine=""6"" endColumn=""24"" />
-        <entry offset=""0x5"" startLine=""6"" startColumn=""25"" endLine=""6"" endColumn=""26"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""13"" endLine=""6"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""15"" endLine=""6"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x5"" startLine=""6"" startColumn=""25"" endLine=""6"" endColumn=""26"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -1281,6 +1333,9 @@ class Program
 
             v.VerifyPdb("Program.Main", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Main"">
       <customDebugInfo>
@@ -1292,14 +1347,14 @@ class Program
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0x2"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""33"" />
-        <entry offset=""0x8"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""22"" />
-        <entry offset=""0xc"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""26"" />
-        <entry offset=""0xd"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" />
-        <entry offset=""0xe"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""22"" />
-        <entry offset=""0x12"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x8"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""22"" document=""1"" />
+        <entry offset=""0xc"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""26"" document=""1"" />
+        <entry offset=""0xd"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xe"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""22"" document=""1"" />
+        <entry offset=""0x12"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x14"">
         <namespace name=""System"" />
@@ -1347,6 +1402,9 @@ class C
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.Method", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""Method"">
       <customDebugInfo>
@@ -1365,29 +1423,29 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""23"" />
-        <entry offset=""0x3"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""15"" />
-        <entry offset=""0x5"" hidden=""true"" />
-        <entry offset=""0x8"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""10"" />
-        <entry offset=""0x9"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""31"" />
-        <entry offset=""0xf"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" />
-        <entry offset=""0x16"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
-        <entry offset=""0x19"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
-        <entry offset=""0x1a"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""32"" />
-        <entry offset=""0x20"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""23"" />
-        <entry offset=""0x23"" hidden=""true"" />
-        <entry offset=""0x25"" startLine=""18"" startColumn=""13"" endLine=""18"" endColumn=""14"" />
-        <entry offset=""0x26"" startLine=""19"" startColumn=""17"" endLine=""19"" endColumn=""26"" />
-        <entry offset=""0x2a"" startLine=""19"" startColumn=""28"" endLine=""19"" endColumn=""33"" />
-        <entry offset=""0x2d"" startLine=""20"" startColumn=""17"" endLine=""20"" endColumn=""45"" />
-        <entry offset=""0x35"" startLine=""21"" startColumn=""17"" endLine=""21"" endColumn=""27"" />
-        <entry offset=""0x3c"" startLine=""22"" startColumn=""13"" endLine=""22"" endColumn=""14"" />
-        <entry offset=""0x3d"" startLine=""17"" startColumn=""13"" endLine=""17"" endColumn=""28"" />
-        <entry offset=""0x45"" hidden=""true"" />
-        <entry offset=""0x49"" startLine=""24"" startColumn=""13"" endLine=""24"" endColumn=""23"" />
-        <entry offset=""0x4f"" startLine=""25"" startColumn=""9"" endLine=""25"" endColumn=""10"" />
-        <entry offset=""0x50"" startLine=""26"" startColumn=""5"" endLine=""26"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x3"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""15"" document=""1"" />
+        <entry offset=""0x5"" hidden=""true"" document=""1"" />
+        <entry offset=""0x8"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x9"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""31"" document=""1"" />
+        <entry offset=""0xf"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" document=""1"" />
+        <entry offset=""0x16"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x19"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1a"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""32"" document=""1"" />
+        <entry offset=""0x20"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x23"" hidden=""true"" document=""1"" />
+        <entry offset=""0x25"" startLine=""18"" startColumn=""13"" endLine=""18"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x26"" startLine=""19"" startColumn=""17"" endLine=""19"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x2a"" startLine=""19"" startColumn=""28"" endLine=""19"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x2d"" startLine=""20"" startColumn=""17"" endLine=""20"" endColumn=""45"" document=""1"" />
+        <entry offset=""0x35"" startLine=""21"" startColumn=""17"" endLine=""21"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x3c"" startLine=""22"" startColumn=""13"" endLine=""22"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x3d"" startLine=""17"" startColumn=""13"" endLine=""17"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x45"" hidden=""true"" document=""1"" />
+        <entry offset=""0x49"" startLine=""24"" startColumn=""13"" endLine=""24"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x4f"" startLine=""25"" startColumn=""9"" endLine=""25"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x50"" startLine=""26"" startColumn=""5"" endLine=""26"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x51"">
         <local name=""b"" il_index=""0"" il_start=""0x0"" il_end=""0x51"" attributes=""0"" />
@@ -1457,13 +1515,16 @@ public class SeqPointForWhile
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
 
             // Offset 0x01 should be:
-            //  <entry offset=""0x1"" hidden=""true"" />
+            //  <entry offset=""0x1"" hidden=""true"" document=""1"" />
             // Move original offset 0x01 to 0x33
-            //  <entry offset=""0x33"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""22"" />
+            //  <entry offset=""0x33"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""22"" document=""1"" />
             // 
             // Note: 16707566 == 0x00FEEFEE
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <entryPoint declaringType=""SeqPointForWhile"" methodName=""Main"" />
   <methods>
     <method containingType=""SeqPointForWhile"" name=""Main"">
@@ -1473,9 +1534,9 @@ public class SeqPointForWhile
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""55"" />
-        <entry offset=""0x5"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""24"" />
-        <entry offset=""0xf"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""55"" document=""1"" />
+        <entry offset=""0x5"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""24"" document=""1"" />
+        <entry offset=""0xf"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x10"">
         <namespace name=""System"" />
@@ -1486,19 +1547,19 @@ public class SeqPointForWhile
         <forward declaringType=""SeqPointForWhile"" methodName=""Main"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" />
-        <entry offset=""0x2"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""30"" />
-        <entry offset=""0x7"" startLine=""18"" startColumn=""13"" endLine=""18"" endColumn=""25"" />
-        <entry offset=""0xc"" startLine=""22"" startColumn=""18"" endLine=""22"" endColumn=""29"" />
-        <entry offset=""0x11"" startLine=""24"" startColumn=""17"" endLine=""24"" endColumn=""27"" />
-        <entry offset=""0x13"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""27"" />
-        <entry offset=""0x1a"" startLine=""26"" startColumn=""13"" endLine=""26"" endColumn=""14"" />
-        <entry offset=""0x1c"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""27"" />
-        <entry offset=""0x1d"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""38"" />
-        <entry offset=""0x22"" startLine=""31"" startColumn=""17"" endLine=""31"" endColumn=""23"" />
-        <entry offset=""0x24"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""22"" />
-        <entry offset=""0x28"" startLine=""34"" startColumn=""9"" endLine=""34"" endColumn=""20"" />
-        <entry offset=""0x2f"" startLine=""35"" startColumn=""5"" endLine=""35"" endColumn=""6"" />
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x7"" startLine=""18"" startColumn=""13"" endLine=""18"" endColumn=""25"" document=""1"" />
+        <entry offset=""0xc"" startLine=""22"" startColumn=""18"" endLine=""22"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x11"" startLine=""24"" startColumn=""17"" endLine=""24"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x13"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x1a"" startLine=""26"" startColumn=""13"" endLine=""26"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x1d"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x22"" startLine=""31"" startColumn=""17"" endLine=""31"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x24"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""22"" document=""1"" />
+        <entry offset=""0x28"" startLine=""34"" startColumn=""9"" endLine=""34"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x2f"" startLine=""35"" startColumn=""5"" endLine=""35"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x30"">
         <scope startOffset=""0x11"" endOffset=""0x1a"">
@@ -1534,6 +1595,9 @@ class C
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.M", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -1544,16 +1608,16 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""14"" endLine=""9"" endColumn=""23"" />
-        <entry offset=""0x3"" hidden=""true"" />
-        <entry offset=""0x5"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
-        <entry offset=""0x6"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""41"" />
-        <entry offset=""0xd"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" />
-        <entry offset=""0xe"" startLine=""9"" startColumn=""31"" endLine=""9"" endColumn=""35"" />
-        <entry offset=""0x15"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""29"" />
-        <entry offset=""0x1c"" hidden=""true"" />
-        <entry offset=""0x1f"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""14"" endLine=""9"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x3"" hidden=""true"" document=""1"" />
+        <entry offset=""0x5"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x6"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""41"" document=""1"" />
+        <entry offset=""0xd"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xe"" startLine=""9"" startColumn=""31"" endLine=""9"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x15"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x1c"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1f"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x20"">
         <scope startOffset=""0x1"" endOffset=""0x1f"">
@@ -1582,6 +1646,9 @@ class C
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.M", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -1590,12 +1657,12 @@ class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
-        <entry offset=""0x1"" hidden=""true"" />
-        <entry offset=""0x3"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""10"" />
-        <entry offset=""0x4"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""41"" />
-        <entry offset=""0xb"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0xc"" hidden=""true"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x4"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""41"" document=""1"" />
+        <entry offset=""0xb"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xc"" hidden=""true"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -1620,6 +1687,9 @@ class C
 }";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.M", @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -1631,14 +1701,14 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""19"" />
-        <entry offset=""0x3"" hidden=""true"" />
-        <entry offset=""0x5"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""10"" />
-        <entry offset=""0x6"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""41"" />
-        <entry offset=""0xd"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
-        <entry offset=""0xe"" startLine=""7"" startColumn=""16"" endLine=""7"" endColumn=""19"" />
-        <entry offset=""0x12"" hidden=""true"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x3"" hidden=""true"" document=""1"" />
+        <entry offset=""0x5"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x6"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""41"" document=""1"" />
+        <entry offset=""0xd"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xe"" startLine=""7"" startColumn=""16"" endLine=""7"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x12"" hidden=""true"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x14"">
         <local name=""i"" il_index=""0"" il_start=""0x0"" il_end=""0x14"" attributes=""0"" />
@@ -1684,6 +1754,9 @@ public class C
 
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <entryPoint declaringType=""C"" methodName=""Main"" />
   <methods>
     <method containingType=""C"" name=""Main"">
@@ -1693,13 +1766,13 @@ public class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""27"" endLine=""6"" endColumn=""34"" />
-        <entry offset=""0x8"" hidden=""true"" />
-        <entry offset=""0xa"" startLine=""6"" startColumn=""18"" endLine=""6"" endColumn=""23"" />
-        <entry offset=""0x11"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""41"" />
-        <entry offset=""0x16"" hidden=""true"" />
-        <entry offset=""0x1a"" startLine=""6"" startColumn=""24"" endLine=""6"" endColumn=""26"" />
-        <entry offset=""0x23"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""27"" endLine=""6"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x8"" hidden=""true"" document=""1"" />
+        <entry offset=""0xa"" startLine=""6"" startColumn=""18"" endLine=""6"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x11"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""41"" document=""1"" />
+        <entry offset=""0x16"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1a"" startLine=""6"" startColumn=""24"" endLine=""6"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x23"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -1739,6 +1812,9 @@ public class C
 
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""Main"">
       <customDebugInfo>
@@ -1752,17 +1828,17 @@ public class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""16"" />
-        <entry offset=""0x2"" startLine=""6"" startColumn=""27"" endLine=""6"" endColumn=""37"" />
-        <entry offset=""0xb"" hidden=""true"" />
-        <entry offset=""0xd"" startLine=""6"" startColumn=""18"" endLine=""6"" endColumn=""23"" />
-        <entry offset=""0x11"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""10"" />
-        <entry offset=""0x12"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""41"" />
-        <entry offset=""0x19"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0x1a"" hidden=""true"" />
-        <entry offset=""0x1e"" startLine=""6"" startColumn=""24"" endLine=""6"" endColumn=""26"" />
-        <entry offset=""0x24"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""16"" document=""1"" />
+        <entry offset=""0x2"" startLine=""6"" startColumn=""27"" endLine=""6"" endColumn=""37"" document=""1"" />
+        <entry offset=""0xb"" hidden=""true"" document=""1"" />
+        <entry offset=""0xd"" startLine=""6"" startColumn=""18"" endLine=""6"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x11"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x12"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""41"" document=""1"" />
+        <entry offset=""0x19"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1a"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1e"" startLine=""6"" startColumn=""24"" endLine=""6"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x24"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x25"">
         <scope startOffset=""0xd"" endOffset=""0x1a"">
@@ -1950,6 +2026,9 @@ class Program
 ", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
 
             v.VerifyPdb(@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Test"">
       <customDebugInfo>
@@ -1974,16 +2053,16 @@ class Program
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" />
-        <entry offset=""0x7"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x8"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""19"" />
-        <entry offset=""0xf"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" />
-        <entry offset=""0x19"" hidden=""true"" />
-        <entry offset=""0x1c"" startLine=""11"" startColumn=""13"" endLine=""12"" endColumn=""30"" />
-        <entry offset=""0x22"" hidden=""true"" />
-        <entry offset=""0x24"" hidden=""true"" />
-        <entry offset=""0x3c"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
-        <entry offset=""0x44"" hidden=""true"" />
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x8"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""19"" document=""1"" />
+        <entry offset=""0xf"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x19"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""11"" startColumn=""13"" endLine=""12"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x22"" hidden=""true"" document=""1"" />
+        <entry offset=""0x24"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3c"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x44"" hidden=""true"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x51"">
         <namespace name=""System"" />
@@ -2220,6 +2299,9 @@ class Program
 ", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
 
             v.VerifyPdb(@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Test"">
       <customDebugInfo>
@@ -2244,17 +2326,17 @@ class Program
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" />
-        <entry offset=""0x7"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x8"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""19"" />
-        <entry offset=""0xf"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" />
-        <entry offset=""0x19"" hidden=""true"" />
-        <entry offset=""0x1c"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""38"" />
-        <entry offset=""0x29"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""40"" />
-        <entry offset=""0x34"" hidden=""true"" />
-        <entry offset=""0x36"" hidden=""true"" />
-        <entry offset=""0x4e"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" />
-        <entry offset=""0x56"" hidden=""true"" />
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x8"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""19"" document=""1"" />
+        <entry offset=""0xf"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x19"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x29"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""40"" document=""1"" />
+        <entry offset=""0x34"" hidden=""true"" document=""1"" />
+        <entry offset=""0x36"" hidden=""true"" document=""1"" />
+        <entry offset=""0x4e"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x56"" hidden=""true"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x63"">
         <namespace name=""System"" />
@@ -2338,6 +2420,9 @@ class Program
 ", sequencePoints: "Program.Test", source: source);
 
             v.VerifyPdb(@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Test"">
       <customDebugInfo>
@@ -2350,17 +2435,17 @@ class Program
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0x2"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""23"" />
-        <entry offset=""0x4"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""24"" />
-        <entry offset=""0x9"" hidden=""true"" />
-        <entry offset=""0xc"" startLine=""13"" startColumn=""17"" endLine=""13"" endColumn=""37"" />
-        <entry offset=""0x12"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" />
-        <entry offset=""0x15"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""14"" />
-        <entry offset=""0x16"" startLine=""15"" startColumn=""15"" endLine=""15"" endColumn=""16"" />
-        <entry offset=""0x17"" startLine=""15"" startColumn=""17"" endLine=""15"" endColumn=""18"" />
-        <entry offset=""0x1a"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x4"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x9"" hidden=""true"" document=""1"" />
+        <entry offset=""0xc"" startLine=""13"" startColumn=""17"" endLine=""13"" endColumn=""37"" document=""1"" />
+        <entry offset=""0x12"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x15"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x16"" startLine=""15"" startColumn=""15"" endLine=""15"" endColumn=""16"" document=""1"" />
+        <entry offset=""0x17"" startLine=""15"" startColumn=""17"" endLine=""15"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x1a"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x1b"">
         <namespace name=""System"" />
@@ -2618,6 +2703,9 @@ class Program
             // we just want this to compile without crashing/asserting
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Main", @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -2632,25 +2720,25 @@ class Program
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
-        <entry offset=""0x1"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""20"" />
-        <entry offset=""0x2"" startLine=""12"" startColumn=""31"" endLine=""12"" endColumn=""47"" />
-        <entry offset=""0x12"" hidden=""true"" />
-        <entry offset=""0x14"" startLine=""12"" startColumn=""22"" endLine=""12"" endColumn=""27"" />
-        <entry offset=""0x1b"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""14"" />
-        <entry offset=""0x1c"" startLine=""14"" startColumn=""17"" endLine=""14"" endColumn=""33"" />
-        <entry offset=""0x23"" hidden=""true"" />
-        <entry offset=""0x29"" startLine=""17"" startColumn=""25"" endLine=""17"" endColumn=""31"" />
-        <entry offset=""0x2b"" startLine=""20"" startColumn=""25"" endLine=""20"" endColumn=""42"" />
-        <entry offset=""0x35"" hidden=""true"" />
-        <entry offset=""0x38"" startLine=""21"" startColumn=""25"" endLine=""21"" endColumn=""26"" />
-        <entry offset=""0x39"" startLine=""22"" startColumn=""25"" endLine=""22"" endColumn=""26"" />
-        <entry offset=""0x3a"" startLine=""24"" startColumn=""25"" endLine=""24"" endColumn=""31"" />
-        <entry offset=""0x3c"" startLine=""26"" startColumn=""13"" endLine=""26"" endColumn=""14"" />
-        <entry offset=""0x3d"" startLine=""12"" startColumn=""28"" endLine=""12"" endColumn=""30"" />
-        <entry offset=""0x47"" hidden=""true"" />
-        <entry offset=""0x51"" hidden=""true"" />
-        <entry offset=""0x52"" startLine=""27"" startColumn=""9"" endLine=""27"" endColumn=""10"" />
+        <entry offset=""0x0"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x2"" startLine=""12"" startColumn=""31"" endLine=""12"" endColumn=""47"" document=""1"" />
+        <entry offset=""0x12"" hidden=""true"" document=""1"" />
+        <entry offset=""0x14"" startLine=""12"" startColumn=""22"" endLine=""12"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x1b"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""14"" startColumn=""17"" endLine=""14"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x23"" hidden=""true"" document=""1"" />
+        <entry offset=""0x29"" startLine=""17"" startColumn=""25"" endLine=""17"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x2b"" startLine=""20"" startColumn=""25"" endLine=""20"" endColumn=""42"" document=""1"" />
+        <entry offset=""0x35"" hidden=""true"" document=""1"" />
+        <entry offset=""0x38"" startLine=""21"" startColumn=""25"" endLine=""21"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x39"" startLine=""22"" startColumn=""25"" endLine=""22"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x3a"" startLine=""24"" startColumn=""25"" endLine=""24"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x3c"" startLine=""26"" startColumn=""13"" endLine=""26"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x3d"" startLine=""12"" startColumn=""28"" endLine=""12"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x47"" hidden=""true"" document=""1"" />
+        <entry offset=""0x51"" hidden=""true"" document=""1"" />
+        <entry offset=""0x52"" startLine=""27"" startColumn=""9"" endLine=""27"" endColumn=""10"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x53"">
         <namespace name=""System"" />
@@ -2748,6 +2836,9 @@ public class C
 
             v.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""F"">
       <customDebugInfo>
@@ -2756,7 +2847,7 @@ public class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""50"" endLine=""4"" endColumn=""76"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""50"" endLine=""4"" endColumn=""76"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""C"" name=""Main"">
@@ -2772,17 +2863,17 @@ public class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""16"" />
-        <entry offset=""0x2"" startLine=""8"" startColumn=""37"" endLine=""8"" endColumn=""40"" />
-        <entry offset=""0xa"" hidden=""true"" />
-        <entry offset=""0xc"" startLine=""8"" startColumn=""18"" endLine=""8"" endColumn=""33"" />
-        <entry offset=""0x32"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0x33"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" />
-        <entry offset=""0x3a"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
-        <entry offset=""0x3b"" hidden=""true"" />
-        <entry offset=""0x3f"" startLine=""8"" startColumn=""34"" endLine=""8"" endColumn=""36"" />
-        <entry offset=""0x45"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""16"" document=""1"" />
+        <entry offset=""0x2"" startLine=""8"" startColumn=""37"" endLine=""8"" endColumn=""40"" document=""1"" />
+        <entry offset=""0xa"" hidden=""true"" document=""1"" />
+        <entry offset=""0xc"" startLine=""8"" startColumn=""18"" endLine=""8"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x32"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x33"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" document=""1"" />
+        <entry offset=""0x3a"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x3b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3f"" startLine=""8"" startColumn=""34"" endLine=""8"" endColumn=""36"" document=""1"" />
+        <entry offset=""0x45"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x46"">
         <scope startOffset=""0xc"" endOffset=""0x3b"">
@@ -2844,6 +2935,9 @@ class Student : Person { public double GPA; }
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Operate",
 @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Operate"" parameterNames=""p"">
       <customDebugInfo>
@@ -2860,18 +2954,18 @@ class Student : Person { public double GPA; }
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" />
-        <entry offset=""0x4"" hidden=""true"" />
-        <entry offset=""0x28"" hidden=""true"" />
-        <entry offset=""0x2a"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" />
-        <entry offset=""0x3d"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""57"" />
-        <entry offset=""0x5c"" hidden=""true"" />
-        <entry offset=""0x61"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""57"" />
-        <entry offset=""0x82"" hidden=""true"" />
-        <entry offset=""0x87"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""59"" />
-        <entry offset=""0xa3"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""43"" />
-        <entry offset=""0xb7"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x4"" hidden=""true"" document=""1"" />
+        <entry offset=""0x28"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2a"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" document=""1"" />
+        <entry offset=""0x3d"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""57"" document=""1"" />
+        <entry offset=""0x5c"" hidden=""true"" document=""1"" />
+        <entry offset=""0x61"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""57"" document=""1"" />
+        <entry offset=""0x82"" hidden=""true"" document=""1"" />
+        <entry offset=""0x87"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""59"" document=""1"" />
+        <entry offset=""0xa3"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""43"" document=""1"" />
+        <entry offset=""0xb7"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xba"">
         <scope startOffset=""0x28"" endOffset=""0x5c"">
@@ -2933,6 +3027,9 @@ class Student : Person { public double GPA; }
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Operate",
 @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Operate"" parameterNames=""p"">
       <customDebugInfo>
@@ -2957,19 +3054,19 @@ class Student : Person { public double GPA; }
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" />
-        <entry offset=""0xd"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" />
-        <entry offset=""0xe"" hidden=""true"" />
-        <entry offset=""0x1c"" hidden=""true"" />
-        <entry offset=""0x41"" hidden=""true"" />
-        <entry offset=""0x48"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" />
-        <entry offset=""0x60"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""63"" />
-        <entry offset=""0x70"" hidden=""true"" />
-        <entry offset=""0x79"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""63"" />
-        <entry offset=""0x89"" hidden=""true"" />
-        <entry offset=""0x93"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""65"" />
-        <entry offset=""0xa3"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""49"" />
-        <entry offset=""0xb3"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" />
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0xd"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xe"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1c"" hidden=""true"" document=""1"" />
+        <entry offset=""0x41"" hidden=""true"" document=""1"" />
+        <entry offset=""0x48"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" document=""1"" />
+        <entry offset=""0x60"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""63"" document=""1"" />
+        <entry offset=""0x70"" hidden=""true"" document=""1"" />
+        <entry offset=""0x79"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""63"" document=""1"" />
+        <entry offset=""0x89"" hidden=""true"" document=""1"" />
+        <entry offset=""0x93"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""65"" document=""1"" />
+        <entry offset=""0xa3"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""49"" document=""1"" />
+        <entry offset=""0xb3"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xb6"">
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0xb6"" attributes=""0"" />
@@ -3459,6 +3556,9 @@ public class SeqPointForWhile
 
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""SeqPointForWhile"" name=""Main"">
       <customDebugInfo>
@@ -3470,10 +3570,10 @@ public class SeqPointForWhile
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""55"" />
-        <entry offset=""0x7"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""24"" />
-        <entry offset=""0x13"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""55"" document=""1"" />
+        <entry offset=""0x7"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x13"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x14"">
         <namespace name=""System"" />
@@ -3490,25 +3590,25 @@ public class SeqPointForWhile
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
-        <entry offset=""0x2"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""30"" />
-        <entry offset=""0x7"" startLine=""18"" startColumn=""13"" endLine=""18"" endColumn=""25"" />
-        <entry offset=""0xd"" hidden=""true"" />
-        <entry offset=""0x10"" startLine=""19"" startColumn=""13"" endLine=""19"" endColumn=""14"" />
-        <entry offset=""0x11"" startLine=""20"" startColumn=""17"" endLine=""20"" endColumn=""26"" />
-        <entry offset=""0x13"" startLine=""22"" startColumn=""18"" endLine=""22"" endColumn=""29"" />
-        <entry offset=""0x19"" hidden=""true"" />
-        <entry offset=""0x1c"" startLine=""23"" startColumn=""13"" endLine=""23"" endColumn=""14"" />
-        <entry offset=""0x1d"" startLine=""24"" startColumn=""17"" endLine=""24"" endColumn=""27"" />
-        <entry offset=""0x24"" startLine=""25"" startColumn=""13"" endLine=""25"" endColumn=""14"" />
-        <entry offset=""0x27"" startLine=""27"" startColumn=""13"" endLine=""27"" endColumn=""14"" />
-        <entry offset=""0x28"" startLine=""28"" startColumn=""17"" endLine=""28"" endColumn=""23"" />
-        <entry offset=""0x2a"" startLine=""30"" startColumn=""9"" endLine=""30"" endColumn=""10"" />
-        <entry offset=""0x2b"" startLine=""30"" startColumn=""11"" endLine=""30"" endColumn=""25"" />
-        <entry offset=""0x30"" hidden=""true"" />
-        <entry offset=""0x33"" startLine=""32"" startColumn=""9"" endLine=""32"" endColumn=""20"" />
-        <entry offset=""0x3a"" startLine=""33"" startColumn=""5"" endLine=""33"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x7"" startLine=""18"" startColumn=""13"" endLine=""18"" endColumn=""25"" document=""1"" />
+        <entry offset=""0xd"" hidden=""true"" document=""1"" />
+        <entry offset=""0x10"" startLine=""19"" startColumn=""13"" endLine=""19"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x11"" startLine=""20"" startColumn=""17"" endLine=""20"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x13"" startLine=""22"" startColumn=""18"" endLine=""22"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x19"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""23"" startColumn=""13"" endLine=""23"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x1d"" startLine=""24"" startColumn=""17"" endLine=""24"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x24"" startLine=""25"" startColumn=""13"" endLine=""25"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x27"" startLine=""27"" startColumn=""13"" endLine=""27"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x28"" startLine=""28"" startColumn=""17"" endLine=""28"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x2a"" startLine=""30"" startColumn=""9"" endLine=""30"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2b"" startLine=""30"" startColumn=""11"" endLine=""30"" endColumn=""25"" document=""1"" />
+        <entry offset=""0x30"" hidden=""true"" document=""1"" />
+        <entry offset=""0x33"" startLine=""32"" startColumn=""9"" endLine=""32"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x3a"" startLine=""33"" startColumn=""5"" endLine=""33"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -3579,6 +3679,9 @@ public class SeqPointForWhile
 
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""NS.MyClass"" name="".ctor"">
       <customDebugInfo>
@@ -3588,10 +3691,10 @@ public class SeqPointForWhile
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""25"" />
-        <entry offset=""0x7"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""10"" />
-        <entry offset=""0x8"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""27"" />
-        <entry offset=""0x10"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""25"" document=""1"" />
+        <entry offset=""0x7"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x8"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x10"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""NS.MyClass"" name="".ctor"" parameterNames=""values"">
@@ -3599,10 +3702,10 @@ public class SeqPointForWhile
         <forward declaringType=""NS.MyClass"" methodName="".ctor"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""44"" />
-        <entry offset=""0x7"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" />
-        <entry offset=""0x8"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""57"" />
-        <entry offset=""0x19"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" />
+        <entry offset=""0x0"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""44"" document=""1"" />
+        <entry offset=""0x7"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x8"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""57"" document=""1"" />
+        <entry offset=""0x19"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""NS.MyClass"" name=""Main"">
@@ -3617,14 +3720,14 @@ public class SeqPointForWhile
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" />
-        <entry offset=""0x1"" startLine=""18"" startColumn=""13"" endLine=""18"" endColumn=""25"" />
-        <entry offset=""0x3"" startLine=""18"" startColumn=""27"" endLine=""18"" endColumn=""35"" />
-        <entry offset=""0x5"" startLine=""19"" startColumn=""13"" endLine=""19"" endColumn=""26"" />
-        <entry offset=""0x7"" startLine=""22"" startColumn=""13"" endLine=""22"" endColumn=""40"" />
-        <entry offset=""0xd"" startLine=""25"" startColumn=""13"" endLine=""25"" endColumn=""48"" />
-        <entry offset=""0x25"" startLine=""27"" startColumn=""13"" endLine=""27"" endColumn=""36"" />
-        <entry offset=""0x32"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" />
+        <entry offset=""0x0"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1"" startLine=""18"" startColumn=""13"" endLine=""18"" endColumn=""25"" document=""1"" />
+        <entry offset=""0x3"" startLine=""18"" startColumn=""27"" endLine=""18"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x5"" startLine=""19"" startColumn=""13"" endLine=""19"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x7"" startLine=""22"" startColumn=""13"" endLine=""22"" endColumn=""40"" document=""1"" />
+        <entry offset=""0xd"" startLine=""25"" startColumn=""13"" endLine=""25"" endColumn=""48"" document=""1"" />
+        <entry offset=""0x25"" startLine=""27"" startColumn=""13"" endLine=""27"" endColumn=""36"" document=""1"" />
+        <entry offset=""0x32"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x35"">
         <local name=""intI"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
@@ -3726,6 +3829,9 @@ public class Derived : Base
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Base"" name=""Finalize"">
       <customDebugInfo>
@@ -3734,11 +3840,11 @@ public class Derived : Base
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x2"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""29"" />
-        <entry offset=""0xa"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
-        <entry offset=""0x12"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x2"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""29"" document=""1"" />
+        <entry offset=""0xa"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x12"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x13"">
         <namespace name=""System"" />
@@ -3749,11 +3855,11 @@ public class Derived : Base
         <forward declaringType=""Base"" methodName=""Finalize"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" />
-        <entry offset=""0x2"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""29"" />
-        <entry offset=""0xa"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" />
-        <entry offset=""0x12"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x2"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""29"" document=""1"" />
+        <entry offset=""0xa"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x12"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -3925,6 +4031,9 @@ class C
 ";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
       <customDebugInfo>
@@ -3937,7 +4046,7 @@ class C
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""50"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""50"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;.ctor&gt;b__1_0"" parameterNames=""z"">
@@ -3945,7 +4054,7 @@ class C
         <forward declaringType=""C"" methodName="".ctor"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""43"" endLine=""4"" endColumn=""44"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""43"" endLine=""4"" endColumn=""44"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -3964,6 +4073,9 @@ class C
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
       <customDebugInfo>
@@ -3972,8 +4084,8 @@ class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""14"" />
-        <entry offset=""0x7"" startLine=""4"" startColumn=""16"" endLine=""4"" endColumn=""21"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x7"" startLine=""4"" startColumn=""16"" endLine=""4"" endColumn=""21"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -4000,35 +4112,38 @@ public class C
 
             comp.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""get_AutoProp1"">
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""35"" endLine=""4"" endColumn=""39"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""35"" endLine=""4"" endColumn=""39"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""C"" name=""set_AutoProp1"" parameterNames=""value"">
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""40"" endLine=""4"" endColumn=""52"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""40"" endLine=""4"" endColumn=""52"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""C"" name=""get_AutoProp2"">
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""33"" endLine=""5"" endColumn=""37"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""33"" endLine=""5"" endColumn=""37"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""C"" name=""set_AutoProp2"" parameterNames=""value"">
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""38"" endLine=""5"" endColumn=""42"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""38"" endLine=""5"" endColumn=""42"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""C"" name=""get_AutoProp3"">
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""38"" endLine=""6"" endColumn=""51"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""38"" endLine=""6"" endColumn=""51"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""C"" name=""set_AutoProp3"" parameterNames=""value"">
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""52"" endLine=""6"" endColumn=""56"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""52"" endLine=""6"" endColumn=""56"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -4089,6 +4204,9 @@ public class C
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.Main", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""Main"">
       <customDebugInfo>
@@ -4097,8 +4215,8 @@ public class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -4120,6 +4238,9 @@ public class C
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.Main", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""Main"">
       <customDebugInfo>
@@ -4128,9 +4249,9 @@ public class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""16"" />
-        <entry offset=""0x3"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""16"" document=""1"" />
+        <entry offset=""0x3"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -4199,12 +4320,15 @@ public class SeqPointAfterReturn
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
 
             // Expected are current actual output plus Two extra expected SeqPt:
-            //  <entry offset=""0x73"" startLine=""25"" startColumn=""5"" endLine=""25"" endColumn=""6"" />
-            //  <entry offset=""0x22"" startLine=""52"" startColumn=""5"" endLine=""52"" endColumn=""6"" />
+            //  <entry offset=""0x73"" startLine=""25"" startColumn=""5"" endLine=""25"" endColumn=""6"" document=""1"" />
+            //  <entry offset=""0x22"" startLine=""52"" startColumn=""5"" endLine=""52"" endColumn=""6"" document=""1"" />
             // 
             // Note: NOT include other differences between Roslyn and Dev10, as they are filed in separated bugs
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""SeqPointAfterReturn"" name=""Main"">
       <customDebugInfo>
@@ -4222,26 +4346,26 @@ public class SeqPointAfterReturn
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""21"" />
-        <entry offset=""0x3"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""25"" />
-        <entry offset=""0xb"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""29"" />
-        <entry offset=""0x1b"" hidden=""true"" />
-        <entry offset=""0x1e"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""21"" />
-        <entry offset=""0x20"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""24"" />
-        <entry offset=""0x28"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""28"" />
-        <entry offset=""0x38"" hidden=""true"" />
-        <entry offset=""0x3b"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""27"" />
-        <entry offset=""0x3f"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""40"" />
-        <entry offset=""0x47"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""27"" />
-        <entry offset=""0x54"" hidden=""true"" />
-        <entry offset=""0x58"" startLine=""18"" startColumn=""13"" endLine=""18"" endColumn=""27"" />
-        <entry offset=""0x5c"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""33"" />
-        <entry offset=""0x64"" startLine=""21"" startColumn=""9"" endLine=""21"" endColumn=""28"" />
-        <entry offset=""0x71"" hidden=""true"" />
-        <entry offset=""0x75"" startLine=""22"" startColumn=""13"" endLine=""22"" endColumn=""27"" />
-        <entry offset=""0x79"" startLine=""24"" startColumn=""9"" endLine=""24"" endColumn=""20"" />
-        <entry offset=""0x7e"" startLine=""25"" startColumn=""5"" endLine=""25"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x3"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""25"" document=""1"" />
+        <entry offset=""0xb"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x1b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1e"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x20"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x28"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x38"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3b"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x3f"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""40"" document=""1"" />
+        <entry offset=""0x47"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x54"" hidden=""true"" document=""1"" />
+        <entry offset=""0x58"" startLine=""18"" startColumn=""13"" endLine=""18"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x5c"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x64"" startLine=""21"" startColumn=""9"" endLine=""21"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x71"" hidden=""true"" document=""1"" />
+        <entry offset=""0x75"" startLine=""22"" startColumn=""13"" endLine=""22"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x79"" startLine=""24"" startColumn=""9"" endLine=""24"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x7e"" startLine=""25"" startColumn=""5"" endLine=""25"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x81"">
         <namespace name=""System"" />
@@ -4258,17 +4382,17 @@ public class SeqPointAfterReturn
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""29"" startColumn=""5"" endLine=""29"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""30"" startColumn=""9"" endLine=""30"" endColumn=""30"" />
-        <entry offset=""0x5"" startLine=""31"" startColumn=""9"" endLine=""31"" endColumn=""20"" />
-        <entry offset=""0xa"" hidden=""true"" />
-        <entry offset=""0xd"" startLine=""32"" startColumn=""9"" endLine=""32"" endColumn=""10"" />
-        <entry offset=""0xe"" startLine=""33"" startColumn=""13"" endLine=""33"" endColumn=""28"" />
-        <entry offset=""0x18"" startLine=""34"" startColumn=""9"" endLine=""34"" endColumn=""10"" />
-        <entry offset=""0x1b"" startLine=""36"" startColumn=""9"" endLine=""36"" endColumn=""10"" />
-        <entry offset=""0x1c"" startLine=""37"" startColumn=""13"" endLine=""37"" endColumn=""27"" />
-        <entry offset=""0x26"" startLine=""38"" startColumn=""9"" endLine=""38"" endColumn=""10"" />
-        <entry offset=""0x27"" startLine=""39"" startColumn=""5"" endLine=""39"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""29"" startColumn=""5"" endLine=""29"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""30"" startColumn=""9"" endLine=""30"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x5"" startLine=""31"" startColumn=""9"" endLine=""31"" endColumn=""20"" document=""1"" />
+        <entry offset=""0xa"" hidden=""true"" document=""1"" />
+        <entry offset=""0xd"" startLine=""32"" startColumn=""9"" endLine=""32"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xe"" startLine=""33"" startColumn=""13"" endLine=""33"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x18"" startLine=""34"" startColumn=""9"" endLine=""34"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1b"" startLine=""36"" startColumn=""9"" endLine=""36"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""37"" startColumn=""13"" endLine=""37"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x26"" startLine=""38"" startColumn=""9"" endLine=""38"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x27"" startLine=""39"" startColumn=""5"" endLine=""39"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x28"">
         <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x28"" attributes=""0"" />
@@ -4284,15 +4408,15 @@ public class SeqPointAfterReturn
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""42"" startColumn=""5"" endLine=""42"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""43"" startColumn=""9"" endLine=""43"" endColumn=""30"" />
-        <entry offset=""0x5"" startLine=""44"" startColumn=""9"" endLine=""44"" endColumn=""20"" />
-        <entry offset=""0xa"" hidden=""true"" />
-        <entry offset=""0xd"" startLine=""45"" startColumn=""9"" endLine=""45"" endColumn=""10"" />
-        <entry offset=""0xe"" startLine=""46"" startColumn=""13"" endLine=""46"" endColumn=""27"" />
-        <entry offset=""0x16"" startLine=""49"" startColumn=""9"" endLine=""49"" endColumn=""10"" />
-        <entry offset=""0x17"" startLine=""50"" startColumn=""13"" endLine=""50"" endColumn=""26"" />
-        <entry offset=""0x1f"" startLine=""52"" startColumn=""5"" endLine=""52"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""42"" startColumn=""5"" endLine=""42"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""43"" startColumn=""9"" endLine=""43"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x5"" startLine=""44"" startColumn=""9"" endLine=""44"" endColumn=""20"" document=""1"" />
+        <entry offset=""0xa"" hidden=""true"" document=""1"" />
+        <entry offset=""0xd"" startLine=""45"" startColumn=""9"" endLine=""45"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xe"" startLine=""46"" startColumn=""13"" endLine=""46"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x16"" startLine=""49"" startColumn=""9"" endLine=""49"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x17"" startLine=""50"" startColumn=""13"" endLine=""50"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x1f"" startLine=""52"" startColumn=""5"" endLine=""52"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x21"">
         <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x21"" attributes=""0"" />
@@ -4344,6 +4468,9 @@ class Test
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Test.Main", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Test"" name=""Main"">
       <customDebugInfo>
@@ -4357,21 +4484,21 @@ class Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""21"" />
-        <entry offset=""0x3"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""10"" />
-        <entry offset=""0x4"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""42"" />
-        <entry offset=""0xa"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""35"" />
-        <entry offset=""0xb"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" />
-        <entry offset=""0xc"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""21"" />
-        <entry offset=""0xe"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" />
-        <entry offset=""0x11"" hidden=""true"" />
-        <entry offset=""0x12"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" />
-        <entry offset=""0x13"" startLine=""18"" startColumn=""13"" endLine=""18"" endColumn=""42"" />
-        <entry offset=""0x19"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""14"" />
-        <entry offset=""0x1a"" startLine=""21"" startColumn=""9"" endLine=""21"" endColumn=""10"" />
-        <entry offset=""0x1b"" startLine=""22"" startColumn=""13"" endLine=""22"" endColumn=""24"" />
-        <entry offset=""0x1f"" startLine=""25"" startColumn=""5"" endLine=""25"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x3"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x4"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""42"" document=""1"" />
+        <entry offset=""0xa"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""35"" document=""1"" />
+        <entry offset=""0xb"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xc"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""21"" document=""1"" />
+        <entry offset=""0xe"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x11"" hidden=""true"" document=""1"" />
+        <entry offset=""0x12"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x13"" startLine=""18"" startColumn=""13"" endLine=""18"" endColumn=""42"" document=""1"" />
+        <entry offset=""0x19"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x1a"" startLine=""21"" startColumn=""9"" endLine=""21"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1b"" startLine=""22"" startColumn=""13"" endLine=""22"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x1f"" startLine=""25"" startColumn=""5"" endLine=""25"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x21"">
         <local name=""ret"" il_index=""0"" il_start=""0x0"" il_end=""0x21"" attributes=""0"" />
@@ -4492,6 +4619,9 @@ class Test
 
             v.VerifyPdb("Test.Main", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Test"" name=""Main"">
       <customDebugInfo>
@@ -4504,24 +4634,24 @@ class Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
-        <entry offset=""0x2"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""51"" />
-        <entry offset=""0x8"" hidden=""true"" />
-        <entry offset=""0x15"" startLine=""18"" startColumn=""31"" endLine=""18"" endColumn=""55"" />
-        <entry offset=""0x1f"" hidden=""true"" />
-        <entry offset=""0x25"" hidden=""true"" />
-        <entry offset=""0x26"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""10"" />
-        <entry offset=""0x27"" startLine=""20"" startColumn=""13"" endLine=""20"" endColumn=""33"" />
-        <entry offset=""0x2d"" startLine=""21"" startColumn=""9"" endLine=""21"" endColumn=""10"" />
-        <entry offset=""0x30"" hidden=""true"" />
-        <entry offset=""0x3d"" startLine=""22"" startColumn=""29"" endLine=""22"" endColumn=""53"" />
-        <entry offset=""0x47"" hidden=""true"" />
-        <entry offset=""0x4d"" hidden=""true"" />
-        <entry offset=""0x4e"" startLine=""23"" startColumn=""9"" endLine=""23"" endColumn=""10"" />
-        <entry offset=""0x4f"" startLine=""24"" startColumn=""13"" endLine=""24"" endColumn=""33"" />
-        <entry offset=""0x55"" startLine=""25"" startColumn=""9"" endLine=""25"" endColumn=""10"" />
-        <entry offset=""0x58"" startLine=""26"" startColumn=""5"" endLine=""26"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""51"" document=""1"" />
+        <entry offset=""0x8"" hidden=""true"" document=""1"" />
+        <entry offset=""0x15"" startLine=""18"" startColumn=""31"" endLine=""18"" endColumn=""55"" document=""1"" />
+        <entry offset=""0x1f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x25"" hidden=""true"" document=""1"" />
+        <entry offset=""0x26"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x27"" startLine=""20"" startColumn=""13"" endLine=""20"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x2d"" startLine=""21"" startColumn=""9"" endLine=""21"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x30"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3d"" startLine=""22"" startColumn=""29"" endLine=""22"" endColumn=""53"" document=""1"" />
+        <entry offset=""0x47"" hidden=""true"" document=""1"" />
+        <entry offset=""0x4d"" hidden=""true"" document=""1"" />
+        <entry offset=""0x4e"" startLine=""23"" startColumn=""9"" endLine=""23"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x4f"" startLine=""24"" startColumn=""13"" endLine=""24"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x55"" startLine=""25"" startColumn=""9"" endLine=""25"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x58"" startLine=""26"" startColumn=""5"" endLine=""26"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x59"">
         <scope startOffset=""0x8"" endOffset=""0x30"">
@@ -4596,6 +4726,9 @@ class Test
 ", sequencePoints: "Test.Main");
 
             v.VerifyPdb("Test.Main", @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Test"" name=""Main"">
       <customDebugInfo>
@@ -4607,17 +4740,17 @@ class Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""10"" />
-        <entry offset=""0x2"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""42"" />
-        <entry offset=""0x8"" hidden=""true"" />
-        <entry offset=""0x9"" startLine=""10"" startColumn=""15"" endLine=""10"" endColumn=""25"" />
-        <entry offset=""0xf"" hidden=""true"" />
-        <entry offset=""0x15"" hidden=""true"" />
-        <entry offset=""0x16"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
-        <entry offset=""0x17"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""40"" />
-        <entry offset=""0x1d"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
-        <entry offset=""0x20"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""42"" document=""1"" />
+        <entry offset=""0x8"" hidden=""true"" document=""1"" />
+        <entry offset=""0x9"" startLine=""10"" startColumn=""15"" endLine=""10"" endColumn=""25"" document=""1"" />
+        <entry offset=""0xf"" hidden=""true"" document=""1"" />
+        <entry offset=""0x15"" hidden=""true"" document=""1"" />
+        <entry offset=""0x16"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x17"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""40"" document=""1"" />
+        <entry offset=""0x1d"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x20"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -4681,6 +4814,9 @@ class Test
 ", sequencePoints: "Test.Main");
 
             v.VerifyPdb("Test.Main", @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Test"" name=""Main"">
       <customDebugInfo>
@@ -4692,17 +4828,17 @@ class Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0x2"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""42"" />
-        <entry offset=""0x8"" hidden=""true"" />
-        <entry offset=""0x9"" startLine=""12"" startColumn=""15"" endLine=""12"" endColumn=""23"" />
-        <entry offset=""0xf"" hidden=""true"" />
-        <entry offset=""0x15"" hidden=""true"" />
-        <entry offset=""0x16"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
-        <entry offset=""0x17"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""40"" />
-        <entry offset=""0x1d"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
-        <entry offset=""0x20"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""42"" document=""1"" />
+        <entry offset=""0x8"" hidden=""true"" document=""1"" />
+        <entry offset=""0x9"" startLine=""12"" startColumn=""15"" endLine=""12"" endColumn=""23"" document=""1"" />
+        <entry offset=""0xf"" hidden=""true"" document=""1"" />
+        <entry offset=""0x15"" hidden=""true"" document=""1"" />
+        <entry offset=""0x16"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x17"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""40"" document=""1"" />
+        <entry offset=""0x1d"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x20"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -4758,6 +4894,9 @@ class Test
 ", sequencePoints: "Test.Main");
 
             v.VerifyPdb("Test.Main", @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Test"" name=""Main"">
       <customDebugInfo>
@@ -4766,13 +4905,13 @@ class Test
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""42"" />
-        <entry offset=""0x6"" hidden=""true"" />
-        <entry offset=""0x7"" startLine=""12"" startColumn=""15"" endLine=""12"" endColumn=""23"" />
-        <entry offset=""0x11"" hidden=""true"" />
-        <entry offset=""0x12"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""40"" />
-        <entry offset=""0x17"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
-        <entry offset=""0x19"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""42"" document=""1"" />
+        <entry offset=""0x6"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7"" startLine=""12"" startColumn=""15"" endLine=""12"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x11"" hidden=""true"" document=""1"" />
+        <entry offset=""0x12"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""40"" document=""1"" />
+        <entry offset=""0x17"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x19"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -4812,6 +4951,9 @@ class Program
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -4825,21 +4967,21 @@ class Program
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""27"" />
-        <entry offset=""0x3"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""50"" />
-        <entry offset=""0xa"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""22"" />
-        <entry offset=""0xf"" hidden=""true"" />
-        <entry offset=""0x12"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
-        <entry offset=""0x13"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""35"" />
-        <entry offset=""0x19"" hidden=""true"" />
-        <entry offset=""0x1a"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" />
-        <entry offset=""0x1b"" startLine=""18"" startColumn=""13"" endLine=""18"" endColumn=""33"" />
-        <entry offset=""0x21"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""10"" />
-        <entry offset=""0x24"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""14"" />
-        <entry offset=""0x25"" startLine=""21"" startColumn=""9"" endLine=""21"" endColumn=""10"" />
-        <entry offset=""0x26"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" />
-        <entry offset=""0x29"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x3"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""50"" document=""1"" />
+        <entry offset=""0xa"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""22"" document=""1"" />
+        <entry offset=""0xf"" hidden=""true"" document=""1"" />
+        <entry offset=""0x12"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x13"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x19"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1a"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1b"" startLine=""18"" startColumn=""13"" endLine=""18"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x21"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x24"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x25"" startLine=""21"" startColumn=""9"" endLine=""21"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x26"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x29"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2a"">
         <namespace name=""System"" />
@@ -4898,6 +5040,9 @@ class C
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.Main", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""Main"">
       <customDebugInfo>
@@ -4910,28 +5055,28 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""22"" startColumn=""16"" endLine=""22"" endColumn=""60"" />
-        <entry offset=""0xc"" startLine=""22"" startColumn=""62"" endLine=""22"" endColumn=""90"" />
-        <entry offset=""0x17"" startLine=""23"" startColumn=""13"" endLine=""23"" endColumn=""47"" />
-        <entry offset=""0x24"" hidden=""true"" />
-        <entry offset=""0x2e"" hidden=""true"" />
-        <entry offset=""0x2f"" hidden=""true"" />
-        <entry offset=""0x31"" hidden=""true"" />
-        <entry offset=""0x3b"" hidden=""true"" />
-        <entry offset=""0x3c"" startLine=""25"" startColumn=""16"" endLine=""25"" endColumn=""60"" />
-        <entry offset=""0x47"" startLine=""25"" startColumn=""62"" endLine=""25"" endColumn=""90"" />
-        <entry offset=""0x52"" startLine=""26"" startColumn=""9"" endLine=""26"" endColumn=""10"" />
-        <entry offset=""0x53"" startLine=""27"" startColumn=""13"" endLine=""27"" endColumn=""48"" />
-        <entry offset=""0x5e"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" />
-        <entry offset=""0x61"" hidden=""true"" />
-        <entry offset=""0x6b"" hidden=""true"" />
-        <entry offset=""0x6c"" hidden=""true"" />
-        <entry offset=""0x6e"" hidden=""true"" />
-        <entry offset=""0x78"" hidden=""true"" />
-        <entry offset=""0x79"" startLine=""31"" startColumn=""9"" endLine=""31"" endColumn=""10"" />
-        <entry offset=""0x7a"" startLine=""33"" startColumn=""9"" endLine=""33"" endColumn=""10"" />
-        <entry offset=""0x7b"" startLine=""34"" startColumn=""5"" endLine=""34"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""22"" startColumn=""16"" endLine=""22"" endColumn=""60"" document=""1"" />
+        <entry offset=""0xc"" startLine=""22"" startColumn=""62"" endLine=""22"" endColumn=""90"" document=""1"" />
+        <entry offset=""0x17"" startLine=""23"" startColumn=""13"" endLine=""23"" endColumn=""47"" document=""1"" />
+        <entry offset=""0x24"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2e"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x31"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3c"" startLine=""25"" startColumn=""16"" endLine=""25"" endColumn=""60"" document=""1"" />
+        <entry offset=""0x47"" startLine=""25"" startColumn=""62"" endLine=""25"" endColumn=""90"" document=""1"" />
+        <entry offset=""0x52"" startLine=""26"" startColumn=""9"" endLine=""26"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x53"" startLine=""27"" startColumn=""13"" endLine=""27"" endColumn=""48"" document=""1"" />
+        <entry offset=""0x5e"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x61"" hidden=""true"" document=""1"" />
+        <entry offset=""0x6b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x6c"" hidden=""true"" document=""1"" />
+        <entry offset=""0x6e"" hidden=""true"" document=""1"" />
+        <entry offset=""0x78"" hidden=""true"" document=""1"" />
+        <entry offset=""0x79"" startLine=""31"" startColumn=""9"" endLine=""31"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x7a"" startLine=""33"" startColumn=""9"" endLine=""33"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x7b"" startLine=""34"" startColumn=""5"" endLine=""34"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x7c"">
         <scope startOffset=""0x1"" endOffset=""0x3c"">
@@ -5354,6 +5499,9 @@ class Program
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -5365,9 +5513,9 @@ class Program
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""24"" />
-        <entry offset=""0x7"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x7"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x8"">
         <local name=""o"" il_index=""0"" il_start=""0x0"" il_end=""0x8"" attributes=""0"" />
@@ -5392,6 +5540,9 @@ class Program
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -5403,9 +5554,9 @@ class Program
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""31"" />
-        <entry offset=""0x8"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x8"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x9"">
         <local name=""o"" il_index=""0"" il_start=""0x0"" il_end=""0x9"" attributes=""0"" />
@@ -5441,7 +5592,11 @@ unsafe class C
 }
 ";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugExe);
-            c.VerifyPdb(@"<symbols>
+            c.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <entryPoint declaringType=""C"" methodName=""Main"" />
   <methods>
     <method containingType=""C"" name=""Main"">
@@ -5456,15 +5611,15 @@ unsafe class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""23"" />
-        <entry offset=""0xe"" startLine=""11"" startColumn=""16"" endLine=""11"" endColumn=""29"" />
-        <entry offset=""0x11"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" />
-        <entry offset=""0x12"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""20"" />
-        <entry offset=""0x15"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" />
-        <entry offset=""0x16"" hidden=""true"" />
-        <entry offset=""0x19"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""32"" />
-        <entry offset=""0x25"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""23"" document=""1"" />
+        <entry offset=""0xe"" startLine=""11"" startColumn=""16"" endLine=""11"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x11"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x12"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x15"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x16"" hidden=""true"" document=""1"" />
+        <entry offset=""0x19"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""32"" document=""1"" />
+        <entry offset=""0x25"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x26"">
         <namespace name=""System"" />
@@ -5498,6 +5653,9 @@ unsafe class C
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""Main"">
       <customDebugInfo>
@@ -5510,13 +5668,13 @@ unsafe class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x7"" startLine=""8"" startColumn=""16"" endLine=""8"" endColumn=""33"" />
-        <entry offset=""0x15"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0x16"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""35"" />
-        <entry offset=""0x1e"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
-        <entry offset=""0x1f"" hidden=""true"" />
-        <entry offset=""0x21"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x7"" startLine=""8"" startColumn=""16"" endLine=""8"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x15"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x16"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x1e"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x21"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x22"">
         <namespace name=""System"" />
@@ -5552,7 +5710,11 @@ unsafe class C
 }
 ";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugExe);
-            c.VerifyPdb(@"<symbols>
+            c.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <entryPoint declaringType=""C"" methodName=""Main"" />
   <methods>
     <method containingType=""C"" name=""Main"">
@@ -5567,16 +5729,16 @@ unsafe class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""23"" />
-        <entry offset=""0x7"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""31"" />
-        <entry offset=""0x15"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""28"" />
-        <entry offset=""0x32"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
-        <entry offset=""0x33"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""20"" />
-        <entry offset=""0x39"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
-        <entry offset=""0x3a"" hidden=""true"" />
-        <entry offset=""0x3c"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""31"" />
-        <entry offset=""0x4a"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x7"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x15"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x32"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x33"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x39"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x3a"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3c"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x4a"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x4b"">
         <namespace name=""System"" />
@@ -5591,7 +5753,7 @@ unsafe class C
         <forward declaringType=""C"" methodName=""Main"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""26"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""26"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -5623,7 +5785,11 @@ unsafe class C
 ";
             // NOTE: stop on each declarator.
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugExe);
-            c.VerifyPdb(@"<symbols>
+            c.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <entryPoint declaringType=""C"" methodName=""Main"" />
   <methods>
     <method containingType=""C"" name=""Main"">
@@ -5640,17 +5806,17 @@ unsafe class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""23"" />
-        <entry offset=""0xe"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""29"" />
-        <entry offset=""0x19"" startLine=""12"" startColumn=""31"" endLine=""12"" endColumn=""39"" />
-        <entry offset=""0x1d"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
-        <entry offset=""0x1e"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""20"" />
-        <entry offset=""0x21"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""20"" />
-        <entry offset=""0x24"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" />
-        <entry offset=""0x25"" hidden=""true"" />
-        <entry offset=""0x2c"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""38"" />
-        <entry offset=""0x3f"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""23"" document=""1"" />
+        <entry offset=""0xe"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x19"" startLine=""12"" startColumn=""31"" endLine=""12"" endColumn=""39"" document=""1"" />
+        <entry offset=""0x1d"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1e"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x21"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x24"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x25"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2c"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x3f"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x40"">
         <namespace name=""System"" />
@@ -5687,6 +5853,9 @@ unsafe class C
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""Main"">
       <customDebugInfo>
@@ -5701,15 +5870,15 @@ unsafe class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x7"" startLine=""8"" startColumn=""16"" endLine=""8"" endColumn=""33"" />
-        <entry offset=""0x1b"" startLine=""8"" startColumn=""35"" endLine=""8"" endColumn=""48"" />
-        <entry offset=""0x29"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0x2a"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""31"" />
-        <entry offset=""0x32"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""31"" />
-        <entry offset=""0x3a"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" />
-        <entry offset=""0x3b"" hidden=""true"" />
-        <entry offset=""0x3f"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x7"" startLine=""8"" startColumn=""16"" endLine=""8"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x1b"" startLine=""8"" startColumn=""35"" endLine=""8"" endColumn=""48"" document=""1"" />
+        <entry offset=""0x29"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2a"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x32"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x3a"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x3b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3f"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x40"">
         <namespace name=""System"" />
@@ -5750,7 +5919,11 @@ unsafe class C
 }
 ";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugExe);
-            c.VerifyPdb(@"<symbols>
+            c.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <entryPoint declaringType=""C"" methodName=""Main"" />
   <methods>
     <method containingType=""C"" name=""Main"">
@@ -5767,20 +5940,20 @@ unsafe class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""23"" />
-        <entry offset=""0x7"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""31"" />
-        <entry offset=""0x15"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""31"" />
-        <entry offset=""0x23"" startLine=""14"" startColumn=""16"" endLine=""14"" endColumn=""28"" />
-        <entry offset=""0x40"" startLine=""14"" startColumn=""30"" endLine=""14"" endColumn=""37"" />
-        <entry offset=""0x60"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
-        <entry offset=""0x61"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""20"" />
-        <entry offset=""0x64"" startLine=""17"" startColumn=""13"" endLine=""17"" endColumn=""20"" />
-        <entry offset=""0x67"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""10"" />
-        <entry offset=""0x68"" hidden=""true"" />
-        <entry offset=""0x6d"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""31"" />
-        <entry offset=""0x7b"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""31"" />
-        <entry offset=""0x89"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x7"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x15"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x23"" startLine=""14"" startColumn=""16"" endLine=""14"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x40"" startLine=""14"" startColumn=""30"" endLine=""14"" endColumn=""37"" document=""1"" />
+        <entry offset=""0x60"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x61"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x64"" startLine=""17"" startColumn=""13"" endLine=""17"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x67"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x68"" hidden=""true"" document=""1"" />
+        <entry offset=""0x6d"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x7b"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x89"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x8a"">
         <namespace name=""System"" />
@@ -5796,8 +5969,8 @@ unsafe class C
         <forward declaringType=""C"" methodName=""Main"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""26"" />
-        <entry offset=""0xc"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""26"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""26"" document=""1"" />
+        <entry offset=""0xc"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""26"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -5829,6 +6002,9 @@ unsafe class C
 ";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugDll);
             c.VerifyPdb(@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""Main"">
       <customDebugInfo>
@@ -5846,18 +6022,18 @@ unsafe class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""23"" />
-        <entry offset=""0xf"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""30"" />
-        <entry offset=""0x13"" startLine=""12"" startColumn=""32"" endLine=""12"" endColumn=""39"" />
-        <entry offset=""0x3a"" startLine=""12"" startColumn=""41"" endLine=""12"" endColumn=""52"" />
-        <entry offset=""0x49"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
-        <entry offset=""0x4a"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""36"" />
-        <entry offset=""0x52"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""36"" />
-        <entry offset=""0x5a"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""36"" />
-        <entry offset=""0x62"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" />
-        <entry offset=""0x63"" hidden=""true"" />
-        <entry offset=""0x6d"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""23"" document=""1"" />
+        <entry offset=""0xf"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x13"" startLine=""12"" startColumn=""32"" endLine=""12"" endColumn=""39"" document=""1"" />
+        <entry offset=""0x3a"" startLine=""12"" startColumn=""41"" endLine=""12"" endColumn=""52"" document=""1"" />
+        <entry offset=""0x49"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x4a"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""36"" document=""1"" />
+        <entry offset=""0x52"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""36"" document=""1"" />
+        <entry offset=""0x5a"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""36"" document=""1"" />
+        <entry offset=""0x62"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x63"" hidden=""true"" document=""1"" />
+        <entry offset=""0x6d"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x6e"">
         <namespace name=""System"" />
@@ -5874,8 +6050,8 @@ unsafe class C
         <forward declaringType=""C"" methodName=""Main"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""18"" />
-        <entry offset=""0x8"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""28"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x8"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""28"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -5951,6 +6127,9 @@ unsafe class C
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugExe);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <entryPoint declaringType=""C"" methodName=""Main"" />
   <methods>
     <method containingType=""C"" name=""Main"">
@@ -5960,9 +6139,9 @@ unsafe class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""26"" />
-        <entry offset=""0x8"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x8"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x9"">
         <namespace name=""System"" />
@@ -6004,6 +6183,9 @@ public class C
             var compilation = CreateStandardCompilation(text1, options: TestOptions.DebugDll);
             compilation.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""Foo"">
       <customDebugInfo>
@@ -6023,35 +6205,35 @@ public class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""16"" />
-        <entry offset=""0x2"" startLine=""7"" startColumn=""27"" endLine=""7"" endColumn=""51"" />
-        <entry offset=""0x16"" hidden=""true"" />
-        <entry offset=""0x18"" startLine=""7"" startColumn=""18"" endLine=""7"" endColumn=""23"" />
-        <entry offset=""0x1c"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""10"" />
-        <entry offset=""0x1d"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""34"" />
-        <entry offset=""0x24"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
-        <entry offset=""0x25"" hidden=""true"" />
-        <entry offset=""0x29"" startLine=""7"" startColumn=""24"" endLine=""7"" endColumn=""26"" />
-        <entry offset=""0x2f"" hidden=""true"" />
-        <entry offset=""0x30"" hidden=""true"" />
-        <entry offset=""0x45"" hidden=""true"" />
-        <entry offset=""0x47"" hidden=""true"" />
-        <entry offset=""0x4d"" hidden=""true"" />
-        <entry offset=""0x4e"" hidden=""true"" />
-        <entry offset=""0x56"" hidden=""true"" />
-        <entry offset=""0x57"" hidden=""true"" />
-        <entry offset=""0x5d"" hidden=""true"" />
-        <entry offset=""0x64"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""16"" />
-        <entry offset=""0x65"" startLine=""19"" startColumn=""27"" endLine=""19"" endColumn=""51"" />
-        <entry offset=""0x7b"" hidden=""true"" />
-        <entry offset=""0x7d"" startLine=""19"" startColumn=""18"" endLine=""19"" endColumn=""23"" />
-        <entry offset=""0x84"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""10"" />
-        <entry offset=""0x85"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""34"" />
-        <entry offset=""0x8d"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" />
-        <entry offset=""0x8e"" hidden=""true"" />
-        <entry offset=""0x94"" startLine=""19"" startColumn=""24"" endLine=""19"" endColumn=""26"" />
-        <entry offset=""0x9c"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""16"" document=""1"" />
+        <entry offset=""0x2"" startLine=""7"" startColumn=""27"" endLine=""7"" endColumn=""51"" document=""1"" />
+        <entry offset=""0x16"" hidden=""true"" document=""1"" />
+        <entry offset=""0x18"" startLine=""7"" startColumn=""18"" endLine=""7"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1d"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x24"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x25"" hidden=""true"" document=""1"" />
+        <entry offset=""0x29"" startLine=""7"" startColumn=""24"" endLine=""7"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x2f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x30"" hidden=""true"" document=""1"" />
+        <entry offset=""0x45"" hidden=""true"" document=""1"" />
+        <entry offset=""0x47"" hidden=""true"" document=""1"" />
+        <entry offset=""0x4d"" hidden=""true"" document=""1"" />
+        <entry offset=""0x4e"" hidden=""true"" document=""1"" />
+        <entry offset=""0x56"" hidden=""true"" document=""1"" />
+        <entry offset=""0x57"" hidden=""true"" document=""1"" />
+        <entry offset=""0x5d"" hidden=""true"" document=""1"" />
+        <entry offset=""0x64"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""16"" document=""1"" />
+        <entry offset=""0x65"" startLine=""19"" startColumn=""27"" endLine=""19"" endColumn=""51"" document=""1"" />
+        <entry offset=""0x7b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7d"" startLine=""19"" startColumn=""18"" endLine=""19"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x84"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x85"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x8d"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x8e"" hidden=""true"" document=""1"" />
+        <entry offset=""0x94"" startLine=""19"" startColumn=""24"" endLine=""19"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x9c"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x9d"">
         <namespace name=""System"" />
@@ -6108,6 +6290,9 @@ class C
 
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""G"">
       <customDebugInfo>
@@ -6116,9 +6301,9 @@ class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""13"" />
-        <entry offset=""0x7"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""13"" document=""1"" />
+        <entry offset=""0x7"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x8"">
         <namespace name=""System"" />
@@ -6197,6 +6382,9 @@ class C
             // but it doesn't hurt and removing it would need extra effort that's unnecessary.
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""Main"">
       <customDebugInfo>
@@ -6205,9 +6393,9 @@ class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""13"" />
-        <entry offset=""0x7"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""13"" document=""1"" />
+        <entry offset=""0x7"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x8"">
         <namespace name=""System"" />
@@ -6300,6 +6488,9 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""get_P"">
       <customDebugInfo>
@@ -6308,7 +6499,7 @@ class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""21"" endLine=""4"" endColumn=""24"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""21"" endLine=""4"" endColumn=""24"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""C"" name=""M"">
@@ -6316,7 +6507,7 @@ class C
         <forward declaringType=""C"" methodName=""get_P"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""18"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""18"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -6341,6 +6532,9 @@ class C
 
             comp.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""get_Item"" parameterNames=""i"">
       <customDebugInfo>
@@ -6349,7 +6543,7 @@ class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""33"" endLine=""6"" endColumn=""36"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""33"" endLine=""6"" endColumn=""36"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x7"">
         <namespace name=""System"" />
@@ -6360,7 +6554,7 @@ class C
         <forward declaringType=""C"" methodName=""get_Item"" parameterNames=""i"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -6381,6 +6575,9 @@ class C
 
             comp.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""get_P"">
       <customDebugInfo>
@@ -6389,7 +6586,7 @@ class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""23"" endLine=""6"" endColumn=""24"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""23"" endLine=""6"" endColumn=""24"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
@@ -6411,6 +6608,9 @@ class C
 
             comp.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""op_Increment"" parameterNames=""c"">
       <customDebugInfo>
@@ -6419,7 +6619,7 @@ class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""41"" endLine=""4"" endColumn=""42"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""41"" endLine=""4"" endColumn=""42"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -6440,6 +6640,9 @@ class C
 
             comp.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""op_Explicit"" parameterNames=""i"">
       <customDebugInfo>
@@ -6448,7 +6651,7 @@ class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""51"" endLine=""6"" endColumn=""58"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""51"" endLine=""6"" endColumn=""58"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x6"">
         <namespace name=""System"" />
@@ -6472,6 +6675,9 @@ class C
             comp.VerifyDiagnostics();
 
             comp.VerifyPdb(@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name="".ctor"" parameterNames=""x"">
       <customDebugInfo>
@@ -6480,8 +6686,8 @@ class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""22"" />
-        <entry offset=""0x6"" startLine=""7"" startColumn=""26"" endLine=""7"" endColumn=""31"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""22"" document=""1"" />
+        <entry offset=""0x6"" startLine=""7"" startColumn=""26"" endLine=""7"" endColumn=""31"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xe"">
         <namespace name=""System"" />
@@ -6503,6 +6709,9 @@ class C
             comp.VerifyDiagnostics();
 
             comp.VerifyPdb(@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""Finalize"">
       <customDebugInfo>
@@ -6511,9 +6720,9 @@ class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""13"" endLine=""5"" endColumn=""18"" />
-        <entry offset=""0x9"" hidden=""true"" />
-        <entry offset=""0x10"" hidden=""true"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""13"" endLine=""5"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x9"" hidden=""true"" document=""1"" />
+        <entry offset=""0x10"" hidden=""true"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -6541,6 +6750,9 @@ class C
             comp.VerifyDiagnostics();
 
             comp.VerifyPdb(@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""get_X"">
       <customDebugInfo>
@@ -6549,7 +6761,7 @@ class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""16"" endLine=""7"" endColumn=""17"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""16"" endLine=""7"" endColumn=""17"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""C"" name=""set_X"" parameterNames=""value"">
@@ -6557,7 +6769,7 @@ class C
         <forward declaringType=""C"" methodName=""get_X"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""8"" startColumn=""16"" endLine=""8"" endColumn=""25"" />
+        <entry offset=""0x0"" startLine=""8"" startColumn=""16"" endLine=""8"" endColumn=""25"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""C"" name=""add_E"" parameterNames=""value"">
@@ -6565,7 +6777,7 @@ class C
         <forward declaringType=""C"" methodName=""get_X"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""21"" />
+        <entry offset=""0x0"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""21"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""C"" name=""remove_E"" parameterNames=""value"">
@@ -6573,7 +6785,7 @@ class C
         <forward declaringType=""C"" methodName=""get_X"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""13"" startColumn=""19"" endLine=""13"" endColumn=""24"" />
+        <entry offset=""0x0"" startLine=""13"" startColumn=""19"" endLine=""13"" endColumn=""24"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -6605,6 +6817,9 @@ class C
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             c.VerifyPdb("C+<>c.<M>b__0_0",
 @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;M&gt;b__0_0"">
       <customDebugInfo>
@@ -6614,10 +6829,10 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""10"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""39"" />
-        <entry offset=""0x13"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""30"" />
-        <entry offset=""0x39"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
+        <entry offset=""0x0"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""39"" document=""1"" />
+        <entry offset=""0x13"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x39"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x3a"">
         <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x3a"" attributes=""0"" />
@@ -6647,6 +6862,9 @@ class C
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             c.VerifyPdb("C+<F>d__0.MoveNext",
 @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C+&lt;F&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
@@ -6662,20 +6880,20 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" />
-        <entry offset=""0x27"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
-        <entry offset=""0x28"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""35"" />
-        <entry offset=""0x3f"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""16"" />
-        <entry offset=""0x40"" startLine=""8"" startColumn=""27"" endLine=""8"" endColumn=""43"" />
-        <entry offset=""0x7d"" hidden=""true"" />
-        <entry offset=""0x7f"" startLine=""8"" startColumn=""18"" endLine=""8"" endColumn=""23"" />
-        <entry offset=""0x90"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0x91"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""28"" />
-        <entry offset=""0xad"" hidden=""true"" />
-        <entry offset=""0xb5"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
-        <entry offset=""0xb6"" startLine=""8"" startColumn=""24"" endLine=""8"" endColumn=""26"" />
-        <entry offset=""0xd1"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
-        <entry offset=""0xd5"" hidden=""true"" />
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x27"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x28"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x3f"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""16"" document=""1"" />
+        <entry offset=""0x40"" startLine=""8"" startColumn=""27"" endLine=""8"" endColumn=""43"" document=""1"" />
+        <entry offset=""0x7d"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7f"" startLine=""8"" startColumn=""18"" endLine=""8"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x90"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x91"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""28"" document=""1"" />
+        <entry offset=""0xad"" hidden=""true"" document=""1"" />
+        <entry offset=""0xb5"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xb6"" startLine=""8"" startColumn=""24"" endLine=""8"" endColumn=""26"" document=""1"" />
+        <entry offset=""0xd1"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xd5"" hidden=""true"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -6699,6 +6917,9 @@ class C
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             c.VerifyPdb("C+<F>d__0.MoveNext",
 @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C+&lt;F&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
@@ -6712,13 +6933,13 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" />
-        <entry offset=""0x7"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
-        <entry offset=""0x8"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""35"" />
-        <entry offset=""0x1f"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""26"" />
-        <entry offset=""0x4c"" hidden=""true"" />
-        <entry offset=""0x64"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
-        <entry offset=""0x6c"" hidden=""true"" />
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x8"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x1f"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x4c"" hidden=""true"" document=""1"" />
+        <entry offset=""0x64"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x6c"" hidden=""true"" document=""1"" />
       </sequencePoints>
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""F"" />
@@ -6748,6 +6969,9 @@ class C
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             c.VerifyPdb("C+<>c.<M>b__0_0",
 @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;M&gt;b__0_0"">
       <customDebugInfo>
@@ -6761,6 +6985,9 @@ class C
 </symbols>");
             c.VerifyPdb("C+<>c+<<M>b__0_0>d.MoveNext",
 @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C+&lt;&gt;c+&lt;&lt;M&gt;b__0_0&gt;d"" name=""MoveNext"">
       <customDebugInfo>
@@ -6774,13 +7001,13 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" />
-        <entry offset=""0x7"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""10"" />
-        <entry offset=""0x8"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""39"" />
-        <entry offset=""0x1f"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""30"" />
-        <entry offset=""0x4c"" hidden=""true"" />
-        <entry offset=""0x64"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
-        <entry offset=""0x6c"" hidden=""true"" />
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x8"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""39"" document=""1"" />
+        <entry offset=""0x1f"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x4c"" hidden=""true"" document=""1"" />
+        <entry offset=""0x64"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x6c"" hidden=""true"" document=""1"" />
       </sequencePoints>
       <asyncInfo>
         <catchHandler offset=""0x4c"" />
@@ -6801,6 +7028,9 @@ class C
             var source = @"class C { bool F(object o) => o is int i && o is 3 && o is bool; }";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.F", @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""F"" parameterNames=""o"">
       <customDebugInfo>
@@ -6813,7 +7043,7 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""1"" startColumn=""31"" endLine=""1"" endColumn=""64"" />
+        <entry offset=""0x0"" startLine=""1"" startColumn=""31"" endLine=""1"" endColumn=""64"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x35"">
         <local name=""i"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
@@ -6834,6 +7064,9 @@ class C
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
 
             c.VerifyPdb("C.F", @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""F"">
       <customDebugInfo>
@@ -6847,10 +7080,10 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""1"" startColumn=""19"" endLine=""1"" endColumn=""20"" />
-        <entry offset=""0x1"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""55"" />
-        <entry offset=""0x5"" startLine=""1"" startColumn=""56"" endLine=""1"" endColumn=""69"" />
-        <entry offset=""0xb"" startLine=""1"" startColumn=""70"" endLine=""1"" endColumn=""71"" />
+        <entry offset=""0x0"" startLine=""1"" startColumn=""19"" endLine=""1"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x1"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""55"" document=""1"" />
+        <entry offset=""0x5"" startLine=""1"" startColumn=""56"" endLine=""1"" endColumn=""69"" document=""1"" />
+        <entry offset=""0xb"" startLine=""1"" startColumn=""70"" endLine=""1"" endColumn=""71"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xd"">
         <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0xd"" attributes=""0"" />
@@ -6862,12 +7095,61 @@ class C
         }
 
         [Fact]
+        public void TestDeconstruction()
+        {
+            var source = @"
+public class C
+{
+    public static (int, int) F() => (1, 2);
+
+    public static void Main()
+    {
+        int x, y;
+        (x, y) = F();
+        System.Console.WriteLine(x + y);
+    }
+}
+";
+            var c = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+
+            v.VerifyIL("C.Main", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (int V_0, //x
+                int V_1) //y
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: (x, y) = F();
+  IL_0001:  call       ""(int, int) C.F()""
+  IL_0006:  dup
+  IL_0007:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_000c:  stloc.0
+  IL_000d:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0012:  stloc.1
+  // sequence point: System.Console.WriteLine(x + y);
+  IL_0013:  ldloc.0
+  IL_0014:  ldloc.1
+  IL_0015:  add
+  IL_0016:  call       ""void System.Console.WriteLine(int)""
+  IL_001b:  nop
+  // sequence point: }
+  IL_001c:  ret
+}
+", sequencePoints: "C.Main", source: source);
+        }
+
+        [Fact]
         public void SyntaxOffset_TupleParenthesized()
         {
             var source = @"class C { int F() { (int, (int, int)) x = (1, (2, 3)); return x.Item1 + x.Item2.Item1 + x.Item2.Item2; } }";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
 
             c.VerifyPdb("C.F", @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""F"">
       <customDebugInfo>
@@ -6880,10 +7162,10 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""1"" startColumn=""19"" endLine=""1"" endColumn=""20"" />
-        <entry offset=""0x1"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""55"" />
-        <entry offset=""0x10"" startLine=""1"" startColumn=""56"" endLine=""1"" endColumn=""103"" />
-        <entry offset=""0x31"" startLine=""1"" startColumn=""104"" endLine=""1"" endColumn=""105"" />
+        <entry offset=""0x0"" startLine=""1"" startColumn=""19"" endLine=""1"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x1"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""55"" document=""1"" />
+        <entry offset=""0x10"" startLine=""1"" startColumn=""56"" endLine=""1"" endColumn=""103"" document=""1"" />
+        <entry offset=""0x31"" startLine=""1"" startColumn=""104"" endLine=""1"" endColumn=""105"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x33"">
         <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x33"" attributes=""0"" />
@@ -6901,6 +7183,9 @@ class C
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
 
             c.VerifyPdb("C.F", @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""F"">
       <customDebugInfo>
@@ -6913,10 +7198,10 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""1"" startColumn=""19"" endLine=""1"" endColumn=""20"" />
-        <entry offset=""0x1"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""36"" />
-        <entry offset=""0xa"" startLine=""1"" startColumn=""37"" endLine=""1"" endColumn=""62"" />
-        <entry offset=""0x1a"" startLine=""1"" startColumn=""63"" endLine=""1"" endColumn=""64"" />
+        <entry offset=""0x0"" startLine=""1"" startColumn=""19"" endLine=""1"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x1"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""36"" document=""1"" />
+        <entry offset=""0xa"" startLine=""1"" startColumn=""37"" endLine=""1"" endColumn=""62"" document=""1"" />
+        <entry offset=""0x1a"" startLine=""1"" startColumn=""63"" endLine=""1"" endColumn=""64"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x1c"">
         <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x1c"" attributes=""0"" />
@@ -6933,6 +7218,9 @@ class C
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
 
             c.VerifyPdb("C.F", @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""F"">
       <customDebugInfo>
@@ -6948,10 +7236,10 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""1"" startColumn=""19"" endLine=""1"" endColumn=""20"" />
-        <entry offset=""0x1"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""47"" />
-        <entry offset=""0x9"" startLine=""1"" startColumn=""48"" endLine=""1"" endColumn=""73"" />
-        <entry offset=""0x19"" startLine=""1"" startColumn=""74"" endLine=""1"" endColumn=""75"" />
+        <entry offset=""0x0"" startLine=""1"" startColumn=""19"" endLine=""1"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x1"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""47"" document=""1"" />
+        <entry offset=""0x9"" startLine=""1"" startColumn=""48"" endLine=""1"" endColumn=""73"" document=""1"" />
+        <entry offset=""0x19"" startLine=""1"" startColumn=""74"" endLine=""1"" endColumn=""75"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x1b"">
         <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x1b"" attributes=""0"" />
@@ -7017,6 +7305,9 @@ class C
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.G", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""G"" parameterNames=""x"">
       <customDebugInfo>
@@ -7032,12 +7323,12 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""1"" startColumn=""28"" endLine=""1"" endColumn=""29"" />
-        <entry offset=""0x1"" startLine=""1"" startColumn=""30"" endLine=""1"" endColumn=""40"" />
-        <entry offset=""0x3"" startLine=""1"" startColumn=""41"" endLine=""1"" endColumn=""54"" />
-        <entry offset=""0xc"" startLine=""1"" startColumn=""55"" endLine=""1"" endColumn=""68"" />
-        <entry offset=""0x15"" startLine=""1"" startColumn=""69"" endLine=""1"" endColumn=""82"" />
-        <entry offset=""0x1f"" startLine=""1"" startColumn=""83"" endLine=""1"" endColumn=""84"" />
+        <entry offset=""0x0"" startLine=""1"" startColumn=""28"" endLine=""1"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x1"" startLine=""1"" startColumn=""30"" endLine=""1"" endColumn=""40"" document=""1"" />
+        <entry offset=""0x3"" startLine=""1"" startColumn=""41"" endLine=""1"" endColumn=""54"" document=""1"" />
+        <entry offset=""0xc"" startLine=""1"" startColumn=""55"" endLine=""1"" endColumn=""68"" document=""1"" />
+        <entry offset=""0x15"" startLine=""1"" startColumn=""69"" endLine=""1"" endColumn=""82"" document=""1"" />
+        <entry offset=""0x1f"" startLine=""1"" startColumn=""83"" endLine=""1"" endColumn=""84"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x22"">
         <local name=""z"" il_index=""0"" il_start=""0x0"" il_end=""0x22"" attributes=""0"" />
@@ -7314,6 +7605,9 @@ partial class C
 }");
             c.VerifyPdb(
 @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""M"" parameterNames=""o"">
       <customDebugInfo>
@@ -7333,25 +7627,25 @@ partial class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""19"" />
-        <entry offset=""0x3"" hidden=""true"" />
-        <entry offset=""0x56"" startLine=""7"" startColumn=""20"" endLine=""7"" endColumn=""34"" />
-        <entry offset=""0x5b"" startLine=""9"" startColumn=""20"" endLine=""9"" endColumn=""34"" />
-        <entry offset=""0x60"" startLine=""10"" startColumn=""17"" endLine=""10"" endColumn=""23"" />
-        <entry offset=""0x62"" startLine=""11"" startColumn=""20"" endLine=""11"" endColumn=""34"" />
-        <entry offset=""0x67"" startLine=""13"" startColumn=""20"" endLine=""13"" endColumn=""34"" />
-        <entry offset=""0x6c"" startLine=""14"" startColumn=""17"" endLine=""14"" endColumn=""23"" />
-        <entry offset=""0x6e"" startLine=""16"" startColumn=""17"" endLine=""16"" endColumn=""23"" />
-        <entry offset=""0x70"" startLine=""18"" startColumn=""17"" endLine=""18"" endColumn=""23"" />
-        <entry offset=""0x72"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" />
-        <entry offset=""0x75"" hidden=""true"" />
-        <entry offset=""0xa6"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""23"" />
-        <entry offset=""0xa8"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""23"" />
-        <entry offset=""0xaa"" startLine=""27"" startColumn=""9"" endLine=""27"" endColumn=""19"" />
-        <entry offset=""0xad"" hidden=""true"" />
-        <entry offset=""0xb9"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""23"" />
-        <entry offset=""0xbb"" startLine=""32"" startColumn=""5"" endLine=""32"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x3"" hidden=""true"" document=""1"" />
+        <entry offset=""0x56"" startLine=""7"" startColumn=""20"" endLine=""7"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x5b"" startLine=""9"" startColumn=""20"" endLine=""9"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x60"" startLine=""10"" startColumn=""17"" endLine=""10"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x62"" startLine=""11"" startColumn=""20"" endLine=""11"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x67"" startLine=""13"" startColumn=""20"" endLine=""13"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x6c"" startLine=""14"" startColumn=""17"" endLine=""14"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x6e"" startLine=""16"" startColumn=""17"" endLine=""16"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x70"" startLine=""18"" startColumn=""17"" endLine=""18"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x72"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x75"" hidden=""true"" document=""1"" />
+        <entry offset=""0xa6"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""23"" document=""1"" />
+        <entry offset=""0xa8"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""23"" document=""1"" />
+        <entry offset=""0xaa"" startLine=""27"" startColumn=""9"" endLine=""27"" endColumn=""19"" document=""1"" />
+        <entry offset=""0xad"" hidden=""true"" document=""1"" />
+        <entry offset=""0xb9"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""23"" document=""1"" />
+        <entry offset=""0xbb"" startLine=""32"" startColumn=""5"" endLine=""32"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -7380,6 +7674,9 @@ partial class C
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(
 @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -7396,20 +7693,20 @@ partial class C
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" />
-        <entry offset=""0x3"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""44"" />
-        <entry offset=""0x13"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x3"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""44"" document=""1"" />
+        <entry offset=""0x13"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
-    <method containingType=""Program"" name=""&lt;Main&gt;g__Local10_0"" parameterNames=""a"">
+    <method containingType=""Program"" name=""&lt;Main&gt;g__Local1|0_0"" parameterNames=""a"">
       <customDebugInfo>
         <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""13"" endLine=""7"" endColumn=""21"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""13"" endLine=""7"" endColumn=""21"" document=""1"" />
       </sequencePoints>
     </method>
-    <method containingType=""Program"" name=""&lt;Main&gt;g__Local20_1"" parameterNames=""a"">
+    <method containingType=""Program"" name=""&lt;Main&gt;g__Local2|0_1"" parameterNames=""a"">
       <customDebugInfo>
         <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
         <encLocalSlotMap>
@@ -7417,9 +7714,9 @@ partial class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""29"" />
-        <entry offset=""0x7"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x7"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>

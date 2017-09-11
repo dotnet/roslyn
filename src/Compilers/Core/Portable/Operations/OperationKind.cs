@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis
         // Statements that occur only C#.
 
         /// <summary>Indicates an <see cref="IFixedStatement"/>.</summary>
-        FixedStatement = 0x30,
+        // https://github.com/dotnet/roslyn/issues/21281
+        //FixedStatement = 0x30,
 
         LocalFunctionStatement = 0x31,
 
@@ -154,8 +155,10 @@ namespace Microsoft.CodeAnalysis
         SizeOfExpression = 0x202,
         /// <summary>Indicates an <see cref="IAddressOfExpression"/>.</summary>
         AddressOfExpression = 0x203,
-        /// <summary>Indicates an <see cref="IPointerIndirectionReferenceExpression"/>.</summary>
-        PointerIndirectionReferenceExpression = 0x204,
+        // <summary>Indicates an <see cref="IPointerIndirectionReferenceExpression"/>.</summary>
+        // API Removed for V1
+        // https://github.com/dotnet/roslyn/issues/21295
+        //PointerIndirectionReferenceExpression = 0x204,
         /// <summary>Indicates an <see cref="IIsPatternExpression"/>.</summary>
         IsPatternExpression = 0x205,
         /// <summary>Indicates an <see cref="IIncrementExpression"/>.</summary>

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -2578,7 +2578,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: C2 c2
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: C2 C2.op_Implicit(C1 c1)) (OperationKind.ConversionExpression, Type: C2) (Syntax: 'this')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C2 C2.op_Implicit(C1 c1))
-        Operand: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'this')
+        Operand: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'this')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2664,7 +2664,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperatorMethod: System.Int32 C1.op_Implicit(C1 c1)) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: '(int)this')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 C1.op_Implicit(C1 c1))
-                Operand: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'this')
+                Operand: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'this')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i1' is assigned but its value is never used
@@ -2708,7 +2708,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: C2 c2
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C2, IsInvalid) (Syntax: 'this')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid) (Syntax: 'this')
+        Operand: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid) (Syntax: 'this')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'C1' to 'C2'
@@ -2758,7 +2758,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: C3 c3
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: C3 C3.op_Implicit(C2 c2)) (OperationKind.ConversionExpression, Type: C3) (Syntax: 'this')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C3 C3.op_Implicit(C2 c2))
-        Operand: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: C2) (Syntax: 'this')
+        Operand: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2) (Syntax: 'this')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2996,10 +2996,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'num =>/*</bind>*/')
             IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '')
               IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '')
-                ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: '')
-                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
-                        Children(0)
+                ReturnedValue: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+                    Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ';'
@@ -3311,7 +3309,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '(int)/*</bind>*/')
             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+            Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
                 Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -3799,7 +3797,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: I2 i2
     Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I2, IsInvalid) (Syntax: '(I2)()')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+        Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
             Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -4716,7 +4714,7 @@ class C1
 IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'return (int);')
   ReturnedValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '(int)')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+      Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
           Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -4780,7 +4778,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action<System.String>) (Syntax: '(Action<str ... tringAction')
+IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action<System.String>) (Syntax: '(Action<str ... bjectAction')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
   Operand: ILocalReferenceExpression: objectAction (OperationKind.LocalReferenceExpression, Type: System.Action<System.Object>) (Syntax: 'objectAction')
 ";
@@ -4805,14 +4803,14 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action<System.Int32>, IsInvalid) (Syntax: '(Action<int ... tringAction')
+IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action<System.Int32>, IsInvalid) (Syntax: '(Action<int ... bjectAction')
   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: ILocalReferenceExpression: objectAction (OperationKind.LocalReferenceExpression, Type: System.Action<System.Object>, IsInvalid) (Syntax: 'objectAction')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0030: Cannot convert type 'System.Action<object>' to 'System.Action<int>'
                 //         Action<int> intAction = /*<bind>*/(Action<int>)objectAction/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Action<int>)objectAction").WithArguments("System.Action<object>", "System.Action<int>").WithLocation(8, 46)
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Action<int>)objectAction").WithArguments("System.Action<object>", "System.Action<int>").WithLocation(8, 43)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);

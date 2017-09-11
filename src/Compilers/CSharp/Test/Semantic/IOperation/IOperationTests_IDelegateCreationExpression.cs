@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -423,7 +423,7 @@ class Program
             string expectedOperationTree = @"
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: '(Action)M1')
   Target: IMethodBindingExpression: void Program.M1() (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'M1')
-      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M1')
+      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -477,7 +477,7 @@ class Program
             string expectedOperationTree = @"
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M1')
   Target: IMethodBindingExpression: System.Int32 Program.M1() (OperationKind.MethodBindingExpression, Type: null, IsInvalid) (Syntax: 'M1')
-      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
+      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
@@ -627,7 +627,7 @@ class Program
             string expectedOperationTree = @"
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'new Action(M1)')
   Target: IMethodBindingExpression: void Program.M1() (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'M1')
-      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M1')
+      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -836,7 +836,7 @@ class Program
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'new Action((Action)M1)')
   Target: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: '(Action)M1')
       Target: IMethodBindingExpression: void Program.M1() (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'M1')
-          Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M1')
+          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -894,7 +894,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInva
   Children(1):
       IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M1')
         Target: IMethodBindingExpression: System.Int32 Program.M1() (OperationKind.MethodBindingExpression, Type: null, IsInvalid) (Syntax: 'M1')
-            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0407: 'int Program.M1()' has the wrong return type
@@ -958,7 +958,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         Target: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() =>/*</bind>*/')
             IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '')
               IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
-                Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+                Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
                     Children(0)
               IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '')
                 ReturnedValue: null

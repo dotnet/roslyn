@@ -200,11 +200,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     if(assemblyPath != null)
                     {
                         var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
-                        var toolLocalLocation = Path.Combine(assemblyDirectory, toolName);
+                        var desktopToolLocalLocation = Path.Combine(assemblyDirectory, toolName);
+                        var cliToolLocalLocation = Path.Combine(assemblyDirectory, "bincore", toolName);
 
-                        if (File.Exists(toolLocalLocation))
+                        if (File.Exists(desktopToolLocalLocation))
                         {
-                            toolLocation = toolLocalLocation;
+                            toolLocation = desktopToolLocalLocation;
+                        }
+                        else if (File.Exists(cliToolLocalLocation))
+                        {
+                            toolLocation = cliToolLocalLocation;
                         }
                     }
                 }
