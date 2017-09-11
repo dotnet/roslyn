@@ -1106,7 +1106,7 @@ namespace ConsoleApplication1
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_TurkishDottedI()
         {
-            using (new CultureContext(new CultureInfo("tr-TR", false)))
+            using (new CultureContext(new CultureInfo("tr-TR", useUserOverride: false)))
             {
                 await TestAllOptionsOffAsync(
 @"class C
@@ -1137,7 +1137,7 @@ namespace ConsoleApplication1
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_TurkishUndottedI()
         {
-            using (new CultureContext(new CultureInfo("tr-TR", false)))
+            using (new CultureContext(new CultureInfo("tr-TR", useUserOverride: false)))
             {
                 await TestAllOptionsOffAsync(
 @"class C
@@ -1168,7 +1168,7 @@ namespace ConsoleApplication1
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_Arabic()
         {
-            using (new CultureContext(new CultureInfo("ar-EG", false)))
+            using (new CultureContext(new CultureInfo("ar-EG", useUserOverride: false)))
             {
                 await TestAllOptionsOffAsync(
 @"class C
@@ -1199,7 +1199,7 @@ namespace ConsoleApplication1
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_Spanish()
         {
-            using (new CultureContext(new CultureInfo("es-ES", false)))
+            using (new CultureContext(new CultureInfo("es-ES", useUserOverride: false)))
             {
                 await TestAllOptionsOffAsync(
 @"class C
@@ -1230,7 +1230,7 @@ namespace ConsoleApplication1
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public async Task AlwaysUseEnglishUSCultureWhenFixingVariableNames_Greek()
         {
-            using (new CultureContext(new CultureInfo("el-GR", false)))
+            using (new CultureContext(new CultureInfo("el-GR", useUserOverride: false)))
             {
                 await TestAllOptionsOffAsync(
 @"class C

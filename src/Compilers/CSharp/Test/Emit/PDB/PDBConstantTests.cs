@@ -476,7 +476,7 @@ class C
     }
 }
 ";
-            using (new CultureContext(new CultureInfo("en-US", false)))
+            using (new CultureContext(new CultureInfo("en-US", useUserOverride: false)))
             {
                 CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
 <symbols>
@@ -769,7 +769,7 @@ class C
     }
 }
 ";
-            using (new CultureContext(new CultureInfo("en-US", false)))
+            using (new CultureContext(new CultureInfo("en-US", useUserOverride: false)))
             {
                 CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
 <symbols>

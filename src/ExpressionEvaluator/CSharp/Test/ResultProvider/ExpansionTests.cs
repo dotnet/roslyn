@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             Verify(FormatResult("new Decimal()", CreateDkmClrValue(new Decimal())), EvalResult("new Decimal()", "0", "decimal", "new Decimal()", editableValue: "0M"));
             // System.DateTime
             // Set currentCulture to en-US for the test to pass in all locales
-            using (new CultureContext(new CultureInfo("en-US", false)))
+            using (new CultureContext(new CultureInfo("en-US", useUserOverride: false)))
             {
                 Verify(FormatResult("new DateTime()", CreateDkmClrValue(new DateTime())), EvalResult("new DateTime()", "{1/1/0001 12:00:00 AM}", "System.DateTime", "new DateTime()", DkmEvaluationResultFlags.Expandable));
             }

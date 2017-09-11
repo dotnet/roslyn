@@ -397,7 +397,7 @@ class C
     }
 }
 ";
-            using (new CultureContext(new CultureInfo("en-US", false)))
+            using (new CultureContext(new CultureInfo("en-US", useUserOverride: false)))
             {
                 var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.ReleaseExe);
                 c.VerifyPdb(@"
