@@ -2007,11 +2007,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expr = BindExpression(node.Operand, diagnostics);
             var type = expr.Type;
             // Report an error if there are no reference types.
-            if ((object)type != null &&
-                (object)type.VisitType((t, a, c) => t.IsErrorType() || t.IsReferenceType, (object)null, canDigThroughNullable: true) == null)
+            if ((object)type != null)
             {
-                // PROTOTYPE(NullableReferenceTypes): Should be a warning, not an error.
-                Error(diagnostics, ErrorCode.ERR_NotNullableOperatorNotReferenceType, node);
+                if ((object)type.VisitType((t, a, c) => t.IsErrorType() || t.IsReferenceType, (object)null, canDigThroughNullable: true) == null)
+                {
+                    // PROTOTYPE(NullableReferenceTypes): Should be a warning, not an error.
+                    Error(diagnostics, ErrorCode.ERR_NotNullableOperatorNotReferenceType, node);
+                }
+                type = type.SetUnknownNullabilityForReferenceTypes();
             }
             return new BoundSuppressNullableWarningExpression(node, expr, type);
         }
