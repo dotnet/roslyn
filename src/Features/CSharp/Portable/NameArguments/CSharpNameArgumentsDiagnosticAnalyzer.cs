@@ -59,11 +59,13 @@ namespace Microsoft.CodeAnalysis.CSharp.NameArguments
         private void ReportDiagnosticIfNeeded(SyntaxNodeAnalysisContext context, OptionSet optionSet,
             ImmutableArray<IParameterSymbol> parameters, SeparatedSyntaxList<ArgumentSyntax> arguments)
         {
+            int paramLength = parameters.Length;
             for (int i = 0; i < arguments.Count; i++)
             {
                 var argument = arguments[i];
                 if (argument.NameColon != null ||
                     !argument.Expression.IsAnyLiteralExpression() ||
+                    i >= paramLength ||
                     parameters[i].IsParams)
                 {
                     continue;
@@ -76,12 +78,14 @@ namespace Microsoft.CodeAnalysis.CSharp.NameArguments
         private void ReportDiagnosticIfNeeded(SyntaxNodeAnalysisContext context, OptionSet optionSet,
             ImmutableArray<IParameterSymbol> parameters, SeparatedSyntaxList<AttributeArgumentSyntax> arguments)
         {
+            int paramLength = parameters.Length;
             for (int i = 0; i < arguments.Count; i++)
             {
                 var argument = arguments[i];
                 if (argument.NameColon != null ||
                     argument.NameEquals != null ||
                     !argument.Expression.IsAnyLiteralExpression() ||
+                    i >= paramLength ||
                     parameters[i].IsParams)
                 {
                     continue;

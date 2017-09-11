@@ -13,9 +13,12 @@ namespace Microsoft.CodeAnalysis.NameArguments
     /// </summary>
     internal abstract class AbstractNameArgumentsDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
+        public const string ParameterName = nameof(ParameterName);
+
         public AbstractNameArgumentsDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.NameArgumentsDiagnosticId,
-               new LocalizableResourceString(nameof(FeaturesResources.Name_literal_argument), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+               new LocalizableResourceString(nameof(FeaturesResources.Name_literal_argument), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+               new LocalizableResourceString(nameof(FeaturesResources.Literal_argument_can_be_named), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
@@ -23,7 +26,6 @@ namespace Microsoft.CodeAnalysis.NameArguments
 
         protected abstract void ReportDiagnosticIfNeeded(SyntaxNodeAnalysisContext context, OptionSet optionSet,
             ImmutableArray<IParameterSymbol> parameters);
-
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.NameArguments
         protected void ReportDiagnostic(SyntaxNodeAnalysisContext context, OptionSet optionSet, SyntaxNode argument, string parameterName)
         {
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
-            builder["ParameterName"] = parameterName;
+            builder[ParameterName] = parameterName;
 
             context.ReportDiagnostic(
                 Diagnostic.Create(GetDescriptorWithSeverity(

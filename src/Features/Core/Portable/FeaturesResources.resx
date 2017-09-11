@@ -1256,6 +1256,9 @@ This version used in: {2}</value>
   <data name="Name_literal_argument" xml:space="preserve">
     <value>Name literal argument</value>
   </data>
+  <data name="Literal_argument_can_be_named" xml:space="preserve">
+    <value>Literal argument can be named</value>
+  </data>
   <data name="Member_name_can_be_simplified" xml:space="preserve">
     <value>Member name can be simplified</value>
   </data>

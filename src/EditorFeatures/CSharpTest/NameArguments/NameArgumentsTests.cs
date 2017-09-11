@@ -294,5 +294,27 @@ class C
     }
 }", parseOptions: s_parseOptions);
         }
+
+        [Fact]
+        public async Task TestFixAllWithParams()
+        {
+            await TestAsync(
+@"
+class C
+{
+    int M(int a, params int[] b)
+    {
+        return M({|FixAllInDocument:1|}, 2, 3);
+    }
+}",
+@"
+class C
+{
+    int M(int a, params int[] b)
+    {
+        return M(a: 1, 2, 3);
+    }
+}", parseOptions: s_parseOptions);
+        }
     }
 }

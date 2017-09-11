@@ -130,7 +130,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsNameArguments)>
-        Public Async Function TestAllLiteralsInArguments() As Task
+        Public Async Function TestAllLiterals() As Task
             Await TestAsync(
 "
 Class C
@@ -147,7 +147,7 @@ End Class", s_parseOptions)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsNameArguments)>
-        Public Async Function TestAllLiteralsInArgumentsWithTrivia() As Task
+        Public Async Function TestAllLiteralsWithTrivia() As Task
             Await TestAsync(
 "
 Class C
@@ -168,7 +168,7 @@ End Class", s_parseOptions)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsNameArguments)>
-        Public Async Function TestAllLiteralsInInvocationWithNesting() As Task
+        Public Async Function TestAllLiteralsWithNesting() As Task
             Await TestAsync(
 "
 Class C
@@ -180,6 +180,23 @@ End Class",
 Class C
     Function M(a As Integer, b As Integer) As Integer
         M(a:=1, M(a:=1, b:=2))
+    End Function
+End Class", s_parseOptions)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsNameArguments)>
+        Public Async Function TestAllLiteralsWithParams() As Task
+            Await TestAsync(
+"
+Class C
+    Function M(a As Integer, ParamArray b() As Integer) As Integer
+        M({|FixAllInDocument:1|}, 2, 3)
+    End Function
+End Class",
+"
+Class C
+    Function M(a As Integer, ParamArray b() As Integer) As Integer
+        M(a:=1, 2, 3)
     End Function
 End Class", s_parseOptions)
         End Function

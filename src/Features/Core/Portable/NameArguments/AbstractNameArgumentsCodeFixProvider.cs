@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.NameArguments
 
             foreach (var diagnostic in diagnostics)
             {
-                var parameterName = diagnostic.Properties["ParameterName"];
+                var parameterName = diagnostic.Properties[AbstractNameArgumentsDiagnosticAnalyzer.ParameterName];
                 var node = root.FindNode(diagnostic.Location.SourceSpan);
                 var newArgument = MakeNamedArgument(parameterName, node);
 

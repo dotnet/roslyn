@@ -48,6 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.NameArguments
                                                        parameters As ImmutableArray(Of IParameterSymbol),
                                                        arguments As SeparatedSyntaxList(Of ArgumentSyntax))
 
+            Dim paramLength As Integer = parameters.Length
             For i As Integer = 0 To arguments.Count - 1
 
                 Dim argument = TryCast(arguments(i), SimpleArgumentSyntax)
@@ -57,6 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.NameArguments
 
                 If argument.NameColonEquals IsNot Nothing OrElse
                     Not argument.Expression.IsAnyLiteralExpression() OrElse
+                    i >= paramLength OrElse
                     parameters(i).IsParams Then
 
                     Continue For

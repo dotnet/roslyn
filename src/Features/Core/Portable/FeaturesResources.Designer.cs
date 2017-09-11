@@ -1873,6 +1873,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Literal argument can be named.
+        /// </summary>
+        internal static string Literal_argument_can_be_named {
+            get {
+                return ResourceManager.GetString("Literal_argument_can_be_named", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Live.
         /// </summary>
         internal static string Live {
