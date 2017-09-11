@@ -3,6 +3,7 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.NameArguments
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.NameArguments
     <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
@@ -10,25 +11,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.NameArguments
         Inherits AbstractNameArgumentsCodeFixProvider
 
         Friend Overrides Function MakeNamedArgument(parameterName As String, node As SyntaxNode) As SyntaxNode
-            Dim newArgument As SyntaxNode
-            Select Case (node.Kind)
-                Case SyntaxKind.SimpleArgument
-                    'newArgument = DirectCast(node, ArgumentSyntax).WithoutTrivia().WithNameEqualsColon(SyntaxFactory.NameColon(parameterName)).WithTriviaFrom(argument)
 
-            End Select
-
-            '    Case ArgumentSyntax argument
-            '        newArgument = argument.WithoutTrivia()
-            '.WithNameColon(SyntaxFactory.NameColon(parameterName)).WithTriviaFrom(argument);
-            '        break;
-            '    Case AttributeArgumentSyntax argument
-            '        newArgument = argument.WithoutTrivia()
-            '.WithNameColon(SyntaxFactory.NameColon(parameterName)).WithTriviaFrom(argument);
-            '        break;
-            '    Default
-            '        Throw ExceptionUtilities.UnexpectedValue(node.Kind());
-
-            Return newArgument
+            Return DirectCast(node, SimpleArgumentSyntax).WithoutTrivia().
+                        WithNameColonEquals(SyntaxFactory.NameColonEquals(SyntaxFactory.IdentifierName(parameterName))).
+                        WithTriviaFrom(node)
         End Function
+
     End Class
 End Namespace

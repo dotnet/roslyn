@@ -8,6 +8,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.NameArguments
 {
+    /// <summary>
+    /// Reports arguments that should be named, based on style preferences. For example, on literals.
+    /// </summary>
     internal abstract class AbstractNameArgumentsDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
         public AbstractNameArgumentsDiagnosticAnalyzer()
@@ -16,9 +19,9 @@ namespace Microsoft.CodeAnalysis.NameArguments
         {
         }
 
-        internal abstract bool LanguageSupportsNonTrailingNamedArguments(ParseOptions options);
+        protected abstract bool LanguageSupportsNonTrailingNamedArguments(ParseOptions options);
 
-        internal abstract void ReportDiagnosticIfNeeded(SyntaxNodeAnalysisContext context, OptionSet optionSet,
+        protected abstract void ReportDiagnosticIfNeeded(SyntaxNodeAnalysisContext context, OptionSet optionSet,
             ImmutableArray<IParameterSymbol> parameters);
 
 
@@ -28,7 +31,7 @@ namespace Microsoft.CodeAnalysis.NameArguments
         public override bool OpenFileOnly(Workspace workspace)
             => false;
 
-        internal void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
+        protected void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var syntaxTree = context.Node.SyntaxTree;
             if (!LanguageSupportsNonTrailingNamedArguments(syntaxTree.Options))
@@ -64,7 +67,7 @@ namespace Microsoft.CodeAnalysis.NameArguments
             ReportDiagnosticIfNeeded(context, optionSet, parameters);
         }
 
-        internal void ReportDiagnostic(SyntaxNodeAnalysisContext context, OptionSet optionSet, SyntaxNode argument, string parameterName)
+        protected void ReportDiagnostic(SyntaxNodeAnalysisContext context, OptionSet optionSet, SyntaxNode argument, string parameterName)
         {
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
             builder["ParameterName"] = parameterName;

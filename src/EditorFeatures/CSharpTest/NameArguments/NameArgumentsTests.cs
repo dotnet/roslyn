@@ -272,5 +272,27 @@ class C
     }
 }", parseOptions: s_parseOptions);
         }
+
+        [Fact]
+        public async Task TestFixAllWithNestings()
+        {
+            await TestAsync(
+@"
+class C
+{
+    int M(int a, int b, int c)
+    {
+        return M(a, {|FixAllInDocument:2|}, M(a, 2, 3));
+    }
+}",
+@"
+class C
+{
+    int M(int a, int b, int c)
+    {
+        return M(a, b: 2, M(a, b: 2, c: 3));
+    }
+}", parseOptions: s_parseOptions);
+        }
     }
 }

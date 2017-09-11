@@ -18,13 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp.NameArguments
                 SyntaxKind.ThisConstructorInitializer, SyntaxKind.ElementAccessExpression,
                 SyntaxKind.Attribute);
 
-        internal override bool LanguageSupportsNonTrailingNamedArguments(ParseOptions options)
+        protected override bool LanguageSupportsNonTrailingNamedArguments(ParseOptions options)
         {
             var parseOptions = (CSharpParseOptions)options;
             return parseOptions.LanguageVersion >= LanguageVersion.CSharp7_2;
         }
 
-        internal override void ReportDiagnosticIfNeeded(SyntaxNodeAnalysisContext context, OptionSet optionSet, ImmutableArray<IParameterSymbol> parameters)
+        protected override void ReportDiagnosticIfNeeded(SyntaxNodeAnalysisContext context, OptionSet optionSet, ImmutableArray<IParameterSymbol> parameters)
         {
             SeparatedSyntaxList<ArgumentSyntax> arguments;
             switch (context.Node)
