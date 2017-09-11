@@ -130,25 +130,55 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
         /// <param name="index">Argument index.</param>
-        public static string GetArgumentName(this IHasDynamicArgumentsExpression dynamicExpression, int index)
+        public static string GetArgumentName(this IDynamicInvocationExpression dynamicExpression, int index)
         {
             if (dynamicExpression == null)
             {
                 throw new ArgumentNullException(nameof(dynamicExpression));
             }
 
-            var expression = (HasDynamicArgumentsExpression)dynamicExpression;
-            if (expression.ArgumentNames.IsDefaultOrEmpty)
+            return GetArgumentName((HasDynamicArgumentsExpression)dynamicExpression, index);
+        }
+
+        /// <summary>
+        /// Get an optional argument name for a named argument to the given <paramref name="dynamicExpression"/> at the given <paramref name="index"/>.
+        /// </summary>
+        /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
+        /// <param name="index">Argument index.</param>
+        public static string GetArgumentName(this IDynamicIndexerAccessExpression dynamicExpression, int index)
+        {
+            if (dynamicExpression == null)
             {
-                return null;
+                throw new ArgumentNullException(nameof(dynamicExpression));
             }
 
-            if (index < 0 || index >= expression.ArgumentNames.Length)
+            return GetArgumentName((HasDynamicArgumentsExpression)dynamicExpression, index);
+        }
+
+        /// <summary>
+        /// Get an optional argument name for a named argument to the given <paramref name="dynamicExpression"/> at the given <paramref name="index"/>.
+        /// </summary>
+        /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
+        /// <param name="index">Argument index.</param>
+        public static string GetArgumentName(this IDynamicObjectCreationExpression dynamicExpression, int index)
+        {
+            if (dynamicExpression == null)
             {
-                throw new ArgumentOutOfRangeException(nameof(index));
+                throw new ArgumentNullException(nameof(dynamicExpression));
             }
 
-            return expression.ArgumentNames[index];
+            return GetArgumentName((HasDynamicArgumentsExpression)dynamicExpression, index);
+        }
+
+        /// <summary>
+        /// Get an optional argument name for a named argument to the given <paramref name="dynamicExpression"/> at the given <paramref name="index"/>.
+        /// </summary>
+        /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
+        /// <param name="index">Argument index.</param>
+        internal static string GetArgumentName(this HasDynamicArgumentsExpression dynamicExpression, int index)
+        {
+            var argumentNames = dynamicExpression.ArgumentNames;
+            return argumentNames.IsDefaultOrEmpty ? null : argumentNames[index];
         }
 
         /// <summary>
@@ -158,32 +188,66 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
         /// <param name="index">Argument index.</param>
-        public static RefKind? GetArgumentRefKind(this IHasDynamicArgumentsExpression dynamicExpression, int index)
+        public static RefKind? GetArgumentRefKind(this IDynamicInvocationExpression dynamicExpression, int index)
         {
             if (dynamicExpression == null)
             {
                 throw new ArgumentNullException(nameof(dynamicExpression));
             }
 
-            var expression = (HasDynamicArgumentsExpression)dynamicExpression;
-            if (expression.ArgumentRefKinds.IsDefault)
+            return GetArgumentRefKind((HasDynamicArgumentsExpression)dynamicExpression, index);
+        }
+
+        /// <summary>
+        /// Get an optional argument <see cref="RefKind"/> for an argument at the given <paramref name="index"/> to the given <paramref name="dynamicExpression"/>.
+        /// Returns a non-null argument <see cref="RefKind"/> for C#.
+        /// Always returns null for VB as <see cref="RefKind"/> cannot be specified for an the argument in VB.
+        /// </summary>
+        /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
+        /// <param name="index">Argument index.</param>
+        public static RefKind? GetArgumentRefKind(this IDynamicIndexerAccessExpression dynamicExpression, int index)
+        {
+            if (dynamicExpression == null)
+            {
+                throw new ArgumentNullException(nameof(dynamicExpression));
+            }
+
+            return GetArgumentRefKind((HasDynamicArgumentsExpression)dynamicExpression, index);
+        }
+
+        /// <summary>
+        /// Get an optional argument <see cref="RefKind"/> for an argument at the given <paramref name="index"/> to the given <paramref name="dynamicExpression"/>.
+        /// Returns a non-null argument <see cref="RefKind"/> for C#.
+        /// Always returns null for VB as <see cref="RefKind"/> cannot be specified for an the argument in VB.
+        /// </summary>
+        /// <param name="dynamicExpression">Dynamic or late bound expression.</param>
+        /// <param name="index">Argument index.</param>
+        public static RefKind? GetArgumentRefKind(this IDynamicObjectCreationExpression dynamicExpression, int index)
+        {
+            if (dynamicExpression == null)
+            {
+                throw new ArgumentNullException(nameof(dynamicExpression));
+            }
+
+            return GetArgumentRefKind((HasDynamicArgumentsExpression)dynamicExpression, index);
+        }
+
+        internal static RefKind? GetArgumentRefKind(this HasDynamicArgumentsExpression dynamicExpression, int index)
+        {
+            var argumentRefKinds = dynamicExpression.ArgumentRefKinds;
+            if (argumentRefKinds.IsDefault)
             {
                 // VB case, arguments cannot have RefKind.
                 return null;
             }
 
-            if (expression.ArgumentRefKinds.IsEmpty)
+            if (argumentRefKinds.IsEmpty)
             {
                 // C# case where no explicit RefKind was specified for any argument, hence all arguments have RefKind.None.
                 return RefKind.None;
             }
 
-            if (index < 0 || index >= expression.ArgumentRefKinds.Length)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index));
-            }
-
-            return expression.ArgumentRefKinds[index];
+            return argumentRefKinds[index];
         }
     }
 

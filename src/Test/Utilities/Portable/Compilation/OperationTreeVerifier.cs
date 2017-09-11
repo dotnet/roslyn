@@ -621,19 +621,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.ArgumentsInEvaluationOrder, "Arguments", logElementCount: true);
         }
 
-        private void VisitDynamicArguments(IHasDynamicArgumentsExpression operation)
+        private void VisitDynamicArguments(HasDynamicArgumentsExpression operation)
         {
-            var dynamicOperation = (HasDynamicArgumentsExpression)operation;
-            VisitArray(dynamicOperation.ApplicableSymbols, "ApplicableSymbols", logElementCount: true);
-            VisitArray(dynamicOperation.Arguments, "Arguments", logElementCount: true);
-            VisitArray(dynamicOperation.ArgumentNames, "ArgumentNames", logElementCount: true);
-            VisitArray(dynamicOperation.ArgumentRefKinds, "ArgumentRefKinds", logElementCount: true);
+            VisitArray(operation.Arguments, "Arguments", logElementCount: true);
+            VisitArray(operation.ArgumentNames, "ArgumentNames", logElementCount: true);
+            VisitArray(operation.ArgumentRefKinds, "ArgumentRefKinds", logElementCount: true);
 
-            VerifyGetArgumentNamePublicApi(dynamicOperation, dynamicOperation.ArgumentNames);
-            VerifyGetArgumentRefKindPublicApi(dynamicOperation, dynamicOperation.ArgumentRefKinds);
+            VerifyGetArgumentNamePublicApi(operation, operation.ArgumentNames);
+            VerifyGetArgumentRefKindPublicApi(operation, operation.ArgumentRefKinds);
         }
 
-        private static void VerifyGetArgumentNamePublicApi(IHasDynamicArgumentsExpression operation, ImmutableArray<string> argumentNames)
+        private static void VerifyGetArgumentNamePublicApi(HasDynamicArgumentsExpression operation, ImmutableArray<string> argumentNames)
         {
             var length = operation.Arguments.Length;
             if (argumentNames.IsDefaultOrEmpty)
@@ -653,7 +651,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private static void VerifyGetArgumentRefKindPublicApi(IHasDynamicArgumentsExpression operation, ImmutableArray<RefKind> argumentRefKinds)
+        private static void VerifyGetArgumentRefKindPublicApi(HasDynamicArgumentsExpression operation, ImmutableArray<RefKind> argumentRefKinds)
         {
             var length = operation.Arguments.Length;
             if (argumentRefKinds.IsDefault)
@@ -1050,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IDynamicObjectCreationExpression));
             LogCommonPropertiesAndNewLine(operation);
 
-            VisitDynamicArguments(operation);
+            VisitDynamicArguments((HasDynamicArgumentsExpression)operation);
             Visit(operation.Initializer, "Initializer");
         }
 
@@ -1060,7 +1058,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Expression, "Expression");
-            VisitDynamicArguments(operation);
+            VisitDynamicArguments((HasDynamicArgumentsExpression)operation);
         }
 
         public override void VisitDynamicIndexerAccessExpression(IDynamicIndexerAccessExpression operation)
@@ -1069,7 +1067,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Expression, "Expression");
-            VisitDynamicArguments(operation);
+            VisitDynamicArguments((HasDynamicArgumentsExpression)operation);
         }
 
         public override void VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation)

@@ -266,8 +266,10 @@ Microsoft.CodeAnalysis.Semantics.IDeclarationPattern.DeclaredSymbol.get -> Micro
 Microsoft.CodeAnalysis.Semantics.IDefaultCaseClause
 Microsoft.CodeAnalysis.Semantics.IDefaultValueExpression
 Microsoft.CodeAnalysis.Semantics.IDynamicIndexerAccessExpression
+Microsoft.CodeAnalysis.Semantics.IDynamicIndexerAccessExpression.Arguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.IDynamicIndexerAccessExpression.Expression.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IDynamicInvocationExpression
+Microsoft.CodeAnalysis.Semantics.IDynamicInvocationExpression.Arguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.IDynamicInvocationExpression.Expression.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IDynamicMemberReferenceExpression
 Microsoft.CodeAnalysis.Semantics.IDynamicMemberReferenceExpression.ContainingType.get -> Microsoft.CodeAnalysis.ITypeSymbol
@@ -275,6 +277,7 @@ Microsoft.CodeAnalysis.Semantics.IDynamicMemberReferenceExpression.Instance.get 
 Microsoft.CodeAnalysis.Semantics.IDynamicMemberReferenceExpression.MemberName.get -> string
 Microsoft.CodeAnalysis.Semantics.IDynamicMemberReferenceExpression.TypeArguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol>
 Microsoft.CodeAnalysis.Semantics.IDynamicObjectCreationExpression
+Microsoft.CodeAnalysis.Semantics.IDynamicObjectCreationExpression.Arguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.IDynamicObjectCreationExpression.Initializer.get -> Microsoft.CodeAnalysis.Semantics.IObjectOrCollectionInitializerExpression
 Microsoft.CodeAnalysis.Semantics.IEmptyStatement
 Microsoft.CodeAnalysis.Semantics.IEndStatement
@@ -302,9 +305,6 @@ Microsoft.CodeAnalysis.Semantics.IForWhileUntilLoopStatement
 Microsoft.CodeAnalysis.Semantics.IForWhileUntilLoopStatement.Condition.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IHasArgumentsExpression
 Microsoft.CodeAnalysis.Semantics.IHasArgumentsExpression.ArgumentsInEvaluationOrder.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IArgument>
-Microsoft.CodeAnalysis.Semantics.IHasDynamicArgumentsExpression
-Microsoft.CodeAnalysis.Semantics.IHasDynamicArgumentsExpression.ApplicableSymbols.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol>
-Microsoft.CodeAnalysis.Semantics.IHasDynamicArgumentsExpression.Arguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.IHasOperatorMethodExpression
 Microsoft.CodeAnalysis.Semantics.IHasOperatorMethodExpression.OperatorMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Semantics.IHasOperatorMethodExpression.UsesOperatorMethod.get -> bool
@@ -490,8 +490,12 @@ override Microsoft.CodeAnalysis.Semantics.OperationWalker.DefaultVisit(Microsoft
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.Visit(Microsoft.CodeAnalysis.IOperation operation) -> void
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.Descendants(this Microsoft.CodeAnalysis.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.DescendantsAndSelf(this Microsoft.CodeAnalysis.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
-static Microsoft.CodeAnalysis.Semantics.OperationExtensions.GetArgumentName(this Microsoft.CodeAnalysis.Semantics.IHasDynamicArgumentsExpression dynamicExpression, int index) -> string
-static Microsoft.CodeAnalysis.Semantics.OperationExtensions.GetArgumentRefKind(this Microsoft.CodeAnalysis.Semantics.IHasDynamicArgumentsExpression dynamicExpression, int index) -> Microsoft.CodeAnalysis.RefKind?
+static Microsoft.CodeAnalysis.Semantics.OperationExtensions.GetArgumentName(this Microsoft.CodeAnalysis.Semantics.IDynamicIndexerAccessExpression dynamicExpression, int index) -> string
+static Microsoft.CodeAnalysis.Semantics.OperationExtensions.GetArgumentName(this Microsoft.CodeAnalysis.Semantics.IDynamicInvocationExpression dynamicExpression, int index) -> string
+static Microsoft.CodeAnalysis.Semantics.OperationExtensions.GetArgumentName(this Microsoft.CodeAnalysis.Semantics.IDynamicObjectCreationExpression dynamicExpression, int index) -> string
+static Microsoft.CodeAnalysis.Semantics.OperationExtensions.GetArgumentRefKind(this Microsoft.CodeAnalysis.Semantics.IDynamicIndexerAccessExpression dynamicExpression, int index) -> Microsoft.CodeAnalysis.RefKind?
+static Microsoft.CodeAnalysis.Semantics.OperationExtensions.GetArgumentRefKind(this Microsoft.CodeAnalysis.Semantics.IDynamicInvocationExpression dynamicExpression, int index) -> Microsoft.CodeAnalysis.RefKind?
+static Microsoft.CodeAnalysis.Semantics.OperationExtensions.GetArgumentRefKind(this Microsoft.CodeAnalysis.Semantics.IDynamicObjectCreationExpression dynamicExpression, int index) -> Microsoft.CodeAnalysis.RefKind?
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.GetDeclaredVariables(this Microsoft.CodeAnalysis.Semantics.IVariableDeclarationStatement declarationStatement) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.GetRootOperation(this Microsoft.CodeAnalysis.ISymbol symbol, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.IOperation
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.HasErrors(this Microsoft.CodeAnalysis.IOperation operation, Microsoft.CodeAnalysis.Compilation compilation, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool

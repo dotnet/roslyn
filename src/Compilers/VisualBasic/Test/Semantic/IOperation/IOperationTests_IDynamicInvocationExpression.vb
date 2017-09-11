@@ -24,7 +24,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   Expression: IDynamicMemberReferenceExpression (Member Name: "M2", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'c.M2')
       Type Arguments(0)
       Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'c')
-  ApplicableSymbols(0)
   Arguments(1):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
   ArgumentNames(0)
@@ -59,9 +58,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   Expression: IDynamicMemberReferenceExpression (Member Name: "M2", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'M2')
       Type Arguments(0)
       Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'M2')
-  ApplicableSymbols(2):
-    Symbol: Sub C.M2(c As System.Int32)
-    Symbol: Sub C.M2(c As System.Int64)
   Arguments(1):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
   ArgumentNames(0)
@@ -96,9 +92,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   Expression: IDynamicMemberReferenceExpression (Member Name: "M2", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'M2')
       Type Arguments(0)
       Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'M2')
-  ApplicableSymbols(2):
-    Symbol: Sub C.M2(c As System.Int32, d As System.Object)
-    Symbol: Sub C.M2(c As System.Int64, d As System.Object)
   Arguments(2):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
       IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'e')
@@ -134,9 +127,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   Expression: IDynamicMemberReferenceExpression (Member Name: "M2", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'M2')
       Type Arguments(0)
       Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'M2')
-  ApplicableSymbols(2):
-    Symbol: Sub C.M2(c As System.Int32, d As System.Object)
-    Symbol: Sub C.M2(c As System.Int64, d As System.Object)
   Arguments(2):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
       IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'e')
@@ -177,9 +167,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   Expression: IDynamicMemberReferenceExpression (Member Name: "M2", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'M2')
       Type Arguments(0)
       Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'M2')
-  ApplicableSymbols(2):
-    Symbol: Sub C.M2(ByRef c As System.Int32, ByRef d As System.Object)
-    Symbol: Sub C.M2(ByRef c As System.Int64, ByRef d As System.Object)
   Arguments(2):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
       IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'e')
@@ -254,9 +241,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   Expression: IDynamicMemberReferenceExpression (Member Name: "P1", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'c')
       Type Arguments(0)
       Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
-  ApplicableSymbols(2):
-    Symbol: ReadOnly Property C.P1(x As System.Int32) As System.Int32
-    Symbol: ReadOnly Property C.P1(x As System.String) As System.Int32
   Arguments(1):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
   ArgumentNames(0)
@@ -297,9 +281,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   Expression: IDynamicMemberReferenceExpression (Member Name: "P1", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'c')
       Type Arguments(0)
       Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
-  ApplicableSymbols(2):
-    Symbol: ReadOnly Property C.P1(x As System.Int32, x2 As System.Object) As System.Int32
-    Symbol: ReadOnly Property C.P1(x As System.String, x2 As System.Object) As System.Int32
   Arguments(2):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
@@ -341,9 +322,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   Expression: IDynamicMemberReferenceExpression (Member Name: "P1", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'c')
       Type Arguments(0)
       Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
-  ApplicableSymbols(2):
-    Symbol: ReadOnly Property C.P1(x As System.Int32, x2 As System.Object) As System.Int32
-    Symbol: ReadOnly Property C.P1(x As System.String, x2 As System.Object) As System.Int32
   Arguments(2):
       IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'e')
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
@@ -388,9 +366,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   Expression: IDynamicMemberReferenceExpression (Member Name: "P1", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'c')
       Type Arguments(0)
       Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
-  ApplicableSymbols(2):
-    Symbol: ReadOnly Property C.P1(x As System.Int32, x2 As System.Object) As System.Int32
-    Symbol: ReadOnly Property C.P1(x As System.String, x2 As System.Object) As System.Int32
   Arguments(2):
       IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'e')
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -26,8 +26,6 @@ class C
             string expectedOperationTree = @"
 IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'c[d]')
   Expression: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
-  ApplicableSymbols(1):
-    Symbol: System.Int32 C.this[System.Int32 i] { get; }
   Arguments(1):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
   ArgumentNames(0)
@@ -58,9 +56,6 @@ class C
             string expectedOperationTree = @"
 IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'c[d]')
   Expression: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
-  ApplicableSymbols(2):
-    Symbol: System.Int32 C.this[System.Int32 i] { get; }
-    Symbol: System.Int32 C.this[System.Int64 i] { get; }
   Arguments(1):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
   ArgumentNames(0)
@@ -92,9 +87,6 @@ class C
             string expectedOperationTree = @"
 IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'c[d, ch]')
   Expression: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
-  ApplicableSymbols(2):
-    Symbol: System.Int32 C.this[System.Int32 i, System.Char ch] { get; }
-    Symbol: System.Int32 C.this[System.Int64 i, System.Char ch] { get; }
   Arguments(2):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
       ILocalReferenceExpression: ch (OperationKind.LocalReferenceExpression, Type: System.Char) (Syntax: 'ch')
@@ -126,9 +118,6 @@ class C
             string expectedOperationTree = @"
 IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'c[i: d, ch: e]')
   Expression: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
-  ApplicableSymbols(2):
-    Symbol: System.Int32 C.this[System.Int32 i, System.Char ch] { get; }
-    Symbol: System.Int32 C.this[System.Int64 i, System.Char ch] { get; }
   Arguments(2):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
       IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'e')
@@ -160,8 +149,6 @@ class C
             string expectedOperationTree = @"
 IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'c[i: d, ch: ref e]')
   Expression: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
-  ApplicableSymbols(1):
-    Symbol: System.Int32 C.this[System.Int32 i, ref dynamic ch] { get; }
   Arguments(2):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
       IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'e')
@@ -192,14 +179,11 @@ class C
     {
         var x = /*<bind>*/d[i]/*</bind>*/;
     }
-
-    public int this[int i] => 0;
 }
 ";
             string expectedOperationTree = @"
 IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'd[i]')
   Expression: IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
-  ApplicableSymbols(0)
   Arguments(1):
       IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
   ArgumentNames(0)
@@ -221,8 +205,6 @@ class C
     {
         var x = /*<bind>*/c.M2[i]/*</bind>*/;
     }
-
-    public int this[int i] => 0;
 }
 ";
             string expectedOperationTree = @"
@@ -230,7 +212,6 @@ IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, T
   Expression: IDynamicMemberReferenceExpression (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'c.M2')
       Type Arguments(0)
       Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'c')
-  ApplicableSymbols(0)
   Arguments(1):
       IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
   ArgumentNames(0)
@@ -250,7 +231,7 @@ class C
 {
     dynamic M2 = null;
 
-    void M(dynamic c, int i)
+    void M(C c, int i)
     {
         var x = /*<bind>*/c.M2[i]/*</bind>*/;
     }
@@ -258,20 +239,14 @@ class C
 ";
             string expectedOperationTree = @"
 IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'c.M2[i]')
-  Expression: IDynamicMemberReferenceExpression (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'c.M2')
-      Type Arguments(0)
-      Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'c')
-  ApplicableSymbols(0)
+  Expression: IFieldReferenceExpression: dynamic C.M2 (OperationKind.FieldReferenceExpression, Type: dynamic) (Syntax: 'c.M2')
+      Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
   Arguments(1):
       IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
   ArgumentNames(0)
   ArgumentRefKinds(0)
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0414: The field 'C.M2' is assigned but its value is never used
-                //     dynamic M2 = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "M2").WithArguments("C.M2").WithLocation(4, 13)
-            };
+            var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -296,9 +271,6 @@ class C
             string expectedOperationTree = @"
 IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'c[ref i, c: d]')
   Expression: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
-  ApplicableSymbols(2):
-    Symbol: System.Int32 C.this[ref System.Int32 i, System.Char c] { get; }
-    Symbol: System.Int32 C.this[ref System.Int32 i, System.Int64 c] { get; }
   Arguments(2):
       ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
@@ -342,8 +314,6 @@ class C
             string expectedOperationTree = @"
 IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic, IsInvalid) (Syntax: 'c[delegate { }, y]')
   Expression: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
-  ApplicableSymbols(1):
-    Symbol: System.Int32 C.this[System.Action a, System.Action y] { get; }
   Arguments(2):
       IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'delegate { }')
         IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')

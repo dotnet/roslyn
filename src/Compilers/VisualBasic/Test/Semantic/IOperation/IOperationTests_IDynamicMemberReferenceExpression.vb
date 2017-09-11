@@ -25,7 +25,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   Expression: IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.F')
       Type Arguments(0)
       Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
-  ApplicableSymbols(0)
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -55,7 +54,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
       Type Arguments(1):
         Symbol: System.String
       Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
-  ApplicableSymbols(0)
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -85,7 +83,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
       Type Arguments(1):
         Symbol: ?
       Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
-  ApplicableSymbols(0)
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -118,7 +115,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   Expression: IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.F')
       Type Arguments(0)
       Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
-  ApplicableSymbols(0)
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -147,7 +143,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   Expression: IDynamicMemberReferenceExpression (Member Name: "F", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.F')
       Type Arguments(0)
       Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
-  ApplicableSymbols(0)
   Arguments(1):
       IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
         Children(0)
@@ -186,7 +181,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
       Type Arguments(1):
         Symbol: System.String
       Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
-  ApplicableSymbols(0)
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -217,7 +211,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
         Symbol: System.String
         Symbol: System.Int32
       Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
-  ApplicableSymbols(0)
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -248,7 +241,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
         Symbol: System.String
         Symbol: ?
       Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
-  ApplicableSymbols(0)
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -283,7 +275,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
       Instance Receiver: IDynamicMemberReferenceExpression (Member Name: "Prop1", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.Prop1')
           Type Arguments(0)
           Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
-  ApplicableSymbols(0)
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -315,11 +306,9 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
           Expression: IDynamicMemberReferenceExpression (Member Name: "Method1", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.Method1')
               Type Arguments(0)
               Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
-          ApplicableSymbols(0)
           Arguments(0)
           ArgumentNames(0)
           ArgumentRefKinds(0)
-  ApplicableSymbols(0)
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -350,7 +339,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
       Instance Receiver: IDynamicMemberReferenceExpression (Member Name: "Prop1", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'd.Prop1')
           Type Arguments(0)
           Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'd')
-  ApplicableSymbols(0)
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -385,8 +373,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   Expression: IDynamicMemberReferenceExpression (Member Name: "fun", Containing Type: Module1) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'fun')
       Type Arguments(0)
       Instance Receiver: null
-  ApplicableSymbols(1):
-    Symbol: Sub Module1.fun(Of X)(a As System.Collections.Generic.List(Of X))
   Arguments(1):
       ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
   ArgumentNames(0)
@@ -423,8 +409,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: S
   Expression: IDynamicMemberReferenceExpression (Member Name: "fun", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'c1.fun')
       Type Arguments(0)
       Instance Receiver: ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: Module1.C1) (Syntax: 'c1')
-  ApplicableSymbols(1):
-    Symbol: Sub Module1.C1.fun(Of X)(a As System.Collections.Generic.List(Of X))
   Arguments(1):
       ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
   ArgumentNames(0)

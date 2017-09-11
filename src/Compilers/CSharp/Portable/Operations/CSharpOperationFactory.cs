@@ -501,7 +501,6 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IDynamicObjectCreationExpression CreateBoundDynamicObjectCreationExpressionOperation(BoundDynamicObjectCreationExpression boundDynamicObjectCreationExpression)
         {
-            ImmutableArray<ISymbol> applicableSymbols = StaticCast<ISymbol>.From(boundDynamicObjectCreationExpression.ApplicableMethods);
             Lazy<ImmutableArray<IOperation>> arguments = new Lazy<ImmutableArray<IOperation>>(() => boundDynamicObjectCreationExpression.Arguments.SelectAsArray(n => Create(n)));
             ImmutableArray<string> argumentNames = boundDynamicObjectCreationExpression.ArgumentNamesOpt.NullToEmpty();
             ImmutableArray<RefKind> argumentRefKinds = boundDynamicObjectCreationExpression.ArgumentRefKindsOpt.NullToEmpty();
@@ -510,13 +509,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = boundDynamicObjectCreationExpression.Type;
             Optional<object> constantValue = ConvertToOptional(boundDynamicObjectCreationExpression.ConstantValue);
             bool isImplicit = boundDynamicObjectCreationExpression.WasCompilerGenerated;
-            return new LazyDynamicObjectCreationExpression(applicableSymbols, arguments, argumentNames, argumentRefKinds, initializer, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyDynamicObjectCreationExpression(arguments, argumentNames, argumentRefKinds, initializer, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IDynamicInvocationExpression CreateBoundDynamicInvocationExpressionOperation(BoundDynamicInvocation boundDynamicInvocation)
         {
             Lazy<IOperation> expression = new Lazy<IOperation>(() => Create(boundDynamicInvocation.Expression));
-            ImmutableArray<ISymbol> applicableSymbols = StaticCast<ISymbol>.From(boundDynamicInvocation.ApplicableMethods);
             Lazy<ImmutableArray<IOperation>> arguments = new Lazy<ImmutableArray<IOperation>>(() => boundDynamicInvocation.Arguments.SelectAsArray(n => Create(n)));
             ImmutableArray<string> argumentNames = boundDynamicInvocation.ArgumentNamesOpt.NullToEmpty();
             ImmutableArray<RefKind> argumentRefKinds = boundDynamicInvocation.ArgumentRefKindsOpt.NullToEmpty();
@@ -524,13 +522,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = boundDynamicInvocation.Type;
             Optional<object> constantValue = ConvertToOptional(boundDynamicInvocation.ConstantValue);
             bool isImplicit = boundDynamicInvocation.WasCompilerGenerated;
-            return new LazyDynamicInvocationExpression(expression, applicableSymbols, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyDynamicInvocationExpression(expression, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IDynamicIndexerAccessExpression CreateBoundDynamicIndexerAccessExpressionOperation(BoundDynamicIndexerAccess boundDynamicIndexerAccess)
         {
             Lazy<IOperation> expression = new Lazy<IOperation>(() => Create(boundDynamicIndexerAccess.ReceiverOpt));
-            ImmutableArray<ISymbol> applicableSymbols = StaticCast<ISymbol>.From(boundDynamicIndexerAccess.ApplicableIndexers);
             Lazy<ImmutableArray<IOperation>> arguments = new Lazy<ImmutableArray<IOperation>>(() => boundDynamicIndexerAccess.Arguments.SelectAsArray(n => Create(n)));
             ImmutableArray<string> argumentNames = boundDynamicIndexerAccess.ArgumentNamesOpt.NullToEmpty();
             ImmutableArray<RefKind> argumentRefKinds = boundDynamicIndexerAccess.ArgumentRefKindsOpt.NullToEmpty();
@@ -538,7 +535,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = boundDynamicIndexerAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundDynamicIndexerAccess.ConstantValue);
             bool isImplicit = boundDynamicIndexerAccess.WasCompilerGenerated;
-            return new LazyDynamicIndexerAccessExpression(expression, applicableSymbols, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyDynamicIndexerAccessExpression(expression, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IObjectOrCollectionInitializerExpression CreateBoundObjectInitializerExpressionOperation(BoundObjectInitializerExpression boundObjectInitializerExpression)

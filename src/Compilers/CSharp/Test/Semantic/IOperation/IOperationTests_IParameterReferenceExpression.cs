@@ -546,7 +546,6 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: dynamic y
     Initializer: IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'd[x]')
         Expression: IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
-        ApplicableSymbols(0)
         Arguments(1):
             IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
         ArgumentNames(0)
@@ -575,7 +574,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: d
   Expression: IDynamicMemberReferenceExpression (Member Name: ""M"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'x.M')
       Type Arguments(0)
       Instance Receiver: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'x')
-  ApplicableSymbols(0)
   Arguments(1):
       IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
   ArgumentNames(0)
@@ -602,7 +600,6 @@ class Class1
             string expectedOperationTree = @"
 IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'x(y)')
   Expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'x')
-  ApplicableSymbols(0)
   Arguments(1):
       IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
   ArgumentNames(0)
@@ -631,9 +628,6 @@ internal class Class
 ";
             string expectedOperationTree = @"
 IDynamicObjectCreationExpression (OperationKind.DynamicObjectCreationExpression, Type: Class) (Syntax: 'new Class(x)')
-  ApplicableSymbols(2):
-    Symbol: Class..ctor(Class x)
-    Symbol: Class..ctor(System.String x)
   Arguments(1):
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'x')
   ArgumentNames(0)

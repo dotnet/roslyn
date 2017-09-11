@@ -592,27 +592,19 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundLateInvocationOperation(boundLateInvocation As BoundLateInvocation) As IOperation
             Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundLateInvocation.Member))
-            Dim applicableSymbols As ImmutableArray(Of ISymbol)
-            If boundLateInvocation.MethodOrPropertyGroupOpt IsNot Nothing Then
-                applicableSymbols = If(boundLateInvocation.MethodOrPropertyGroupOpt.Kind = BoundKind.PropertyGroup,
-                    DirectCast(boundLateInvocation.MethodOrPropertyGroupOpt, BoundPropertyGroup).Properties.As(Of ISymbol),
-                    DirectCast(boundLateInvocation.MethodOrPropertyGroupOpt, BoundMethodGroup).Methods.As(Of ISymbol))
-            Else
-                applicableSymbols = ImmutableArray(Of ISymbol).Empty
-            End If
-
-            Dim arguments As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function()
-                                                                                                                     Return If(boundLateInvocation.ArgumentsOpt.IsDefault,
-                                                                                                                        ImmutableArray(Of IOperation).Empty,
-                                                                                                                        boundLateInvocation.ArgumentsOpt.SelectAsArray(Function(n) Create(n)))
-                                                                                                                 End Function)
+            Dim arguments As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
+                Function()
+                    Return If(boundLateInvocation.ArgumentsOpt.IsDefault,
+                    ImmutableArray(Of IOperation).Empty,
+                    boundLateInvocation.ArgumentsOpt.SelectAsArray(Function(n) Create(n)))
+                End Function)
             Dim argumentNames As ImmutableArray(Of String) = boundLateInvocation.ArgumentNamesOpt
             Dim argumentRefKinds As ImmutableArray(Of RefKind) = Nothing
             Dim syntax As SyntaxNode = boundLateInvocation.Syntax
             Dim type As ITypeSymbol = boundLateInvocation.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundLateInvocation.ConstantValueOpt)
             Dim isImplicit As Boolean = boundLateInvocation.WasCompilerGenerated
-            Return New LazyDynamicInvocationExpression(expression, applicableSymbols, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyDynamicInvocationExpression(expression, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundObjectCreationExpressionOperation(boundObjectCreationExpression As BoundObjectCreationExpression) As IObjectCreationExpression

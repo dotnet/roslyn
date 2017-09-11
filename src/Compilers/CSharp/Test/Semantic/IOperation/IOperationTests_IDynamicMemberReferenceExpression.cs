@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -94,7 +94,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: d
   Expression: IDynamicMemberReferenceExpression (Member Name: ""GetValue"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.GetValue')
       Type Arguments(0)
       Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
-  ApplicableSymbols(0)
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -126,7 +125,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: d
   Expression: IDynamicMemberReferenceExpression (Member Name: """", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd.')
       Type Arguments(0)
       Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
-  ApplicableSymbols(0)
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -162,7 +160,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: d
   Expression: IDynamicMemberReferenceExpression (Member Name: ""GetValue"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.GetValue')
       Type Arguments(0)
       Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
-  ApplicableSymbols(0)
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -199,7 +196,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: d
       Type Arguments(1):
         Symbol: System.Int32
       Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
-  ApplicableSymbols(0)
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -233,7 +229,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: d
         Symbol: System.Int32
         Symbol: ConsoleApp1.C1
       Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
-  ApplicableSymbols(0)
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -303,7 +298,6 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: d
         Symbol: System.Int32
         Symbol: ?
       Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
-  ApplicableSymbols(0)
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -371,11 +365,9 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: d
           Expression: IDynamicMemberReferenceExpression (Member Name: ""Method1"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Method1')
               Type Arguments(0)
               Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
-          ApplicableSymbols(0)
           Arguments(0)
           ArgumentNames(0)
           ArgumentRefKinds(0)
-  ApplicableSymbols(0)
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -412,7 +404,6 @@ IDynamicMemberReferenceExpression (Member Name: ""Prop2"", Containing Type: null
           Type Arguments(1):
             Symbol: System.Int32
           Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
-      ApplicableSymbols(0)
       Arguments(0)
       ArgumentNames(0)
       ArgumentRefKinds(0)
