@@ -310,5 +310,26 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             vbc.RefOnly = true;
             Assert.Equal("/optionstrict:custom /out:test.exe /refonly test.vb", vbc.GenerateResponseFileContents());
         }
+
+        [Fact]
+        public void SharedCompilationId()
+        {
+            var vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.UseSharedCompilation = true;
+            vbc.SharedCompilationId = "testPipeName";
+            Assert.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.UseSharedCompilation = false;
+            vbc.SharedCompilationId = "testPipeName";
+            Assert.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.SharedCompilationId = "testPipeName";
+            Assert.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+        }
     }
 }

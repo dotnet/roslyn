@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                     var responseTask = BuildServerConnection.RunServerCompilation(
                         Language,
-                        SharedCompilationId == "" ? null : SharedCompilationId,
+                        string.IsNullOrEmpty(SharedCompilationId) ? null : SharedCompilationId,
                         GetArguments(commandLineCommands, responseFileCommands).ToList(),
                         buildPaths,
                         keepAlive: null,
