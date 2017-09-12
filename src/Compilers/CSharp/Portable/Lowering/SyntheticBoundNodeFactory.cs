@@ -952,6 +952,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundThrowExpression(thrown.Syntax, thrown, type) { WasCompilerGenerated = true };
         }
 
+        public BoundExpression BreakExpression(BoundBreakExpression operand, TypeSymbol type)
+        {
+            return new BoundBreakExpression(operand.Syntax, operand.Label, type) { WasCompilerGenerated = true };
+        }
+
+        public BoundExpression ContinueExpression(BoundContinueExpression operand, TypeSymbol type)
+        {
+            return new BoundContinueExpression(operand.Syntax, operand.Label, type) { WasCompilerGenerated = true };
+        }
+
+        public BoundExpression ReturnExpression(BoundReturnExpression operand, TypeSymbol type)
+        {
+            return new BoundReturnExpression(operand.Syntax, operand.RefKind, operand.ExpressionOpt, type) { WasCompilerGenerated = true };
+        }
+
         public BoundExpression Null(TypeSymbol type)
         {
             return Null(type, Syntax);

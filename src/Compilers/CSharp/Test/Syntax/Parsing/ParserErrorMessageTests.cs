@@ -3830,7 +3830,7 @@ class Program
             ParseAndValidate(test, Diagnostic(ErrorCode.ERR_InvalidExprTerm, "from").WithArguments("]"));
         }
 
-        [Fact]
+        [Fact(Skip = "TODO(jmp-expr)")]
         public void CS1525ERR_InvalidExprTerm_ReturnInCondition()
         {
             var test = @"class Program

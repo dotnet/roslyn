@@ -306,6 +306,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitThrowExpression((BoundThrowExpression)expression, used);
                     break;
 
+                case BoundKind.BreakExpression:
+                    EmitBreakExpression((BoundBreakExpression)expression, used);
+                    break;
+
+                case BoundKind.ContinueExpression:
+                    EmitContinueExpression((BoundContinueExpression)expression, used);
+                    break;
+
+                case BoundKind.ReturnExpression:
+                    EmitReturnExpression((BoundReturnExpression)expression, used);
+                    break;
+
                 default:
                     // Code gen should not be invoked if there are errors.
                     Debug.Assert(expression.Kind != BoundKind.BadExpression);
@@ -315,6 +327,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
+        private void EmitReturnExpression(BoundReturnExpression node, bool used)
+        {
+            EmitReturn(node, node.ExpressionOpt, node.RefKind);
+            EmitDefaultValue(node.Type, used, node.Syntax);
+        }
+
+        private void EmitContinueExpression(BoundContinueExpression node, bool used)
+        {
+            _builder.EmitBranch(ILOpCode.Br, node.Label);
+            EmitDefaultValue(node.Type, used, node.Syntax);
+        }
+
+        private void EmitBreakExpression(BoundBreakExpression node, bool used)
+        {
+            _builder.EmitBranch(ILOpCode.Br, node.Label);
+            EmitDefaultValue(node.Type, used, node.Syntax);
+        }
+        
         private void EmitThrowExpression(BoundThrowExpression node, bool used)
         {
             this.EmitThrow(node.Expression);

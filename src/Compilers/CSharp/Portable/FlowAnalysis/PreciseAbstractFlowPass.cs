@@ -338,6 +338,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundKind.BreakStatement: return ((BoundBreakStatement)Branch).Label;
                         case BoundKind.ContinueStatement: return ((BoundContinueStatement)Branch).Label;
                         case BoundKind.PatternSwitchLabel: return ((BoundPatternSwitchLabel)Branch).Label;
+                        case BoundKind.BreakExpression: return ((BoundBreakExpression)Branch).Label;
+                        case BoundKind.ContinueExpression: return ((BoundContinueExpression)Branch).Label;
                         default: return null;
                     }
                 }
@@ -1577,6 +1579,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        public override BoundNode VisitReturnExpression(BoundReturnExpression node)
+        {
+            var result = VisitRvalue(node.ExpressionOpt);
+
+            if (node.RefKind != RefKind.None)
+            {
+                WriteArgument(node.ExpressionOpt, node.RefKind, method: null);
+            }
+
+            _pendingBranches.Add(new PendingBranch(node, this.State));
+            SetUnreachable();
+            return result;
+        }
+
         public override BoundNode VisitThisReference(BoundThisReference node)
         {
             return null;
@@ -2311,6 +2327,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundNode VisitBreakStatement(BoundBreakStatement node)
+        {
+            Debug.Assert(!this.IsConditionalState);
+            _pendingBranches.Add(new PendingBranch(node, this.State));
+            SetUnreachable();
+            return null;
+        }
+
+        public override BoundNode VisitBreakExpression(BoundBreakExpression node)
+        {
+            Debug.Assert(!this.IsConditionalState);
+            _pendingBranches.Add(new PendingBranch(node, this.State));
+            SetUnreachable();
+            return null;
+        }
+
+        public override BoundNode VisitContinueExpression(BoundContinueExpression node)
         {
             Debug.Assert(!this.IsConditionalState);
             _pendingBranches.Add(new PendingBranch(node, this.State));

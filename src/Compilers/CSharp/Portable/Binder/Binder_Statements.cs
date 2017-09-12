@@ -3272,8 +3272,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindReturn(ReturnStatementSyntax syntax, DiagnosticBag diagnostics)
         {
-            var refKind = RefKind.None;
-            var expressionSyntax = syntax.Expression?.CheckAndUnwrapRefExpression(diagnostics, out refKind);
+            BoundExpression arg = BindReturnedExpression(syntax, syntax.Expression, syntax.ReturnKeyword, diagnostics, out RefKind refKind, out bool hasErrors);
+            return new BoundReturnStatement(syntax, refKind, arg, hasErrors);
+        }
+
+        private BoundExpression BindReturnedExpression(
+            SyntaxNode syntax, 
+            ExpressionSyntax expression,
+            SyntaxToken returnKeyword, 
+            DiagnosticBag diagnostics,
+            out RefKind refKind, out bool hasErrors)
+        {
+            refKind = RefKind.None;
+            ExpressionSyntax expressionSyntax = expression?.CheckAndUnwrapRefExpression(diagnostics, out refKind);
             BoundExpression arg = null;
             if (expressionSyntax != null)
             {
@@ -3292,16 +3303,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind sigRefKind;
             TypeSymbol retType = GetCurrentReturnType(out sigRefKind);
 
-            bool hasErrors;
             if (IsDirectlyInIterator)
             {
-                diagnostics.Add(ErrorCode.ERR_ReturnInIterator, syntax.ReturnKeyword.GetLocation());
+                diagnostics.Add(ErrorCode.ERR_ReturnInIterator, returnKeyword.GetLocation());
                 hasErrors = true;
             }
             else if (IsInAsyncMethod() && refKind != RefKind.None)
             {
                 // This can happen if we are binding an async anonymous method to a delegate type.
-                diagnostics.Add(ErrorCode.ERR_MustNotHaveRefReturn, syntax.ReturnKeyword.GetLocation());
+                diagnostics.Add(ErrorCode.ERR_MustNotHaveRefReturn, returnKeyword.GetLocation());
                 hasErrors = true;
             }
             else if ((object)retType != null && (refKind != RefKind.None) != (sigRefKind != RefKind.None))
@@ -3309,7 +3319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var errorCode = refKind != RefKind.None
                     ? ErrorCode.ERR_MustNotHaveRefReturn
                     : ErrorCode.ERR_MustHaveRefReturn;
-                diagnostics.Add(errorCode, syntax.ReturnKeyword.GetLocation());
+                diagnostics.Add(errorCode, returnKeyword.GetLocation());
                 hasErrors = true;
             }
             else if (arg != null)
@@ -3323,7 +3333,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasErrors)
             {
-                return new BoundReturnStatement(syntax, refKind, arg, hasErrors: true);
+                refKind = RefKind.None;
+                return arg;
             }
 
             // The return type could be null; we might be attempting to infer the return type either 
@@ -3345,7 +3356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 : ErrorCode.ERR_TaskRetNoObjectRequiredLambda;
 
                             // Anonymous function converted to a void returning delegate cannot return a value
-                            Error(diagnostics, errorCode, syntax.ReturnKeyword);
+                            Error(diagnostics, errorCode, returnKeyword);
 
                             // COMPATIBILITY: The native compiler also produced an error
                             // COMPATIBILITY: "Cannot convert lambda expression to delegate type 'Action' because some of the
@@ -3360,7 +3371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ? ErrorCode.ERR_RetNoObjectRequired
                                 : ErrorCode.ERR_TaskRetNoObjectRequired;
 
-                            Error(diagnostics, errorCode, syntax.ReturnKeyword, container);
+                            Error(diagnostics, errorCode, returnKeyword, container);
                         }
                     }
                 }
@@ -3373,7 +3384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ? retType.GetMemberTypeArgumentsNoUseSiteDiagnostics().Single()
                             : retType;
 
-                        Error(diagnostics, ErrorCode.ERR_RetObjectRequired, syntax.ReturnKeyword, requiredType);
+                        Error(diagnostics, ErrorCode.ERR_RetObjectRequired, returnKeyword, requiredType);
                     }
                     else
                     {
@@ -3390,7 +3401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundReturnStatement(syntax, refKind, arg);
+            return arg;
         }
 
         internal BoundExpression CreateReturnConversion(

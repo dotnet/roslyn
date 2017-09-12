@@ -334,6 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // it is a kind of user defined conversions on IntPtr and in some cases can fail
                                 case ConversionKind.IntPtr:
                                 case ConversionKind.ImplicitThrow:
+                                case ConversionKind.ImplicitJump:
                                     return false;
 
                                 default:

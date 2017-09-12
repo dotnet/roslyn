@@ -1703,6 +1703,25 @@
     </Field>
     <Field Name="Expression" Type="ExpressionSyntax" Optional="false"/>
   </Node>
+  <Node Name="ReturnExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="ReturnExpression" />
+    <Field Name="ReturnKeyword" Type="SyntaxToken">
+      <Kind Name="ReturnKeyword"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax" Optional="true"/>
+  </Node>
+  <Node Name="BreakExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="BreakExpression" />
+    <Field Name="BreakKeyword" Type="SyntaxToken" Optional="false">
+      <Kind Name="BreakKeyword"/>
+    </Field>
+  </Node>
+  <Node Name="ContinueExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="ContinueExpression" />
+    <Field Name="ContinueKeyword" Type="SyntaxToken" Optional="false">
+      <Kind Name="ContinueKeyword"/>
+    </Field>
+  </Node>
   <Node Name="WhenClauseSyntax" Base="CSharpSyntaxNode">
     <Kind Name="WhenClause" />
     <Field Name="WhenKeyword" Type="SyntaxToken">

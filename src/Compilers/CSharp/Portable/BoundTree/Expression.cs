@@ -547,6 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CSharp.ConversionKind.ExplicitEnumeration:
                     case CSharp.ConversionKind.ImplicitEnumeration:
                     case CSharp.ConversionKind.ImplicitThrow:
+                    case CSharp.ConversionKind.ImplicitJump:
                     case CSharp.ConversionKind.ImplicitTupleLiteral:
                     case CSharp.ConversionKind.ImplicitTuple:
                     case CSharp.ConversionKind.ExplicitTupleLiteral:
@@ -2852,7 +2853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    partial class BoundThrowExpression
+    internal partial class BoundThrowExpression
     {
         public override void Accept(OperationVisitor visitor)
         {
@@ -2880,7 +2881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    partial class BoundDiscardExpression
+    internal partial class BoundDiscardExpression
     {
         public override void Accept(OperationVisitor visitor)
         {
@@ -2896,5 +2897,56 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
         protected override OperationKind ExpressionKind => OperationKind.None;
+    }
+
+    internal partial class BoundReturnExpression
+    {
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+
+        protected override OperationKind ExpressionKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.ExpressionOpt);
+    }
+
+    internal partial class BoundBreakExpression
+    {
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+
+        protected override OperationKind ExpressionKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children => ImmutableArray<IOperation>.Empty;
+    }
+
+    internal partial class BoundContinueExpression
+    {
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+
+        protected override OperationKind ExpressionKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children => ImmutableArray<IOperation>.Empty;
     }
 }

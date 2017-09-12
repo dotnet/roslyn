@@ -563,5 +563,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         RefExpression = 9050,
         RefType = 9051,
         ThrowExpression = 9052,
+        ReturnExpression = 9053,
+        BreakExpression = 9054,
+        ContinueExpression = 9055,
     }
 }

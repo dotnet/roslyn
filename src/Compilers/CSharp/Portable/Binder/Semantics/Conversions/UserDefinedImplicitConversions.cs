@@ -608,6 +608,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitTuple:
                     return false;
 
+                case ConversionKind.ImplicitJump:
+                    return true;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

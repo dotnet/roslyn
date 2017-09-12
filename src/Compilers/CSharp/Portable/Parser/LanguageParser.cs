@@ -3087,7 +3087,7 @@ parse_member_name:;
             return _syntaxFactory.ArrowExpressionClause(arrowToken, ParsePossibleRefExpression());
         }
 
-        private ExpressionSyntax ParsePossibleRefExpression()
+        private ExpressionSyntax ParsePossibleRefExpression(bool isInReturnExpression = false)
         {
             var refKeyword = default(SyntaxToken);
             if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
@@ -3096,7 +3096,9 @@ parse_member_name:;
                 refKeyword = CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefLocalsReturns);
             }
 
-            var expression = this.ParseExpressionCore();
+            var expression = isInReturnExpression ?
+                this.ParseSubExpression(Precedence.Coalescing) :
+                this.ParseExpressionCore();
             if (refKeyword != default(SyntaxToken))
             {
                 expression = _syntaxFactory.RefExpression(refKeyword, expression);
@@ -8551,6 +8553,9 @@ tryAgain:
                 case SyntaxKind.DelegateKeyword:
                 case SyntaxKind.ColonColonToken: // bad aliased name
                 case SyntaxKind.ThrowKeyword:
+                case SyntaxKind.ReturnKeyword:
+                case SyntaxKind.BreakKeyword:
+                case SyntaxKind.ContinueKeyword:
                     return true;
                 case SyntaxKind.IdentifierToken:
                     // Specifically allow the from contextual keyword, because it can always be the start of an
@@ -8569,11 +8574,9 @@ tryAgain:
         {
             switch (kind)
             {
-                case SyntaxKind.BreakKeyword:
                 case SyntaxKind.CaseKeyword:
                 case SyntaxKind.CatchKeyword:
                 case SyntaxKind.ConstKeyword:
-                case SyntaxKind.ContinueKeyword:
                 case SyntaxKind.DoKeyword:
                 case SyntaxKind.FinallyKeyword:
                 case SyntaxKind.ForKeyword:
@@ -8581,7 +8584,6 @@ tryAgain:
                 case SyntaxKind.GotoKeyword:
                 case SyntaxKind.IfKeyword:
                 case SyntaxKind.LockKeyword:
-                case SyntaxKind.ReturnKeyword:
                 case SyntaxKind.SwitchKeyword:
                 case SyntaxKind.TryKeyword:
                 case SyntaxKind.UsingKeyword:
@@ -8849,6 +8851,24 @@ tryAgain:
                 return (precedence <= Precedence.Coalescing) ? result :
                     this.AddError(result, ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
             }
+            else if (tk == SyntaxKind.ReturnKeyword)
+            {
+                var result = ParseReturnExpression();
+                return (precedence <= Precedence.Coalescing) ? result :
+                    this.AddError(result, ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
+            }
+            else if (tk == SyntaxKind.BreakKeyword)
+            {
+                var result = ParseBreakExpression();
+                return (precedence <= Precedence.Coalescing) ? result :
+                    this.AddError(result, ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
+            }
+            else if (tk == SyntaxKind.ContinueKeyword)
+            {
+                var result = ParseContinueExpression();
+                return (precedence <= Precedence.Coalescing) ? result :
+                    this.AddError(result, ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
+            }
             else if (this.IsPossibleDeconstructionLeft(precedence))
             {
                 leftOperand = ParseDeclarationExpression(ParseTypeMode.Normal, MessageID.IDS_FeatureTuples);
@@ -8995,6 +9015,39 @@ tryAgain:
             var thrown = this.ParseSubExpression(Precedence.Coalescing);
             var result = _syntaxFactory.ThrowExpression(throwToken, thrown);
             return CheckFeatureAvailability(result, MessageID.IDS_FeatureThrowExpression);
+        }
+
+        private ExpressionSyntax ParseReturnExpression()
+        {
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ReturnKeyword);
+            var @return = this.EatToken(SyntaxKind.ReturnKeyword);
+            ExpressionSyntax arg = null;
+            if (this.CurrentToken.Kind == SyntaxKind.RefKeyword || this.IsPossibleExpression())
+            {
+                arg = this.ParsePossibleRefExpression(isInReturnExpression: true);
+            }
+
+            var result = _syntaxFactory.ReturnExpression(@return, arg);
+            // PROTOTYPE: put behind feature flag
+            return result; 
+        }
+
+        private ExpressionSyntax ParseBreakExpression()
+        {
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.BreakKeyword);
+            var @break = this.EatToken(SyntaxKind.BreakKeyword);
+            var result = _syntaxFactory.BreakExpression(@break);
+            // PROTOTYPE: put behind feature flag
+            return result;
+        }
+
+        private ExpressionSyntax ParseContinueExpression()
+        {
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ContinueKeyword);
+            var @continue = this.EatToken(SyntaxKind.ContinueKeyword);
+            var result = _syntaxFactory.ContinueExpression(@continue);
+            // PROTOTYPE: put behind feature flag
+            return result;
         }
 
         private ExpressionSyntax ParseIsExpression(ExpressionSyntax leftOperand, SyntaxToken opToken)

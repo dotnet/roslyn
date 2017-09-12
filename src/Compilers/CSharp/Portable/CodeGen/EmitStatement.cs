@@ -701,17 +701,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // that was added at the end of the last block of a void method by analysis.
         // This is likely to be the last return in the method, so if we have not yet
         // emitted return sequence, it is convenient to do it right here (if we can).
-        private bool CanHandleReturnLabel(BoundReturnStatement boundReturnStatement)
+        private bool CanHandleReturnLabel(BoundNode boundReturn)
         {
-            return boundReturnStatement.WasCompilerGenerated &&
-                    (boundReturnStatement.Syntax.IsKind(SyntaxKind.Block) || _method?.IsImplicitConstructor == true) &&
+            return boundReturn.WasCompilerGenerated &&
+                    (boundReturn.Syntax.IsKind(SyntaxKind.Block) || _method?.IsImplicitConstructor == true) &&
                     !_builder.InExceptionHandler;
         }
 
         private void EmitReturnStatement(BoundReturnStatement boundReturnStatement)
         {
-            var expressionOpt = boundReturnStatement.ExpressionOpt;
-            if (boundReturnStatement.RefKind == RefKind.None)
+            EmitReturn(boundReturnStatement, boundReturnStatement.ExpressionOpt, boundReturnStatement.RefKind);
+        }
+
+        private void EmitReturn(BoundNode boundReturn, BoundExpression expressionOpt, RefKind refKind)
+        {
+            if (refKind == RefKind.None)
             {
                 this.EmitExpression(expressionOpt, true);
             }
@@ -727,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     _builder.EmitLocalStore(LazyReturnTemp);
                 }
 
-                if (_indirectReturnState != IndirectReturnState.Emitted && CanHandleReturnLabel(boundReturnStatement))
+                if (_indirectReturnState != IndirectReturnState.Emitted && CanHandleReturnLabel(boundReturn))
                 {
                     HandleReturn();
                 }
@@ -743,7 +747,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                if (_indirectReturnState == IndirectReturnState.Needed && CanHandleReturnLabel(boundReturnStatement))
+                if (_indirectReturnState == IndirectReturnState.Needed && CanHandleReturnLabel(boundReturn))
                 {
                     if (expressionOpt != null)
                     {
@@ -758,7 +762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         // Ensure the return type has been translated. (Necessary
                         // for cases of untranslated anonymous types.)
-                        _module.Translate(expressionOpt.Type, boundReturnStatement.Syntax, _diagnostics);
+                        _module.Translate(expressionOpt.Type, boundReturn.Syntax, _diagnostics);
                     }
                     _builder.EmitRet(expressionOpt == null);
                 }

@@ -144,4 +144,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return (object)this.Type ?? "default"; }
         }
     }
+
+    internal partial class BoundReturnExpression
+    {
+        public override object Display => (object)this.Type ?? "return";
+    }
+
+    internal partial class BoundContinueExpression
+    {
+        public override object Display => (object)this.Type ?? "continue";
+    }
+
+    internal partial class BoundBreakExpression
+    {
+        public override object Display => (object)this.Type ?? "break";
+    }
 }

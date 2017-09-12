@@ -622,6 +622,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ThrowExpression:
                     return BindThrowExpression((ThrowExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.ReturnExpression:
+                    return BindReturnExpression((ReturnExpressionSyntax)node, diagnostics);
+
+                case SyntaxKind.BreakExpression:
+                    return BindBreakExpression((BreakExpressionSyntax)node, diagnostics);
+
+                case SyntaxKind.ContinueExpression:
+                    return BindContinueExpression((ContinueExpressionSyntax)node, diagnostics);
+
                 case SyntaxKind.RefType:
                     return BindRefType(node, diagnostics);
 
@@ -659,6 +668,78 @@ namespace Microsoft.CodeAnalysis.CSharp
             var firstToken = node.GetFirstToken();
             diagnostics.Add(ErrorCode.ERR_UnexpectedToken, firstToken.GetLocation(), firstToken.ValueText);
             return new BoundTypeExpression(node, null, CreateErrorType("ref"));
+        }
+
+        private BoundExpression BindReturnExpression(ReturnExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            bool hasErrors = false;
+            if (!IsJumpExpressionInProperContext(node))
+            {
+                diagnostics.Add(ErrorCode.ERR_ThrowMisplaced, node.ReturnKeyword.GetLocation());
+                hasErrors = true;
+            }
+
+            BoundExpression arg = BindReturnedExpression(node, node.Expression, node.ReturnKeyword, diagnostics, out RefKind refKind, out bool hadErrors);
+            return new BoundReturnExpression(node, refKind, arg, type: null, hasErrors: hasErrors || hadErrors);
+        }
+
+        private BoundExpression BindContinueExpression(ContinueExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            bool hasErrors = node.HasErrors;
+            if (!IsJumpExpressionInProperContext(node))
+            {
+                diagnostics.Add(ErrorCode.ERR_ThrowMisplaced, node.ContinueKeyword.GetLocation());
+                hasErrors = true;
+            }
+
+            var label = this.ContinueLabel;
+            if ((object)label == null)
+            {
+                Error(diagnostics, ErrorCode.ERR_NoBreakOrCont, node);
+                return BadExpression(node);
+            }
+
+            return new BoundContinueExpression(node, label, type: null, hasErrors: hasErrors);
+        }
+
+        private BoundExpression BindBreakExpression(BreakExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            bool hasErrors = node.HasErrors;
+            if (!IsJumpExpressionInProperContext(node))
+            {
+                diagnostics.Add(ErrorCode.ERR_ThrowMisplaced, node.BreakKeyword.GetLocation());
+                hasErrors = true;
+            }
+
+            var label = this.BreakLabel;
+            if ((object)label == null)
+            {
+                Error(diagnostics, ErrorCode.ERR_NoBreakOrCont, node);
+                return BadExpression(node);
+            }
+
+            return new BoundBreakExpression(node, label, type: null, hasErrors: hasErrors);
+        }
+
+        private static bool IsJumpExpressionInProperContext(ExpressionSyntax node)
+        {
+            var parent = node.Parent;
+            if (parent == null || node.HasErrors)
+            {
+                return true;
+            }
+
+            switch (node.Parent.Kind())
+            {
+                case SyntaxKind.ConditionalExpression:
+                    var conditionalParent = (ConditionalExpressionSyntax)parent;
+                    return node == conditionalParent.WhenTrue || node == conditionalParent.WhenFalse;
+                case SyntaxKind.CoalesceExpression:
+                    var binaryParent = (BinaryExpressionSyntax)parent;
+                    return node == binaryParent.Right;
+                default:
+                    return false;
+            }
         }
 
         private BoundExpression BindThrowExpression(ThrowExpressionSyntax node, DiagnosticBag diagnostics)
