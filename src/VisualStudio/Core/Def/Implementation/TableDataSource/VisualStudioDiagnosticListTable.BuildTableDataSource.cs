@@ -138,7 +138,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 private int GenerateDeduplicationKey(DiagnosticData diagnostic)
                 {
-                    if (diagnostic.DataLocation == null ||
+                    if (diagnostic.DocumentId == null ||
+                        diagnostic.DataLocation == null ||
                         diagnostic.DataLocation.OriginalFilePath == null)
                     {
                         return diagnostic.GetHashCode();

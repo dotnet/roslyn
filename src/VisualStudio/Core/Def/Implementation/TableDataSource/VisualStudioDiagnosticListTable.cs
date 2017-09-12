@@ -69,6 +69,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             AddInitialTableSource(workspace.CurrentSolution, _liveTableSource);
         }
 
+        /// this is for test only
+        internal VisualStudioDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ExternalErrorDiagnosticUpdateSource errorSource, ITableManagerProvider provider) :
+            this(null, workspace, diagnosticService, errorSource, provider)
+        {
+            AddInitialTableSource(workspace.CurrentSolution, _buildTableSource);
+        }
+
         private VisualStudioDiagnosticListTable(
             SVsServiceProvider serviceProvider,
             Workspace workspace,
