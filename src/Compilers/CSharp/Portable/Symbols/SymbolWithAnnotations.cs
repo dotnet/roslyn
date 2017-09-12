@@ -175,18 +175,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol)
         {
+            if (typeSymbol is null)
+            {
+                return null;
+            }
+
             // TODO: Consider if it makes sense to cache and reuse instances, at least for definitions.
             return new WithoutCustomModifiers(typeSymbol);
         }
 
         public static TypeSymbolWithAnnotations CreateNullableReferenceType(TypeSymbol typeSymbol)
         {
+            if (typeSymbol is null)
+            {
+                return null;
+            }
+
             // TODO: Consider if it makes sense to cache and reuse instances, at least for definitions.
             return new NullableReferenceTypeWithoutCustomModifiers(typeSymbol);
         }
 
         public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
         {
+            if (typeSymbol is null)
+            {
+                return null;
+            }
+
             if (customModifiers.IsDefaultOrEmpty)
             {
                 return new WithoutCustomModifiers(typeSymbol);
@@ -197,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, bool? isNullableIfReferenceType)
         {
-            if ((object)typeSymbol == null)
+            if (typeSymbol is null)
             {
                 return null;
             }
@@ -348,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override int GetHashCode(TypeSymbolWithAnnotations obj)
             {
-                if ((object)obj == null)
+                if (obj is null)
                 {
                     return 0;
                 }
@@ -357,9 +372,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override bool Equals(TypeSymbolWithAnnotations x, TypeSymbolWithAnnotations y)
             {
-                if ((object)x == null)
+                if (x is null)
                 {
-                    return (object)y == null;
+                    return y is null;
                 }
                 return x.Equals(y, TypeCompareKind.CompareNullableModifiersForReferenceTypes);
             }
