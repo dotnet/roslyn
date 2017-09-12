@@ -4537,5 +4537,31 @@ class C
     }
 }");
         }
+
+        [WorkItem(16819, "https://github.com/dotnet/roslyn/issues/16819")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task InlineVariableDoesNotAddsDuplicateCast()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        var [||]o = (Exception)null;
+        Console.Write(o == new Exception());
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Console.Write((Exception)null == new Exception());
+    }
+}");
+        }
     }
 }
