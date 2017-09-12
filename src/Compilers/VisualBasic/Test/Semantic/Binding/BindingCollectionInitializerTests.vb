@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -384,7 +384,7 @@ IBlockStatement (6 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: '.a = "goo"')
                     Left: IFieldReferenceExpression: C2.a As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'a')
-                        Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C2() Wi ... .a = "goo"}')
+                        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2) (Syntax: 'New C2() Wi ... .a = "goo"}')
                     Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo") (Syntax: '"goo"')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim b As Ne ... lo World!"}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b')
@@ -415,7 +415,7 @@ IBlockStatement (6 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid) (Syntax: '.a = "goo"')
                     Left: IFieldReferenceExpression: C2.a As System.String (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'a')
-                        Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() Wi ... .a = "goo"}')
+                        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ... .a = "goo"}')
                     Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo", IsInvalid) (Syntax: '"goo"')
   ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
     Statement: null
