@@ -561,12 +561,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (checkingReceiver)
                     {
-                        //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22057
                         Error(diagnostics, ErrorCode.ERR_RefReturnParameter2, parameter.Syntax, parameterSymbol.Name);
                     }
                     else
                     {
-                        //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22057
                         Error(diagnostics, ErrorCode.ERR_RefReturnParameter, node, parameterSymbol.Name);
                     }
                     return false;
@@ -1662,8 +1660,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         scopeOfTheContainingExpression);
             }
 
-            //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22077
-
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
             return scopeOfTheContainingExpression;
         }
@@ -1844,8 +1840,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics);
             }
 
-            //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22077
-
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
             Error(diagnostics, GetStandardRValueRefEscapeError(escapeTo), node);
             return false;
@@ -1954,10 +1948,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         objectCreation.ArgsToParamsOpt,
                         scopeOfTheContainingExpression);
 
-                    //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22079
                     return escape;
-
-                //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22078
 
                 case BoundKind.UnaryOperator:
                     return GetValEscape(((BoundUnaryOperator)expr).Operand, scopeOfTheContainingExpression);
@@ -1985,11 +1976,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return Math.Max(GetValEscape(binary.Left, scopeOfTheContainingExpression),
                                     GetValEscape(binary.Right, scopeOfTheContainingExpression));
-
-                    //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22080
             }
-
-            //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22077
 
             // At this point we should have covered all the possible cases for anything that may return its operands or manufacture local references.
             return Binder.ExternalScope;
@@ -2137,10 +2124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         escapeTo,
                         diagnostics);
 
-                    //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22079
                     return escape;
-
-                //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22078
 
                 case BoundKind.UnaryOperator:
                     var unary = (BoundUnaryOperator)expr;
@@ -2170,14 +2154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return CheckValEscape(binary.Left.Syntax, binary.Left, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
                            CheckValEscape(binary.Right.Syntax, binary.Right, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
-
-                    //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22077
-                    //      Note that requirement that the result is ref-like makes many cases, like array access or tuple literals are never applicable due to ref-like constraints.
-
-                    //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22080
             }
-
-            //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22077
 
             // At this point we should have covered all the possible cases for anything that may return its operands or manufacture local references.
             return true;

@@ -1517,7 +1517,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (IsBadLocalOrParameterCapture(localSymbol, type, localSymbol.RefKind))
                             {
                                 isError = true;
-                                //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22058
                                 Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUseLocal, node, localSymbol);
                             }
                         }
@@ -1533,7 +1532,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (IsBadLocalOrParameterCapture(parameter, parameter.Type, parameter.RefKind))
                         {
                             isError = true;
-                            //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22058
                             Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
                         }
                         return new BoundParameter(node, parameter, hasErrors: isError);

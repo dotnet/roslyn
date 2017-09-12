@@ -731,7 +731,6 @@ namespace Microsoft.Cci
             get;
         }
 
-        //PROTOTYPE:https://github.com/dotnet/roslyn/issues/21976
         /// <summary>
         /// True if the return value is passed by reference (using a managed pointer).
         /// </summary>

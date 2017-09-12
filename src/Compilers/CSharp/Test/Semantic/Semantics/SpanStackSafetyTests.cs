@@ -92,7 +92,6 @@ class Program
 
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-            //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22058
             comp.VerifyDiagnostics(
                 // (17,29): error CS8175: Cannot use ref local 'x' inside an anonymous method, lambda expression, or query expression
                 //         Func<int> f = () => x[1];
@@ -721,7 +720,6 @@ public class Program
 
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-            //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22055
             comp.VerifyEmitDiagnostics(
                 // (17,39): error CS4007: 'await' cannot be used in an expression containing the type 'System.Span<int>'
                 //         TakesSpan(default(Span<int>), await I1());
@@ -773,7 +771,6 @@ public class Program
 
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-            //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22055
             comp.VerifyEmitDiagnostics(
                 // (14,45): error CS4007: 'await' cannot be used in an expression containing the type 'System.Span<int>'
                 //         TakesSpan(s: default(Span<int>), i: await I1());
@@ -782,7 +779,6 @@ public class Program
 
             comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
 
-            //PROTOTYPE:https://github.com/dotnet/roslyn/issues/22055
             comp.VerifyEmitDiagnostics(
                 // (14,45): error CS4007: 'await' cannot be used in an expression containing the type 'System.Span<int>'
                 //         TakesSpan(s: default(Span<int>), i: await I1());

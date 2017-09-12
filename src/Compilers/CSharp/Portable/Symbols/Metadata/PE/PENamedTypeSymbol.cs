@@ -2062,7 +2062,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     if (this.TypeKind == TypeKind.Struct)
                     {
-                        //PROTOTYPE:https://github.com/dotnet/roslyn/issues/21981
                         if (this.IsSpanType())
                         {
                             isByRefLike = ThreeState.True;
@@ -2096,7 +2095,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     var isReadOnly = ThreeState.False;
 
-                    //PROTOTYPE:https://github.com/dotnet/roslyn/issues/21981
                     if (this.IsSpanType())
                     {
                         isReadOnly = ThreeState.True;

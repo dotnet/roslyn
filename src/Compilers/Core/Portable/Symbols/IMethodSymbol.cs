@@ -75,7 +75,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         bool ReturnsByRef { get; }
 
-        // PROTOTYPE:https://github.com/dotnet/roslyn/issues/21977
         /// <summary>
         /// Returns true if this method returns by ref readonly.
         /// </summary>
