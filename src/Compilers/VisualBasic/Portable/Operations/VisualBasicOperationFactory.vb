@@ -678,6 +678,13 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Function()
                     If boundPropertyAccess.PropertySymbol.IsShared Then
                         Return Nothing
+                    ElseIf boundPropertyAccess.ReceiverOpt IsNot Nothing AndAlso
+                           boundPropertyAccess.ReceiverOpt.Kind = BoundKind.WithLValueExpressionPlaceholder Then
+                        Return New InstanceReferenceExpression(semanticModel:=_semanticModel,
+                                                               syntax:=boundPropertyAccess.ReceiverOpt.Syntax,
+                                                               type:=boundPropertyAccess.ReceiverOpt.Type,
+                                                               constantValue:=Nothing,
+                                                               isImplicit:=boundPropertyAccess.WasCompilerGenerated)
                     Else
                         Return Create(boundPropertyAccess.ReceiverOpt)
                     End If
