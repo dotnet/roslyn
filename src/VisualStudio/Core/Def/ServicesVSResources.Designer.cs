@@ -807,6 +807,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to External reference found.
+        /// </summary>
+        internal static string External_reference_found {
+            get {
+                return ResourceManager.GetString("External_reference_found", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Extract Interface.
         /// </summary>
         internal static string Extract_Interface {
@@ -1375,6 +1384,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string No_Changes {
             get {
                 return ResourceManager.GetString("No_Changes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No references found to &apos;{0}&apos;.
+        /// </summary>
+        internal static string No_references_found_to_0 {
+            get {
+                return ResourceManager.GetString("No_references_found_to_0", resourceCulture);
             }
         }
         
@@ -1984,6 +2002,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Sample_Identifier_colon {
             get {
                 return ResourceManager.GetString("Sample_Identifier_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search found no results.
+        /// </summary>
+        internal static string Search_found_no_results {
+            get {
+                return ResourceManager.GetString("Search_found_no_results", resourceCulture);
             }
         }
         

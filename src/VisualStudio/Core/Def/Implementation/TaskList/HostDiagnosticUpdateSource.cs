@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             registrationService.Register(this);
         }
 
-        public override Workspace Workspace
+        public override Microsoft.CodeAnalysis.Workspace Workspace
         {
             get
             {
