@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
             {
                 var newTree = oldTree.WithReplace(16, "construct", "M");
                 var classType = newTree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
-                Assert.IsType(typeof(MethodDeclarationSyntax), classType.Members[0]);
+                Assert.IsType(typeof(ConstructorDeclarationSyntax), classType.Members[0]);
             });
         }
 

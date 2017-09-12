@@ -41,11 +41,6 @@ namespace Microsoft.CodeAnalysis.Remote
             // we set up logger here
             RoslynLogger.SetLogger(new EtwLogger(GetLoggingChecker()));
 
-            // Set this process's priority BelowNormal.
-            // this should let us to freely try to use all resources possible without worrying about affecting
-            // host's work such as responsiveness or build.
-            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
-
             SetNativeDllSearchDirectories();
         }
 
@@ -56,10 +51,12 @@ namespace Microsoft.CodeAnalysis.Remote
             Rpc.StartListening();
         }
 
-        public string Connect(string host, string serializedSession)
+        public string Connect(string host, string serializedSession, CancellationToken cancellationToken)
         {
             return RunService(() =>
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 _primaryInstance = InstanceId;
 
                 var existing = Interlocked.CompareExchange(ref _host, host, null);
@@ -74,8 +71,17 @@ namespace Microsoft.CodeAnalysis.Remote
                 // log telemetry that service hub started
                 RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(SetSessionInfo));
 
+                // serializedSession will be null for testing
+                if (serializedSession != null)
+                {
+                    // Set this process's priority BelowNormal.
+                    // this should let us to freely try to use all resources possible without worrying about affecting
+                    // host's work such as responsiveness or build.
+                    Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
+                }
+
                 return _host;
-            }, CancellationToken.None);
+            }, cancellationToken);
         }
 
         public Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken)
