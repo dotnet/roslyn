@@ -172,6 +172,7 @@
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
     <SystemIOFileSystemWatcherVersion>4.3.0</SystemIOFileSystemWatcherVersion>
     <SystemIOPipesVersion>4.3.0</SystemIOPipesVersion>
+    <SystemIOPipesAccessControlVersion>4.3.0</SystemIOPipesAccessControlVersion>
     <SystemLinqVersion>4.3.0</SystemLinqVersion>
     <SystemLinqExpressionsVersion>4.3.0</SystemLinqExpressionsVersion>
     <SystemLinqParallelVersion>4.3.0</SystemLinqParallelVersion>

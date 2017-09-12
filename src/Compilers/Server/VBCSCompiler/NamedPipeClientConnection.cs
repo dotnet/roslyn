@@ -148,9 +148,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 PipeTransmissionMode.Byte,
                 PipeOptions.Asynchronous | PipeOptions.WriteThrough,
                 PipeBufferSize, // Default input buffer
-                PipeBufferSize, // Default output buffer
-                security,
-                HandleInheritability.None);
+                PipeBufferSize // Default output buffer
+            );
+            pipeStream.SetAccessControl(security);
 
             CompilerServerLogger.Log("Successfully constructed pipe '{0}'.", pipeName);
 
