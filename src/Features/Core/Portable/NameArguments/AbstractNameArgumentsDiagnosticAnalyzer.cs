@@ -48,8 +48,7 @@ namespace Microsoft.CodeAnalysis.NameArguments
                 return;
             }
 
-            var preference = optionSet.GetOption(CodeStyleOptions.PreferNamedArguments, context.Compilation.Language).Value;
-            if (preference == NamedArgumentsPreference.Never)
+            if (!optionSet.GetOption(CodeStyleOptions.PreferNamedLiteralArguments, context.Compilation.Language).Value)
             {
                 return;
             }
@@ -76,7 +75,7 @@ namespace Microsoft.CodeAnalysis.NameArguments
 
             context.ReportDiagnostic(
                 Diagnostic.Create(GetDescriptorWithSeverity(
-                    optionSet.GetOption(CodeStyleOptions.PreferNamedArguments, context.SemanticModel.Language).Notification.Value),
+                    optionSet.GetOption(CodeStyleOptions.PreferNamedLiteralArguments, context.SemanticModel.Language).Notification.Value),
                     argument.GetLocation(), builder.ToImmutable()));
         }
     }

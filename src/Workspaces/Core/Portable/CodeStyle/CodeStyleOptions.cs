@@ -134,40 +134,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_explicit_tuple_names"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferExplicitTupleNames") });
 
-        private static readonly CodeStyleOption<NamedArgumentsPreference> s_NamedArgumentsPreferenceDefault =
-            new CodeStyleOption<NamedArgumentsPreference>(NamedArgumentsPreference.Literals, NotificationOption.None);
-
-        internal static readonly PerLanguageOption<CodeStyleOption<NamedArgumentsPreference>> PreferNamedArguments =
-            new PerLanguageOption<CodeStyleOption<NamedArgumentsPreference>>(
-                nameof(CodeStyleOptions), nameof(PreferNamedArguments), defaultValue: s_NamedArgumentsPreferenceDefault,
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferNamedLiteralArguments =
+            new PerLanguageOption<CodeStyleOption<bool>>(
+                nameof(CodeStyleOptions), nameof(PreferNamedLiteralArguments), defaultValue: TrueWithNoneEnforcement,
                 storageLocations: new OptionStorageLocation[] {
-                    new EditorConfigStorageLocation<CodeStyleOption<NamedArgumentsPreference>>("dotnet_style_prefer_named_arguments", s => ParseNamedArgumentsPreference(s)),
-                    new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(PreferNamedArguments)}")});
-
-        private static Optional<CodeStyleOption<NamedArgumentsPreference>> ParseNamedArgumentsPreference(string optionString)
-        {
-            if (TryGetCodeStyleValueAndOptionalNotification(optionString, out var value, out var notificationOpt))
-            {
-                if (value == "never")
-                {
-                    // If they provide 'never', they don't need a notification level.
-                    notificationOpt = notificationOpt ?? NotificationOption.None;
-                }
-
-                if (notificationOpt != null)
-                {
-                    switch (value)
-                    {
-                        case "never":
-                            return new CodeStyleOption<NamedArgumentsPreference>(NamedArgumentsPreference.Never, notificationOpt);
-                        case "for_literals":
-                            return new CodeStyleOption<NamedArgumentsPreference>(NamedArgumentsPreference.Literals, notificationOpt);
-                    }
-                }
-            }
-
-            return s_NamedArgumentsPreferenceDefault;
-        }
+                    EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_prefer_named_literal_arguments"),
+                    new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(PreferNamedLiteralArguments)}")});
 
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferIsNullCheckOverReferenceEqualityMethod = new PerLanguageOption<CodeStyleOption<bool>>(
             nameof(CodeStyleOptions),
