@@ -18,6 +18,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Export(typeof(ExternalErrorDiagnosticUpdateSource))]
     internal class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSource
     {

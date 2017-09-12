@@ -665,11 +665,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             service.WaitUntilCompletion_ForTestingPurposesOnly(workspace, SpecializedCollections.SingletonEnumerable(analyzerService.CreateIncrementalAnalyzer(workspace)).WhereNotNull().ToImmutableArray())
         End Sub
 
-        Private Function CreateItem(workspace As Workspace, documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error) As DiagnosticData
+        Private Function CreateItem(workspace As Microsoft.CodeAnalysis.Workspace, documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error) As DiagnosticData
             Return CreateItem(workspace, documentId.ProjectId, documentId, severity)
         End Function
 
-        Private Function CreateItem(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error, Optional link As String = Nothing) As DiagnosticData
+        Private Function CreateItem(workspace As Microsoft.CodeAnalysis.Workspace, projectId As ProjectId, documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error, Optional link As String = Nothing) As DiagnosticData
             Return New DiagnosticData("test", "test", "test", "test format", severity, True, 0,
                                       workspace, projectId, If(documentId Is Nothing, Nothing, New DiagnosticDataLocation(documentId, TextSpan.FromBounds(0, 10), "test", 20, 20, 20, 20)),
                                       title:="Title", description:="Description", helpLink:=link)
@@ -700,7 +700,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Public Event DiagnosticsUpdated As EventHandler(Of DiagnosticsUpdatedArgs) Implements IDiagnosticService.DiagnosticsUpdated
 
-            Public Function GetDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, reportSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As IEnumerable(Of DiagnosticData) Implements IDiagnosticService.GetDiagnostics
+            Public Function GetDiagnostics(workspace As Microsoft.CodeAnalysis.Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, reportSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As IEnumerable(Of DiagnosticData) Implements IDiagnosticService.GetDiagnostics
                 Assert.NotNull(workspace)
 
                 Dim diagnostics As IEnumerable(Of DiagnosticData)
@@ -720,7 +720,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return diagnostics
             End Function
 
-            Public Function GetDiagnosticsArgs(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, cancellationToken As CancellationToken) As IEnumerable(Of UpdatedEventArgs) Implements IDiagnosticService.GetDiagnosticsUpdatedEventArgs
+            Public Function GetDiagnosticsArgs(workspace As Microsoft.CodeAnalysis.Workspace, projectId As ProjectId, documentId As DocumentId, cancellationToken As CancellationToken) As IEnumerable(Of UpdatedEventArgs) Implements IDiagnosticService.GetDiagnosticsUpdatedEventArgs
                 Assert.NotNull(workspace)
 
                 Dim diagnosticsArgs As IEnumerable(Of UpdatedEventArgs)
@@ -753,7 +753,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return diagnosticsArgs
             End Function
 
-            Public Sub RaiseDiagnosticsUpdated(workspace As Workspace, ParamArray items As DiagnosticData())
+            Public Sub RaiseDiagnosticsUpdated(workspace As Microsoft.CodeAnalysis.Workspace, ParamArray items As DiagnosticData())
                 Dim item = items(0)
 
                 Dim id = If(CObj(item.DocumentId), item.ProjectId)
@@ -761,7 +761,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                         New ErrorId(Me, id), workspace, workspace.CurrentSolution, item.ProjectId, item.DocumentId, items.ToImmutableArray()))
             End Sub
 
-            Public Sub RaiseDiagnosticsUpdated(workspace As Workspace)
+            Public Sub RaiseDiagnosticsUpdated(workspace As Microsoft.CodeAnalysis.Workspace)
                 Dim documentMap = Items.Where(Function(t) t.DocumentId IsNot Nothing).Where(Function(t) t.Workspace Is workspace).ToLookup(Function(t) t.DocumentId)
 
                 For Each group In documentMap
@@ -777,7 +777,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Next
             End Sub
 
-            Public Sub RaiseClearDiagnosticsUpdated(workspace As Workspace, projectId As ProjectId, documentId As DocumentId)
+            Public Sub RaiseClearDiagnosticsUpdated(workspace As Microsoft.CodeAnalysis.Workspace, projectId As ProjectId, documentId As DocumentId)
                 RaiseEvent DiagnosticsUpdated(Me, DiagnosticsUpdatedArgs.DiagnosticsRemoved(
                     New ErrorId(Me, documentId), workspace, workspace.CurrentSolution, projectId, documentId))
             End Sub
