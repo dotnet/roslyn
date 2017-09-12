@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -39,8 +39,8 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 's')
                   ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
@@ -74,8 +74,8 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'item')
                   ILocalReferenceExpression: item (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'item')
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
@@ -119,8 +119,8 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'y')
                         ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Char) (Syntax: 'y')
-                        InConversion: null
-                        OutConversion: null
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
@@ -167,8 +167,8 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'y')
                         ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Char) (Syntax: 'y')
-                        InConversion: null
-                        OutConversion: null
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
@@ -207,8 +207,8 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'y')
                   ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
@@ -246,8 +246,8 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'y')
                         ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Char) (Syntax: 'y')
-                        InConversion: null
-                        OutConversion: null
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
@@ -293,8 +293,8 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
                   ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
@@ -325,8 +325,8 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'y')
                   ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Char) (Syntax: 'y')
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
@@ -367,8 +367,8 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
                   ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
@@ -442,8 +442,8 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         Operand: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key CountryName As System.String, Key CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer), Key Count As System.Int32>.Count As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'country.Count')
                             Instance Receiver: ILocalReferenceExpression: country (OperationKind.LocalReferenceExpression, Type: <anonymous type: Key CountryName As System.String, Key CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer), Key Count As System.Int32>) (Syntax: 'country')
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each cu ... Next')
         Collection: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key CountryName As System.String, Key CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer), Key Count As System.Int32>.CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer) (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.IEnumerable(Of Customer)) (Syntax: 'country.Cus ... rsInCountry')
             Instance Receiver: ILocalReferenceExpression: country (OperationKind.LocalReferenceExpression, Type: <anonymous type: Key CountryName As System.String, Key CustomersInCountry As System.Collections.Generic.IEnumerable(Of Customer), Key Count As System.Int32>) (Syntax: 'country')
@@ -462,8 +462,8 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
                               Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "  ") (Syntax: '"  "')
                           Right: IPropertyReferenceExpression: Property Customer.City As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'customer.City')
                               Instance Receiver: ILocalReferenceExpression: customer (OperationKind.LocalReferenceExpression, Type: Customer) (Syntax: 'customer')
-                        InConversion: null
-                        OutConversion: null
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -512,14 +512,14 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
                     Arguments(2):
                         IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '[Custom]')
                           ILocalReferenceExpression: Custom (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: '[Custom]')
-                          InConversion: null
-                          OutConversion: null
+                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'GetType(Integer)')
                           IOperation:  (OperationKind.None) (Syntax: 'GetType(Integer)')
-                          InConversion: null
-                          OutConversion: null
-                  InConversion: null
-                  OutConversion: null
+                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... e(Object)))')
         Expression: IInvocationExpression (Sub System.Console.Write(value As System.Boolean)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... e(Object)))')
             Instance Receiver: null
@@ -530,14 +530,14 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
                     Arguments(2):
                         IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '[Custom]')
                           ILocalReferenceExpression: Custom (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: '[Custom]')
-                          InConversion: null
-                          OutConversion: null
+                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         IArgument (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'GetType(Object)')
                           IOperation:  (OperationKind.None) (Syntax: 'GetType(Object)')
-                          InConversion: null
-                          OutConversion: null
-                  InConversion: null
-                  OutConversion: null
+                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IBranchStatement (BranchKind.Break, Label: exit) (OperationKind.BranchStatement) (Syntax: 'Exit For')
 ]]>.Value
 
@@ -573,8 +573,8 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
                   ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
@@ -624,8 +624,8 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
                   ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
@@ -680,8 +680,8 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'element_lambda_local')
                   ILocalReferenceExpression: element_lambda_local (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'element_lambda_local')
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
@@ -712,8 +712,8 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'element')
                   ILocalReferenceExpression: element (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'element')
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
@@ -763,8 +763,8 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 's')
                   ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             VerifyOperationTreeForTest(Of ForEachBlockSyntax)(source, expectedOperationTree)
