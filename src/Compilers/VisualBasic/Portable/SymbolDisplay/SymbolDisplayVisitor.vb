@@ -35,9 +35,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             semanticModelOpt As SemanticModel,
             positionOpt As Integer,
             escapeKeywordIdentifiers As Boolean,
-            isFirstSymbolVisited As Boolean)
+            isFirstSymbolVisited As Boolean,
+            Optional inTypeArguments As Boolean = False)
 
-            MyBase.New(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt)
+            MyBase.New(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt, inTypeArguments)
 
             Me._escapeKeywordIdentifiers = escapeKeywordIdentifiers
         End Sub
@@ -51,6 +52,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me.positionOpt,
                         Me._escapeKeywordIdentifiers,
                     isFirstSymbolVisited:=False)
+        End Function
+
+        Protected Overrides Function MakeNotFirstVisitorNamespaceOrType() As AbstractSymbolDisplayVisitor
+            Return New SymbolDisplayVisitor(
+                    Me.builder,
+                    Me.format,
+                    Me.semanticModelOpt,
+                    Me.positionOpt,
+                    Me._escapeKeywordIdentifiers,
+                    isFirstSymbolVisited:=False,
+                    inTypeArguments:=True)
         End Function
 
         Friend Function CreatePart(kind As SymbolDisplayPartKind,

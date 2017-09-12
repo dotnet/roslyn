@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SymbolDisplay
 {
@@ -41,50 +43,15 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             {
                 return false;
             }
-           
-           var type1 = GetSymbolType(normalSymbol);
-           var type2 = GetSymbolType(typeOnlySymbol);
+
+            var type1 = GetSymbolType(normalSymbol);
+            var type2 = GetSymbolType(typeOnlySymbol);
 
             return
                 type1 != null &&
                 type2 != null &&
                 type1.Equals(type2) &&
                 typeOnlySymbol.Equals(symbol.OriginalDefinition);
-        }
-
-        protected static ITypeSymbol GetSymbolType(ISymbol symbol)
-        {
-            var localSymbol = symbol as ILocalSymbol;
-            if (localSymbol != null)
-            {
-                return localSymbol.Type;
-            }
-
-            var fieldSymbol = symbol as IFieldSymbol;
-            if (fieldSymbol != null)
-            {
-                return fieldSymbol.Type;
-            }
-
-            var propertySymbol = symbol as IPropertySymbol;
-            if (propertySymbol != null)
-            {
-                return propertySymbol.Type;
-            }
-
-            var parameterSymbol = symbol as IParameterSymbol;
-            if (parameterSymbol != null)
-            {
-                return parameterSymbol.Type;
-            }
-
-            var aliasSymbol = symbol as IAliasSymbol;
-            if (aliasSymbol != null)
-            {
-                return aliasSymbol.Target as ITypeSymbol;
-            }
-
-            return symbol as ITypeSymbol;
         }
 
         private static ISymbol SingleSymbolWithArity(ImmutableArray<ISymbol> candidates, int desiredArity)
@@ -120,6 +87,41 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
                 }
             }
             return singleSymbol;
+        }
+
+        protected static ITypeSymbol GetSymbolType(ISymbol symbol)
+        {
+            var localSymbol = symbol as ILocalSymbol;
+            if (localSymbol != null)
+            {
+                return localSymbol.Type;
+            }
+
+            var fieldSymbol = symbol as IFieldSymbol;
+            if (fieldSymbol != null)
+            {
+                return fieldSymbol.Type;
+            }
+
+            var propertySymbol = symbol as IPropertySymbol;
+            if (propertySymbol != null)
+            {
+                return propertySymbol.Type;
+            }
+
+            var parameterSymbol = symbol as IParameterSymbol;
+            if (parameterSymbol != null)
+            {
+                return parameterSymbol.Type;
+            }
+
+            var aliasSymbol = symbol as IAliasSymbol;
+            if (aliasSymbol != null)
+            {
+                return aliasSymbol.Target as ITypeSymbol;
+            }
+
+            return symbol as ITypeSymbol;
         }
     }
 }

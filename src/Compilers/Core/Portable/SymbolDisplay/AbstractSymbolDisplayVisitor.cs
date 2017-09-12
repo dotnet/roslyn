@@ -12,18 +12,21 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
         protected readonly ArrayBuilder<SymbolDisplayPart> builder;
         protected readonly SymbolDisplayFormat format;
         protected readonly bool isFirstSymbolVisited;
+        protected readonly bool inTypeArguments;
 
         protected readonly SemanticModel semanticModelOpt;
         protected readonly int positionOpt;
 
         private AbstractSymbolDisplayVisitor _lazyNotFirstVisitor;
+        private AbstractSymbolDisplayVisitor _lazyNotFirstVisitorNamespaceOrType;
 
         protected AbstractSymbolDisplayVisitor(
             ArrayBuilder<SymbolDisplayPart> builder,
             SymbolDisplayFormat format,
             bool isFirstSymbolVisited,
             SemanticModel semanticModelOpt,
-            int positionOpt)
+            int positionOpt,
+            bool inTypeArguments = false)
         {
             Debug.Assert(format != null);
 
@@ -33,6 +36,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
 
             this.semanticModelOpt = semanticModelOpt;
             this.positionOpt = positionOpt;
+            this.inTypeArguments = inTypeArguments;
 
             // If we're not the first symbol visitor, then we will just recurse into ourselves.
             if (!isFirstSymbolVisited)
@@ -54,7 +58,21 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             }
         }
 
+        protected AbstractSymbolDisplayVisitor NotFirstVisitorNamespaceOrType
+        {
+            get
+            {
+                if (_lazyNotFirstVisitorNamespaceOrType == null)
+                {
+                    _lazyNotFirstVisitorNamespaceOrType = MakeNotFirstVisitorNamespaceOrType();
+                }
+
+                return _lazyNotFirstVisitorNamespaceOrType;
+            }
+        }
+
         protected abstract AbstractSymbolDisplayVisitor MakeNotFirstVisitor();
+        protected abstract AbstractSymbolDisplayVisitor MakeNotFirstVisitorNamespaceOrType();
 
         protected abstract void AddLiteralValue(SpecialType type, object value);
         protected abstract void AddExplicitlyCastedLiteralValue(INamedTypeSymbol namedType, SpecialType type, object value);

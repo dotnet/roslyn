@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim token = semanticModelOpt.SyntaxTree.GetRoot().FindToken(positionOpt)
             Dim startNode = token.Parent
 
-            Return SyntaxFacts.IsInNamespaceOrTypeContext(TryCast(startNode, ExpressionSyntax))
+            Return SyntaxFacts.IsInNamespaceOrTypeContext(TryCast(startNode, ExpressionSyntax)) OrElse Me.inTypeArguments
         End Function
 
         Private Sub MinimallyQualify(symbol As INamespaceSymbol, emittedName As String, parentsEmittedName As String)

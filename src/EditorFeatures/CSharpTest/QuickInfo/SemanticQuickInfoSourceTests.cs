@@ -5018,5 +5018,33 @@ class Program
 }",
             MainDescription($"ConsoleApplication1.A ConsoleApplication1.B.F()"));
         }
+
+        [WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task PropertyWithSameNameAsOtherType2()
+        {
+            await TestAsync(
+@"using System.Collections.Generic;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        public static List<Bar> Bar { get; set; }
+
+        static void Main(string[] args)
+        {
+            Tes$$t<Bar>();
+        }
+
+        static void Test<T>() { }
+    }
+
+    class Bar
+    {
+    }
+}",
+            MainDescription($"void Program.Test<Bar>()"));
+        }
     }
 }
