@@ -117,7 +117,6 @@ string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis.VisualBasic.Workspaces",
     "Microsoft.CodeAnalysis.Workspaces.Common",
     "Microsoft.VisualStudio.LanguageServices",
-    "Microsoft.VisualStudio.LanguageServices.Next",
 };
 
 string[] SourcePackageNames = {
@@ -154,7 +153,6 @@ var PreReleaseOnlyPackages = new HashSet<string>
     "Microsoft.CodeAnalysis.Remote.Workspaces",
     "Microsoft.CodeAnalysis.Test.Resources.Proprietary",
     "Microsoft.VisualStudio.IntegrationTest.Utilities",
-    "Microsoft.VisualStudio.LanguageServices.Next",
     "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
     "Microsoft.CodeAnalysis.PooledObjects",
     "Microsoft.CodeAnalysis.Debugging",
@@ -176,7 +174,6 @@ var PackagesNotBuiltOnCore = new HashSet<string>
      "Microsoft.Net.Compilers",
      "Microsoft.VisualStudio.IntegrationTest.Utilities",
      "Microsoft.VisualStudio.LanguageServices",
-     "Microsoft.VisualStudio.LanguageServices.Next",
      "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
      "Roslyn.VisualStudio.Test.Utilities",
 };

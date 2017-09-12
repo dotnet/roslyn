@@ -1547,6 +1547,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            // If method1 is a constructor only because its return type is missing, then
+            // we've already produced a diagnostic for the missing return type and we suppress the
+            // diagnostic about duplicate signature.
+            if (method1.MethodKind == MethodKind.Constructor &&
+                ((ConstructorDeclarationSyntax)method1.SyntaxRef.GetSyntax()).Identifier.ValueText != this.Name)
+            {
+                return;
+            }
+
             if (DifferByOutOrRef(method1, method2))
             {
                 // '{0}' cannot define overloaded methods that differ only on ref and out

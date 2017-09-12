@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             var builder = new CommandLineBuilderExtension();
             builder.AppendFileNameIfNotNull(pathToTool);
+            builder.AppendTextUnquoted(" ");
             builder.AppendTextUnquoted(commandLineArgs);
             return builder.ToString();
         }

@@ -807,6 +807,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to External reference found.
+        /// </summary>
+        internal static string External_reference_found {
+            get {
+                return ResourceManager.GetString("External_reference_found", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Extract Interface.
         /// </summary>
         internal static string Extract_Interface {
@@ -1375,6 +1384,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string No_Changes {
             get {
                 return ResourceManager.GetString("No_Changes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No references found to &apos;{0}&apos;.
+        /// </summary>
+        internal static string No_references_found_to_0 {
+            get {
+                return ResourceManager.GetString("No_references_found_to_0", resourceCulture);
             }
         }
         
@@ -1988,6 +2006,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Search found no results.
+        /// </summary>
+        internal static string Search_found_no_results {
+            get {
+                return ResourceManager.GetString("Search_found_no_results", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Select All.
         /// </summary>
         internal static string Select_All {
@@ -2266,7 +2293,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         ///2. Open a Visual Studio Developer Command Prompt
         ///3. Set environment variable “TraceDesignTime” to true (set TraceDesignTime=true)
         ///4. Delete .vs directory/.suo file
-        ///5. Restart VS from the command prompt you set the environment varaible (devenv)
+        ///5. Restart VS from the command prompt you set the environment variable (devenv)
         ///6. Open the solution
         ///7. Check &apos;{0}&apos; and look for the failed tasks (FAILED).
         /// </summary>

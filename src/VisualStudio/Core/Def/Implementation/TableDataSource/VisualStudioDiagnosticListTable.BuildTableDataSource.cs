@@ -13,6 +13,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal partial class VisualStudioDiagnosticListTable : VisualStudioBaseDiagnosticListTable
     {
         private class BuildTableDataSource : AbstractTableDataSource<DiagnosticData>

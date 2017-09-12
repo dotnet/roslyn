@@ -1414,25 +1414,6 @@ tryAgain:
             }
         }
 
-        private static bool CanReuseTypeDeclaration(CSharp.Syntax.MemberDeclarationSyntax member)
-        {
-            if (member != null)
-            {
-                // on reuse valid type declaration (not bad namespace members)
-                switch (member.Kind())
-                {
-                    case SyntaxKind.ClassDeclaration:
-                    case SyntaxKind.StructDeclaration:
-                    case SyntaxKind.InterfaceDeclaration:
-                    case SyntaxKind.EnumDeclaration:
-                    case SyntaxKind.DelegateDeclaration:
-                        return true;
-                }
-            }
-
-            return false;
-        }
-
         private MemberDeclarationSyntax ParseTypeDeclaration(SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
             // "top-level" expressions and statements should never occur inside an asynchronous context
@@ -1521,7 +1502,7 @@ tryAgain:
                             var saveTerm2 = _termState;
                             _termState |= TerminatorState.IsPossibleMemberStartOrStop;
 
-                            var memberOrStatement = this.ParseMemberDeclarationOrStatement(classOrStructOrInterface.Kind, name.ValueText);
+                            var memberOrStatement = this.ParseMemberDeclarationOrStatement(classOrStructOrInterface.Kind);
                             if (memberOrStatement != null)
                             {
                                 // statements are accepted here, a semantic error will be reported later
@@ -1968,56 +1949,33 @@ tryAgain:
         }
 
         private static bool CanReuseMemberDeclaration(
-            CSharp.Syntax.MemberDeclarationSyntax member,
-            string typeName)
+            CSharp.Syntax.MemberDeclarationSyntax member)
         {
-            if (member != null)
+            switch (member?.Kind())
             {
-                switch (member.Kind())
-                {
-                    case SyntaxKind.ClassDeclaration:
-                    case SyntaxKind.StructDeclaration:
-                    case SyntaxKind.InterfaceDeclaration:
-                    case SyntaxKind.EnumDeclaration:
-                    case SyntaxKind.DelegateDeclaration:
-                    case SyntaxKind.FieldDeclaration:
-                    case SyntaxKind.EventFieldDeclaration:
-                    case SyntaxKind.PropertyDeclaration:
-                    case SyntaxKind.EventDeclaration:
-                    case SyntaxKind.IndexerDeclaration:
-                    case SyntaxKind.OperatorDeclaration:
-                    case SyntaxKind.ConversionOperatorDeclaration:
-                    case SyntaxKind.DestructorDeclaration:
-                        return true;
-                }
-
-                var parent = GetOldParent(member);
-                var originalTypeDeclaration = parent as CSharp.Syntax.TypeDeclarationSyntax;
-
-                // originalTypeDeclaration can be null in the case of script code.  In that case
-                // the member declaration can be a child of a namespace/compilation-unit instead of
-                // a type.
-                if (originalTypeDeclaration != null)
-                {
-                    switch (member.Kind())
-                    {
-                        case SyntaxKind.MethodDeclaration:
-                            // can reuse a method as long as it *doesn't* match the type name.
-                            var methodDeclaration = (CSharp.Syntax.MethodDeclarationSyntax)member;
-                            return methodDeclaration.Identifier.ValueText != typeName;
-
-                        case SyntaxKind.ConstructorDeclaration:
-                            // can reuse constructors if the name and type name still match.
-                            return originalTypeDeclaration.Identifier.ValueText == typeName;
-                    }
-                }
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.InterfaceDeclaration:
+                case SyntaxKind.EnumDeclaration:
+                case SyntaxKind.DelegateDeclaration:
+                case SyntaxKind.FieldDeclaration:
+                case SyntaxKind.EventFieldDeclaration:
+                case SyntaxKind.PropertyDeclaration:
+                case SyntaxKind.EventDeclaration:
+                case SyntaxKind.IndexerDeclaration:
+                case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
+                case SyntaxKind.DestructorDeclaration:
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.ConstructorDeclaration:
+                    return true;
+                default:
+                    return false;
             }
-
-            return false;
         }
 
         // Returns null if we can't parse anything (even partially).
-        private MemberDeclarationSyntax ParseMemberDeclarationOrStatement(SyntaxKind parentKind, string typeName = null)
+        private MemberDeclarationSyntax ParseMemberDeclarationOrStatement(SyntaxKind parentKind)
         {
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
@@ -2028,12 +1986,10 @@ tryAgain:
             bool acceptStatement = isGlobalScript;
 
             // don't reuse members if they were previously declared under a different type keyword kind
-            // don't reuse existing constructors & destructors because they have to match typename errors
-            // don't reuse methods whose name matches the new type name (they now match as possible constructors)
             if (this.IsIncrementalAndFactoryContextMatches)
             {
                 var member = this.CurrentNode as CSharp.Syntax.MemberDeclarationSyntax;
-                if (CanReuseMemberDeclaration(member, typeName) || CanReuseTypeDeclaration(member))
+                if (CanReuseMemberDeclaration(member))
                 {
                     return (MemberDeclarationSyntax)this.EatNode();
                 }
@@ -2118,9 +2074,9 @@ tryAgain:
                     // Script(...) { ... } 
                     //            ^
                     //            missing ';'
-                    if (!isGlobalScript && this.CurrentToken.ValueText == typeName)
+                    if (!isGlobalScript)
                     {
-                        return this.ParseConstructorDeclaration(typeName, attributes, modifiers);
+                        return this.ParseConstructorDeclaration(attributes, modifiers);
                     }
 
                     // Script: 
@@ -2141,7 +2097,7 @@ tryAgain:
                 // TODO: better error messages for script
                 if (!isGlobalScript && this.CurrentToken.Kind == SyntaxKind.TildeToken)
                 {
-                    return this.ParseDestructorDeclaration(typeName, attributes, modifiers);
+                    return this.ParseDestructorDeclaration(attributes, modifiers);
                 }
 
                 // Check for constant (prefers const field over const local variable decl)
@@ -2502,11 +2458,9 @@ parse_member_name:;
         }
 
         private ConstructorDeclarationSyntax ParseConstructorDeclaration(
-            string typeName, SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+            SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
             var name = this.ParseIdentifierToken();
-            Debug.Assert(name.ValueText == typeName);
-
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfMethodSignature;
             try
@@ -2566,7 +2520,7 @@ parse_member_name:;
             return _syntaxFactory.ConstructorInitializer(kind, colon, token, argumentList);
         }
 
-        private DestructorDeclarationSyntax ParseDestructorDeclaration(string typeName, SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        private DestructorDeclarationSyntax ParseDestructorDeclaration(SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.TildeToken);
             var tilde = this.EatToken(SyntaxKind.TildeToken);
