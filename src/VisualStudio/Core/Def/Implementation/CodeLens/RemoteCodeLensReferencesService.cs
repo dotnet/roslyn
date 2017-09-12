@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Remote.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 {

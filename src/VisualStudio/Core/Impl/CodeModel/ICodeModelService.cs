@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         bool IsOptionNode(SyntaxNode node);
         bool IsImportNode(SyntaxNode node);
 
-        ISymbol ResolveSymbol(Workspace workspace, ProjectId projectId, SymbolKey symbolId);
+        ISymbol ResolveSymbol(Microsoft.CodeAnalysis.Workspace workspace, ProjectId projectId, SymbolKey symbolId);
 
         string GetUnescapedName(string name);
 

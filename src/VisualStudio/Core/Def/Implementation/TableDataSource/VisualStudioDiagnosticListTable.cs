@@ -18,6 +18,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Export(typeof(VisualStudioDiagnosticListTable))]
     internal partial class VisualStudioDiagnosticListTable : VisualStudioBaseDiagnosticListTable
     {
