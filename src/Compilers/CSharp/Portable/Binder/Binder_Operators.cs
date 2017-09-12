@@ -2006,9 +2006,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var expr = BindExpression(node.Operand, diagnostics);
             var type = expr.Type;
-            // Report an error if there are no reference types.
             if ((object)type != null)
             {
+                // Report diagnostic if the type consists of no reference types.
                 if ((object)type.VisitType((t, a, c) => t.IsErrorType() || t.IsReferenceType, (object)null, canDigThroughNullable: true) == null)
                 {
                     // PROTOTYPE(NullableReferenceTypes): Should be a warning, not an error.

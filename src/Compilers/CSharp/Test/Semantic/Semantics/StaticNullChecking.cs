@@ -9018,8 +9018,9 @@ class C
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Should report WRN_NullabilityMismatch*.
-        [Fact(Skip = "TODO")]
+        // WRN_NullabilityMismatch* warnings should not be
+        // reported for explicit delegate creation.
+        [Fact]
         public void DelegateCreation_02()
         {
             CSharpCompilation c = CreateStandardCompilation(@"
@@ -9050,18 +9051,7 @@ class CL0<T>{}
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                // (13,24): warning CS8622: Nullability of reference types in type of parameter 'x' of 'CL0<string?> C.M1(CL0<string> x)' doesn't match the target delegate 'C.D1'.
-                //         D1 x1 = new D1(M1);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "M1").WithArguments("x", "CL0<string?> C.M1(CL0<string> x)", "C.D1").WithLocation(13, 24),
-                // (13,24): warning CS8621: Nullability of reference types in return type of 'CL0<string?> C.M1(CL0<string> x)' doesn't match the target delegate 'C.D1'.
-                //         D1 x1 = new D1(M1);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "M1").WithArguments("CL0<string?> C.M1(CL0<string> x)", "C.D1").WithLocation(13, 24),
-                // (21,24): warning CS8622: Nullability of reference types in type of parameter 'x' of 'CL0<string> C.M2(CL0<string?> x)' doesn't match the target delegate 'C.D2'.
-                //         D2 x2 = new D2(M2);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "M2").WithArguments("x", "CL0<string> C.M2(CL0<string?> x)", "C.D2").WithLocation(21, 24),
-                // (21,24): warning CS8621: Nullability of reference types in return type of 'CL0<string> C.M2(CL0<string?> x)' doesn't match the target delegate 'C.D2'.
-                //         D2 x2 = new D2(M2);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "M2").WithArguments("CL0<string> C.M2(CL0<string?> x)", "C.D2").WithLocation(21, 24));
+                );
         }
 
         [Fact]
