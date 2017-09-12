@@ -1322,6 +1322,7 @@
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <Field Name="InstanceSymbol" Type="TypeSymbol" Null="disallow"/>
     
     <!-- BinderOpt is a temporary solution for IOperation implementation and should probably be removed in the future -->
     <!-- Tracked by https://github.com/dotnet/roslyn/issues/20787 -->
