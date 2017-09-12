@@ -37,7 +37,6 @@
     <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj">
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\Core\Next\ServicesVisualStudio.Next.csproj" />
   </ItemGroup>
   <ItemGroup>
     <NuGetPackageToIncludeInVsix Include="Nerdbank.FullDuplexStream" />

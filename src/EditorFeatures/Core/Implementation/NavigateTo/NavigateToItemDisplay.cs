@@ -4,26 +4,28 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
-    internal abstract class AbstractNavigateToItemDisplay : INavigateToItemDisplay2
+    internal sealed class NavigateToItemDisplay : INavigateToItemDisplay3
     {
-        protected readonly INavigateToSearchResult SearchResult;
+        private readonly INavigateToSearchResult _searchResult;
         private ReadOnlyCollection<DescriptionItem> _descriptionItems;
 
-        protected AbstractNavigateToItemDisplay(INavigateToSearchResult searchResult)
+        public NavigateToItemDisplay(INavigateToSearchResult searchResult)
         {
-            SearchResult = searchResult;
+            _searchResult = searchResult;
         }
 
-        public string AdditionalInformation => SearchResult.AdditionalInformation;
+        public string AdditionalInformation => _searchResult.AdditionalInformation;
 
         public string Description => null;
 
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
         private ReadOnlyCollection<DescriptionItem> CreateDescriptionItems()
         {
-            var document = SearchResult.NavigableItem.Document;
+            var document = _searchResult.NavigableItem.Document;
             if (document == null)
             {
                 return new List<DescriptionItem>().AsReadOnly();
@@ -66,10 +68,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                             new ReadOnlyCollection<DescriptionRun>(
                                 new[] { new DescriptionRun("Line:", bold: true) }),
                             new ReadOnlyCollection<DescriptionRun>(
-                                new[] { new DescriptionRun((sourceText.Lines.IndexOf(SearchResult.NavigableItem.SourceSpan.Start) + 1).ToString()) }))
+                                new[] { new DescriptionRun((sourceText.Lines.IndexOf(_searchResult.NavigableItem.SourceSpan.Start) + 1).ToString()) }))
                     };
 
-            var summary = SearchResult.Summary;
+            var summary = _searchResult.Summary;
             if (!string.IsNullOrWhiteSpace(summary))
             {
                 items.Add(
@@ -83,13 +85,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             return items.AsReadOnly();
         }
 
-        public abstract Icon Glyph { get; }
+        public Icon Glyph => null;
 
-        public string Name => SearchResult.NavigableItem.DisplayTaggedParts.JoinText();
+        public string Name => _searchResult.NavigableItem.DisplayTaggedParts.JoinText();
 
         public void NavigateTo()
         {
-            var document = SearchResult.NavigableItem.Document;
+            var document = _searchResult.NavigableItem.Document;
             if (document == null)
             {
                 return;
@@ -101,12 +103,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             // Document tabs opened by NavigateTo are carefully created as preview or regular
             // tabs by them; trying to specifically open them in a particular kind of tab here
             // has no effect.
-            navigationService.TryNavigateToSpan(workspace, document.Id, SearchResult.NavigableItem.SourceSpan);
+            navigationService.TryNavigateToSpan(workspace, document.Id, _searchResult.NavigableItem.SourceSpan);
         }
 
         public int GetProvisionalViewingStatus()
         {
-            var document = SearchResult.NavigableItem.Document;
+            var document = _searchResult.NavigableItem.Document;
             if (document == null)
             {
                 return 0;
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
         public void PreviewItem()
         {
-            var document = SearchResult.NavigableItem.Document;
+            var document = _searchResult.NavigableItem.Document;
             if (document == null)
             {
                 return;
@@ -132,7 +134,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             previewService.PreviewItem(this);
         }
 
+        public ImageMoniker GlyphMoniker => _searchResult.NavigableItem.Glyph.GetImageMoniker();
+
         public IReadOnlyList<Span> GetNameMatchRuns(string searchValue)
-            => SearchResult.NameMatchSpans.NullToEmpty().SelectAsArray(ts => ts.ToSpan());
+            => _searchResult.NameMatchSpans.NullToEmpty().SelectAsArray(ts => ts.ToSpan());
+
+        public IReadOnlyList<Span> GetAdditionalInformationMatchRuns(string searchValue)
+            => SpecializedCollections.EmptyReadOnlyList<Span>();
     }
 }

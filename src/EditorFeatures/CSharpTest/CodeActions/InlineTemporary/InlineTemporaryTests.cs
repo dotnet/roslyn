@@ -4210,18 +4210,16 @@ class C
         var t = ((i, (i, _)) = (1, (i, 3)));
     }
 }";
-
             var expected = @"
 class C
 {
     static int y = 1;
     void M()
     {
-        var t = (((int)C.y, ((int)C.y, _)) = (1, (C.y, 3)));
+        int i = C.y;
+        var t = (({|Conflict:(int)C.y|}, ({|Conflict:(int)C.y|}, _)) = (1, (C.y, 3)));
     }
 }";
-            // This refactoring should be blocked with an annotation, as the result of a cast is an L-value
-            // Follow-up issue: https://github.com/dotnet/roslyn/issues/19047
             await TestInRegularAndScriptAsync(code, expected);
         }
 
@@ -4239,18 +4237,16 @@ class C
         var t = ((i, _) = (1, 2));
     }
 }";
-
             var expected = @"
 class C
 {
     static int y = 1;
     void M()
     {
-        var t = (((int)C.y, _) = (1, 2));
+        int i = C.y;
+        var t = (({|Conflict:(int)C.y|}, _) = (1, 2));
     }
 }";
-            // This refactoring should be blocked with an annotation, as the result of a cast is an L-value
-            // Follow-up issue: https://github.com/dotnet/roslyn/issues/19047
             await TestInRegularAndScriptAsync(code, expected);
         }
 
