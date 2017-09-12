@@ -320,12 +320,9 @@ class C
                 // (7,9): warning CS8602: Possible dereference of a null reference.
                 //         F(x, new List<C?>() { y }).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x, new List<C?>() { y })").WithLocation(7, 9),
-                // (8,14): warning CS8620: Nullability of reference types in argument of type 'List<C>' doesn't match target type 'List<C?>' for parameter 'y' in 'C? C.F<C?>(C? x, List<C?> y)'.
+                // (8,11): warning CS8604: Possible null reference argument for parameter 'x' in 'C C.F<C>(C x, List<C> y)'.
                 //         F(y, new List<C>() { x }).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new List<C>() { x }").WithArguments("System.Collections.Generic.List<C>", "System.Collections.Generic.List<C?>", "y", "C? C.F<C?>(C? x, List<C?> y)").WithLocation(8, 14),
-                // (8,9): warning CS8602: Possible dereference of a null reference.
-                //         F(y, new List<C>() { x }).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y, new List<C>() { x })").WithLocation(8, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "C C.F<C>(C x, List<C> y)").WithLocation(8, 11));
         }
 
         [Fact]
@@ -939,8 +936,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(11, 13));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Type inference incorrect.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void TypeInference_TupleNameDifferences_01()
         {
             var source =
@@ -979,8 +975,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "x").WithArguments("(object, int)", "x").WithLocation(13, 22));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Type inference incorrect.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void TypeInference_TupleNameDifferences_02()
         {
             var source =
@@ -1004,16 +999,12 @@ class C
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (13,9): warning CS8602: Possible dereference of a null reference.
-                //         c.F((o, -1)).x.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.F((o, -1)).x").WithLocation(13, 9),
                 // (13,22): error CS1061: '(object, int)' does not contain a definition for 'x' and no extension method 'x' accepting a first argument of type '(object, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         c.F((o, -1)).x.ToString();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "x").WithArguments("(object, int)", "x").WithLocation(13, 22));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Type inference incorrect.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void TypeInference_DynamicDifferences_01()
         {
             var source =
@@ -1046,8 +1037,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Type inference incorrect.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void TypeInference_DynamicDifferences_02()
         {
             var source =
