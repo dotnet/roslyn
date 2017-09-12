@@ -1184,7 +1184,6 @@ BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression in
 </errors>)
         End Sub
 
-
         <Fact>
         Public Sub ParseNewTuple()
             Dim comp1 = CreateCompilationWithMscorlibAndVBRuntime(
@@ -6384,7 +6383,7 @@ End Class
 
             Dim verifier = CompileAndVerify(
 <compilation>
-                                  <file name="a.vb">
+    <file name="a.vb">
 Class C
     Shared Sub Main()
         Dim x = (a:=PrintAndReturn(1), b:=2, c:=3, d:=PrintAndReturn(4), e:=5, f:=6, g:=PrintAndReturn(7), h:=PrintAndReturn("Alice"), i:=2, j:=3, k:=4, l:=5, m:=6, n:=PrintAndReturn(7), o:=PrintAndReturn("Bob"), p:=2, q:=PrintAndReturn(3))
@@ -13998,7 +13997,7 @@ System.Object
         Public Sub Constraints_01()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
-<file name="a.vb"><![CDATA[
+    <file name="a.vb"><![CDATA[
 Namespace System
     Public Structure ValueTuple(Of T1 As Class, T2)   
         Sub New(_1 As T1, _2 As T2)       
@@ -14015,7 +14014,7 @@ End Class
 ]]></file>
 </compilation>)
 
-        	comp.AssertTheseDiagnostics(
+            comp.AssertTheseDiagnostics(
 <errors>
 BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for type parameter 'T1'.
     Sub M(p As (Integer, Integer))
@@ -14033,7 +14032,7 @@ BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for typ
         Public Sub Constraints_02()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
-<file name="a.vb"><![CDATA[
+    <file name="a.vb"><![CDATA[
 Imports System
 Class C
     Sub M(p As (Integer, ArgIterator), q As ValueTuple(Of Integer, ArgIterator))
@@ -14074,7 +14073,7 @@ BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data t
         Public Sub Constraints_03()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
-<file name="a.vb"><![CDATA[
+    <file name="a.vb"><![CDATA[
 Imports System.Collections.Generic
 Namespace System
     Public Structure ValueTuple(Of T1, T2 As Class)   
@@ -14108,7 +14107,7 @@ BC32106: Type argument 'U' does not satisfy the 'Class' constraint for type para
         Public Sub Constraints_04()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
-<file name="a.vb"><![CDATA[
+    <file name="a.vb"><![CDATA[
 Imports System.Collections.Generic
 Namespace System
     Public Structure ValueTuple(Of T1, T2 As Class)   
@@ -14142,7 +14141,7 @@ BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for typ
         Public Sub Constraints_05()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
-<file name="a.vb"><![CDATA[
+    <file name="a.vb"><![CDATA[
 Imports System.Collections.Generic
 Namespace System
     Public Structure ValueTuple(Of T1, T2 As Structure)   
@@ -14188,7 +14187,7 @@ BC32105: Type argument 'Object' does not satisfy the 'Structure' constraint for 
         Public Sub Constraints_06()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
-<file name="a.vb"><![CDATA[
+    <file name="a.vb"><![CDATA[
 Namespace System
     Public Structure ValueTuple(Of T1 As Class)
         Public Sub New(item1 As T1)
@@ -14235,7 +14234,7 @@ BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for typ
         Public Sub LongTupleConstraints()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
-<file name="a.vb"><![CDATA[
+    <file name="a.vb"><![CDATA[
 Imports System
 Class C
     Sub M0(p As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, ArgIterator))
