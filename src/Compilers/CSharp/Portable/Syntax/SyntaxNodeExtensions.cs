@@ -122,10 +122,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// PROTOTYPE(span):
-        /// short work around until we look into spilling stackalloc expressions
         /// Because the instruction cannot have any values on the stack before CLR execution.
         /// Limit it to assignments and conditional expressions for now.
+        /// https://github.com/dotnet/roslyn/issues/22046
         /// </summary>
         internal static bool IsLegalSpanStackAllocPosition(this SyntaxNode node)
         {
