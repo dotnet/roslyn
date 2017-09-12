@@ -13,6 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
     Friend Class VisualBasicConvertAutoPropertyToFullPropertyCodeRefactoringProvider
         Inherits AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider
 
+        Private Const Underscore As String = "_"
+
         Friend Overrides Function GetProperty(token As SyntaxToken) As SyntaxNode
             Dim containingProperty = token.Parent.FirstAncestorOrSelf(Of PropertyStatementSyntax)
             If containingProperty Is Nothing Then
@@ -79,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
             ' In VB, auto properties have an implicit backing field that is named using the property 
             ' name preceded by an underscore. We will use this as the field name so we don't mess up 
             ' any existing references to this field.
-            Return fieldName
+            Return Underscore + propertySymbol.Name
         End Function
 
         Friend Overrides Function GetTypeBlock(syntaxNode As SyntaxNode) As SyntaxNode

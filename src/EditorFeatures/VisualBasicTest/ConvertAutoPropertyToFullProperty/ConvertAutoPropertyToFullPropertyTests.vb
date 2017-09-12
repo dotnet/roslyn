@@ -20,14 +20,14 @@ Class C
 End Class"
             Dim expected = "
 Class C
-    Private _test1 As Integer
+    Private _Test1 As Integer
 
     Public Property Test1 As Integer
         Get
-            Return _test1
+            Return _Test1
         End Get
         Set
-            _test1 = Value
+            _Test1 = Value
         End Set
     End Property
 End Class"
@@ -42,14 +42,14 @@ Class C
 End Class"
             Dim expected = "
 Class C
-    Private _test2 As Integer = 4
+    Private _Test2 As Integer = 4
 
     Public Property Test2 As Integer
         Get
-            Return _test2
+            Return _Test2
         End Get
         Set
-            _test2 = Value
+            _Test2 = Value
         End Set
     End Property
 End Class"
@@ -64,11 +64,11 @@ Class C
 End Class"
             Dim expected = "
 Class C
-    Private ReadOnly _test5 As String
+    Private ReadOnly _Test5 As String
 
     Public ReadOnly Property Test5 As String
         Get
-            Return _test5
+            Return _Test5
         End Get
     End Property
 End Class"
@@ -83,11 +83,11 @@ Class C
 End Class"
             Dim expected = "
 Class C
-    Private ReadOnly _test4 As String = ""Initial Value""
+    Private ReadOnly _Test4 As String = ""Initial Value""
 
     Public ReadOnly Property Test4 As String
         Get
-            Return _test4
+            Return _Test4
         End Get
     End Property
 End Class"
@@ -103,14 +103,14 @@ Class C
 End Class"
             Dim expected = "
 Class C
-    Private _test4 As String
+    Private _Test4 As String
 
     Private Property Test4 As String
         Get
-            Return _test4
+            Return _Test4
         End Get
         Set
-            _test4 = Value
+            _Test4 = Value
         End Set
     End Property
 End Class"
@@ -128,14 +128,14 @@ Class C
 End Class"
             Dim expected = "
 Class C
-    Private _test1 As Integer
+    Private _Test1 As Integer
     '' Comment before
     Public Property Test1 As Integer ''Comment during
         Get
-            Return _test1
+            Return _Test1
         End Get
         Set
-            _test1 = Value
+            _Test1 = Value
         End Set
     End Property
     '' Comment after
@@ -153,14 +153,14 @@ End Class"
 
             Dim expected = "
 Class C
-    Private Shared s_test1 As Double
+    Private Shared _Test1 As Double
 
     Public Shared Property Test1 As Double
         Get
-            Return s_test1
+            Return _Test1
         End Get
         Set
-            s_test1 = Value
+            _Test1 = Value
         End Set
     End Property
 End Class"
@@ -176,14 +176,14 @@ End Class"
 
             Dim expected = "
 Class C
-    Private _test4 As Decimal
+    Private _Test4 As Decimal
 
     Public Overridable Property Test4 As Decimal
         Get
-            Return _test4
+            Return _Test4
         End Get
         Set
-            _test4 = Value
+            _Test4 = Value
         End Set
     End Property
 End Class"

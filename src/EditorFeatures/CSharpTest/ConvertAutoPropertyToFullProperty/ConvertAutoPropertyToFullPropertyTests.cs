@@ -276,6 +276,34 @@ class goo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task WithExpressionBodyWhenOnSingleLine2()
+        {
+            var text = @"
+class goo
+{
+    public int G[||]oo
+    {
+        get;
+        set;
+    }
+}
+";
+            var expected = @"
+class goo
+{
+    private int _goo;
+
+    public int Goo
+    {
+        get => _goo;
+        set => _goo = value;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: PreferExpressionBodiedAccessorsWhenOnSingleLine);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
         public async Task WithExpressionBodyWithTrivia()
         {
             var text = @"

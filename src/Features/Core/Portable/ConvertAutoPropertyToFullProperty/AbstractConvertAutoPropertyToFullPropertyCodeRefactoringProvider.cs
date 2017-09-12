@@ -163,9 +163,9 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             var accessorTuple = GetNewAccessors(options, property,fieldName, generator);
             var fullProperty = generator
                 .WithAccessorDeclarations(
-                    GetPropertyWithoutInitializer(property), 
-                    accessorTuple.newSetAccessor == null 
-                        ? new SyntaxNode[] { accessorTuple.newGetAccessor } 
+                    GetPropertyWithoutInitializer(property),
+                    accessorTuple.newSetAccessor == null
+                        ? new SyntaxNode[] { accessorTuple.newGetAccessor }
                         : new SyntaxNode[] { accessorTuple.newGetAccessor, accessorTuple.newSetAccessor })
                 .WithLeadingTrivia(property.GetLeadingTrivia());
             fullProperty = ConvertPropertyToExpressionBodyIfDesired(options,fullProperty);
@@ -190,9 +190,8 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
         private class ConvertAutoPropertyToFullPropertyCodeAction : CodeAction.DocumentChangeAction
         {
             public ConvertAutoPropertyToFullPropertyCodeAction(
-                string Title, 
-                Func<CancellationToken, 
-                Task<Document>> createChangedDocument) : base(Title, createChangedDocument)
+                string title, 
+                Func<CancellationToken, Task<Document>> createChangedDocument) : base(title, createChangedDocument)
             {
             }
         }
