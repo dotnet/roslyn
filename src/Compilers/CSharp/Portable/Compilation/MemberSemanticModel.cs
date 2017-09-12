@@ -961,13 +961,46 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override IOperation GetOperationWorker(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
         {
-            CSharpSyntaxNode bindableNode;
+            var operationForParent = WalkUpToBindableParentAndGetOperation(node, options, cancellationToken);
 
-            BoundNode lowestBoundNode;
-            BoundNode highestBoundNode;
-            BoundNode boundParent;
+            if (node.IsKind(SyntaxKind.Argument) && operationForParent is IHasArgumentsExpression hasArguments)
+            {
+                return TryMapArgumentNodeToOperation((ArgumentSyntax)node, hasArguments);
+            }
 
-            GetBoundNodes(node, out bindableNode, out lowestBoundNode, out highestBoundNode, out boundParent);
+            return operationForParent;
+        }
+
+        private IOperation TryMapArgumentNodeToOperation(ArgumentSyntax argumentNode, IHasArgumentsExpression hasArguments)
+        {
+            var argumentExpression = argumentNode.Expression;
+            foreach (var argument in hasArguments.ArgumentsInEvaluationOrder)
+            {
+                if (argument.Syntax == argumentExpression)
+                {
+                    return argument;
+                }
+
+                if (argument.ArgumentKind == ArgumentKind.ParamArray &&
+                    argument.Value is IArrayCreationExpression arrayCreation)
+                {
+                    foreach (var arrayElement in arrayCreation.Initializer.ElementValues)
+                    {
+                        if (arrayElement.Syntax == argumentExpression)
+                        {
+                            return argument;
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private IOperation WalkUpToBindableParentAndGetOperation(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
+        {
+            GetBoundNodes(node, out CSharpSyntaxNode bindableNode, out BoundNode lowestBoundNode,
+                                out BoundNode highestBoundNode, out BoundNode boundParent);
             BoundNode result;
             switch (options)
             {

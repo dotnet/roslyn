@@ -796,6 +796,10 @@ Public MustInherit Class BasicTestBaseBase
             Return Nothing
         End If
 
+        Return GetOperationTree(compilation, fileName, node)
+    End Function
+
+    Protected Shared Function GetOperationTree(compilation As VisualBasicCompilation, fileName As String, node As SyntaxNode) As (tree As String, syntax As SyntaxNode, operation As IOperation)
         Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
         Dim semanticModel = compilation.GetSemanticModel(tree)
         Dim operation = semanticModel.GetOperationInternal(node)
