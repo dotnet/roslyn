@@ -1184,6 +1184,48 @@ BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression in
 </errors>)
         End Sub
 
+
+        <Fact>
+        Public Sub ParseNewTuple()
+            Dim comp1 = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class A
+    Sub Main()
+        Dim x = New (A, A)
+        Dim y = New (A, A)()
+        Dim z = New (x As Integer, A)
+    End Sub
+End Class
+    ]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+            comp1.AssertTheseDiagnostics(<errors>
+BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
+        Dim x = New (A, A)
+                    ~~~~~~
+BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
+        Dim y = New (A, A)()
+                    ~~~~~~
+BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
+        Dim z = New (x As Integer, A)
+                    ~~~~~~~~~~~~~~~~~
+                                         </errors>)
+
+            Dim comp2 = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+    Public Function Bar() As (Alice As (Alice As Integer, Bob As Integer)(), Bob As Integer)
+        ' this is actually ok, since it is an array
+        Return (New(Integer, Integer)() {(4, 5)}, 5)
+    End Function
+End Module
+    ]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+            comp2.AssertNoDiagnostics()
+
+        End Sub
+
         <Fact>
         Public Sub TupleLiteralBinding()
 
