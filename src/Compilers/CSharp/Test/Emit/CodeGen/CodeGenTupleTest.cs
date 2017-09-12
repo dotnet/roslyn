@@ -3938,6 +3938,29 @@ static class Extension
             verifier7_1.VerifyDiagnostics();
         }
 
+        [WorkItem(21518, "https://github.com/dotnet/roslyn/issues/21518")]
+        [Fact]
+        public void InferredName_Conversion()
+        {
+            var source =
+@"using System.Collections.Generic;
+class C
+{
+    static void F((int, IList<object>) items)
+    {
+    }
+    static void Test()
+    {
+        var items = new List<object>();
+        var group = (1, items);
+        F(group);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyEmitDiagnostics();
+        }
+
         [Fact]
         public void LongTupleWithArgumentEvaluation()
         {
@@ -23960,6 +23983,37 @@ public class C
                 //         M1(b); // error: ambiguous
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1<T, U>((T, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, (U, int)))", "C.M1<T, U>(((T, int), int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, U))").WithLocation(7, 9)
                 );
+        }
+
+        [Fact]
+        [WorkItem(21785, "https://github.com/dotnet/roslyn/issues/21785")]
+        void TypelessTupleInArrayInitializer()
+        {
+            string source = @"
+class C
+{
+    static (int A, object B)[] mTupleArray = { (A: 0, B: null) };
+
+    private static void Main()
+    {
+        System.Console.Write(mTupleArray[0].B == null);
+    }
+}";
+            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "True");
+
+            var tree = comp.SyntaxTrees[0];
+
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var node = nodes.OfType<TupleExpressionSyntax>().Single();
+
+            Assert.Equal("(A: 0, B: null)", node.ToString());
+            var tupleSymbol = model.GetTypeInfo(node);
+            Assert.Null(tupleSymbol.Type);
+
+            Assert.Equal("(System.Int32 A, System.Object B)", tupleSymbol.ConvertedType.ToTestDisplayString());
         }
     }
 }

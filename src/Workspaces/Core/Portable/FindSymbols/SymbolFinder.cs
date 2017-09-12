@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             var project = solution.GetProject(symbol.ContainingAssembly, cancellationToken);
-            if (project != null)
+            if (project != null && project.SupportsCompilation)
             {
                 var symbolId = symbol.GetSymbolKey();
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -169,10 +169,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return SymbolAndProjectId.Create(result.CandidateSymbols.FirstOrDefault(InSource), project.Id);
                 }
             }
-            else
-            {
-                return default;
-            }
+
+            return default;
         }
 
         private static bool InSource(ISymbol symbol)

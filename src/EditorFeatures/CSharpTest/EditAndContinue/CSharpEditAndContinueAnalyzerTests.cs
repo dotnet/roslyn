@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     
 }
 ";
-            TestSpans(source, kind => TopSyntaxComparer.HasLabel(kind, ignoreVariableDeclarations: false));
+            TestSpans(source, kind => TopSyntaxComparer.HasLabel(kind));
         }
 
         [Fact]
@@ -227,7 +227,7 @@ class C
         public void ErrorSpansAllKinds()
         {
             TestErrorSpansAllKinds(StatementSyntaxComparer.IgnoreLabeledChild);
-            TestErrorSpansAllKinds(kind => TopSyntaxComparer.HasLabel(kind, ignoreVariableDeclarations: false));
+            TestErrorSpansAllKinds(kind => TopSyntaxComparer.HasLabel(kind));
         }
 
         [Fact]

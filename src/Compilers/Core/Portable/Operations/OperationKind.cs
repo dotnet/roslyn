@@ -25,14 +25,13 @@ namespace Microsoft.CodeAnalysis
         IfStatement = 0x5,
         /// <summary>Indicates an <see cref="ILoopStatement"/>.</summary>
         LoopStatement = 0x6,
-        /// <summary>Indicates an <see cref="ILabelStatement"/>.</summary>
-        LabelStatement = 0x7,
+        /// <summary>Indicates an <see cref="ILabeledStatement"/>.</summary>
+        LabeledStatement = 0x7,
         /// <summary>Indicates an <see cref="IBranchStatement"/>.</summary>
         BranchStatement = 0x8,
         /// <summary>Indicates an <see cref="IEmptyStatement"/>.</summary>
         EmptyStatement = 0x9,
-        /// <summary>Indicates an <see cref="IThrowStatement"/>.</summary>
-        ThrowStatement = 0xa,
+        // 0xa open for usage, was IThrowStatement.
         /// <summary>Indicates an <see cref="IReturnStatement"/>.</summary>
         ReturnStatement = 0xb,
         /// <summary>Indicates an <see cref="IReturnStatement"/>.</summary>
@@ -51,7 +50,8 @@ namespace Microsoft.CodeAnalysis
         // Statements that occur only C#.
 
         /// <summary>Indicates an <see cref="IFixedStatement"/>.</summary>
-        FixedStatement = 0x30,
+        // https://github.com/dotnet/roslyn/issues/21281
+        //FixedStatement = 0x30,
 
         LocalFunctionStatement = 0x31,
 
@@ -94,12 +94,12 @@ namespace Microsoft.CodeAnalysis
         UnaryOperatorExpression = 0x10d,
         /// <summary>Indicates an <see cref="IBinaryOperatorExpression"/>.</summary>
         BinaryOperatorExpression = 0x10e,
-        /// <summary>Indicates an <see cref="IConditionalChoiceExpression"/>.</summary>
-        ConditionalChoiceExpression = 0x10f,
-        /// <summary>Indicates an <see cref="INullCoalescingExpression"/>.</summary>
-        NullCoalescingExpression = 0x110,
-        /// <summary>Indicates an <see cref="ILambdaExpression"/>.</summary>
-        LambdaExpression = 0x111,
+        /// <summary>Indicates an <see cref="IConditionalExpression"/>.</summary>
+        ConditionalExpression = 0x10f,
+        /// <summary>Indicates an <see cref="ICoalesceExpression"/>.</summary>
+        CoalesceExpression = 0x110,
+        /// <summary>Indicates an <see cref="IAnonymousFunctionExpression"/>.</summary>
+        AnonymousFunctionExpression = 0x111,
         /// <summary>Indicates an <see cref="IObjectCreationExpression"/>.</summary>
         ObjectCreationExpression = 0x112,
         /// <summary>Indicates an <see cref="ITypeParameterObjectCreationExpression"/>.</summary>
@@ -155,8 +155,10 @@ namespace Microsoft.CodeAnalysis
         SizeOfExpression = 0x202,
         /// <summary>Indicates an <see cref="IAddressOfExpression"/>.</summary>
         AddressOfExpression = 0x203,
-        /// <summary>Indicates an <see cref="IPointerIndirectionReferenceExpression"/>.</summary>
-        PointerIndirectionReferenceExpression = 0x204,
+        // <summary>Indicates an <see cref="IPointerIndirectionReferenceExpression"/>.</summary>
+        // API Removed for V1
+        // https://github.com/dotnet/roslyn/issues/21295
+        //PointerIndirectionReferenceExpression = 0x204,
         /// <summary>Indicates an <see cref="IIsPatternExpression"/>.</summary>
         IsPatternExpression = 0x205,
         /// <summary>Indicates an <see cref="IIncrementExpression"/>.</summary>

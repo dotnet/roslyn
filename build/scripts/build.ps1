@@ -288,25 +288,60 @@ function Test-PerfRun() {
 
 function Test-XUnitCoreClr() { 
 
-    $unitDir = Join-Path $binariesDir "CoreClrTest"
+    $unitDir = Join-Path $configDir "UnitTests"
+    $runtimeIdentifier = "win7-x64"
+    $tf = "netcoreapp2.0"
     $logDir = Join-Path $unitDir "xUnitResults"
-    $logFile = Join-Path $logDir "TestResults.xml"
     Create-Directory $logDir 
+    $xunitConsole = Join-Path (Get-PackageDir "dotnet-xunit") "tools\$tf\xunit.console.dll"
 
-    Write-Host "Publishing CoreClr tests"
-    Run-MSBuild "src\Test\DeployCoreClrTestRuntime\DeployCoreClrTestRuntime.csproj /m /v:m /t:Publish /p:RuntimeIdentifier=win7-x64 /p:PublishDir=$unitDir"
+    # A number of our tests need to be published before they can be executed in order to get some 
+    # runtime assets.
+    $needPublish = @(
+        "src\Compilers\CSharp\Test\Symbol\CSharpCompilerSymbolTest.csproj"
+    )
 
-    $corerun = Join-Path $unitDir "CoreRun.exe"
-    $args = Join-Path $unitDir "xunit.console.netcore.exe"
-    foreach ($dll in Get-ChildItem -re -in "*.UnitTests.dll" $unitDir) {
-        $args += " $dll";
+    foreach ($file in $needPublish) {
+        $name = Split-Path -leaf $file
+        Write-Host "Publishing $name"
+        $filePath = Join-Path $repoDir $file
+        Run-MSBuild "$filePath /m /v:m /t:Publish /p:TargetFramework=$tf /p:RuntimeIdentifier=$runtimeIdentifier /p:SelfContained=true"
     }
 
-    $args += " -parallel all"
-    $args += " -xml $logFile"
+    $dlls = @()
+    $allGood = $true
+    foreach ($dir in Get-ChildItem $unitDir) {
+        $testDir = Join-Path $unitDir (Join-Path $dir $tf)
+        if (Test-Path $testDir) { 
+            $publishDir = Join-Path $testDir "$runtimeIdentifier\publish"
+            if (Test-path $publishDir) {
+                $testDir = $publishDir
+            }   
+            
+            $dllName = Get-ChildItem -name "*.UnitTests.dll" -path $testDir
+            $dllPath = Join-Path $testDir $dllName
 
-    Write-Host "Running CoreClr tests"
-    Exec-Console $corerun $args
+            $args = "exec"
+            $args += " --depsfile " + [IO.Path]::ChangeExtension($dllPath, ".deps.json")
+            $args += " --runtimeconfig " + [IO.Path]::ChangeExtension($dllPath, ".runtimeconfig.json")
+            $args += " $xunitConsole"
+            $args += " $dllPath"
+            $args += " -xml " + (Join-Path $logDir ([IO.Path]::ChangeExtension($dllName, ".xml")))
+
+            try {
+                Write-Host "Running $dllName"
+                Exec-Console $dotnet $args
+            }
+            catch {
+                Write-Host "Failed"
+                $allGood = $false
+            }
+        }
+    }
+
+    if (-not $allGood) { 
+        throw "Unit tests failed"
+    }
 }
 
 # Core function for running our unit / integration tests tests
@@ -327,6 +362,7 @@ function Test-XUnit() {
     $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools"
     $args = "$xunitDir"
     $args += " -log:$logFilePath"
+    $args += " -nocache"
 
     if ($testDesktop) {
         if ($test32) {
@@ -346,6 +382,10 @@ function Test-XUnit() {
 
     # Exclude out the multi-targetted netcore app projects
     $dlls = $dlls | ?{ -not ($_.FullName -match ".*netcoreapp.*") }
+
+    # Exclude out the ref assemblies
+    $dlls = $dlls | ?{ -not ($_.FullName -match ".*\\ref\\.*") }
+    $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
 
     if ($cibuild) {
         # Use a 50 minute timeout on CI
@@ -506,6 +546,7 @@ try {
     Process-Arguments
 
     $msbuild, $msbuildDir = Ensure-MSBuildAndDir -msbuildDir $msbuildDir
+    $dotnet, $sdkDir = Ensure-SdkInPathAndData
     $buildConfiguration = if ($release) { "Release" } else { "Debug" }
     $configDir = Join-Path $binariesDIr $buildConfiguration
     $bootstrapDir = ""

@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     internal abstract partial class AbstractLanguageService<TPackage, TLanguageService>
     {
-        internal class VsLanguageDebugInfo : IVsLanguageDebugInfo
+        internal sealed class VsLanguageDebugInfo
         {
             private readonly Guid _languageId;
             private readonly TLanguageService _languageService;
@@ -278,7 +278,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 if (textBuffer != null)
                 {
                     var snapshot = textBuffer.CurrentSnapshot;
-                    Document document = snapshot.AsText().GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                    Document document = snapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
                     if (document != null)
                     {
                         var point = snapshot.GetPoint(iLine, iCol);

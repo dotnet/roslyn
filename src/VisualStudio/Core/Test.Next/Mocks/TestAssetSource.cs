@@ -37,8 +37,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
 
             foreach (var checksum in checksums)
             {
-                object data;
-                Assert.True(_map.TryGetValue(checksum, out data));
+                Assert.True(_map.TryGetValue(checksum, out var data));
 
                 list.Add(ValueTuple.Create(checksum, data));
             }

@@ -387,7 +387,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             if (targetToken.Kind() == SyntaxKind.ColonToken)
             {
-                if (targetToken.Parent.IsKind(SyntaxKind.CaseSwitchLabel, SyntaxKind.DefaultSwitchLabel))
+                if (targetToken.Parent.IsKind(
+                        SyntaxKind.CaseSwitchLabel, SyntaxKind.DefaultSwitchLabel, SyntaxKind.CasePatternSwitchLabel))
                 {
                     return true;
                 }
@@ -660,8 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                     if (item.IsNode)
                     {
-                        var node = item.AsNode() as ArgumentSyntax;
-                        if (node != null && node.NameColon != null)
+                        if (item.AsNode() is ArgumentSyntax node && node.NameColon != null)
                         {
                             return true;
                         }

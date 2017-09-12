@@ -86,7 +86,8 @@ end class")
     end property|]
 end class",
 "class Class1
-    readonly property P as integer = 1
+    readonly property P as integer
+= 1
 end class")
         End Function
 
@@ -463,7 +464,7 @@ end class")
 end class",
 "class Class1
     ReadOnly property P as Integer
-    public sub new(dim P as integer)
+ public sub new(dim P as integer)
         Me.P = 1
     end sub
 end class")
@@ -540,8 +541,9 @@ end class")
 end class",
 "class Class1
     public property P as Integer
-    public sub Goo() P = 1 
- end sub
+    public sub Goo()
+        P = 1
+    end sub
 end class")
         End Function
 

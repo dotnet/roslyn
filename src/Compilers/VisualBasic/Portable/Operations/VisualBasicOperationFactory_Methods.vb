@@ -41,8 +41,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
             If child IsNot Nothing Then
                 Return child
             End If
-
-            Return OperationFactory.CreateInvalidExpression(_semanticModel, [operator].UnderlyingExpression.Syntax, ImmutableArray(Of IOperation).Empty)
+            Dim isImplicit As Boolean = [operator].WasCompilerGenerated
+            Return OperationFactory.CreateInvalidExpression(_semanticModel, [operator].UnderlyingExpression.Syntax, ImmutableArray(Of IOperation).Empty, isImplicit)
         End Function
 
         Private Shared Function GetUserDefinedBinaryOperatorChildBoundNode([operator] As BoundUserDefinedBinaryOperator, index As Integer) As BoundNode
@@ -72,6 +72,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function DeriveArgument(index As Integer, argument As BoundExpression, parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol)) As IArgument
+            Dim isImplicit As Boolean = argument.WasCompilerGenerated
             Select Case argument.Kind
                 Case BoundKind.ByRefArgumentWithCopyBack
                     Dim byRefArgument = DirectCast(argument, BoundByRefArgumentWithCopyBack)
@@ -86,7 +87,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         _semanticModel,
                         value.Syntax,
                         type:=Nothing,
-                        constantValue:=Nothing)
+                        constantValue:=Nothing,
+                        isImplicit:=isImplicit)
                 Case Else
                     Dim lastParameterIndex = parameters.Length - 1
                     If index = lastParameterIndex AndAlso ParameterIsParamArray(parameters(lastParameterIndex)) Then
@@ -107,7 +109,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                             semanticModel:=_semanticModel,
                             syntax:=value.Syntax,
                             type:=Nothing,
-                            constantValue:=Nothing)
+                            constantValue:=Nothing,
+                            isImplicit:=isImplicit)
                     Else
                         ' TODO: figure our if this is true:
                         '       a compiler generated argument for an Optional parameter is created iff
@@ -126,7 +129,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                             semanticModel:=_semanticModel,
                             syntax:=value.Syntax,
                             type:=Nothing,
-                            constantValue:=Nothing)
+                            constantValue:=Nothing,
+                            isImplicit:=isImplicit)
                     End If
             End Select
         End Function
@@ -140,8 +144,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
             If child IsNot Nothing Then
                 Return child
             End If
-
-            Return OperationFactory.CreateInvalidExpression(_semanticModel, parent.Syntax, ImmutableArray(Of IOperation).Empty)
+            Dim isImplicit As Boolean = parent.WasCompilerGenerated
+            Return OperationFactory.CreateInvalidExpression(_semanticModel, parent.Syntax, ImmutableArray(Of IOperation).Empty, isImplicit)
         End Function
 
         Private Shared Function GetChildOfBadExpressionBoundNode(parent As BoundNode, index As Integer) As BoundNode
@@ -175,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Dim syntax As SyntaxNode = If(value.Syntax?.Parent, expression.Syntax)
                 Dim type As ITypeSymbol = target.Type
                 Dim constantValue As [Optional](Of Object) = value.ConstantValue
-                Dim assignment = New SimpleAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue)
+                Dim assignment = New SimpleAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue, isImplicit:=value.IsImplicit)
                 builder.Add(assignment)
             Next i
 
@@ -189,20 +193,22 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     ' so we explicitly create an IOperation node for Case-Else clause to differentiate it from Case clause.
                     Dim clauses As ImmutableArray(Of ICaseClause)
                     Dim caseStatement = boundCaseBlock.CaseStatement
+                    Dim isImplicit As Boolean = boundCaseBlock.WasCompilerGenerated
                     If caseStatement.CaseClauses.IsEmpty AndAlso caseStatement.Syntax.Kind() = SyntaxKind.CaseElseStatement Then
                         clauses = ImmutableArray.Create(Of ICaseClause)(
                                                                     New DefaultCaseClause(
                                                                         _semanticModel,
                                                                         caseStatement.Syntax,
                                                                         type:=Nothing,
-                                                                        constantValue:=Nothing))
+                                                                        constantValue:=Nothing,
+                                                                        isImplicit:=isImplicit))
                     Else
                         clauses = caseStatement.CaseClauses.SelectAsArray(Function(n) DirectCast(Create(n), ICaseClause))
                     End If
 
                     Dim body = ImmutableArray.Create(Create(boundCaseBlock.Body))
                     Dim syntax = boundCaseBlock.Syntax
-                    Return DirectCast(New SwitchCase(clauses, body, _semanticModel, syntax, type:=Nothing, constantValue:=Nothing), ISwitchCase)
+                    Return DirectCast(New SwitchCase(clauses, body, _semanticModel, syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=isImplicit), ISwitchCase)
                 End Function)
         End Function
 
@@ -213,34 +219,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
             If clause.ConditionOpt IsNot Nothing AndAlso clause.ConditionOpt.Kind = BoundKind.BinaryOperator Then
                 Dim value As BoundBinaryOperator = DirectCast(clause.ConditionOpt, BoundBinaryOperator)
-                If value.OperatorKind = BinaryOperatorKind.Equals Then
+                If value.OperatorKind = VisualBasic.BinaryOperatorKind.Equals Then
                     Return value.Right
                 End If
             End If
 
             Return Nothing
-        End Function
-
-        Private Shared Function GetSingleValueCaseClauseEquality(caseValue As BoundExpression) As BinaryOperationKind
-            ' Can lifted operators appear here, and if so what is their correct treatment?
-            If caseValue IsNot Nothing Then
-                Select Case caseValue.Type.SpecialType
-                    Case SpecialType.System_Int32, SpecialType.System_Int64, SpecialType.System_UInt32, SpecialType.System_UInt64, SpecialType.System_UInt16, SpecialType.System_Int16, SpecialType.System_SByte, SpecialType.System_Byte, SpecialType.System_Char
-                        Return BinaryOperationKind.IntegerEquals
-
-                    Case SpecialType.System_Boolean
-                        Return BinaryOperationKind.BooleanEquals
-
-                    Case SpecialType.System_String
-                        Return BinaryOperationKind.StringEquals
-                End Select
-
-                If caseValue.Type.TypeKind = TypeKind.Enum Then
-                    Return BinaryOperationKind.EnumEquals
-                End If
-            End If
-
-            Return BinaryOperationKind.Invalid
         End Function
 
         Private Shared Function GetRelationalCaseClauseValue(clause As BoundRelationalCaseClause) As BoundExpression
@@ -264,7 +248,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
             ' ControlVariable = InitialValue
             If controlVariable IsNot Nothing Then
-                statements.Add(OperationFactory.CreateSimpleAssignmentExpressionStatement(Create(controlVariable), Create(initialValue), _semanticModel, initialValue.Syntax))
+                statements.Add(OperationFactory.CreateSimpleAssignmentExpressionStatement(Create(controlVariable), Create(initialValue), _semanticModel, initialValue.Syntax, isImplicit:=controlVariable.WasCompilerGenerated))
             End If
 
             ' T0 = LimitValue
@@ -276,7 +260,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                             _semanticModel,
                                             limitValue.Syntax,
                                             limitValue.Type,
-                                            constantValue:=Nothing), limitValue, _semanticModel, limitValue.Syntax))
+                                            constantValue:=Nothing,
+                                            isImplicit:=limitValue.IsImplicit), limitValue, _semanticModel, limitValue.Syntax, limitValue.IsImplicit))
             End If
 
             ' T1 = StepValue
@@ -288,7 +273,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                         _semanticModel,
                                         stepValue.Syntax,
                                         stepValue.Type,
-                                        constantValue:=Nothing), stepValue, _semanticModel, stepValue.Syntax))
+                                        constantValue:=Nothing,
+                                        isImplicit:=stepValue.IsImplicit), stepValue, _semanticModel, stepValue.Syntax, stepValue.IsImplicit))
             End If
 
             Return statements.ToImmutableAndFree()
@@ -316,11 +302,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                             _semanticModel,
                                             value.Syntax,
                                             value.Type,
-                                            constantValue:=Nothing))
+                                            constantValue:=Nothing,
+                                            isImplicit:=value.IsImplicit))
                     statements.Add(OperationFactory.CreateCompoundAssignmentExpressionStatement(
                         controlVariable, stepOperand,
-                        Expression.DeriveAdditionKind(controlType.GetNullableUnderlyingTypeOrSelf()), controlType.IsNullableType(),
-                        Nothing, _semanticModel, stepValueExpression.Syntax))
+                        BinaryOperatorKind.Add, controlType.IsNullableType(), False,
+                        Nothing, _semanticModel, stepValueExpression.Syntax, value.IsImplicit))
                 End If
             End If
 
@@ -342,7 +329,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                _semanticModel,
                                limitValueOperation.Syntax,
                                limitValueOperation.Type,
-                               constantValue:=Nothing))
+                               constantValue:=Nothing,
+                               isImplicit:=limitValueOperation.IsImplicit))
 
             ' controlVariable can be a BoundBadExpression in case of error
             Dim booleanType As ITypeSymbol = controlVariable.ExpressionSymbol?.DeclaringCompilation.GetSpecialType(SpecialType.System_Boolean)
@@ -361,10 +349,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 If stepValue Is Nothing OrElse (stepValue.IsConstant AndAlso stepValue.ConstantValueOpt IsNot Nothing) Then
                     ' Either ControlVariable <= LimitValue or ControlVariable >= LimitValue, depending on whether the step value is negative.
 
-                    Dim relationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(
-                        If(stepValue IsNot Nothing AndAlso stepValue.ConstantValueOpt.IsNegativeNumeric, BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThanOrEqual), controlVariable)
+                    Dim relationalCode As BinaryOperatorKind =
+                        If(stepValue IsNot Nothing AndAlso stepValue.ConstantValueOpt.IsNegativeNumeric, BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThanOrEqual)
                     Return OperationFactory.CreateBinaryOperatorExpression(
-                        relationalCode, _semanticModel.CloneOperation(Create(controlVariable)), limitValueReference, booleanType, _semanticModel, limitValueReference.Syntax, isLifted)
+                        relationalCode, _semanticModel.CloneOperation(Create(controlVariable)), limitValueReference, booleanType, _semanticModel, limitValueReference.Syntax, isLifted, isChecked:=False, isCompareText:=False, isImplicit:=limitValueReference.IsImplicit)
                 Else
                     ' If(StepValue >= 0, ControlVariable <= LimitValue, ControlVariable >= LimitValue)
                     Dim value = Create(stepValue)
@@ -373,25 +361,29 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                 _semanticModel,
                                 value.Syntax,
                                 value.Type,
-                                constantValue:=Nothing)
+                                constantValue:=Nothing,
+                                isImplicit:=value.IsImplicit)
 
-                    Dim stepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, stepValue)
+                    Dim stepRelationalCode As BinaryOperatorKind = BinaryOperatorKind.GreaterThanOrEqual
                     Dim stepConditionIsLifted = stepValue.Type.IsNullableType()
                     Dim stepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(stepRelationalCode,
                                  stepValueReference,
-                                 OperationFactory.CreateLiteralExpression(Semantics.Expression.SynthesizeNumeric(stepValueReference.Type, 0), stepValue.Type, _semanticModel, stepValue.Syntax),
+                                 OperationFactory.CreateLiteralExpression(Semantics.Expression.SynthesizeNumeric(stepValueReference.Type, 0), stepValue.Type, _semanticModel, stepValue.Syntax, stepValueReference.IsImplicit),
                                  booleanType,
                                  _semanticModel,
                                  stepValue.Syntax,
-                                 stepConditionIsLifted)
+                                 stepConditionIsLifted,
+                                 isChecked:=False,
+                                 isCompareText:=False,
+                                 isImplicit:=stepValue.WasCompilerGenerated)
 
-                    Dim positiveStepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.LessThanOrEqual, controlVariable)
-                    Dim positiveStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(positiveStepRelationalCode, _semanticModel.CloneOperation(Create(controlVariable)), limitValueReference, booleanType, _semanticModel, limitValueReference.Syntax, isLifted)
+                    Dim positiveStepRelationalCode As BinaryOperatorKind = BinaryOperatorKind.LessThanOrEqual
+                    Dim positiveStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(positiveStepRelationalCode, _semanticModel.CloneOperation(Create(controlVariable)), limitValueReference, booleanType, _semanticModel, limitValueReference.Syntax, isLifted, isChecked:=False, isCompareText:=False, isImplicit:=limitValueReference.IsImplicit)
 
-                    Dim negativeStepRelationalCode As BinaryOperationKind = Helper.DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, controlVariable)
-                    Dim negativeStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(negativeStepRelationalCode, _semanticModel.CloneOperation(Create(controlVariable)), _semanticModel.CloneOperation(limitValueReference), booleanType, _semanticModel, limitValueReference.Syntax, isLifted)
+                    Dim negativeStepRelationalCode As BinaryOperatorKind = BinaryOperatorKind.GreaterThanOrEqual
+                    Dim negativeStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(negativeStepRelationalCode, _semanticModel.CloneOperation(Create(controlVariable)), _semanticModel.CloneOperation(limitValueReference), booleanType, _semanticModel, limitValueReference.Syntax, isLifted, isChecked:=False, isCompareText:=False, isImplicit:=limitValueReference.IsImplicit)
 
-                    Return OperationFactory.CreateConditionalChoiceExpression(stepCondition, positiveStepCondition, negativeStepCondition, booleanType, _semanticModel, limitValueReference.Syntax)
+                    Return OperationFactory.CreateConditionalExpression(stepCondition, positiveStepCondition, negativeStepCondition, booleanType, _semanticModel, limitValueReference.Syntax, limitValueReference.IsImplicit)
                 End If
             End If
         End Function
@@ -422,392 +414,89 @@ Namespace Microsoft.CodeAnalysis.Semantics
                             _semanticModel,
                             syntax,
                             type:=Nothing,
-                            constantValue:=Nothing)
+                            constantValue:=Nothing,
+                            isImplicit:=False) ' Declaration is always explicit
         End Function
 
-        Private Function GetAddHandlerStatementExpression(statement As BoundAddHandlerStatement) As IOperation
+        Private Function GetAddRemoveHandlerStatementExpression(statement As BoundAddRemoveHandlerStatement) As IOperation
             Dim eventAccess As BoundEventAccess = TryCast(statement.EventAccess, BoundEventAccess)
-            Dim [event] As IEventSymbol = eventAccess?.EventSymbol
-            Dim instance = If([event] Is Nothing OrElse [event].IsStatic, Nothing, If(eventAccess IsNot Nothing, Create(eventAccess.ReceiverOpt), Nothing))
-
+            Dim eventReference = If(eventAccess Is Nothing, Nothing, CreateBoundEventAccessOperation(eventAccess))
+            Dim adds = statement.Kind = BoundKind.AddHandlerStatement
             Return New EventAssignmentExpression(
-                        [event], instance, Create(statement.Handler), adds:=True, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
-        End Function
-
-        Private Function GetRemoveStatementExpression(statement As BoundRemoveHandlerStatement) As IOperation
-            Dim eventAccess As BoundEventAccess = TryCast(statement.EventAccess, BoundEventAccess)
-            Dim [event] As IEventSymbol = eventAccess?.EventSymbol
-            Dim instance = If([event] Is Nothing OrElse [event].IsStatic, Nothing, If(eventAccess IsNot Nothing, Create(eventAccess.ReceiverOpt), Nothing))
-
-            Return New EventAssignmentExpression(
-                [event], instance, Create(statement.Handler), adds:=False, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
-        End Function
-
-        Private Shared Function GetConversionKind(kind As VisualBasic.ConversionKind) As Semantics.ConversionKind
-            Dim operationKind = Semantics.ConversionKind.Invalid
-
-            If kind.HasFlag(VisualBasic.ConversionKind.UserDefined) Then
-                operationKind = Semantics.ConversionKind.OperatorMethod
-            ElseIf Conversions.IsIdentityConversion(kind) OrElse
-                   kind.HasFlag(VisualBasic.ConversionKind.Reference) OrElse
-                   kind.HasFlag(VisualBasic.ConversionKind.TypeParameter) OrElse
-                   kind.HasFlag(VisualBasic.ConversionKind.Array) OrElse
-                   kind.HasFlag(VisualBasic.ConversionKind.Value) Then
-                operationKind = Semantics.ConversionKind.Cast
-            ElseIf Conversions.NoConversion(kind) Then
-                operationKind = Semantics.ConversionKind.Invalid
-            ElseIf kind.HasFlag(VisualBasic.ConversionKind.InterpolatedString) Then
-                operationKind = Semantics.ConversionKind.InterpolatedString
-            Else
-                operationKind = Semantics.ConversionKind.Basic
-            End If
-
-            Return operationKind
+                eventReference, Create(statement.Handler), adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=statement.WasCompilerGenerated)
         End Function
 
         Friend Class Helper
-            Friend Shared Function DeriveUnaryOperationKind(operatorKind As UnaryOperatorKind) As UnaryOperationKind
-                Select Case operatorKind And UnaryOperatorKind.OpMask
-                    Case UnaryOperatorKind.Plus
-                        Return UnaryOperationKind.OperatorMethodPlus
-                    Case UnaryOperatorKind.Minus
-                        Return UnaryOperationKind.OperatorMethodMinus
-                    Case UnaryOperatorKind.Not
-                        Return UnaryOperationKind.OperatorMethodBitwiseNegation
-                    Case UnaryOperatorKind.IsTrue
-                        Return UnaryOperationKind.OperatorMethodTrue
-                    Case UnaryOperatorKind.IsFalse
-                        Return UnaryOperationKind.OperatorMethodFalse
+            Friend Shared Function DeriveUnaryOperatorKind(operatorKind As VisualBasic.UnaryOperatorKind) As UnaryOperatorKind
+                Select Case operatorKind And VisualBasic.UnaryOperatorKind.OpMask
+                    Case VisualBasic.UnaryOperatorKind.Plus
+                        Return UnaryOperatorKind.Plus
+                    Case VisualBasic.UnaryOperatorKind.Minus
+                        Return UnaryOperatorKind.Minus
+                    Case VisualBasic.UnaryOperatorKind.Not
+                        Return UnaryOperatorKind.Not
+                    Case VisualBasic.UnaryOperatorKind.IsTrue
+                        Return UnaryOperatorKind.True
+                    Case VisualBasic.UnaryOperatorKind.IsFalse
+                        Return UnaryOperatorKind.False
                     Case Else
-                        Return UnaryOperationKind.Invalid
+                        Return UnaryOperatorKind.Invalid
                 End Select
             End Function
 
-            Friend Shared Function DeriveUnaryOperationKind(operatorKind As UnaryOperatorKind, operand As BoundExpression) As UnaryOperationKind
-                Dim type = operand.Type.GetNullableUnderlyingTypeOrSelf()
-                Select Case type.SpecialType
-                    Case SpecialType.System_Byte, SpecialType.System_Int16, SpecialType.System_Int32, SpecialType.System_Int64, SpecialType.System_SByte, SpecialType.System_UInt16, SpecialType.System_UInt32, SpecialType.System_UInt64
-                        Select Case operatorKind And UnaryOperatorKind.OpMask
-                            Case UnaryOperatorKind.Plus
-                                Return UnaryOperationKind.IntegerPlus
-                            Case UnaryOperatorKind.Minus
-                                Return UnaryOperationKind.IntegerMinus
-                            Case UnaryOperatorKind.Not
-                                Return UnaryOperationKind.IntegerBitwiseNegation
-                        End Select
-                    Case SpecialType.System_Single, SpecialType.System_Double
-                        Select Case operatorKind And UnaryOperatorKind.OpMask
-                            Case UnaryOperatorKind.Plus
-                                Return UnaryOperationKind.FloatingPlus
-                            Case UnaryOperatorKind.Minus
-                                Return UnaryOperationKind.FloatingMinus
-                        End Select
-                    Case SpecialType.System_Decimal
-                        Select Case operatorKind And UnaryOperatorKind.OpMask
-                            Case UnaryOperatorKind.Plus
-                                Return UnaryOperationKind.DecimalPlus
-                            Case UnaryOperatorKind.Minus
-                                Return UnaryOperationKind.DecimalMinus
-                        End Select
-                    Case SpecialType.System_Boolean
-                        Select Case operatorKind And UnaryOperatorKind.OpMask
-                            Case UnaryOperatorKind.Not
-                                Return UnaryOperationKind.BooleanBitwiseNegation
-                        End Select
-                    Case SpecialType.System_Object
-                        Select Case operatorKind And UnaryOperatorKind.OpMask
-                            Case UnaryOperatorKind.Plus
-                                Return UnaryOperationKind.ObjectPlus
-                            Case UnaryOperatorKind.Minus
-                                Return UnaryOperationKind.ObjectMinus
-                            Case UnaryOperatorKind.Not
-                                Return UnaryOperationKind.ObjectNot
-                        End Select
-                End Select
-
-                Return UnaryOperationKind.Invalid
-            End Function
-
-            Friend Shared Function DeriveBinaryOperationKind(operatorKind As BinaryOperatorKind) As BinaryOperationKind
-                Select Case operatorKind And BinaryOperatorKind.OpMask
-                    Case BinaryOperatorKind.Add
-                        Return BinaryOperationKind.OperatorMethodAdd
-                    Case BinaryOperatorKind.Subtract
-                        Return BinaryOperationKind.OperatorMethodSubtract
-                    Case BinaryOperatorKind.Multiply
-                        Return BinaryOperationKind.OperatorMethodMultiply
-                    Case BinaryOperatorKind.Divide
-                        Return BinaryOperationKind.OperatorMethodDivide
-                    Case BinaryOperatorKind.IntegerDivide
-                        Return BinaryOperationKind.OperatorMethodIntegerDivide
-                    Case BinaryOperatorKind.Modulo
-                        Return BinaryOperationKind.OperatorMethodRemainder
-                    Case BinaryOperatorKind.And
-                        Return BinaryOperationKind.OperatorMethodAnd
-                    Case BinaryOperatorKind.Or
-                        Return BinaryOperationKind.OperatorMethodOr
-                    Case BinaryOperatorKind.Xor
-                        Return BinaryOperationKind.OperatorMethodExclusiveOr
-                    Case BinaryOperatorKind.AndAlso
-                        Return BinaryOperationKind.OperatorMethodConditionalAnd
-                    Case BinaryOperatorKind.OrElse
-                        Return BinaryOperationKind.OperatorMethodConditionalOr
-                    Case BinaryOperatorKind.LeftShift
-                        Return BinaryOperationKind.OperatorMethodLeftShift
-                    Case BinaryOperatorKind.RightShift
-                        Return BinaryOperationKind.OperatorMethodRightShift
-                    Case BinaryOperatorKind.LessThan
-                        Return BinaryOperationKind.OperatorMethodLessThan
-                    Case BinaryOperatorKind.LessThanOrEqual
-                        Return BinaryOperationKind.OperatorMethodLessThanOrEqual
-                    Case BinaryOperatorKind.Equals
-                        Return BinaryOperationKind.OperatorMethodEquals
-                    Case BinaryOperatorKind.NotEquals
-                        Return BinaryOperationKind.OperatorMethodNotEquals
-                    Case BinaryOperatorKind.GreaterThanOrEqual
-                        Return BinaryOperationKind.OperatorMethodGreaterThanOrEqual
-                    Case BinaryOperatorKind.GreaterThan
-                        Return BinaryOperationKind.OperatorMethodGreaterThan
-                    Case BinaryOperatorKind.Power
-                        Return BinaryOperationKind.OperatorMethodPower
+            Friend Shared Function DeriveBinaryOperatorKind(operatorKind As VisualBasic.BinaryOperatorKind, leftOpt As BoundExpression) As BinaryOperatorKind
+                Select Case operatorKind And VisualBasic.BinaryOperatorKind.OpMask
+                    Case VisualBasic.BinaryOperatorKind.Add
+                        Return BinaryOperatorKind.Add
+                    Case VisualBasic.BinaryOperatorKind.Subtract
+                        Return BinaryOperatorKind.Subtract
+                    Case VisualBasic.BinaryOperatorKind.Multiply
+                        Return BinaryOperatorKind.Multiply
+                    Case VisualBasic.BinaryOperatorKind.Divide
+                        Return BinaryOperatorKind.Divide
+                    Case VisualBasic.BinaryOperatorKind.IntegerDivide
+                        Return BinaryOperatorKind.IntegerDivide
+                    Case VisualBasic.BinaryOperatorKind.Modulo
+                        Return BinaryOperatorKind.Remainder
+                    Case VisualBasic.BinaryOperatorKind.And
+                        Return BinaryOperatorKind.And
+                    Case VisualBasic.BinaryOperatorKind.Or
+                        Return BinaryOperatorKind.Or
+                    Case VisualBasic.BinaryOperatorKind.Xor
+                        Return BinaryOperatorKind.ExclusiveOr
+                    Case VisualBasic.BinaryOperatorKind.AndAlso
+                        Return BinaryOperatorKind.ConditionalAnd
+                    Case VisualBasic.BinaryOperatorKind.OrElse
+                        Return BinaryOperatorKind.ConditionalOr
+                    Case VisualBasic.BinaryOperatorKind.LeftShift
+                        Return BinaryOperatorKind.LeftShift
+                    Case VisualBasic.BinaryOperatorKind.RightShift
+                        Return BinaryOperatorKind.RightShift
+                    Case VisualBasic.BinaryOperatorKind.LessThan
+                        Return BinaryOperatorKind.LessThan
+                    Case VisualBasic.BinaryOperatorKind.LessThanOrEqual
+                        Return BinaryOperatorKind.LessThanOrEqual
+                    Case VisualBasic.BinaryOperatorKind.Equals
+                        Return If(leftOpt?.Type?.SpecialType = SpecialType.System_Object, BinaryOperatorKind.ObjectValueEquals, BinaryOperatorKind.Equals)
+                    Case VisualBasic.BinaryOperatorKind.NotEquals
+                        Return If(leftOpt?.Type?.SpecialType = SpecialType.System_Object, BinaryOperatorKind.ObjectValueNotEquals, BinaryOperatorKind.NotEquals)
+                    Case VisualBasic.BinaryOperatorKind.Is
+                        Return BinaryOperatorKind.Equals
+                    Case VisualBasic.BinaryOperatorKind.IsNot
+                        Return BinaryOperatorKind.NotEquals
+                    Case VisualBasic.BinaryOperatorKind.GreaterThanOrEqual
+                        Return BinaryOperatorKind.GreaterThanOrEqual
+                    Case VisualBasic.BinaryOperatorKind.GreaterThan
+                        Return BinaryOperatorKind.GreaterThan
+                    Case VisualBasic.BinaryOperatorKind.Power
+                        Return BinaryOperatorKind.Power
+                    Case VisualBasic.BinaryOperatorKind.Like
+                        Return BinaryOperatorKind.Like
+                    Case VisualBasic.BinaryOperatorKind.Concatenate
+                        Return BinaryOperatorKind.Concatenate
                     Case Else
-                        Return BinaryOperationKind.Invalid
+                        Return BinaryOperatorKind.Invalid
                 End Select
-            End Function
-
-            Friend Shared Function DeriveBinaryOperationKind(operatorKind As BinaryOperatorKind, left As BoundExpression) As BinaryOperationKind
-                Dim type = left.Type.GetNullableUnderlyingTypeOrSelf()
-                Select Case type.SpecialType
-
-                    Case SpecialType.System_SByte, SpecialType.System_Int16, SpecialType.System_Int32, SpecialType.System_Int64
-                        Select Case operatorKind And BinaryOperatorKind.OpMask
-                            Case BinaryOperatorKind.Add
-                                Return BinaryOperationKind.IntegerAdd
-                            Case BinaryOperatorKind.Subtract
-                                Return BinaryOperationKind.IntegerSubtract
-                            Case BinaryOperatorKind.Multiply
-                                Return BinaryOperationKind.IntegerMultiply
-                            Case BinaryOperatorKind.IntegerDivide
-                                Return BinaryOperationKind.IntegerDivide
-                            Case BinaryOperatorKind.Modulo
-                                Return BinaryOperationKind.IntegerRemainder
-                            Case BinaryOperatorKind.And
-                                Return BinaryOperationKind.IntegerAnd
-                            Case BinaryOperatorKind.Or
-                                Return BinaryOperationKind.IntegerOr
-                            Case BinaryOperatorKind.Xor
-                                Return BinaryOperationKind.IntegerExclusiveOr
-                            Case BinaryOperatorKind.LeftShift
-                                Return BinaryOperationKind.IntegerLeftShift
-                            Case BinaryOperatorKind.RightShift
-                                Return BinaryOperationKind.IntegerRightShift
-                            Case BinaryOperatorKind.LessThan
-                                Return BinaryOperationKind.IntegerLessThan
-                            Case BinaryOperatorKind.LessThanOrEqual
-                                Return BinaryOperationKind.IntegerLessThanOrEqual
-                            Case BinaryOperatorKind.Equals
-                                Return BinaryOperationKind.IntegerEquals
-                            Case BinaryOperatorKind.NotEquals
-                                Return BinaryOperationKind.IntegerNotEquals
-                            Case BinaryOperatorKind.GreaterThanOrEqual
-                                Return BinaryOperationKind.IntegerGreaterThanOrEqual
-                            Case BinaryOperatorKind.GreaterThan
-                                Return BinaryOperationKind.IntegerGreaterThan
-                        End Select
-                    Case SpecialType.System_Byte, SpecialType.System_UInt16, SpecialType.System_UInt32, SpecialType.System_UInt64, SpecialType.System_Char
-                        Select Case operatorKind And BinaryOperatorKind.OpMask
-                            Case BinaryOperatorKind.Add
-                                Return BinaryOperationKind.UnsignedAdd
-                            Case BinaryOperatorKind.Subtract
-                                Return BinaryOperationKind.UnsignedSubtract
-                            Case BinaryOperatorKind.Multiply
-                                Return BinaryOperationKind.UnsignedMultiply
-                            Case BinaryOperatorKind.IntegerDivide
-                                Return BinaryOperationKind.UnsignedDivide
-                            Case BinaryOperatorKind.Modulo
-                                Return BinaryOperationKind.UnsignedRemainder
-                            Case BinaryOperatorKind.And
-                                Return BinaryOperationKind.UnsignedAnd
-                            Case BinaryOperatorKind.Or
-                                Return BinaryOperationKind.UnsignedOr
-                            Case BinaryOperatorKind.Xor
-                                Return BinaryOperationKind.UnsignedExclusiveOr
-                            Case BinaryOperatorKind.LeftShift
-                                Return BinaryOperationKind.UnsignedLeftShift
-                            Case BinaryOperatorKind.RightShift
-                                Return BinaryOperationKind.UnsignedRightShift
-                            Case BinaryOperatorKind.LessThan
-                                Return BinaryOperationKind.UnsignedLessThan
-                            Case BinaryOperatorKind.LessThanOrEqual
-                                Return BinaryOperationKind.UnsignedLessThanOrEqual
-                            Case BinaryOperatorKind.Equals
-                                Return BinaryOperationKind.IntegerEquals
-                            Case BinaryOperatorKind.NotEquals
-                                Return BinaryOperationKind.IntegerNotEquals
-                            Case BinaryOperatorKind.GreaterThanOrEqual
-                                Return BinaryOperationKind.UnsignedGreaterThanOrEqual
-                            Case BinaryOperatorKind.GreaterThan
-                                Return BinaryOperationKind.UnsignedGreaterThan
-                        End Select
-                    Case SpecialType.System_Single, SpecialType.System_Double
-                        Select Case operatorKind And BinaryOperatorKind.OpMask
-                            Case BinaryOperatorKind.Add
-                                Return BinaryOperationKind.FloatingAdd
-                            Case BinaryOperatorKind.Subtract
-                                Return BinaryOperationKind.FloatingSubtract
-                            Case BinaryOperatorKind.Multiply
-                                Return BinaryOperationKind.FloatingMultiply
-                            Case BinaryOperatorKind.Divide
-                                Return BinaryOperationKind.FloatingDivide
-                            Case BinaryOperatorKind.Modulo
-                                Return BinaryOperationKind.FloatingRemainder
-                            Case BinaryOperatorKind.Power
-                                Return BinaryOperationKind.FloatingPower
-                            Case BinaryOperatorKind.LessThan
-                                Return BinaryOperationKind.FloatingLessThan
-                            Case BinaryOperatorKind.LessThanOrEqual
-                                Return BinaryOperationKind.FloatingLessThanOrEqual
-                            Case BinaryOperatorKind.Equals
-                                Return BinaryOperationKind.FloatingEquals
-                            Case BinaryOperatorKind.NotEquals
-                                Return BinaryOperationKind.FloatingNotEquals
-                            Case BinaryOperatorKind.GreaterThanOrEqual
-                                Return BinaryOperationKind.FloatingGreaterThanOrEqual
-                            Case BinaryOperatorKind.GreaterThan
-                                Return BinaryOperationKind.FloatingGreaterThan
-                        End Select
-                    Case SpecialType.System_Decimal
-                        Select Case operatorKind And BinaryOperatorKind.OpMask
-                            Case BinaryOperatorKind.Add
-                                Return BinaryOperationKind.DecimalAdd
-                            Case BinaryOperatorKind.Subtract
-                                Return BinaryOperationKind.DecimalSubtract
-                            Case BinaryOperatorKind.Multiply
-                                Return BinaryOperationKind.DecimalMultiply
-                            Case BinaryOperatorKind.Divide
-                                Return BinaryOperationKind.DecimalDivide
-                            Case BinaryOperatorKind.LessThan
-                                Return BinaryOperationKind.DecimalLessThan
-                            Case BinaryOperatorKind.LessThanOrEqual
-                                Return BinaryOperationKind.DecimalLessThanOrEqual
-                            Case BinaryOperatorKind.Equals
-                                Return BinaryOperationKind.DecimalEquals
-                            Case BinaryOperatorKind.NotEquals
-                                Return BinaryOperationKind.DecimalNotEquals
-                            Case BinaryOperatorKind.GreaterThanOrEqual
-                                Return BinaryOperationKind.DecimalGreaterThanOrEqual
-                            Case BinaryOperatorKind.GreaterThan
-                                Return BinaryOperationKind.DecimalGreaterThan
-                        End Select
-                    Case SpecialType.System_Boolean
-                        Select Case operatorKind And BinaryOperatorKind.OpMask
-                            Case BinaryOperatorKind.And
-                                Return BinaryOperationKind.BooleanAnd
-                            Case BinaryOperatorKind.Or
-                                Return BinaryOperationKind.BooleanOr
-                            Case BinaryOperatorKind.Xor
-                                Return BinaryOperationKind.BooleanExclusiveOr
-                            Case BinaryOperatorKind.AndAlso
-                                Return BinaryOperationKind.BooleanConditionalAnd
-                            Case BinaryOperatorKind.OrElse
-                                Return BinaryOperationKind.BooleanConditionalOr
-                            Case BinaryOperatorKind.Equals
-                                Return BinaryOperationKind.BooleanEquals
-                            Case BinaryOperatorKind.NotEquals
-                                Return BinaryOperationKind.BooleanNotEquals
-                        End Select
-                    Case SpecialType.System_String
-                        Select Case operatorKind And BinaryOperatorKind.OpMask
-                            Case BinaryOperatorKind.Concatenate
-                                Return BinaryOperationKind.StringConcatenate
-                            Case BinaryOperatorKind.Equals
-                                Return BinaryOperationKind.StringEquals
-                            Case BinaryOperatorKind.NotEquals
-                                Return BinaryOperationKind.StringNotEquals
-                            Case BinaryOperatorKind.Like
-                                Return BinaryOperationKind.StringLike
-                        End Select
-                    Case SpecialType.System_Object
-                        Select Case operatorKind And BinaryOperatorKind.OpMask
-                            Case BinaryOperatorKind.Add
-                                Return BinaryOperationKind.ObjectAdd
-                            Case BinaryOperatorKind.Subtract
-                                Return BinaryOperationKind.ObjectSubtract
-                            Case BinaryOperatorKind.Multiply
-                                Return BinaryOperationKind.ObjectMultiply
-                            Case BinaryOperatorKind.Power
-                                Return BinaryOperationKind.ObjectPower
-                            Case BinaryOperatorKind.IntegerDivide
-                                Return BinaryOperationKind.ObjectIntegerDivide
-                            Case BinaryOperatorKind.Divide
-                                Return BinaryOperationKind.ObjectDivide
-                            Case BinaryOperatorKind.Modulo
-                                Return BinaryOperationKind.ObjectRemainder
-                            Case BinaryOperatorKind.Concatenate
-                                Return BinaryOperationKind.ObjectConcatenate
-                            Case BinaryOperatorKind.And
-                                Return BinaryOperationKind.ObjectAnd
-                            Case BinaryOperatorKind.Or
-                                Return BinaryOperationKind.ObjectOr
-                            Case BinaryOperatorKind.Xor
-                                Return BinaryOperationKind.ObjectExclusiveOr
-                            Case BinaryOperatorKind.AndAlso
-                                Return BinaryOperationKind.ObjectConditionalAnd
-                            Case BinaryOperatorKind.OrElse
-                                Return BinaryOperationKind.ObjectConditionalOr
-                            Case BinaryOperatorKind.LeftShift
-                                Return BinaryOperationKind.ObjectLeftShift
-                            Case BinaryOperatorKind.RightShift
-                                Return BinaryOperationKind.ObjectRightShift
-                            Case BinaryOperatorKind.LessThan
-                                Return BinaryOperationKind.ObjectLessThan
-                            Case BinaryOperatorKind.LessThanOrEqual
-                                Return BinaryOperationKind.ObjectLessThanOrEqual
-                            Case BinaryOperatorKind.Equals
-                                Return BinaryOperationKind.ObjectVBEquals
-                            Case BinaryOperatorKind.Is
-                                Return BinaryOperationKind.ObjectEquals
-                            Case BinaryOperatorKind.IsNot
-                                Return BinaryOperationKind.ObjectNotEquals
-                            Case BinaryOperatorKind.NotEquals
-                                Return BinaryOperationKind.ObjectVBNotEquals
-                            Case BinaryOperatorKind.Like
-                                Return BinaryOperationKind.ObjectLike
-                            Case BinaryOperatorKind.GreaterThanOrEqual
-                                Return BinaryOperationKind.ObjectGreaterThanOrEqual
-                            Case BinaryOperatorKind.GreaterThan
-                                Return BinaryOperationKind.ObjectGreaterThan
-                        End Select
-                End Select
-
-                If type.TypeKind = TypeKind.Enum Then
-                    Select Case operatorKind And BinaryOperatorKind.OpMask
-                        Case BinaryOperatorKind.Add
-                            Return BinaryOperationKind.EnumAdd
-                        Case BinaryOperatorKind.Subtract
-                            Return BinaryOperationKind.EnumSubtract
-                        Case BinaryOperatorKind.And
-                            Return BinaryOperationKind.EnumAnd
-                        Case BinaryOperatorKind.Or
-                            Return BinaryOperationKind.EnumOr
-                        Case BinaryOperatorKind.Xor
-                            Return BinaryOperationKind.EnumExclusiveOr
-                        Case BinaryOperatorKind.LessThan
-                            Return BinaryOperationKind.EnumLessThan
-                        Case BinaryOperatorKind.LessThanOrEqual
-                            Return BinaryOperationKind.EnumLessThanOrEqual
-                        Case BinaryOperatorKind.Equals
-                            Return BinaryOperationKind.EnumEquals
-                        Case BinaryOperatorKind.NotEquals
-                            Return BinaryOperationKind.EnumNotEquals
-                        Case BinaryOperatorKind.GreaterThanOrEqual
-                            Return BinaryOperationKind.EnumGreaterThanOrEqual
-                        Case BinaryOperatorKind.GreaterThan
-                            Return BinaryOperationKind.EnumGreaterThan
-                    End Select
-                End If
-
-                Return BinaryOperationKind.Invalid
             End Function
         End Class
     End Class

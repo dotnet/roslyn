@@ -1736,6 +1736,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Named argument &apos;{0}&apos; is used out-of-position but is followed by an unnamed argument.
+        /// </summary>
+        internal static string ERR_BadNonTrailingNamedArgument {
+            get {
+                return ResourceManager.GetString("ERR_BadNonTrailingNamedArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Declaration is not valid; use &apos;{0} operator &lt;dest-type&gt; (...&apos; instead.
         /// </summary>
         internal static string ERR_BadOperatorSyntax {
@@ -2375,7 +2384,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded)..
+        ///   Looks up a localized string similar to /embed switch is only supported when emitting a PDB..
         /// </summary>
         internal static string ERR_CannotEmbedWithoutPdb {
             get {
@@ -3721,6 +3730,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_DynamicLocalFunctionParamsParameter {
             get {
                 return ResourceManager.GetString("ERR_DynamicLocalFunctionParamsParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot pass argument with dynamic type to generic local function &apos;{0}&apos; with inferred type arguments..
+        /// </summary>
+        internal static string ERR_DynamicLocalFunctionTypeParameter {
+            get {
+                return ResourceManager.GetString("ERR_DynamicLocalFunctionTypeParameter", resourceCulture);
             }
         }
         
@@ -6443,11 +6461,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Named argument specifications must appear after all fixed arguments have been specified.
+        ///   Looks up a localized string similar to Named argument specifications must appear after all fixed arguments have been specified. Please use language version {0} or greater to allow non-trailing named arguments..
         /// </summary>
         internal static string ERR_NamedArgumentSpecificationBeforeFixedArgument {
             get {
                 return ResourceManager.GetString("ERR_NamedArgumentSpecificationBeforeFixedArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Named argument specifications must appear after all fixed arguments have been specified in a dynamic invocation..
+        /// </summary>
+        internal static string ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation {
+            get {
+                return ResourceManager.GetString("ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation", resourceCulture);
             }
         }
         
@@ -10220,6 +10247,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureLambda {
             get {
                 return ResourceManager.GetString("IDS_FeatureLambda", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to leading digit separator.
+        /// </summary>
+        internal static string IDS_FeatureLeadingDigitSeparator {
+            get {
+                return ResourceManager.GetString("IDS_FeatureLeadingDigitSeparator", resourceCulture);
             }
         }
         

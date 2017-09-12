@@ -1146,7 +1146,7 @@ End Class
                Diagnostic(ExplicitVsImplicitInstanceAnalyzer.ImplicitInstanceDescriptor.Id, "M2").WithLocation(15, 9))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18839")>
+        <Fact>
         Public Sub EventAndMethodReferencesVisualBasic()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -1178,17 +1178,19 @@ End Class
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
-            comp.VerifyAnalyzerDiagnostics({New MemberReferenceAnalyzer}, Nothing, Nothing, False,
-                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, New MumbleEventHandler(AddressOf Mumbler)").WithLocation(7, 9),  ' Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
-                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(7, 51),
+            comp.VerifyAnalyzerDiagnostics({New MemberReferenceAnalyzer}, Nothing, Nothing, False,                 ' Bug: we are missing diagnostics of "MethodBindingDescriptor" here. https://github.com/dotnet/roslyn/issues/20095                           
+                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, New MumbleEventHandler(AddressOf Mumbler)").WithLocation(7, 9),
+                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(7, 20),
                  Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, New MumbleEventHandler(Sub(s As Object, a As System.EventArgs)
-                                                  End Sub)").WithLocation(8, 9),                                                                                    ' Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
+                                                  End Sub)").WithLocation(8, 9),
+                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(8, 20),
                  Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, Sub(s As Object, a As System.EventArgs)
-                           End Sub").WithLocation(10, 9),                                                                                                           ' Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
+                           End Sub").WithLocation(10, 9),
+                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(10, 20),
                  Diagnostic(MemberReferenceAnalyzer.FieldReferenceDescriptor.Id, "Mumble").WithLocation(12, 20),   ' Bug: This should be an event reference. https://github.com/dotnet/roslyn/issues/8345
-                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(14, 39),
-                 Diagnostic(MemberReferenceAnalyzer.HandlerRemovedDescriptor.Id, "RemoveHandler Mumble, AddressOf Mumbler").WithLocation(16, 9),                    ' Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
-                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "AddressOf Mumbler").WithLocation(16, 31))
+                 Diagnostic(MemberReferenceAnalyzer.HandlerRemovedDescriptor.Id, "RemoveHandler Mumble, AddressOf Mumbler").WithLocation(16, 9),
+                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(16, 23)
+            )
         End Sub
 
         <Fact>
@@ -1663,7 +1665,7 @@ End Class
 
 Module Module1
 
-    Sub Main() 
+    Sub Main()
         Dim x, y As New B2()
         Dim r As B2
         r = x + y      
@@ -1679,13 +1681,13 @@ Module Module1
         r = x > y      
         r = x <= y     
         r = x >= y     
-        r = x Like y   ' TODO: Bug https://github.com/dotnet/roslyn/issues/9174
-        r = x & y      ' TODO: Bug https://github.com/dotnet/roslyn/issues/9174
+        r = x Like y
+        r = x & y
         r = x And y    
         r = x Or y     
         r = x Xor y    
         r = x << 2     
-        r = x >> 3       
+        r = x >> 3
     End Sub
 End Module
 ]]>
@@ -1695,24 +1697,26 @@ End Module
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New BinaryOperatorVBTestAnalyzer}, Nothing, Nothing, False,
-                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x + y").WithArguments("OperatorMethodAdd").WithLocation(109, 13),
-                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x - y").WithArguments("OperatorMethodSubtract").WithLocation(110, 13),
-                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x * y").WithArguments("OperatorMethodMultiply").WithLocation(111, 13),
-                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x / y").WithArguments("OperatorMethodDivide").WithLocation(112, 13),
-                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x \ y").WithArguments("OperatorMethodIntegerDivide").WithLocation(113, 13),
-                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x Mod y").WithArguments("OperatorMethodRemainder").WithLocation(114, 13),
-                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x ^ y").WithArguments("OperatorMethodPower").WithLocation(115, 13),
-                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x = y").WithArguments("OperatorMethodEquals").WithLocation(116, 13),
-                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x <> y").WithArguments("OperatorMethodNotEquals").WithLocation(117, 13),
-                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x < y").WithArguments("OperatorMethodLessThan").WithLocation(118, 13),
-                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x > y").WithArguments("OperatorMethodGreaterThan").WithLocation(119, 13),
-                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x <= y").WithArguments("OperatorMethodLessThanOrEqual").WithLocation(120, 13),
-                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x >= y").WithArguments("OperatorMethodGreaterThanOrEqual").WithLocation(121, 13),
-                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x And y").WithArguments("OperatorMethodAnd").WithLocation(124, 13),
-                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x Or y").WithArguments("OperatorMethodOr").WithLocation(125, 13),
-                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x Xor y").WithArguments("OperatorMethodExclusiveOr").WithLocation(126, 13),
-                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x << 2").WithArguments("OperatorMethodLeftShift").WithLocation(127, 13),
-                Diagnostic(BinaryOperatorVBTestAnalyzer.BinaryUserDefinedOperatorDescriptor.Id, "x >> 3").WithArguments("OperatorMethodRightShift").WithLocation(128, 13))
+                Diagnostic("BinaryUserDefinedOperator", "x + y").WithArguments("Add").WithLocation(109, 13),
+                Diagnostic("BinaryUserDefinedOperator", "x - y").WithArguments("Subtract").WithLocation(110, 13),
+                Diagnostic("BinaryUserDefinedOperator", "x * y").WithArguments("Multiply").WithLocation(111, 13),
+                Diagnostic("BinaryUserDefinedOperator", "x / y").WithArguments("Divide").WithLocation(112, 13),
+                Diagnostic("BinaryUserDefinedOperator", "x \ y").WithArguments("IntegerDivide").WithLocation(113, 13),
+                Diagnostic("BinaryUserDefinedOperator", "x Mod y").WithArguments("Remainder").WithLocation(114, 13),
+                Diagnostic("BinaryUserDefinedOperator", "x ^ y").WithArguments("Power").WithLocation(115, 13),
+                Diagnostic("BinaryUserDefinedOperator", "x = y").WithArguments("Equals").WithLocation(116, 13),
+                Diagnostic("BinaryUserDefinedOperator", "x <> y").WithArguments("NotEquals").WithLocation(117, 13),
+                Diagnostic("BinaryUserDefinedOperator", "x < y").WithArguments("LessThan").WithLocation(118, 13),
+                Diagnostic("BinaryUserDefinedOperator", "x > y").WithArguments("GreaterThan").WithLocation(119, 13),
+                Diagnostic("BinaryUserDefinedOperator", "x <= y").WithArguments("LessThanOrEqual").WithLocation(120, 13),
+                Diagnostic("BinaryUserDefinedOperator", "x >= y").WithArguments("GreaterThanOrEqual").WithLocation(121, 13),
+                Diagnostic("BinaryUserDefinedOperator", "x Like y").WithArguments("Like").WithLocation(122, 13),
+                Diagnostic("BinaryUserDefinedOperator", "x & y").WithArguments("Concatenate").WithLocation(123, 13),
+                Diagnostic("BinaryUserDefinedOperator", "x And y").WithArguments("And").WithLocation(124, 13),
+                Diagnostic("BinaryUserDefinedOperator", "x Or y").WithArguments("Or").WithLocation(125, 13),
+                Diagnostic("BinaryUserDefinedOperator", "x Xor y").WithArguments("ExclusiveOr").WithLocation(126, 13),
+                Diagnostic("BinaryUserDefinedOperator", "x << 2").WithArguments("LeftShift").WithLocation(127, 13),
+                Diagnostic("BinaryUserDefinedOperator", "x >> 3").WithArguments("RightShift").WithLocation(128, 13))
         End Sub
 
         <Fact>

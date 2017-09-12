@@ -763,8 +763,7 @@ namespace B
         {
             await TestInRegularAndScriptAsync(
 @"class Class { void Test() { /*goo*/[|Int32|] i; } }",
-@"class Class { void Test() { /*goo*/System.Int32 i; } }",
-ignoreTrivia: false);
+@"class Class { void Test() { /*goo*/System.Int32 i; } }");
         }
 
         [WorkItem(527395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
@@ -773,8 +772,7 @@ ignoreTrivia: false);
         {
             await TestInRegularAndScriptAsync(
 @"class Class { void Test() { /*goo*/[|List<int>|] l; } }",
-@"class Class { void Test() { /*goo*/System.Collections.Generic.List<int> l; } }",
-ignoreTrivia: false);
+@"class Class { void Test() { /*goo*/System.Collections.Generic.List<int> l; } }");
         }
 
         [WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
@@ -1028,7 +1026,7 @@ class Program
 
             await TestInRegularAndScriptAsync(
 input,
-@"[assembly: System.Runtime.InteropServices.Guid(""9ed54f84-a89d-4fcd-a854-44251e925f09"")]");
+@"[ assembly : System.Runtime.InteropServices.Guid( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ");
         }
 
         [WorkItem(546027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]

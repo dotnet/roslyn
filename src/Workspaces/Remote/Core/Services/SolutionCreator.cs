@@ -131,8 +131,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // changed project
             foreach (var kv in newMap)
             {
-                ProjectStateChecksums oldProjectChecksums;
-                if (!oldMap.TryGetValue(kv.Key, out oldProjectChecksums))
+                if (!oldMap.TryGetValue(kv.Key, out var oldProjectChecksums))
                 {
                     continue;
                 }
@@ -303,8 +302,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // changed document
             foreach (var kv in newMap)
             {
-                DocumentStateChecksums oldDocumentChecksums;
-                if (!oldMap.TryGetValue(kv.Key, out oldDocumentChecksums))
+                if (!oldMap.TryGetValue(kv.Key, out var oldDocumentChecksums))
                 {
                     continue;
                 }

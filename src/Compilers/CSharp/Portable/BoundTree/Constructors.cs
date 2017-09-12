@@ -26,7 +26,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind,
             TypeSymbol type,
             bool hasErrors = false)
-            : this(syntax, receiver, fieldSymbol, constantValueOpt, resultKind, NeedsByValueFieldAccess(receiver, fieldSymbol), type, hasErrors)
+            : this(syntax, receiver, fieldSymbol, constantValueOpt, resultKind, NeedsByValueFieldAccess(receiver, fieldSymbol), isDeclaration: false, type: type, hasErrors: hasErrors)
+        {
+        }
+
+        public BoundFieldAccess(
+            SyntaxNode syntax,
+            BoundExpression receiver,
+            FieldSymbol fieldSymbol,
+            ConstantValue constantValueOpt,
+            LookupResultKind resultKind,
+            bool isDeclaration,
+            TypeSymbol type,
+            bool hasErrors = false)
+            : this(syntax, receiver, fieldSymbol, constantValueOpt, resultKind, NeedsByValueFieldAccess(receiver, fieldSymbol), isDeclaration: isDeclaration, type: type, hasErrors: hasErrors)
         {
         }
 
@@ -37,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind,
             TypeSymbol typeSymbol)
         {
-            return this.Update(receiver, fieldSymbol, constantValueOpt, resultKind, this.IsByValue, typeSymbol);
+            return this.Update(receiver, fieldSymbol, constantValueOpt, resultKind, this.IsByValue, this.IsDeclaration, typeSymbol);
         }
 
         private static bool NeedsByValueFieldAccess(BoundExpression receiver, FieldSymbol fieldSymbol)

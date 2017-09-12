@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var parameter in lambdaSymbol.Parameters)
                 {
-                    if (originalBinder.CanAddLookupSymbolInfo(parameter, options, null))
+                    if (originalBinder.CanAddLookupSymbolInfo(parameter, options, result, null))
                     {
                         result.AddSymbol(parameter, parameter.Name, 0);
                     }

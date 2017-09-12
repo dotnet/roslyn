@@ -28,8 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
-            int index = 0, bool ignoreTrivia = true,
-            IDictionary<OptionKey, object> options = null)
+            int index = 0, IDictionary<OptionKey, object> options = null)
         {
             options = options ?? new Dictionary<OptionKey, object>();
             foreach (var kvp in AllOptionsOff)
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
             }
 
             return TestAsync(initialMarkup, expectedMarkup,
-                parseOptions, compilationOptions, index, ignoreTrivia, options);
+                parseOptions, compilationOptions, index, options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -80,7 +79,7 @@ class goo
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 1);
+            await TestAllOptionsOffAsync(text, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -122,7 +121,7 @@ class goo
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -190,12 +189,7 @@ class goo
 {
     private int bar;
 
-    public int Bar
-    {
-        get => bar;
-
-        set => bar = value;
-    }
+    public int Bar { get => bar; set => bar = value; }
 
     void baz()
     {
@@ -246,7 +240,7 @@ class goo
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 1);
+            await TestAllOptionsOffAsync(text, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -288,7 +282,7 @@ class goo
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -316,7 +310,7 @@ class goo
         }
     }
 }";
-            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false);
+            await TestAllOptionsOffAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -348,7 +342,7 @@ class Program
         }
     }
 }";
-            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false);
+            await TestAllOptionsOffAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -378,7 +372,7 @@ class C<T>
         }
     }
 }";
-            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false);
+            await TestAllOptionsOffAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -410,7 +404,7 @@ class goo
         }
     }
 }";
-            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -435,7 +429,7 @@ class goo
         }
     }
 }";
-            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -479,7 +473,7 @@ class d : c
         }
     }
 }";
-            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -534,7 +528,7 @@ class goo
         Y = 2;
     }
 }";
-            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -591,7 +585,7 @@ class goo
         Y = 2;
     }
 }";
-            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -634,7 +628,7 @@ class goo
         y = 2;
     }
 }";
-            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [WorkItem(694057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694057")]
@@ -662,7 +656,7 @@ class Program
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [WorkItem(694276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694276")]
@@ -690,7 +684,7 @@ class Program
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [WorkItem(694276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/694276")]
@@ -723,7 +717,7 @@ class Program
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [WorkItem(695046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/695046")]
@@ -765,7 +759,7 @@ class Program
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -833,7 +827,7 @@ public class D
         </Document>
     </Project>
 </Workspace>";
-            await TestAllOptionsOffAsync(text, expected, new CodeAnalysis.CSharp.CSharpParseOptions(), TestOptions.ReleaseExe, ignoreTrivia: false);
+            await TestAllOptionsOffAsync(text, expected, new CodeAnalysis.CSharp.CSharpParseOptions(), TestOptions.ReleaseExe);
         }
 
         [WorkItem(713269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713269")]
@@ -866,7 +860,7 @@ class C
     }
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [WorkItem(713240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713240")]
@@ -909,7 +903,7 @@ internal enum State
     WA
 }
 ";
-            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [WorkItem(713191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713191")]
@@ -945,7 +939,7 @@ class Program
         }
     }
 }";
-            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [WorkItem(713191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713191")]
@@ -981,7 +975,7 @@ class Program
         }
     }
 }";
-            await TestAllOptionsOffAsync(text, expected, ignoreTrivia: false, index: 0);
+            await TestAllOptionsOffAsync(text, expected, index: 0);
         }
 
         [WorkItem(765959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/765959")]
@@ -999,7 +993,7 @@ partial class Program {
 partial class Program {}
 
 partial class Program {
-    private int x;
+   private int x;
 
     public int X
     {
@@ -1007,6 +1001,7 @@ partial class Program {
         {
             return x;
         }
+
         set
         {
             x = value;
@@ -1080,7 +1075,8 @@ namespace ConsoleApplication1
             }
         }
     }
-}";
+}
+";
 
             await TestAllOptionsOffAsync(text, expected);
         }
@@ -1286,7 +1282,7 @@ class C
         }
     }
 }
-", ignoreTrivia: false);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -1315,7 +1311,7 @@ class C
         }
     }
 }
-", ignoreTrivia: false, options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
+", options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
         }
 
         [WorkItem(7090, "https://github.com/dotnet/roslyn/issues/7090")]
@@ -1386,7 +1382,7 @@ class C
 }
 ";
             await TestAllOptionsOffAsync(
-                text, expected, ignoreTrivia: false, index: 1);
+                text, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -1429,7 +1425,7 @@ class C
 }
 ";
             await TestAllOptionsOffAsync(
-                text, expected, ignoreTrivia: false, index: 1);
+                text, expected, index: 1);
         }
     }
 }

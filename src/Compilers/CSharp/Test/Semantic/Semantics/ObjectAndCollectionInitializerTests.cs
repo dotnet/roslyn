@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #region "Object Initializer"
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ObjectInitializerTest_ClassType()
         {
@@ -33,19 +34,19 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest) (Syntax: 'new MemberI ...  0, y = 0 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest) (Syntax: '{ x = 0, y = 0 }')
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'x = 0')
             Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest.x (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
-            Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'y = 0')
             Left: IPropertyReferenceExpression: System.Int32 MemberInitializerTest.y { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'y')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'y')
-            Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'y')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -54,6 +55,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             CompileAndVerify(source, expectedOutput: "");
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ObjectInitializerTest_StructType()
         {
@@ -69,19 +71,19 @@ struct MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest) (Syntax: 'new MemberI ...  0, y = 0 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest) (Syntax: '{ x = 0, y = 0 }')
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'x = 0')
             Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest.x (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
-            Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'y = 0')
             Left: IPropertyReferenceExpression: System.Int32 MemberInitializerTest.y { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'y')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'y')
-            Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'y')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -90,6 +92,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             CompileAndVerify(source, expectedOutput: "");
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ObjectInitializerTest_TypeParameterType()
         {
@@ -122,6 +125,7 @@ ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreatio
             CompileAndVerify(source, expectedOutput: "");
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ObjectInitializerTest_EnumType()
         {
@@ -136,7 +140,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: X..ctor()) (OperationKind.ObjectCreationExpression, Type: X) (Syntax: 'new X() { }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: X) (Syntax: '{ }')
@@ -148,6 +152,7 @@ IObjectCreationExpression (Constructor: X..ctor()) (OperationKind.ObjectCreation
             CompileAndVerify(source, expectedOutput: "");
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ObjectInitializerTest_PrimitiveType()
         {
@@ -160,7 +165,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'new int() { }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Int32) (Syntax: '{ }')
@@ -173,6 +178,7 @@ IObjectCreationExpression (Constructor: System.Int32..ctor()) (OperationKind.Obj
             CompileAndVerify(source, expectedOutput: "");
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void ObjectInitializerTest_MemberAccess_DynamicType()
         {
@@ -186,17 +192,17 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest) (Syntax: 'new MemberI ... t { X = 0 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest) (Syntax: '{ X = 0 }')
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: dynamic) (Syntax: 'X = 0')
             Left: IFieldReferenceExpression: dynamic MemberInitializerTest.X (OperationKind.FieldReferenceExpression, Type: dynamic) (Syntax: 'X')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'X')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'X')
             Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: dynamic) (Syntax: '0')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -256,6 +262,7 @@ class MyList : List<int>
 
         #region "Collection Initializer"
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CollectionInitializerTest_Empty()
         {
@@ -273,7 +280,7 @@ class MemberInitializerTest
     }/*</bind>*/
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IBlockStatement (3 statements, 3 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
   Locals: Local_1: System.Collections.Generic.List<System.Int32> i
     Local_2: MemberInitializerTest j
@@ -294,7 +301,7 @@ IBlockStatement (3 statements, 3 locals) (OperationKind.BlockStatement) (Syntax:
               Initializers(1):
                   IMemberInitializerExpression (OperationKind.MemberInitializerExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'x = { }')
                     InitializedMember: IFieldReferenceExpression: System.Collections.Generic.List<System.Int32> MemberInitializerTest.x (OperationKind.FieldReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'x')
-                        Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
+                        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
                     Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '{ }')
                         Initializers(0)
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var k = new ... Test() { };')
@@ -312,6 +319,7 @@ IBlockStatement (3 statements, 3 locals) (OperationKind.BlockStatement) (Syntax:
             CompileAndVerify(source, expectedOutput: "");
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CollectionInitializerTest_DynamicType()
         {
@@ -340,19 +348,19 @@ class Test
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: Test..ctor()) (OperationKind.ObjectCreationExpression, Type: Test) (Syntax: 'new Test()  ... t = { 1 } }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Test) (Syntax: '{ list = { 1 } }')
       Initializers(1):
           IMemberInitializerExpression (OperationKind.MemberInitializerExpression, Type: dynamic) (Syntax: 'list = { 1 }')
             InitializedMember: IFieldReferenceExpression: dynamic Test.list (OperationKind.FieldReferenceExpression, Type: dynamic) (Syntax: 'list')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Test) (Syntax: 'list')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Test) (Syntax: 'list')
             Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: dynamic) (Syntax: '{ 1 }')
                 Initializers(1):
                     ICollectionElementInitializerExpression (IsDynamic: True) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: '1')
                       Arguments(1):
-                          ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -367,6 +375,7 @@ IObjectCreationExpression (Constructor: Test..ctor()) (OperationKind.ObjectCreat
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections;"));
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CollectionInitializerTest_ExplicitInterfaceImplementation_IEnumerable()
         {
@@ -409,7 +418,7 @@ class B : IEnumerable
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: B..ctor()) (OperationKind.ObjectCreationExpression, Type: B) (Syntax: 'new B { 1, 2, 3, 4, 5 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: B) (Syntax: '{ 1, 2, 3, 4, 5 }')
@@ -418,27 +427,27 @@ IObjectCreationExpression (Constructor: B..ctor()) (OperationKind.ObjectCreation
             Arguments(1):
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 1) (Syntax: '1')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           ICollectionElementInitializerExpression (AddMethod: void B.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: '2')
             Arguments(1):
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 2) (Syntax: '2')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
           ICollectionElementInitializerExpression (AddMethod: void B.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: '3')
             Arguments(1):
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 3) (Syntax: '3')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+                  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
           ICollectionElementInitializerExpression (AddMethod: void B.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: '4')
             Arguments(1):
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 4) (Syntax: '4')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: ILiteralExpression (Text: 4) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
+                  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
           ICollectionElementInitializerExpression (AddMethod: void B.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: '5')
             Arguments(1):
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 5) (Syntax: '5')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: ILiteralExpression (Text: 5) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+                  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -452,6 +461,7 @@ IObjectCreationExpression (Constructor: B..ctor()) (OperationKind.ObjectCreation
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CollectionInitializerTest_ExplicitInterfaceImplementation_IEnumerable_Of_T()
         {
@@ -500,7 +510,7 @@ class B<T> : IEnumerable<T>
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: B<System.Int64>..ctor()) (OperationKind.ObjectCreationExpression, Type: B<System.Int64>) (Syntax: 'new B<long> ... , 3, 4, 5 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: B<System.Int64>) (Syntax: '{ 1, 2, 3, 4, 5 }')
@@ -509,27 +519,27 @@ IObjectCreationExpression (Constructor: B<System.Int64>..ctor()) (OperationKind.
             Arguments(1):
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 1) (Syntax: '1')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           ICollectionElementInitializerExpression (AddMethod: void B<System.Int64>.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: '2')
             Arguments(1):
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 2) (Syntax: '2')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
           ICollectionElementInitializerExpression (AddMethod: void B<System.Int64>.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: '3')
             Arguments(1):
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 3) (Syntax: '3')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+                  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
           ICollectionElementInitializerExpression (AddMethod: void B<System.Int64>.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: '4')
             Arguments(1):
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 4) (Syntax: '4')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: ILiteralExpression (Text: 4) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
+                  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
           ICollectionElementInitializerExpression (AddMethod: void B<System.Int64>.Add(System.Int64 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: '5')
             Arguments(1):
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 5) (Syntax: '5')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: ILiteralExpression (Text: 5) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+                  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -543,6 +553,7 @@ IObjectCreationExpression (Constructor: B<System.Int64>..ctor()) (OperationKind.
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CollectionInitializerTest_ExplicitImplOfAdd_And_ImplicitImplOfAdd()
         {
@@ -629,7 +640,7 @@ class MyList<T> : ICollection<T>
     #endregion
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MyList<System.String>..ctor()) (OperationKind.ObjectCreationExpression, Type: MyList<System.String>) (Syntax: 'new MyList< ... > { ""str"" }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MyList<System.String>) (Syntax: '{ ""str"" }')
@@ -645,6 +656,7 @@ IObjectCreationExpression (Constructor: MyList<System.String>..ctor()) (Operatio
             CompileAndVerify(source, expectedOutput: "str");
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CollectionInitializerTest_ExplicitImplOfAdd_NoImplicitImpl()
         {
@@ -723,13 +735,13 @@ class MyList<T> : ICollection<T>
     #endregion
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MyList<System.String>..ctor()) (OperationKind.ObjectCreationExpression, Type: MyList<System.String>, IsInvalid) (Syntax: 'new MyList< ... > { ""str"" }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MyList<System.String>, IsInvalid) (Syntax: '{ ""str"" }')
       Initializers(1):
           IInvocationExpression ( ? MyList<System.String>.Add()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: '""str""')
-            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MyList<System.String>) (Syntax: 'MyList<string>')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MyList<System.String>) (Syntax: 'MyList<string>')
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '""str""')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""str"", IsInvalid) (Syntax: '""str""')
@@ -751,6 +763,7 @@ IObjectCreationExpression (Constructor: MyList<System.String>..ctor()) (Operatio
 
         #region "Error Tests"
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         [WorkItem(629368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629368")]
         public void AddFieldUsedLikeMethod()
@@ -773,7 +786,7 @@ class A : IEnumerable<int>
     IEnumerator IEnumerable.GetEnumerator() { return null; }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: A..ctor()) (OperationKind.ObjectCreationExpression, Type: A, IsInvalid) (Syntax: 'new A { """" }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: A, IsInvalid) (Syntax: '{ """" }')
@@ -781,7 +794,7 @@ IObjectCreationExpression (Constructor: A..ctor()) (OperationKind.ObjectCreation
           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '""""')
             Children(2):
                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: """", IsInvalid) (Syntax: '""""')
-                IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'A')
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'A')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0118: 'Add' is a field but is used like a method
@@ -795,6 +808,7 @@ IObjectCreationExpression (Constructor: A..ctor()) (OperationKind.ObjectCreation
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         [WorkItem(629368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629368")]
         public void AddPropertyUsedLikeMethod()
@@ -817,7 +831,7 @@ class A : IEnumerable<int>
     IEnumerator IEnumerable.GetEnumerator() { return null; }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: A..ctor()) (OperationKind.ObjectCreationExpression, Type: A, IsInvalid) (Syntax: 'new A { """" }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: A, IsInvalid) (Syntax: '{ """" }')
@@ -825,7 +839,7 @@ IObjectCreationExpression (Constructor: A..ctor()) (OperationKind.ObjectCreation
           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '""""')
             Children(2):
                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: """", IsInvalid) (Syntax: '""""')
-                IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'A')
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'A')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0118: 'Add' is a property but is used like a method
@@ -836,6 +850,7 @@ IObjectCreationExpression (Constructor: A..ctor()) (OperationKind.ObjectCreation
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0070ERR_BadEventUsage()
         {
@@ -853,15 +868,15 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  z = null }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ z = null }')
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: D, IsInvalid) (Syntax: 'z = null')
             Left: IEventReferenceExpression: event D MemberInitializerTest.z (OperationKind.EventReferenceExpression, Type: D, IsInvalid) (Syntax: 'z')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'z')
-            Right: ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'z')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0070: The event 'MemberInitializerTest.z' can only appear on the left hand side of += or -= (except when used from within the type 'MemberInitializerTest')
@@ -875,6 +890,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0117ERR_NoSuchMember()
         {
@@ -887,7 +903,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32, IsInvalid) (Syntax: 'new int() { x = 0 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Int32, IsInvalid) (Syntax: '{ x = 0 }')
@@ -896,7 +912,7 @@ IObjectCreationExpression (Constructor: System.Int32..ctor()) (OperationKind.Obj
             Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x')
                 Children(1):
                     IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'x')
-            Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0117: 'int' does not contain a definition for 'x'
@@ -907,6 +923,7 @@ IObjectCreationExpression (Constructor: System.Int32..ctor()) (OperationKind.Obj
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0120_ERR_ObjectRequired()
         {
@@ -921,20 +938,20 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  1, y = x }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = 1, y = x }')
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'x = 1')
             Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest.x (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
-            Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: 'y = x')
             Left: IPropertyReferenceExpression: System.Int32 MemberInitializerTest.y { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'y')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'y')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'y')
             Right: IFieldReferenceExpression: System.Int32 MemberInitializerTest.x (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'x')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.x'
@@ -945,6 +962,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0122_ERR_BadAccess()
         {
@@ -964,7 +982,7 @@ class Test
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  2, z = 3 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = 1, y = 2, z = 3 }')
@@ -972,17 +990,17 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: 'x = 1')
             Left: IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
                 Children(1):
-                    IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'MemberInitializerTest')
-            Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'MemberInitializerTest')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: 'y = 2')
             Left: IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'y')
                 Children(1):
-                    IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'MemberInitializerTest')
-            Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'MemberInitializerTest')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'z = 3')
             Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest.z (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'z')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'z')
-            Right: ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'z')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0122: 'MemberInitializerTest.x' is inaccessible due to its protection level
@@ -999,6 +1017,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0144_ERR_NoNewAbstract()
         {
@@ -1012,7 +1031,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: I, IsInvalid) (Syntax: 'new I() { }')
   Children(0)
 ";
@@ -1025,6 +1044,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: I, IsInvalid) (Syntax
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0154_ERR_PropertyLacksGet()
         {
@@ -1046,24 +1066,24 @@ class Test
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: Test..ctor()) (OperationKind.ObjectCreationExpression, Type: Test, IsInvalid) (Syntax: 'new Test()  ... , y = 2 } }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Test, IsInvalid) (Syntax: '{ Prop = {  ... , y = 2 } }')
       Initializers(1):
           IMemberInitializerExpression (OperationKind.MemberInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Prop = { x = 1, y = 2 }')
             InitializedMember: IPropertyReferenceExpression: MemberInitializerTest Test.Prop { set; } (OperationKind.PropertyReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Prop')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Test, IsInvalid) (Syntax: 'Prop')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Test, IsInvalid) (Syntax: 'Prop')
             Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest) (Syntax: '{ x = 1, y = 2 }')
                 Initializers(2):
                     ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'x = 1')
                       Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest.x (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                          Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
-                      Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
+                      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                     ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'y = 2')
                       Left: IPropertyReferenceExpression: System.Int32 MemberInitializerTest.y { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'y')
-                          Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'y')
-                      Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'y')
+                      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0154: The property or indexer 'Test.Prop' cannot be used in this context because it lacks the get accessor
@@ -1074,6 +1094,7 @@ IObjectCreationExpression (Constructor: Test..ctor()) (OperationKind.ObjectCreat
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0165_ERR_UseDefViolation()
         {
@@ -1087,14 +1108,14 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... { x = m.x }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = m.x }')
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: 'x = m.x')
             Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest.x (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
             Right: IFieldReferenceExpression: System.Int32 MemberInitializerTest.x (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'm.x')
                 Instance Receiver: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'm')
 ";
@@ -1107,6 +1128,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0191_ERR_AssgReadonly()
         {
@@ -1125,15 +1147,15 @@ struct Test
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... ) { x = 1 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = 1 }')
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: 'x = 1')
             Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest.x (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'x')
-            Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'x')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
@@ -1144,6 +1166,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0200_ERR_AssgReadonlyProp()
         {
@@ -1162,15 +1185,15 @@ struct Test
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... ) { y = 2 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ y = 2 }')
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: 'y = 2')
             Left: IPropertyReferenceExpression: System.Int32 MemberInitializerTest.y { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'y')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'y')
-            Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'y')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0200: Property or indexer 'MemberInitializerTest.y' cannot be assigned to -- it is read only
@@ -1184,6 +1207,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0246_ERR_SingleTypeNameNotFound()
         {
@@ -1196,7 +1220,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: X, IsInvalid) (Syntax: 'new X() { x = 0 }')
   Children(1):
       IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: X) (Syntax: '{ x = 0 }')
@@ -1205,7 +1229,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: X, IsInvalid) (Syntax
               Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?) (Syntax: 'x')
                   Children(1):
                       IOperation:  (OperationKind.None) (Syntax: 'x')
-              Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
@@ -1216,6 +1240,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: X, IsInvalid) (Syntax
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(543936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543936")]
         [Fact]
         public void CS0246_ERR_SingleTypeNameNotFound_02()
@@ -1234,7 +1259,7 @@ class Goo
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: Bar, IsInvalid) (Syntax: 'new Bar() { Width = 16 }')
   Children(1):
       IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Bar) (Syntax: '{ Width = 16 }')
@@ -1243,7 +1268,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: Bar, IsInvalid) (Synt
               Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?) (Syntax: 'Width')
                   Children(1):
                       IOperation:  (OperationKind.None) (Syntax: 'Width')
-              Right: ILiteralExpression (Text: 16) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 16) (Syntax: '16')
+              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 16) (Syntax: '16')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0246: The type or namespace name 'Bar' could not be found (are you missing a using directive or an assembly reference?)
@@ -1254,6 +1279,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: Bar, IsInvalid) (Synt
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0304_ERR_NoNewTyvar()
         {
@@ -1266,7 +1292,7 @@ class MemberInitializerTest<T>
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: T, IsInvalid) (Syntax: 'new T() { x = 0 }')
   Children(0)
 ";
@@ -1282,6 +1308,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: T, IsInvalid) (Syntax
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0411_ERR_CantInferMethTypeArgs()
         {
@@ -1309,16 +1336,16 @@ class Test
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: Gen<System.Int32>..ctor()) (OperationKind.ObjectCreationExpression, Type: Gen<System.Int32>, IsInvalid) (Syntax: 'new Gen<int> { 1 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Gen<System.Int32>, IsInvalid) (Syntax: '{ 1 }')
       Initializers(1):
           IInvocationExpression ( void Gen<System.Int32>.Add()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: '1')
-            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Gen<System.Int32>) (Syntax: 'Gen<int>')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Gen<System.Int32>) (Syntax: 'Gen<int>')
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '1')
-                  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
                   InConversion: null
                   OutConversion: null
 ";
@@ -1331,6 +1358,7 @@ IObjectCreationExpression (Constructor: Gen<System.Int32>..ctor()) (OperationKin
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0747_ERR_InvalidInitializerElementInitializer()
         {
@@ -1344,18 +1372,18 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  = 0, y++ }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = 0, y++ }')
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'x = 0')
             Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest.x (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
-            Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-          IIncrementExpression (UnaryOperandKind.Invalid) (OperationKind.IncrementExpression, Type: System.Object, IsInvalid) (Syntax: 'y++')
-            Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest.y (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'y')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'y')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+          IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Object, IsInvalid) (Syntax: 'y++')
+            Target: IFieldReferenceExpression: System.Int32 MemberInitializerTest.y (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'y')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'y')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.y'
@@ -1369,6 +1397,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0747_ERR_InvalidInitializerElementInitializer_MethodCall()
         {
@@ -1383,18 +1412,18 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... zerTest() }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = 0, Go ... zerTest() }')
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'x = 0')
             Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest.x (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
-            Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo() = new ... lizerTest()')
             Left: IInvocationExpression ( MemberInitializerTest MemberInitializerTest.Goo()) (OperationKind.InvocationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo()')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo')
                 Arguments(0)
             Right: IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... lizerTest()')
                 Arguments(0)
@@ -1412,6 +1441,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS0747_ERR_InvalidInitializerElementInitializer_AssignmentExpression()
         {
@@ -1428,14 +1458,14 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List<System.Int32>, IsInvalid) (Syntax: 'new List<in ... o().x = 1 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Int32>, IsInvalid) (Syntax: '{ 1, Goo().x = 1 }')
       Initializers(2):
           ICollectionElementInitializerExpression (AddMethod: void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: '1')
             Arguments(1):
-                ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           ICollectionElementInitializerExpression (AddMethod: void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsInvalid) (Syntax: 'Goo().x = 1')
             Arguments(1):
                 ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: 'Goo().x = 1')
@@ -1443,7 +1473,7 @@ IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.I
                       Instance Receiver: IInvocationExpression (MemberInitializerTest MemberInitializerTest.Goo()) (OperationKind.InvocationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo()')
                           Instance Receiver: null
                           Arguments(0)
-                  Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                  Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0747: Invalid initializer member declarator
@@ -1454,6 +1484,7 @@ IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.I
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1912ERR_MemberAlreadyInitialized()
         {
@@ -1467,19 +1498,19 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  1, x = 2 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = 1, x = 2 }')
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'x = 1')
             Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest.x (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
-            Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: 'x = 2')
             Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest.x (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'x')
-            Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'x')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1912: Duplicate initialization of member 'x'
@@ -1490,6 +1521,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1913ERR_MemberCannotBeInitialized()
         {
@@ -1503,7 +1535,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... zerTest() }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ Goo = new ... zerTest() }')
@@ -1539,15 +1571,15 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: X..ctor()) (OperationKind.ObjectCreationExpression, Type: X, IsInvalid) (Syntax: 'new X() { x = 0 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: X, IsInvalid) (Syntax: '{ x = 0 }')
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: X, IsInvalid) (Syntax: 'x = 0')
             Left: IFieldReferenceExpression: X.x (OperationKind.FieldReferenceExpression, Type: X, IsInvalid) (Syntax: 'x')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: X, IsInvalid) (Syntax: 'x')
-            Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: X, IsInvalid) (Syntax: 'x')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1914: Static field or property 'X.x' cannot be assigned in an object initializer
@@ -1558,6 +1590,7 @@ IObjectCreationExpression (Constructor: X..ctor()) (OperationKind.ObjectCreation
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1914ERR_StaticMemberInObjectInitializer()
         {
@@ -1573,19 +1606,19 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  Prop = 1 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = 1, Prop = 1 }')
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: 'x = 1')
             Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest.x (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'x')
-            Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'x')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: 'Prop = 1')
             Left: IPropertyReferenceExpression: System.Int32 MemberInitializerTest.Prop { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'Prop')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Prop')
-            Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Prop')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1914: Static field or property 'MemberInitializerTest.x' cannot be assigned in an object initializer
@@ -1599,6 +1632,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1917ERR_ReadonlyValueTypeInObjectInitializer()
         {
@@ -1618,20 +1652,20 @@ struct MemberInitializerTest2
     public int y;
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... { y = 1 } }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = { y = 1 } }')
       Initializers(1):
           IMemberInitializerExpression (OperationKind.MemberInitializerExpression, Type: MemberInitializerTest2, IsInvalid) (Syntax: 'x = { y = 1 }')
             InitializedMember: IFieldReferenceExpression: MemberInitializerTest2 MemberInitializerTest.x (OperationKind.FieldReferenceExpression, Type: MemberInitializerTest2, IsInvalid) (Syntax: 'x')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'x')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'x')
             Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest2) (Syntax: '{ y = 1 }')
                 Initializers(1):
                     ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'y = 1')
                       Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest2.y (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'y')
-                          Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest2) (Syntax: 'y')
-                      Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest2) (Syntax: 'y')
+                      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1917: Members of readonly field 'MemberInitializerTest.x' of type 'MemberInitializerTest2' cannot be assigned with an object initializer because it is of a value type
@@ -1642,6 +1676,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1918ERR_ValueTypePropertyInObjectInitializer()
         {
@@ -1662,24 +1697,24 @@ struct MemberInitializerTest2
     public int x;
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... { x = 1 } }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = 1, Pr ... { x = 1 } }')
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'x = 1')
             Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest.x (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
-            Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'x')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           IMemberInitializerExpression (OperationKind.MemberInitializerExpression, Type: MemberInitializerTest2, IsInvalid) (Syntax: 'Prop = { x = 1 }')
             InitializedMember: IPropertyReferenceExpression: MemberInitializerTest2 MemberInitializerTest.Prop { get; set; } (OperationKind.PropertyReferenceExpression, Type: MemberInitializerTest2, IsInvalid) (Syntax: 'Prop')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Prop')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Prop')
             Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest2) (Syntax: '{ x = 1 }')
                 Initializers(1):
                     ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'x = 1')
                       Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest2.x (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                          Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest2) (Syntax: 'x')
-                      Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest2) (Syntax: 'x')
+                      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1918: Members of property 'MemberInitializerTest.Prop' of type 'MemberInitializerTest2' cannot be assigned with an object initializer because it is of a value type
@@ -1690,6 +1725,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1920ERR_EmptyElementInitializer()
         {
@@ -1708,7 +1744,7 @@ class MemberInitializerTest
     }/*</bind>*/
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ ... }')
   Locals: Local_1: MemberInitializerTest i
     Local_2: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>> collection
@@ -1721,7 +1757,7 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
               Initializers(1):
                   IMemberInitializerExpression (OperationKind.MemberInitializerExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'y = { }')
                     InitializedMember: IFieldReferenceExpression: System.Collections.Generic.List<System.Int32> MemberInitializerTest.y (OperationKind.FieldReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'y')
-                        Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'y')
+                        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'y')
                     Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '{ }')
                         Initializers(0)
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = new Mem ... int> { } };')
@@ -1733,7 +1769,7 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
                 Initializers(1):
                     ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'y = new List<int> { }')
                       Left: IFieldReferenceExpression: System.Collections.Generic.List<System.Int32> MemberInitializerTest.y (OperationKind.FieldReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'y')
-                          Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'y')
+                          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'y')
                       Right: IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'new List<int> { }')
                           Arguments(0)
                           Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '{ }')
@@ -1747,7 +1783,7 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
                 Initializers(1):
                     IMemberInitializerExpression (OperationKind.MemberInitializerExpression, Type: System.Collections.Generic.List<System.Int32>, IsInvalid) (Syntax: 'y = { { } }')
                       InitializedMember: IFieldReferenceExpression: System.Collections.Generic.List<System.Int32> MemberInitializerTest.y (OperationKind.FieldReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'y')
-                          Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'y')
+                          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'y')
                       Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Int32>, IsInvalid) (Syntax: '{ { } }')
                           Initializers(1):
                               IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '{ }')
@@ -1774,6 +1810,7 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1921ERR_InitializerAddHasWrongSignature()
         {
@@ -1798,14 +1835,14 @@ class Test : IEnumerable
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: Test..ctor()) (OperationKind.ObjectCreationExpression, Type: Test, IsInvalid) (Syntax: 'new Test() { 1 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Test, IsInvalid) (Syntax: '{ 1 }')
       Initializers(1):
           ICollectionElementInitializerExpression (AddMethod: void Test.Add(System.Int32 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsInvalid) (Syntax: '1')
             Arguments(1):
-                ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1921: The best overloaded method match for 'Test.Add(int)' has wrong signature for the initializer element. The initializable Add must be an accessible instance method.
@@ -1816,6 +1853,7 @@ IObjectCreationExpression (Constructor: Test..ctor()) (OperationKind.ObjectCreat
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1922ERR_CollectionInitRequiresIEnumerable()
         {
@@ -1842,7 +1880,7 @@ class A
     public string Prop2 { get; set; }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IBlockStatement (3 statements, 2 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ ... }')
   Locals: Local_1: B coll
     Local_2: A tc
@@ -1855,7 +1893,7 @@ IBlockStatement (3 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
               Initializers(1):
                   IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '1')
                     Children(1):
-                        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var tc = ne ...  ""hello"" };')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'var tc = ne ...  ""hello"" };')
       Variables: Local_1: A tc
@@ -1865,12 +1903,12 @@ IBlockStatement (3 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
               Initializers(2):
                   IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '1')
                     Children(1):
-                        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
                   IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '""hello""')
                     Children(1):
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""hello"", IsInvalid) (Syntax: '""hello""')
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return 0;')
-    ReturnedValue: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+    ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1922: Cannot initialize type 'B' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
@@ -1884,6 +1922,7 @@ IBlockStatement (3 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1922ERR_CollectionInitRequiresIEnumerable_02()
         {
@@ -1915,14 +1954,14 @@ class B
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: B..ctor()) (OperationKind.ObjectCreationExpression, Type: B, IsInvalid) (Syntax: 'new B { 1 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: B, IsInvalid) (Syntax: '{ 1 }')
       Initializers(1):
           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '1')
             Children(1):
-                ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1922: Cannot initialize type 'B' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
@@ -1933,6 +1972,7 @@ IObjectCreationExpression (Constructor: B..ctor()) (OperationKind.ObjectCreation
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1922ERR_CollectionInitRequiresIEnumerable_InvalidInitializer()
         {
@@ -1946,16 +1986,16 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... est { y++ }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ y++ }')
       Initializers(1):
           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'y++')
             Children(1):
-                IIncrementExpression (UnaryOperandKind.Invalid) (OperationKind.IncrementExpression, Type: System.Object, IsInvalid) (Syntax: 'y++')
-                  Left: IFieldReferenceExpression: System.Int32 MemberInitializerTest.y (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'y')
-                      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'y')
+                IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Object, IsInvalid) (Syntax: 'y++')
+                  Target: IFieldReferenceExpression: System.Int32 MemberInitializerTest.y (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'y')
+                      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'y')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1922: Cannot initialize type 'MemberInitializerTest' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
@@ -1969,6 +2009,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1922ERR_CollectionInitRequiresIEnumerable_MethodCall()
         {
@@ -1982,7 +2023,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... zerTest() }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ Goo() = n ... zerTest() }')
@@ -1991,7 +2032,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             Children(1):
                 ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo() = new ... lizerTest()')
                   Left: IInvocationExpression ( MemberInitializerTest MemberInitializerTest.Goo()) (OperationKind.InvocationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo()')
-                      Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo')
+                      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo')
                       Arguments(0)
                   Right: IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... lizerTest()')
                       Arguments(0)
@@ -2012,6 +2053,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1950ERR_BadArgTypesForCollectionAdd()
         {
@@ -2032,13 +2074,13 @@ class Test
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: TestClass..ctor()) (OperationKind.ObjectCreationExpression, Type: TestClass, IsInvalid) (Syntax: 'new TestClass { ""hi"" }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: TestClass, IsInvalid) (Syntax: '{ ""hi"" }')
       Initializers(1):
           IInvocationExpression ( void TestClass.Add(System.Int32 c)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: '""hi""')
-            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'TestClass')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'TestClass')
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '""hi""')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""hi"", IsInvalid) (Syntax: '""hi""')
@@ -2057,6 +2099,7 @@ IObjectCreationExpression (Constructor: TestClass..ctor()) (OperationKind.Object
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1954ERR_InitializerAddHasParamModifiers()
         {
@@ -2081,16 +2124,16 @@ class Test : IEnumerable
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: Test..ctor()) (OperationKind.ObjectCreationExpression, Type: Test, IsInvalid) (Syntax: 'new Test() { 1 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Test, IsInvalid) (Syntax: '{ 1 }')
       Initializers(1):
           IInvocationExpression ( void Test.Add(ref System.Int32 i)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: '1')
-            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Test) (Syntax: 'Test')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Test) (Syntax: 'Test')
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '1')
-                  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
                   InConversion: null
                   OutConversion: null
 ";
@@ -2103,6 +2146,7 @@ IObjectCreationExpression (Constructor: Test..ctor()) (OperationKind.ObjectCreat
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1954ERR_InitializerAddHasParamModifiers02()
         {
@@ -2144,13 +2188,13 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: MyList<MyClass>..ctor()) (OperationKind.ObjectCreationExpression, Type: MyList<MyClass>, IsInvalid) (Syntax: 'new MyList< ... ""maple"" } }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: MyList<MyClass>, IsInvalid) (Syntax: '{ new MyCla ... ""maple"" } }')
       Initializers(1):
           IInvocationExpression ( void MyList<MyClass>.Add(ref MyClass item)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'new MyClass ... = ""maple"" }')
-            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MyList<MyClass>) (Syntax: 'MyList<MyClass>')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MyList<MyClass>) (Syntax: 'MyList<MyClass>')
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'new MyClass ... = ""maple"" }')
                   IObjectCreationExpression (Constructor: MyClass..ctor()) (OperationKind.ObjectCreationExpression, Type: MyClass, IsInvalid) (Syntax: 'new MyClass ... = ""maple"" }')
@@ -2159,7 +2203,7 @@ IObjectCreationExpression (Constructor: MyList<MyClass>..ctor()) (OperationKind.
                         Initializers(1):
                             ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid) (Syntax: 'tree = ""maple""')
                               Left: IPropertyReferenceExpression: System.String MyClass.tree { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'tree')
-                                  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: MyClass, IsInvalid) (Syntax: 'tree')
+                                  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MyClass, IsInvalid) (Syntax: 'tree')
                               Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""maple"", IsInvalid) (Syntax: '""maple""')
                   InConversion: null
                   OutConversion: null
@@ -2176,6 +2220,7 @@ IObjectCreationExpression (Constructor: MyList<MyClass>..ctor()) (OperationKind.
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1958ERR_ObjectOrCollectionInitializerWithDelegateCreation()
         {
@@ -2190,7 +2235,7 @@ class MemberInitializerTest
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: MemberInitializerTest.D<System.Int32>, IsInvalid) (Syntax: 'new D<int>( ... d<int>) { }')
   Children(1):
       IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'GenericMethod<int>')
@@ -2204,6 +2249,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: MemberInitializerTest
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CollectionInitializerTest_AddMethod_OverloadResolutionFailures()
         {
@@ -2295,7 +2341,7 @@ class E : IEnumerable
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IBlockStatement (5 statements, 4 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ ... }')
   Locals: Local_1: B coll1
     Local_2: C coll2
@@ -2309,10 +2355,10 @@ IBlockStatement (5 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
           Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: B, IsInvalid) (Syntax: '{ 1 }')
               Initializers(1):
                   IInvocationExpression ( ? B.Add()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: '1')
-                    Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: B) (Syntax: 'B')
+                    Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: B) (Syntax: 'B')
                     Arguments(1):
                         IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '1')
-                          ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
                           InConversion: null
                           OutConversion: null
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'C coll2 = new C { 1 };')
@@ -2323,10 +2369,10 @@ IBlockStatement (5 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
           Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C, IsInvalid) (Syntax: '{ 1 }')
               Initializers(1):
                   IInvocationExpression ( void C.Add(System.String i)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: '1')
-                    Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'C')
+                    Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'C')
                     Arguments(1):
                         IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '1')
-                          ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
                           InConversion: null
                           OutConversion: null
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'D coll3 = n ... { 1, 2 } };')
@@ -2337,14 +2383,14 @@ IBlockStatement (5 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
           Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: D, IsInvalid) (Syntax: '{ { 1, 2 } }')
               Initializers(1):
                   IInvocationExpression ( void D.Add()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: '{ 1, 2 }')
-                    Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: D) (Syntax: 'D')
+                    Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: D) (Syntax: 'D')
                     Arguments(2):
                         IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '1')
-                          ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
                           InConversion: null
                           OutConversion: null
                         IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '2')
-                          ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
                           InConversion: null
                           OutConversion: null
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'E coll4 = new E { 1 };')
@@ -2355,14 +2401,14 @@ IBlockStatement (5 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
           Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: E, IsInvalid) (Syntax: '{ 1 }')
               Initializers(1):
                   IInvocationExpression ( void E.Add(System.Int32 i)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: '1')
-                    Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: E) (Syntax: 'E')
+                    Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: E) (Syntax: 'E')
                     Arguments(1):
                         IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '1')
-                          ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
                           InConversion: null
                           OutConversion: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return 0;')
-    ReturnedValue: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+    ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1061: 'B' does not contain a definition for 'Add' and no extension method 'Add' accepting a first argument of type 'B' could be found (are you missing a using directive or an assembly reference?)
@@ -2385,6 +2431,7 @@ IBlockStatement (5 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(543933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543933")]
         [Fact]
         public void ObjectInitializerTest_InvalidComplexElementInitializerExpression()
@@ -2402,24 +2449,24 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: Test..ctor()) (OperationKind.ObjectCreationExpression, Type: Test, IsInvalid) (Syntax: 'new Test()  ... { x = 1 } }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Test, IsInvalid) (Syntax: '{ x = 1, {  ... { x = 1 } }')
       Initializers(3):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'x = 1')
             Left: IFieldReferenceExpression: System.Int32 Test.x (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Test) (Syntax: 'x')
-            Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Test) (Syntax: 'x')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '{ 1 }')
             Children(1):
-                ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '{ x = 1 }')
             Children(1):
                 ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: 'x = 1')
                   Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x')
                       Children(0)
-                  Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                  Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0747: Invalid initializer member declarator
@@ -2436,6 +2483,7 @@ IObjectCreationExpression (Constructor: Test..ctor()) (OperationKind.ObjectCreat
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(543933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543933")]
         [Fact]
         public void ObjectInitializerTest_IncompleteComplexElementInitializerExpression()
@@ -2452,7 +2500,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: Dictionary<System.Object, System.Object>, IsInvalid) (Syntax: 'new Diction ... /*</bind>*/')
   Children(1):
       IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Dictionary<System.Object, System.Object>, IsInvalid) (Syntax: '{ ... /*</bind>*/')
@@ -2460,14 +2508,14 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: Dictionary<System.Obj
             IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '{""s"", 1 }')
               Children(2):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""s"", IsInvalid) (Syntax: '""s""')
-                  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
             IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'var')
               Children(0)
             ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: 'x = 1')
               Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x')
                   Children(1):
                       IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'x')
-              Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1003: Syntax error, ',' expected
@@ -2493,6 +2541,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: Dictionary<System.Obj
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(543961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543961")]
         [Fact]
         public void CollectionInitializerTest_InvalidComplexElementInitializerSyntax()
@@ -2506,7 +2555,7 @@ class Test
 }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidExpression (OperationKind.InvalidExpression, Type: List<System.Int32>, IsInvalid) (Syntax: 'new List<in ... { { { 1 } }')
   Children(1):
       IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: List<System.Int32>, IsInvalid) (Syntax: '{ { { 1 } }')
@@ -2515,7 +2564,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: List<System.Int32>, I
               Children(0)
             IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '{ 1 }')
               Children(1):
-                  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1513: } expected
@@ -2544,6 +2593,7 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: List<System.Int32>, I
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(544484, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544484")]
         [Fact]
         public void EmptyCollectionInitPredefinedType()
@@ -2554,7 +2604,7 @@ class Program
     const int value = /*<bind>*/new int { }/*</bind>*/;
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32, IsInvalid) (Syntax: 'new int { }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Int32, IsInvalid) (Syntax: '{ }')
@@ -2569,6 +2619,7 @@ IObjectCreationExpression (Constructor: System.Int32..ctor()) (OperationKind.Obj
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(544349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544349")]
         [Fact]
         public void CollectionInitializerTest_Bug_12635()
@@ -2584,14 +2635,14 @@ class A
     }
 
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List<System.Int32>, IsInvalid) (Syntax: 'new List<in ... unt = { } }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Int32>, IsInvalid) (Syntax: '{ Count = { } }')
       Initializers(1):
           IMemberInitializerExpression (OperationKind.MemberInitializerExpression, Type: System.Int32, IsInvalid) (Syntax: 'Count = { }')
             InitializedMember: IPropertyReferenceExpression: System.Int32 System.Collections.Generic.List<System.Int32>.Count { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'Count')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: System.Collections.Generic.List<System.Int32>, IsInvalid) (Syntax: 'Count')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: System.Collections.Generic.List<System.Int32>, IsInvalid) (Syntax: 'Count')
             Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Int32) (Syntax: '{ }')
                 Initializers(0)
 ";
@@ -2607,6 +2658,7 @@ IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.I
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(544349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544349")]
         [Fact]
         public void CollectionInitializerTest_Bug_12635_02()
@@ -2638,29 +2690,29 @@ namespace N
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: N.C..ctor()) (OperationKind.ObjectCreationExpression, Type: N.C, IsInvalid) (Syntax: 'new C() ... }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: N.C, IsInvalid) (Syntax: '{ ... }')
       Initializers(4):
           IMemberInitializerExpression (OperationKind.MemberInitializerExpression, Type: N.Struct, IsInvalid) (Syntax: 'StructField = { }')
             InitializedMember: IFieldReferenceExpression: N.Struct N.C.StructField (OperationKind.FieldReferenceExpression, Type: N.Struct, IsInvalid) (Syntax: 'StructField')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: N.C, IsInvalid) (Syntax: 'StructField')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: N.C, IsInvalid) (Syntax: 'StructField')
             Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: N.Struct) (Syntax: '{ }')
                 Initializers(0)
           IMemberInitializerExpression (OperationKind.MemberInitializerExpression, Type: N.Struct, IsInvalid) (Syntax: 'StructProp = { }')
             InitializedMember: IPropertyReferenceExpression: N.Struct N.C.StructProp { get; } (OperationKind.PropertyReferenceExpression, Type: N.Struct, IsInvalid) (Syntax: 'StructProp')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: N.C, IsInvalid) (Syntax: 'StructProp')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: N.C, IsInvalid) (Syntax: 'StructProp')
             Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: N.Struct) (Syntax: '{ }')
                 Initializers(0)
           IMemberInitializerExpression (OperationKind.MemberInitializerExpression, Type: N.Class) (Syntax: 'ClassField = { }')
             InitializedMember: IFieldReferenceExpression: N.Class N.C.ClassField (OperationKind.FieldReferenceExpression, Type: N.Class) (Syntax: 'ClassField')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: N.C) (Syntax: 'ClassField')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: N.C) (Syntax: 'ClassField')
             Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: N.Class) (Syntax: '{ }')
                 Initializers(0)
           IMemberInitializerExpression (OperationKind.MemberInitializerExpression, Type: N.Class) (Syntax: 'ClassProp = { }')
             InitializedMember: IPropertyReferenceExpression: N.Class N.C.ClassProp { get; } (OperationKind.PropertyReferenceExpression, Type: N.Class) (Syntax: 'ClassProp')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: N.C) (Syntax: 'ClassProp')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: N.C) (Syntax: 'ClassProp')
             Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: N.Class) (Syntax: '{ }')
                 Initializers(0)
 ";
@@ -2682,6 +2734,7 @@ IObjectCreationExpression (Constructor: N.C..ctor()) (OperationKind.ObjectCreati
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(544570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544570")]
         [Fact]
         public void CollectionInitializerTest_Bug_12977()
@@ -2716,34 +2769,34 @@ class A : IEnumerable
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: A..ctor()) (OperationKind.ObjectCreationExpression, Type: A, IsInvalid) (Syntax: 'new A { 5,  ...  { 1, 2 } }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: A, IsInvalid) (Syntax: '{ 5, { 1, 2, { 1, 2 } }')
       Initializers(3):
           ICollectionElementInitializerExpression (AddMethod: void A.Add(System.Int32 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: '5')
             Arguments(1):
-                ILiteralExpression (Text: 5) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
           IInvocationExpression ( void A.Add()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: '{ 1, 2, ')
-            Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'A')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: A) (Syntax: 'A')
             Arguments(3):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: '1')
-                  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                   InConversion: null
                   OutConversion: null
                 IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: '2')
-                  ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
                   InConversion: null
                   OutConversion: null
                 IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '')
-                  IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+                  IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
                     Children(0)
                   InConversion: null
                   OutConversion: null
           ICollectionElementInitializerExpression (AddMethod: void A.Add(System.Int32 i, System.Int32 j)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsInvalid) (Syntax: '{ 1, 2 }')
             Arguments(2):
-                ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-                ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term '{'
@@ -2796,6 +2849,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { Main() }"));
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void AssignmentInOmittedCollectionElementInitializer()
         {
@@ -2822,7 +2876,7 @@ partial class C : IEnumerable
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C { (i = 1) }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C) (Syntax: '{ (i = 1) }')
@@ -2831,7 +2885,7 @@ IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreation
             Arguments(1):
                 ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = 1')
                   Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-                  Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0165: Use of unassigned local variable 'i'
@@ -2845,6 +2899,7 @@ IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreation
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void OmittedCollectionElementInitializerInExpressionTree()
         {
@@ -2867,14 +2922,14 @@ partial class C : IEnumerable
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C { 1 }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C, IsInvalid) (Syntax: '{ 1 }')
       Initializers(1):
           ICollectionElementInitializerExpression (AddMethod: void C.Add(System.Int32 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsInvalid) (Syntax: '1')
             Arguments(1):
-                ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0765: Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees
@@ -2888,6 +2943,7 @@ IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreation
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1918ERR_ValueTypePropertyInObjectInitializer_NonSpec_Dev10_Error()
         {
@@ -2949,25 +3005,25 @@ class Test
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: B..ctor()) (OperationKind.ObjectCreationExpression, Type: B, IsInvalid) (Syntax: 'new B { A = ... 4, 5, 6 } }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: B, IsInvalid) (Syntax: '{ A = { 4, 5, 6 } }')
       Initializers(1):
           IMemberInitializerExpression (OperationKind.MemberInitializerExpression, Type: A, IsInvalid) (Syntax: 'A = { 4, 5, 6 }')
             InitializedMember: IPropertyReferenceExpression: A B.A { get; set; } (OperationKind.PropertyReferenceExpression, Type: A, IsInvalid) (Syntax: 'A')
-                Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: B, IsInvalid) (Syntax: 'A')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: B, IsInvalid) (Syntax: 'A')
             Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: A) (Syntax: '{ 4, 5, 6 }')
                 Initializers(3):
                     ICollectionElementInitializerExpression (AddMethod: void A.Add(System.Int32 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: '4')
                       Arguments(1):
-                          ILiteralExpression (Text: 4) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
+                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
                     ICollectionElementInitializerExpression (AddMethod: void A.Add(System.Int32 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: '5')
                       Arguments(1):
-                          ILiteralExpression (Text: 5) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
                     ICollectionElementInitializerExpression (AddMethod: void A.Add(System.Int32 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: '6')
                       Arguments(1):
-                          ILiteralExpression (Text: 6) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6) (Syntax: '6')
+                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6) (Syntax: '6')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1918: Members of property 'B.A' of type 'A' cannot be assigned with an object initializer because it is of a value type

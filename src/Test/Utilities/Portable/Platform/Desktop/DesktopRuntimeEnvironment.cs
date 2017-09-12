@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#if NET46
+#if NET461 || NET46
 
 using System;
 using System.Collections.Generic;
@@ -223,8 +223,7 @@ namespace Roslyn.Test.Utilities.Desktop
             }
             else
             {
-                string dumpDir;
-                DumpAssemblyData(dependencies, out dumpDir);
+                DumpAssemblyData(dependencies, out var dumpDir);
 
                 // This method MUST throw if compilation did not succeed.  If compilation succeeded and there were errors, that is bad.
                 // Please see KevinH if you intend to change this behavior as many tests expect the Exception to indicate failure.
@@ -242,8 +241,7 @@ namespace Roslyn.Test.Utilities.Desktop
 
                 if (expectedOutput != null && expectedOutput.Trim() != output.Trim())
                 {
-                    string dumpDir;
-                    GetEmitData().Manager.DumpAssemblyData(out dumpDir);
+                    GetEmitData().Manager.DumpAssemblyData(out var dumpDir);
                     throw new ExecutionException(expectedOutput, output, dumpDir);
                 }
 
@@ -256,8 +254,7 @@ namespace Roslyn.Test.Utilities.Desktop
                     throw;
                 }
 
-                string dumpDir;
-                _emitData.Manager.DumpAssemblyData(out dumpDir);
+                _emitData.Manager.DumpAssemblyData(out var dumpDir);
                 throw new ExecutionException(tie.InnerException, dumpDir);
             }
         }

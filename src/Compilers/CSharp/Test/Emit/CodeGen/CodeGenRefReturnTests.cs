@@ -1557,9 +1557,9 @@ class Program
 {
   // Code size        6 (0x6)
   .maxstack  1
-  IL_0000:  call       ""ref int Program.<M>g__N0_0()""
+  IL_0000:  call       ""ref int Program.<M>g__N|0_0()""
   IL_0005:  ret
-}").VerifyIL("Program.<M>g__N0_0", @"
+}").VerifyIL("Program.<M>g__N|0_0", @"
 {
   // Code size       13 (0xd)
   .maxstack  2
@@ -1615,9 +1615,9 @@ class Program
   IL_000c:  stelem.i4
   IL_000d:  stfld      ""int[] Program.<>c__DisplayClass0_0.arr""
   IL_0012:  ldloca.s   V_0
-  IL_0014:  call       ""ref int Program.<M>g__N0_0(ref Program.<>c__DisplayClass0_0)""
+  IL_0014:  call       ""ref int Program.<M>g__N|0_0(ref Program.<>c__DisplayClass0_0)""
   IL_0019:  ret
-}").VerifyIL("Program.<M>g__N0_0", @"
+}").VerifyIL("Program.<M>g__N|0_0", @"
 {
   // Code size       24 (0x18)
   .maxstack  4
@@ -1625,7 +1625,7 @@ class Program
   IL_0001:  ldfld      ""int[] Program.<>c__DisplayClass0_0.arr""
   IL_0006:  ldc.i4.0
   IL_0007:  ldelema    ""int""
-  IL_000c:  call       ""ref int Program.<M>g__NN0_1(ref int)""
+  IL_000c:  call       ""ref int Program.<M>g__NN|0_1(ref int)""
   IL_0011:  dup
   IL_0012:  dup
   IL_0013:  ldind.i4
@@ -1633,7 +1633,7 @@ class Program
   IL_0015:  add
   IL_0016:  stind.i4
   IL_0017:  ret
-}").VerifyIL("Program.<M>g__NN0_1", @"
+}").VerifyIL("Program.<M>g__NN|0_1", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -1690,10 +1690,10 @@ class Program
   IL_0011:  stelem.i4
   IL_0012:  stfld      ""int[] Program.<>c__DisplayClass1_0.arr""
   IL_0017:  ldloc.0
-  IL_0018:  ldftn      ""ref int Program.<>c__DisplayClass1_0.<M>g__N0()""
+  IL_0018:  ldftn      ""ref int Program.<>c__DisplayClass1_0.<M>g__N|0()""
   IL_001e:  newobj     ""Program.D..ctor(object, System.IntPtr)""
   IL_0023:  ret
-}").VerifyIL("Program.<>c__DisplayClass1_0.<M>g__N0()", @"
+}").VerifyIL("Program.<>c__DisplayClass1_0.<M>g__N|0()", @"
 {
   // Code size       24 (0x18)
   .maxstack  4
@@ -1701,7 +1701,7 @@ class Program
   IL_0001:  ldfld      ""int[] Program.<>c__DisplayClass1_0.arr""
   IL_0006:  ldc.i4.0
   IL_0007:  ldelema    ""int""
-  IL_000c:  call       ""ref int Program.<M>g__NN1_1(ref int)""
+  IL_000c:  call       ""ref int Program.<M>g__NN|1_1(ref int)""
   IL_0011:  dup
   IL_0012:  dup
   IL_0013:  ldind.i4
@@ -1709,7 +1709,7 @@ class Program
   IL_0015:  add
   IL_0016:  stind.i4
   IL_0017:  ret
-}").VerifyIL("Program.<M>g__NN1_1(ref int)", @"
+}").VerifyIL("Program.<M>g__NN|1_1(ref int)", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -2900,7 +2900,7 @@ public class C
             );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21079")]
+        [Fact]
         [WorkItem(16947, "https://github.com/dotnet/roslyn/issues/16947")]
         public void Dynamic003()
         {
@@ -2930,13 +2930,12 @@ public class C
 ";
 
             CreateCompilationWithMscorlib45AndCSruntime(source).VerifyEmitDiagnostics(
-                // (14,28): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+                // (14,26): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref G(ref d.Length);
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "d.Length").WithLocation(14, 28),
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "d.Length").WithLocation(14, 26),
                 // (14,20): error CS8164: Cannot return by reference a result of 'C.G(ref dynamic)' because the argument passed to parameter 'd' cannot be returned by reference
                 //         return ref G(ref d.Length);
                 Diagnostic(ErrorCode.ERR_RefReturnCall, "G(ref d.Length)").WithArguments("C.G(ref dynamic)", "d").WithLocation(14, 20)
-
             );
         }
 

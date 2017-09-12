@@ -54,5 +54,10 @@ namespace Microsoft.CodeAnalysis
         void Accept(OperationVisitor visitor);
 
         TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
+
+        /// <summary>
+        /// Set to True if compiler generated /implicitly computed by compiler code
+        /// </summary>
+        bool IsImplicit { get; }
     }
 }

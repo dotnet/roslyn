@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             var isFirst = !compilationRoot.AttributeLists.Any();
             var leadingTriviaForAttributeList = isFirst && !compilationRoot.HasLeadingTrivia ?
                 SyntaxFactory.TriviaList(SyntaxFactory.Comment(GlobalSuppressionsFileHeaderComment)) :
-                default(SyntaxTriviaList);
+                default;
             var attributeList = CreateAttributeList(targetSymbol, diagnostic, leadingTrivia: leadingTriviaForAttributeList, needsLeadingEndOfLine: !isFirst);
             attributeList = (AttributeListSyntax)await Formatter.FormatAsync(attributeList, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
             return compilationRoot.AddAttributeLists(attributeList);
@@ -152,8 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
 
         protected override bool IsSingleAttributeInAttributeList(SyntaxNode attribute)
         {
-            var attributeSyntax = attribute as AttributeSyntax;
-            if (attributeSyntax != null)
+            if (attribute is AttributeSyntax attributeSyntax)
             {
                 var attributeList = attributeSyntax.Parent as AttributeListSyntax;
                 return attributeList != null && attributeList.Attributes.Count == 1;

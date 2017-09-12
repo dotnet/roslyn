@@ -17,10 +17,20 @@ namespace Roslyn.Utilities
     /// </summary>
     internal class ComMemoryStream : IUnsafeComStream
     {
-        private const int ChunkSize = 32768;
+        // internal for testing
+        internal const int STREAM_SEEK_SET = 0;
+        internal const int STREAM_SEEK_CUR = 1;
+        internal const int STREAM_SEEK_END = 2;
+
+        private readonly int _chunkSize;
         private readonly List<byte[]> _chunks = new List<byte[]>();
         private int _position;
         private int _length;
+
+        public ComMemoryStream(int chunkSize = 32768)
+        {
+            _chunkSize = chunkSize;
+        }
 
         public void CopyTo(Stream stream)
         {
@@ -32,21 +42,55 @@ namespace Roslyn.Utilities
             }
 
             int chunkIndex = 0;
-            for (int remainingBytes = _length; remainingBytes > 0;)
+            int remainingBytes = _length;
+            while (remainingBytes > 0)
             {
-                int bytesToCopy = Math.Min(ChunkSize, remainingBytes);
+                int bytesToCopy;
                 if (chunkIndex < _chunks.Count)
                 {
-                    stream.Write(_chunks[chunkIndex++], 0, bytesToCopy);
+                    var chunk = _chunks[chunkIndex];
+                    bytesToCopy = Math.Min(chunk.Length, remainingBytes);
+                    stream.Write(chunk, 0, bytesToCopy);
+                    chunkIndex++;
                 }
                 else
                 {
                     // Fill remaining space with zero bytes
+                    bytesToCopy = remainingBytes;
                     for (int i = 0; i < bytesToCopy; i++)
                     {
                         stream.WriteByte(0);
                     }
                 }
+
+                remainingBytes -= bytesToCopy;
+            }
+        }
+
+        public IEnumerable<ArraySegment<byte>> GetChunks()
+        {
+            int chunkIndex = 0;
+            int remainingBytes = _length;
+            while (remainingBytes > 0)
+            {
+                int bytesToCopy;
+
+                byte[] chunk;
+                if (chunkIndex < _chunks.Count)
+                {
+                    chunk = _chunks[chunkIndex];
+                    bytesToCopy = Math.Min(chunk.Length, remainingBytes);
+                    chunkIndex++;
+                }
+                else
+                {
+                    // The caller seeked behind the end of the stream and didn't write there.
+                    // The allocated array is not big in practice. 
+                    chunk = new byte[remainingBytes];
+                    bytesToCopy = remainingBytes;
+                }
+
+                yield return new ArraySegment<byte>(chunk, 0, bytesToCopy);
 
                 remainingBytes -= bytesToCopy;
             }
@@ -63,14 +107,14 @@ namespace Roslyn.Utilities
 
         unsafe void IUnsafeComStream.Read(IntPtr pv, int cb, IntPtr pcbRead)
         {
-            int chunkIndex = _position / ChunkSize;
-            int chunkOffset = _position % ChunkSize;
+            int chunkIndex = _position / _chunkSize;
+            int chunkOffset = _position % _chunkSize;
             int destinationIndex = 0;
             int bytesRead = 0;
 
             while (true)
             {
-                int bytesToCopy = Math.Min(_length - _position, Math.Min(cb, ChunkSize - chunkOffset));
+                int bytesToCopy = Math.Min(_length - _position, Math.Min(cb, _chunkSize - chunkOffset));
                 if (bytesToCopy == 0)
                 {
                     break;
@@ -122,15 +166,15 @@ namespace Roslyn.Utilities
 
             switch (origin)
             {
-                case 0: // STREAM_SEEK_SET
+                case STREAM_SEEK_SET:
                     newPosition = SetPosition((int)dlibMove);
                     break;
 
-                case 1: // STREAM_SEEK_CUR
+                case STREAM_SEEK_CUR: 
                     newPosition = SetPosition(_position + (int)dlibMove);
                     break;
 
-                case 2: // STREAM_SEEK_END
+                case STREAM_SEEK_END: 
                     newPosition = SetPosition(_length + (int)dlibMove);
                     break;
 
@@ -159,12 +203,12 @@ namespace Roslyn.Utilities
 
         unsafe void IUnsafeComStream.Write(IntPtr pv, int cb, IntPtr pcbWritten)
         {
-            int chunkIndex = _position / ChunkSize;
-            int chunkOffset = _position % ChunkSize;
+            int chunkIndex = _position / _chunkSize;
+            int chunkOffset = _position % _chunkSize;
             int bytesWritten = 0;
             while (true)
             {
-                int bytesToCopy = Math.Min(cb, ChunkSize - chunkOffset);
+                int bytesToCopy = Math.Min(cb, _chunkSize - chunkOffset);
                 if (bytesToCopy == 0)
                 {
                     break;
@@ -172,7 +216,7 @@ namespace Roslyn.Utilities
 
                 while (chunkIndex >= _chunks.Count)
                 {
-                    _chunks.Add(new byte[ChunkSize]);
+                    _chunks.Add(new byte[_chunkSize]);
                 }
 
                 Marshal.Copy(pv + bytesWritten, _chunks[chunkIndex], chunkOffset, bytesToCopy);
