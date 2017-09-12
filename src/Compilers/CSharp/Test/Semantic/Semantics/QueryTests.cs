@@ -3958,5 +3958,99 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")]
+        public void IOperationForQueryClause()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+
+class Query
+{
+    public static void Main(string[] args)
+    {
+        List<int> c = new List<int>() { 1, 2, 3, 4, 5, 6, 7 };
+        var r = from i in c /*<bind>*/select i + 1/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression (System.Collections.Generic.IEnumerable<System.Int32> System.Linq.Enumerable.Select<System.Int32, System.Int32>(this System.Collections.Generic.IEnumerable<System.Int32> source, System.Func<System.Int32, System.Int32> selector)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: 'select i + 1')
+  Instance Receiver: null
+  Arguments(2):
+      IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument) (Syntax: 'from i in c')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: 'from i in c')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+          Operand: ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c')
+        InConversion: null
+        OutConversion: null
+      IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument) (Syntax: 'i + 1')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func<System.Int32, System.Int32>) (Syntax: 'i + 1')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'i + 1')
+              IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'i + 1')
+                IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'i + 1')
+                  ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+                      Left: IOperation:  (OperationKind.None) (Syntax: 'i')
+                      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: null
+        OutConversion: null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<SelectClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")]
+        public void IOperationForRangeVariableDefinition()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+
+class Query
+{
+    public static void Main(string[] args)
+    {
+        List<int> c = new List<int>() { 1, 2, 3, 4, 5, 6, 7 };
+        var r = /*<bind>*/from i in c/*</bind>*/ select i + 1;
+    }
+}
+";
+            string expectedOperationTree = @"
+ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<FromClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")]
+        public void IOperationForRangeVariableReference()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+
+class Query
+{
+    public static void Main(string[] args)
+    {
+        List<int> c = new List<int>() { 1, 2, 3, 4, 5, 6, 7 };
+        var r = from i in c select /*<bind>*/i/*</bind>*/ + 1;
+    }
+}
+";
+            string expectedOperationTree = @"
+IOperation:  (OperationKind.None) (Syntax: 'i')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }

@@ -5617,8 +5617,11 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     /// <summary>
     /// Represents an unrolled/lowered query expression in C# and VB.
-    /// For example, for the query expression "from x in set where x.Name != null select x.Name", the select clause is the last clause of the unrolled query expression,
-    /// with the where clause as one of its descendant, and the from clause as the descendant of the where clause.
+    /// For example, for the query expression "from x in set where x.Name != null select x.Name", the Operation tree has the following shape:
+    ///   ITranslatedQueryExpression
+    ///     IInvocationExpression ('Select' invocation for "select x.Name")
+    ///       IInvocationExpression ('Where' invocation for "where x.Name != null")
+    ///         IInvocationExpression ('From' invocation for "from x in set")
     /// </summary>
     internal abstract partial class BaseTranslatedQueryExpression : Operation, ITranslatedQueryExpression
     {
@@ -5650,8 +5653,11 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     /// <summary>
     /// Represents an unrolled/lowered query expression in C# and VB.
-    /// For example, for the query expression "from x in set where x.Name != null select x.Name", the select clause is the last clause of the unrolled query expression,
-    /// with the where clause as one of its descendant, and the from clause as the descendant of the where clause.
+    /// For example, for the query expression "from x in set where x.Name != null select x.Name", the Operation tree has the following shape:
+    ///   ITranslatedQueryExpression
+    ///     IInvocationExpression ('Select' invocation for "select x.Name")
+    ///       IInvocationExpression ('Where' invocation for "where x.Name != null")
+    ///         IInvocationExpression ('From' invocation for "from x in set")
     /// </summary>
     internal sealed partial class TranslatedQueryExpression : BaseTranslatedQueryExpression, ITranslatedQueryExpression
     {
@@ -5665,8 +5671,11 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     /// <summary>
     /// Represents an unrolled/lowered query expression in C# and VB.
-    /// For example, for the query expression "from x in set where x.Name != null select x.Name", the select clause is the last clause of the unrolled query expression,
-    /// with the where clause as one of its descendant, and the from clause as the descendant of the where clause.
+    /// For example, for the query expression "from x in set where x.Name != null select x.Name", the Operation tree has the following shape:
+    ///   ITranslatedQueryExpression
+    ///     IInvocationExpression ('Select' invocation for "select x.Name")
+    ///       IInvocationExpression ('Where' invocation for "where x.Name != null")
+    ///         IInvocationExpression ('From' invocation for "from x in set")
     /// </summary>
     internal sealed partial class LazyTranslatedQueryExpression : BaseTranslatedQueryExpression, ITranslatedQueryExpression
     {

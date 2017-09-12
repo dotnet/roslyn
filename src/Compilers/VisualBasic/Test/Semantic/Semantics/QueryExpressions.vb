@@ -239,74 +239,6 @@ Where System.Func`2[System.Int32,System.Boolean]
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")>
-        Public Sub WhereClause02_IOperation()
-            Dim source = <![CDATA[
-Option Strict Off
-
-Imports System
-
-Class QueryAble
-    Public Function [Select](x As Func(Of Integer, Integer)) As QueryAble
-        System.Console.WriteLine("Select")
-        Return Me
-    End Function
-
-    Public Function Where(x As Func(Of Integer, Boolean)) As QueryAble
-        System.Console.WriteLine("Where")
-        Return Me
-    End Function
-
-End Class
-
-Module Module1
-    Sub Main()
-        Dim q As New QueryAble()
-        Dim q1 As Object = From s In q Where s > 0
-        System.Console.WriteLine("-----")
-        Dim q2 As Object = From s In q Where s > 0 Where 10 > s'BIND:"From s In q Where s > 0 Where 10 > s"
-    End Sub
-End Module]]>.Value
-
-            Dim expectedOperationTree = <![CDATA[
-IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'From s In q ... here 10 > s')
-  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-  Operand: ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble) (Syntax: 'From s In q ... here 10 > s')
-      Expression: IInvocationExpression ( Function QueryAble.Where(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble) (Syntax: 'Where 10 > s')
-          Instance Receiver: IInvocationExpression ( Function QueryAble.Where(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble) (Syntax: 'Where s > 0')
-              Instance Receiver: ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
-              Arguments(1):
-                  IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument) (Syntax: 's > 0')
-                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.Int32, System.Boolean)) (Syntax: 's > 0')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      Operand: IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 's > 0')
-                          IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 0')
-                            IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 0')
-                              ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 0')
-                                  Left: IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 0')
-                                  Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-                    InConversion: null
-                    OutConversion: null
-          Arguments(1):
-              IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument) (Syntax: '10 > s')
-                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.Int32, System.Boolean)) (Syntax: '10 > s')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '10 > s')
-                      IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '10 > s')
-                        IReturnStatement (OperationKind.ReturnStatement) (Syntax: '10 > s')
-                          ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '10 > s')
-                              Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
-                              Right: IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: '10 > s')
-                InConversion: null
-                OutConversion: null
-]]>.Value
-
-            Dim expectedDiagnostics = String.Empty
-
-            VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
-        End Sub
-
-        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub Test4()
             Dim source = <![CDATA[
@@ -2151,13 +2083,6 @@ Module Module1
 
     Sub Main()
         Dim q As New QueryAble()
-        System.Console.WriteLine("-----")
-        Dim q1 As Object = From s In q Select t = s * 2 Select t
-        System.Console.WriteLine()
-        System.Console.WriteLine("-----")
-        Dim q2 As Object = From s In q Select s * 3 Where 100 Select -1
-        System.Console.WriteLine()
-        System.Console.WriteLine("-----")
         Dim ind As New Index()
 
         Dim q3 As Object = From s In q'BIND:"From s In q"
@@ -2169,9 +2094,6 @@ Module Module1
                            Where Num2 = -10 + Num1()
                            Select ind!Two
                            Where Two > 0
-
-        System.Console.WriteLine()
-        System.Console.WriteLine("-----")
     End Sub
 End Module]]>.Value
 
@@ -3641,7 +3563,7 @@ BC42016: Implicit conversion from 'Boolean' to 'String'.
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
-        Public Sub While1()
+        Public Sub While1_TakeWhile()
             Dim source = <![CDATA[
 Option Strict Off
 
@@ -3655,70 +3577,80 @@ End Class
 
 Module Module1
 
-    Sub Main()'BIND:"Sub Main()"
+    Sub Main()
         Dim q As New QueryAble()
-        Dim q1 As Object = From s In q Take While s > 1
-        Dim q2 As Object = From s In q Skip While s > 1
+        Dim q1 As Object = From s In q Take While s > 1'BIND:"From s In q Take While s > 1"
     End Sub
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (5 statements, 3 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub Main()' ... End Sub')
-  Locals: Local_1: q As QueryAble
-    Local_2: q1 As System.Object
-    Local_3: q2 As System.Object
-  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim q As New QueryAble()')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'q')
-      Variables: Local_1: q As QueryAble
-      Initializer: IObjectCreationExpression (Constructor: Sub QueryAble..ctor()) (OperationKind.ObjectCreationExpression, Type: QueryAble) (Syntax: 'New QueryAble()')
-          Arguments(0)
-          Initializer: null
-  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim q1 As O ... While s > 1')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'q1')
-      Variables: Local_1: q1 As System.Object
-      Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'From s In q ... While s > 1')
-          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: ?, IsInvalid) (Syntax: 'From s In q ... While s > 1')
-              Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Take While s > 1')
-                  Children(2):
-                      ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
-                      IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As ?) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 's > 1')
-                        IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 1')
-                          IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 1')
-                            ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 1')
-                                Left: IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 1')
-                                Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim q2 As O ... While s > 1')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'q2')
-      Variables: Local_1: q2 As System.Object
-      Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'From s In q ... While s > 1')
-          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: ?, IsInvalid) (Syntax: 'From s In q ... While s > 1')
-              Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Skip While s > 1')
-                  Children(2):
-                      ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
-                      IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As ?) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 's > 1')
-                        IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 1')
-                          IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 1')
-                            ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 1')
-                                Left: IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 1')
-                                Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
-    Statement: null
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
-    ReturnedValue: null
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'From s In q ... While s > 1')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: ?, IsInvalid) (Syntax: 'From s In q ... While s > 1')
+      Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Take While s > 1')
+          Children(2):
+              ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
+              IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As ?) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 's > 1')
+                IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 1')
+                  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 1')
+                    ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 1')
+                        Left: IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 1')
+                        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
 BC36594: Definition of method 'TakeWhile' is not accessible in this context.
-        Dim q1 As Object = From s In q Take While s > 1
-                                       ~~~~~~~~~~
-BC36594: Definition of method 'SkipWhile' is not accessible in this context.
-        Dim q2 As Object = From s In q Skip While s > 1
+        Dim q1 As Object = From s In q Take While s > 1'BIND:"From s In q Take While s > 1"
                                        ~~~~~~~~~~
 ]]>.Value
 
-            VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+            VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub While1_SkipWhile()
+            Dim source = <![CDATA[
+Option Strict Off
+
+Imports System
+
+Class QueryAble
+    Public Function [Select](x As Func(Of Integer, Integer)) As QueryAble
+        Return Me
+    End Function
+End Class
+
+Module Module1
+
+    Sub Main()
+        Dim q As New QueryAble()
+        Dim q2 As Object = From s In q Skip While s > 1'BIND:"From s In q Skip While s > 1"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'From s In q ... While s > 1')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: ?, IsInvalid) (Syntax: 'From s In q ... While s > 1')
+      Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Skip While s > 1')
+          Children(2):
+              ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
+              IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As ?) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 's > 1')
+                IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 1')
+                  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 1')
+                    ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 1')
+                        Left: IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 1')
+                        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC36594: Definition of method 'SkipWhile' is not accessible in this context.
+        Dim q2 As Object = From s In q Skip While s > 1'BIND:"From s In q Skip While s > 1"
+                                       ~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact>
@@ -5638,19 +5570,15 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's2 + s1')
                           ReturnedValue: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>) (Syntax: 's3 = s2 + s1')
                               Initializers(3):
-                                  IInvocationExpression ( Function <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.get_s1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 's2 + s1')
+                                  IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's2 + s1')
                                     Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's2 + s1')
-                                    Arguments(0)
-                                  IInvocationExpression ( Function <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.get_s2() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 's2 + s1')
+                                  IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's2 + s1')
                                     Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's2 + s1')
-                                    Arguments(0)
                                   IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's2 + s1')
-                                    Left: IInvocationExpression ( Function <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.get_s2() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 's2 + s1')
+                                    Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's2 + s1')
                                         Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's2 + s1')
-                                        Arguments(0)
-                                    Right: IInvocationExpression ( Function <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.get_s1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 's2 + s1')
+                                    Right: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's2 + s1')
                                         Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's2 + s1')
-                                        Arguments(0)
                 InConversion: null
                 OutConversion: null
 ]]>.Value
@@ -5720,12 +5648,10 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
                                       Initializers(2):
                                           IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's3 = s2 + s1')
                                           IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's2 + s1')
-                                            Left: IInvocationExpression ( Function <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.get_s2() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 's2 + s1')
+                                            Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's2 + s1')
                                                 Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's2 + s1')
-                                                Arguments(0)
-                                            Right: IInvocationExpression ( Function <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.get_s1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 's2 + s1')
+                                            Right: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's2 + s1')
                                                 Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's2 + s1')
-                                                Arguments(0)
                         InConversion: null
                         OutConversion: null
               Arguments(1):
@@ -5740,19 +5666,14 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
                                       IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's4 = s1 + s2 + s3')
                                       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3')
                                         Left: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's1 + s2')
-                                            Left: IInvocationExpression ( Function <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.get_s1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3')
-                                                Instance Receiver: IInvocationExpression ( Function <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.get_$VB$It() As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (OperationKind.InvocationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's1 + s2 + s3')
+                                            Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3')
+                                                Instance Receiver: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's1 + s2 + s3')
                                                     Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3')
-                                                    Arguments(0)
-                                                Arguments(0)
-                                            Right: IInvocationExpression ( Function <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.get_s2() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3')
-                                                Instance Receiver: IInvocationExpression ( Function <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.get_$VB$It() As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (OperationKind.InvocationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's1 + s2 + s3')
+                                            Right: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3')
+                                                Instance Receiver: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's1 + s2 + s3')
                                                     Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3')
-                                                    Arguments(0)
-                                                Arguments(0)
-                                        Right: IInvocationExpression ( Function <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.get_s3() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3')
+                                        Right: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.s3 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3')
                                             Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3')
-                                            Arguments(0)
                     InConversion: null
                     OutConversion: null
           Arguments(1):
@@ -5764,53 +5685,35 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1 + s2 + s3 + s4')
                           ReturnedValue: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32, Key s5 As System.Int32>) (Syntax: 's5 = s1 + s2 + s3 + s4')
                               Initializers(5):
-                                  IInvocationExpression ( Function <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.get_s1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
-                                    Instance Receiver: IInvocationExpression ( Function <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.get_$VB$It() As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (OperationKind.InvocationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                        Instance Receiver: IInvocationExpression ( Function <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.get_$VB$It() As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (OperationKind.InvocationExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
+                                  IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
+                                    Instance Receiver: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
+                                        Instance Receiver: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
                                             Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                            Arguments(0)
-                                        Arguments(0)
-                                    Arguments(0)
-                                  IInvocationExpression ( Function <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.get_s2() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
-                                    Instance Receiver: IInvocationExpression ( Function <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.get_$VB$It() As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (OperationKind.InvocationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                        Instance Receiver: IInvocationExpression ( Function <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.get_$VB$It() As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (OperationKind.InvocationExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
+                                  IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
+                                    Instance Receiver: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
+                                        Instance Receiver: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
                                             Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                            Arguments(0)
-                                        Arguments(0)
-                                    Arguments(0)
-                                  IInvocationExpression ( Function <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.get_s3() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
-                                    Instance Receiver: IInvocationExpression ( Function <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.get_$VB$It() As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (OperationKind.InvocationExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
+                                  IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.s3 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
+                                    Instance Receiver: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
                                         Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                        Arguments(0)
-                                    Arguments(0)
-                                  IInvocationExpression ( Function <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.get_s4() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
+                                  IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.s4 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
                                     Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                    Arguments(0)
                                   IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
                                     Left: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3')
                                         Left: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's1 + s2')
-                                            Left: IInvocationExpression ( Function <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.get_s1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
-                                                Instance Receiver: IInvocationExpression ( Function <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.get_$VB$It() As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (OperationKind.InvocationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                                    Instance Receiver: IInvocationExpression ( Function <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.get_$VB$It() As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (OperationKind.InvocationExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
+                                            Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
+                                                Instance Receiver: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
+                                                    Instance Receiver: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
                                                         Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                                        Arguments(0)
-                                                    Arguments(0)
-                                                Arguments(0)
-                                            Right: IInvocationExpression ( Function <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.get_s2() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
-                                                Instance Receiver: IInvocationExpression ( Function <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.get_$VB$It() As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (OperationKind.InvocationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                                    Instance Receiver: IInvocationExpression ( Function <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.get_$VB$It() As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (OperationKind.InvocationExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
+                                            Right: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
+                                                Instance Receiver: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
+                                                    Instance Receiver: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
                                                         Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                                        Arguments(0)
-                                                    Arguments(0)
-                                                Arguments(0)
-                                        Right: IInvocationExpression ( Function <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.get_s3() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
-                                            Instance Receiver: IInvocationExpression ( Function <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.get_$VB$It() As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (OperationKind.InvocationExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
+                                        Right: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.s3 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
+                                            Instance Receiver: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
                                                 Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                                Arguments(0)
-                                            Arguments(0)
-                                    Right: IInvocationExpression ( Function <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.get_s4() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
+                                    Right: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.s4 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
                                         Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                        Arguments(0)
                 InConversion: null
                 OutConversion: null
 ]]>.Value
@@ -7437,9 +7340,8 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's3')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's3')
                           ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.Multiply, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's2 * 2')
-                              Left: IInvocationExpression ( Function <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.get_s2() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 's3')
+                              Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's3')
                                   Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's3')
-                                  Arguments(0)
                               Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
                 InConversion: null
                 OutConversion: null
@@ -7460,12 +7362,10 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Join s3 In  ... uals s2 * 2')
                           ReturnedValue: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>) (Syntax: 'Join s3 In  ... uals s2 * 2')
                               Initializers(3):
-                                  IInvocationExpression ( Function <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.get_s1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Join s3 In  ... uals s2 * 2')
+                                  IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Join s3 In  ... uals s2 * 2')
                                     Instance Receiver: IParameterReferenceExpression: $VB$It1 (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 'Join s3 In  ... uals s2 * 2')
-                                    Arguments(0)
-                                  IInvocationExpression ( Function <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.get_s2() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Join s3 In  ... uals s2 * 2')
+                                  IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Join s3 In  ... uals s2 * 2')
                                     Instance Receiver: IParameterReferenceExpression: $VB$It1 (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 'Join s3 In  ... uals s2 * 2')
-                                    Arguments(0)
                                   IParameterReferenceExpression: s3 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'Join s3 In  ... uals s2 * 2')
                 InConversion: null
                 OutConversion: null
@@ -8849,12 +8749,10 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Group s1, s ... (), Max(s1)')
                       ReturnedValue: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>) (Syntax: 'Group s1, s ... (), Max(s1)')
                           Initializers(5):
-                              IInvocationExpression ( Function <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.get_s1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Group s1, s ... (), Max(s1)')
+                              IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Group s1, s ... (), Max(s1)')
                                 Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 'Group s1, s ... (), Max(s1)')
-                                Arguments(0)
-                              IInvocationExpression ( Function <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.get_s2() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Group s1, s ... (), Max(s1)')
+                              IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Group s1, s ... (), Max(s1)')
                                 Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 'Group s1, s ... (), Max(s1)')
-                                Arguments(0)
                               IParameterReferenceExpression: $VB$ItAnonymous (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>)) (Syntax: 'Group s1, s ... (), Max(s1)')
                               IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>).Count() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Count()')
                                 Instance Receiver: IParameterReferenceExpression: $VB$ItAnonymous (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>)) (Syntax: 'Group s1, s ... (), Max(s1)')
@@ -8868,9 +8766,8 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                         Operand: IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key s1 As System.Int32, Key s1str As System.String>) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 's1')
                                             IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1')
                                               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1')
-                                                ReturnedValue: IInvocationExpression ( Function <anonymous type: Key s1 As System.Int32, Key s1str As System.String>.get_s1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 's1')
+                                                ReturnedValue: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s1str As System.String>.s1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1')
                                                     Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s1str As System.String>) (Syntax: 's1')
-                                                    Arguments(0)
                                       InConversion: null
                                       OutConversion: null
             InConversion: null
@@ -8972,9 +8869,8 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
               Operand: IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'key')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'key')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'key')
-                      ReturnedValue: IInvocationExpression ( Function <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>.get_key() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'key')
+                      ReturnedValue: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>.key As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'key')
                           Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>) (Syntax: 'key')
-                          Arguments(0)
             InConversion: null
             OutConversion: null
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: innerKeySelector) (OperationKind.Argument) (Syntax: 's1')
@@ -8994,12 +8890,10 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Join s1 In  ... y Equals s1')
                       ReturnedValue: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32), Key s1 As System.Int32>) (Syntax: 'Join s1 In  ... y Equals s1')
                           Initializers(3):
-                              IInvocationExpression ( Function <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>.get_key() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Join s1 In  ... y Equals s1')
+                              IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>.key As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Join s1 In  ... y Equals s1')
                                 Instance Receiver: IParameterReferenceExpression: $VB$It1 (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>) (Syntax: 'Join s1 In  ... y Equals s1')
-                                Arguments(0)
-                              IInvocationExpression ( Function <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>.get_Group() As System.Collections.Generic.IEnumerable(Of System.Int32)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32)) (Syntax: 'Join s1 In  ... y Equals s1')
+                              IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>.Group As System.Collections.Generic.IEnumerable(Of System.Int32) (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32)) (Syntax: 'Join s1 In  ... y Equals s1')
                                 Instance Receiver: IParameterReferenceExpression: $VB$It1 (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>) (Syntax: 'Join s1 In  ... y Equals s1')
-                                Arguments(0)
                               IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'Join s1 In  ... y Equals s1')
             InConversion: null
             OutConversion: null
@@ -9746,9 +9640,8 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                       ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.Multiply, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '(s1 + 1) * 2')
                           Left: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(s1 + 1)')
                               Operand: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's1 + 1')
-                                  Left: IInvocationExpression ( Function <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>.get_s1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 's3')
+                                  Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>.s1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's3')
                                       Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>) (Syntax: 's3')
-                                      Arguments(0)
                                   Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                           Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
             InConversion: null
@@ -9770,12 +9663,10 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Group Join  ... gr2 = Group')
                       ReturnedValue: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32), Key gr2 As System.Collections.Generic.IEnumerable(Of System.Int32)>) (Syntax: 'Group Join  ... gr2 = Group')
                           Initializers(3):
-                              IInvocationExpression ( Function <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>.get_s1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Group Join  ... gr2 = Group')
+                              IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>.s1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Group Join  ... gr2 = Group')
                                 Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>) (Syntax: 'Group Join  ... gr2 = Group')
-                                Arguments(0)
-                              IInvocationExpression ( Function <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>.get_gr1() As System.Collections.Generic.IEnumerable(Of System.Int32)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32)) (Syntax: 'Group Join  ... gr2 = Group')
+                              IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>.gr1 As System.Collections.Generic.IEnumerable(Of System.Int32) (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32)) (Syntax: 'Group Join  ... gr2 = Group')
                                 Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>) (Syntax: 'Group Join  ... gr2 = Group')
-                                Arguments(0)
                               IParameterReferenceExpression: $VB$ItAnonymous (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32)) (Syntax: 'Group Join  ... gr2 = Group')
             InConversion: null
             OutConversion: null
@@ -9904,9 +9795,8 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                               Operand: IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 's2')
                                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's2')
                                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's2')
-                                      ReturnedValue: IInvocationExpression ( Function <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>.get_s2() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 's2')
+                                      ReturnedValue: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's2')
                                           Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>) (Syntax: 's2')
-                                          Arguments(0)
                             InConversion: null
                             OutConversion: null
                           IArgument (ArgumentKind.DefaultValue, Matching Parameter: innerKeySelector) (OperationKind.Argument) (Syntax: 's4')
@@ -9926,12 +9816,10 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Join ... 2 Equals s4')
                                       ReturnedValue: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>) (Syntax: 'Join ... 2 Equals s4')
                                           Initializers(3):
-                                              IInvocationExpression ( Function <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>.get_s2() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Join ... 2 Equals s4')
+                                              IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Join ... 2 Equals s4')
                                                 Instance Receiver: IParameterReferenceExpression: $VB$It1 (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>) (Syntax: 'Join ... 2 Equals s4')
-                                                Arguments(0)
-                                              IInvocationExpression ( Function <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>.get_s3() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Join ... 2 Equals s4')
+                                              IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>.s3 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Join ... 2 Equals s4')
                                                 Instance Receiver: IParameterReferenceExpression: $VB$It1 (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>) (Syntax: 'Join ... 2 Equals s4')
-                                                Arguments(0)
                                               IParameterReferenceExpression: s4 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'Join ... 2 Equals s4')
                             InConversion: null
                             OutConversion: null
@@ -9952,9 +9840,8 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                       Operand: IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 's2')
                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's2')
                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's2')
-                              ReturnedValue: IInvocationExpression ( Function <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>.get_s2() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 's2')
+                              ReturnedValue: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's2')
                                   Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>) (Syntax: 's2')
-                                  Arguments(0)
                     InConversion: null
                     OutConversion: null
                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument) (Syntax: 'Group Join ...  s3 = Group')
@@ -11185,12 +11072,10 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'x > y')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x > y')
                           ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x > y')
-                              Left: IInvocationExpression ( Function <anonymous type: Key x As System.Int32, Key y As System.Int32>.get_x() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'x > y')
+                              Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x > y')
                                   Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>) (Syntax: 'x > y')
-                                  Arguments(0)
-                              Right: IInvocationExpression ( Function <anonymous type: Key x As System.Int32, Key y As System.Int32>.get_y() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'x > y')
+                              Right: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.y As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x > y')
                                   Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>) (Syntax: 'x > y')
-                                  Arguments(0)
                 InConversion: null
                 OutConversion: null
       Arguments(1):
@@ -11201,12 +11086,10 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'x + y')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x + y')
                       ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y')
-                          Left: IInvocationExpression ( Function <anonymous type: Key x As System.Int32, Key y As System.Int32>.get_x() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'x + y')
+                          Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x + y')
                               Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>) (Syntax: 'x + y')
-                              Arguments(0)
-                          Right: IInvocationExpression ( Function <anonymous type: Key x As System.Int32, Key y As System.Int32>.get_y() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'x + y')
+                          Right: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.y As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x + y')
                               Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>) (Syntax: 'x + y')
-                              Arguments(0)
             InConversion: null
             OutConversion: null
 ]]>.Value
@@ -11303,12 +11186,10 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Aggregate x ... Where(True)')
                           ReturnedValue: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>) (Syntax: 'z In New Integer() {3}')
                               Initializers(3):
-                                  IInvocationExpression ( Function <anonymous type: Key x As System.Int32, Key y As System.Int32>.get_x() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Aggregate x ... Where(True)')
+                                  IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Aggregate x ... Where(True)')
                                     Instance Receiver: IParameterReferenceExpression: $VB$It1 (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>) (Syntax: 'Aggregate x ... Where(True)')
-                                    Arguments(0)
-                                  IInvocationExpression ( Function <anonymous type: Key x As System.Int32, Key y As System.Int32>.get_y() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Aggregate x ... Where(True)')
+                                  IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.y As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Aggregate x ... Where(True)')
                                     Instance Receiver: IParameterReferenceExpression: $VB$It1 (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>) (Syntax: 'Aggregate x ... Where(True)')
-                                    Arguments(0)
                                   IParameterReferenceExpression: z (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'Aggregate x ... Where(True)')
                 InConversion: null
                 OutConversion: null
@@ -11485,11 +11366,9 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                                                       Operand: IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'x')
                                                                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'x')
                                                                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x')
-                                                                              ReturnedValue: IInvocationExpression ( Function <anonymous type: Key x As System.Int32, Key y As System.Int32>.get_x() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'x')
-                                                                                  Instance Receiver: IInvocationExpression ( Function <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>.get_$VB$It1() As <anonymous type: Key x As System.Int32, Key y As System.Int32>) (OperationKind.InvocationExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>) (Syntax: 'x')
+                                                                              ReturnedValue: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x')
+                                                                                  Instance Receiver: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>.$VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>) (Syntax: 'x')
                                                                                       Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>) (Syntax: 'x')
-                                                                                      Arguments(0)
-                                                                                  Arguments(0)
                                                                     InConversion: null
                                                                     OutConversion: null
                                                       Arguments(0)
@@ -11532,19 +11411,14 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                                 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x')
                                                   ReturnedValue: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>) (Syntax: 'Select x, y, z')
                                                       Initializers(3):
-                                                          IInvocationExpression ( Function <anonymous type: Key x As System.Int32, Key y As System.Int32>.get_x() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'x')
-                                                            Instance Receiver: IInvocationExpression ( Function <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>.get_$VB$It1() As <anonymous type: Key x As System.Int32, Key y As System.Int32>) (OperationKind.InvocationExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>) (Syntax: 'x')
+                                                          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x')
+                                                            Instance Receiver: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>.$VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>) (Syntax: 'x')
                                                                 Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>) (Syntax: 'x')
-                                                                Arguments(0)
-                                                            Arguments(0)
-                                                          IInvocationExpression ( Function <anonymous type: Key x As System.Int32, Key y As System.Int32>.get_y() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'x')
-                                                            Instance Receiver: IInvocationExpression ( Function <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>.get_$VB$It1() As <anonymous type: Key x As System.Int32, Key y As System.Int32>) (OperationKind.InvocationExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>) (Syntax: 'x')
+                                                          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.y As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x')
+                                                            Instance Receiver: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>.$VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>) (Syntax: 'x')
                                                                 Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>) (Syntax: 'x')
-                                                                Arguments(0)
-                                                            Arguments(0)
-                                                          IInvocationExpression ( Function <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>.get_z() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'x')
+                                                          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>.z As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x')
                                                             Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>) (Syntax: 'x')
-                                                            Arguments(0)
                                         InConversion: null
                                         OutConversion: null
                               Arguments(1):
@@ -11556,26 +11430,20 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x + y + z')
                                               ReturnedValue: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>) (Syntax: 'w = x + y + z')
                                                   Initializers(4):
-                                                      IInvocationExpression ( Function <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.get_x() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'x + y + z')
+                                                      IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.x As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x + y + z')
                                                         Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>) (Syntax: 'x + y + z')
-                                                        Arguments(0)
-                                                      IInvocationExpression ( Function <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.get_y() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'x + y + z')
+                                                      IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.y As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x + y + z')
                                                         Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>) (Syntax: 'x + y + z')
-                                                        Arguments(0)
-                                                      IInvocationExpression ( Function <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.get_z() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'x + y + z')
+                                                      IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.z As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x + y + z')
                                                         Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>) (Syntax: 'x + y + z')
-                                                        Arguments(0)
                                                       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y + z')
                                                         Left: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y')
-                                                            Left: IInvocationExpression ( Function <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.get_x() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'x + y + z')
+                                                            Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.x As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x + y + z')
                                                                 Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>) (Syntax: 'x + y + z')
-                                                                Arguments(0)
-                                                            Right: IInvocationExpression ( Function <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.get_y() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'x + y + z')
+                                                            Right: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.y As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x + y + z')
                                                                 Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>) (Syntax: 'x + y + z')
-                                                                Arguments(0)
-                                                        Right: IInvocationExpression ( Function <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.get_z() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'x + y + z')
+                                                        Right: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.z As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x + y + z')
                                                             Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>) (Syntax: 'x + y + z')
-                                                            Arguments(0)
                                     InConversion: null
                                     OutConversion: null
                           Arguments(1):
@@ -14218,6 +14086,131 @@ BC30451: 'Whi' is not declared. It may be inaccessible due to its protection lev
 </expected>)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")>
+        Public Sub IOperationForQueryClause()
+            Dim source = <![CDATA[
+Option Strict Off
+
+Imports System
+
+Class QueryAble
+    Public Function [Select](x As Func(Of Integer, Integer)) As QueryAble
+        System.Console.WriteLine("Select")
+        Return Me
+    End Function
+
+    Public Function Where(x As Func(Of Integer, Boolean)) As QueryAble
+        System.Console.WriteLine("Where")
+        Return Me
+    End Function
+
+End Class
+
+Module Module1
+    Sub Main()
+        Dim q As New QueryAble()
+        Dim q2 As Object = From s In q
+                           Where s > 0'BIND:"Where s > 0"
+
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvocationExpression ( Function QueryAble.Where(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble) (Syntax: 'Where s > 0')
+  Instance Receiver: ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
+  Arguments(1):
+      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument) (Syntax: 's > 0')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.Int32, System.Boolean)) (Syntax: 's > 0')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 's > 0')
+              IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 0')
+                IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 0')
+                  ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 0')
+                      Left: IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 0')
+                      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+        InConversion: null
+        OutConversion: null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of WhereClauseSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")>
+        Public Sub IOperationForCollectionRangeVariable()
+            Dim source = <![CDATA[
+Option Strict Off
+
+Imports System
+
+Class QueryAble
+    Public Function [Select](x As Func(Of Integer, Integer)) As QueryAble
+        System.Console.WriteLine("Select")
+        Return Me
+    End Function
+
+    Public Function Where(x As Func(Of Integer, Boolean)) As QueryAble
+        System.Console.WriteLine("Where")
+        Return Me
+    End Function
+
+End Class
+
+Module Module1
+    Sub Main()
+        Dim q As New QueryAble()
+        Dim q2 As Object = From s In q Where s > 0 Where 10 > s'BIND:"s In q"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CollectionRangeVariableSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(17838, "https://github.com/dotnet/roslyn/issues/17838")>
+        Public Sub IOperationForRangeVariableReference()
+            Dim source = <![CDATA[
+Option Strict Off
+
+Imports System
+
+Class QueryAble
+    Public Function [Select](x As Func(Of Integer, Integer)) As QueryAble
+        System.Console.WriteLine("Select")
+        Return Me
+    End Function
+
+    Public Function Where(x As Func(Of Integer, Boolean)) As QueryAble
+        System.Console.WriteLine("Where")
+        Return Me
+    End Function
+
+End Class
+
+Module Module1
+    Sub Main()
+        Dim q As New QueryAble()
+        Dim q2 As Object = From s In q Where s > 0'BIND:"s"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IOperation:  (OperationKind.None) (Syntax: 's')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of IdentifierNameSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
     End Class
 
 End Namespace

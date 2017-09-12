@@ -49,7 +49,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             _instrumentTopLevelNonCompilerGeneratedExpressionsInQuery = Not instrumentQueryLambdaBody
 
-            Dim returnstmt = RewriteQueryLambdaBody(AddressOf VisitExpressionNode, node, _rangeVariableMap, _instrumenterOpt, instrumentQueryLambdaBody:=instrumentQueryLambdaBody AndAlso Instrument)
+            Dim rewrittenBody As BoundExpression = VisitExpressionNode(node.Expression)
+            Dim returnstmt = CreateReturnStatementForQueryLambdaBody(rewrittenBody, node)
+
+            If instrumentQueryLambdaBody AndAlso Instrument Then
+                returnstmt = _instrumenterOpt.InstrumentQueryLambdaBody(node, returnstmt)
+            End If
+
+            RemoveRangeVariables(node, _rangeVariableMap)
 
             _instrumentTopLevelNonCompilerGeneratedExpressionsInQuery = save_createSequencePointsForTopLevelNonCompilerGeneratedExpressions
 
@@ -90,14 +97,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim paramRef As New BoundParameter(node.Syntax,
                                                        parameter,
                                                        False,
-                                                       parameter.Type,
-                                                       hasErrors:=parameter.Type.IsErrorType())
+                                                       parameter.Type)
 
-                    If Not paramRef.HasErrors AndAlso isReservedName AndAlso Not String.Equals(parameterName, StringConstants.Group, StringComparison.Ordinal) Then
-                        ' Compound variable.
-                        ' Each range variable is an Anonymous Type property.
-                        Debug.Assert(parameterName.Equals(StringConstants.It) OrElse parameterName.Equals(StringConstants.It1) OrElse parameterName.Equals(StringConstants.It2))
-                        PopulateRangeVariableMapForAnonymousType(node.Syntax, paramRef, nodeRangeVariables, firstUnmappedRangeVariable, rangeVariableMap, inExpressionLambda)
+                    If isReservedName AndAlso Not String.Equals(parameterName, StringConstants.Group, StringComparison.Ordinal) Then
+                        If parameter.Type.IsErrorType() Then
+                            ' Skip adding to the range variable map for error case.
+                            firstUnmappedRangeVariable += 1
+                        Else
+                            ' Compound variable.
+                            ' Each range variable is an Anonymous Type property.
+                            Debug.Assert(parameterName.Equals(StringConstants.It) OrElse parameterName.Equals(StringConstants.It1) OrElse parameterName.Equals(StringConstants.It2))
+                            PopulateRangeVariableMapForAnonymousType(node.Syntax, paramRef, nodeRangeVariables, firstUnmappedRangeVariable, rangeVariableMap, inExpressionLambda)
+                        End If
                     Else
                         ' Simple case, range variable is a lambda parameter.
                         Debug.Assert(IdentifierComparison.Equals(parameterName, nodeRangeVariables(firstUnmappedRangeVariable).Name))
@@ -158,28 +169,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Sub
 
-        Friend Shared Function RewriteQueryLambdaBody(
-            expressionRewriter As Func(Of BoundExpression, BoundExpression),
-            originalNode As BoundQueryLambda,
-            rangeVariableMap As Dictionary(Of RangeVariableSymbol, BoundExpression),
-            Optional instrumenterOpt As Instrumenter = Nothing,
-            Optional instrumentQueryLambdaBody As Boolean = False) As BoundStatement
+        Friend Shared Function CreateReturnStatementForQueryLambdaBody(
+            rewrittenBody As BoundExpression,
+            originalNode As BoundQueryLambda) As BoundStatement
 
-            Dim returnstmt As BoundStatement = New BoundReturnStatement(originalNode.Syntax,
-                                                                        expressionRewriter(originalNode.Expression),
-                                                                        Nothing,
-                                                                        Nothing)
+            Return New BoundReturnStatement(originalNode.Syntax,
+                                            rewrittenBody,
+                                            Nothing,
+                                            Nothing)
+        End Function
 
-            If instrumentQueryLambdaBody Then
-                returnstmt = instrumenterOpt.InstrumentQueryLambdaBody(originalNode, returnstmt)
-            End If
-
+        Friend Shared Sub RemoveRangeVariables(originalNode As BoundQueryLambda, rangeVariableMap As Dictionary(Of RangeVariableSymbol, BoundExpression))
             For Each rangeVar As RangeVariableSymbol In originalNode.RangeVariables
                 rangeVariableMap.Remove(rangeVar)
             Next
-
-            Return returnstmt
-        End Function
+        End Sub
 
         Friend Shared Function RewriteQueryLambda(rewrittenBody As BoundStatement, originalNode As BoundQueryLambda) As BoundLambda
             Dim lambdaBody = New BoundBlock(originalNode.Syntax,
