@@ -60,7 +60,7 @@ IBlockStatement (9 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.Field = 2')
                     Left: IFieldReferenceExpression: F.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
-                        Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New F() Wit ... .Field = 2}')
+                        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F) (Syntax: 'New F() Wit ... .Field = 2}')
                     Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim x3 = Ne ... erty1 = ""}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x3')
@@ -86,7 +86,7 @@ IBlockStatement (9 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
                     Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "") (Syntax: '""')
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.Field = 2')
                     Left: IFieldReferenceExpression: F.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
-                        Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New F() Wit ... .Field = 2}')
+                        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F) (Syntax: 'New F() Wit ... .Field = 2}')
                     Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim x5 = Ne ... ld = True}}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x5')
@@ -104,7 +104,7 @@ IBlockStatement (9 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
                             Initializers(1):
                                 ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean) (Syntax: '.Field = True')
                                   Left: IFieldReferenceExpression: B.Field As System.Boolean (OperationKind.FieldReferenceExpression, Type: System.Boolean) (Syntax: 'Field')
-                                      Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New B() Wit ... eld = True}')
+                                      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: B) (Syntax: 'New B() Wit ... eld = True}')
                                   Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim e1 = Ne ... perty2 = 1}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'e1')

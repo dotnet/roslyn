@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub PropertyReferenceExpression_PropertyReferenceInDerivedTypeUsesDerivedTypeAsInstanceType()
+        Public Sub PropertyReferenceExpression_PropertyReferenceInWithDerivedTypeUsesDerivedTypeAsInstanceType_LValue()
             Dim source = <![CDATA[
 Option Strict On
 Module M1
@@ -35,6 +35,37 @@ IPropertyReferenceExpression: Property M1.C1.P1 As System.Object (OperationKind.
             Dim expectedDiagnostics = String.Empty
 
             VerifyOperationTreeAndDiagnosticsForTest(Of IdentifierNameSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub PropertyReferenceExpression_PropertyReferenceInWithDerivedTypeUsesDerivedTypeAsInstanceType_RValue()
+            Dim source = <![CDATA[
+Option Strict On
+Module M1
+    Sub Method1()
+        Dim c2 As C2 = New C2 With {.P2 = .P1}'BIND:".P1"
+        c2.P1 = Nothing
+    End Sub
+
+    Class C1
+        Public Overridable Property P1 As Object
+        Public Property P2 As Object
+    End Class
+
+    Class C2
+        Inherits C1
+    End Class
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IPropertyReferenceExpression: Property M1.C1.P1 As System.Object (OperationKind.PropertyReferenceExpression, Type: System.Object) (Syntax: '.P1')
+  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1.C2) (Syntax: 'New C2 With {.P2 = .P1}')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MemberAccessExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
     End Class
 End Namespace
