@@ -817,34 +817,290 @@ static class E
             comp.VerifyDiagnostics();
         }
 
-        // Type inference results with and without nullability
-        // differ by tuple element names.
-        [Fact]
-        public void TypeInference_DifferByName()
+        // PROTOTYPE(NullableReferenceTypes): Deconstruction declaration ignores nullability.
+        [Fact(Skip = "TODO")]
+        public void DeconstructionTypeInference_01()
         {
             var source =
-@"class Stack<T>
+@"class C
+{
+    static void M()
+    {
+        (var x, var y) = ((string?)null, string.Empty);
+        x.ToString();
+        y.ToString();
+        x = null;
+        y = null;
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(6, 9),
+                // (9,13): warning CS8600: Cannot convert null to non-nullable reference.
+                //         y = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 13));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Deconstruction declaration ignores nullability.
+        [Fact(Skip = "TODO")]
+        public void DeconstructionTypeInference_02()
+        {
+            var source =
+@"class C
+{
+    static (string?, string) F() => (string.Empty, string.Empty);
+    static void G()
+    {
+        (var x, var y) = F();
+        x.ToString();
+        y.ToString();
+        x = null;
+        y = null;
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 9),
+                // (10,13): warning CS8600: Cannot convert null to non-nullable reference.
+                //         y = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 13));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Deconstruction declaration ignores nullability.
+        [Fact(Skip = "TODO")]
+        public void DeconstructionTypeInference_03()
+        {
+            var source =
+@"class C
+{
+    void Deconstruct(out string? x, out string y)
+    {
+        x = string.Empty;
+        y = string.Empty;
+    }
+    static void M()
+    {
+        (var x, var y) = new C();
+        x.ToString();
+        y.ToString();
+        x = null;
+        y = null;
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(11, 9),
+                // (14,13): warning CS8600: Cannot convert null to non-nullable reference.
+                //         y = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 13));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Deconstruction declaration ignores nullability.
+        [Fact(Skip = "TODO")]
+        public void DeconstructionTypeInference_04()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+class C
+{
+    static IEnumerable<(string, string?)> F() => throw new Exception();
+    static void G()
+    {
+        foreach ((var x, var y) in F())
+        {
+            x.ToString();
+            y.ToString();
+        }
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (11,13): warning CS8602: Possible dereference of a null reference.
+                //             y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(11, 13));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Type inference incorrect.
+        [Fact(Skip = "TODO")]
+        public void TypeInference_TupleNameDifferences_01()
+        {
+            var source =
+@"class C<T>
 {
 }
 static class E
 {
-    public static void Push<T>(this Stack<T> s, T t)
-    {
-    }
+    public static T F<T>(this C<T> c, T t) => t;
 }
 class C
 {
     static void F(object o)
     {
-        var s = new Stack<(object x, int y)>();
-        s.Push((o, -1));
+        var c = new C<(object x, int y)>();
+        c.F((o, -1)).x.ToString();
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlibAndSystemCore(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics(
+                // (13,22): error CS1061: '(object, int)' does not contain a definition for 'x' and no extension method 'x' accepting a first argument of type '(object, int)' could be found (are you missing a using directive or an assembly reference?)
+                //         c.F((o, -1)).x.ToString();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "x").WithArguments("(object, int)", "x").WithLocation(13, 22));
+
+            comp = CreateCompilationWithMscorlibAndSystemCore(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (13,22): error CS1061: '(object, int)' does not contain a definition for 'x' and no extension method 'x' accepting a first argument of type '(object, int)' could be found (are you missing a using directive or an assembly reference?)
+                //         c.F((o, -1)).x.ToString();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "x").WithArguments("(object, int)", "x").WithLocation(13, 22));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Type inference incorrect.
+        [Fact(Skip = "TODO")]
+        public void TypeInference_TupleNameDifferences_02()
+        {
+            var source =
+@"class C<T>
+{
+}
+static class E
+{
+    public static T F<T>(this C<T> c, T t) => t;
+}
+class C
+{
+    static void F(object o)
+    {
+        var c = new C<(object? x, int y)>();
+        c.F((o, -1)).x.ToString();
     }
 }";
             var comp = CreateCompilationWithMscorlibAndSystemCore(
                 source,
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (13,9): warning CS8602: Possible dereference of a null reference.
+                //         c.F((o, -1)).x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.F((o, -1)).x").WithLocation(13, 9),
+                // (13,22): error CS1061: '(object, int)' does not contain a definition for 'x' and no extension method 'x' accepting a first argument of type '(object, int)' could be found (are you missing a using directive or an assembly reference?)
+                //         c.F((o, -1)).x.ToString();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "x").WithArguments("(object, int)", "x").WithLocation(13, 22));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Type inference incorrect.
+        [Fact(Skip = "TODO")]
+        public void TypeInference_DynamicDifferences_01()
+        {
+            var source =
+@"class C<T>
+{
+}
+static class E
+{
+    public static T F<T>(this C<T> c, T t) => t;
+}
+class C
+{
+    static void F(dynamic x, object y)
+    {
+        var c = new C<(object, object)>();
+        c.F((x, y)).Item1.G();
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlibAndSystemCore(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();
+
+            comp = CreateCompilationWithMscorlibAndSystemCore(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Type inference incorrect.
+        [Fact(Skip = "TODO")]
+        public void TypeInference_DynamicDifferences_02()
+        {
+            var source =
+@"class C<T>
+{
+}
+static class E
+{
+    public static T F<T>(this C<T> c, T t) => t;
+}
+class C
+{
+    static void F(dynamic x, object y)
+    {
+        var c = new C<(object, object?)>();
+        c.F((x, y)).Item1.G();
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Assert failure in
+        // ConversionsBase.IsValidExtensionMethodThisArgConversion.
+        [Fact(Skip = "TODO")]
+        public void TypeInference_DynamicDifferences_03()
+        {
+            var source =
+@"interface I<T>
+{
+}
+static class E
+{
+    public static T F<T>(this I<T> i, T t) => t;
+}
+class C
+{
+    static void F(I<object> i, dynamic? d)
+    {
+        i.F(d).G();
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (12,9): error CS1929: 'I<object>' does not contain a definition for 'F' and the best extension method overload 'E.F<T>(I<T>, T)' requires a receiver of type 'I<T>'
+                //         i.F(d).G();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i").WithArguments("I<object>", "F", "E.F<T>(I<T>, T)", "I<T>").WithLocation(12, 9));
         }
 
         [Fact]
