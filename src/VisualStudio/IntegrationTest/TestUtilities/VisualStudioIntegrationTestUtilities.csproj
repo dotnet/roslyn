@@ -62,6 +62,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\Core\EditorFeatures.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\Core.Wpf\EditorFeatures.Wpf.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj" />
     <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj" />
     <ProjectReference Include="..\..\..\Test\Diagnostics\Diagnostics.csproj" />
