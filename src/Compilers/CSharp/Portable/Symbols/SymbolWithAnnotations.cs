@@ -180,7 +180,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            // TODO: Consider if it makes sense to cache and reuse instances, at least for definitions.
+            // PROTOTYPE(NullableReferenceTypes): Consider if it makes
+            // sense to cache and reuse instances, at least for definitions.
             return new WithoutCustomModifiers(typeSymbol);
         }
 
@@ -191,7 +192,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            // TODO: Consider if it makes sense to cache and reuse instances, at least for definitions.
+            // PROTOTYPE(NullableReferenceTypes): Consider if it makes
+            // sense to cache and reuse instances, at least for definitions.
             return new NullableReferenceTypeWithoutCustomModifiers(typeSymbol);
         }
 

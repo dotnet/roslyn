@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _formalParameterRefKinds.IsDefault ? RefKind.None : _formalParameterRefKinds[index];
         }
 
-        private ImmutableArray<TypeSymbolWithAnnotations> GetResults(bool eraseNullability)
+        private ImmutableArray<TypeSymbolWithAnnotations> GetResults()
         {
             // Anything we didn't infer a type for, give the error type.
             // Note: the error type will have the same name as the name
@@ -508,8 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: bounds. The second phase may have to be repeated a number of times.
             InferTypeArgsFirstPhase(binder, ref useSiteDiagnostics);
             bool success = InferTypeArgsSecondPhase(binder, ref useSiteDiagnostics);
-            bool eraseNullability = binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
-            return new MethodTypeInferenceResult(success, GetResults(eraseNullability));
+            return new MethodTypeInferenceResult(success, GetResults());
         }
 
         ////////////////////////////////////////////////////////////////////////////////
