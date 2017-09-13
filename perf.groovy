@@ -28,6 +28,7 @@ def generate(boolean isPr) {
             postBuildScripts {
                 steps {
                     batchFile("""powershell -File ./build/scripts/cleanup_perf.ps1 -ShouldArchive""")
+					batchFile("""dir /s ToArchive""")
                 }
             }
         }
