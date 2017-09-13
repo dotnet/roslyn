@@ -134,6 +134,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_LangVersions = MessageBase +  12722,
 
         IDS_FeatureLeadingDigitSeparator = MessageBase + 12723,
+        IDS_FeatureNonTrailingNamedArguments = MessageBase + 12724,
+        IDS_FeaturePrivateProtected = MessageBase + 12725,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -191,7 +193,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (feature)
             {
                 // C# 7.2 features.
+                case MessageID.IDS_FeatureNonTrailingNamedArguments: // semantic check
                 case MessageID.IDS_FeatureLeadingDigitSeparator:
+                case MessageID.IDS_FeaturePrivateProtected:
                     return LanguageVersion.CSharp7_2;
 
                 // C# 7.1 features.

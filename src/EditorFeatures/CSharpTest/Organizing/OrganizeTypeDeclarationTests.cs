@@ -205,8 +205,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 
             var final =
 @"class C  {
-    public ~Goo() {}        
     public Goo() {}  
+    public ~Goo() {}        
     enum Days {Sat, Sun};        
 }";
             await CheckAsync(initial, final);

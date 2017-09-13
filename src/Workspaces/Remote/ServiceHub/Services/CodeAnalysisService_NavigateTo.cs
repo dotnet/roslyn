@@ -13,31 +13,37 @@ namespace Microsoft.CodeAnalysis.Remote
         public async Task<IList<SerializableNavigateToSearchResult>> SearchDocumentAsync(
             DocumentId documentId, string searchPattern, CancellationToken cancellationToken)
         {
-            using (UserOperationBooster.Boost())
+            return await RunServiceAsync(async () =>
             {
-                var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                using (UserOperationBooster.Boost())
+                {
+                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
 
-                var project = solution.GetDocument(documentId);
-                var result = await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
-                    project, searchPattern, cancellationToken).ConfigureAwait(false);
+                    var project = solution.GetDocument(documentId);
+                    var result = await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
+                        project, searchPattern, cancellationToken).ConfigureAwait(false);
 
-                return Convert(result);
-            }
+                    return Convert(result);
+                }
+            }, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<IList<SerializableNavigateToSearchResult>> SearchProjectAsync(
             ProjectId projectId, string searchPattern, CancellationToken cancellationToken)
         {
-            using (UserOperationBooster.Boost())
+            return await RunServiceAsync(async () =>
             {
-                var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                using (UserOperationBooster.Boost())
+                {
+                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
 
-                var project = solution.GetProject(projectId);
-                var result = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                    project, searchPattern, cancellationToken).ConfigureAwait(false);
+                    var project = solution.GetProject(projectId);
+                    var result = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
+                        project, searchPattern, cancellationToken).ConfigureAwait(false);
 
-                return Convert(result);
-            }
+                    return Convert(result);
+                }
+            }, cancellationToken).ConfigureAwait(false);
         }
 
         private ImmutableArray<SerializableNavigateToSearchResult> Convert(

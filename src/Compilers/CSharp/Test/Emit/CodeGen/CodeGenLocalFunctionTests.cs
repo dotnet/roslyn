@@ -586,7 +586,7 @@ class C
   IL_0016:  call       ""void System.Console.WriteLine(int)""
   IL_001b:  ldarg.0
   IL_001c:  ldloca.s   V_0
-  IL_001e:  call       ""void C.<M>g__L12_0(ref C.<>c__DisplayClass2_0)""
+  IL_001e:  call       ""void C.<M>g__L1|2_0(ref C.<>c__DisplayClass2_0)""
   IL_0023:  ldarg.0
   IL_0024:  ldfld      ""int C._x""
   IL_0029:  call       ""void System.Console.WriteLine(int)""
@@ -594,39 +594,39 @@ class C
 }");
 
             // L1
-            verifier.VerifyIL("C.<M>g__L12_0(ref C.<>c__DisplayClass2_0)", @"
+            verifier.VerifyIL("C.<M>g__L1|2_0(ref C.<>c__DisplayClass2_0)", @"
 {
   // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""void C.<M>g__L22_1(ref C.<>c__DisplayClass2_0)""
+  IL_0002:  call       ""void C.<M>g__L2|2_1(ref C.<>c__DisplayClass2_0)""
   IL_0007:  ret
 }");
             // L2
-            verifier.VerifyIL("C.<M>g__L22_1(ref C.<>c__DisplayClass2_0)", @"
+            verifier.VerifyIL("C.<M>g__L2|2_1(ref C.<>c__DisplayClass2_0)", @"
 {
   // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""void C.<M>g__L32_3(ref C.<>c__DisplayClass2_0)""
+  IL_0002:  call       ""void C.<M>g__L3|2_3(ref C.<>c__DisplayClass2_0)""
   IL_0007:  ret
 }");
             // Skip some... L5
-            verifier.VerifyIL("C.<M>g__L52_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
+            verifier.VerifyIL("C.<M>g__L5|2_5(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
 {
   // Code size       10 (0xa)
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
   IL_0002:  ldarg.2
-  IL_0003:  call       ""int C.<M>g__L62_6(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)""
+  IL_0003:  call       ""int C.<M>g__L6|2_6(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)""
   IL_0008:  pop
   IL_0009:  ret
 }");
             // L6
-            verifier.VerifyIL("C.<M>g__L62_6(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
+            verifier.VerifyIL("C.<M>g__L6|2_6(ref C.<>c__DisplayClass2_0, ref C.<>c__DisplayClass2_1)", @"
 {
   // Code size       25 (0x19)
   .maxstack  4
@@ -4865,7 +4865,7 @@ class Program
   IL_0033:  ldloca.s   V_0
   IL_0035:  ldloca.s   V_1
   IL_0037:  ldloca.s   V_2
-  IL_0039:  call       ""void Program.<Main>g__Print0_0(ref Program.<>c__DisplayClass0_0, ref Program.<>c__DisplayClass0_1, ref Program.<>c__DisplayClass0_2)""
+  IL_0039:  call       ""void Program.<Main>g__Print|0_0(ref Program.<>c__DisplayClass0_0, ref Program.<>c__DisplayClass0_1, ref Program.<>c__DisplayClass0_2)""
   IL_003e:  ret
 }
 ");

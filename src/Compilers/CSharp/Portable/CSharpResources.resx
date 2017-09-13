@@ -210,6 +210,9 @@
   <data name="IDS_FeatureDefaultLiteral" xml:space="preserve">
     <value>default literal</value>
   </data>
+  <data name="IDS_FeaturePrivateProtected" xml:space="preserve">
+    <value>private protected</value>
+  </data>
   <data name="IDS_FeatureNullable" xml:space="preserve">
     <value>nullable types</value>
   </data>
@@ -2471,7 +2474,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>A new expression requires (), [], or {} after type</value>
   </data>
   <data name="ERR_NoNamespacePrivate" xml:space="preserve">
-    <value>Elements defined in a namespace cannot be explicitly declared as private, protected, or protected internal</value>
+    <value>Elements defined in a namespace cannot be explicitly declared as private, protected, protected internal, or private protected</value>
   </data>
   <data name="ERR_BadVarDecl" xml:space="preserve">
     <value>Expected ; or = (cannot specify constructor arguments in declaration)</value>
@@ -3780,7 +3783,10 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>Inconsistent accessibility: event type '{1}' is less accessible than event '{0}'</value>
   </data>
   <data name="ERR_NamedArgumentSpecificationBeforeFixedArgument" xml:space="preserve">
-    <value>Named argument specifications must appear after all fixed arguments have been specified</value>
+    <value>Named argument specifications must appear after all fixed arguments have been specified. Please use language version {0} or greater to allow non-trailing named arguments.</value>
+  </data>
+  <data name="ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation" xml:space="preserve">
+    <value>Named argument specifications must appear after all fixed arguments have been specified in a dynamic invocation.</value>
   </data>
   <data name="ERR_BadNamedArgument" xml:space="preserve">
     <value>The best overload for '{0}' does not have a parameter named '{1}'</value>
@@ -3793,6 +3799,9 @@ You should consider suppressing the warning only if you're sure that you don't w
   </data>
   <data name="ERR_NamedArgumentUsedInPositional" xml:space="preserve">
     <value>Named argument '{0}' specifies a parameter for which a positional argument has already been given</value>
+  </data>
+  <data name="ERR_BadNonTrailingNamedArgument" xml:space="preserve">
+    <value>Named argument '{0}' is used out-of-position but is followed by an unnamed argument</value>
   </data>
   <data name="ERR_DefaultValueUsedWithAttributes" xml:space="preserve">
     <value>Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute</value>
