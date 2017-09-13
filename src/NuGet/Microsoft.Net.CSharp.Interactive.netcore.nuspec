@@ -17,7 +17,7 @@
     <projectUrl>$projectUrl$</projectUrl>
     <tags>$tags$</tags>
     <dependencies>
-      <group targetFramework="NETCoreApp1.0">
+      <group targetFramework="netcoreapp1.1">
         <dependency id="Microsoft.CodeAnalysis.Compilers" version="$version$" />
         <dependency id="Microsoft.CodeAnalysis.Scripting" version="$version$" />
         <dependency id="NETStandard.Library" version="1.6.0" />

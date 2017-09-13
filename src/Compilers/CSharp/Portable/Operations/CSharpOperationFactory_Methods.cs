@@ -37,11 +37,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             var value = Create(expression);
 
-            return new Argument(kind,
+            return new CSharpArgument(kind,
                 parameter,
                 value,
-                inConversion: null,
-                outConversion: null,
                 semanticModel: _semanticModel,
                 syntax: value.Syntax,
                 type: value.Type,

@@ -633,8 +633,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Value);
-            Visit(operation.InConversion, "InConversion");
-            Visit(operation.OutConversion, "OutConversion");
+
+            Indent();
+            LogConversion(operation.InConversion, "InConversion");
+            LogNewLine();
+            LogConversion(operation.OutConversion, "OutConversion");
+            LogNewLine();
+            Unindent();
         }
 
         public override void VisitOmittedArgumentExpression(IOmittedArgumentExpression operation)
@@ -652,7 +657,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.Indices, "Indices", logElementCount: true);
         }
 
-        public override void VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation)
+        internal override void VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation)
         {
             LogString(nameof(IPointerIndirectionReferenceExpression));
             LogCommonPropertiesAndNewLine(operation);

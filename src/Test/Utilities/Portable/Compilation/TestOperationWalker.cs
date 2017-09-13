@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitArrayElementReferenceExpression(operation);
         }
 
-        public override void VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation)
+        internal override void VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation)
         {
             base.VisitPointerIndirectionReferenceExpression(operation);
         }

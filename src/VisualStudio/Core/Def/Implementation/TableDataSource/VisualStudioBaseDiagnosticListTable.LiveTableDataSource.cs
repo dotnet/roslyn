@@ -19,6 +19,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal abstract partial class VisualStudioBaseDiagnosticListTable
     {
         protected class LiveTableDataSource : AbstractRoslynTableDataSource<DiagnosticData>

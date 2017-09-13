@@ -206,29 +206,19 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         public IParameterSymbol Parameter { get; }
         protected abstract IOperation ValueImpl { get; }
-        protected abstract IOperation InConversionImpl { get; }
-        protected abstract IOperation OutConversionImpl { get; }
+        public abstract CommonConversion InConversion { get; }
+        public abstract CommonConversion OutConversion { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
                 yield return Value;
-                yield return InConversion;
-                yield return OutConversion;
             }
         }
         /// <summary>
         /// Value supplied for the argument.
         /// </summary>
         public IOperation Value => Operation.SetParentOperation(ValueImpl, this);
-        /// <summary>
-        /// Conversion applied to the argument value passing it into the target method. Applicable only to VB Reference arguments.
-        /// </summary>
-        public IOperation InConversion => Operation.SetParentOperation(InConversionImpl, this);
-        /// <summary>
-        /// Conversion applied to the argument value after the invocation. Applicable only to VB Reference arguments.
-        /// </summary>
-        public IOperation OutConversion => Operation.SetParentOperation(OutConversionImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitArgument(this);
@@ -237,47 +227,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return visitor.VisitArgument(this, argument);
         }
-    }
-
-    /// <summary>
-    /// Represents an argument in a method invocation.
-    /// </summary>
-    internal sealed partial class Argument : BaseArgument, IArgument
-    {
-        public Argument(ArgumentKind argumentKind, IParameterSymbol parameter, IOperation value, IOperation inConversion, IOperation outConversion, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(argumentKind, parameter, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            ValueImpl = value;
-            InConversionImpl = inConversion;
-            OutConversionImpl = outConversion;
-        }
-
-        protected override IOperation ValueImpl { get; }
-        protected override IOperation InConversionImpl { get; }
-        protected override IOperation OutConversionImpl { get; }
-    }
-
-    /// <summary>
-    /// Represents an argument in a method invocation.
-    /// </summary>
-    internal sealed partial class LazyArgument : BaseArgument, IArgument
-    {
-        private readonly Lazy<IOperation> _lazyValue;
-        private readonly Lazy<IOperation> _lazyInConversion;
-        private readonly Lazy<IOperation> _lazyOutConversion;
-
-        public LazyArgument(ArgumentKind argumentKind, IParameterSymbol parameter, Lazy<IOperation> value, Lazy<IOperation> inConversion, Lazy<IOperation> outConversion, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(argumentKind, parameter, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
-            _lazyInConversion = inConversion ?? throw new System.ArgumentNullException(nameof(inConversion));
-            _lazyOutConversion = outConversion ?? throw new System.ArgumentNullException(nameof(outConversion));
-        }
-
-        protected override IOperation ValueImpl => _lazyValue.Value;
-
-        protected override IOperation InConversionImpl => _lazyInConversion.Value;
-
-        protected override IOperation OutConversionImpl => _lazyOutConversion.Value;
     }
 
     /// <summary>
@@ -3495,7 +3444,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal abstract partial class BasePointerIndirectionReferenceExpression : Operation, IPointerIndirectionReferenceExpression
     {
         protected BasePointerIndirectionReferenceExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-                    base(OperationKind.PointerIndirectionReferenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
+            // API is internal for V1
+            // https://github.com/dotnet/roslyn/issues/21295
+            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 

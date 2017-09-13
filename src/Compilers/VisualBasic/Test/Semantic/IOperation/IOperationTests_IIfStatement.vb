@@ -321,8 +321,8 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 10) ... End If')
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result 1"')
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result 1") (Syntax: '"Result 1"')
-                        InConversion: null
-                        OutConversion: null
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         IfFalse: null
   IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Else ... "Result 2")')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... "Result 2")')
@@ -331,8 +331,8 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 10) ... End If')
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result 2"')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result 2") (Syntax: '"Result 2"')
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -379,8 +379,8 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 10) ... End If')
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result 1"')
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result 1") (Syntax: '"Result 1"')
-                        InConversion: null
-                        OutConversion: null
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Else ... "Result 2")')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... "Result 2")')
               Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... "Result 2")')
@@ -388,8 +388,8 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 10) ... End If')
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result 2"')
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result 2") (Syntax: '"Result 2"')
-                        InConversion: null
-                        OutConversion: null
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   IfFalse: null
 ]]>.Value
 
@@ -432,8 +432,8 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m >= n  ... End If')
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Nothing Is ... er than m."')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Nothing Is larger than m.") (Syntax: '"Nothing Is ... er than m."')
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   IfFalse: null
 ]]>.Value
 
@@ -474,8 +474,8 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 20) ... End If')
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result1"')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result1") (Syntax: '"Result1"')
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   IfFalse: IIfStatement (OperationKind.IfStatement) (Syntax: 'ElseIf (n > ... ("Result2")')
       Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean) (Syntax: '(n > 10)')
           Operand: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'n > 10')
@@ -488,8 +488,8 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 20) ... End If')
                 Arguments(1):
                     IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result2"')
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result2") (Syntax: '"Result2"')
-                      InConversion: null
-                      OutConversion: null
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Else ... ("Result3")')
           IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... ("Result3")')
             Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... ("Result3")')
@@ -497,8 +497,8 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 20) ... End If')
                 Arguments(1):
                     IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result3"')
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result3") (Syntax: '"Result3"')
-                      InConversion: null
-                      OutConversion: null
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -531,8 +531,8 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 20) ... ("Result3")')
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result1"')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result1") (Syntax: '"Result1"')
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Else If (n  ... ("Result3")')
       IIfStatement (OperationKind.IfStatement) (Syntax: 'If (n > 10) ... ("Result3")')
         Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean) (Syntax: '(n > 10)')
@@ -546,8 +546,8 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 20) ... ("Result3")')
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result2"')
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result2") (Syntax: '"Result2"')
-                        InConversion: null
-                        OutConversion: null
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Else System ... ("Result3")')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... ("Result3")')
               Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... ("Result3")')
@@ -555,8 +555,8 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 20) ... ("Result3")')
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result3"')
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result3") (Syntax: '"Result3"')
-                        InConversion: null
-                        OutConversion: null
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -595,8 +595,8 @@ IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'If (m > 20) ... El
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result1"')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result1") (Syntax: '"Result1"')
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   IfFalse: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Else')
 ]]>.Value
 
@@ -637,8 +637,8 @@ IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'If () Then' ... En
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result1"')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result1") (Syntax: '"Result1"')
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   IfFalse: null
 ]]>.Value
 

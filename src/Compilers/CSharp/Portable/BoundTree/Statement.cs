@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -31,5 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     partial class BoundFixedStatement
     {
         protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Declarations, this.Body);
+    }
+
+    partial class BoundPointerIndirectionOperator
+    {
+        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Operand);
     }
 }

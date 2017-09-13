@@ -24,5 +24,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         AsyncMain,
         IOperation,
         NonTrailingNamedArgs,
+        PrivateProtected,
     }
 }

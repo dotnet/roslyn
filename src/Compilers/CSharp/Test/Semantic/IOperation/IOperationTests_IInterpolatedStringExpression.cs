@@ -28,8 +28,8 @@ internal class Class
 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$""""')
   IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""""')
     Parts(0)
-  InConversion: null
-  OutConversion: null
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -57,8 +57,8 @@ IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argu
     Parts(1):
         IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'Only text part')
           Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""Only text part"") (Syntax: 'Only text part')
-  InConversion: null
-  OutConversion: null
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -88,8 +88,8 @@ IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argu
           Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           Alignment: null
           FormatString: null
-  InConversion: null
-  OutConversion: null
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -120,8 +120,8 @@ IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argum
               Children(0)
           Alignment: null
           FormatString: null
-  InConversion: null
-  OutConversion: null
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1733: Expected expression
@@ -163,8 +163,8 @@ IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argu
           Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           Alignment: null
           FormatString: null
-  InConversion: null
-  OutConversion: null
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -213,8 +213,8 @@ IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argu
           Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           Alignment: null
           FormatString: null
-  InConversion: null
-  OutConversion: null
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -251,8 +251,8 @@ IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argu
           Alignment: IFieldReferenceExpression: System.Int32 Class.y (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32, Constant: 0) (Syntax: 'y')
               Instance Receiver: null
           FormatString: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""D3"") (Syntax: ':D3')
-  InConversion: null
-  OutConversion: null
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -296,8 +296,8 @@ IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argu
               Arguments(1):
                   IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: 'y')
                     ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
-                    InConversion: null
-                    OutConversion: null
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Alignment: null
           FormatString: null
         IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and constant ')
@@ -306,8 +306,8 @@ IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argu
           Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           Alignment: null
           FormatString: null
-  InConversion: null
-  OutConversion: null
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -350,12 +350,12 @@ IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argu
                             Expression: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
                             Alignment: null
                             FormatString: null
-                    InConversion: null
-                    OutConversion: null
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Alignment: null
           FormatString: null
-  InConversion: null
-  OutConversion: null
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -396,8 +396,8 @@ IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argum
                   IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Class')
           Alignment: null
           FormatString: null
-  InConversion: null
-  OutConversion: null
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0103: The name 'x1' does not exist in the current context
