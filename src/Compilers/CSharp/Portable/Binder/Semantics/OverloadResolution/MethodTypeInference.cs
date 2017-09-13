@@ -90,6 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<TypeSymbolWithAnnotations> _formalParameterTypes;
         private readonly ImmutableArray<RefKind> _formalParameterRefKinds;
         private readonly ImmutableArray<BoundExpression> _arguments;
+        // PROTOTYPE(NullableReferenceTypes): Remove conditional and infer nullability always.
         private readonly bool _includeNullability;
 
         private readonly TypeSymbolWithAnnotations[] _fixedResults;
@@ -419,19 +420,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (object)_fixedResults[methodTypeParameterIndex] == null;
         }
 
-        private bool IsUnfixedTypeParameter(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target)
+        private bool IsUnfixedTypeParameter(TypeSymbolWithAnnotations type)
         {
-            Debug.Assert((object)source != null);
-            Debug.Assert((object)target != null);
+            Debug.Assert((object)type != null);
 
-            if (target.TypeKind != TypeKind.TypeParameter) return false;
+            if (type.TypeKind != TypeKind.TypeParameter) return false;
 
-            if (source.IsNullable == true && target.IsNullable == true)
-            {
-                return false;
-            }
-
-            TypeParameterSymbol typeParameter = (TypeParameterSymbol)target.TypeSymbol;
+            TypeParameterSymbol typeParameter = (TypeParameterSymbol)type.TypeSymbol;
             int ordinal = typeParameter.Ordinal;
             return ValidIndex(ordinal) &&
                 typeParameter == _methodTypeParameters[ordinal] &&
@@ -452,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddBound(TypeSymbolWithAnnotations addedBound, HashSet<TypeSymbolWithAnnotations>[] collectedBounds, TypeSymbolWithAnnotations methodTypeParameterWithAnnotations)
         {
-            Debug.Assert(IsUnfixedTypeParameter(addedBound, methodTypeParameterWithAnnotations));
+            Debug.Assert(IsUnfixedTypeParameter(methodTypeParameterWithAnnotations));
 
             var methodTypeParameter = (TypeParameterSymbol)methodTypeParameterWithAnnotations.TypeSymbol;
             int methodTypeParameterIndex = methodTypeParameter.Ordinal;
@@ -1478,6 +1473,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // SPEC: An exact inference from a type U to a type V is made as follows:
 
+            // SPEC: * Otherwise, if U is the type U1? and V is the type V1? then an
+            // SPEC:   exact inference is made from U to V.
+
+            if (ExactNullableInference(source, target, ref useSiteDiagnostics))
+            {
+                return;
+            }
+
             // SPEC: * If V is one of the unfixed Xi then U is added to the set of
             // SPEC:   exact bounds for Xi.
             if (ExactTypeParameterInference(source, target))
@@ -1488,14 +1491,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: * Otherwise, if U is an array type UE[...] and V is an array type VE[...]
             // SPEC:   of the same rank then an exact inference from UE to VE is made.
             if (ExactArrayInference(source, target, ref useSiteDiagnostics))
-            {
-                return;
-            }
-
-            // SPEC: * Otherwise, if U is the type U1? and V is the type V1? then an
-            // SPEC:   exact inference is made from U to V.
-
-            if (ExactNullableInference(source, target, ref useSiteDiagnostics))
             {
                 return;
             }
@@ -1524,7 +1519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // SPEC: * If V is one of the unfixed Xi then U is added to the set of bounds
             // SPEC:   for Xi.
-            if (IsUnfixedTypeParameter(source, target))
+            if (IsUnfixedTypeParameter(target))
             {
                 AddBound(source, _exactBounds, target);
                 return true;
@@ -1699,6 +1694,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // SPEC: A lower-bound inference from a type U to a type V is made as follows:
 
+            // SPEC: * Otherwise, if V is nullable type V1? and U is nullable type U1?
+            // SPEC:   then an exact inference is made from U1 to V1.
+
+            // SPEC ERROR: The spec should say "lower" here; we can safely make a lower-bound
+            // SPEC ERROR: inference to nullable even though it is a generic struct.  That is,
+            // SPEC ERROR: if we have M<T>(T?, T) called with (char?, int) then we can infer
+            // SPEC ERROR: lower bounds of char and int, and choose int. If we make an exact
+            // SPEC ERROR: inference of char then type inference fails.
+
+            if (LowerBoundNullableInference(source, target, ref useSiteDiagnostics))
+            {
+                return;
+            }
+
             // SPEC: * If V is one of the unfixed Xi then U is added to the set of 
             // SPEC:   lower bounds for Xi.
 
@@ -1716,20 +1725,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   * otherwise an exact inference from Ue to Ve is made.
 
             if (LowerBoundArrayInference(source.TypeSymbol, target.TypeSymbol, ref useSiteDiagnostics))
-            {
-                return;
-            }
-
-            // SPEC: * Otherwise, if V is nullable type V1? and U is nullable type U1?
-            // SPEC:   then an exact inference is made from U1 to V1.
-
-            // SPEC ERROR: The spec should say "lower" here; we can safely make a lower-bound
-            // SPEC ERROR: inference to nullable even though it is a generic struct.  That is,
-            // SPEC ERROR: if we have M<T>(T?, T) called with (char?, int) then we can infer
-            // SPEC ERROR: lower bounds of char and int, and choose int. If we make an exact
-            // SPEC ERROR: inference of char then type inference fails.
-
-            if (LowerBoundNullableInference(source, target, ref useSiteDiagnostics))
             {
                 return;
             }
@@ -1781,7 +1776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // SPEC: * If V is one of the unfixed Xi then U is added to the set of bounds
             // SPEC:   for Xi.
-            if (IsUnfixedTypeParameter(source, target))
+            if (IsUnfixedTypeParameter(target))
             {
                 AddBound(source, _lowerBounds, target);
                 return true;
@@ -2090,6 +2085,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // SPEC: An upper-bound inference from a type U to a type V is made as follows:
 
+            // SPEC: * Otherwise, if V is nullable type V1? and U is nullable type U1?
+            // SPEC:   then an exact inference is made from U1 to V1.
+
+            if (UpperBoundNullableInference(source, target, ref useSiteDiagnostics))
+            {
+                return;
+            }
+
             // SPEC: * If V is one of the unfixed Xi then U is added to the set of 
             // SPEC:   upper bounds for Xi.
 
@@ -2111,15 +2114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            // SPEC: * Otherwise, if V is nullable type V1? and U is nullable type U1?
-            // SPEC:   then an exact inference is made from U1 to V1.
-
             Debug.Assert(source.IsReferenceType);
-
-            if (UpperBoundNullableInference(source, target, ref useSiteDiagnostics))
-            {
-                return;
-            }
 
             // NOTE: spec would ask us to do the following checks, but since the value types
             //       are trivially handled as exact inference in the callers, we do not have to.
@@ -2145,7 +2140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)target != null);
             // SPEC: * If V is one of the unfixed Xi then U is added to the set of upper bounds
             // SPEC:   for Xi.
-            if (IsUnfixedTypeParameter(source, target))
+            if (IsUnfixedTypeParameter(target))
             {
                 AddBound(source, _upperBounds, target);
                 return true;
