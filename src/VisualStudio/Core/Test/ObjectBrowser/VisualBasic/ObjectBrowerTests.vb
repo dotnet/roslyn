@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Globalization
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
@@ -754,7 +755,7 @@ End Namespace
 </Code>
 
             Using state = CreateLibraryManager(GetWorkspaceDefinition(code)),
-                    testCulture As New CultureContext("en-US")
+                    testCulture As New CultureContext(New CultureInfo("en-US", useUserOverride:=False))
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList()
                 list = list.GetNamespaceList(0)

@@ -95,7 +95,7 @@ Public Class VisualBasicParseOptionsTests
             CultureInfo.CurrentCulture = CultureInfo.InvariantCulture
             Dim invariantCultureVersion = PredefinedPreprocessorSymbols.CurrentVersionNumber
             ' cs-CZ uses decimal comma, which can cause issues
-            CultureInfo.CurrentCulture = New CultureInfo("cs-CZ")
+            CultureInfo.CurrentCulture = New CultureInfo("cs-CZ", useUserOverride:=False)
             Dim czechCultureVersion = PredefinedPreprocessorSymbols.CurrentVersionNumber
             Assert.Equal(invariantCultureVersion, czechCultureVersion)
         Finally
