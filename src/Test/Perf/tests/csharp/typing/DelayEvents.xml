@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<DelayEvents>
+
+  <!--InputDelay: measures the amount of time we spent in CodeMarker 9445 which is
+                  plumbed into VS to measure how long keystrokes take -->
+  <DelayEvent Name="Delay-Typing" MinimumTimeLimit="0" TriggersResponsivenessWarning="true">
+    <CodeMarker UseForDelayStart="true" DelayStartDataIndex="8">9445</CodeMarker>
+  </DelayEvent>
+
+  <!-- This block of nodes uses the WM_KEYDOWN begin time (code marker 9445) but only
+       fires when it sees arrow & page-up/down key notifications (i.e. Exec 11). Further
+       the ending point will be after the WM_KEYDOWN is done processing and not necessarily
+       the time at which the scroll is rendered to the screen. -->
+  <DelayEvent Name="Delay-Scrolling" MinimumTimeLimit="0">
+    <MeasurementBlock Category="VsTextViewAdapter:Exec 11 1496a755-94de-11d0-8c3f-00c04fc2aae2*" Type="Begin"/>
+    <CodeMarker UseForDelayStart="true" DelayStartDataIndex="8">9445</CodeMarker>
+    <EditorRender />
+  </DelayEvent>
+  <DelayEvent Name="Delay-Scrolling" MinimumTimeLimit="0">
+    <MeasurementBlock Category="VsTextViewAdapter:Exec 13 1496a755-94de-11d0-8c3f-00c04fc2aae2*" Type="Begin"/>
+    <CodeMarker UseForDelayStart="true" DelayStartDataIndex="8">9445</CodeMarker>
+    <EditorRender />
+  </DelayEvent>
+  <DelayEvent Name="Delay-Scrolling" MinimumTimeLimit="0">
+    <MeasurementBlock Category="VsTextViewAdapter:Exec 15 1496a755-94de-11d0-8c3f-00c04fc2aae2*" Type="Begin"/>
+    <CodeMarker UseForDelayStart="true" DelayStartDataIndex="8">9445</CodeMarker>
+    <EditorRender />
+  </DelayEvent>
+  <DelayEvent Name="Delay-Scrolling" MinimumTimeLimit="0">
+    <MeasurementBlock Category="VsTextViewAdapter:Exec 17 1496a755-94de-11d0-8c3f-00c04fc2aae2*" Type="Begin"/>
+    <CodeMarker UseForDelayStart="true" DelayStartDataIndex="8">9445</CodeMarker>
+    <EditorRender />
+  </DelayEvent>
+  <DelayEvent Name="Delay-Scrolling" MinimumTimeLimit="0">
+    <MeasurementBlock Category="VsTextViewAdapter:Exec 27 1496a755-94de-11d0-8c3f-00c04fc2aae2*" Type="Begin"/>
+    <CodeMarker UseForDelayStart="true" DelayStartDataIndex="8">9445</CodeMarker>
+    <EditorRender />
+  </DelayEvent>
+  <DelayEvent Name="Delay-Scrolling" MinimumTimeLimit="0">
+    <MeasurementBlock Category="VsTextViewAdapter:Exec 29 1496a755-94de-11d0-8c3f-00c04fc2aae2*" Type="Begin"/>
+    <CodeMarker UseForDelayStart="true" DelayStartDataIndex="8">9445</CodeMarker>
+    <EditorRender />
+  </DelayEvent>
+
+</DelayEvents>
