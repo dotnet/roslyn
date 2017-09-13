@@ -2849,8 +2849,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return operandIsNotNull;
 
                     case ConversionKind.Deconstruction:
-                        // Can reach here, with a error type, when the
+                        // Can reach here, with an error type, when the
                         // Deconstruct method is missing or inaccessible.
+                        return null;
+
+                    case ConversionKind.ExplicitEnumeration:
+                        // Can reach here, with an error type.
                         return null;
 
                     default:

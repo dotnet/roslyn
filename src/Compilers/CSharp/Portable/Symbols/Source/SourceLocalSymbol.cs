@@ -308,8 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)inferredType != null &&
                     inferredType.SpecialType != SpecialType.System_Void)
                 {
-                    // Default inferred reference types to a nullable state.
-                    declType = TypeSymbolWithAnnotations.Create(inferredType.TypeSymbol, isNullableIfReferenceType: _typeSyntax.IsFeatureStaticNullCheckingEnabled());
+                    declType = inferredType;
                 }
                 else
                 {
@@ -504,8 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             protected override TypeSymbolWithAnnotations InferTypeOfVarVariable(DiagnosticBag diagnostics)
             {
                 var initializerOpt = this._initializerBinder.BindInferredVariableInitializer(diagnostics, RefKind, _initializer, _initializer);
-                var type = initializerOpt?.Type;
-                return type == null ? null : TypeSymbolWithAnnotations.Create(type);
+                return initializerOpt?.GetTypeAndNullability(_initializer.IsFeatureStaticNullCheckingEnabled());
             }
 
             internal override SyntaxNode ForbiddenZone => _initializer;
