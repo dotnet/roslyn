@@ -807,10 +807,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.SuppressNullableWarningExpression:
-                    var notNullConversion = ClassifyImplicitBuiltInConversionFromExpression(((BoundSuppressNullableWarningExpression)sourceExpression).Expression, source, destination, ref useSiteDiagnostics);
-                    if (notNullConversion.Exists)
+                    var innerExpression = ((BoundSuppressNullableWarningExpression)sourceExpression).Expression;
+                    var innerConversion = ClassifyImplicitBuiltInConversionFromExpression(innerExpression, innerExpression.Type, destination, ref useSiteDiagnostics);
+                    if (innerConversion.Exists)
                     {
-                        return notNullConversion;
+                        return innerConversion;
                     }
                     break;
 
