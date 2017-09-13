@@ -711,8 +711,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                TypeSymbol leftOperandType = op.ParameterTypes[0];
-                TypeSymbol rightOperandType = op.ParameterTypes[1];
+                TypeSymbol leftOperandType = op.ParameterTypes[0].TypeSymbol;
+                TypeSymbol rightOperandType = op.ParameterTypes[1].TypeSymbol;
                 TypeSymbol resultType = op.ReturnType.TypeSymbol;
 
                 operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.UserDefined | kind, leftOperandType, rightOperandType, resultType, op));

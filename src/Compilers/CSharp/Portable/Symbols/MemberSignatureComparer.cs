@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 for (int i = arity -1; i >= 0; i--)
                 {
-                    builder.Add(IndexedTypeParameterSymbolForOverriding.GetTypeParameter(i, typeParameters2[i].IsReferenceType));
+                    builder.Add(IndexedTypeParameterSymbolForOverriding.GetTypeParameter(i, typeParameters2[i].IsValueType));
                 }
 
                 var indexed = builder.ToImmutableAndFree();

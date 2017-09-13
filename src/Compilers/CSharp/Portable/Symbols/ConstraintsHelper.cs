@@ -777,7 +777,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // The type parameters must be original definitions of type parameters from the containing symbol.
             Debug.Assert(ReferenceEquals(typeParameter.ContainingSymbol, containingSymbol.OriginalDefinition));
 
-            if (typeArgument.TypeSymbol.IsErrorType())
+            if (typeArgument.IsErrorType())
             {
                 return true;
             }
@@ -906,7 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbolWithAnnotations constraintType,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (constraintType.TypeSymbol.IsErrorType())
+            if (constraintType.IsErrorType())
             {
                 return false;
             }

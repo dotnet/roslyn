@@ -588,11 +588,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenArgument = rewrittenValueToIncrement;
             SyntaxNode syntax = node.Syntax;
 
-            TypeSymbol type = node.MethodOpt.ParameterTypes[0];
+            TypeSymbol type = node.MethodOpt.ParameterTypes[0].TypeSymbol;
             if (isLifted)
             {
                 type = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(type);
-                Debug.Assert(node.MethodOpt.ParameterTypes[0] == node.MethodOpt.ReturnType.TypeSymbol);
+                Debug.Assert(node.MethodOpt.ParameterTypes[0].TypeSymbol == node.MethodOpt.ReturnType.TypeSymbol);
             }
 
             if (!node.OperandConversion.IsIdentity)

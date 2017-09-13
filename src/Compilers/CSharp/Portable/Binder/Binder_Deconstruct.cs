@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type.IsTupleType)
             {
                 // tuple literal such as `(1, 2)`, `(null, null)`, `(x.P, y.M())`
-                tupleOrDeconstructedTypes = type.TupleElementTypes;
+                tupleOrDeconstructedTypes = type.TupleElementTypes.SelectAsArray(TypeMap.AsTypeSymbol);
                 SetInferredTypes(variables, tupleOrDeconstructedTypes, diagnostics);
 
                 if (variables.Count != tupleOrDeconstructedTypes.Length)
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // constructs the final tuple type and checks constraints.
             return TupleTypeSymbol.Create(
                 locationOpt: null,
-                elementTypes: typesBuilder.ToImmutableAndFree(),
+                elementTypes: typesBuilder.ToImmutableAndFree().SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations), // PROTOTYPE(NullableTypeReferences): Not including nullability.
                 elementLocations: default(ImmutableArray<Location>),
                 elementNames: default(ImmutableArray<string>),
                 compilation: compilation,
@@ -509,25 +509,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             int count = variables.Count;
             var valuesBuilder = ArrayBuilder<BoundExpression>.GetInstance(count);
-            var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(count);
+            var typesBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(count);
             var locationsBuilder = ArrayBuilder<Location>.GetInstance(count);
             var namesBuilder = ArrayBuilder<string>.GetInstance(count);
+            bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
+
             foreach (var variable in variables)
             {
+                BoundExpression value;
                 if (variable.HasNestedVariables)
                 {
-                    var nestedTuple = DeconstructionVariablesAsTuple(variable.Syntax, variable.NestedVariables, diagnostics, ignoreDiagnosticsFromTuple);
-                    valuesBuilder.Add(nestedTuple);
-                    typesBuilder.Add(nestedTuple.Type);
+                    value = DeconstructionVariablesAsTuple(variable.Syntax, variable.NestedVariables, diagnostics, ignoreDiagnosticsFromTuple);
                     namesBuilder.Add(null);
                 }
                 else
                 {
-                    var single = variable.Single;
-                    valuesBuilder.Add(single);
-                    typesBuilder.Add(single.Type);
-                    namesBuilder.Add(ExtractDeconstructResultElementName(single));
+                    value = variable.Single;
+                    namesBuilder.Add(ExtractDeconstructResultElementName(value));
                 }
+                valuesBuilder.Add(value);
+                typesBuilder.Add(value.GetTypeAndNullability(includeNullability));
                 locationsBuilder.Add(variable.Syntax.Location);
             }
 
@@ -540,7 +541,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var inferredPositions = tupleNames.SelectAsArray(n => n != null);
 
             var type = TupleTypeSymbol.Create(syntax.Location,
-                typesBuilder.ToImmutableAndFree(), locationsBuilder.ToImmutableAndFree(),
+                typesBuilder.ToImmutableAndFree(),
+                locationsBuilder.ToImmutableAndFree(),
                 tupleNames, this.Compilation,
                 shouldCheckConstraints: !ignoreDiagnosticsFromTuple,
                 errorPositions: disallowInferredNames ? inferredPositions : default,

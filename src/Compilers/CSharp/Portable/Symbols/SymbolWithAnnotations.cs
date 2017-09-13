@@ -14,18 +14,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A simple class that combines a single symbol with annotations
     /// </summary>
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal abstract class SymbolWithAnnotations : IMessageSerializable 
     {
         public abstract Symbol Symbol { get; }
 
-        public override string ToString() => Symbol.ToString();
+        public sealed override string ToString() => Symbol.ToString();
         public string ToDisplayString(SymbolDisplayFormat format = null) => Symbol.ToDisplayString(format);
         public string Name => Symbol.Name;
         public SymbolKind Kind => Symbol.Kind;
 
 #pragma warning disable CS0809
         [Obsolete("Unsupported", error: true)]
-        public override bool Equals(object other)
+        public sealed override bool Equals(object other)
 #pragma warning restore CS0809
         {
             throw ExceptionUtilities.Unreachable;
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #pragma warning disable CS0809
         [Obsolete("Unsupported", error: true)]
-        public override int GetHashCode()
+        public sealed override int GetHashCode()
 #pragma warning restore CS0809
         {
             throw ExceptionUtilities.Unreachable;
@@ -73,6 +74,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool operator !=(SymbolWithAnnotations x, Symbol y)
         {
             throw ExceptionUtilities.Unreachable;
+        }
+
+        internal virtual string GetDebuggerDisplay()
+        {
+            return ToString();
         }
     }
 
@@ -169,18 +175,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol)
         {
-            // TODO: Consider if it makes sense to cache and reuse instances, at least for definitions.
+            if (typeSymbol is null)
+            {
+                return null;
+            }
+
+            // PROTOTYPE(NullableReferenceTypes): Consider if it makes
+            // sense to cache and reuse instances, at least for definitions.
             return new WithoutCustomModifiers(typeSymbol);
         }
 
         public static TypeSymbolWithAnnotations CreateNullableReferenceType(TypeSymbol typeSymbol)
         {
-            // TODO: Consider if it makes sense to cache and reuse instances, at least for definitions.
+            if (typeSymbol is null)
+            {
+                return null;
+            }
+
+            // PROTOTYPE(NullableReferenceTypes): Consider if it makes
+            // sense to cache and reuse instances, at least for definitions.
             return new NullableReferenceTypeWithoutCustomModifiers(typeSymbol);
         }
 
         public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
         {
+            if (typeSymbol is null)
+            {
+                return null;
+            }
+
             if (customModifiers.IsDefaultOrEmpty)
             {
                 return new WithoutCustomModifiers(typeSymbol);
@@ -191,6 +214,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, bool? isNullableIfReferenceType)
         {
+            if (typeSymbol is null)
+            {
+                return null;
+            }
+
             if (isNullableIfReferenceType == false || !typeSymbol.IsReferenceType || typeSymbol.IsNullableType())
             {
                 return Create(typeSymbol);
@@ -288,8 +316,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public Cci.PrimitiveTypeCode PrimitiveTypeCode => TypeSymbol.PrimitiveTypeCode;
         public bool IsEnumType() => TypeSymbol.IsEnumType();
         public bool IsDynamic() => TypeSymbol.IsDynamic();
+        public bool IsObjectType() => TypeSymbol.IsObjectType();
+        public bool IsArray() => TypeSymbol.IsArray();
         public virtual bool IsRestrictedType() => TypeSymbol.IsRestrictedType();
         public bool IsPointerType() => TypeSymbol.IsPointerType();
+        public bool IsErrorType() => TypeSymbol.IsErrorType();
         public bool IsUnsafe() => TypeSymbol.IsUnsafe();
         public virtual bool IsStatic => TypeSymbol.IsStatic;
         public bool IsNullableTypeOrTypeParameter() => TypeSymbol.IsNullableTypeOrTypeParameter();
@@ -323,6 +354,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return true;
+        }
+
+        internal sealed class EqualsComparer : EqualityComparer<TypeSymbolWithAnnotations>
+        {
+            internal static readonly EqualsComparer Instance = new EqualsComparer();
+
+            private EqualsComparer()
+            {
+            }
+
+            public override int GetHashCode(TypeSymbolWithAnnotations obj)
+            {
+                if (obj is null)
+                {
+                    return 0;
+                }
+                return obj.TypeSymbol.GetHashCode();
+            }
+
+            public override bool Equals(TypeSymbolWithAnnotations x, TypeSymbolWithAnnotations y)
+            {
+                if (x is null)
+                {
+                    return y is null;
+                }
+                return x.Equals(y, TypeCompareKind.CompareNullableModifiersForReferenceTypes);
+            }
         }
 
         protected virtual bool TypeSymbolEquals(TypeSymbolWithAnnotations other, TypeCompareKind comparison)
@@ -606,6 +664,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return this;
             }
+
+            internal override string GetDebuggerDisplay()
+            {
+                var str = _typeSymbol.ToString();
+                if (IsNullable == false)
+                {
+                    str += "!";
+                }
+                return str;
+            }
         }
 
         private class NullableReferenceTypeWithoutCustomModifiers : TypeSymbolWithAnnotations
@@ -659,6 +727,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override TypeSymbolWithAnnotations AsNotNullableReferenceType()
             {
                 return new WithoutCustomModifiers(_typeSymbol);
+            }
+
+            internal override string GetDebuggerDisplay()
+            {
+                return _typeSymbol.ToString() + "?";
             }
         }
 
@@ -714,6 +787,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return new WithoutCustomModifiers(_typeSymbol);
             }
+
+            internal override string GetDebuggerDisplay()
+            {
+                return _typeSymbol.ToString();
+            }
         }
 
         private sealed class LazyNullableType : TypeSymbolWithAnnotations
@@ -744,7 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if ((object)_resolved == null)
                     {
-                        if (_underlying.IsReferenceType && ((CSharpParseOptions)_nullableTypeSyntax.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking))
+                        if (!_underlying.IsValueType && ((CSharpParseOptions)_nullableTypeSyntax.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking))
                         {
                             _resolved = _underlying.TypeSymbol;
                         }
@@ -759,6 +837,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     return _resolved;
                 }
+            }
+
+            internal override string GetDebuggerDisplay()
+            {
+                return _underlying.TypeSymbol.ToString() + "?";
             }
 
             public override TypeSymbol NullableUnderlyingTypeOrSelf => _underlying.TypeSymbol;
@@ -828,11 +911,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override TypeSymbolWithAnnotations AsNotNullableReferenceType()
             {
-                if (_underlying.TypeSymbol.IsReferenceType)
+                if (!_underlying.TypeSymbol.IsValueType)
                 {
+                    Debug.Assert(_underlying.IsNullable == false);
                     return _underlying;
                 }
 
+                Debug.Assert(!this.IsNullable == false);
                 return this;
             }
 

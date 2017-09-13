@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// As a performance optimization, cache parameter types and refkinds - overload resolution uses them a lot.
         /// </summary>
         private ParameterSignature _lazyParameterSignature;
-        internal ImmutableArray<TypeSymbol> ParameterTypes
+        internal ImmutableArray<TypeSymbolWithAnnotations> ParameterTypes
         {
             get
             {

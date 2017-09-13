@@ -263,19 +263,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             //public static dynamic F1(dynamic x) { return x; }
             var f1 = _derivedClass.GetMember<MethodSymbol>("F1");
             Assert.Equal(s_dynamicType, f1.ReturnType.TypeSymbol);
-            Assert.Equal(s_dynamicType, f1.ParameterTypes[0]);
+            Assert.Equal(s_dynamicType, f1.ParameterTypes[0].TypeSymbol);
 
             //public static dynamic F2(ref dynamic x) { return x; }
             var f2 = _derivedClass.GetMember<MethodSymbol>("F2");
             Assert.Equal(s_dynamicType, f2.ReturnType.TypeSymbol);
-            Assert.Equal(s_dynamicType, f2.ParameterTypes[0]);
+            Assert.Equal(s_dynamicType, f2.ParameterTypes[0].TypeSymbol);
             Assert.Equal(RefKind.Ref, f2.Parameters[0].RefKind);
 
             //public static dynamic[] F3(dynamic[] x) { return x; }
             var f3 = _derivedClass.GetMember<MethodSymbol>("F3");
             var arrayOfDynamic = ArrayTypeSymbol.CreateCSharpArray(_assembly, TypeSymbolWithAnnotations.Create(s_dynamicType));
             Assert.Equal(arrayOfDynamic, f3.ReturnType.TypeSymbol);
-            Assert.Equal(arrayOfDynamic, f3.ParameterTypes[0]);
+            Assert.Equal(arrayOfDynamic, f3.ParameterTypes[0].TypeSymbol);
             Assert.Equal(RefKind.None, f3.Parameters[0].RefKind);
 
             var derivedTypeParam = _derivedClass.TypeParameters[0];
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             //public static Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][] F4(Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][] x) { return x; }
             var f4 = _derivedClass.GetMember<MethodSymbol>("F4");
             Assert.Equal(complicatedInnerInnerArrayOfArray, f4.ReturnType.TypeSymbol);
-            Assert.Equal(complicatedInnerInnerArrayOfArray, f4.ParameterTypes[0]);
+            Assert.Equal(complicatedInnerInnerArrayOfArray, f4.ParameterTypes[0].TypeSymbol);
             Assert.Equal(RefKind.None, f4.Parameters[0].RefKind);
 
             //public static dynamic Prop1 { get { return field1; } }
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(complicatedInnerInnerArrayOfArray, prop2.Type.TypeSymbol);
             Assert.Equal(complicatedInnerInnerArrayOfArray, prop2.GetMethod.ReturnType.TypeSymbol);
             Assert.Equal(SpecialType.System_Void, prop2.SetMethod.ReturnType.SpecialType);
-            Assert.Equal(complicatedInnerInnerArrayOfArray, prop2.SetMethod.ParameterTypes[0]);
+            Assert.Equal(complicatedInnerInnerArrayOfArray, prop2.SetMethod.ParameterTypes[0].TypeSymbol);
         }
 
         [Fact]

@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // always deduce the same type, unless the cached type is an error.
 
             Debug.Assert((object)originalType == null ||
-                originalType.TypeSymbol.IsErrorType() ||
+                originalType.IsErrorType() ||
                 originalType.TypeSymbol == type.TypeSymbol);
 
             if ((object)Interlocked.CompareExchange(ref _lazyType, type, null) == null)

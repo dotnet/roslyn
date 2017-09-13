@@ -769,7 +769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // is failure-only and the caller is expected to produce a diagnostic.
                         var tupleType = TupleTypeSymbol.Create(
                             null,
-                            subExpressions.SelectAsArray(e => e.Type),
+                            subExpressions.SelectAsArray(e => TypeSymbolWithAnnotations.Create(e.Type)),
                             default(ImmutableArray<Location>),
                             tupleNames,
                             Compilation,
@@ -801,8 +801,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasNaturalType = true;
 
             var boundArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Count);
-            var elementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Count);
+            var elementTypes = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(arguments.Count);
             var elementLocations = ArrayBuilder<Location>.GetInstance(arguments.Count);
+            bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
 
             // prepare names
             var (elementNames, inferredPositions, hasErrors) = ExtractTupleElementNames(arguments, diagnostics);
@@ -833,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 boundArguments.Add(boundArgument);
 
-                var elementType = boundArgument.Type;
+                var elementType = boundArgument.GetTypeAndNullability(includeNullability);
                 elementTypes.Add(elementType);
 
                 if ((object)elementType == null)
@@ -2014,7 +2015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (operand.Kind == BoundKind.TupleLiteral)
             {
                 var tuple = (BoundTupleLiteral)operand;
-                var targetElementTypes = default(ImmutableArray<TypeSymbol>);
+                var targetElementTypes = default(ImmutableArray<TypeSymbolWithAnnotations>);
 
                 // If target is a tuple or compatible type with the same number of elements,
                 // report errors for tuple arguments that failed to convert, which would be more useful.
@@ -2043,10 +2044,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void GenerateExplicitConversionErrorsForTupleLiteralArguments(
             DiagnosticBag diagnostics,
             ImmutableArray<BoundExpression> tupleArguments,
-            ImmutableArray<TypeSymbol> targetElementTypes)
+            ImmutableArray<TypeSymbolWithAnnotations> targetElementTypes)
         {
-            var argLength = tupleArguments.Length;
-
             // report all leaf elements of the tuple literal that failed to convert
             // NOTE: we are not responsible for reporting use site errors here, just the failed leaf conversions.
             // By the time we get here we have done analysis and know we have failed the cast in general, and diagnostics collected in the process is already in the bag. 
@@ -2057,7 +2056,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < targetElementTypes.Length; i++)
             {
                 var argument = tupleArguments[i];
-                var targetElementType = targetElementTypes[i];
+                var targetElementType = targetElementTypes[i].TypeSymbol;
 
                 var elementConversion = Conversions.ClassifyConversionFromExpression(argument, targetElementType, ref usDiagsUnused);
                 if (!elementConversion.IsValid)
@@ -2732,35 +2731,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool hadMultipleCandidates;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, out hadMultipleCandidates, ref useSiteDiagnostics);
+            var bestType = BestTypeInferrer.InferBestType(
+                boundInitializerExpressions,
+                this.Conversions,
+                this.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking),
+                out hadMultipleCandidates,
+                ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
             if ((object)bestType == null || bestType.SpecialType == SpecialType.System_Void) // Dev10 also reports ERR_ImplicitlyTypedArrayNoBestType for void.
             {
                 Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, node);
-                bestType = CreateErrorType();
+                bestType = TypeSymbolWithAnnotations.Create(CreateErrorType());
             }
 
             if (bestType.IsRestrictedType())
             {
                 // CS0611: Array elements cannot be of type '{0}'
-                Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node, bestType);
+                Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node, bestType.TypeSymbol);
             }
 
-            TypeSymbolWithAnnotations elementType;
-
-            if (node.IsFeatureStaticNullCheckingEnabled())
-            {
-                // For now erase all notion about nullability of reference types as the algorithm is not taking it into account yet.
-                // Default inferred reference type itself to a nullable state.
-                elementType = TypeSymbolWithAnnotations.Create(bestType.SetUnknownNullabilityForReferenceTypes(), isNullableIfReferenceType: true);
-            }
-            else
-            {
-                elementType = TypeSymbolWithAnnotations.Create(bestType);
-            }
-
-            var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, elementType, rank);
+            var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, bestType, rank);
             return BindArrayCreationWithInitializer(diagnostics, node, initializer, arrayType,
                 sizes: ImmutableArray<BoundExpression>.Empty, boundInitExprOpt: boundInitializerExpressions);
         }
@@ -3121,7 +3112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbolWithAnnotations elementType = BindType(elementTypeSyntax, diagnostics);
             PointerTypeSymbol pointerType = new PointerTypeSymbol(elementType);
 
-            bool typeHasErrors = elementType.TypeSymbol.IsErrorType();
+            bool typeHasErrors = elementType.IsErrorType();
             if (!typeHasErrors && elementType.IsManagedType)
             {
                 Error(diagnostics, ErrorCode.ERR_ManagedAddr, elementTypeSyntax, elementType.TypeSymbol);

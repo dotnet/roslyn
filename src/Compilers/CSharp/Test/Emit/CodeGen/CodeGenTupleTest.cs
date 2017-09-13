@@ -882,7 +882,7 @@ references: s_valueTupleRefs);
             Assert.Equal(1, first.TupleElementTypes.Length);
             Assert.True(first.TupleElementNames.IsDefault);
 
-            var second = first.TupleElementTypes[0];
+            var second = first.TupleElementTypes[0].TypeSymbol;
             Assert.True(second.IsTupleType);
             Assert.True(second.TupleElementNames.IsDefault);
             Assert.Equal(2, second.TupleElementTypes.Length);

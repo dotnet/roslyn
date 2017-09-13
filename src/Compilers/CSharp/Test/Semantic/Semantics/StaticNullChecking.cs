@@ -3,13 +3,14 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    public class StaticNullChecking : CSharpTestBase
+    public partial class StaticNullChecking : CSharpTestBase
     {
         private const string NullableAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
@@ -189,6 +190,50 @@ class C
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
                 // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void NullableAttribute_NotRequiredCSharp7_01()
+        {
+            var source =
+@"using System.Threading.Tasks;
+class C
+{
+    static async Task<string> F()
+    {
+        return await Task.FromResult(default(string));
+    }
+}";
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular7);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void NullableAttribute_NotRequiredCSharp7_02()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    static async Task F<T>(Func<Task> f)
+    {
+        await G(async () =>
+        {
+            await f();
+            return default(object);
+        });
+    }
+    static async Task<TResult> G<TResult>(Func<Task<TResult>> f)
+    {
+        throw new NotImplementedException();
+    }
+}";
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular7);
+            comp.VerifyEmitDiagnostics(
+                // (13,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async Task<TResult> G<TResult>(Func<Task<TResult>> f)
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "G").WithLocation(13, 32));
         }
 
         [Fact]
@@ -476,7 +521,8 @@ class B : A
             Assert.False(m2.OverriddenMethod.ReturnType.IsNullableType());
         }
 
-        [Fact]
+        // PROTOTYPE(NullableReferenceTypes): Override matches other M3<T>.
+        [Fact(Skip = "TODO")]
         public void Overriding_04()
         {
             var source = @"
@@ -564,7 +610,8 @@ class B : A
 ";
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
-            // TODO: The overriding is ambiguous. We simply matched the first candidate. Should this be an error?
+            // PROTOTYPE(NullableReferenceTypes): The overriding is ambiguous.
+            // We simply matched the first candidate. Should this be an error?
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -691,17 +738,14 @@ class B : A
                 // (11,38): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
                 //     public override void M1<T>(T? x) where T : struct
                 Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(11, 38),
-                // (11,26): error CS0115: 'B.M1<T>(T?)': no suitable method found to override
+                // (11,26): error CS0506: 'B.M1<T>(T?)': cannot override inherited member 'A.M1<T>(T)' because it is not marked virtual, abstract, or override
                 //     public override void M1<T>(T? x) where T : struct
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("B.M1<T>(T?)").WithLocation(11, 26),
-                // (11,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //     public override void M1<T>(T? x) where T : struct
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(11, 35)
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M1").WithArguments("B.M1<T>(T?)", "A.M1<T>(T)").WithLocation(11, 26)
                 );
 
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
-            Assert.True(m1.Parameters[0].Type.IsNullableType());
+            Assert.False(m1.Parameters[0].Type.IsNullableType());
             Assert.False(m1.Parameters[0].Type.TypeSymbol.StrippedType().IsValueType);
             Assert.False(m1.Parameters[0].Type.TypeSymbol.StrippedType().IsReferenceType);
             Assert.Null(m1.OverriddenMethod);
@@ -751,33 +795,18 @@ class B : A
 ";
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
-                 // (27,26): error CS0506: 'B.M2<T>(T?)': cannot override inherited member 'A.M2<T>(T?)' because it is not marked virtual, abstract, or override
-                 //     public override void M2<T>(T? x)
-                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M2").WithArguments("B.M2<T>(T?)", "A.M2<T>(T?)").WithLocation(27, 26),
-                 // (31,26): error CS0506: 'B.M3<T>(T?)': cannot override inherited member 'A.M3<T>(T?)' because it is not marked virtual, abstract, or override
-                 //     public override void M3<T>(T? x)
-                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M3").WithArguments("B.M3<T>(T?)", "A.M3<T>(T?)").WithLocation(31, 26),
-                 // (35,26): error CS0506: 'B.M4<T>(T?)': cannot override inherited member 'A.M4<T>(T?)' because it is not marked virtual, abstract, or override
-                 //     public override void M4<T>(T? x)
-                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M4").WithArguments("B.M4<T>(T?)", "A.M4<T>(T?)").WithLocation(35, 26),
-                 // (23,26): error CS0115: 'B.M1<T>(T?)': no suitable method found to override
-                 //     public override void M1<T>(T? x)
-                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("B.M1<T>(T?)").WithLocation(23, 26),
-                 // (27,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                 //     public override void M2<T>(T? x)
-                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(27, 35),
-                 // (31,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                 //     public override void M3<T>(T? x)
-                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(31, 35),
-                 // (35,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                 //     public override void M4<T>(T? x)
-                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(35, 35),
-                 // (23,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                 //     public override void M1<T>(T? x)
-                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(23, 35),
-                 // (8,26): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                 //     public void M2<T>(T? x) 
-                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(8, 26)
+                // (27,26): error CS0506: 'B.M2<T>(T?)': cannot override inherited member 'A.M2<T>(T?)' because it is not marked virtual, abstract, or override
+                //     public override void M2<T>(T? x)
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M2").WithArguments("B.M2<T>(T?)", "A.M2<T>(T?)").WithLocation(27, 26),
+                // (31,26): error CS0506: 'B.M3<T>(T?)': cannot override inherited member 'A.M3<T>(T?)' because it is not marked virtual, abstract, or override
+                //     public override void M3<T>(T? x)
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M3").WithArguments("B.M3<T>(T?)", "A.M3<T>(T?)").WithLocation(31, 26),
+                // (35,26): error CS0506: 'B.M4<T>(T?)': cannot override inherited member 'A.M4<T>(T?)' because it is not marked virtual, abstract, or override
+                //     public override void M4<T>(T? x)
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M4").WithArguments("B.M4<T>(T?)", "A.M4<T>(T?)").WithLocation(35, 26),
+                // (23,26): error CS0506: 'B.M1<T>(T?)': cannot override inherited member 'A.M1<T>(T)' because it is not marked virtual, abstract, or override
+                //     public override void M1<T>(T? x)
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M1").WithArguments("B.M1<T>(T?)", "A.M1<T>(T)").WithLocation(23, 26)
                 );
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -785,10 +814,10 @@ class B : A
             var m2 = b.GetMember<MethodSymbol>("M2");
             var m3 = b.GetMember<MethodSymbol>("M3");
             var m4 = b.GetMember<MethodSymbol>("M4");
-            Assert.True(m1.Parameters[0].Type.IsNullableType());
-            Assert.True(m2.Parameters[0].Type.IsNullableType());
-            Assert.True(m3.Parameters[0].Type.IsNullableType());
-            Assert.True(m4.Parameters[0].Type.IsNullableType());
+            Assert.False(m1.Parameters[0].Type.IsNullableType());
+            Assert.False(m2.Parameters[0].Type.IsNullableType());
+            Assert.False(m3.Parameters[0].Type.IsNullableType());
+            Assert.False(m4.Parameters[0].Type.IsNullableType());
 
             Assert.Null(m1.OverriddenMethod);
             Assert.Null(m2.OverriddenMethod);
@@ -821,15 +850,12 @@ class B : A
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(4, 50),
                 // (11,26): error CS0115: 'B.M1<T>(T?)': no suitable method found to override
                 //     public override void M1<T>(T? x)
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("B.M1<T>(T?)").WithLocation(11, 26),
-                // (11,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //     public override void M1<T>(T? x)
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(11, 35)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("B.M1<T>(T?)").WithLocation(11, 26)
                 );
 
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
-            Assert.True(m1.Parameters[0].Type.IsNullableType());
+            Assert.False(m1.Parameters[0].Type.IsNullableType());
             Assert.Null(m1.OverriddenMethod);
         }
 
@@ -1939,7 +1965,6 @@ class B : A
 }
 ";
             var compilation = CreateStandardCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
-
             compilation.VerifyDiagnostics();
         }
 
@@ -5722,6 +5747,12 @@ class CL1
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
+                // (37,17): warning CS8601: Possible null reference assignment.
+                //         u4[0] = z4;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z4").WithLocation(37, 17),
+                // (38,19): warning CS8601: Possible null reference assignment.
+                //         v4[0,0] = z4;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "z4").WithLocation(38, 19)
                 );
         }
 
@@ -6204,12 +6235,18 @@ class CL0<T>
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                 // (12,43): warning CS8619: Nullability of reference types in value of type 'CL0<string>' doesn't match target type 'CL0<string?>'.
-                 //         var v1 = new CL0<string?>[] { x1, y1 };
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y1").WithArguments("CL0<string>", "CL0<string?>").WithLocation(12, 43),
-                 // (13,38): warning CS8619: Nullability of reference types in value of type 'CL0<string?>' doesn't match target type 'CL0<string>'.
-                 //         var w1 = new CL0<string>[] { x1, y1 };
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("CL0<string?>", "CL0<string>").WithLocation(13, 38)
+                // (10,31): warning CS8619: Nullability of reference types in value of type 'CL0<string>' doesn't match target type 'CL0<string?>'.
+                //         var u1 = new [] { x1, y1 };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y1").WithArguments("CL0<string>", "CL0<string?>").WithLocation(10, 31),
+                // (11,31): warning CS8619: Nullability of reference types in value of type 'CL0<string?>' doesn't match target type 'CL0<string>'.
+                //         var a1 = new [] { y1, x1 };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("CL0<string?>", "CL0<string>").WithLocation(11, 31),
+                // (12,43): warning CS8619: Nullability of reference types in value of type 'CL0<string>' doesn't match target type 'CL0<string?>'.
+                //         var v1 = new CL0<string?>[] { x1, y1 };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y1").WithArguments("CL0<string>", "CL0<string?>").WithLocation(12, 43),
+                // (13,38): warning CS8619: Nullability of reference types in value of type 'CL0<string?>' doesn't match target type 'CL0<string>'.
+                //         var w1 = new CL0<string>[] { x1, y1 };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("CL0<string?>", "CL0<string>").WithLocation(13, 38)
                 );
         }
 
@@ -6765,15 +6802,24 @@ struct S1
                 // (84,14): warning CS8601: Possible null reference assignment.
                 //         x9 = v9.p2;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "v9.p2").WithLocation(84, 14),
+                // (98,15): warning CS8602: Possible dereference of a null reference.
+                //         x10 = u10.a0; // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u10").WithLocation(98, 15),
                 // (98,15): warning CS8601: Possible null reference assignment.
                 //         x10 = u10.a0; // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "u10.a0").WithLocation(98, 15),
+                // (99,15): warning CS8602: Possible dereference of a null reference.
+                //         x10 = u10.a1.p1; // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u10").WithLocation(99, 15),
                 // (99,15): warning CS8602: Possible dereference of a null reference.
                 //         x10 = u10.a1.p1; // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u10.a1").WithLocation(99, 15),
                 // (99,15): warning CS8601: Possible null reference assignment.
                 //         x10 = u10.a1.p1; // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "u10.a1.p1").WithLocation(99, 15),
+                // (100,15): warning CS8602: Possible dereference of a null reference.
+                //         x10 = u10.a2.p2; // 6 
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u10").WithLocation(100, 15),
                 // (100,15): warning CS8601: Possible null reference assignment.
                 //         x10 = u10.a2.p2; // 6 
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "u10.a2.p2").WithLocation(100, 15)
@@ -11739,7 +11785,8 @@ public class F : C<F?>, I1<C<B?>>, I2<C<B>?>
                                     var f = ((PEModuleSymbol)m).GlobalNamespace.GetTypeMember("F");
                                     Assert.Equal("C<F?>", f.BaseType.ToTestDisplayString());
 
-                                    // TODO: Should we round-trip nullable modifiers for implemented interfaces too. 
+                                    // PROTOTYPE(NullableReferenceTypes): Should we round-trip
+                                    // nullable modifiers for implemented interfaces too?
                                     Assert.Equal("I1<C<B>>", f.Interfaces[0].ToTestDisplayString());
                                     Assert.Equal("I2<C<B>>", f.Interfaces[1].ToTestDisplayString());
                                 });
@@ -14893,6 +14940,12 @@ class CL0<T>
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         M1(x2)[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1(x2)[0]").WithLocation(15, 9),
+                // (20,9): warning CS8602: Possible dereference of a null reference.
+                //         M1(x3).P1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1(x3).P1").WithLocation(20, 9),
                 // (25,9): warning CS8602: Possible dereference of a null reference.
                 //         M1<string?>(x11).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1<string?>(x11)").WithLocation(25, 9),
@@ -15098,7 +15151,7 @@ static class Extensions
 
             var comp = CreateCompilationWithMscorlib45(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(flags: NullableReferenceFlags.AllowNullAsNonNull));
+                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowNullAsNonNull));
             comp.VerifyDiagnostics(
                 // (13,10): warning CS8604: Possible null reference argument for parameter 's' in 'void Extensions.F(string s)'.
                 //         (null as string).F();
@@ -15598,17 +15651,16 @@ class C
         b = y;
         b = y!;
     }
+    static void G(C<object> o) { }
+}
+class C<T>
+{
+    internal void F() { }
 }";
             var comp = CreateStandardCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (8,13): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'I<object>'.
-                //         a = x;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C<object?>", "I<object>").WithLocation(8, 13),
-                // (11,13): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'I<object?>'.
-                //         b = y;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object>", "I<object?>").WithLocation(11, 13));
+            comp.VerifyDiagnostics();
         }
 
         // PROTOTYPE(NullableReferenceTypes): Should report WRN_NullabilityMismatch*.
@@ -16336,7 +16388,7 @@ class B
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var declarator = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclaratorSyntax>().First();
+            var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
             Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
             Assert.Equal(true, symbol.Type.IsNullable);

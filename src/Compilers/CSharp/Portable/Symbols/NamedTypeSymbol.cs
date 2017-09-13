@@ -910,24 +910,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static readonly Func<TypeSymbolWithAnnotations, bool> TypeSymbolIsNullFunction = type => (object)type == null;
 
-        internal static readonly Func<TypeSymbolWithAnnotations, bool> TypeSymbolIsErrorType = type => (object)type != null && type.TypeSymbol.IsErrorType();
+        internal static readonly Func<TypeSymbolWithAnnotations, bool> TypeSymbolIsErrorType = type => (object)type != null && type.IsErrorType();
 
-        internal NamedTypeSymbol ConstructWithoutModifiers(ImmutableArray<TypeSymbol> arguments, bool unbound)
+        internal NamedTypeSymbol ConstructWithoutModifiers(ImmutableArray<TypeSymbol> typeArguments, bool unbound)
         {
             ImmutableArray<TypeSymbolWithAnnotations> modifiedArguments;
 
-            if (arguments.IsDefault)
+            if (typeArguments.IsDefault)
             {
                 modifiedArguments = default(ImmutableArray<TypeSymbolWithAnnotations>);
             }
-            else if (arguments.IsEmpty)
+            else if (typeArguments.IsEmpty)
             {
                 modifiedArguments = ImmutableArray<TypeSymbolWithAnnotations>.Empty;
             }
             else
             {
-                var builder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(arguments.Length);
-                foreach (TypeSymbol t in arguments)
+                var builder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(typeArguments.Length);
+                foreach (TypeSymbol t in typeArguments)
                 {
                     builder.Add((object)t == null ? null : TypeSymbolWithAnnotations.Create(t));
                 }
@@ -938,41 +938,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Construct(modifiedArguments, unbound);
         }
 
-        internal NamedTypeSymbol Construct(ImmutableArray<TypeSymbolWithAnnotations> arguments)
+        internal NamedTypeSymbol Construct(ImmutableArray<TypeSymbolWithAnnotations> typeArguments)
         {
-            return Construct(arguments, unbound: false);
+            return Construct(typeArguments, unbound: false);
         }
 
-        internal NamedTypeSymbol Construct(ImmutableArray<TypeSymbolWithAnnotations> arguments, bool unbound)
+        internal NamedTypeSymbol Construct(ImmutableArray<TypeSymbolWithAnnotations> typeArguments, bool unbound)
         {
             if (!ReferenceEquals(this, ConstructedFrom) || this.Arity == 0)
             {
                 throw new InvalidOperationException();
             }
 
-            if (arguments.IsDefault)
+            if (typeArguments.IsDefault)
             {
-                throw new ArgumentNullException(nameof(arguments));
+                throw new ArgumentNullException(nameof(typeArguments));
             }
 
-            if (arguments.Any(TypeSymbolIsNullFunction))
+            if (typeArguments.Any(TypeSymbolIsNullFunction))
             {
-                throw new ArgumentException(CSharpResources.TypeArgumentCannotBeNull, "typeArguments");
+                throw new ArgumentException(CSharpResources.TypeArgumentCannotBeNull, nameof(typeArguments));
             }
 
-            if (arguments.Length != this.Arity)
+            if (typeArguments.Length != this.Arity)
             {
-                throw new ArgumentException(CSharpResources.WrongNumberOfTypeArguments, "typeArguments");
+                throw new ArgumentException(CSharpResources.WrongNumberOfTypeArguments, nameof(typeArguments));
             }
 
-            Debug.Assert(!unbound || arguments.All(TypeSymbolIsErrorType));
+            Debug.Assert(!unbound || typeArguments.All(TypeSymbolIsErrorType));
 
-            if (ConstructedNamedTypeSymbol.TypeParametersMatchTypeArguments(this.TypeParameters, arguments))
+            if (ConstructedNamedTypeSymbol.TypeParametersMatchTypeArguments(this.TypeParameters, typeArguments))
             {
                 return this;
             }
 
-            return this.ConstructCore(arguments, unbound);
+            return this.ConstructCore(typeArguments, unbound);
         }
 
         protected virtual NamedTypeSymbol ConstructCore(ImmutableArray<TypeSymbolWithAnnotations> typeArguments, bool unbound)

@@ -11,13 +11,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal class ParameterSignature
     {
-        internal readonly ImmutableArray<TypeSymbol> parameterTypes;
+        internal readonly ImmutableArray<TypeSymbolWithAnnotations> parameterTypes;
         internal readonly ImmutableArray<RefKind> parameterRefKinds;
 
         internal static readonly ParameterSignature NoParams =
-            new ParameterSignature(ImmutableArray<TypeSymbol>.Empty, default(ImmutableArray<RefKind>));
+            new ParameterSignature(ImmutableArray<TypeSymbolWithAnnotations>.Empty, default(ImmutableArray<RefKind>));
 
-        private ParameterSignature(ImmutableArray<TypeSymbol> parameterTypes,
+        private ParameterSignature(ImmutableArray<TypeSymbolWithAnnotations> parameterTypes,
                                             ImmutableArray<RefKind> parameterRefKinds)
         {
             this.parameterTypes = parameterTypes;
@@ -31,13 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return NoParams;
             }
 
-            var types = ArrayBuilder<TypeSymbol>.GetInstance();
+            var types = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
             ArrayBuilder<RefKind> refs = null;
 
             for (int parm = 0; parm < parameters.Length; ++parm)
             {
                 var parameter = parameters[parm];
-                types.Add(parameter.Type.TypeSymbol);
+                types.Add(parameter.Type);
 
                 var refKind = parameter.RefKind;
                 if (refs == null)

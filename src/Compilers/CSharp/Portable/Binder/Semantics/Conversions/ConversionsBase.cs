@@ -1810,7 +1810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
 
-            ImmutableArray<TypeSymbol> targetElementTypes = destination.GetElementTypesOfTupleOrCompatible();
+            var targetElementTypes = destination.GetElementTypesOfTupleOrCompatible();
             Debug.Assert(arguments.Length == targetElementTypes.Length);
 
             // check arguments against flattened list of target element types 
@@ -1818,7 +1818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < arguments.Length; i++)
             {
                 var argument = arguments[i];
-                var result = classifyConversion(this, argument, targetElementTypes[i], ref useSiteDiagnostics, arg);
+                var result = classifyConversion(this, argument, targetElementTypes[i].TypeSymbol, ref useSiteDiagnostics, arg);
                 if (!result.Exists)
                 {
                     argumentConversions.Free();
@@ -1861,8 +1861,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ClassifyConversionFromTypeDelegate classifyConversion,
             bool arg)
         {
-            ImmutableArray<TypeSymbol> sourceTypes;
-            ImmutableArray<TypeSymbol> destTypes;
+            ImmutableArray<TypeSymbolWithAnnotations> sourceTypes;
+            ImmutableArray<TypeSymbolWithAnnotations> destTypes;
 
             if (!source.TryGetElementTypesIfTupleOrCompatible(out sourceTypes) ||
                 !destination.TryGetElementTypesIfTupleOrCompatible(out destTypes) ||
@@ -1874,7 +1874,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var nestedConversions = ArrayBuilder<Conversion>.GetInstance(sourceTypes.Length);
             for (int i = 0; i < sourceTypes.Length; i++)
             {
-                var conversion = classifyConversion(this, sourceTypes[i], destTypes[i], ref useSiteDiagnostics, arg);
+                var conversion = classifyConversion(this, sourceTypes[i].TypeSymbol, destTypes[i].TypeSymbol, ref useSiteDiagnostics, arg);
                 if (!conversion.Exists)
                 {
                     nestedConversions.Free();

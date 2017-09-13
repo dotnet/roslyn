@@ -866,7 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                     }
 
-                    if (!declTypeOpt.TypeSymbol.IsErrorType())
+                    if (!declTypeOpt.IsErrorType())
                     {
                         if (declTypeOpt.IsStatic)
                         {
@@ -2627,7 +2627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int i = 0; i < anonymousFunction.ParameterCount; ++i)
                 {
-                    if (anonymousFunction.ParameterType(i).TypeSymbol.IsErrorType())
+                    if (anonymousFunction.ParameterType(i).IsErrorType())
                     {
                         return;
                     }
@@ -2824,7 +2824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (operand.Kind == BoundKind.TupleLiteral)
             {
                 var tuple = (BoundTupleLiteral)operand;
-                var targetElementTypes = default(ImmutableArray<TypeSymbol>);
+                var targetElementTypes = default(ImmutableArray<TypeSymbolWithAnnotations>);
 
                 // If target is a tuple or compatible type with the same number of elements,
                 // report errors for tuple arguments that failed to convert, which would be more useful.
@@ -2903,7 +2903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void GenerateImplicitConversionErrorsForTupleLiteralArguments(
             DiagnosticBag diagnostics,
             ImmutableArray<BoundExpression> tupleArguments,
-            ImmutableArray<TypeSymbol> targetElementTypes)
+            ImmutableArray<TypeSymbolWithAnnotations> targetElementTypes)
         {
             var argLength = tupleArguments.Length;
 
@@ -2917,7 +2917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < targetElementTypes.Length; i++)
             {
                 var argument = tupleArguments[i];
-                var targetElementType = targetElementTypes[i];
+                var targetElementType = targetElementTypes[i].TypeSymbol;
 
                 var elementConversion = Conversions.ClassifyImplicitConversionFromExpression(argument, targetElementType, ref usDiagsUnused);
                 if (!elementConversion.IsValid)
@@ -3621,7 +3621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (local?.DeclarationKind == LocalDeclarationKind.CatchVariable)
             {
-                Debug.Assert(local.Type.TypeSymbol.IsErrorType() || (local.Type.TypeSymbol == type));
+                Debug.Assert(local.Type.IsErrorType() || (local.Type.TypeSymbol == type));
 
                 // Check for local variable conflicts in the *enclosing* binder, not the *current* binder;
                 // obviously we will find a local of the given name in the current binder.

@@ -17,16 +17,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class IndexedTypeParameterSymbolForOverriding : TypeParameterSymbol
     {
-        private static TypeParameterSymbol[] s_parameterPoolHasReferenceTypeConstraint = Array.Empty<TypeParameterSymbol>();
-        private static TypeParameterSymbol[] s_parameterPoolHasNoReferenceTypeConstraint = Array.Empty<TypeParameterSymbol>();
+        private static TypeParameterSymbol[] s_parameterPoolHasValueTypeConstraint = Array.Empty<TypeParameterSymbol>();
+        private static TypeParameterSymbol[] s_parameterPoolHasNoValueTypeConstraint = Array.Empty<TypeParameterSymbol>();
 
         private readonly int _index;
-        private readonly bool _hasReferenceTypeConstraint;
+        private readonly bool _hasValueTypeConstraint;
 
-        private IndexedTypeParameterSymbolForOverriding(int index, bool hasReferenceTypeConstraint)
+        private IndexedTypeParameterSymbolForOverriding(int index, bool hasValueTypeConstraint)
         {
             _index = index;
-            _hasReferenceTypeConstraint = hasReferenceTypeConstraint;
+            _hasValueTypeConstraint = hasValueTypeConstraint;
         }
 
         public override TypeParameterKind TypeParameterKind
@@ -37,34 +37,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static TypeParameterSymbol GetTypeParameter(int index, bool hasReferenceTypeConstraint)
+        internal static TypeParameterSymbol GetTypeParameter(int index, bool hasValueTypeConstraint)
         {
             TypeParameterSymbol result;
 
-            if (hasReferenceTypeConstraint)
+            if (hasValueTypeConstraint)
             {
-                result = GetTypeParameter(ref s_parameterPoolHasReferenceTypeConstraint, index, hasReferenceTypeConstraint);
+                result = GetTypeParameter(ref s_parameterPoolHasValueTypeConstraint, index, hasValueTypeConstraint);
             }
             else
             {
-                result = GetTypeParameter(ref s_parameterPoolHasNoReferenceTypeConstraint, index, hasReferenceTypeConstraint);
+                result = GetTypeParameter(ref s_parameterPoolHasNoValueTypeConstraint, index, hasValueTypeConstraint);
             }
 
-            Debug.Assert(result.HasReferenceTypeConstraint == hasReferenceTypeConstraint);
+            Debug.Assert(result.HasValueTypeConstraint == hasValueTypeConstraint);
             return result;
         }
 
-        private static TypeParameterSymbol GetTypeParameter(ref TypeParameterSymbol[] parameterPool, int index, bool hasReferenceTypeConstraint)
+        private static TypeParameterSymbol GetTypeParameter(ref TypeParameterSymbol[] parameterPool, int index, bool hasValueTypeConstraint)
         {
             if (index >= parameterPool.Length)
             {
-                GrowPool(ref parameterPool, index + 1, hasReferenceTypeConstraint);
+                GrowPool(ref parameterPool, index + 1, hasValueTypeConstraint);
             }
 
             return parameterPool[index];
         }
 
-        private static void GrowPool(ref TypeParameterSymbol[] parameterPool, int count, bool hasReferenceTypeConstraint)
+        private static void GrowPool(ref TypeParameterSymbol[] parameterPool, int count, bool hasValueTypeConstraint)
         {
             var initialPool = parameterPool;
             while (count > initialPool.Length)
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 for (int i = initialPool.Length; i < newPool.Length; i++)
                 {
-                    newPool[i] = new IndexedTypeParameterSymbolForOverriding(i, hasReferenceTypeConstraint);
+                    newPool[i] = new IndexedTypeParameterSymbolForOverriding(i, hasValueTypeConstraint);
                 }
 
                 Interlocked.CompareExchange(ref parameterPool, newPool, initialPool);
@@ -110,12 +110,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool HasValueTypeConstraint
         {
-            get { return false; }
+            get { return _hasValueTypeConstraint; }
         }
 
         public override bool HasReferenceTypeConstraint
         {
-            get { return _hasReferenceTypeConstraint; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         public override bool HasConstructorConstraint

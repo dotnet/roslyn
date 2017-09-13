@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -174,6 +175,68 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol receiverType = expressionOpt.Type;
             return (object)receiverType != null && receiverType.Kind == SymbolKind.NamedType && ((NamedTypeSymbol)receiverType).IsComImport;
+        }
+
+        internal static TypeSymbolWithAnnotations GetTypeAndNullability(this BoundExpression expr, bool includeNullability)
+        {
+            var type = expr.Type;
+            if ((object)type == null)
+            {
+                return null;
+            }
+            // PROTOTYPE(NullableReferenceTypes): Could we track nullability always,
+            // even in C#7, but only report warnings when the feature is enabled?
+            var isNullable = includeNullability ? expr.IsNullable() : null;
+            return TypeSymbolWithAnnotations.Create(type, isNullable);
+        }
+
+        internal static bool? IsNullable(this BoundExpression expr)
+        {
+            switch (expr.Kind)
+            {
+                case BoundKind.SuppressNullableWarningExpression:
+                    return false;
+                case BoundKind.Local:
+                    return ((BoundLocal)expr).LocalSymbol.Type.IsNullable;
+                case BoundKind.Parameter:
+                    return ((BoundParameter)expr).ParameterSymbol.Type.IsNullable;
+                case BoundKind.FieldAccess:
+                    return ((BoundFieldAccess)expr).FieldSymbol.Type.IsNullable;
+                case BoundKind.PropertyAccess:
+                    return ((BoundPropertyAccess)expr).PropertySymbol.Type.IsNullable;
+                case BoundKind.Call:
+                    return ((BoundCall)expr).Method.ReturnType.IsNullable;
+                case BoundKind.BinaryOperator:
+                    return ((BoundBinaryOperator)expr).MethodOpt?.ReturnType.IsNullable;
+                case BoundKind.NullCoalescingOperator:
+                    {
+                        var op = (BoundNullCoalescingOperator)expr;
+                        var left = op.LeftOperand.IsNullable();
+                        var right = op.RightOperand.IsNullable();
+                        return (left == true) ? right : left;
+                    }
+                case BoundKind.ObjectCreationExpression:
+                case BoundKind.DelegateCreationExpression:
+                    return false;
+                case BoundKind.TupleLiteral:
+                    return false;
+                case BoundKind.DefaultExpression:
+                case BoundKind.Literal:
+                case BoundKind.UnboundLambda:
+                    break;
+                default:
+                    // PROTOTYPE(NullableReferenceTypes): Handle all expression kinds.
+                    //Debug.Assert(false, "Unhandled expression: " + expr.Kind);
+                    break;
+            }
+
+            var constant = expr.ConstantValue;
+            if (constant != null && constant.IsNull)
+            {
+                return true;
+            }
+
+            return null;
         }
     }
 }

@@ -861,13 +861,13 @@ class C : I
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
                     interfaceMethod1.ReturnType.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    interfaceMethod1.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString());
+                    interfaceMethod1.ParameterTypes[0].TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
 
             Assert.Equal("(System.Object a, System.Object b) C.I.M((System.Object c, System.Object d) x)", classMethod1.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
                     classMethod1.ReturnType.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod1.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString());
+                    classMethod1.ParameterTypes[0].TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
 
             var source2 = @"
 class C : I
@@ -889,7 +889,7 @@ class C : I
                 classMethod2.ReturnType.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
 
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                classMethod2.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString());
+                classMethod2.ParameterTypes[0].TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
 
             var source3 = @"
 class C : I
@@ -910,7 +910,7 @@ class C : I
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
                     classMethod3.ReturnType.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod3.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString());
+                    classMethod3.ParameterTypes[0].TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
 
             var source4 = @"
 class C : I
@@ -925,7 +925,7 @@ class C : I
 
             Assert.Equal("(System.Object a, System.Object b) C.M((System.Object c, System.Object d) x)", classMethod4.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object, System.Object>", classMethod4.ReturnType.TypeSymbol.TupleUnderlyingType.ToTestDisplayString()); // modopts not copied
-            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classMethod4.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString()); // modopts not copied
+            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classMethod4.ParameterTypes[0].TypeSymbol.TupleUnderlyingType.ToTestDisplayString()); // modopts not copied
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -1123,7 +1123,7 @@ class C : Base
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
                     baseMethod1.ReturnType.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    baseMethod1.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString());
+                    baseMethod1.ParameterTypes[0].TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
 
             var baseProperty1 = comp1.GlobalNamespace.GetMember<PropertySymbol>("Base.P");
 
@@ -1142,7 +1142,7 @@ class C : Base
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
                     classMethod1.ReturnType.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod1.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString());
+                    classMethod1.ParameterTypes[0].TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
 
             var source2 = @"
 class C : Base
@@ -1169,7 +1169,7 @@ class C : Base
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
                     classMethod2.ReturnType.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod2.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString());
+                    classMethod2.ParameterTypes[0].TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
 
             var source3 = @"
 class C : Base
@@ -1191,7 +1191,7 @@ class C : Base
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
                     classMethod3.ReturnType.TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod3.ParameterTypes[0].TupleUnderlyingType.ToTestDisplayString());
+                    classMethod3.ParameterTypes[0].TypeSymbol.TupleUnderlyingType.ToTestDisplayString());
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]

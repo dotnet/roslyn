@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypeSymbol BindTupleType(TupleTypeSyntax syntax, DiagnosticBag diagnostics)
         {
             int numElements = syntax.Elements.Count;
-            var types = ArrayBuilder<TypeSymbol>.GetInstance(numElements);
+            var types = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(numElements);
             var locations = ArrayBuilder<Location>.GetInstance(numElements);
             ArrayBuilder<string> elementNames = null;
 
@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var argumentSyntax = syntax.Elements[i];
 
                 var argumentType = BindType(argumentSyntax.Type, diagnostics);
-                types.Add(argumentType.TypeSymbol);
+                types.Add(argumentType);
 
                 string name =  null;
                 SyntaxToken nameToken = argumentSyntax.Identifier;
@@ -494,8 +494,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ImmutableArray<TypeSymbol> typesArray = types.ToImmutableAndFree();
-            ImmutableArray<Location> locationsArray = locations.ToImmutableAndFree();
+            var typesArray = types.ToImmutableAndFree();
+            var locationsArray = locations.ToImmutableAndFree();
 
             if (typesArray.Length < 2)
             {

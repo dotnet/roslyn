@@ -3312,7 +3312,7 @@ class Z
 
             var gType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("G");
             var mngMethod = (MethodSymbol)comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Z").GetMembers("MNG").First();
-            var gNullableType = mngMethod.ParameterTypes[0];
+            var gNullableType = mngMethod.ParameterTypes[0].TypeSymbol;
             Assert.True(gNullableType.IsNullableType(), "MNG parameter is not a nullable type?");
             Assert.Equal(gType, gNullableType.StrippedType());
 
@@ -3377,7 +3377,7 @@ class Z
 
             var gType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("G");
             var mngMethod = (MethodSymbol)comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Z").GetMembers("MNG").First();
-            var gNullableType = mngMethod.ParameterTypes[0];
+            var gNullableType = mngMethod.ParameterTypes[0].TypeSymbol;
             Assert.True(gNullableType.IsNullableType(), "MNG parameter is not a nullable type?");
             Assert.Equal(gType, gNullableType.StrippedType());
 
@@ -4660,9 +4660,9 @@ class C : A
             var classC = global.GetMember<NamedTypeSymbol>("C");
             var methodBar = classC.GetMember<MethodSymbol>("Bar");
 
-            var paramType0 = methodBar.ParameterTypes[0];
+            var paramType0 = methodBar.ParameterTypes[0].TypeSymbol;
             Assert.Equal(TypeKind.TypeParameter, paramType0.TypeKind);
-            var paramType1 = methodBar.ParameterTypes[1];
+            var paramType1 = methodBar.ParameterTypes[1].TypeSymbol;
             Assert.Equal(TypeKind.Class, paramType1.TypeKind);
 
             int position = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First().SpanStart;
@@ -4705,9 +4705,9 @@ class C : A
             var classC = global.GetMember<NamedTypeSymbol>("C");
             var methodBar = classC.GetMember<MethodSymbol>("Bar");
 
-            var paramType0 = methodBar.ParameterTypes[0];
+            var paramType0 = methodBar.ParameterTypes[0].TypeSymbol;
             Assert.Equal(TypeKind.TypeParameter, paramType0.TypeKind);
-            var paramType1 = methodBar.ParameterTypes[1];
+            var paramType1 = methodBar.ParameterTypes[1].TypeSymbol;
             Assert.Equal(TypeKind.Class, paramType1.TypeKind);
 
             int position = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First().SpanStart;

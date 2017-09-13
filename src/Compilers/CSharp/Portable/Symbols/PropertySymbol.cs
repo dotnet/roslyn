@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal ImmutableArray<TypeSymbol> ParameterTypes
+        internal ImmutableArray<TypeSymbolWithAnnotations> ParameterTypes
         {
             get
             {

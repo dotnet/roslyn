@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isUsed)
             {
-                var tupleType = TupleTypeSymbol.Create(locationOpt: null, elementTypes: builder.SelectAsArray(e => e.Type),
+                var tupleType = TupleTypeSymbol.Create(locationOpt: null, elementTypes: builder.SelectAsArray(e => TypeSymbolWithAnnotations.Create(e.Type)),
                     elementLocations: default, elementNames: default,
                     compilation: _compilation, shouldCheckConstraints: false, errorPositions: default);
 

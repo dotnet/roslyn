@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var paramCount = method.ParameterCount;
             var arguments = new BoundExpression[paramCount];
+
             for (int i = 0; i < paramCount; i++)
             {
                 var argument = (i == 0) ? thisArgumentValue : otherArgumentValue;
@@ -67,7 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 conversions,
                 method,
                 arguments.AsImmutable(),
-                ref useSiteDiagnostics);
+                includeNullability: false, // PROTOTYPE(NullableReferenceTypes): Support nullability if feature enabled.
+                useSiteDiagnostics: ref useSiteDiagnostics);
 
             if (typeArgs.IsDefault)
             {

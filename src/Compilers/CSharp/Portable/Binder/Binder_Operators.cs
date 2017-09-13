@@ -1006,7 +1006,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var op = operators[i];
                     if (op.ParameterCount == 1 && op.DeclaredAccessibility == Accessibility.Public)
                     {
-                        var conversion = this.Conversions.ClassifyConversionFromType(argumentType, op.ParameterTypes[0], ref useSiteDiagnostics);
+                        var conversion = this.Conversions.ClassifyConversionFromType(argumentType, op.ParameterTypes[0].TypeSymbol, ref useSiteDiagnostics);
                         if (conversion.IsImplicit)
                         {
                             @operator = op;
@@ -3546,7 +3546,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool hadMultipleCandidates;
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                TypeSymbol bestType = BestTypeInferrer.InferBestTypeForConditionalOperator(trueExpr, falseExpr, this.Conversions, out hadMultipleCandidates, ref useSiteDiagnostics);
+                var bestType = BestTypeInferrer.InferBestTypeForConditionalOperator(
+                    trueExpr,
+                    falseExpr,
+                    this.Conversions,
+                    this.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking),
+                    out hadMultipleCandidates,
+                    ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
 
                 if ((object)bestType == null)
@@ -3579,13 +3585,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (bestType.IsErrorType())
                 {
-                    type = bestType;
+                    type = bestType.TypeSymbol;
                     hasErrors = true;
                 }
                 else
                 {
-                    trueExpr = GenerateConversionForAssignment(bestType, trueExpr, diagnostics);
-                    falseExpr = GenerateConversionForAssignment(bestType, falseExpr, diagnostics);
+                    trueExpr = GenerateConversionForAssignment(bestType.TypeSymbol, trueExpr, diagnostics);
+                    falseExpr = GenerateConversionForAssignment(bestType.TypeSymbol, falseExpr, diagnostics);
 
                     if (trueExpr.HasAnyErrors || falseExpr.HasAnyErrors)
                     {
@@ -3596,7 +3602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        type = bestType;
+                        type = bestType.TypeSymbol;
                     }
                 }
             }

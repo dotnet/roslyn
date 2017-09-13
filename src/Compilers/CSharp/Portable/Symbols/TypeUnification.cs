@@ -289,9 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         NamedTypeSymbol namedType = (NamedTypeSymbol)type;
                         while ((object)namedType != null)
                         {
-                            var typeParts = namedType.IsTupleType ?
-                                namedType.TupleElementTypes.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations) :
-                                namedType.TypeArgumentsNoUseSiteDiagnostics;
+                            var typeParts = namedType.IsTupleType ? namedType.TupleElementTypes : namedType.TypeArgumentsNoUseSiteDiagnostics;
                             foreach (TypeSymbolWithAnnotations typePart in typeParts)
                             {
                                 if (Contains(typePart.TypeSymbol, typeParam))
