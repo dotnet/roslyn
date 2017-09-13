@@ -109,10 +109,10 @@ dotnet restore ${RESTORE_ARGS} ${THIS_DIR}/CrossPlatform.sln
 
 BUILD_ARGS="--no-restore -c ${BUILD_CONFIGURATION} -r ${RUNTIME_ID} /nologo /consoleloggerparameters:Verbosity=minimal;summary /filelogger /fileloggerparameters:Verbosity=normal;logFile=${BUILD_LOG_PATH} /maxcpucount:1"
 
-echo "Building bootstrap CscCore"
-dotnet publish ${SRC_PATH}/Compilers/CSharp/CscCore -o ${BOOTSTRAP_PATH}/csc ${BUILD_ARGS}
-echo "Building bootstrap VbcCore"
-dotnet publish ${SRC_PATH}/Compilers/VisualBasic/VbcCore -o ${BOOTSTRAP_PATH}/vbc ${BUILD_ARGS}
+echo "Building bootstrap csc"
+dotnet publish ${SRC_PATH}/Compilers/csc/csc -o ${BOOTSTRAP_PATH}/csc ${BUILD_ARGS}
+echo "Building bootstrap vbc"
+dotnet publish ${SRC_PATH}/Compilers/vbc/vbc -o ${BOOTSTRAP_PATH}/vbc ${BUILD_ARGS}
 rm -rf ${BINARIES_PATH}/${BUILD_CONFIGURATION}
 BUILD_ARGS+=" /p:CscToolPath=${BOOTSTRAP_PATH}/csc /p:CscToolExe=csc /p:VbcToolPath=${BOOTSTRAP_PATH}/vbc /p:VbcToolExe=vbc"
 

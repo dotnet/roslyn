@@ -185,10 +185,10 @@ function Build-ExtraSignArtifacts() {
     Push-Location (Join-Path $repoDir "src\Setup")
     try {
         # Publish the CoreClr projects (CscCore and VbcCore) and dependencies for later NuGet packaging.
-        Write-Host "Publishing CscCore"
-        Run-MSBuild "..\Compilers\CSharp\CscCore\CscCore.csproj /t:PublishWithoutBuilding"
-        Write-Host "Publishing VbcCore"
-        Run-MSBuild "..\Compilers\VisualBasic\VbcCore\VbcCore.csproj /t:PublishWithoutBuilding"
+        Write-Host "Publishing csc"
+        Run-MSBuild "..\Compilers\CSharp\csc\csc.csproj /p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
+        Write-Host "Publishing csc"
+        Run-MSBuild "..\Compilers\VisualBasic\vbc\vbc.csproj /p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
 
         # No need to build references here as we just built the rest of the source tree. 
         # We build these serially to work around https://github.com/dotnet/roslyn/issues/11856,
@@ -298,7 +298,8 @@ function Test-XUnitCoreClr() {
     # A number of our tests need to be published before they can be executed in order to get some 
     # runtime assets.
     $needPublish = @(
-        "src\Compilers\CSharp\Test\Symbol\CSharpCompilerSymbolTest.csproj"
+        "src\Compilers\CSharp\Test\Symbol\CSharpCompilerSymbolTest.csproj",
+        "src\Compilers\Server\VBCSCompilerTests\VBCSCompilerTests.csproj"
     )
 
     foreach ($file in $needPublish) {

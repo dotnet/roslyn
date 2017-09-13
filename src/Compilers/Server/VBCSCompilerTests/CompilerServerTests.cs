@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 !File.Exists(Path.Combine(basePath, CSharpClientExeName)) ||
                 !File.Exists(Path.Combine(basePath, BasicClientExeName)))
             {
+#if false
                 IsRunningAgainstInstallation = true;
 
                 // VBCSCompiler is used as a DLL in these tests, need to hook the resolve to the installed location.
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 {
                     return;
                 }
+#endif
             }
 
             CompilerDirectory = basePath;
