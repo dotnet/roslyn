@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             // If we have an explicit tuple type in code, convert that over to a tuple expression.
             // i.e.   (int x, int y) t = ...   will be converted to (int x, int y) = ...
             //
-            // If we had the "var t" form we'll conver that to the declaration expression "var (x, y)"
+            // If we had the "var t" form we'll convert that to the declaration expression "var (x, y)"
             return typeNode.IsKind(SyntaxKind.TupleType)
                 ? (ExpressionSyntax)CreateTupleExpression((TupleTypeSyntax)typeNode)
                 : CreateDeclarationExpression(tupleType, typeNode);
