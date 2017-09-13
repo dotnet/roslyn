@@ -141,6 +141,62 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         }
 
         [Fact]
+        public void LocalVar_Array_01()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        var s = new[] { string.Empty };
+        s[0].ToString();
+        var t = new[] { string.Empty, null };
+        t[0].ToString();
+        var u = new[] { 1, null };
+        u[0].ToString();
+        var v = new[] { null, (int?)2 };
+        v[0].ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (9,28): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         var u = new[] { 1, null };
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(9, 28),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         t[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t[0]").WithLocation(8, 9));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Ignore untyped
+        // expressions in BestTypeInferrer.GetBestType.
+        [Fact(Skip = "TODO")]
+        public void LocalVar_Array_02()
+        {
+            var source =
+@"delegate void D();
+class C
+{
+    static void Main()
+    {
+        var a = new[] { new D(Main), () => { } };
+        a[0].ToString();
+        var b = new[] { new D(Main), null };
+        b[0].ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         b[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b[0]").WithLocation(9, 9));
+        }
+
+        [Fact]
         public void TypeInference_01()
         {
             var source =
@@ -907,9 +963,40 @@ static class E
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 13));
         }
 
+        [Fact]
+        public void DeconstructionTypeInference_04()
+        {
+            var source =
+@"class C
+{
+    static (string?, string) F() => (string.Empty, string.Empty);
+    static void G()
+    {
+        string x;
+        string? y;
+        var t = ((x, y) = F());
+        t.x.ToString();
+        t.y.ToString();
+        t.x = null;
+        t.y = null;
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         t.y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.y").WithLocation(10, 9),
+                // (11,15): warning CS8600: Cannot convert null to non-nullable reference.
+                //         t.x = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 15));
+        }
+
         // PROTOTYPE(NullableReferenceTypes): Deconstruction declaration ignores nullability.
         [Fact(Skip = "TODO")]
-        public void DeconstructionTypeInference_04()
+        public void DeconstructionTypeInference_05()
         {
             var source =
 @"using System;
@@ -1221,12 +1308,16 @@ class C
         F(default(object)).ToString();
         F(default(int)).ToString();
         F(default(string)).ToString();
+        F(default).ToString();
     }
 }";
             var comp = CreateStandardCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
+                // (9,9): error CS0411: The type arguments for method 'C.F<T>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(default).ToString();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("C.F<T>(T)").WithLocation(9, 9),
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         F(default(object)).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(default(object))").WithLocation(6, 9),
@@ -1236,7 +1327,7 @@ class C
         }
 
         [Fact]
-        public void TypeInference_Tuple()
+        public void TypeInference_Tuple_01()
         {
             var source =
 @"class C
@@ -1260,6 +1351,46 @@ class C
         }
 
         [Fact]
+        public void TypeInference_Tuple_02()
+        {
+            var source =
+@"class C
+{
+    static T F<T>(T t) => t;
+    static void G(string x, string? y)
+    {
+        var t = (x, y);
+        F(t).Item1.ToString();
+        F(t).Item2.ToString();
+        F(t).x.ToString();
+        F(t).y.ToString();
+        var u = (a: x, b: y);
+        F(u).Item1.ToString();
+        F(u).Item2.ToString();
+        F(u).a.ToString();
+        F(u).b.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         F(t).Item2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(t).Item2").WithLocation(8, 9),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         F(t).y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(t).y").WithLocation(10, 9),
+                // (13,9): warning CS8602: Possible dereference of a null reference.
+                //         F(u).Item2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(u).Item2").WithLocation(13, 9),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         F(u).b.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(u).b").WithLocation(15, 9));
+        }
+
+        [Fact]
         public void TypeInference_ObjectCreation()
         {
             var source =
@@ -1269,6 +1400,25 @@ class C
     static void G()
     {
         F(new C { }).ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeInference_DelegateCreation()
+        {
+            var source =
+@"delegate void D();
+class C
+{
+    static T F<T>(T t) => t;
+    static void G()
+    {
+        F(new D(G)).ToString();
     }
 }";
             var comp = CreateStandardCompilation(

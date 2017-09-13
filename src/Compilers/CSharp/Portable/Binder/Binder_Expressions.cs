@@ -803,6 +803,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Count);
             var elementTypes = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(arguments.Count);
             var elementLocations = ArrayBuilder<Location>.GetInstance(arguments.Count);
+            // PROTOTYPE(NullableReferenceTypes): Could we track nullability always
+            // (even in C#7) but only report warnings when the feature is enabled?
             bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
 
             // prepare names

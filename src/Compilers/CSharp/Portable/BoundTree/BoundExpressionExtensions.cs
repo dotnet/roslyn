@@ -214,6 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return (left == true) ? right : left;
                     }
                 case BoundKind.ObjectCreationExpression:
+                case BoundKind.DelegateCreationExpression:
                     return false;
                 case BoundKind.TupleLiteral:
                     return false;

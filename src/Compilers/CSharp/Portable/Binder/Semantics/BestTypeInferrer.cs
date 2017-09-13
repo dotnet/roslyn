@@ -187,6 +187,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // If any of the types are null, the result should be nullable.
+            // PROTOTYPE(NullableReferenceTypes): Should ignore untyped
+            // expressions such as unbound lambdas and typeless tuples.
+            // See StaticNullChecking.LocalVar_Array_02 test.
             if (includeNullability &&
                 types.Any(t => (object)t == null) &&
                 best.IsReferenceType &&

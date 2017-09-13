@@ -2440,7 +2440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Optimization: if we have two or more exact bounds, fixing is impossible.
 
-            var candidates = new CandidateSet(includeNullability);
+            var candidates = new Candidates(includeNullability);
 
             // Optimization: if we have one exact bound then we need not add any
             // inexact bounds; we're just going to remove them anyway.
@@ -2449,16 +2449,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (lower != null)
                 {
-                    candidates.AddOrMergeAll(lower, conversions);
+                    candidates.AddAll(lower, conversions);
                 }
                 if (upper != null)
                 {
-                    candidates.AddOrMergeAll(upper, conversions);
+                    candidates.AddAll(upper, conversions);
                 }
             }
             else
             {
-                candidates.AddOrMergeAll(exact, conversions);
+                candidates.AddAll(exact, conversions);
                 if (candidates.Count >= 2)
                 {
                     return null;
@@ -2492,7 +2492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                candidates.MergeAndReplaceIfStillCandidate(bound, conversions);
+                                candidates.Merge(bound, conversions);
                             }
                         }
                     }
@@ -2516,7 +2516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                candidates.MergeAndReplaceIfStillCandidate(bound, conversions);
+                                candidates.Merge(bound, conversions);
                             }
                         }
                     }
@@ -2919,16 +2919,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (type.SpecialType != SpecialType.System_Void);
         }
 
-        private struct CandidateSet
+        private struct Candidates
         {
+            // The keys are types, compared ignoring dynamic, tuple names, and nullability.
+            // The values are different nullabilities associated with that type. Both keys and
+            // values are TypeSymbolWithAnnotations, although we could use bool[]? for values
+            // and recreate the TypeSymbolWithAnnotations from the key+value as needed.
             private readonly Dictionary<TypeSymbolWithAnnotations, List<TypeSymbolWithAnnotations>> _dictionary;
-            private readonly EqualsIgnoringDynamicAndTupleNamesComparer _comparer;
+            private readonly EqualsIgnoringDynamicAndTupleNamesComparer _valueComparer;
 
-            internal CandidateSet(bool includeNullability)
+            internal Candidates(bool includeNullability)
             {
                 _dictionary = new Dictionary<TypeSymbolWithAnnotations, List<TypeSymbolWithAnnotations>>(
                     EqualsIgnoringDynamicAndTupleNamesComparer.WithoutNullability);
-                _comparer = includeNullability ?
+                _valueComparer = includeNullability ?
                     EqualsIgnoringDynamicAndTupleNamesComparer.WithNullability :
                     EqualsIgnoringDynamicAndTupleNamesComparer.WithoutNullability;
             }
@@ -2946,8 +2950,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 get { return _dictionary.Count; }
             }
 
-            internal void Add(TypeSymbolWithAnnotations type)
+            internal void AddAll(HashSet<TypeSymbolWithAnnotations> set, ConversionsBase conversions)
             {
+                foreach (var candidate in set)
+                {
+                    Add(candidate, conversions);
+                }
+            }
+
+            internal void Add(TypeSymbolWithAnnotations type, ConversionsBase conversions)
+            {
+                if (Merge(type, conversions))
+                {
+                    return;
+                }
+
                 List<TypeSymbolWithAnnotations> list;
                 if (!_dictionary.TryGetValue(type, out list))
                 {
@@ -2955,6 +2972,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _dictionary.Add(type, list);
                 }
                 list.Add(type);
+            }
+
+            // Returns true if type was found and merged.
+            internal bool Merge(TypeSymbolWithAnnotations type, ConversionsBase conversions)
+            {
+                // We make an exception when type is dynamic, for backwards compatibility 
+                if (type.IsDynamic())
+                {
+                    return false;
+                }
+
+                List<TypeSymbolWithAnnotations> list;
+                if (!_dictionary.TryGetValue(type, out list))
+                {
+                    return false;
+                }
+
+                bool found = list.Contains(type, _valueComparer);
+                for (int i = 0; i < list.Count; i++)
+                {
+                    list[i] = MergeTupleNames(MergeDynamic(list[i], type, conversions.CorLibrary), type);
+                }
+                return found;
             }
 
             internal void Remove(TypeSymbolWithAnnotations type)
@@ -2968,7 +3008,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var builder = new List<TypeSymbolWithAnnotations>();
                 foreach (var value in list)
                 {
-                    if (!_comparer.Equals(type, value))
+                    if (!_valueComparer.Equals(type, value))
                     {
                         builder.Add(value);
                     }
@@ -2981,49 +3021,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     _dictionary[type] = builder;
                 }
-            }
-
-            internal void AddOrMergeAll(HashSet<TypeSymbolWithAnnotations> set, ConversionsBase conversions)
-            {
-                foreach (var candidate in set)
-                {
-                    AddOrMerge(candidate, conversions);
-                }
-            }
-
-            private void AddOrMerge(TypeSymbolWithAnnotations @new, ConversionsBase conversions)
-            {
-                if (!MergeAndReplaceIfStillCandidate(@new, conversions))
-                {
-                    Add(@new);
-                }
-            }
-
-            internal bool MergeAndReplaceIfStillCandidate(TypeSymbolWithAnnotations @new, ConversionsBase conversions)
-            {
-                // We make an exception when @new is dynamic, for backwards compatibility 
-                if (@new.IsDynamic())
-                {
-                    return false;
-                }
-
-                List<TypeSymbolWithAnnotations> list;
-                if (!_dictionary.TryGetValue(@new, out list))
-                {
-                    return false;
-                }
-
-                bool found = false;
-                for (int i = 0; i < list.Count; i++)
-                {
-                    var item = list[i];
-                    if (_comparer.Equals(@new, item))
-                    {
-                        found = true;
-                    }
-                    list[i] = MergeTupleNames(MergeDynamic(item, @new, conversions.CorLibrary), @new);
-                }
-                return found;
             }
         }
 
