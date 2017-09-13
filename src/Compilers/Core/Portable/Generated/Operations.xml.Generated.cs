@@ -3037,7 +3037,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Referenced member.
         /// </summary>
-        public ISymbol Member { get; }
+        public virtual ISymbol Member { get; }
     }
 
     /// <summary>
@@ -3045,8 +3045,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseMethodBindingExpression : MemberReferenceExpression, IMethodBindingExpression
     {
-        public BaseMethodBindingExpression(IMethodSymbol method, bool isVirtual, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(member, OperationKind.MethodBindingExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        public BaseMethodBindingExpression(IMethodSymbol method, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(null, OperationKind.MethodBindingExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Method = method;
             IsVirtual = isVirtual;
@@ -3060,6 +3060,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Indicates whether the reference uses virtual semantics.
         /// </summary>
         public bool IsVirtual { get; }
+
+        /// <summary>
+        /// Referenced member.
+        /// </summary>
+        public override ISymbol Member => Method;
+
         public override IEnumerable<IOperation> Children
         {
             get
@@ -3083,8 +3089,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class MethodBindingExpression : BaseMethodBindingExpression, IMethodBindingExpression
     {
-        public MethodBindingExpression(IMethodSymbol method, bool isVirtual, IOperation instance, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(method, isVirtual, member, semanticModel, syntax, type, constantValue, isImplicit)
+        public MethodBindingExpression(IMethodSymbol method, bool isVirtual, IOperation instance, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(method, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
         {
             InstanceImpl = instance;
         }
@@ -3101,8 +3107,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyInstance;
 
-        public LazyMethodBindingExpression(IMethodSymbol method, bool isVirtual, Lazy<IOperation> instance, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(method, isVirtual, member, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyMethodBindingExpression(IMethodSymbol method, bool isVirtual, Lazy<IOperation> instance, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(method, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
         }

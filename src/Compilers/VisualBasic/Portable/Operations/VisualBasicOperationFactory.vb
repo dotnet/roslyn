@@ -609,7 +609,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim type As ITypeSymbol = boundDelegateCreationExpression.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundDelegateCreationExpression.ConstantValueOpt)
             Dim isImplicit As Boolean = boundDelegateCreationExpression.WasCompilerGenerated
-            Return New LazyMethodBindingExpression(method, isVirtual, instance, method, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyMethodBindingExpression(method, isVirtual, instance, _semanticModel, syntax, type, constantValue, isImplicit)
 
         End Function
 

@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitMethodBindingExpression(IMethodBindingExpression operation, object argument)
         {
-            return new MethodBindingExpression(operation.Method, operation.IsVirtual, Visit(operation.Instance), operation.Member, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new MethodBindingExpression(operation.Method, operation.IsVirtual, Visit(operation.Instance), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitPropertyReferenceExpression(IPropertyReferenceExpression operation, object argument)

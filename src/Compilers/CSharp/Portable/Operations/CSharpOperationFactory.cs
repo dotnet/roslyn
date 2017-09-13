@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol bindingType = boundMethodGroup.Type;
             Optional<object> bindingConstantValue = ConvertToOptional(boundMethodGroup.ConstantValue);
             bool isImplicit = boundMethodGroup.WasCompilerGenerated;
-            return new LazyMethodBindingExpression(methodSymbol, isVirtual, instance, methodSymbol, _semanticModel, bindingSyntax, bindingType, bindingConstantValue, boundMethodGroup.WasCompilerGenerated);
+            return new LazyMethodBindingExpression(methodSymbol, isVirtual, instance, _semanticModel, bindingSyntax, bindingType, bindingConstantValue, boundMethodGroup.WasCompilerGenerated);
         }
 
         private IIsTypeExpression CreateBoundIsOperatorOperation(BoundIsOperator boundIsOperator)
