@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLiteralToStringDifferentCulture()
         {
             var culture = CultureInfo.CurrentCulture;
-            CultureInfo.CurrentCulture = new CultureInfo("de-DE");
+            CultureInfo.CurrentCulture = new CultureInfo("de-DE", useUserOverride: false);
 
             // If we are using the current culture to format the string then
             // decimal values should render as , instead of .

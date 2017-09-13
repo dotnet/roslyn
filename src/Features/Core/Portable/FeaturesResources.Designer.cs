@@ -126,6 +126,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add argument name &apos;{0}&apos; (including trailing arguments).
+        /// </summary>
+        internal static string Add_argument_name_0_including_trailing_arguments {
+            get {
+                return ResourceManager.GetString("Add_argument_name_0_including_trailing_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add both.
         /// </summary>
         internal static string Add_both {

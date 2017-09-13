@@ -1312,5 +1312,7 @@ This version used in: {2}</value>
   </data>
   <data name="Variable_declaration_can_be_deconstructed" xml:space="preserve">
     <value>Variable declaration can be deconstructed</value>
+  <data name="Add_argument_name_0_including_trailing_arguments" xml:space="preserve">
+    <value>Add argument name '{0}' (including trailing arguments)</value>
   </data>
 </root>
