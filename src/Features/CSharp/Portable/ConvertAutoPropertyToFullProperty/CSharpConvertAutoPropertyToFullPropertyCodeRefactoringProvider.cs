@@ -47,6 +47,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             return containingProperty;
         }
 
+        internal override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, CancellationToken cancellationToken)
+        {
+            var rules = await GetNamingRulesAsync(document, cancellationToken).ConfigureAwait(false);
+            return GenerateFieldName(propertySymbol, rules);
+        }
+
         /// <summary>
         /// Get the user-specified naming rules, then add standard default naming rules 
         /// for both static and non-static fields.  The standard naming rules are added at the end 
@@ -62,12 +68,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var namingPreferencesOption = optionSet.GetOption(SimplificationOptions.NamingPreferences);
             var rules = namingPreferencesOption.CreateRules().NamingRules
-                .AddRange(GetDefaultRule(ImmutableArray.Create(new ModifierKind(ModifierKindEnum.IsStatic)), defaultStaticFieldPrefix))
-                .AddRange(GetDefaultRule(ImmutableArray.Create<ModifierKind>(), defaultFieldPrefix));
+                .AddRange(CreateNewRule(ImmutableArray.Create(new ModifierKind(ModifierKindEnum.IsStatic)), defaultStaticFieldPrefix))
+                .AddRange(CreateNewRule(ImmutableArray.Create<ModifierKind>(), defaultFieldPrefix));
             return rules;
         }
 
-        private static ImmutableArray<NamingRule> GetDefaultRule(
+        private static ImmutableArray<NamingRule> CreateNewRule(
             ImmutableArray<ModifierKind> modifiers,
             string prefix)
         {
@@ -101,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                 }
             }
 
-            return GetUniqueName(fieldName, property);
+            return NameGenerator.GenerateUniqueName(fieldName, n => !property.ContainingType.GetMembers(n).Any());
         }
 
         internal override (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
@@ -207,8 +213,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         internal ExpressionBodyPreference GetPropertyExpressionBodyPreference(DocumentOptionSet options)
             => options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
 
-        internal string GetUniqueName(string fieldName, IPropertySymbol property)
-            => NameGenerator.GenerateUniqueName(fieldName, n => !property.ContainingType.GetMembers(n).Any());
 
         internal override SyntaxNode GetTypeBlock(SyntaxNode syntaxNode) 
             => syntaxNode;
@@ -218,12 +222,5 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
 
         internal override SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property) 
             => ((PropertyDeclarationSyntax)property).WithInitializer(null);
-
-        internal override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, CancellationToken cancellationToken)
-        {
-            var rules = await GetNamingRulesAsync(document, cancellationToken).ConfigureAwait(false);
-            var fieldName = GenerateFieldName(propertySymbol, rules);
-            return fieldName;
-        }
     }
 }

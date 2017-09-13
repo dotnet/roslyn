@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
     {
         internal abstract SyntaxNode GetProperty(SyntaxToken token);
         internal abstract Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, CancellationToken cancellationToken);
-        internal abstract SyntaxNode GetInitializerValue(SyntaxNode property);
-        internal abstract SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property);
         internal abstract (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
             DocumentOptionSet options, SyntaxNode property, string fieldName, SyntaxGenerator generator);
-        internal abstract SyntaxNode GetTypeBlock(SyntaxNode syntaxNode);
+        internal abstract SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property);
+        internal abstract SyntaxNode GetInitializerValue(SyntaxNode property);
         internal abstract SyntaxNode ConvertPropertyToExpressionBodyIfDesired(DocumentOptionSet options, SyntaxNode fullProperty);
+        internal abstract SyntaxNode GetTypeBlock(SyntaxNode syntaxNode);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -72,29 +72,13 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
-            var newRoot = await ExpandPropertyAndAddFieldAsync(
-                document,
-                property,
-                root,
-                propertySymbol,
-                generator,
-                cancellationToken).ConfigureAwait(false);
-
-            return document.WithSyntaxRoot(newRoot);
-        }
-
-        private async Task<SyntaxNode> ExpandPropertyAndAddFieldAsync(
-            Document document, SyntaxNode property, SyntaxNode root, 
-            IPropertySymbol propertySymbol, SyntaxGenerator generator,
-            CancellationToken cancellationToken)
-        {
             var workspace = document.Project.Solution.Workspace;
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             // Create full property. If the auto property had an initial value
             // we need to remove it and later add it to the backing field
             var fieldName = await GetFieldNameAsync(document, propertySymbol, cancellationToken).ConfigureAwait(false);
-            var accessorTuple = GetNewAccessors(options, property,fieldName, generator);
+            var accessorTuple = GetNewAccessors(options, property, fieldName, generator);
             var fullProperty = generator
                 .WithAccessorDeclarations(
                     GetPropertyWithoutInitializer(property),
@@ -102,23 +86,23 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                         ? new SyntaxNode[] { accessorTuple.newGetAccessor }
                         : new SyntaxNode[] { accessorTuple.newGetAccessor, accessorTuple.newSetAccessor })
                 .WithLeadingTrivia(property.GetLeadingTrivia());
-            fullProperty = ConvertPropertyToExpressionBodyIfDesired(options,fullProperty);
+            fullProperty = ConvertPropertyToExpressionBodyIfDesired(options, fullProperty);
             var editor = new SyntaxEditor(root, workspace);
             editor.ReplaceNode(property, fullProperty.WithAdditionalAnnotations(Formatter.Annotation));
 
             // add backing field, plus initializer if it exists 
             var newField = CodeGenerationSymbolFactory.CreateFieldSymbol(
-                default, Accessibility.Private, 
-                DeclarationModifiers.From(propertySymbol), 
-                propertySymbol.Type, fieldName, 
+                default, Accessibility.Private,
+                DeclarationModifiers.From(propertySymbol),
+                propertySymbol.Type, fieldName,
                 initializer: GetInitializerValue(property));
             var containingType = GetTypeBlock(
                 propertySymbol.ContainingType.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax(cancellationToken));
-            editor.ReplaceNode(containingType, (currentTypeDecl, _) 
+            editor.ReplaceNode(containingType, (currentTypeDecl, _)
                 => CodeGenerator.AddFieldDeclaration(currentTypeDecl, newField, workspace)
                 .WithAdditionalAnnotations(Formatter.Annotation));
-
-            return editor.GetChangedRoot();
+            var newRoot = editor.GetChangedRoot();
+            return document.WithSyntaxRoot(newRoot);
         }
 
         private class ConvertAutoPropertyToFullPropertyCodeAction : CodeAction.DocumentChangeAction
