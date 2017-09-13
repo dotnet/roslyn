@@ -551,17 +551,22 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundConversion.ConstantValueOpt)
             Dim isImplicit As Boolean = boundConversion.WasCompilerGenerated
             Dim methodSymbol As MethodSymbol
+            Dim isAddressOfDelegateCreation As Boolean = False
 
             If (boundConversion.ConversionKind And VisualBasic.ConversionKind.UserDefined) = VisualBasic.ConversionKind.UserDefined Then
                 Dim userDefinedConversion As BoundUserDefinedConversion = DirectCast(boundConversion.Operand, BoundUserDefinedConversion)
                 methodSymbol = userDefinedConversion.Call.Method
                 operand = New Lazy(Of IOperation)(Function() Create(userDefinedConversion.Operand))
             ElseIf boundConversion.ConversionKind = VisualBasic.ConversionKind.Identity AndAlso
-                   boundConversion.Operand.Kind = BoundKind.DelegateCreationExpression Then
-                ' In this scenario, we're something like New DelegateType(AddressOf Method)
-                ' We don't want to process both this conversion and the DelegateCreationExpression
-                ' as different delegate creation expressions. So we have the operand here be the
-                ' child of the BoundDelegateCreationExpression
+                   boundConversion.Operand.Kind = BoundKind.DelegateCreationExpression AndAlso
+                   boundConversion.Syntax.Kind() = SyntaxKind.ObjectCreationExpression AndAlso
+                   boundConversion.Operand.Syntax.Kind() = SyntaxKind.AddressOfExpression Then
+                ' In this scenario, we're New DelegateType(AddressOf Method)
+                ' The binder inserts an Identity conversion here, to ensure that there is a bound
+                ' node for SemanticModel to get info about. However, this node is an implementation
+                ' detail, and we don't want to expose it in the IOperation tree. So, we have the operand
+                ' here be the child of the BoundDelegateCreationExpression
+                isAddressOfDelegateCreation = True
                 methodSymbol = Nothing
                 operand = New Lazy(Of IOperation)(Function() CreateBoundDelegateCreationExpressionChildOperation(DirectCast(boundConversion.Operand, BoundDelegateCreationExpression)))
             Else
@@ -569,14 +574,13 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 operand = New Lazy(Of IOperation)(Function() Create(boundConversion.Operand))
             End If
 
-            If (boundConversion.Operand.Kind = BoundKind.Lambda OrElse
-                boundConversion.Operand.Kind = BoundKind.QueryLambda OrElse
-                boundConversion.Operand.Kind = BoundKind.RelaxationLambda OrElse
-                boundConversion.Operand.Kind = BoundKind.UnboundLambda OrElse
-                boundConversion.Operand.Kind = BoundKind.DelegateCreationExpression) AndAlso
-               boundConversion.Type.IsDelegateType() Then
-                ' If we're converting a lambda expression to a delegate type, we're creating a delegate. We return a delegate
-                ' creation expression for this scenario
+            If isAddressOfDelegateCreation OrElse
+               ((boundConversion.Operand.Kind = BoundKind.Lambda OrElse
+                 boundConversion.Operand.Kind = BoundKind.QueryLambda OrElse
+                 boundConversion.Operand.Kind = BoundKind.UnboundLambda) AndAlso
+                boundConversion.Type.IsDelegateType()) Then
+                ' If this is a conversion from a lambda to a delegate type, or this is an AddressOf delegate creation
+                ' as determined above, we return a DelegateCreationExpression, instead of returning a conversion expression
                 Return New LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit)
             End If
 
