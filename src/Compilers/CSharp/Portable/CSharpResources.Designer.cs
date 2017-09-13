@@ -6893,7 +6893,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Elements defined in a namespace cannot be explicitly declared as private, protected, or protected internal.
+        ///   Looks up a localized string similar to Elements defined in a namespace cannot be explicitly declared as private, protected, protected internal, or private protected.
         /// </summary>
         internal static string ERR_NoNamespacePrivate {
             get {
@@ -10373,6 +10373,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeaturePragma {
             get {
                 return ResourceManager.GetString("IDS_FeaturePragma", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to private protected.
+        /// </summary>
+        internal static string IDS_FeaturePrivateProtected {
+            get {
+                return ResourceManager.GetString("IDS_FeaturePrivateProtected", resourceCulture);
             }
         }
         
