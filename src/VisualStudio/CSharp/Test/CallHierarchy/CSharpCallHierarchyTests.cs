@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CallHierarchy
 {
-    public class CallHierarchyTests
+    public class CSharpCallHierarchyTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
         public void InvokeOnMethod()

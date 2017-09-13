@@ -4,6 +4,7 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.VisualStudio.Language.CallHierarchy
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
     Public Class CallHierarchyTests
