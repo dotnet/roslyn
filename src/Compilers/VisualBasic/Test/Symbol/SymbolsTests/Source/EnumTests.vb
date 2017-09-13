@@ -367,7 +367,7 @@ BC30396: 'MustInherit' is not valid on an Enum declaration.
 BC30178: Specifier is duplicated.
     Private Private Enum Figure4
             ~~~~~~~
-BC30176: Only one of 'Public', 'Private', 'Protected', 'Friend', or 'Protected Friend' can be specified.
+BC30176: Only one of 'Public', 'Private', 'Protected', 'Friend', 'Protected Friend', or 'Private Protected' can be specified.
     Private Public Enum Figure5
             ~~~~~~
 BC30280: Enum 'Figure5' must contain at least one member.
