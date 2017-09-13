@@ -1165,6 +1165,7 @@ public unsafe class C
 
         #region Member Access, Invocation
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestDynamicMemberAccessErrors()
         {
@@ -1230,6 +1231,7 @@ class C
             TestDynamicMemberAccessCore(source);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestDynamicCallErrors()
         {
@@ -1276,6 +1278,7 @@ IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: d
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestDynamicArgumentsToCallsErrors()
         {
@@ -1296,8 +1299,8 @@ IInvocationExpression ( void C.Goo()) (OperationKind.InvocationExpression, Type:
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: 'd')
         IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
-        InConversion: null
-        OutConversion: null
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.Goo(int, int)'
@@ -1308,6 +1311,7 @@ IInvocationExpression ( void C.Goo()) (OperationKind.InvocationExpression, Type:
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestDynamicArgumentsToCalls()
         {
@@ -1335,12 +1339,12 @@ IInvocationExpression ( ? C.()) (OperationKind.InvocationExpression, Type: ?, Is
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'd')
         IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
-        InConversion: null
-        OutConversion: null
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'd')
         IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
-        InConversion: null
-        OutConversion: null
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0452: The type 'short' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C.Goo<T>(int, int)'
@@ -1351,6 +1355,7 @@ IInvocationExpression ( ? C.()) (OperationKind.InvocationExpression, Type: ?, Is
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void TestDynamicMemberAccess_EarlyBoundReceiver_OuterInstance()
         {
@@ -1381,8 +1386,8 @@ IInvocationExpression ( ? A.B.()) (OperationKind.InvocationExpression, Type: ?, 
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'd')
         ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
-        InConversion: null
-        OutConversion: null
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(15,13): error CS0120: An object reference is required for the non-static field, method, or property 'A.F'
