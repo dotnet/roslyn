@@ -56,18 +56,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var otherArgumentValue = new BoundLiteral(syntax, ConstantValue.Bad, otherArgumentType) { WasCompilerGenerated = true };
 
             var paramCount = method.ParameterCount;
-            var arguments = ArrayBuilder<BoundExpression>.GetInstance(paramCount);
+            var arguments = new BoundExpression[paramCount];
 
             for (int i = 0; i < paramCount; i++)
             {
                 var argument = (i == 0) ? thisArgumentValue : otherArgumentValue;
-                arguments.Add(argument);
+                arguments[i] = argument;
             }
 
             var typeArgs = MethodTypeInferrer.InferTypeArgumentsFromFirstArgument(
                 conversions,
                 method,
-                arguments.ToImmutableAndFree(),
+                arguments.AsImmutable(),
                 includeNullability: false, // PROTOTYPE(NullableReferenceTypes): Support nullability if feature enabled.
                 useSiteDiagnostics: ref useSiteDiagnostics);
 

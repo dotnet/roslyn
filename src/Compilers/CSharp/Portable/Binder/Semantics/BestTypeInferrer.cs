@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // PROTOTYPE(NullableReferenceTypes): Should be a two-pass approach
         // similar to MethodTypeInferrer which compares with nullability and
-        // without, and prefers the result with nullability.
+        // without and prefers the result with nullability.
         private TypeSymbolWithAnnotations GetBestType(ImmutableArray<TypeSymbolWithAnnotations> types, bool includeNullability, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // This code assumes that the types in the list are unique. 

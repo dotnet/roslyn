@@ -317,6 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public bool IsEnumType() => TypeSymbol.IsEnumType();
         public bool IsDynamic() => TypeSymbol.IsDynamic();
         public bool IsObjectType() => TypeSymbol.IsObjectType();
+        public bool IsArray() => TypeSymbol.IsArray();
         public virtual bool IsRestrictedType() => TypeSymbol.IsRestrictedType();
         public bool IsPointerType() => TypeSymbol.IsPointerType();
         public bool IsErrorType() => TypeSymbol.IsErrorType();

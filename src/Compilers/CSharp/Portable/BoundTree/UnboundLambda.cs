@@ -166,10 +166,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // No return statements have expressions; use delegate InvokeMethod
                 // or infer type Task if delegate type not available.
-                return TypeSymbolWithAnnotations.Create(
-                    (object)taskType != null && taskType.Arity == 0 ?
-                        taskType :
-                        binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task));
+                var resultType = (object)taskType != null && taskType.Arity == 0 ?
+                    taskType :
+                    binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+                return TypeSymbolWithAnnotations.Create(resultType);
             }
 
             if ((object)bestResultType == null || bestResultType.SpecialType == SpecialType.System_Void)

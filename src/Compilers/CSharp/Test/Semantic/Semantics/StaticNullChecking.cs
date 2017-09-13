@@ -15565,7 +15565,7 @@ class C
         b = c ? x! : y!;
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(
+            var comp = CreateStandardCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(

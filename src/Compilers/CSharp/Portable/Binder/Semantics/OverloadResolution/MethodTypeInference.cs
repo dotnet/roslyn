@@ -1539,7 +1539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // SPEC: * Otherwise, if U is an array type UE[...] and V is an array type VE[...]
             // SPEC:   of the same rank then an exact inference from UE to VE is made.
-            if (!source.TypeSymbol.IsArray() || !target.TypeSymbol.IsArray())
+            if (!source.IsArray() || !target.IsArray())
             {
                 return false;
             }
@@ -1555,7 +1555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        enum ExactOrBoundsKind
+        private enum ExactOrBoundsKind
         {
             Exact,
             LowerBound,
@@ -1597,7 +1597,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
-
 
         private bool ExactNullableInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
@@ -2167,7 +2166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:     from Ue to Ve is made.
             // SPEC:   * otherwise an exact inference from Ue to Ve is made.
 
-            if (!target.TypeSymbol.IsArray())
+            if (!target.IsArray())
             {
                 return false;
             }
