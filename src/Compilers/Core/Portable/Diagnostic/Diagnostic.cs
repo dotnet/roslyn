@@ -520,10 +520,8 @@ namespace Microsoft.CodeAnalysis
                     return 0;
 
                 case DiagnosticSeverity.Warning:
-                    return 1;
-
                 default:
-                    return HighestValidWarningLevel;
+                    return 1;
             }
         }
 
