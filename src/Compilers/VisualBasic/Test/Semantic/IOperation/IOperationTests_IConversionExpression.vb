@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -1030,6 +1030,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: 'AddressOf M2')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf M2')
+            Children(1):
+                IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1119,6 +1121,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.Int64), IsInvalid) (Syntax: 'AddressOf M2')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf M2')
+            Children(1):
+                IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -2346,6 +2350,33 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             Dim expectedDiagnostics = String.Empty
 
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub ConversionExpression_Implicit_WideningMethodGroupToDelegate_InvalidGenericArguments()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module M1
+    Sub Method1()
+        Dim a As Action(Of String) = AddressOf Method2(Of String)'BIND:"AddressOf Method2(Of String)"
+    End Sub
+
+    Sub Method2(arg As Object)
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC32045: 'Public Sub Method2(arg As Object)' has no type parameters and so cannot have type arguments.
+        Dim a As Action(Of String) = AddressOf Method2(Of String)'BIND:"AddressOf Method2(Of String)"
+                                                      ~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
 #End Region
