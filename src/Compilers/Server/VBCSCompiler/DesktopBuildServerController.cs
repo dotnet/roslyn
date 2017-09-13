@@ -40,23 +40,31 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         protected internal override TimeSpan? GetKeepAliveTimeout()
         {
-            int keepAliveValue;
-            string keepAliveStr = _appSettings[KeepAliveSettingName];
-            if (int.TryParse(keepAliveStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out keepAliveValue) &&
-                keepAliveValue >= 0)
+            try
             {
-                if (keepAliveValue == 0)
+                int keepAliveValue;
+                string keepAliveStr = _appSettings[KeepAliveSettingName];
+                if (int.TryParse(keepAliveStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out keepAliveValue) &&
+                    keepAliveValue >= 0)
                 {
-                    // This is a one time server entry.
-                    return null;
+                    if (keepAliveValue == 0)
+                    {
+                        // This is a one time server entry.
+                        return null;
+                    }
+                    else
+                    {
+                        return TimeSpan.FromSeconds(keepAliveValue);
+                    }
                 }
                 else
                 {
-                    return TimeSpan.FromSeconds(keepAliveValue);
+                    return ServerDispatcher.DefaultServerKeepAlive;
                 }
             }
-            else
+            catch (Exception e)
             {
+                CompilerServerLogger.LogException(e, "Could not read AppSettings");
                 return ServerDispatcher.DefaultServerKeepAlive;
             }
         }
