@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -9,17 +10,21 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 {
-    internal class AbstractCallHierarchyCommandHandler : ICommandHandler<ViewCallHierarchyCommandArgs>
+    [ExportCommandHandler("CallHierarchy", ContentTypeNames.CSharpContentType, ContentTypeNames.VisualBasicContentType)]
+    [Order(After = PredefinedCommandHandlerNames.DocumentationComments)]
+    internal class CallHierarchyCommandHandler : ICommandHandler<ViewCallHierarchyCommandArgs>
     {
         private readonly ICallHierarchyPresenter _presenter;
         private readonly CallHierarchyProvider _provider;
         private readonly IWaitIndicator _waitIndicator;
 
-        protected AbstractCallHierarchyCommandHandler(IEnumerable<ICallHierarchyPresenter> presenters, CallHierarchyProvider provider, IWaitIndicator waitIndicator)
+        [ImportingConstructor]
+        public CallHierarchyCommandHandler([ImportMany] IEnumerable<ICallHierarchyPresenter> presenters, CallHierarchyProvider provider, IWaitIndicator waitIndicator)
         {
             _presenter = presenters.FirstOrDefault();
             _provider = provider;
