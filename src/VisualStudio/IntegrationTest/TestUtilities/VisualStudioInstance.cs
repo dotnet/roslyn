@@ -165,7 +165,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             Workspace.CleanUpWaitingService();
             Workspace.CleanUpWorkspace();
-            //SolutionExplorer.CleanUpOpenSolution();
+            SolutionExplorer.CleanUpOpenSolution();
             InteractiveWindow.CloseInteractiveWindow();
         }
 

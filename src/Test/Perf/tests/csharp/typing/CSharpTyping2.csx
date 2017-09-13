@@ -76,7 +76,7 @@ class CSharpTyping2 : PerfTest
         }
 
         //System.Windows.Forms.MessageBox.Show("Done waiting!");
-        ETWActions.StopETWListener(VisualStudio);
+        //ETWActions.StopETWListener(VisualStudio);
         VisualStudio.Close();
 
         foreach (var xml in Directory.EnumerateFiles(perfResults, "*.xml"))
