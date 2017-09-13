@@ -17,6 +17,8 @@ using Microsoft.VisualStudio.Text.Operations;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [ExportWorkspaceServiceFactory(typeof(ITextUndoHistoryWorkspaceService), ServiceLayer.Host), Shared]
     internal class VisualStudioTextUndoHistoryWorkspaceServiceFactory : IWorkspaceServiceFactory
     {

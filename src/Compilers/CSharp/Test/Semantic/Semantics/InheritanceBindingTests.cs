@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -37,6 +38,7 @@ interface IGoo
     void Method11();
     void Method12();
     void Method13();
+    void Method14();
 }
 
 abstract partial class AbstractGoo : IGoo
@@ -58,48 +60,53 @@ abstract partial class AbstractGoo : IGoo
     extern void IGoo.Method11(); //not an error (in dev10 or roslyn)
     static void IGoo.Method12() { }
     partial void IGoo.Method13();
+
+    private protected void IGoo.Method14() { }
 }";
 
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (21,24): error CS0106: The modifier 'abstract' is not valid for this item
+                // (22,24): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract void IGoo.Method1() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method1").WithArguments("abstract"),
-                // (22,23): error CS0106: The modifier 'virtual' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method1").WithArguments("abstract").WithLocation(22, 24),
+                // (23,23): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual void IGoo.Method2() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method2").WithArguments("virtual"),
-                // (23,24): error CS0106: The modifier 'override' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method2").WithArguments("virtual").WithLocation(23, 23),
+                // (24,24): error CS0106: The modifier 'override' is not valid for this item
                 //     override void IGoo.Method3() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method3").WithArguments("override"),
-                // (25,22): error CS0106: The modifier 'sealed' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method3").WithArguments("override").WithLocation(24, 24),
+                // (26,22): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed void IGoo.Method4() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method4").WithArguments("sealed"),
-                // (27,19): error CS0106: The modifier 'new' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method4").WithArguments("sealed").WithLocation(26, 22),
+                // (28,19): error CS0106: The modifier 'new' is not valid for this item
                 //     new void IGoo.Method5() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method5").WithArguments("new"),
-                // (29,22): error CS0106: The modifier 'public' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method5").WithArguments("new").WithLocation(28, 19),
+                // (30,22): error CS0106: The modifier 'public' is not valid for this item
                 //     public void IGoo.Method6() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method6").WithArguments("public"),
-                // (30,25): error CS0106: The modifier 'protected' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method6").WithArguments("public").WithLocation(30, 22),
+                // (31,25): error CS0106: The modifier 'protected' is not valid for this item
                 //     protected void IGoo.Method7() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method7").WithArguments("protected"),
-                // (31,24): error CS0106: The modifier 'internal' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method7").WithArguments("protected").WithLocation(31, 25),
+                // (32,24): error CS0106: The modifier 'internal' is not valid for this item
                 //     internal void IGoo.Method8() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method8").WithArguments("internal"),
-                // (32,34): error CS0106: The modifier 'protected internal' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method8").WithArguments("internal").WithLocation(32, 24),
+                // (33,34): error CS0106: The modifier 'protected internal' is not valid for this item
                 //     protected internal void IGoo.Method9() { } //roslyn considers 'protected internal' one modifier (two in dev10)
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method9").WithArguments("protected internal"),
-                // (33,23): error CS0106: The modifier 'private' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method9").WithArguments("protected internal").WithLocation(33, 34),
+                // (34,23): error CS0106: The modifier 'private' is not valid for this item
                 //     private void IGoo.Method10() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method10").WithArguments("private"),
-                // (36,22): error CS0106: The modifier 'static' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method10").WithArguments("private").WithLocation(34, 23),
+                // (37,22): error CS0106: The modifier 'static' is not valid for this item
                 //     static void IGoo.Method12() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method12").WithArguments("static"),
-                // (37,23): error CS0754: A partial method may not explicitly implement an interface method
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method12").WithArguments("static").WithLocation(37, 22),
+                // (40,33): error CS0106: The modifier 'private protected' is not valid for this item
+                //     private protected void IGoo.Method14() { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method14").WithArguments("private protected").WithLocation(40, 33),
+                // (38,23): error CS0754: A partial method may not explicitly implement an interface method
                 //     partial void IGoo.Method13();
-                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "Method13"),
-                // (35,22): warning CS0626: Method, operator, or accessor 'AbstractGoo.IGoo.Method11()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "Method13").WithLocation(38, 23),
+                // (36,22): warning CS0626: Method, operator, or accessor 'AbstractGoo.IGoo.Method11()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern void IGoo.Method11(); //not an error (in dev10 or roslyn)
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Method11").WithArguments("AbstractGoo.IGoo.Method11()")
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Method11").WithArguments("AbstractGoo.IGoo.Method11()").WithLocation(36, 22)
                 );
         }
 
@@ -4542,6 +4549,11 @@ public class Base
     public virtual void Method11() { }
     public virtual void Method12() { }
     public virtual void Method13() { }
+
+    private protected virtual void Method14() { }
+    private protected virtual void Method15() { }
+    private protected virtual void Method16() { }
+    private protected virtual void Method17() { }
 }
 
 public class Derived1 : Base
@@ -4562,26 +4574,63 @@ public class Derived1 : Base
     internal override void Method11() { }
     protected override void Method12() { }
     protected internal override void Method13() { }
+
+    internal override void Method14() { }
+    protected override void Method15() { }
+    protected internal override void Method16() { }
+    public override void Method17() { }
 }
 ";
-
-            CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 24, Column = 29 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 25, Column = 38 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 26, Column = 26 },
-
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 28, Column = 28 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 29, Column = 38 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 30, Column = 26 },
-
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 32, Column = 28 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 33, Column = 29 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 35, Column = 26 },
-
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 37, Column = 28 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 38, Column = 29 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 39, Column = 38 },
-            });
+            CreateStandardCompilation(text, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+                // (30,38): error CS0507: 'Derived1.Method2()': cannot change access modifiers when overriding 'internal' inherited member 'Base.Method2()'
+                //     protected internal override void Method2() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method2").WithArguments("Derived1.Method2()", "internal", "Base.Method2()").WithLocation(30, 38),
+                // (31,26): error CS0507: 'Derived1.Method3()': cannot change access modifiers when overriding 'internal' inherited member 'Base.Method3()'
+                //     public override void Method3() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method3").WithArguments("Derived1.Method3()", "internal", "Base.Method3()").WithLocation(31, 26),
+                // (33,28): error CS0507: 'Derived1.Method4()': cannot change access modifiers when overriding 'protected' inherited member 'Base.Method4()'
+                //     internal override void Method4() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method4").WithArguments("Derived1.Method4()", "protected", "Base.Method4()").WithLocation(33, 28),
+                // (34,38): error CS0507: 'Derived1.Method5()': cannot change access modifiers when overriding 'protected' inherited member 'Base.Method5()'
+                //     protected internal override void Method5() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method5").WithArguments("Derived1.Method5()", "protected", "Base.Method5()").WithLocation(34, 38),
+                // (35,26): error CS0507: 'Derived1.Method6()': cannot change access modifiers when overriding 'protected' inherited member 'Base.Method6()'
+                //     public override void Method6() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method6").WithArguments("Derived1.Method6()", "protected", "Base.Method6()").WithLocation(35, 26),
+                // (37,28): error CS0507: 'Derived1.Method7()': cannot change access modifiers when overriding 'protected internal' inherited member 'Base.Method7()'
+                //     internal override void Method7() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method7").WithArguments("Derived1.Method7()", "protected internal", "Base.Method7()").WithLocation(37, 28),
+                // (38,29): error CS0507: 'Derived1.Method8()': cannot change access modifiers when overriding 'protected internal' inherited member 'Base.Method8()'
+                //     protected override void Method8() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method8").WithArguments("Derived1.Method8()", "protected internal", "Base.Method8()").WithLocation(38, 29),
+                // (40,26): error CS0507: 'Derived1.Method10()': cannot change access modifiers when overriding 'protected internal' inherited member 'Base.Method10()'
+                //     public override void Method10() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method10").WithArguments("Derived1.Method10()", "protected internal", "Base.Method10()").WithLocation(40, 26),
+                // (42,28): error CS0507: 'Derived1.Method11()': cannot change access modifiers when overriding 'public' inherited member 'Base.Method11()'
+                //     internal override void Method11() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method11").WithArguments("Derived1.Method11()", "public", "Base.Method11()").WithLocation(42, 28),
+                // (43,29): error CS0507: 'Derived1.Method12()': cannot change access modifiers when overriding 'public' inherited member 'Base.Method12()'
+                //     protected override void Method12() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method12").WithArguments("Derived1.Method12()", "public", "Base.Method12()").WithLocation(43, 29),
+                // (44,38): error CS0507: 'Derived1.Method13()': cannot change access modifiers when overriding 'public' inherited member 'Base.Method13()'
+                //     protected internal override void Method13() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method13").WithArguments("Derived1.Method13()", "public", "Base.Method13()").WithLocation(44, 38),
+                // (46,28): error CS0507: 'Derived1.Method14()': cannot change access modifiers when overriding 'private protected' inherited member 'Base.Method14()'
+                //     internal override void Method14() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method14").WithArguments("Derived1.Method14()", "private protected", "Base.Method14()").WithLocation(46, 28),
+                // (47,29): error CS0507: 'Derived1.Method15()': cannot change access modifiers when overriding 'private protected' inherited member 'Base.Method15()'
+                //     protected override void Method15() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method15").WithArguments("Derived1.Method15()", "private protected", "Base.Method15()").WithLocation(47, 29),
+                // (48,38): error CS0507: 'Derived1.Method16()': cannot change access modifiers when overriding 'private protected' inherited member 'Base.Method16()'
+                //     protected internal override void Method16() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method16").WithArguments("Derived1.Method16()", "private protected", "Base.Method16()").WithLocation(48, 38),
+                // (49,26): error CS0507: 'Derived1.Method17()': cannot change access modifiers when overriding 'private protected' inherited member 'Base.Method17()'
+                //     public override void Method17() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method17").WithArguments("Derived1.Method17()", "private protected", "Base.Method17()").WithLocation(49, 26),
+                // (29,29): error CS0507: 'Derived1.Method1()': cannot change access modifiers when overriding 'internal' inherited member 'Base.Method1()'
+                //     protected override void Method1() { }
+                Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "Method1").WithArguments("Derived1.Method1()", "internal", "Base.Method1()").WithLocation(29, 29)
+                );
         }
 
         [Fact]
