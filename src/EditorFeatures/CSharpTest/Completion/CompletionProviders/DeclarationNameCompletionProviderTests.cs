@@ -627,6 +627,7 @@ class Test
             await VerifyItemExistsAsync(markup, "test");
         }
 
+<<<<<<< HEAD
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void DisabledByOption()
         {
@@ -649,6 +650,21 @@ class Test
             {
                 workspace.Options = originalOptions;
             }
+
+        [WorkItem(19409, "https://github.com/dotnet/roslyn/issues/19409")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void NotIfSnippetsActive()
+        {
+            var markup = @"
+class Test
+{
+    void Do<T>(out T goo)
+    {
+        Do(out Test $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "test");
 
         }
     }

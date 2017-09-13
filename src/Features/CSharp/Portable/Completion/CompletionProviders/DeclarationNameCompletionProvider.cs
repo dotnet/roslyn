@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
@@ -33,6 +34,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var semanticModel = await document.GetSemanticModelForSpanAsync(new Text.TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
 
             if (!completionContext.Options.GetOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp))
+			{
+				return;
+			}
+
+            // If there's currently an active snippet expansion active,
+            // don't suggest names: completion's commit behavior makes it
+            // difficult to type names in snippet fields.
+            var snippetsAreActiveService = document.Project.Solution.Workspace.Services.GetService<ISnippetExpansionSessionActiveService>();
+            if (snippetsAreActiveService.SnippetsAreActive(document))
             {
                 return;
             }
