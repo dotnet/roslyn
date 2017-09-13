@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal interface IRemoteHostService
     {
-        string Connect(string host, string serializedSession);
+        string Connect(string host, string serializedSession, CancellationToken cancellationToken);
         Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken);
         Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken);
 

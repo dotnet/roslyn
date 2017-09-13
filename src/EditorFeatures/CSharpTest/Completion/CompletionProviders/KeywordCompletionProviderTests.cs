@@ -340,5 +340,44 @@ class Program
             await VerifyItemExistsAsync(text, "byte");
             await VerifyItemExistsAsync(text, "char");
         }
+    
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PrivateOrProtectedModifiers()
+        {
+            var text = @"
+class C
+{
+$$
+}";
+
+            await VerifyItemExistsAsync(text, "private");
+            await VerifyItemExistsAsync(text, "protected");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PrivateProtectedModifier()
+        {
+            System.Diagnostics.Debugger.Break();
+            var text = @"
+class C
+{
+    private $$
+}";
+
+            await VerifyItemExistsAsync(text, "protected");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ProtectedPrivateModifier()
+        {
+            System.Diagnostics.Debugger.Break();
+            var text = @"
+class C
+{
+    protected $$
+}";
+
+            await VerifyItemExistsAsync(text, "private");
+        }
     }
 }

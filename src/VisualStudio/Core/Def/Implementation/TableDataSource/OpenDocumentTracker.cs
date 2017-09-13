@@ -7,6 +7,8 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal class OpenDocumentTracker<T>
     {
         private readonly object _gate = new object();
