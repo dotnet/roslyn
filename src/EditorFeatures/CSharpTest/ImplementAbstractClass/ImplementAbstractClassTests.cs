@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
 
         internal Task TestAllOptionsOffAsync(
             string initialMarkup, string expectedMarkup,
-            int index = 0, bool ignoreTrivia = true,
-            IDictionary<OptionKey, object> options = null)
+            int index = 0, IDictionary<OptionKey, object> options = null)
         {
             options = options ?? new Dictionary<OptionKey, object>();
             foreach (var kvp in AllOptionsOff)
@@ -42,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
 
             return TestInRegularAndScriptAsync(
                 initialMarkup, expectedMarkup,
-                index: index, ignoreTrivia: ignoreTrivia, options: options);
+                index: index, options: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
@@ -729,8 +728,7 @@ partial class Program
         throw new NotImplementedException();
     }
 }
-",
-ignoreTrivia: false);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
@@ -769,8 +767,7 @@ partial class Program : Goo
 
 #line hidden
 }
-#line default",
-ignoreTrivia: false);
+#line default");
         }
 
         [WorkItem(545585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545585")]
@@ -989,7 +986,7 @@ class D : C
         }
     }
 }
-", ignoreTrivia: false);
+");
         }
 
         [WorkItem(2407, "https://github.com/dotnet/roslyn/issues/2407")]
@@ -1386,11 +1383,8 @@ class [|T|] : A
 
 class T : A
 {
-    public override int M
-    {
-        get => throw new System.NotImplementedException();
-        }
-    }", options: OptionsSet(
+    public override int M { get => throw new System.NotImplementedException(); }
+}", options: OptionsSet(
     SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.Never, NotificationOption.None),
     SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenPossible, NotificationOption.None)));
         }
@@ -1415,11 +1409,8 @@ class [|T|] : A
 
 class T : A
 {
-    public override int M
-    {
-        set => throw new System.NotImplementedException();
-        }
-    }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
+    public override int M { set => throw new System.NotImplementedException(); }
+}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [WorkItem(581500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/581500")]
@@ -1442,12 +1433,8 @@ class [|T|] : A
 
 class T : A
 {
-    public override int M
-    {
-        get => throw new System.NotImplementedException();
-        set => throw new System.NotImplementedException();
-        }
-    }", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
+    public override int M { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+}", options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [WorkItem(15387, "https://github.com/dotnet/roslyn/issues/15387")]
@@ -1516,7 +1503,7 @@ namespace My
             throw new System.NotImplementedException();
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(17562, "https://github.com/dotnet/roslyn/issues/17562")]

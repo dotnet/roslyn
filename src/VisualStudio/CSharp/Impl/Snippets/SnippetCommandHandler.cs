@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 return nextHandler();
             }
 
-            if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
+            if (!CodeAnalysis.Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
             {
                 return nextHandler();
             }

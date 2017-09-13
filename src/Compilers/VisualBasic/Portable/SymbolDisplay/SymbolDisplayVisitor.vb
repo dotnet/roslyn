@@ -326,7 +326,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         AddKeyword(SyntaxKind.PrivateKeyword)
                     Case Accessibility.Internal
                         AddKeyword(SyntaxKind.FriendKeyword)
-                    Case Accessibility.ProtectedAndInternal, Accessibility.Protected
+                    Case Accessibility.Protected
+                        AddKeyword(SyntaxKind.ProtectedKeyword)
+                    Case Accessibility.ProtectedAndInternal
+                        AddKeyword(SyntaxKind.PrivateKeyword)
+                        AddSpace()
                         AddKeyword(SyntaxKind.ProtectedKeyword)
                     Case Accessibility.ProtectedOrInternal
                         AddKeyword(SyntaxKind.ProtectedKeyword)

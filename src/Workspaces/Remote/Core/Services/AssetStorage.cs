@@ -83,8 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote
             value = default(T);
             using (Logger.LogBlock(FunctionId.AssetStorage_TryGetAsset, Checksum.GetChecksumLogInfo, checksum, CancellationToken.None))
             {
-                Entry entry;
-                if (!_globalAssets.TryGetValue(checksum, out entry) &&
+                if (!_globalAssets.TryGetValue(checksum, out var entry) &&
                     !_assets.TryGetValue(checksum, out entry))
                 {
                     return false;
@@ -129,8 +128,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
 
                     // If it fails, we'll just leave it in the asset pool.
-                    Entry entry;
-                    _assets.TryRemove(kvp.Key, out entry);
+                    _assets.TryRemove(kvp.Key, out var entry);
                 }
             }
         }

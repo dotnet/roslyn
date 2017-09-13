@@ -122,37 +122,41 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var solution = project.Solution;
                 var snapshotService = solution.Workspace.Services.GetService<IRemotableDataService>();
 
-                // TODO: this should be moved out
-                var analyzerMap = CreateAnalyzerMap(analyzerDriver.Analyzers.Where(a => !a.IsOpenFileOnly(project.Solution.Workspace)));
-                if (analyzerMap.Count == 0)
+                using (var pooledObject = SharedPools.Default<Dictionary<string, DiagnosticAnalyzer>>().GetPooledObject())
                 {
-                    return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
-                }
+                    var analyzerMap = pooledObject.Object;
 
-                var optionAsset = GetOptionsAsset(solution, project.Language, cancellationToken);
-
-                var argument = new DiagnosticArguments(
-                    forcedAnalysis, analyzerDriver.AnalysisOptions.ReportSuppressedDiagnostics, analyzerDriver.AnalysisOptions.LogAnalyzerExecutionTime,
-                    project.Id, optionAsset.Checksum, analyzerMap.Keys.ToArray());
-
-                using (var session = await client.TryCreateCodeAnalysisSessionAsync(solution, cancellationToken).ConfigureAwait(false))
-                {
-                    if (session == null)
+                    AppendAnalyzerMap(analyzerDriver.Analyzers.Where(a => !a.IsOpenFileOnly(project.Solution.Workspace)), analyzerMap);
+                    if (analyzerMap.Count == 0)
                     {
-                        // session is not available
                         return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
                     }
 
-                    session.AddAdditionalAssets(optionAsset);
+                    var optionAsset = GetOptionsAsset(solution, project.Language, cancellationToken);
 
-                    var result = await session.InvokeAsync(
-                        WellKnownServiceHubServices.CodeAnalysisService_CalculateDiagnosticsAsync,
-                        new object[] { argument },
-                        (s, c) => GetCompilerAnalysisResultAsync(s, analyzerMap, project, c), cancellationToken).ConfigureAwait(false);
+                    var argument = new DiagnosticArguments(
+                        forcedAnalysis, analyzerDriver.AnalysisOptions.ReportSuppressedDiagnostics, analyzerDriver.AnalysisOptions.LogAnalyzerExecutionTime,
+                        project.Id, optionAsset.Checksum, analyzerMap.Keys.ToArray());
 
-                    ReportAnalyzerExceptions(project, result.Exceptions);
+                    using (var session = await client.TryCreateCodeAnalysisSessionAsync(solution, cancellationToken).ConfigureAwait(false))
+                    {
+                        if (session == null)
+                        {
+                            // session is not available
+                            return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
+                        }
 
-                    return result;
+                        session.AddAdditionalAssets(optionAsset);
+
+                        var result = await session.InvokeAsync(
+                            WellKnownServiceHubServices.CodeAnalysisService_CalculateDiagnosticsAsync,
+                            new object[] { argument },
+                            (s, c) => GetCompilerAnalysisResultAsync(s, analyzerMap, project, c), cancellationToken).ConfigureAwait(false);
+
+                        ReportAnalyzerExceptions(project, result.Exceptions);
+
+                        return result;
+                    }
                 }
             }
 
@@ -215,10 +219,13 @@ This data should always be correct as we're never persisting the data between se
                 }
             }
 
-            private Dictionary<string, DiagnosticAnalyzer> CreateAnalyzerMap(IEnumerable<DiagnosticAnalyzer> analyzers)
+            private void AppendAnalyzerMap(IEnumerable<DiagnosticAnalyzer> analyzers, Dictionary<string, DiagnosticAnalyzer> analyzerMap)
             {
-                // TODO: this needs to be cached. we can have 300+ analyzers
-                return analyzers.ToDictionary(a => a.GetAnalyzerIdAndVersion().Item1, a => a);
+                foreach (var analyzer in analyzers)
+                {
+                    // user might have included exact same analyzer twice as project analyzers explicitly. we consider them as one
+                    analyzerMap[analyzer.GetAnalyzerId()] = analyzer;
+                }
             }
         }
     }

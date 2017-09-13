@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
                     else
                     {
-                        span = default(TextSpan);
+                        span = default;
                         return false;
                     }
 
@@ -987,9 +987,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return LambdaUtilities.IsLambda(node);
         }
 
-        internal override bool IsLambdaExpression(SyntaxNode node)
+        internal override bool IsNestedFunction(SyntaxNode node)
         {
-            return node is LambdaExpressionSyntax;
+            return node is LambdaExpressionSyntax || node is LocalFunctionStatementSyntax;
         }
 
         internal override bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode body1, out SyntaxNode body2)
@@ -1004,7 +1004,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override IMethodSymbol GetLambdaExpressionSymbol(SemanticModel model, SyntaxNode lambdaExpression, CancellationToken cancellationToken)
         {
-            return (IMethodSymbol)model.GetEnclosingSymbol(((AnonymousFunctionExpressionSyntax)lambdaExpression).Body.SpanStart, cancellationToken);
+            var bodyExpression = LambdaUtilities.GetNestedFunctionBody(lambdaExpression);
+            return (IMethodSymbol)model.GetEnclosingSymbol(bodyExpression.SpanStart, cancellationToken);
         }
 
         internal override SyntaxNode GetContainingQueryExpression(SyntaxNode node)
@@ -1053,6 +1054,35 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 default:
                     return true;
             }
+        }
+
+        protected override void ReportLambdaSignatureRudeEdits(
+            SemanticModel oldModel,
+            SyntaxNode oldLambdaBody,
+            SemanticModel newModel,
+            SyntaxNode newLambdaBody,
+            List<RudeEditDiagnostic> diagnostics,
+            out bool hasErrors,
+            CancellationToken cancellationToken)
+        {
+            base.ReportLambdaSignatureRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaBody, diagnostics, out hasErrors, cancellationToken);
+
+            if (IsLocalFunctionBody(oldLambdaBody) != IsLocalFunctionBody(newLambdaBody))
+            {
+                var newLambda = GetLambda(newLambdaBody);
+                diagnostics.Add(new RudeEditDiagnostic(
+                    RudeEditKind.SwitchBetweenLambdaAndLocalFunction,
+                    GetDiagnosticSpan(newLambda, EditKind.Update),
+                    newLambda,
+                    new[] { GetLambdaDisplayName(newLambda) }));
+                hasErrors = true;
+            }
+        }
+
+        private static bool IsLocalFunctionBody(SyntaxNode lambdaBody)
+        {
+            var lambda = LambdaUtilities.GetLambda(lambdaBody);
+            return lambda.Kind() == SyntaxKind.LocalFunctionStatement;
         }
 
         private static bool GroupBySignatureComparer(ImmutableArray<IParameterSymbol> oldParameters, ITypeSymbol oldReturnType, ImmutableArray<IParameterSymbol> newParameters, ITypeSymbol newReturnType)
@@ -1116,11 +1146,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (kind)
             {
                 case SyntaxKind.CompilationUnit:
-                    return default(TextSpan);
+                    return default;
 
                 case SyntaxKind.GlobalStatement:
                     // TODO:
-                    return default(TextSpan);
+                    return default;
 
                 case SyntaxKind.ExternAliasDirective:
                 case SyntaxKind.UsingDirective:
@@ -3002,8 +3032,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             while (true)
             {
-                var statement = node as StatementSyntax;
-                if (statement != null)
+                if (node is StatementSyntax statement)
                 {
                     return statement;
                 }
@@ -3109,51 +3138,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SyntaxNode newActiveStatement,
             bool isLeaf)
         {
-            ReportRudeEditsForUnsupportedCSharp7EnC(diagnostics, match);
             ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement, isLeaf);
             ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isLeaf);
-        }
-
-        /// <summary>
-        /// If either trees (after or before the edit) contain unsupported C# 7 features around the active statement, report it.
-        /// </summary>
-        private void ReportRudeEditsForUnsupportedCSharp7EnC(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match)
-        {
-            SyntaxNode foundCSharp7Syntax = match.NewRoot.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharp7EnCNode(n));
-            if (foundCSharp7Syntax != null)
-            {
-                AddRudeUpdateAroundActiveStatement(diagnostics, foundCSharp7Syntax);
-                return;
-            }
-
-            foundCSharp7Syntax = match.OldRoot.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharp7EnCNode(n));
-            if (foundCSharp7Syntax != null)
-            {
-                AddRudeUpdateInCSharp7Method(diagnostics, foundCSharp7Syntax);
-            }
-        }
-
-        /// <summary>
-        /// If the active method used unsupported C# 7 features before the edit, it needs to be reported.
-        /// </summary>
-        private void AddRudeUpdateInCSharp7Method(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldCSharp7Syntax)
-        {
-            diagnostics.Add(new RudeEditDiagnostic(
-                RudeEditKind.UpdateAroundActiveStatement,
-                default(TextSpan), // no span since the offending node is in the old syntax
-                oldCSharp7Syntax,
-                new[] { GetStatementDisplayName(oldCSharp7Syntax, EditKind.Update) }));
-        }
-
-        private static bool IsUnsupportedCSharp7EnCNode(SyntaxNode n)
-        {
-            switch (n.Kind())
-            {
-                case SyntaxKind.LocalFunctionStatement:
-                    return true;
-                default:
-                    return false;
-            }
         }
 
         private void ReportRudeEditsForCheckedStatements(

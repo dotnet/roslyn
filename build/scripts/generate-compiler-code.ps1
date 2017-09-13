@@ -141,6 +141,6 @@ try {
     exit 0
 }
 catch {
-  Write-Host $_
-  exit 1
+    Write-Host $_
+    exit 1
 }

@@ -144,15 +144,18 @@ namespace Microsoft.CodeAnalysis.Editing
 
         private async Task<ISymbol> GetSymbolAsync(Solution solution, ProjectId projectId, string symbolId, CancellationToken cancellationToken)
         {
-            var comp = await solution.GetProject(projectId).GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var symbols = DocumentationCommentId.GetSymbolsForDeclarationId(symbolId, comp).ToList();
+            var project = solution.GetProject(projectId);
+            if (project.SupportsCompilation)
+            {
+                var comp = await solution.GetProject(projectId).GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var symbols = DocumentationCommentId.GetSymbolsForDeclarationId(symbolId, comp).ToList();
 
-            if (symbols.Count == 1)
-            {
-                return symbols[0];
-            }
-            else if (symbols.Count > 1)
-            {
+                if (symbols.Count == 1)
+                {
+                    return symbols[0];
+                }
+                else if (symbols.Count > 1)
+                {
 #if false
                 // if we have multiple matches, use the same index that it appeared as in the original solution.
                 var originalComp = await this.originalSolution.GetProject(projectId).GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -163,8 +166,9 @@ namespace Microsoft.CodeAnalysis.Editing
                     return symbols[index];
                 }
 #else
-                return symbols[0];
+                    return symbols[0];
 #endif
+                }
             }
 
             return null;

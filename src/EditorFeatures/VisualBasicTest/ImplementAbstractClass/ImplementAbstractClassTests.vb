@@ -30,9 +30,11 @@ End Class",
 End Class
 Public Class Bar
     Inherits Goo
+
     Public Overrides Sub Goo(i As Integer)
         Throw New System.NotImplementedException()
     End Sub
+
     Protected Overrides Function Bar(s As String, ByRef d As Double) As Boolean
         Throw New System.NotImplementedException()
     End Function
@@ -53,6 +55,7 @@ End Class",
 End Class
 Public Class Derived
     Inherits Base
+
     Protected Overrides Function Bar(x As (a As Integer, Integer)) As (c As Integer, Integer)
         Throw New System.NotImplementedException()
     End Function
@@ -73,6 +76,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Integer = 3)
         Throw New System.NotImplementedException()
     End Sub
@@ -93,6 +97,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Boolean = True)
         Throw New System.NotImplementedException()
     End Sub
@@ -113,6 +118,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Boolean = False)
         Throw New System.NotImplementedException()
     End Sub
@@ -133,6 +139,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As String = ""a"")
         Throw New System.NotImplementedException()
     End Sub
@@ -153,6 +160,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Char = ""c""c)
         Throw New System.NotImplementedException()
     End Sub
@@ -173,6 +181,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Long = 3)
         Throw New System.NotImplementedException()
     End Sub
@@ -188,12 +197,12 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As Short = 3)
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Short = 3)
         Throw New System.NotImplementedException()
     End Sub
@@ -209,12 +218,12 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As UShort = 3)
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As UShort = 3)
         Throw New System.NotImplementedException()
     End Sub
@@ -235,6 +244,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Integer = -3)
         Throw New System.NotImplementedException()
     End Sub
@@ -255,6 +265,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As UInteger = 3)
         Throw New System.NotImplementedException()
     End Sub
@@ -275,6 +286,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As ULong = 3)
         Throw New System.NotImplementedException()
     End Sub
@@ -295,6 +307,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Decimal = 3)
         Throw New System.NotImplementedException()
     End Sub
@@ -315,6 +328,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Double = 3)
         Throw New System.NotImplementedException()
     End Sub
@@ -339,6 +353,7 @@ MustInherit Class b
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As S = Nothing)
         Throw New System.NotImplementedException()
     End Sub
@@ -364,6 +379,7 @@ MustInherit Class b
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As S? = Nothing)
         Throw New System.NotImplementedException()
     End Sub
@@ -385,6 +401,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Integer? = Nothing, Optional y As Integer? = 5)
         Throw New System.NotImplementedException()
     End Sub
@@ -409,6 +426,7 @@ MustInherit Class b
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As S = Nothing)
         Throw New System.NotImplementedException()
     End Sub
@@ -429,6 +447,7 @@ MustInherit Class D
     MustOverride Sub Goo()
 End Class
 Class C : Inherits D
+
     Public Overrides Sub Goo()
         Throw New NotImplementedException()
     End Sub
@@ -449,6 +468,7 @@ MustInherit Class D
     MustOverride Sub Goo()
 End Class
 Class C : Inherits D : Implements IDisposable
+
     Public Overrides Sub Goo()
         Throw New NotImplementedException()
     End Sub
@@ -470,6 +490,7 @@ End Class",
 End Class
 Class C(Of S)
     Inherits A(Of S)
+
     Public Overrides Sub Goo(Of S1 As S)()
         Throw New System.NotImplementedException()
     End Sub
@@ -504,8 +525,7 @@ Class c
         Throw New NotImplementedException()
     End Sub
 End Class
-</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(2407, "https://github.com/dotnet/roslyn/issues/2407")>

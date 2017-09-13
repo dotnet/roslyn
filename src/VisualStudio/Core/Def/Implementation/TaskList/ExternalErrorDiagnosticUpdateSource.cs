@@ -18,6 +18,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Export(typeof(ExternalErrorDiagnosticUpdateSource))]
     internal class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
@@ -175,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 // pause live analyzer
                 using (var operation = _notificationService.Start("BuildDone"))
                 {
-                    Func<DiagnosticData, bool> liveDiagnosticChecker = d =>
+                    bool liveDiagnosticChecker(DiagnosticData d)
                     {
                         // REVIEW: we probably need a better design on de-duplicating live and build errors. or don't de-dup at all.
                         //         for now, we are special casing compiler error case.
@@ -201,10 +203,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                         }
 
                         return false;
-                    };
+                    }
 
-                    var diagnosticService = _diagnosticService as DiagnosticAnalyzerService;
-                    if (diagnosticService != null)
+                    if (_diagnosticService is DiagnosticAnalyzerService diagnosticService)
                     {
                         await CleanupAllLiveErrors(diagnosticService, inprogressState.GetProjectsWithoutErrors(inprogressState.Solution)).ConfigureAwait(false);
                         await SyncBuildErrorsAndReportAsync(diagnosticService, inprogressState.Solution, inprogressState.GetLiveDiagnosticsPerProject(liveDiagnosticChecker)).ConfigureAwait(false);
@@ -248,8 +249,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private void ReportBuildErrors<T>(T item, Solution solution, ImmutableArray<DiagnosticData> buildErrors)
         {
-            var projectId = item as ProjectId;
-            if (projectId != null)
+            if (item is ProjectId projectId)
             {
                 RaiseDiagnosticsCreated(projectId, solution, projectId, null, buildErrors);
                 return;
@@ -420,26 +420,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             public bool SupportedDiagnosticId(ProjectId projectId, string id)
             {
-                if (_diagnosticIdMap.TryGetValue(projectId, out var ids))
+                lock (_diagnosticIdMap)
                 {
-                    return ids.Contains(id);
+                    if (_diagnosticIdMap.TryGetValue(projectId, out var ids))
+                    {
+                        return ids.Contains(id);
+                    }
+
+                    // set ids set
+                    var map = new HashSet<string>();
+                    _diagnosticIdMap.Add(projectId, map);
+
+                    var project = _solution.GetProject(projectId);
+                    if (project == null)
+                    {
+                        // projectId no longer exist, return false;
+                        return false;
+                    }
+
+                    var descriptorMap = _owner._diagnosticService.GetDiagnosticDescriptors(project);
+                    map.UnionWith(descriptorMap.Values.SelectMany(v => v.Select(d => d.Id)));
+
+                    return map.Contains(id);
                 }
-
-                // set ids set
-                var map = new HashSet<string>();
-                _diagnosticIdMap.Add(projectId, map);
-
-                var project = _solution.GetProject(projectId);
-                if (project == null)
-                {
-                    // projectId no longer exist, return false;
-                    return false;
-                }
-
-                var descriptorMap = _owner._diagnosticService.GetDiagnosticDescriptors(project);
-                map.UnionWith(descriptorMap.Values.SelectMany(v => v.Select(d => d.Id)));
-
-                return map.Contains(id);
             }
 
             public ImmutableArray<DiagnosticData> GetBuildDiagnostics()

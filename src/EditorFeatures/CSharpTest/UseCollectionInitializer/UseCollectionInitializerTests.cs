@@ -529,7 +529,8 @@ class C
 {
     void M()
     {
-        var list1 = new List<int>(() => {
+        var list1 = new List<int>(() =>
+        {
             var list2 = new List<int>
             {
                 2
@@ -567,7 +568,8 @@ class C
     {
         var list1 = new List<int>
         {
-            () => {
+            () =>
+            {
                 var list2 = new List<int>
                 {
                     2
@@ -605,8 +607,7 @@ class C
             2 // Bar
         };
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
@@ -632,14 +633,8 @@ class C
     {
         var c = new Dictionary<int, string>
         {
-            {
-                1,
-                ""x""
-            },
-            {
-                2,
-                ""y""
-            }
+            { 1, ""x"" },
+            { 2, ""y"" }
         };
     }
 }");
@@ -913,7 +908,7 @@ public class Goo
         };
 #endif
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(18242, "https://github.com/dotnet/roslyn/issues/18242")]
@@ -1014,7 +1009,7 @@ class MyClass
 
         int horse = 1;
     }
-}", ignoreTrivia: false);
+}");
         }
     }
 }

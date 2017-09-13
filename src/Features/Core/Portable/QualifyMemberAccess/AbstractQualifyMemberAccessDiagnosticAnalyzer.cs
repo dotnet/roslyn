@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         /// <c>MyBase.</c>, or <c>MyClass.</c>.
         /// </summary>
         /// <returns>True if the member access can be qualified; otherwise, False.</returns>
-        protected abstract bool CanMemberAccessBeQualified(SyntaxNode node);
+        protected abstract bool CanMemberAccessBeQualified(ISymbol containingSymbol, SyntaxNode node);
 
         protected abstract bool IsAlreadyQualifiedMemberAccess(SyntaxNode node);
 
@@ -60,6 +60,11 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
+            if (context.ContainingSymbol.IsStatic)
+            {
+                return;
+            }
+
             var memberReference = (IMemberReferenceExpression)context.Operation;
 
             // this is a static reference so we don't care if it's qualified
@@ -75,7 +80,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             }
 
             // If we can't be qualified (e.g., because we're already qualified with `base.`), we're done.
-            if (!CanMemberAccessBeQualified(memberReference.Instance.Syntax))
+            if (!CanMemberAccessBeQualified(context.ContainingSymbol, memberReference.Instance.Syntax))
             {
                 return;
             }

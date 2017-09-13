@@ -32,6 +32,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     /// <summary>
     /// An IVisualStudioDocument which represents the secondary buffer to the workspace API.
     /// </summary>
@@ -121,8 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private HostType GetHostType()
         {
-            var projectionBuffer = _containedLanguage.DataBuffer as IProjectionBuffer;
-            if (projectionBuffer != null)
+            if (_containedLanguage.DataBuffer is IProjectionBuffer projectionBuffer)
             {
                 // RazorCSharp has an HTMLX base type but should not be associated with
                 // the HTML host type, so we check for it first.
@@ -725,8 +726,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             var subjectBuffer = (IProjectionBuffer)this.GetOpenTextBuffer();
 
-            var projectionDataBuffer = _containedLanguage.DataBuffer as IProjectionBuffer;
-            if (projectionDataBuffer != null)
+            if (_containedLanguage.DataBuffer is IProjectionBuffer projectionDataBuffer)
             {
                 return projectionDataBuffer.CurrentSnapshot
                     .GetSourceSpans()

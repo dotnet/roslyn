@@ -334,6 +334,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
     {
         var v = a;
         v?.Invoke();
+
         v = null;
     }
 }");
@@ -471,8 +472,7 @@ class C
         if (true != true)
         {
         }
-        else
-            this.E?.Invoke(this, EventArgs.Empty);
+        else this.E?.Invoke(this, EventArgs.Empty);
     }
 }");
         }
@@ -502,7 +502,7 @@ class C
         // Comment
         a?.Invoke();
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
@@ -529,7 +529,7 @@ class C
         // Comment
         a?.Invoke();
     }
-}", ignoreTrivia: false);
+}");
         }
 
         /// <remarks>

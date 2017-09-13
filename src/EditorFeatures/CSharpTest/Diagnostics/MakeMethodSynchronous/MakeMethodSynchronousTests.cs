@@ -36,8 +36,7 @@ class C
     void Goo()
     {
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -61,8 +60,7 @@ class C
     int Goo()
     {
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -86,8 +84,7 @@ class C
     public void Goo()
     {
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -111,8 +108,7 @@ class C
     public void Goo()
     {
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -137,8 +133,7 @@ class C
     void Goo()
     {
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -162,8 +157,7 @@ class C
     void Goo()
     {
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -197,8 +191,7 @@ class C
     {
         Goo();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -226,8 +219,7 @@ class C
         Func<Task> f =
             () => { };
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -255,8 +247,7 @@ class C
         Func<string, Task> f =
             a => { };
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -284,8 +275,7 @@ class C
         Func<string, Task> f =
             a => 1;
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -313,8 +303,7 @@ class C
         Func<Task> f =
             delegate { };
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -348,7 +337,7 @@ public class Class1
     {
         Goo();
     }
-}", ignoreTrivia: false, fixAllActionEquivalenceKey: AbstractMakeMethodSynchronousCodeFixProvider.EquivalenceKey);
+}", fixAllActionEquivalenceKey: AbstractMakeMethodSynchronousCodeFixProvider.EquivalenceKey);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -381,7 +370,7 @@ public class Class1
     {
         Goo();
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -414,7 +403,7 @@ public class Class1
     {
         Goo();
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -447,7 +436,7 @@ public class Class1
     {
         this.Goo();
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -480,7 +469,7 @@ public class Class1
     {
         this.Goo();
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -513,7 +502,7 @@ public class Class1
     {
         this.Goo(this.Goo(0));
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -546,7 +535,7 @@ public class Class1
     {
         this.Goo(this.Goo(0));
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -610,7 +599,8 @@ class C
     public void M1()
     {{
         // Leading trivia
-        /*1*/ {expectedReturn} /*2*/ M2/*3*/() /*4*/
+        /*1*/
+        {expectedReturn} /*2*/ M2/*3*/() /*4*/
         {{
             throw new NotImplementedException();
         }}
@@ -619,14 +609,14 @@ class C
         }
 
         [Theory]
-        [InlineData("", "Task<C>", "C")]
-        [InlineData("", "Task<int>", "int")]
-        [InlineData("", "Task", "void")]
-        [InlineData("", "void", "void")]
-        [InlineData("public", "Task<C>", "C")]
-        [InlineData("public", "Task<int>", "int")]
-        [InlineData("public", "Task", "void")]
-        [InlineData("public", "void", "void")]
+        [InlineData("", "Task<C>", "\r\n    C")]
+        [InlineData("", "Task<int>", "\r\n    int")]
+        [InlineData("", "Task", "\r\n    void")]
+        [InlineData("", "void", "\r\n    void")]
+        [InlineData("public", "Task<C>", " C")]
+        [InlineData("public", "Task<int>", " int")]
+        [InlineData("public", "Task", " void")]
+        [InlineData("public", "void", " void")]
         [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         [WorkItem(18307, "https://github.com/dotnet/roslyn/issues/18307")]
         public async Task RemoveAsyncKeepsTrivia(string modifiers, string asyncReturn, string expectedReturn)
@@ -649,7 +639,7 @@ using System.Threading.Tasks;
 class C
 {{
     // Leading trivia
-    {modifiers}/*1*/ {expectedReturn} /*2*/ M2/*3*/() /*4*/
+    {modifiers}/*1*/{expectedReturn} /*2*/ M2/*3*/() /*4*/
     {{
         throw new NotImplementedException();
     }}

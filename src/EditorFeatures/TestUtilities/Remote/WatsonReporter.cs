@@ -2,13 +2,18 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation
+namespace Microsoft.CodeAnalysis.ErrorReporting
 {
     /// <summary>
     /// Mock to make test project build
     /// </summary>
     internal class WatsonReporter
     {
+        public static void Report(string description, Exception exception)
+        {
+            // do nothing
+        }
+
         public static void Report(string description, Exception exception, Func<IFaultUtility, int> callback)
         {
             // do nothing

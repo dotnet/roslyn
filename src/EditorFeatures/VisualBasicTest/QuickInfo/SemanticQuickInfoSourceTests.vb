@@ -2091,6 +2091,25 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(410932, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=410932")>
+        Public Async Function TestGenericMethodInDocComment() As Task
+            Await TestWithImportsAsync(<Text><![CDATA[
+Public Class Test
+    Function F(Of T)() As T
+        F(Of T)()
+    End Function
+
+    ''' <summary>
+    ''' <see cref="F$$(Of T)()"/>
+    ''' </summary>
+    Public Sub S()
+    End Sub
+End Class
+                ]]></Text>.NormalizedValue,
+             MainDescription("Function Test.F(Of T)() As T"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")>
         Public Async Function PropertyWithSameNameAsOtherType() As Task
             Await TestAsync("

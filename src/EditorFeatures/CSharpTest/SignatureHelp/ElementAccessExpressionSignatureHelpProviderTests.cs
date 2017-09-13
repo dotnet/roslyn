@@ -922,7 +922,7 @@ class Indexable
 
             [WorkItem(20507, "https://github.com/dotnet/roslyn/issues/20507")]
             [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-            public async Task InConditionalIndexingFollowedByConditionalAcesss()
+            public async Task InConditionalIndexingFollowedByConditionalAccess()
             {
                 var markup = @"
 class Indexable

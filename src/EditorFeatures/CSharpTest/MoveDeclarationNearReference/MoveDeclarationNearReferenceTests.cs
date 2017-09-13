@@ -287,8 +287,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
         Console.WriteLine();
         int i = 5; Console.Write(i);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -353,8 +352,7 @@ class Program
 #line hidden
     }
 #line default
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -386,8 +384,7 @@ ignoreTrivia: false);
         int x = 0;
         Bar(x);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]
@@ -415,7 +412,8 @@ class Program
 {
     void Main()
     {
-        new[] { 1 }.AsParallel().ForAll((i) => {
+        new[] { 1 }.AsParallel().ForAll((i) =>
+        {
             {|Warning:var @lock = new object();|}
             lock (@lock)
             {
@@ -505,8 +503,7 @@ static class C
             Console.WriteLine(a);
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(545835, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545835")]
@@ -548,8 +545,7 @@ class X
             Console.WriteLine(a);
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(546267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546267")]
@@ -656,8 +652,7 @@ class Program
         int i = 5;
         Console.Write(i);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -689,8 +684,7 @@ ignoreTrivia: false);
             Console.Write(i);
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -720,8 +714,7 @@ ignoreTrivia: false);
         // Existing trivia
         Console.Write(i);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -755,8 +748,7 @@ ignoreTrivia: false);
             Console.Write(i);
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -793,8 +785,7 @@ ignoreTrivia: false);
         int i = 0;
         Console.Write(i);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -835,8 +826,7 @@ ignoreTrivia: false);
             Console.Write(i);
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -875,8 +865,7 @@ ignoreTrivia: false);
         int i = 0;
         Console.Write(i);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -919,8 +908,7 @@ ignoreTrivia: false);
             Console.Write(i);
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -949,8 +937,7 @@ ignoreTrivia: false);
         int i = 0;
         Console.Write(i);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -983,8 +970,7 @@ ignoreTrivia: false);
             Console.Write(i);
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -1015,8 +1001,7 @@ ignoreTrivia: false);
         int i = 0;
         Console.Write(i);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -1051,8 +1036,7 @@ ignoreTrivia: false);
             Console.Write(i);
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -1089,8 +1073,7 @@ ignoreTrivia: false);
         int i = 0;
         Console.Write(i);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -1131,8 +1114,7 @@ ignoreTrivia: false);
             Console.Write(i);
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -1171,8 +1153,7 @@ ignoreTrivia: false);
         int i = 0;
         Console.Write(i);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
@@ -1215,8 +1196,7 @@ ignoreTrivia: false);
             Console.Write(i);
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
     }
 }

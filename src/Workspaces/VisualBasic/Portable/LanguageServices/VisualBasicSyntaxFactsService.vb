@@ -46,6 +46,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public ReadOnly Property ElasticMarker As SyntaxTrivia Implements ISyntaxFactsService.ElasticMarker
+            Get
+                Return SyntaxFactory.ElasticMarker
+            End Get
+        End Property
+
         Public ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia Implements ISyntaxFactsService.ElasticCarriageReturnLineFeed
             Get
                 Return SyntaxFactory.ElasticCarriageReturnLineFeed
@@ -243,6 +249,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsReturnStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsReturnStatement
             Return node.Kind() = SyntaxKind.ReturnStatement
+        End Function
+
+        Public Function IsStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsStatement
+            Return TypeOf node Is StatementSyntax
+        End Function
+
+        Public Function IsParameter(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsParameter
+            Return TypeOf node Is ParameterSyntax
+        End Function
+
+        Public Function IsVariableDeclarator(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsVariableDeclarator
+            Return TypeOf node Is VariableDeclaratorSyntax
         End Function
 
         Public Function GetExpressionOfReturnStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfReturnStatement
@@ -1610,8 +1628,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return trivia.Kind() = SyntaxKind.DocumentationCommentExteriorTrivia
         End Function
 
-        Private Function ISyntaxFactsService_GetBannerText(documentationCommentTriviaSyntax As SyntaxNode, cancellationToken As CancellationToken) As String Implements ISyntaxFactsService.GetBannerText
-            Return GetBannerText(documentationCommentTriviaSyntax, cancellationToken)
+        Private Function ISyntaxFactsService_GetBannerText(documentationCommentTriviaSyntax As SyntaxNode, maxBannerLength As Integer, cancellationToken As CancellationToken) As String Implements ISyntaxFactsService.GetBannerText
+            Return GetBannerText(documentationCommentTriviaSyntax, maxBannerLength, cancellationToken)
         End Function
 
         Public Function GetModifiers(node As SyntaxNode) As SyntaxTokenList Implements ISyntaxFactsService.GetModifiers

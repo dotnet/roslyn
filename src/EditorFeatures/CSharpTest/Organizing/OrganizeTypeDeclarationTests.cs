@@ -205,8 +205,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 
             var final =
 @"class C  {
-    public ~Goo() {}        
     public Goo() {}  
+    public ~Goo() {}        
     enum Days {Sat, Sun};        
 }";
             await CheckAsync(initial, final);
@@ -1097,11 +1097,11 @@ interface I
 
                 var handler = new OrganizeDocumentCommandHandler(workspace.GetService<Host.IWaitIndicator>());
                 var delegatedToNext = false;
-                Func<CommandState> nextHandler = () =>
+                CommandState nextHandler()
                 {
                     delegatedToNext = true;
                     return CommandState.Unavailable;
-                };
+                }
 
                 var state = handler.GetCommandState(new Commands.SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer), nextHandler);
                 Assert.True(delegatedToNext);

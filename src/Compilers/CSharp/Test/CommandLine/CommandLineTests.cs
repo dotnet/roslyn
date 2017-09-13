@@ -22,6 +22,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.DiaSymReader;
+using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -1898,18 +1900,14 @@ d.cs
             parsedArgs = DefaultParse(new[] { "/embed:a.txt", "/debug-", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_CannotEmbedWithoutPdb));
 
-            // These should fail when native PDB support is added.
             parsedArgs = DefaultParse(new[] { "/embed", "/debug:full", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_CannotEmbedWithoutPdb));
-
-            parsedArgs = DefaultParse(new[] { "/embed", "/debug:full", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_CannotEmbedWithoutPdb));
+            parsedArgs.Errors.Verify();
 
             parsedArgs = DefaultParse(new[] { "/embed", "/debug:pdbonly", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_CannotEmbedWithoutPdb));
+            parsedArgs.Errors.Verify();
 
             parsedArgs = DefaultParse(new[] { "/embed", "/debug+", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_CannotEmbedWithoutPdb));
+            parsedArgs.Errors.Verify();
         }
 
         [Theory]
@@ -1921,7 +1919,7 @@ d.cs
         [InlineData("/debug:embedded", "/embed:embed.cs", new[] { "embed.cs", "embed.xyz" })]
         [InlineData("/debug:embedded", "/embed:embed2.cs", new[] { "embed2.cs" })]
         [InlineData("/debug:embedded", "/embed:embed.xyz", new[] {"embed.xyz" })]
-        public void Embed_EndToEnd(string debugSwitch, string embedSwitch, string[] expectedEmbedded)
+        public void Embed_EndToEnd_Portable(string debugSwitch, string embedSwitch, string[] expectedEmbedded)
         {
             // embed.cs: large enough to compress, has #line directives
             const string embed_cs =
@@ -1981,14 +1979,32 @@ print Goodbye, World";
             int exitCode = csc.Run(output);
             Assert.Equal("", output.ToString().Trim());
             Assert.Equal(0, exitCode);
-            
-            bool embedded = debugSwitch == "/debug:embedded";
+
+            switch (debugSwitch)
+            {
+                case "/debug:embedded":
+                    ValidateEmbeddedSources_Portable(expectedEmbeddedMap, dir, isEmbeddedPdb: true);
+                    break;
+                case "/debug:portable":
+                    ValidateEmbeddedSources_Portable(expectedEmbeddedMap, dir, isEmbeddedPdb: false);
+                    break;
+                case "/debug:full":
+                    ValidateEmbeddedSources_Windows(expectedEmbeddedMap, dir);
+                    break;
+            }
+
+            Assert.Empty(expectedEmbeddedMap);
+            CleanupAllGeneratedFiles(src.Path);
+        }
+
+        private static void ValidateEmbeddedSources_Portable(Dictionary<string, string> expectedEmbeddedMap, TempDirectory dir, bool isEmbeddedPdb)
+        {
             using (var peReader = new PEReader(File.OpenRead(Path.Combine(dir.Path, "embed.exe"))))
             {
                 var entry = peReader.ReadDebugDirectory().SingleOrDefault(e => e.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
-                Assert.Equal(embedded, entry.DataSize > 0);
+                Assert.Equal(isEmbeddedPdb, entry.DataSize > 0);
 
-                using (var mdProvider = embedded ?
+                using (var mdProvider = isEmbeddedPdb ?
                     peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry) :
                     MetadataReaderProvider.FromPortablePdbStream(File.OpenRead(Path.Combine(dir.Path, "embed.pdb"))))
                 {
@@ -2011,9 +2027,36 @@ print Goodbye, World";
                     }
                 }
             }
+        }
 
-            Assert.Empty(expectedEmbeddedMap);
-            CleanupAllGeneratedFiles(src.Path);
+        private static void ValidateEmbeddedSources_Windows(Dictionary<string, string> expectedEmbeddedMap, TempDirectory dir)
+        {
+            ISymUnmanagedReader5 symReader = null;
+
+            try
+            {
+                symReader = SymReaderFactory.CreateReader(File.OpenRead(Path.Combine(dir.Path, "embed.pdb")));
+
+                foreach (var doc in symReader.GetDocuments())
+                {
+                    var docPath = doc.GetName();
+
+                    var sourceBlob = doc.GetEmbeddedSource();
+                    if (sourceBlob.Array == null)
+                    {
+                        continue;
+                    }
+
+                    var sourceStr = Encoding.UTF8.GetString(sourceBlob.Array, sourceBlob.Offset, sourceBlob.Count);
+
+                    Assert.Equal(expectedEmbeddedMap[docPath], sourceStr);
+                    Assert.True(expectedEmbeddedMap.Remove(docPath));
+                }
+            }
+            catch
+            {
+                symReader?.Dispose();
+            }
         }
 
         [Fact]
@@ -9170,6 +9213,77 @@ class C {
             }
         }
 
+        [CompilerTrait(CompilerFeature.Determinism)]
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void DeterministicPdbsRegardlessOfBitness()
+        {
+            var dir = Temp.CreateDirectory();
+            var dir32 = dir.CreateDirectory("32");
+            var dir64 = dir.CreateDirectory("64");
+
+            var programExe32 = dir32.CreateFile("Program.exe");
+            var programPdb32 = dir32.CreateFile("Program.pdb");
+            var programExe64 = dir64.CreateFile("Program.exe");
+            var programPdb64 = dir64.CreateFile("Program.pdb");
+
+            var sourceFile = dir.CreateFile("Source.cs").WriteAllText(@"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+namespace N
+{
+    using I4 = System.Int32;
+    
+    class Program
+    {
+        public static IEnumerable<int> F() 
+        {
+            I4 x = 1; 
+            yield return 1;
+            yield return x;
+        }
+
+        public static void Main(string[] args) 
+        {
+            dynamic x = 1;
+            const int a = 1;
+            F().ToArray();
+            Console.WriteLine(x + a);
+        }
+    }
+}");
+            var csc32src = $@"
+using System;
+using System.Reflection;
+
+class Runner
+{{
+    static int Main(string[] args)
+    {{
+        var assembly = Assembly.LoadFrom(@""{s_CSharpCompilerExecutable}"");
+        var program = assembly.GetType(""{typeof(Program).FullName}"");
+        var main = program.GetMethod(""Main"");
+        return (int)main.Invoke(null, new object[] {{ args }});
+    }}
+}}
+";
+            var csc32 = CreateCompilationWithMscorlib46(csc32src, options: TestOptions.ReleaseExe.WithPlatform(Platform.X86), assemblyName: "csc32");
+            var csc32exe = dir.CreateFile("csc32.exe").WriteAllBytes(csc32.EmitToArray());
+
+            dir.CopyFile(Path.ChangeExtension(s_CSharpCompilerExecutable, ".exe.config"), "csc32.exe.config");
+            dir.CopyFile(Path.Combine(Path.GetDirectoryName(s_CSharpCompilerExecutable), "csc.rsp"));
+
+            var output = ProcessUtilities.RunAndGetOutput(csc32exe.Path, $@"/nologo /debug:full /deterministic /out:Program.exe /pathmap:{dir32.Path}=X:\ ""{sourceFile.Path}""", expectedRetCode: 0, startFolder: dir32.Path);
+            Assert.Equal("", output);
+
+            output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, $@"/nologo /debug:full /deterministic /out:Program.exe /pathmap:{dir64.Path}=X:\ ""{sourceFile.Path}""", expectedRetCode: 0, startFolder: dir64.Path);
+            Assert.Equal("", output);
+
+            AssertEx.Equal(programExe32.ReadAllBytes(), programExe64.ReadAllBytes());
+            AssertEx.Equal(programPdb32.ReadAllBytes(), programPdb64.ReadAllBytes());
+        }
+
         [WorkItem(7588, "https://github.com/dotnet/roslyn/issues/7588")]
         [Fact]
         public void Version()
@@ -9435,6 +9549,52 @@ class C
             Assert.Equal(
                 $"Could not load file or assembly '{typeof(ImmutableArray).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim());
+        }
+
+        [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=484417")]
+        [ConditionalFact(typeof(WindowsOnly), typeof(IsEnglishLocal))]
+        public void MicrosoftDiaSymReaderNativeAltLoadPath()
+        {
+            var dir = Temp.CreateDirectory();
+            var cscDir = Path.GetDirectoryName(s_CSharpCompilerExecutable);
+            
+            // copy csc and dependencies except for DSRN:
+            foreach (var filePath in Directory.EnumerateFiles(cscDir))
+            {
+                var fileName = Path.GetFileName(filePath);
+
+                if (fileName.StartsWith("csc") ||
+                    fileName.StartsWith("System.") ||
+                    fileName.StartsWith("Microsoft.") && !fileName.StartsWith("Microsoft.DiaSymReader.Native"))
+                {
+                    dir.CopyFile(filePath);
+                }
+            }
+
+            dir.CreateFile("Source.cs").WriteAllText("class C { void F() { } }");
+
+            var cscCopy = Path.Combine(dir.Path, "csc.exe");
+
+            var arguments = "/nologo /t:library /debug:full Source.cs";
+
+            // env variable not set (deterministic) -- DSRN is required:
+            var result = ProcessUtilities.Run(cscCopy, arguments + " /deterministic", workingDirectory: dir.Path);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                "error CS0041: Unexpected error writing debug information -- 'Unable to load DLL 'Microsoft.DiaSymReader.Native.amd64.dll': " +
+                "The specified module could not be found. (Exception from HRESULT: 0x8007007E)'", result.Output.Trim());
+
+            // env variable not set (non-deterministic) -- globally registered SymReader is picked up:
+            result = ProcessUtilities.Run(cscCopy, arguments, workingDirectory: dir.Path);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", result.Output.Trim());
+
+            // env variable set:
+            result = ProcessUtilities.Run(
+                cscCopy,
+                arguments + " /deterministic",
+                workingDirectory: dir.Path, 
+                additionalEnvironmentVars: new[] { KeyValuePair.Create("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", cscDir) });
+
+            Assert.Equal("", result.Output.Trim());
         }
 
         public class QuotedArgumentTests
