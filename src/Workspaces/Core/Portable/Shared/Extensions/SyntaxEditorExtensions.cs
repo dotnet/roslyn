@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static class SyntaxEditorExtensions
     {
         /// <summary>
-        /// Performs several edits do a document.  If multiple edits are made within the same
+        /// Performs several edits to a document.  If multiple edits are made within the same
         /// expression context, then the document/semantic-model will be forked after each edit 
         /// so that further edits can see if they're still safe to apply.
         /// </summary>
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         /// <summary>
-        /// Performs several edits do a document.  If multiple edits are made within a method
+        /// Performs several edits to a document.  If multiple edits are made within a method
         /// body then the document/semantic-model will be forked after each edit so that further
         /// edits can see if they're still safe to apply.
         /// </summary>
