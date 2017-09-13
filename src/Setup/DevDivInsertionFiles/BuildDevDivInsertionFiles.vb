@@ -833,7 +833,7 @@ Public Class BuildDevDivInsertionFiles
         add("Exes\csc\csc.rsp")
         add("Exes\vbc\vbc.exe.config")
         add("Exes\vbc\vbc.rsp")
-        add("Exes\VBCSCompiler\VBCSCompiler.exe.config")
+        add("Exes\VBCSCompiler\net46\VBCSCompiler.exe.config")
         add("Exes\InteractiveHost\InteractiveHost.exe.config")
         add("Exes\csi\csi.rsp")
         add("Vsix\Roslyn.Deployment.Full.Next\remoteSymbolSearchUpdateEngine.servicehub.service.json")
