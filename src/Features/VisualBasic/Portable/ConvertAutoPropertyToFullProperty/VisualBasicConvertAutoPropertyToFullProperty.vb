@@ -77,11 +77,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
             Return False
         End Function
 
-        Friend Overrides Function GetUniqueName(fieldName As String, propertySymbol As IPropertySymbol) As String
-            ' In VB, auto properties have an implicit backing field that is named using the property 
-            ' name preceded by an underscore. We will use this as the field name so we don't mess up 
-            ' any existing references to this field.
-            Return Underscore + propertySymbol.Name
+        ''' <summary>
+        ''' In VB, auto properties have an implicit backing field that is named using the property 
+        ''' name preceded by an underscore. We will use this as the field name so we don't mess up 
+        ''' any existing references to this field.
+        ''' </summary>
+        Friend Overrides Function GetFieldNameAsync(document As Document, propertySymbol As IPropertySymbol, cancellationToken As CancellationToken) As Task(Of String)
+            Return Task.FromResult(Underscore + propertySymbol.Name)
         End Function
 
         Friend Overrides Function GetTypeBlock(syntaxNode As SyntaxNode) As SyntaxNode
