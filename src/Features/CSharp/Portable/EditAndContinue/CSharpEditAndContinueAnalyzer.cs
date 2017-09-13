@@ -1589,6 +1589,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.Attribute:
                     return FeaturesResources.attribute;
 
+                case SyntaxKind.LocalFunctionStatement:
+                    return FeaturesResources.local_function;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
@@ -1893,18 +1896,31 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:
-                        ClassifyTypeWithPossibleExternMembersInsert((TypeDeclarationSyntax)node);
+                        var typeDeclaration = (TypeDeclarationSyntax)node;
+                        ClassifyTypeWithPossibleExternMembersInsert(typeDeclaration);
+                        ClassifyPossibleEmbeddedAttributesForType(typeDeclaration);
                         return;
 
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.EnumDeclaration:
+                        return;
+
                     case SyntaxKind.DelegateDeclaration:
+                        var delegateDeclaration = (DelegateDeclarationSyntax)node;
+                        ClassifyPossibleReadOnlyRefAttributesForType(delegateDeclaration, delegateDeclaration.ReturnType);
+                        ClassifyPossibleReadOnlyRefAttributesForParameters(delegateDeclaration.ParameterList);
                         return;
 
                     case SyntaxKind.PropertyDeclaration:
-                    case SyntaxKind.IndexerDeclaration:
                     case SyntaxKind.EventDeclaration:
                         ClassifyModifiedMemberInsert(((BasePropertyDeclarationSyntax)node).Modifiers);
+                        return;
+
+                    case SyntaxKind.IndexerDeclaration:
+                        var indexerDeclaration = (IndexerDeclarationSyntax)node;
+                        ClassifyModifiedMemberInsert(indexerDeclaration.Modifiers);
+                        ClassifyPossibleReadOnlyRefAttributesForType(indexerDeclaration, indexerDeclaration.Type);
+                        ClassifyPossibleReadOnlyRefAttributesForParameters(indexerDeclaration.ParameterList);
                         return;
 
                     case SyntaxKind.ConversionOperatorDeclaration:
@@ -1920,11 +1936,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         // Allow adding parameterless constructor.
                         // Semantic analysis will determine if it's an actual addition or 
                         // just an update of an existing implicit constructor.
-                        var modifiers = ((BaseMethodDeclarationSyntax)node).Modifiers;
-                        if (SyntaxUtilities.IsParameterlessConstructor(node))
+                        var method = (BaseMethodDeclarationSyntax)node;
+                        if (SyntaxUtilities.IsParameterlessConstructor(method))
                         {
                             // Disallow adding an extern constructor
-                            if (modifiers.Any(SyntaxKind.ExternKeyword))
+                            if (method.Modifiers.Any(SyntaxKind.ExternKeyword))
                             {
                                 ReportError(RudeEditKind.InsertExtern);
                             }
@@ -1932,7 +1948,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                             return;
                         }
 
-                        ClassifyModifiedMemberInsert(modifiers);
+                        ClassifyModifiedMemberInsert(method.Modifiers);
+                        ClassifyPossibleReadOnlyRefAttributesForParameters(method.ParameterList);
                         return;
 
                     case SyntaxKind.GetAccessorDeclaration:
@@ -1994,6 +2011,59 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return true;
             }
 
+            private void ClassifyPossibleEmbeddedAttributesForType(TypeDeclarationSyntax type)
+            {
+                if (type.Keyword.IsKind(SyntaxKind.StructKeyword))
+                {
+                    foreach (var modifier in type.Modifiers)
+                    {
+                        switch (modifier.Kind())
+                        {
+                            case SyntaxKind.RefKeyword:
+                                ReportError(RudeEditKind.RefStruct, type, type);
+                                return;
+                            case SyntaxKind.ReadOnlyKeyword:
+                                ReportError(RudeEditKind.ReadOnlyStruct, type, type);
+                                return;
+                        }
+                    }
+                }
+            }
+
+            private void ClassifyPossibleReadOnlyRefAttributesForParameters(BaseParameterListSyntax list)
+            {
+                foreach (var parameter in list.Parameters)
+                {
+                    bool foundRef = false, foundReadonly = false;
+
+                    foreach (var modifier in parameter.Modifiers)
+                    {
+                        switch (modifier.Kind())
+                        {
+                            case SyntaxKind.RefKeyword:
+                                foundRef = true;
+                                break;
+                            case SyntaxKind.ReadOnlyKeyword:
+                                foundReadonly = true;
+                                break;
+                        }
+                    }
+
+                    if (foundRef && foundReadonly)
+                    {
+                        ReportError(RudeEditKind.ReadOnlyReferences, parameter, parameter);
+                    }
+                }
+            }
+
+            private void ClassifyPossibleReadOnlyRefAttributesForType(SyntaxNode owner, TypeSyntax type)
+            {
+                if (type is RefTypeSyntax refType && refType.RefKeyword != default && refType.ReadOnlyKeyword != default)
+                {
+                    ReportError(RudeEditKind.ReadOnlyReferences, owner, owner);
+                }
+            }
+
             private void ClassifyTypeWithPossibleExternMembersInsert(TypeDeclarationSyntax type)
             {
                 // extern members are not allowed, even in a new type
@@ -2032,6 +2102,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 {
                     ReportError(RudeEditKind.InsertGenericMethod);
                 }
+
+                ClassifyPossibleReadOnlyRefAttributesForType(method, method.ReturnType);
+                ClassifyPossibleReadOnlyRefAttributesForParameters(method.ParameterList);
             }
 
             private void ClassifyAccessorInsert(AccessorDeclarationSyntax accessor)
@@ -2799,6 +2872,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         case SyntaxKind.StackAllocArrayCreationExpression:
                             ReportError(RudeEditKind.StackAllocUpdate, node, _newNode);
                             return;
+
+                        case SyntaxKind.LocalFunctionStatement:
+                            var localFunction = (LocalFunctionStatementSyntax)node;
+                            ClassifyPossibleReadOnlyRefAttributesForType(localFunction, localFunction.ReturnType);
+                            ClassifyPossibleReadOnlyRefAttributesForParameters(localFunction.ParameterList);
+                            break;
                     }
                 }
             }

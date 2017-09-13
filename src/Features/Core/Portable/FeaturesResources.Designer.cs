@@ -1900,6 +1900,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to local function.
+        /// </summary>
+        internal static string local_function {
+            get {
+                return ResourceManager.GetString("local_function", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to local variable.
         /// </summary>
         internal static string local_variable {
@@ -3587,6 +3596,33 @@ namespace Microsoft.CodeAnalysis {
         internal static string User_Diagnostic_Analyzer_Failure {
             get {
                 return ResourceManager.GetString("User_Diagnostic_Analyzer_Failure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using readonly references will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Using_readonly_references_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Using_readonly_references_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using readonly structs will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Using_readonly_structs_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Using_readonly_structs_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using ref structs will prevent the debug session from continuing..
+        /// </summary>
+        internal static string Using_ref_structs_will_prevent_the_debug_session_from_continuing {
+            get {
+                return ResourceManager.GetString("Using_ref_structs_will_prevent_the_debug_session_from_continuing", resourceCulture);
             }
         }
         
