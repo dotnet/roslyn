@@ -93,24 +93,5 @@ namespace Microsoft.CodeAnalysis
 
             return null;
         }
-
-        /// <summary>
-        /// Returns whether this type inherits from the given WellKnownType
-        /// </summary>
-        internal static bool InheritsSpecialType(this ITypeSymbol originalType, SpecialType specialType)
-        {
-            var baseType = originalType;
-            while (baseType != null)
-            {
-                if (specialType == baseType.SpecialType)
-                {
-                    return true;
-                }
-
-                baseType = baseType.BaseType;
-            }
-
-            return false;
-        }
     }
 }

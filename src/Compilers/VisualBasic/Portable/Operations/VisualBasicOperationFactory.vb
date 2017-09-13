@@ -574,7 +574,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 boundConversion.Operand.Kind = BoundKind.RelaxationLambda OrElse
                 boundConversion.Operand.Kind = BoundKind.UnboundLambda OrElse
                 boundConversion.Operand.Kind = BoundKind.DelegateCreationExpression) AndAlso
-               type.InheritsSpecialType(SpecialType.System_Delegate) Then
+               boundConversion.Type.IsDelegateType() Then
                 ' If we're converting a lambda expression to a delegate type, we're creating a delegate. We return a delegate
                 ' creation expression for this scenario
                 Return New LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit)

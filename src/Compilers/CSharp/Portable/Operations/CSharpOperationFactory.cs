@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 {
                     // We need to determine if this is a conversion to a delegate type. If it is, it's a delegate creation, so we
                     // return an IDelegateCreationExpression instead of a conversion.
-                    if (boundConversion.Type.InheritsSpecialType(SpecialType.System_Delegate))
+                    if (boundConversion.Type.IsDelegateType())
                     {
                         return new LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit);
                     }
