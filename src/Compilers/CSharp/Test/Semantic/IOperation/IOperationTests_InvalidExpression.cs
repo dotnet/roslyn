@@ -287,16 +287,13 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'x + (y * args.Length)')
-  IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'x + (y * args.Length)')
-    Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
-    Right: IBinaryOperatorExpression (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'y * args.Length')
-        Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'y')
-            Children(0)
-        Right: IPropertyReferenceExpression: System.Int32 System.Array.Length { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'args.Length')
-            Instance Receiver: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String[]) (Syntax: 'args')
-  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'x + (y * args.Length)')
+  Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
+  Right: IBinaryOperatorExpression (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'y * args.Length')
+      Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'y')
+          Children(0)
+      Right: IPropertyReferenceExpression: System.Int32 System.Array.Length { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'args.Length')
+          Instance Receiver: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String[]) (Syntax: 'args')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0103: The name 'y' does not exist in the current context

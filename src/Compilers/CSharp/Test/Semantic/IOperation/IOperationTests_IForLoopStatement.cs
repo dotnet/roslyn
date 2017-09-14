@@ -2043,7 +2043,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'for (va
                       ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    IArgument (ArgumentKind.Explicit, Matching Parameter: result) (OperationKind.Argument) (Syntax: 'var i')
+                    IArgument (ArgumentKind.Explicit, Matching Parameter: result) (OperationKind.Argument) (Syntax: 'out var i')
                       ILocalReferenceExpression: i (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var i')
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

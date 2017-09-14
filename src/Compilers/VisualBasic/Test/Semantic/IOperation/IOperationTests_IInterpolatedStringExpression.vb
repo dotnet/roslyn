@@ -22,11 +22,8 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$""')
-  IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""')
-    Parts(0)
-  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""')
+  Parts(0)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -47,13 +44,10 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$"Only text part"')
-  IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"Only text part"')
-    Parts(1):
-        IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'Only text part')
-          Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Only text part") (Syntax: 'Only text part')
-  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"Only text part"')
+  Parts(1):
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'Only text part')
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Only text part") (Syntax: 'Only text part')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -74,15 +68,12 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$"{1}"')
-  IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"{1}"')
-    Parts(1):
-        IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
-          Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-          Alignment: null
-          FormatString: null
-  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"{1}"')
+  Parts(1):
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
+        Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Alignment: null
+        FormatString: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -134,23 +125,20 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$"String {x ... nstant {1}"')
-  IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x ... nstant {1}"')
-    Parts(4):
-        IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
-          Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
-        IInterpolation (OperationKind.Interpolation) (Syntax: '{x}')
-          Expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-          Alignment: null
-          FormatString: null
-        IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and constant ')
-          Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and constant ") (Syntax: ' and constant ')
-        IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
-          Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-          Alignment: null
-          FormatString: null
-  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x ... nstant {1}"')
+  Parts(4):
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{x}')
+        Expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+        Alignment: null
+        FormatString: null
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and constant ')
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and constant ") (Syntax: ' and constant ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
+        Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Alignment: null
+        FormatString: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -174,31 +162,28 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$"String {x ... nstant {1}"')
-  IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x ... nstant {1}"')
-    Parts(6):
-        IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
-          Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
-        IInterpolation (OperationKind.Interpolation) (Syntax: '{x,20}')
-          Expression: IFieldReferenceExpression: [Class].x As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'x')
-              Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'x')
-          Alignment: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
-          FormatString: null
-        IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and ')
-          Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and ") (Syntax: ' and ')
-        IInterpolation (OperationKind.Interpolation) (Syntax: '{y:D3}')
-          Expression: IFieldReferenceExpression: [Class].y As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'y')
-              Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'y')
-          Alignment: null
-          FormatString: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "D3") (Syntax: ':D3')
-        IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and constant ')
-          Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and constant ") (Syntax: ' and constant ')
-        IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
-          Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-          Alignment: null
-          FormatString: null
-  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x ... nstant {1}"')
+  Parts(6):
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{x,20}')
+        Expression: IFieldReferenceExpression: [Class].x As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'x')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'x')
+        Alignment: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+        FormatString: null
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and ')
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and ") (Syntax: ' and ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{y:D3}')
+        Expression: IFieldReferenceExpression: [Class].y As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'y')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'y')
+        Alignment: null
+        FormatString: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "D3") (Syntax: ':D3')
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and constant ')
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and constant ") (Syntax: ' and constant ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
+        Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Alignment: null
+        FormatString: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -221,18 +206,15 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$"String {x,20:D3}"')
-  IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x,20:D3}"')
-    Parts(2):
-        IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
-          Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
-        IInterpolation (OperationKind.Interpolation) (Syntax: '{x,20:D3}')
-          Expression: IFieldReferenceExpression: [Class].x As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'x')
-              Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'x')
-          Alignment: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
-          FormatString: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "D3") (Syntax: ':D3')
-  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x,20:D3}"')
+  Parts(2):
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{x,20:D3}')
+        Expression: IFieldReferenceExpression: [Class].x As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'x')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'x')
+        Alignment: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+        FormatString: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "D3") (Syntax: ':D3')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -259,35 +241,32 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$"String {x ... nstant {1}"')
-  IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x ... nstant {1}"')
-    Parts(6):
-        IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
-          Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
-        IInterpolation (OperationKind.Interpolation) (Syntax: '{x}')
-          Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'x')
-          Alignment: null
-          FormatString: null
-        IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and ')
-          Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and ") (Syntax: ' and ')
-        IInterpolation (OperationKind.Interpolation) (Syntax: '{M2(y)}')
-          Expression: IInvocationExpression ( Function [Class].M2(z As System.Int32) As System.String) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'M2(y)')
-              Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'M2')
-              Arguments(1):
-                  IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: 'y')
-                    ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Alignment: null
-          FormatString: null
-        IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and constant ')
-          Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and constant ") (Syntax: ' and constant ')
-        IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
-          Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-          Alignment: null
-          FormatString: null
-  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x ... nstant {1}"')
+  Parts(6):
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{x}')
+        Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'x')
+        Alignment: null
+        FormatString: null
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and ')
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and ") (Syntax: ' and ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{M2(y)}')
+        Expression: IInvocationExpression ( Function [Class].M2(z As System.Int32) As System.String) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'M2(y)')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'M2')
+            Arguments(1):
+                IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: 'y')
+                  ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Alignment: null
+        FormatString: null
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and constant ')
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and constant ") (Syntax: ' and constant ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
+        Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Alignment: null
+        FormatString: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -314,28 +293,25 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$"String {M2($"{y}")}"')
-  IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {M2($"{y}")}"')
-    Parts(2):
-        IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
-          Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
-        IInterpolation (OperationKind.Interpolation) (Syntax: '{M2($"{y}")}')
-          Expression: IInvocationExpression ( Function [Class].M2(z As System.String) As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'M2($"{y}")')
-              Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'M2')
-              Arguments(1):
-                  IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: '$"{y}"')
-                    IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"{y}"')
-                      Parts(1):
-                          IInterpolation (OperationKind.Interpolation) (Syntax: '{y}')
-                            Expression: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
-                            Alignment: null
-                            FormatString: null
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Alignment: null
-          FormatString: null
-  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {M2($"{y}")}"')
+  Parts(2):
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{M2($"{y}")}')
+        Expression: IInvocationExpression ( Function [Class].M2(z As System.String) As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'M2($"{y}")')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'M2')
+            Arguments(1):
+                IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: '$"{y}"')
+                  IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"{y}"')
+                    Parts(1):
+                        IInterpolation (OperationKind.Interpolation) (Syntax: '{y}')
+                          Expression: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+                          Alignment: null
+                          FormatString: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Alignment: null
+        FormatString: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

@@ -682,29 +682,26 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$""String {x ... nstant {1}""')
-  IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""String {x ... nstant {1}""')
-    Parts(6):
-        IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
-          Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""String "") (Syntax: 'String ')
-        IInterpolation (OperationKind.Interpolation) (Syntax: '{x,20}')
-          Expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'x')
-          Alignment: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
-          FormatString: null
-        IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and ')
-          Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "" and "") (Syntax: ' and ')
-        IInterpolation (OperationKind.Interpolation) (Syntax: '{y:D3}')
-          Expression: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
-          Alignment: null
-          FormatString: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""D3"") (Syntax: ':D3')
-        IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and constant ')
-          Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "" and constant "") (Syntax: ' and constant ')
-        IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
-          Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-          Alignment: null
-          FormatString: null
-  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""String {x ... nstant {1}""')
+  Parts(6):
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""String "") (Syntax: 'String ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{x,20}')
+        Expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'x')
+        Alignment: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+        FormatString: null
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and ')
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "" and "") (Syntax: ' and ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{y:D3}')
+        Expression: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
+        Alignment: null
+        FormatString: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""D3"") (Syntax: ':D3')
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and constant ')
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "" and constant "") (Syntax: ' and constant ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
+        Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Alignment: null
+        FormatString: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -921,13 +918,10 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: '__arglist(x, y)')
-  IOperation:  (OperationKind.None) (Syntax: '__arglist(x, y)')
-    Children(2):
-        IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-        IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Boolean) (Syntax: 'y')
-  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IOperation:  (OperationKind.None) (Syntax: '__arglist(x, y)')
+  Children(2):
+      IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+      IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Boolean) (Syntax: 'y')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
