@@ -45,12 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 _completionBroker, _glyphService, textView, subjectBuffer);
         }
 
-        private bool NeedsDev15CompletionSetFactory(OptionSet options, string language)
-        {
-            return CompletionOptions.GetDev15CompletionOptions().Any(
-                o => options.GetOption(o, language));
-        }
-
         ICompletionSource ICompletionSourceProvider.TryCreateCompletionSource(ITextBuffer textBuffer)
         {
             AssertIsForeground();
