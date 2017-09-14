@@ -5,22 +5,26 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a C# while or do statement, or a VB While or Do statement.
+    /// Represents a C# while, for, foreach, or do statement, or a VB While, For, For Each, or Do statement.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IWhileUntilLoopStatement : IForWhileUntilLoopStatement
+    public interface ILoopStatement : IOperation
     {
         /// <summary>
-        /// True if the loop test executes at the top of the loop; false if the loop test executes at the bottom of the loop.
+        /// Kind of the loop.
         /// </summary>
-        bool IsTopTest { get; }
+        LoopKind LoopKind { get; }
         /// <summary>
-        /// True if the loop is a while loop; false if the loop is an until loop.
+        /// Body of the loop.
         /// </summary>
-        bool IsWhile { get; }
+        IOperation Body { get; }
+        /// <summary>
+        /// Declared locals.
+        /// </summary>
+        ImmutableArray<ILocalSymbol> Locals { get; }
     }
 }
 
