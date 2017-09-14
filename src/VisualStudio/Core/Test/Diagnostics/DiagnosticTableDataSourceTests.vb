@@ -9,12 +9,14 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Common
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.Shell.TableControl
 Imports Microsoft.VisualStudio.Shell.TableManager
 Imports Roslyn.Test.Utilities
@@ -627,7 +629,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Await asyncListener.CreateWaitTask()
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticData))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -651,10 +652,100 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
+        <WpfFact>
+        Public Async Function TestAggregatedDiagnosticCSErrorWithFileLocationButNoDocumentId() As Task
+            Dim markup = <Workspace>
+                             <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                                 <Document FilePath="CurrentDocument.cs"><![CDATA[class { }]]></Document>
+                             </Project>
+                             <Project Language="C#" CommonReferences="true" AssemblyName="Proj2">
+                                 <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.cs"/>
+                             </Project>
+                         </Workspace>
+
+            Using workspace = TestWorkspace.Create(markup)
+
+                Dim asyncListener = New AsynchronousOperationListener()
+                Dim listeners = AsynchronousOperationListener.CreateListeners(ValueTuple.Create(FeatureAttribute.DiagnosticService, asyncListener))
+
+                Dim service = New DiagnosticService(listeners)
+                Dim analyzerService = New MyDiagnosticAnalyzerService(ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)).Empty, service, asyncListener)
+
+                Dim registration = New MockDiagnosticUpdateSourceRegistrationService()
+                Dim updateSource = New ExternalErrorDiagnosticUpdateSource(workspace, analyzerService, registration, asyncListener)
+
+                Dim tableManagerProvider = New TestTableManagerProvider()
+                Dim table = New VisualStudioDiagnosticListTable(workspace, service, updateSource, tableManagerProvider)
+
+                Dim document1 = workspace.CurrentSolution.Projects.First(Function(p) p.Name = "Proj1").Documents.First()
+                Dim document2 = workspace.CurrentSolution.Projects.First(Function(p) p.Name = "Proj2").Documents.First()
+
+                Dim diagnostic1 = CreateItem(workspace, document1.Id)
+                Dim diagnostic2 = CreateItem(workspace, document2.Id)
+
+                updateSource.AddNewErrors(document1.Project.Id,
+                                          New DiagnosticData(diagnostic1.Id, diagnostic1.Category, diagnostic1.Message, diagnostic1.ENUMessageForBingSearch,
+                                                             diagnostic1.Severity, diagnostic1.IsEnabledByDefault, diagnostic1.WarningLevel,
+                                                             diagnostic1.Workspace, diagnostic1.ProjectId,
+                                                             New DiagnosticDataLocation(
+                                                                Nothing,
+                                                                diagnostic1.DataLocation.SourceSpan,
+                                                                diagnostic1.DataLocation.OriginalFilePath,
+                                                                diagnostic1.DataLocation.OriginalStartLine,
+                                                                diagnostic1.DataLocation.OriginalStartColumn,
+                                                                diagnostic1.DataLocation.OriginalEndLine,
+                                                                diagnostic1.DataLocation.OriginalEndColumn,
+                                                                diagnostic1.DataLocation.MappedFilePath,
+                                                                diagnostic1.DataLocation.MappedStartLine,
+                                                                diagnostic1.DataLocation.MappedStartColumn,
+                                                                diagnostic1.DataLocation.MappedEndLine,
+                                                                diagnostic1.DataLocation.MappedEndColumn),
+                                                             diagnostic1.AdditionalLocations, diagnostic1.Title, diagnostic1.Description, diagnostic1.HelpLink,
+                                                             diagnostic1.IsSuppressed, diagnostic1.CustomTags, diagnostic1.Properties))
+
+                updateSource.AddNewErrors(document2.Project.Id,
+                                          New DiagnosticData(diagnostic2.Id, diagnostic2.Category, diagnostic2.Message, diagnostic2.ENUMessageForBingSearch,
+                                                             diagnostic2.Severity, diagnostic2.IsEnabledByDefault, diagnostic2.WarningLevel,
+                                                             diagnostic2.Workspace, diagnostic2.ProjectId,
+                                                             New DiagnosticDataLocation(
+                                                                Nothing,
+                                                                diagnostic2.DataLocation.SourceSpan,
+                                                                diagnostic2.DataLocation.OriginalFilePath,
+                                                                diagnostic2.DataLocation.OriginalStartLine,
+                                                                diagnostic2.DataLocation.OriginalStartColumn,
+                                                                diagnostic2.DataLocation.OriginalEndLine,
+                                                                diagnostic2.DataLocation.OriginalEndColumn,
+                                                                diagnostic2.DataLocation.MappedFilePath,
+                                                                diagnostic2.DataLocation.MappedStartLine,
+                                                                diagnostic2.DataLocation.MappedStartColumn,
+                                                                diagnostic2.DataLocation.MappedEndLine,
+                                                                diagnostic2.DataLocation.MappedEndColumn),
+                                                             diagnostic2.AdditionalLocations, diagnostic2.Title, diagnostic2.Description, diagnostic2.HelpLink,
+                                                             diagnostic2.IsSuppressed, diagnostic2.CustomTags, diagnostic2.Properties))
+
+                updateSource.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
+
+                Await asyncListener.CreateWaitTask()
+
+                Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
+                Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
+
+                Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
+                Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
+                Assert.Equal(2, snapshot.Count)
+
+                Dim filename As Object = Nothing
+                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
+                Assert.Equal("test", filename)
+
+                Dim projectname As Object = Nothing
+                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.ProjectName, projectname))
+                Assert.Equal("Proj1", projectname)
+            End Using
+        End Function
+
         Private Sub RunCompilerAnalyzer(workspace As TestWorkspace, registrationService As IDiagnosticUpdateSourceRegistrationService, listener As IAsynchronousOperationListener)
             Dim snapshot = workspace.CurrentSolution
-
-            Dim notificationService = New TestForegroundNotificationService()
 
             Dim compilerAnalyzersMap = DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()
             Dim analyzerService = New MyDiagnosticAnalyzerService(compilerAnalyzersMap, registrationService, listener)
