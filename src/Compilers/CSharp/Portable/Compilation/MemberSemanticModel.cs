@@ -959,11 +959,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override IOperation GetOperationWorker(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
+        internal override IOperation GetOperationWorker(CSharpSyntaxNode node, CancellationToken cancellationToken)
         {
-            var bindingRoot = GetBindingRootOrInitializer(node);
+            CSharpSyntaxNode bindingRoot = GetBindingRootOrInitializer(node);
 
-            var statementOrRootOperation = GetStatementOrRootOperation(bindingRoot, options, cancellationToken);
+            IOperation statementOrRootOperation = GetStatementOrRootOperation(bindingRoot, cancellationToken);
             if (statementOrRootOperation == null)
             {
                 return null;
@@ -975,48 +975,48 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private CSharpSyntaxNode GetBindingRootOrInitializer(CSharpSyntaxNode node)
         {
-            var bindingRoot = GetBindingRoot(node);
+            CSharpSyntaxNode bindingRoot = GetBindingRoot(node);
 
             // if binding root is parameter, make it equal value
+            // we need to do this since node map doesn't contain bound node for parameter
             var parameter = bindingRoot as ParameterSyntax;
             if (parameter != null && parameter.Default?.FullSpan.Contains(node.Span) == true)
             {
-                // we need to do this since node map doesn't contain bound node for parameter
                 bindingRoot = parameter.Default;
             }
 
             // if binding root is field variable declarator, make it initializer
+            // we need to do this since node map doesn't contain bound node for field/event variable declarator
             var variableDeclarator = bindingRoot as VariableDeclaratorSyntax;
             if (variableDeclarator != null && variableDeclarator.Initializer?.FullSpan.Contains(node.Span) == true)
             {
                 if (variableDeclarator.Parent?.Parent.IsKind(SyntaxKind.FieldDeclaration) == true ||
                     variableDeclarator.Parent?.Parent.IsKind(SyntaxKind.EventFieldDeclaration) == true)
                 {
-                    // we need to do this since node map doesn't contain bound node for field variable declarator
                     bindingRoot = variableDeclarator.Initializer;
                 }
             }
 
             // if binding root is enum member decleration, make it equal value
+            // we need to do this since node map doesn't contain bound node for enum member decl
             var enumMember = bindingRoot as EnumMemberDeclarationSyntax;
             if (enumMember != null && enumMember.EqualsValue?.FullSpan.Contains(node.Span) == true)
             {
-                // we need to do this since node map doesn't contain bound node for enum member decl
                 bindingRoot = enumMember.EqualsValue;
             }
 
             // if binding root is property member decleration, make it equal value
+            // we need to do this since node map doesn't contain bound node for property initializer
             var propertyMember = bindingRoot as PropertyDeclarationSyntax;
             if (propertyMember != null && propertyMember.Initializer?.FullSpan.Contains(node.Span) == true)
             {
-                // we need to do this since node map doesn't contain bound node for property initializer
                 bindingRoot = propertyMember.Initializer;
             }
 
             return bindingRoot;
         }
 
-        private IOperation GetStatementOrRootOperation(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
+        private IOperation GetStatementOrRootOperation(CSharpSyntaxNode node, CancellationToken cancellationToken)
         {
             Debug.Assert(node == GetBindingRootOrInitializer(node));
 
@@ -1024,23 +1024,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundNode lowestBoundNode;
             BoundNode highestBoundNode;
-            BoundNode boundParent;
+            GetBoundNodes(node, out bindableNode, out lowestBoundNode, out highestBoundNode, out _);
 
-            GetBoundNodes(node, out bindableNode, out lowestBoundNode, out highestBoundNode, out boundParent);
-            BoundNode result;
-            switch (options)
-            {
-                case GetOperationOptions.Parent:
-                    result = boundParent;
-                    break;
-                case GetOperationOptions.Highest:
-                    result = highestBoundNode;
-                    break;
-                case GetOperationOptions.Lowest:
-                default:
-                    result = lowestBoundNode;
-                    break;
-            }
+            BoundNode result = highestBoundNode ?? lowestBoundNode;
 
             // The CSharp operation factory assumes that UnboundLambda will be bound for error recovery and never be passed to the factory
             // as the start of a tree to get operations for. This is guaranteed by the builder that populates the node map, as it will call
@@ -1617,7 +1603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             while (node != null);
 
-done:
+            done:
             return GetEnclosingBinderInternalWithinRoot(AdjustStartingNodeAccordingToNewRoot(startingNode, queryClause.Syntax),
                                       position, queryClause.Binder, queryClause.Syntax);
         }

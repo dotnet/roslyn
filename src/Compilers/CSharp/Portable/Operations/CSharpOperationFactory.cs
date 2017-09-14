@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 case BoundKind.IsPatternExpression:
                     return CreateBoundIsPatternExpressionOperation((BoundIsPatternExpression)boundNode);
                 default:
-                    var constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
+                    Optional<object> constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
                     bool isImplicit = boundNode.WasCompilerGenerated;
 
                     return Operation.CreateOperationNone(_semanticModel, boundNode.Syntax, constantValue, getChildren: () => GetIOperationChildren(boundNode), isImplicit: isImplicit);
@@ -243,9 +243,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
 
             var builder = ArrayBuilder<IOperation>.GetInstance(boundNodeWithChildren.Children.Length);
-            foreach (var childNode in boundNodeWithChildren.Children)
+            foreach (BoundNode childNode in boundNodeWithChildren.Children)
             {
-                var operation = Create(childNode);
+                IOperation operation = Create(childNode);
                 if (operation == null)
                 {
                     continue;
@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             // nodes for the lambda expression. So, we ask the semantic model for the IOperation node for the unbound lambda syntax.
             // We are counting on the fact that will do the error recovery and actually create the BoundLambda node appropriate for
             // this syntax node.
-            var boundLambda = unboundLambda.BindForErrorRecovery();
+            BoundLambda boundLambda = unboundLambda.BindForErrorRecovery();
             return CreateInternal(boundLambda);
         }
 
@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IOperation CreateBoundConversionOperation(BoundConversion boundConversion)
         {
-            bool isImplicit = boundConversion.WasCompilerGenerated;
+            bool isCompilerGenerated = boundConversion.WasCompilerGenerated;
             if (boundConversion.ConversionKind == CSharp.ConversionKind.MethodGroup)
             {
                 IMethodSymbol method = boundConversion.SymbolOpt;
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 SyntaxNode syntax = boundConversion.Syntax;
                 ITypeSymbol type = boundConversion.Type;
                 Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
-                return new LazyMethodBindingExpression(method, isVirtual, instance, method, _semanticModel, syntax, type, constantValue, isImplicit);
+                return new LazyMethodBindingExpression(method, isVirtual, instance, method, _semanticModel, syntax, type, constantValue, isCompilerGenerated);
             }
             else
             {
@@ -659,13 +659,14 @@ namespace Microsoft.CodeAnalysis.Semantics
 
                 Lazy<IOperation> operand = new Lazy<IOperation>(() => Create(boundConversion.Operand));
                 Conversion conversion = boundConversion.Conversion;
-                bool isExplicit = boundConversion.ExplicitCastInCode;
+                bool isExplicitCastInCode = boundConversion.ExplicitCastInCode;
                 bool isTryCast = false;
                 // Checked conversions only matter if the conversion is a Numeric conversion. Don't have true unless the conversion is actually numeric.
                 bool isChecked = conversion.IsNumeric && boundConversion.Checked;
                 ITypeSymbol type = boundConversion.Type;
                 Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
-                return new LazyCSharpConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit || !isExplicit);
+                bool isImplicit = isCompilerGenerated || !isExplicitCastInCode;
+                return new LazyCSharpConversionExpression(operand, conversion, isExplicitCastInCode, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
             }
         }
 
@@ -1310,11 +1311,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             if (boundLocalDeclaration.Syntax.Kind() == SyntaxKind.LocalDeclarationStatement)
             {
-                var statement = (LocalDeclarationStatementSyntax)boundLocalDeclaration.Syntax;
-                var variableDeclarator = statement.Declaration.Variables.First();
-
+                LocalDeclarationStatementSyntax statement = (LocalDeclarationStatementSyntax)boundLocalDeclaration.Syntax;
+                VariableDeclaratorSyntax variableDeclarator = statement.Declaration.Variables.First();
                 Lazy<ImmutableArray<IVariableDeclaration>> declarations = new Lazy<ImmutableArray<IVariableDeclaration>>(() => ImmutableArray.Create(CreateVariableDeclaration(boundLocalDeclaration, variableDeclarator)));
-
                 ITypeSymbol type = null;
                 Optional<object> constantValue = default(Optional<object>);
                 bool isImplicit = boundLocalDeclaration.WasCompilerGenerated;

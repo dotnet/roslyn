@@ -992,7 +992,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundCatchBlockOperation(boundCatchBlock As BoundCatchBlock) As ICatchClause
             Dim handler As Lazy(Of IBlockStatement) = New Lazy(Of IBlockStatement)(Function() DirectCast(Create(boundCatchBlock.Body), IBlockStatement))
-            Dim caughtType As ITypeSymbol = boundCatchBlock.ExceptionFilterOpt?.Type
+            Dim caughtType As ITypeSymbol = boundCatchBlock.ExceptionSourceOpt?.Type
             Dim filter As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundCatchBlock.ExceptionFilterOpt))
             Dim exceptionLocal As ILocalSymbol = boundCatchBlock.LocalOpt
             Dim syntax As SyntaxNode = boundCatchBlock.Syntax

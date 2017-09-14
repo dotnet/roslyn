@@ -793,11 +793,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return GetSymbolInfoForNode(options, GetBoundNodeSummary(node), binderOpt:=Nothing)
         End Function
 
-        Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
+        Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, cancellationToken As CancellationToken) As IOperation
             Dim bindingRoot = DirectCast(GetBindingRoot(node), VisualBasicSyntaxNode)
 
-            Dim result As BoundNode = Nothing
-            Dim statementOrRootOperation = GetStatementOrRootOperation(bindingRoot, options, result, cancellationToken)
+            Dim statementOrRootOperation As IOperation = GetStatementOrRootOperation(bindingRoot, cancellationToken)
             If statementOrRootOperation Is Nothing Then
                 Return Nothing
             End If
@@ -806,18 +805,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return statementOrRootOperation.DescendantsAndSelf().FirstOrDefault(Function(o) Not o.IsImplicit AndAlso o.Syntax Is node)
         End Function
 
-        Private Function GetStatementOrRootOperation(node As VisualBasicSyntaxNode, options As GetOperationOptions, ByRef result As BoundNode, cancellationToken As CancellationToken) As IOperation
+        Private Function GetStatementOrRootOperation(node As VisualBasicSyntaxNode, cancellationToken As CancellationToken) As IOperation
             Debug.Assert(node Is GetBindingRoot(node))
 
-            Dim summary = GetBoundNodeSummary(node)
-            Select Case options
-                Case GetOperationOptions.Highest
-                    result = summary.HighestBoundNode
-                Case GetOperationOptions.Parent
-                    result = summary.LowestBoundNodeOfSyntacticParent
-                Case Else
-                    result = summary.LowestBoundNode
-            End Select
+            Dim summary As BoundNodeSummary = GetBoundNodeSummary(node)
+            Dim result As BoundNode = If(summary.HighestBoundNode, summary.LowestBoundNode)
 
             Return _operationFactory.Create(result)
         End Function
