@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -396,7 +397,7 @@ class C
     }
 }
 ";
-            using (new CultureContext("en-US"))
+            using (new CultureContext(new CultureInfo("en-US", useUserOverride: false)))
             {
                 var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.ReleaseExe);
                 c.VerifyPdb(@"
