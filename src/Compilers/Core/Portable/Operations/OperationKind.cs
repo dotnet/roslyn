@@ -80,8 +80,7 @@ namespace Microsoft.CodeAnalysis
         LocalReferenceExpression = 0x105,
         /// <summary>Indicates an <see cref="IParameterReferenceExpression"/>.</summary>
         ParameterReferenceExpression = 0x106,
-        /// <summary>Indicates an <see cref="ISyntheticLocalReferenceExpression"/>.</summary>
-        SyntheticLocalReferenceExpression = 0x107,
+        // Unused 0x107
         /// <summary>Indicates an <see cref="IFieldReferenceExpression"/>.</summary>
         FieldReferenceExpression = 0x108,
         /// <summary>Indicates an <see cref="IMethodBindingExpression"/>.</summary>

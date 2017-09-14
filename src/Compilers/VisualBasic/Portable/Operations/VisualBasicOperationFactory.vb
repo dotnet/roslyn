@@ -920,63 +920,89 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyRelationalCaseClause(value, relation, CaseKind, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundDoLoopStatementOperation(boundDoLoopStatement As BoundDoLoopStatement) As IWhileUntilLoopStatement
-            Dim isTopTest As Boolean = boundDoLoopStatement.ConditionIsTop
-            Dim isWhile As Boolean = Not boundDoLoopStatement.ConditionIsUntil
+        Private Function CreateBoundDoLoopStatementOperation(boundDoLoopStatement As BoundDoLoopStatement) As IDoLoopStatement
+            Dim doLoopKind As DoLoopKind = GetDoLoopKind(boundDoLoopStatement)
             Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundDoLoopStatement.ConditionOpt))
-            Dim LoopKind As LoopKind = LoopKind.WhileUntil
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundDoLoopStatement.Body))
+            Dim ignoredConditionOpt As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function()
+                                                                                         If doLoopKind = doLoopKind.Invalid Then
+                                                                                             Debug.Assert(boundDoLoopStatement.TopConditionOpt IsNot Nothing)
+                                                                                             Debug.Assert(boundDoLoopStatement.BottomConditionOpt IsNot Nothing)
+                                                                                             Debug.Assert(boundDoLoopStatement.ConditionOpt Is boundDoLoopStatement.TopConditionOpt)
+                                                                                             Return Create(boundDoLoopStatement.BottomConditionOpt)
+                                                                                         Else
+                                                                                             Debug.Assert(boundDoLoopStatement.TopConditionOpt Is Nothing OrElse boundDoLoopStatement.BottomConditionOpt Is Nothing)
+                                                                                             Return Nothing
+                                                                                         End If
+                                                                                     End Function)
+            Dim locals As ImmutableArray(Of ILocalSymbol) = ImmutableArray(Of ILocalSymbol).Empty
             Dim syntax As SyntaxNode = boundDoLoopStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundDoLoopStatement.WasCompilerGenerated
-            Return New LazyWhileUntilLoopStatement(isTopTest, isWhile, condition, LoopKind, body, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyDoLoopStatement(doLoopKind, condition, body, ignoredConditionOpt, locals, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundForToStatementOperation(boundForToStatement As BoundForToStatement) As IForLoopStatement
-            Dim before As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
-                Function()
-                    Return GetForLoopStatementBefore(
-                        boundForToStatement.ControlVariable,
-                        boundForToStatement.InitialValue,
-                        _semanticModel.CloneOperation(Create(boundForToStatement.LimitValue)),
-                        _semanticModel.CloneOperation(Create(boundForToStatement.StepValue)))
-                End Function)
-            Dim atLoopBottom As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
-                Function()
-                    Return GetForLoopStatementAtLoopBottom(
-                        _semanticModel.CloneOperation(Create(boundForToStatement.ControlVariable)),
-                        boundForToStatement.StepValue,
-                        boundForToStatement.OperatorsOpt)
-                End Function)
-            Dim locals As ImmutableArray(Of ILocalSymbol) = ImmutableArray(Of ILocalSymbol).Empty
-            Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(
-                Function()
-                    Return GetForWhileUntilLoopStatementCondition(
-                        boundForToStatement.ControlVariable,
-                        boundForToStatement.LimitValue,
-                        boundForToStatement.StepValue,
-                        boundForToStatement.OperatorsOpt)
-                End Function)
-            Dim LoopKind As LoopKind = LoopKind.For
+        Private Shared Function GetDoLoopKind(boundDoLoopStatement As BoundDoLoopStatement) As DoLoopKind
+            If boundDoLoopStatement.TopConditionOpt IsNot Nothing AndAlso boundDoLoopStatement.BottomConditionOpt IsNot Nothing Then
+                Return DoLoopKind.Invalid
+            End If
+
+            If boundDoLoopStatement.ConditionIsTop Then
+                If boundDoLoopStatement.ConditionIsUntil Then
+                    Return DoLoopKind.DoUntilTopLoop
+                Else
+                    Return DoLoopKind.DoWhileTopLoop
+                End If
+            Else
+                If boundDoLoopStatement.ConditionIsUntil Then
+                    Return DoLoopKind.DoUntilBottomLoop
+                Else
+                    Return DoLoopKind.DoWhileBottomLoop
+                End If
+            End If
+        End Function
+
+        Private Function CreateBoundForToStatementOperation(boundForToStatement As BoundForToStatement) As IForToLoopStatement
+            Dim locals As ImmutableArray(Of ILocalSymbol) = If(boundForToStatement.DeclaredOrInferredLocalOpt IsNot Nothing,
+                ImmutableArray.Create(Of ILocalSymbol)(boundForToStatement.DeclaredOrInferredLocalOpt),
+                ImmutableArray(Of ILocalSymbol).Empty)
+            Dim loopControlVariable As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForToStatement.ControlVariable))
+            Dim initialValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForToStatement.InitialValue))
+            Dim limitValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForToStatement.LimitValue))
+            Dim stepValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForToStatement.StepValue))
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForToStatement.Body))
+            Dim nextVariables As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
+                Function()
+                    Return If(boundForToStatement.NextVariablesOpt.IsDefault,
+                        ImmutableArray(Of IOperation).Empty,
+                        boundForToStatement.NextVariablesOpt.SelectAsArray(Function(n) Create(n)))
+                End Function)
             Dim syntax As SyntaxNode = boundForToStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundForToStatement.WasCompilerGenerated
-            Return New LazyForLoopStatement(before, atLoopBottom, locals, condition, LoopKind, body, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyForToLoopStatement(locals, loopControlVariable, initialValue, limitValue, stepValue, body, nextVariables, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundForEachStatementOperation(boundForEachStatement As BoundForEachStatement) As IForEachLoopStatement
-            Dim iterationVariable As ILocalSymbol = TryCast(boundForEachStatement.ControlVariable, BoundLocal)?.LocalSymbol
+            Dim locals As ImmutableArray(Of ILocalSymbol) = If(boundForEachStatement.DeclaredOrInferredLocalOpt IsNot Nothing,
+                ImmutableArray.Create(Of ILocalSymbol)(boundForEachStatement.DeclaredOrInferredLocalOpt),
+                ImmutableArray(Of ILocalSymbol).Empty)
+            Dim loopControlVariable As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForEachStatement.ControlVariable))
             Dim collection As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForEachStatement.Collection))
-            Dim LoopKind As LoopKind = LoopKind.ForEach
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForEachStatement.Body))
+            Dim nextVariables As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
+                Function()
+                    Return If(boundForEachStatement.NextVariablesOpt.IsDefault,
+                        ImmutableArray(Of IOperation).Empty,
+                        boundForEachStatement.NextVariablesOpt.SelectAsArray(Function(n) Create(n)))
+                End Function)
             Dim syntax As SyntaxNode = boundForEachStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundForEachStatement.WasCompilerGenerated
-            Return New LazyForEachLoopStatement(iterationVariable, collection, LoopKind, body, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyForEachLoopStatement(locals, loopControlVariable, collection, nextVariables, body, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundTryStatementOperation(boundTryStatement As BoundTryStatement) As ITryStatement
@@ -1057,17 +1083,15 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New ExpressionStatement(throwExpression, _semanticModel, syntax, statementType, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundWhileStatementOperation(boundWhileStatement As BoundWhileStatement) As IWhileUntilLoopStatement
-            Dim isTopTest As Boolean = True
-            Dim isWhile As Boolean = True
+        Private Function CreateBoundWhileStatementOperation(boundWhileStatement As BoundWhileStatement) As IWhileLoopStatement
             Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundWhileStatement.Condition))
-            Dim LoopKind As LoopKind = LoopKind.WhileUntil
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundWhileStatement.Body))
+            Dim locals As ImmutableArray(Of ILocalSymbol) = ImmutableArray(Of ILocalSymbol).Empty
             Dim syntax As SyntaxNode = boundWhileStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundWhileStatement.WasCompilerGenerated
-            Return New LazyWhileUntilLoopStatement(isTopTest, isWhile, condition, LoopKind, body, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyWhileLoopStatement(condition, body, locals, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundDimStatementOperation(boundDimStatement As BoundDimStatement) As IVariableDeclarationStatement
@@ -1100,7 +1124,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundGotoStatementOperation(boundGotoStatement As BoundGotoStatement) As IBranchStatement
             Dim target As ILabelSymbol = boundGotoStatement.Label
-            Dim branchKind As BranchKind = BranchKind.GoTo
+            Dim branchKind As BranchKind = branchKind.GoTo
             Dim syntax As SyntaxNode = boundGotoStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
@@ -1110,7 +1134,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundContinueStatementOperation(boundContinueStatement As BoundContinueStatement) As IBranchStatement
             Dim target As ILabelSymbol = boundContinueStatement.Label
-            Dim branchKind As BranchKind = BranchKind.Continue
+            Dim branchKind As BranchKind = branchKind.Continue
             Dim syntax As SyntaxNode = boundContinueStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
@@ -1120,7 +1144,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundExitStatementOperation(boundExitStatement As BoundExitStatement) As IBranchStatement
             Dim target As ILabelSymbol = boundExitStatement.Label
-            Dim branchKind As BranchKind = BranchKind.Break
+            Dim branchKind As BranchKind = branchKind.Break
             Dim syntax As SyntaxNode = boundExitStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
