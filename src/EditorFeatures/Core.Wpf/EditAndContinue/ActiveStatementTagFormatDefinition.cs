@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
     [Name(ActiveStatementTag.TagId)]
     [UserVisible(true)]
     [ExcludeFromCodeCoverage]
-    internal sealed class ActiveStatementTagDefinition : MarkerFormatDefinition
+    internal sealed class ActiveStatementTagFormatDefinition : MarkerFormatDefinition
     {
-        public ActiveStatementTagDefinition()
+        public ActiveStatementTagFormatDefinition()
         {
             // TODO (tomat): bug 777271
             // Should we reuse an existing marker for read only regions?
