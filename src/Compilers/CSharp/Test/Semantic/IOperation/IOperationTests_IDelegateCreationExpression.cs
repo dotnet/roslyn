@@ -303,6 +303,8 @@ class Program
             // rewrite of GetOperation is complete, this should return the IDelegateCreationExpression.
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'M1')
+  Children(1):
+      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -362,6 +364,8 @@ class Program
             // rewrite of GetOperation is complete, this should return the IDelegateCreationExpression.
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
+  Children(1):
+      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
@@ -394,6 +398,8 @@ class Program
             // rewrite of GetOperation is complete, this should return the IDelegateCreationExpression.
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
+  Children(1):
+      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
@@ -566,12 +572,45 @@ class Program
             string expectedOperationTree = @"
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M1')
   Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
+      Children(1):
+          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
                 // CS0030: Cannot convert type 'method' to 'Action'
                 //         Action a = /*<bind>*/(Action)M1/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Action)M1").WithArguments("method", "System.Action").WithLocation(7, 30)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DelegateCreationExpression_ExplicitMethodBinding_InvalidArgumentTypeWithReceiver()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        Program p = new Program();
+        Action a = /*<bind>*/(Action)p.M1/*</bind>*/;
+    }
+    void M1(object o) { }
+}
+";
+            string expectedOperationTree = @"
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)p.M1')
+  Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'p.M1')
+      Children(1):
+          ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'p')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0030: Cannot convert type 'method' to 'Action'
+                //         Action a = /*<bind>*/(Action)p.M1/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Action)p.M1").WithArguments("method", "System.Action").WithLocation(8, 30)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -727,6 +766,33 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        public void DelegateCreationExpression_ExplicitDelegateConstructorAndImplicitMethodBindingConversionWithReceiver()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        var p = new Program();
+        Action a = /*<bind>*/new Action(p.M1)/*</bind>*/;
+    }
+
+    void M1() { }
+}
+";
+            string expectedOperationTree = @"
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'new Action(p.M1)')
+  Target: IMethodBindingExpression: void Program.M1() (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'p.M1')
+      Instance Receiver: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'p')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void DelegateCreationExpression_ExplicitDelegateConstructorAndImplicitMethodBindingConversion_InvalidMissingIdentifier()
         {
             string source = @"
@@ -774,6 +840,8 @@ class Program
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action(M1)')
   Children(1):
       IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
+        Children(1):
+            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0407: 'int Program.M1()' has the wrong return type
@@ -805,6 +873,8 @@ class Program
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action(M1)')
   Children(1):
       IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
+        Children(1):
+            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0123: No overload for 'M1' matches delegate 'Action'
@@ -841,12 +911,74 @@ class C
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action(M2, M3)')
   Children(2):
       IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M2')
+        Children(1):
+            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsInvalid) (Syntax: 'M2')
       IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M3')
+        Children(1):
+            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsInvalid) (Syntax: 'M3')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0149: Method name expected
                 //         Action action = /*<bind>*/new Action(M2, M3)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_MethodNameExpected, "M2, M3").WithLocation(8, 46)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void DelegateCreationExpression_ExplicitDelegateConstructorImplicitMethodBinding_InvalidTargetArguments()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        Action<string> a = /*<bind>*/new Action(M1)/*</bind>*/;
+    }
+
+    void M1() { }
+}
+";
+            string expectedOperationTree = @"
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action(M1)')
+  Target: IMethodBindingExpression: void Program.M1() (OperationKind.MethodBindingExpression, Type: null, IsInvalid) (Syntax: 'M1')
+      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0029: Cannot implicitly convert type 'System.Action' to 'System.Action<string>'
+                //         Action<string> a = /*<bind>*/new Action(M1)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new Action(M1)").WithArguments("System.Action", "System.Action<string>").WithLocation(7, 38)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void DelegateCreationExpression_ExplicitDelegateConstructorImplicitMethodBinding_InvalidTargetReturn()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        Func<string> a = /*<bind>*/new Action(M1)/*</bind>*/;
+    }
+
+    void M1() { }
+}
+";
+            string expectedOperationTree = @"
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action(M1)')
+  Target: IMethodBindingExpression: void Program.M1() (OperationKind.MethodBindingExpression, Type: null, IsInvalid) (Syntax: 'M1')
+      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0029: Cannot implicitly convert type 'System.Action' to 'System.Func<string>'
+                //         Func<string> a = /*<bind>*/new Action(M1)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new Action(M1)").WithArguments("System.Action", "System.Func<string>").WithLocation(7, 36)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1051,11 +1183,75 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInva
   Children(1):
       IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M1')
         Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
+            Children(1):
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0030: Cannot convert type 'method' to 'Action'
                 //         Action a = /*<bind>*/new Action((Action)M1)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Action)M1").WithArguments("method", "System.Action").WithLocation(7, 41)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DelegateCreationExpression_ExplicitDelegateConstructorAndExplicitMethodBindingConversion_InvalidTargetArgument()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        Action<string> a = /*<bind>*/new Action((Action)M1)/*</bind>*/;
+    }
+
+    void M1() { }
+}
+";
+            string expectedOperationTree = @"
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action((Action)M1)')
+  Target: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M1')
+      Target: IMethodBindingExpression: void Program.M1() (OperationKind.MethodBindingExpression, Type: null, IsInvalid) (Syntax: 'M1')
+          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0029: Cannot implicitly convert type 'System.Action' to 'System.Action<string>'
+                //         Action<string> a = /*<bind>*/new Action((Action)M1)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new Action((Action)M1)").WithArguments("System.Action", "System.Action<string>").WithLocation(7, 38)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DelegateCreationExpression_ExplicitDelegateConstructorAndExplicitMethodBindingConversion_InvalidTargetReturn()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        Func<string> a = /*<bind>*/new Action((Action)M1)/*</bind>*/;
+    }
+
+    void M1() { }
+}
+";
+            string expectedOperationTree = @"
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action((Action)M1)')
+  Target: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M1')
+      Target: IMethodBindingExpression: void Program.M1() (OperationKind.MethodBindingExpression, Type: null, IsInvalid) (Syntax: 'M1')
+          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0029: Cannot implicitly convert type 'System.Action' to 'System.Func<string>'
+                //         Func<string> a = /*<bind>*/new Action((Action)M1)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new Action((Action)M1)").WithArguments("System.Action", "System.Func<string>").WithLocation(7, 36)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1096,6 +1292,68 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DelegateCreationExpression_ImplicitMethodBinding_InvalidMultipleCandidates()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        /*<bind>*/Action<int> a = M1;/*</bind>*/
+    }
+    void M1(object o) { }
+    void M1(string s) { }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Action<int> a = M1;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Action<int> a = M1;')
+    Variables: Local_1: System.Action<System.Int32> a
+    Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action<System.Int32>, IsInvalid) (Syntax: 'M1')
+        Target: IMethodBindingExpression: void Program.M1(System.Object o) (OperationKind.MethodBindingExpression, Type: null, IsInvalid) (Syntax: 'M1')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0123: No overload for 'Program.M1(object)' matches delegate 'Action<int>'
+                //         /*<bind>*/Action<int> a = M1;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M1").WithArguments("Program.M1(object)", "System.Action<int>").WithLocation(7, 35)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DelegateCreationExpression_ImplicitMethodBinding_MultipleCandidates()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        /*<bind>*/Action<int> a = M1;/*</bind>*/
+    }
+    void M1(object o) { }
+    void M1(int i) { }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Action<int> a = M1;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'Action<int> a = M1;')
+    Variables: Local_1: System.Action<System.Int32> a
+    Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action<System.Int32>) (Syntax: 'M1')
+        Target: IMethodBindingExpression: void Program.M1(System.Int32 i) (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'M1')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M1')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
     }
 }

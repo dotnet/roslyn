@@ -21,14 +21,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<BoundNode> Children => this.ChildBoundNodes;
     }
 
+    partial class BoundFixedStatement
+    {
+        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Declarations, this.Body);
+    }
+
     partial class BoundLocalFunctionStatement
     {
         protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Body);
     }
 
-    partial class BoundFixedStatement
+    partial class BoundMethodGroup
     {
-        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Declarations, this.Body);
+        protected override ImmutableArray<BoundNode> Children
+        {
+            get
+            {
+                var builder = ImmutableArray.CreateBuilder<BoundNode>();
+                if (InstanceOpt != null)
+                {
+                    builder.Add(InstanceOpt);
+                }
+                if (ReceiverOpt != null && ReceiverOpt != InstanceOpt)
+                {
+                    builder.Add(ReceiverOpt);
+                }
+
+                return builder.ToImmutable();
+            }
+        }
     }
 
     partial class BoundPointerIndirectionOperator

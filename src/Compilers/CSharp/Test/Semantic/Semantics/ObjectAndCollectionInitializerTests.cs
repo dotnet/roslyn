@@ -912,6 +912,8 @@ IObjectCreationExpression (Constructor: System.Int32..ctor()) (OperationKind.Obj
             Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x')
                 Children(1):
                     IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'x')
+                      Children(1):
+                          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: System.Int32) (Syntax: 'int')
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1229,6 +1231,8 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: X, IsInvalid) (Syntax
               Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?) (Syntax: 'x')
                   Children(1):
                       IOperation:  (OperationKind.None) (Syntax: 'x')
+                        Children(1):
+                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: X, IsInvalid) (Syntax: 'X')
               Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1268,6 +1272,8 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: Bar, IsInvalid) (Synt
               Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?) (Syntax: 'Width')
                   Children(1):
                       IOperation:  (OperationKind.None) (Syntax: 'Width')
+                        Children(1):
+                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Bar, IsInvalid) (Syntax: 'Bar')
               Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 16) (Syntax: '16')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1544,6 +1550,8 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
             Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Goo')
                 Children(1):
                     IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Goo')
+                      Children(1):
+                          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest) (Syntax: 'MemberInitializerTest')
             Right: IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest) (Syntax: 'new MemberI ... lizerTest()')
                 Arguments(0)
                 Initializer: null
@@ -2239,6 +2247,8 @@ class MemberInitializerTest
 IInvalidExpression (OperationKind.InvalidExpression, Type: MemberInitializerTest.D<System.Int32>, IsInvalid) (Syntax: 'new D<int>( ... d<int>) { }')
   Children(1):
       IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'GenericMethod<int>')
+        Children(1):
+            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MemberInitializerTest, IsInvalid) (Syntax: 'GenericMethod<int>')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1958: Object and collection initializer expressions may not be applied to a delegate creation expression
@@ -2515,6 +2525,8 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: Dictionary<System.Obj
               Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x')
                   Children(1):
                       IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'x')
+                        Children(1):
+                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Dictionary<System.Object, System.Object>, IsInvalid) (Syntax: 'Dictionary< ... ct, object>')
               Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {

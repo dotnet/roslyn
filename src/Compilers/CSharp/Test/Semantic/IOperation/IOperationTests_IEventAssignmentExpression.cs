@@ -202,6 +202,8 @@ IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression,
       Instance Receiver: ILocalReferenceExpression: t (OperationKind.LocalReferenceExpression, Type: Test, IsInvalid) (Syntax: 't')
   Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler, IsInvalid) (Syntax: 'Handler')
       Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Handler')
+          Children(1):
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsInvalid) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {                  
                 // file.cs(18,19): error CS0123: No overload for 'Handler' matches delegate 'EventHandler'
