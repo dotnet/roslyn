@@ -200,9 +200,8 @@ class C
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: 't.MyEvent += Handler')
   Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler, IsInvalid) (Syntax: 't.MyEvent')
       Instance Receiver: ILocalReferenceExpression: t (OperationKind.LocalReferenceExpression, Type: Test, IsInvalid) (Syntax: 't')
-  Handler: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventHandler, IsInvalid) (Syntax: 'Handler')
-      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Handler')
+  Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler, IsInvalid) (Syntax: 'Handler')
+      Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {                  
                 // file.cs(18,19): error CS0123: No overload for 'Handler' matches delegate 'EventHandler'

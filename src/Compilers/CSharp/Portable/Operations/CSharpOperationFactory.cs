@@ -703,16 +703,13 @@ namespace Microsoft.CodeAnalysis.Semantics
                 ITypeSymbol type = boundConversion.Type;
                 Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
 
-                // If this is a lambda conversion, we need to check to see if it's a delegate conversion.
-                if (boundConversion.Operand.Kind == BoundKind.Lambda ||
-                    boundConversion.Operand.Kind == BoundKind.UnboundLambda)
+                // If this is a lambda or method group conversion to a delegate type, we return a delegate creation instead of a conversion
+                if ((boundConversion.Operand.Kind == BoundKind.Lambda ||
+                     boundConversion.Operand.Kind == BoundKind.UnboundLambda ||
+                     boundConversion.Operand.Kind == BoundKind.MethodGroup) &&
+                    boundConversion.Type.IsDelegateType())
                 {
-                    // We need to determine if this is a conversion to a delegate type. If it is, it's a delegate creation, so we
-                    // return an IDelegateCreationExpression instead of a conversion.
-                    if (boundConversion.Type.IsDelegateType())
-                    {
-                        return new LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit);
-                    }
+                    return new LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit);
                 }
 
                 Conversion conversion = boundConversion.Conversion;

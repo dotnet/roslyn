@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IDelegateCreationExpression : IOperation
     {
         /// <summary>
-        /// The conversion and lambda body or method binding that this delegate is created from.
+        /// The lambda or method binding that this delegate is created from.
         /// </summary>
         IOperation Target { get; }
     }
