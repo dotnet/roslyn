@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.NameArguments
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Name_literal_argument, createChangedDocument, FeaturesResources.Name_literal_argument)
+                : base(FeaturesResources.Name_argument, createChangedDocument, FeaturesResources.Name_argument)
             {
             }
         }

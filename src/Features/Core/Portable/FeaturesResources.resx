@@ -1253,11 +1253,11 @@ This version used in: {2}</value>
   <data name="Use_inferred_member_name" xml:space="preserve">
     <value>Use inferred member name</value>
   </data>
-  <data name="Name_literal_argument" xml:space="preserve">
-    <value>Name literal argument</value>
+  <data name="Name_argument" xml:space="preserve">
+    <value>Name argument</value>
   </data>
-  <data name="Literal_argument_can_be_named" xml:space="preserve">
-    <value>Literal argument can be named</value>
+  <data name="Argument_can_be_named" xml:space="preserve">
+    <value>Argument can be named</value>
   </data>
   <data name="Member_name_can_be_simplified" xml:space="preserve">
     <value>Member name can be simplified</value>

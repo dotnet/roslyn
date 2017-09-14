@@ -279,4 +279,7 @@
   <data name="Separate_import_directive_groups" xml:space="preserve">
     <value>Separate import directive groups</value>
   </data>
+  <data name="Prefer_named_arguments_VB_15_5_or_greater" xml:space="preserve">
+    <value>Prefer named arguments (VB 15.5 or greater)</value>
+  </data>
 </root>

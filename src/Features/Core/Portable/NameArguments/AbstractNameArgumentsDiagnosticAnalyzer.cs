@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.NameArguments
 
         public AbstractNameArgumentsDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.NameArgumentsDiagnosticId,
-               new LocalizableResourceString(nameof(FeaturesResources.Name_literal_argument), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-               new LocalizableResourceString(nameof(FeaturesResources.Literal_argument_can_be_named), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+               new LocalizableResourceString(nameof(FeaturesResources.Name_argument), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+               new LocalizableResourceString(nameof(FeaturesResources.Argument_can_be_named), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.NameArguments
                 return;
             }
 
-            if (!optionSet.GetOption(CodeStyleOptions.PreferNamedLiteralArguments, context.Compilation.Language).Value)
+            if (!optionSet.GetOption(CodeStyleOptions.PreferNamedArguments, context.Compilation.Language).Value)
             {
                 return;
             }
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.NameArguments
 
             context.ReportDiagnostic(
                 Diagnostic.Create(GetDescriptorWithSeverity(
-                    optionSet.GetOption(CodeStyleOptions.PreferNamedLiteralArguments, context.SemanticModel.Language).Notification.Value),
+                    optionSet.GetOption(CodeStyleOptions.PreferNamedArguments, context.SemanticModel.Language).Notification.Value),
                     argument.GetLocation(), builder.ToImmutable()));
         }
     }

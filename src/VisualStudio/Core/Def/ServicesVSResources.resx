@@ -927,9 +927,6 @@ Additional information: {1}</value>
   <data name="Prefer_inferred_anonymous_type_member_names" xml:space="preserve">
     <value>Prefer inferred anonymous type member names</value>
   </data>
-  <data name="Prefer_named_literal_arguments_VB_15_5_or_greater" xml:space="preserve">
-    <value>Prefer named literal arguments (VB 15.5 or greater)</value>
-  </data>
   <data name="Preview_pane" xml:space="preserve">
     <value>Preview pane</value>
   </data>
@@ -964,9 +961,6 @@ Additional information: {1}</value>
   </data>
   <data name="Prefer_local_function_over_anonymous_function" xml:space="preserve">
     <value>Prefer local function over anonymous function</value>
-  </data>
-  <data name="Prefer_named_literal_arguments_CSharp_7_2_or_greater" xml:space="preserve">
-    <value>Prefer named literal arguments (C# 7.2 or greater)</value>
   </data>
   <data name="External_reference_found" xml:space="preserve">
     <value>External reference found</value>

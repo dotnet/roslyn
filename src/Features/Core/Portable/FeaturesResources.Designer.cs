@@ -494,6 +494,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Argument can be named.
+        /// </summary>
+        internal static string Argument_can_be_named {
+            get {
+                return ResourceManager.GetString("Argument_can_be_named", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Argument cannot be empty..
         /// </summary>
         internal static string Argument_cannot_be_empty {
@@ -1882,15 +1891,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Literal argument can be named.
-        /// </summary>
-        internal static string Literal_argument_can_be_named {
-            get {
-                return ResourceManager.GetString("Literal_argument_can_be_named", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Live.
         /// </summary>
         internal static string Live {
@@ -2201,11 +2201,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Name literal argument.
+        ///   Looks up a localized string similar to Name argument.
         /// </summary>
-        internal static string Name_literal_argument {
+        internal static string Name_argument {
             get {
-                return ResourceManager.GetString("Name_literal_argument", resourceCulture);
+                return ResourceManager.GetString("Name_argument", resourceCulture);
             }
         }
         

@@ -398,6 +398,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Prefer named arguments (VB 15.5 or greater).
+        '''</summary>
+        Friend Shared ReadOnly Property Prefer_named_arguments_VB_15_5_or_greater() As String
+            Get
+                Return ResourceManager.GetString("Prefer_named_arguments_VB_15_5_or_greater", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to _Pretty listing (reformatting) of code.
         '''</summary>
         Friend Shared ReadOnly Property Pretty_listing_reformatting_of_code() As String

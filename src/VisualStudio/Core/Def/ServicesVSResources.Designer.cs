@@ -1667,24 +1667,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prefer named literal arguments (C# 7.2 or greater).
-        /// </summary>
-        internal static string Prefer_named_literal_arguments_CSharp_7_2_or_greater {
-            get {
-                return ResourceManager.GetString("Prefer_named_literal_arguments_CSharp_7_2_or_greater", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Prefer named literal arguments (VB 15.5 or greater).
-        /// </summary>
-        internal static string Prefer_named_literal_arguments_VB_15_5_or_greater {
-            get {
-                return ResourceManager.GetString("Prefer_named_literal_arguments_VB_15_5_or_greater", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Prefer null propagation.
         /// </summary>
         internal static string Prefer_null_propagation {
