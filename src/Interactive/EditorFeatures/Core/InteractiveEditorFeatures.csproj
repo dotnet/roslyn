@@ -18,6 +18,7 @@
     </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\Core\EditorFeatures.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\Core.Wpf\EditorFeatures.Wpf.csproj" />
     <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj" />
     <ProjectReference Include="..\..\..\Interactive\Features\InteractiveFeatures.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\Text\TextEditorFeatures.csproj" />
