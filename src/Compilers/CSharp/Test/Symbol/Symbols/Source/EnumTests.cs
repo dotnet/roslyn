@@ -203,12 +203,26 @@ ValueC = 257 // Out of underlying range
 }";
             //VerifyEnumsValue(text, "TestEnum", 0, 1);
             var comp = CreateStandardCompilation(text);
-            DiagnosticsUtils.VerifyErrorCodesNoLineColumn(comp.GetDiagnostics(), new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberProtection },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateModifier },
-                new ErrorDescription { Code = (int)ErrorCode.WRN_NewNotRequired },
-                new ErrorDescription { Code = (int)ErrorCode.WRN_NewNotRequired });
+            comp.VerifyDiagnostics(
+                // (5,19): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract enum Figure3 { Zero };             // abstract not valid
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Figure3").WithArguments("abstract").WithLocation(5, 19),
+                // (6,13): error CS1004: Duplicate 'private' modifier
+                //     private private enum Figure4 { One = 1 };   // Duplicate modifier is not OK
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "private").WithArguments("private").WithLocation(6, 13),
+                // (7,25): error CS0107: More than one protection modifier
+                //     private public enum Figure5 { };  // More than one protection modifiers is not OK
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "Figure5").WithLocation(7, 25),
+                // (8,17): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed enum Figure0 { Zero };               // sealed not valid
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Figure0").WithArguments("sealed").WithLocation(8, 17),
+                // (9,14): warning CS0109: The member 'Program.Figure' does not hide an accessible member. The new keyword is not required.
+                //     new enum Figure { Zero };                   // OK
+                Diagnostic(ErrorCode.WRN_NewNotRequired, "Figure").WithArguments("Program.Figure").WithLocation(9, 14),
+                // (4,21): warning CS0109: The member 'Program.Figure2' does not hide an accessible member. The new keyword is not required.
+                //     new public enum Figure2 { Zero = 0 };       // new + protection modifier is OK 
+                Diagnostic(ErrorCode.WRN_NewNotRequired, "Figure2").WithArguments("Program.Figure2").WithLocation(4, 21)
+                );
         }
 
         [WorkItem(527757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527757")]

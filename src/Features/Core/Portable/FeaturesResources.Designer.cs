@@ -126,6 +126,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add argument name &apos;{0}&apos; (including trailing arguments).
+        /// </summary>
+        internal static string Add_argument_name_0_including_trailing_arguments {
+            get {
+                return ResourceManager.GetString("Add_argument_name_0_including_trailing_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add both.
         /// </summary>
         internal static string Add_both {
@@ -831,6 +840,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Convert_to_decimal {
             get {
                 return ResourceManager.GetString("Convert_to_decimal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to full property.
+        /// </summary>
+        internal static string Convert_to_full_property {
+            get {
+                return ResourceManager.GetString("Convert_to_full_property", resourceCulture);
             }
         }
         

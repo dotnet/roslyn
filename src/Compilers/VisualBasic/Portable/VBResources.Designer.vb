@@ -1369,6 +1369,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Named argument &apos;{0}&apos; is used out-of-position but is followed by an unnamed argument.
+        '''</summary>
+        Friend ReadOnly Property ERR_BadNonTrailingNamedArgument() As String
+            Get
+                Return ResourceManager.GetString("ERR_BadNonTrailingNamedArgument", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Nullable types are not allowed in conditional compilation expressions..
         '''</summary>
         Friend ReadOnly Property ERR_BadNullTypeInCCExpression() As String
@@ -3027,7 +3036,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Only one of &apos;Public&apos;, &apos;Private&apos;, &apos;Protected&apos;, &apos;Friend&apos;, or &apos;Protected Friend&apos; can be specified..
+        '''  Looks up a localized string similar to Only one of &apos;Public&apos;, &apos;Private&apos;, &apos;Protected&apos;, &apos;Friend&apos;, &apos;Protected Friend&apos;, or &apos;Private Protected&apos; can be specified..
         '''</summary>
         Friend ReadOnly Property ERR_DuplicateAccessCategoryUsed() As String
             Get
@@ -4251,11 +4260,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Named argument expected..
+        '''  Looks up a localized string similar to Named argument expected. Please use language version {0} or greater to use non-trailing named arguments..
         '''</summary>
         Friend ReadOnly Property ERR_ExpectedNamedArgument() As String
             Get
                 Return ResourceManager.GetString("ERR_ExpectedNamedArgument", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Named argument expected..
+        '''</summary>
+        Friend ReadOnly Property ERR_ExpectedNamedArgumentInAttributeList() As String
+            Get
+                Return ResourceManager.GetString("ERR_ExpectedNamedArgumentInAttributeList", resourceCulture)
             End Get
         End Property
         
@@ -7630,6 +7648,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Named argument specifications must appear after all fixed arguments have been specified in a late bound invocation..
+        '''</summary>
+        Friend ReadOnly Property ERR_NamedArgumentSpecificationBeforeFixedArgumentInLateboundInvocation() As String
+            Get
+                Return ResourceManager.GetString("ERR_NamedArgumentSpecificationBeforeFixedArgumentInLateboundInvocation", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Parameter &apos;{0}&apos; already has a matching argument..
         '''</summary>
         Friend ReadOnly Property ERR_NamedArgUsedTwice1() As String
@@ -10262,7 +10289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Method in a structure cannot be declared &apos;Protected&apos; or &apos;Protected Friend&apos;..
+        '''  Looks up a localized string similar to Method in a structure cannot be declared &apos;Protected&apos;, &apos;Protected Friend&apos;, or &apos;Private Protected&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_StructureCantUseProtected() As String
             Get
@@ -12037,6 +12064,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to leading digit separator.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_LeadingDigitSeparator() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_LeadingDigitSeparator", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to implicit line continuation.
         '''</summary>
         Friend ReadOnly Property FEATURE_LineContinuation() As String
@@ -12096,6 +12132,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property FEATURE_PartialModules() As String
             Get
                 Return ResourceManager.GetString("FEATURE_PartialModules", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Private Protected.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_PrivateProtected() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_PrivateProtected", resourceCulture)
             End Get
         End Property
         
