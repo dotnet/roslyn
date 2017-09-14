@@ -123,6 +123,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeModelMethodXml = "CodeModel.MethodXml";
             public const string CommentSelection = nameof(CommentSelection);
             public const string Completion = nameof(Completion);
+            public const string ConvertAutoPropertyToFullProperty = nameof(ConvertAutoPropertyToFullProperty);
             public const string DebuggingBreakpoints = "Debugging.Breakpoints";
             public const string DebuggingDataTips = "Debugging.DataTips";
             public const string DebuggingIntelliSense = "Debugging.IntelliSense";
