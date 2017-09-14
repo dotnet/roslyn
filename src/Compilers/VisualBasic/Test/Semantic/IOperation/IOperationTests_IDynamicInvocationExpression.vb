@@ -432,6 +432,37 @@ BC30518: Overload resolution failed because no accessible 'P1' can be called wit
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
+        Public Sub DynamicInvocationExpression_SimpleInvokeDelegateWithArgument()
+            Dim source = <![CDATA[
+Option Strict Off
+
+Class C
+    Delegate Sub MySubDelegate(ByVal x As Integer)
+
+    Private Sub M(d As MySubDelegate, o As Object)
+        d(o)'BIND:"d(o)"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvocationExpression (virtual Sub C.MySubDelegate.Invoke(x As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'd(o)')
+  Instance Receiver: IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: C.MySubDelegate) (Syntax: 'd')
+  Arguments(1):
+      IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'o')
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'o')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: IParameterReferenceExpression: o (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'o')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
         Public Sub DynamicInvocationExpression_InvokeDelegateWithArgument()
             Dim source = <![CDATA[
 Option Strict Off

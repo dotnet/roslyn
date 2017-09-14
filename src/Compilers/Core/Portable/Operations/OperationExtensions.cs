@@ -177,6 +177,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <param name="index">Argument index.</param>
         internal static string GetArgumentName(this HasDynamicArgumentsExpression dynamicExpression, int index)
         {
+            if (dynamicExpression.Arguments.IsDefaultOrEmpty)
+            {
+                throw new InvalidOperationException();
+            }
+
+            if (index < 0 || index >= dynamicExpression.Arguments.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
+
             var argumentNames = dynamicExpression.ArgumentNames;
             return argumentNames.IsDefaultOrEmpty ? null : argumentNames[index];
         }
@@ -234,6 +244,16 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         internal static RefKind? GetArgumentRefKind(this HasDynamicArgumentsExpression dynamicExpression, int index)
         {
+            if (dynamicExpression.Arguments.IsDefaultOrEmpty)
+            {
+                throw new InvalidOperationException();
+            }
+
+            if (index < 0 || index >= dynamicExpression.Arguments.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
+
             var argumentRefKinds = dynamicExpression.ArgumentRefKinds;
             if (argumentRefKinds.IsDefault)
             {
