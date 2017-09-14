@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         //types declared at the namespace level may only have declared accessibility of public or internal (Section 3.5.1)
                         Accessibility declaredAccessibility = nts.DeclaredAccessibility;
-                        if ((declaredAccessibility & (Accessibility.Public | Accessibility.Internal)) != declaredAccessibility)
+                        if (declaredAccessibility != Accessibility.Public && declaredAccessibility != Accessibility.Internal)
                         {
                             diagnostics.Add(ErrorCode.ERR_NoNamespacePrivate, symbol.Locations[0]);
                         }

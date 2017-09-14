@@ -71,6 +71,19 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return arguments.ToImmutableAndFree()
         End Function
 
+        Private Function CreateConversion(expression As BoundExpression) As Conversion
+            If expression.Kind = BoundKind.Conversion Then
+                Dim conversion = DirectCast(expression, BoundConversion)
+                Dim conversionKind = conversion.ConversionKind
+                Dim method As MethodSymbol = Nothing
+                If conversionKind.HasFlag(VisualBasic.ConversionKind.UserDefined) AndAlso conversion.Operand.Kind = BoundKind.UserDefinedConversion Then
+                    method = DirectCast(conversion.Operand, BoundUserDefinedConversion).Call.Method
+                End If
+                Return New Conversion(KeyValuePair.Create(conversionKind, method))
+            End If
+            Return New Conversion(Conversions.Identity)
+        End Function
+
         Private Function DeriveArgument(index As Integer, argument As BoundExpression, parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol)) As IArgument
             Dim isImplicit As Boolean = argument.WasCompilerGenerated
             Select Case argument.Kind
@@ -78,12 +91,13 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Dim byRefArgument = DirectCast(argument, BoundByRefArgumentWithCopyBack)
                     Dim parameter = parameters(index)
                     Dim value = Create(byRefArgument.OriginalArgument)
-                    Return New Argument(
+
+                    Return New VisualBasicArgument(
                         ArgumentKind.Explicit,
                         parameter,
                         value,
-                        Create(byRefArgument.InConversion),
-                        Create(byRefArgument.OutConversion),
+                        CreateConversion(byRefArgument.InConversion),
+                        CreateConversion(byRefArgument.OutConversion),
                         _semanticModel,
                         value.Syntax,
                         type:=Nothing,
@@ -91,47 +105,34 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         isImplicit:=isImplicit)
                 Case Else
                     Dim lastParameterIndex = parameters.Length - 1
+                    Dim kind As ArgumentKind
+
                     If index = lastParameterIndex AndAlso ParameterIsParamArray(parameters(lastParameterIndex)) Then
                         ' TODO: figure out if this is true:
                         '       a compiler generated argument for a ParamArray parameter is created iff
                         '       a list of arguments (including 0 argument) is provided for ParamArray parameter in source
                         '       https://github.com/dotnet/roslyn/issues/18550
-                        Dim kind = If(argument.WasCompilerGenerated AndAlso argument.Kind = BoundKind.ArrayCreation, ArgumentKind.ParamArray, ArgumentKind.Explicit)
-                        Dim parameter = parameters(lastParameterIndex)
-                        Dim value = Create(argument)
-
-                        Return New Argument(
-                            kind,
-                            parameter,
-                            value,
-                            inConversion:=Nothing,
-                            outConversion:=Nothing,
-                            semanticModel:=_semanticModel,
-                            syntax:=value.Syntax,
-                            type:=Nothing,
-                            constantValue:=Nothing,
-                            isImplicit:=isImplicit)
+                        kind = If(argument.WasCompilerGenerated AndAlso argument.Kind = BoundKind.ArrayCreation, ArgumentKind.ParamArray, ArgumentKind.Explicit)
                     Else
                         ' TODO: figure our if this is true:
                         '       a compiler generated argument for an Optional parameter is created iff
                         '       the argument is omitted from the source
                         '       https://github.com/dotnet/roslyn/issues/18550
-                        Dim kind = If(argument.WasCompilerGenerated, ArgumentKind.DefaultValue, ArgumentKind.Explicit)
-                        Dim parameter = parameters(index)
-                        Dim value = Create(argument)
-
-                        Return New Argument(
-                            kind,
-                            parameter,
-                            value,
-                            inConversion:=Nothing,
-                            outConversion:=Nothing,
-                            semanticModel:=_semanticModel,
-                            syntax:=value.Syntax,
-                            type:=Nothing,
-                            constantValue:=Nothing,
-                            isImplicit:=isImplicit)
+                        kind = If(argument.WasCompilerGenerated, ArgumentKind.DefaultValue, ArgumentKind.Explicit)
                     End If
+                    
+                    Dim value = Create(argument)
+                    Return New VisualBasicArgument(
+                        kind,
+                        parameters(index),
+                        value,
+                        inConversion:=New Conversion(Conversions.Identity),
+                        outConversion:=New Conversion(Conversions.Identity),
+                        semanticModel:=_semanticModel,
+                        syntax:=value.Syntax,
+                        type:=Nothing,
+                        constantValue:=Nothing,
+                        isImplicit:=isImplicit)
             End Select
         End Function
 

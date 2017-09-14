@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Debugging
             return BreakpointResolutionResult.CreateSpanResult(document, textSpan, vsDebugName);
         }
 
-        public async Task<ImmutableArray<BreakpointResolutionResult>> DoAsync(CancellationToken cancellationToken)
+        public async Task<IEnumerable<BreakpointResolutionResult>> DoAsync(CancellationToken cancellationToken)
         {
             try
             {

@@ -14,13 +14,13 @@
     <tags>$tags$</tags>
     <dependencies>
       <dependency id="Microsoft.VisualStudio.LanguageServices" version="$version$" />
-      <dependency id="Microsoft.VisualStudio.Setup.Configuration.Interop" version="1.3.269-rc" />
-      <dependency id="Microsoft.VisualStudio.Setup.Configuration.Native.x86" version="1.3.269-rc" />
+      <dependency id="Microsoft.VisualStudio.Setup.Configuration.Interop" version="$MicrosoftVisualStudioSetupConfigurationInteropVersion$" />
+      <dependency id="System.Diagnostics.Process" version="$SystemDiagnosticsProcessVersion$" />
     </dependencies>
   </metadata>
   <files>
-    <file src="Dlls\TestUtilities\net461\Roslyn.Test.Utilities.dll" target="lib\net46" />
-    <file src="Dlls\VisualStudioIntegrationTestUtilities\Microsoft.VisualStudio.IntegrationTest.Utilities.dll" target="lib\net46" />
-    <file src="Dlls\ServicesTestUtilities\Roslyn.Services.Test.Utilities.dll" target="lib\net46" />
+    <file src="Dlls\TestUtilities\net461\Roslyn.Test.Utilities.dll" target="lib\net461" />
+    <file src="Dlls\VisualStudioIntegrationTestUtilities\Microsoft.VisualStudio.IntegrationTest.Utilities.dll" target="lib\net461" />
+    <file src="Dlls\ServicesTestUtilities\Roslyn.Services.Test.Utilities.dll" target="lib\net461" />
   </files>
 </package>
