@@ -37,14 +37,18 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             var value = Create(expression);
 
+            // put argument syntax to argument operation
+            var argumentExist = value.Syntax?.Parent is ArgumentSyntax;
+
+            // if argument syntax doesn't exist, this operation is implicit
             return new CSharpArgument(kind,
                 parameter,
                 value,
                 semanticModel: _semanticModel,
-                syntax: value.Syntax,
+                syntax: argumentExist ? value.Syntax.Parent : value.Syntax,
                 type: value.Type,
                 constantValue: default,
-                isImplicit: expression.WasCompilerGenerated);
+                isImplicit: expression.WasCompilerGenerated || !argumentExist);
         }
 
         private IVariableDeclaration CreateVariableDeclaration(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)

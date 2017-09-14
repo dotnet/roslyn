@@ -92,17 +92,13 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Dim parameter = parameters(index)
                     Dim value = Create(byRefArgument.OriginalArgument)
 
-                    Return New VisualBasicArgument(
+                    Return CreateArgumentOperation(
                         ArgumentKind.Explicit,
                         parameter,
                         value,
                         CreateConversion(byRefArgument.InConversion),
                         CreateConversion(byRefArgument.OutConversion),
-                        _semanticModel,
-                        value.Syntax,
-                        type:=Nothing,
-                        constantValue:=Nothing,
-                        isImplicit:=isImplicit)
+                        isImplicit)
                 Case Else
                     Dim lastParameterIndex = parameters.Length - 1
                     Dim kind As ArgumentKind
@@ -120,20 +116,41 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         '       https://github.com/dotnet/roslyn/issues/18550
                         kind = If(argument.WasCompilerGenerated, ArgumentKind.DefaultValue, ArgumentKind.Explicit)
                     End If
-                    
+
                     Dim value = Create(argument)
-                    Return New VisualBasicArgument(
+                    Return CreateArgumentOperation(
                         kind,
                         parameters(index),
                         value,
-                        inConversion:=New Conversion(Conversions.Identity),
-                        outConversion:=New Conversion(Conversions.Identity),
-                        semanticModel:=_semanticModel,
-                        syntax:=value.Syntax,
-                        type:=Nothing,
-                        constantValue:=Nothing,
-                        isImplicit:=isImplicit)
+                        New Conversion(Conversions.Identity),
+                        New Conversion(Conversions.Identity),
+                        isImplicit)
             End Select
+        End Function
+
+        Private Function CreateArgumentOperation(
+            kind As ArgumentKind,
+            parameter As IParameterSymbol,
+            value As IOperation,
+            inConversion As Conversion,
+            outConversion As Conversion,
+            isImplicit As Boolean) As IArgument
+
+            ' put argument syntax to argument operation
+            Dim argumentExist = TypeOf value.Syntax?.Parent Is ArgumentSyntax
+
+            ' if argument syntax doesn't exist, then this operation is implicit
+            Return New VisualBasicArgument(
+                kind,
+                parameter,
+                value,
+                inConversion:=inConversion,
+                outConversion:=outConversion,
+                semanticModel:=_semanticModel,
+                syntax:=If(argumentExist, value.Syntax.Parent, value.Syntax),
+                type:=Nothing,
+                constantValue:=Nothing,
+                isImplicit:=isImplicit OrElse Not argumentExist)
         End Function
 
         Private Shared Function ParameterIsParamArray(parameter As VisualBasic.Symbols.ParameterSymbol) As Boolean
