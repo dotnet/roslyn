@@ -21,8 +21,24 @@ namespace Microsoft.CodeAnalysis.Remote
         public static readonly AssetStorage Default =
             new AssetStorage(cleanupInterval: TimeSpan.FromMinutes(1), purgeAfter: TimeSpan.FromMinutes(3), gcAfter: TimeSpan.FromMinutes(5));
 
+        /// <summary>
+        /// Time interval we check storage for cleanup
+        /// </summary>
         private readonly TimeSpan _cleanupIntervalTimeSpan;
+
+        /// <summary>
+        /// Time span data can sit inside of cache (<see cref="_assets"/>) without being used.
+        /// after that, it will be removed from the cache.
+        /// </summary>
         private readonly TimeSpan _purgeAfterTimeSpan;
+
+        /// <summary>
+        /// Time we will wait after the last activity before doing explicit GC cleanup.
+        /// We monitor all resource access and service call to track last activity time.
+        /// 
+        /// We do this since 64bit process can hold onto quite big unused memory when
+        /// OOP is running as AnyCpu
+        /// </summary>
         private readonly TimeSpan _gcAfterTimeSpan;
 
         private readonly ConcurrentDictionary<Checksum, Entry> _globalAssets =
@@ -36,11 +52,17 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private volatile AssetSource _assetSource;
 
+        // constructor for testing
         public AssetStorage()
         {
-            // constructor for testing
         }
 
+        /// <summary>
+        /// Create central data cache
+        /// </summary>
+        /// <param name="cleanupInterval">time interval to clean up</param>
+        /// <param name="purgeAfter">time unused data can sit in the cache</param>
+        /// <param name="gcAfter">time we wait before it call GC since last activity</param>
         public AssetStorage(TimeSpan cleanupInterval, TimeSpan purgeAfter, TimeSpan gcAfter)
         {
             _cleanupIntervalTimeSpan = cleanupInterval;
