@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -1169,8 +1169,8 @@ IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argu
                             Right: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: S) (Syntax: 'm')
                         Right: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: S) (Syntax: 'o')
                     Right: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: S) (Syntax: 'p')
-  InConversion: null
-  OutConversion: null
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0660: 'S' defines operator == or operator != but does not override Object.Equals(object o)
