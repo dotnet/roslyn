@@ -807,8 +807,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class CaseClause : Operation, ICaseClause
     {
-        protected CaseClause(CaseKind caseKind, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(kind, semanticModel, syntax, type, constantValue, isImplicit)
+        protected CaseClause(CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.CaseClause, semanticModel, syntax, type, constantValue, isImplicit)
         {
             CaseKind = caseKind;
         }
@@ -3797,7 +3797,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal abstract partial class BaseRangeCaseClause : CaseClause, IRangeCaseClause
     {
         public BaseRangeCaseClause(CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(caseKind, OperationKind.RangeCaseClause, semanticModel, syntax, type, constantValue, isImplicit)
+            base(caseKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -3872,7 +3872,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal abstract partial class BaseRelationalCaseClause : CaseClause, IRelationalCaseClause
     {
         public BaseRelationalCaseClause(BinaryOperatorKind relation, CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(caseKind, OperationKind.RelationalCaseClause, semanticModel, syntax, type, constantValue, isImplicit)
+            base(caseKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Relation = relation;
         }
@@ -4018,7 +4018,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal abstract partial class BaseSingleValueCaseClause : CaseClause, ISingleValueCaseClause
     {
         public BaseSingleValueCaseClause(CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(caseKind, OperationKind.SingleValueCaseClause, semanticModel, syntax, type, constantValue, isImplicit)
+            base(caseKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -4081,7 +4081,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class DefaultCaseClause : CaseClause, IDefaultCaseClause
     {
         public DefaultCaseClause(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(CaseKind.Default, OperationKind.DefaultCaseClause, semanticModel, syntax, type, constantValue, isImplicit)
+            base(CaseKind.Default, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
         public override IEnumerable<IOperation> Children
@@ -5364,7 +5364,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal abstract partial class BasePatternCaseClause : CaseClause, IPatternCaseClause
     {
         protected BasePatternCaseClause(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-                    base(CaseKind.Pattern, OperationKind.PatternCaseClause, semanticModel, syntax, type, constantValue, isImplicit)
+                    base(CaseKind.Pattern, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Label = label;
         }

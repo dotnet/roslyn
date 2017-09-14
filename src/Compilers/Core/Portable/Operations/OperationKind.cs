@@ -196,26 +196,17 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>Indicates an <see cref="ISwitchCase"/>.</summary>
         SwitchCase = 0x409,
-        /// <summary>Indicates an <see cref="ISingleValueCaseClause"/>.</summary>
-        SingleValueCaseClause = 0x40a,
-        /// <summary>Indicates an <see cref="IRelationalCaseClause"/>.</summary>
-        RelationalCaseClause = 0x40b,
-        /// <summary>Indicates an <see cref="IRangeCaseClause"/>.</summary>
-        RangeCaseClause = 0x40c,
+        /// <summary>Indicates different kinds of switch case clauses as defined by <see cref="CaseKind"/>.</summary>
+        CaseClause = 0x40a,
 
         /// <summary>Indicates an <see cref="IInterpolatedStringText"/>.</summary>
-        InterpolatedStringText = 0x40d,
+        InterpolatedStringText = 0x40b,
         /// <summary>Indicates an <see cref="IInterpolation"/>.</summary>
-        Interpolation = 0x40e,
+        Interpolation = 0x40c,
 
         /// <summary>Indicates an <see cref="IConstantPattern"/>.</summary>
-        ConstantPattern = 0x40f,
+        ConstantPattern = 0x40d,
         /// <summary>Indicates an <see cref="IDeclarationPattern"/>.</summary>
-        DeclarationPattern = 0x410,
-        /// <summary>Indicates an <see cref="IPatternCaseClause"/>.</summary>
-        PatternCaseClause = 0x411,
-
-        /// <summary>Indicates an <see cref="IDefaultCaseClause"/>.</summary>
-        DefaultCaseClause = 0x412,
+        DeclarationPattern = 0x40e,
     }
 }

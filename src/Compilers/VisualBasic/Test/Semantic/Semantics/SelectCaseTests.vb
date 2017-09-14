@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -410,6 +410,56 @@ End Module
         End Sub
 
         <Fact()>
+        Public Sub SelectCase_RelationalCaseClauseExpression_IOperation()
+            Dim source = <![CDATA[
+Class C
+    Function LessThan(i As Integer, j As Integer) As Boolean
+        Select Case i
+            Case Is < j'BIND:"Is < j"
+                Return True
+            Case Else
+                Return False
+        End Select
+    End Function
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IRelationalCaseClause (Relational operator kind: BinaryOperatorKind.LessThan) (CaseKind.Relational) (OperationKind.RelationalCaseClause) (Syntax: 'Is < j')
+  Value: IParameterReferenceExpression: j (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'j')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of RelationalCaseClauseSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub SelectCase_RangeCaseClauseExpression_IOperation()
+            Dim source = <![CDATA[
+Class C
+    Function InRange(i As Integer, min As Integer, max As Integer) As Boolean
+        Select Case i
+            Case min To max'BIND:"min To max"
+                Return True
+            Case Else
+                Return False
+        End Select
+    End Function
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IRangeCaseClause (CaseKind.Range) (OperationKind.CaseClause) (Syntax: 'min To max')
+  Min: IParameterReferenceExpression: min (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'min')
+  Max: IParameterReferenceExpression: max (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'max')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of RangeCaseClauseSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact()>
         Public Sub SelectCase_RangeCaseClauseExpression_MethodCall()
             Dim compilation = CreateCompilationWithMscorlib(
         <compilation>
@@ -589,7 +639,7 @@ ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case Functi ... e("Failed")')
           Clauses:
-              ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause) (Syntax: 'Function() 5')
+              ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: 'Function() 5')
                 Value: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'Function() 5')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Function <generated method>() As System.Int32) (Syntax: 'Function() 5')
@@ -615,7 +665,7 @@ ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case Else ... Succeeded")')
           Clauses:
-              IDefaultCaseClause (CaseKind.Default) (OperationKind.DefaultCaseClause) (Syntax: 'Case Else')
+              IDefaultCaseClause (CaseKind.Default) (OperationKind.CaseClause) (Syntax: 'Case Else')
           Body:
               IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Case Else ... Succeeded")')
                 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... Succeeded")')
