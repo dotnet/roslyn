@@ -118,7 +118,8 @@ When doing a test pass, copy this page and consider using these status indicator
 | | **Automatic End Construct Update** (*VB only*)<br />- Type `Sub Test()` and `End Sub`, changing `Sub` to `Function` in either one should update the other | N/A | | N/A |
 | | **Spell checking**<br />- Type a name that's close to a variable name but off by a character or two<br />- Lightbulb should have option to fix up the spelling<br />- Includes type names that will require a using | | | N/A |
 | | **Move type to file**<br />- Lightbulb to move type to another file when the type name doesn't match the filename<br />- Option to change the file name if the type doesn't match the file name | | | N/A |
-| | **Convert between properties and Get methods**<br />- Offers to change a method named `GetStuff` to a property named `Stuff` | | | N/A |
+| | **Convert between properties and Get methods** <br />- Offers to change a method named `GetStuff` to a property named `Stuff` | | | N/A |
+| | **Convert auto property to full property** [Visual Studio 2017 version 15.5] | | | N/A |
 | | **Add missing cases**<br />Use a `switch` on a strict subset of an Enum's members<br />- It should offer to generate the rest of the cases | | | N/A |
 | | **Add null checks for parameters** [Visual Studio 2017 version 15.3] | | | N/A |
 | | **Change base for numeric literals** [Visual Studio 2017 version 15.3] | | | N/A |
