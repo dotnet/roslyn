@@ -101,6 +101,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         }
 
         [Fact]
+        public void LocalVar_NonNull_CSharp7()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        var s = string.Empty;
+        s.ToString();
+        s = null;
+        s.ToString();
+    }
+}";
+
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
+            var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
+            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal(null, symbol.Type.IsNullable);
+        }
+
+        [Fact]
         public void LocalVar_Cycle()
         {
             var source =
