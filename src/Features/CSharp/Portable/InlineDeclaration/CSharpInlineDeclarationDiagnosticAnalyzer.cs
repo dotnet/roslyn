@@ -194,6 +194,17 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // rewrite things.
             var outArgumentScope = GetOutArgumentScope(argumentExpression);
 
+            if (enclosingBlockOfLocalStatement != outArgumentScope &&
+                enclosingBlockOfLocalStatement.Parent.IsKind(SyntaxKind.LocalFunctionStatement, SyntaxKind.MethodDeclaration) &&
+                outArgumentScope.Parent.IsKind(SyntaxKind.LocalFunctionStatement))
+            {
+                if (HasTypeParameter(enclosingBlockOfLocalStatement.Parent, outLocalSymbol) &&
+                    HasTypeParameter(outArgumentScope.Parent, outLocalSymbol))
+                {
+                    return;
+                }
+            }
+
             // Make sure that variable is not accessed outside of that scope.
             var dataFlow = semanticModel.AnalyzeDataFlow(outArgumentScope);
             if (dataFlow.ReadOutside.Contains(outLocalSymbol) || dataFlow.WrittenOutside.Contains(outLocalSymbol))
@@ -432,6 +443,24 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
             // No accesses detected
             return false;
+        }
+
+        private static bool HasTypeParameter(SyntaxNode node, ILocalSymbol symbol)
+        {
+            SeparatedSyntaxList<TypeParameterSyntax> typeParameters;
+            switch (node)
+            {
+                case MethodDeclarationSyntax methodDeclaration:
+                    typeParameters = methodDeclaration.TypeParameterList.Parameters;
+                    break;
+                case LocalFunctionStatementSyntax localFunctionStatement:
+                    typeParameters = localFunctionStatement.TypeParameterList.Parameters;
+                    break;
+                default:
+                    return false;
+            }
+
+            return typeParameters.Any(x => x.Identifier.ValueText == symbol.Type.Name);
         }
     }
 }
