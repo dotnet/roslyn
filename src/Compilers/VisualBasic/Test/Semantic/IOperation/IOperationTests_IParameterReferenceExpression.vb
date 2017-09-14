@@ -659,12 +659,10 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'Case x')
+IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Case x')
   Children(1):
-      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Case x')
-        Children(1):
-            ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause, IsInvalid) (Syntax: 'x')
-              Value: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
+      ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause, IsInvalid) (Syntax: 'x')
+        Value: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -855,10 +853,7 @@ End Structure
                 references:={MscorlibRef, SystemRef, compilation0.EmitToImageReference(embedInteropTypes:=True)})
 
             Dim expectedOperationTree = <![CDATA[
-IInvalidExpression (OperationKind.InvalidExpression, Type: I, IsInvalid) (Syntax: 'New I(x)')
-  Children(2):
-      IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'x')
-      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New I(x)')
+IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New I(x)')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

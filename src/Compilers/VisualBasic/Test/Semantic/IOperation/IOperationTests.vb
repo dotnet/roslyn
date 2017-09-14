@@ -404,5 +404,40 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
 
             VerifyParentOperations(model)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestCatchClause()
+            Dim source = <![CDATA[
+Imports System
+
+Module Program
+    Sub Main(args As String())
+        Try
+            Main(Nothing)
+        Catch ex As Exception When ex Is Nothing'BIND:"Catch ex As Exception When ex Is Nothing"
+
+        End Try
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+ICatchClause (Exception type: System.Exception, Exception local: ex As System.Exception) (OperationKind.CatchClause) (Syntax: 'Catch ex As ...  Is Nothing')
+  Filter: IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'ex Is Nothing')
+      Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'ex')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+          Operand: ILocalReferenceExpression: ex (OperationKind.LocalReferenceExpression, Type: System.Exception) (Syntax: 'ex')
+      Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'Nothing')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
+  Handler: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Catch ex As ...  Is Nothing')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CatchBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+
     End Class
 End Namespace

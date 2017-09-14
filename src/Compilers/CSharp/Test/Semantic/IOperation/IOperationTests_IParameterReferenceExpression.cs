@@ -885,10 +885,7 @@ struct S
                 references: new[] { MscorlibRef, SystemRef, compilation0.EmitToImageReference(embedInteropTypes: true) });
 
             string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: I, IsInvalid) (Syntax: 'new I(x)')
-  Children(2):
-      IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'x')
-      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'new I(x)')
+IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'new I(x)')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                     // (6,25): error CS1729: 'I' does not contain a constructor that takes 1 arguments

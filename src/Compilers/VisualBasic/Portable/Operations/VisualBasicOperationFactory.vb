@@ -472,7 +472,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
             ' We match semantic model here: If the Then expression IsMissing, we have a null type, rather than the ErrorType Of the bound node.
             Dim type As ITypeSymbol = If(syntax.IsMissing, Nothing, boundBadExpression.Type)
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundBadExpression.ConstantValueOpt)
-            Dim isImplicit As Boolean = boundBadExpression.WasCompilerGenerated
+
+            ' if child has syntax node point to same syntax node as bad expression, then this invalid expression Is implicit
+            Dim isImplicit = boundBadExpression.WasCompilerGenerated OrElse boundBadExpression.ChildBoundNodes.Any(Function(e) e?.Syntax Is boundBadExpression.Syntax)
             Return New LazyInvalidExpression(children, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
@@ -925,7 +927,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundDoLoopStatement.ConditionOpt))
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundDoLoopStatement.Body))
             Dim ignoredConditionOpt As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function()
-                                                                                         If doLoopKind = doLoopKind.Invalid Then
+                                                                                         If doLoopKind = DoLoopKind.Invalid Then
                                                                                              Debug.Assert(boundDoLoopStatement.TopConditionOpt IsNot Nothing)
                                                                                              Debug.Assert(boundDoLoopStatement.BottomConditionOpt IsNot Nothing)
                                                                                              Debug.Assert(boundDoLoopStatement.ConditionOpt Is boundDoLoopStatement.TopConditionOpt)
@@ -1059,7 +1061,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim syntax As SyntaxNode = boundBadStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Dim isImplicit As Boolean = boundBadStatement.WasCompilerGenerated
+
+            ' if child has syntax node point to same syntax node as bad statement, then this invalid statement Is implicit
+            Dim isImplicit = boundBadStatement.WasCompilerGenerated OrElse boundBadStatement.ChildBoundNodes.Any(Function(e) e?.Syntax Is boundBadStatement.Syntax)
             Return New LazyInvalidStatement(children, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
@@ -1124,7 +1128,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundGotoStatementOperation(boundGotoStatement As BoundGotoStatement) As IBranchStatement
             Dim target As ILabelSymbol = boundGotoStatement.Label
-            Dim branchKind As BranchKind = branchKind.GoTo
+            Dim branchKind As BranchKind = BranchKind.GoTo
             Dim syntax As SyntaxNode = boundGotoStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
@@ -1134,7 +1138,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundContinueStatementOperation(boundContinueStatement As BoundContinueStatement) As IBranchStatement
             Dim target As ILabelSymbol = boundContinueStatement.Label
-            Dim branchKind As BranchKind = branchKind.Continue
+            Dim branchKind As BranchKind = BranchKind.Continue
             Dim syntax As SyntaxNode = boundContinueStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
@@ -1144,7 +1148,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundExitStatementOperation(boundExitStatement As BoundExitStatement) As IBranchStatement
             Dim target As ILabelSymbol = boundExitStatement.Label
-            Dim branchKind As BranchKind = branchKind.Break
+            Dim branchKind As BranchKind = BranchKind.Break
             Dim syntax As SyntaxNode = boundExitStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()

@@ -1020,13 +1020,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node == GetBindingRootOrInitializer(node));
 
-            CSharpSyntaxNode bindableNode;
-
-            BoundNode lowestBoundNode;
             BoundNode highestBoundNode;
-            GetBoundNodes(node, out bindableNode, out lowestBoundNode, out highestBoundNode, out _);
+            GetBoundNodes(node, out _, out _, out highestBoundNode, out _);
 
-            BoundNode result = highestBoundNode ?? lowestBoundNode;
+            BoundNode result = highestBoundNode;
 
             // The CSharp operation factory assumes that UnboundLambda will be bound for error recovery and never be passed to the factory
             // as the start of a tree to get operations for. This is guaranteed by the builder that populates the node map, as it will call
@@ -1603,7 +1600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             while (node != null);
 
-            done:
+done:
             return GetEnclosingBinderInternalWithinRoot(AdjustStartingNodeAccordingToNewRoot(startingNode, queryClause.Syntax),
                                       position, queryClause.Binder, queryClause.Syntax);
         }

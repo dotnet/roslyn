@@ -1446,15 +1446,13 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
-  Children(1):
-      IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
-        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: 'this')
-        Arguments(1):
-            IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '10')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
-              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
+  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: 'this')
+  Arguments(1):
+      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '10')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(12,27): error CS0154: The property or indexer 'P.this[int]' cannot be used in this context because it lacks the get accessor
@@ -1485,15 +1483,13 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
-  Children(1):
-      IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
-        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: 'this')
-        Arguments(1):
-            IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '10')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
-              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
+  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsInvalid) (Syntax: 'this')
+  Arguments(1):
+      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '10')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
 
             var expectedDiagnostics = new DiagnosticDescription[] {

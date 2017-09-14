@@ -51,6 +51,40 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        public void IAnonymousFunctionExpression_BoundLambda_HasValidLambdaExpressionTree2()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Action x = /*<bind>*/() => F();/*</bind>*/
+    }
+
+    static void F()
+    {
+    }
+}
+";
+            string expectedOperationTree = @"
+IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => F()')
+    IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'F()')
+        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'F()')
+        Expression: IInvocationExpression (void Program.F()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'F()')
+            Instance Receiver: null
+            Arguments(0)
+        IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'F()')
+        ReturnedValue: null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedLambdaExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void IAnonymousFunctionExpression_UnboundLambdaAsVar_HasValidLambdaExpressionTree()
         {
             string source = @"

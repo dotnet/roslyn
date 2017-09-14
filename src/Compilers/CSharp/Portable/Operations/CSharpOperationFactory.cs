@@ -840,7 +840,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             // We match semantic model here: if the expression IsMissing, we have a null type, rather than the ErrorType of the bound node.
             ITypeSymbol type = syntax.IsMissing ? null : boundBadExpression.Type;
             Optional<object> constantValue = ConvertToOptional(boundBadExpression.ConstantValue);
-            bool isImplicit = boundBadExpression.WasCompilerGenerated;
+
+            // if child has syntax node point to same syntax node as bad expression, then this invalid expression is implicit
+            bool isImplicit = boundBadExpression.WasCompilerGenerated || boundBadExpression.ChildBoundNodes.Any(e => e?.Syntax == boundBadExpression.Syntax);
             return new LazyInvalidExpression(children, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
@@ -1314,7 +1316,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundBadStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            bool isImplicit = boundBadStatement.WasCompilerGenerated;
+
+            // if child has syntax node point to same syntax node as bad statement, then this invalid statement is implicit
+            bool isImplicit = boundBadStatement.WasCompilerGenerated || boundBadStatement.ChildBoundNodes.Any(e => e?.Syntax == boundBadStatement.Syntax);
             return new LazyInvalidStatement(children, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 

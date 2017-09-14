@@ -794,6 +794,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, cancellationToken As CancellationToken) As IOperation
+            ' see whether we can bind smaller scope than GetBindingRoot to make perf better
             Dim bindingRoot = DirectCast(GetBindingRoot(node), VisualBasicSyntaxNode)
 
             Dim statementOrRootOperation As IOperation = GetStatementOrRootOperation(bindingRoot, cancellationToken)
@@ -809,7 +810,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(node Is GetBindingRoot(node))
 
             Dim summary As BoundNodeSummary = GetBoundNodeSummary(node)
-            Dim result As BoundNode = If(summary.HighestBoundNode, summary.LowestBoundNode)
+            Dim result As BoundNode = summary.HighestBoundNode
 
             Return _operationFactory.Create(result)
         End Function
