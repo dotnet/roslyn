@@ -298,8 +298,7 @@ function Test-XUnitCoreClr() {
     # A number of our tests need to be published before they can be executed in order to get some 
     # runtime assets.
     $needPublish = @(
-        "src\Compilers\CSharp\Test\Symbol\CSharpCompilerSymbolTest.csproj",
-        "src\Compilers\Server\VBCSCompilerTests\VBCSCompilerTests.csproj"
+        "src\Compilers\CSharp\Test\Symbol\CSharpCompilerSymbolTest.csproj"
     )
 
     foreach ($file in $needPublish) {
