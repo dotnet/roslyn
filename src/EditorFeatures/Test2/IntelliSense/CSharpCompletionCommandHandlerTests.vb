@@ -3527,9 +3527,9 @@ class C
             End Using
         End Function
 
-        <WorkItem(15348, "https://github.com/dotnet/roslyn/issues/15348")>
+        <WorkItem(15348, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=485413&_a=edit")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function NoNamesWhileExpansionSession() As Task
+        Public Async Function NoNamesDuringExpansionSession() As Task
             Dim client = New TestSnippetClient(New Guid(), Nothing, Nothing, Nothing)
             client.ExpansionSession = New MockExpansionSession()
             Using state = TestState.CreateCSharpTestState(
