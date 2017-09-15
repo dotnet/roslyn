@@ -852,6 +852,18 @@ Public MustInherit Class BasicTestBaseBase
     Public Shared Function GetAssertTheseDiagnosticsString(allDiagnostics As ImmutableArray(Of Diagnostic), suppressInfos As Boolean) As String
         Return DumpAllDiagnostics(allDiagnostics, suppressInfos)
     End Function
+
+    Friend Shared Function GetOperationAndSyntaxForTest(Of TSyntaxNode As SyntaxNode)(compilation As Compilation, fileName As String, Optional which As integer  = 0) As (operation as IOperation, synxtaxNode As SyntaxNode)
+        Dim node As SyntaxNode = CompilationUtils.FindBindingText(Of TSyntaxNode)(compilation, fileName, which, prefixMatch:=True)
+        If node Is Nothing Then
+            Return (Nothing, Nothing)
+        End If
+        
+        Dim semanticModel = compilation.GetSemanticModel(node.SyntaxTree)
+        Dim operation = semanticModel.GetOperationInternal(node)
+        Return (operation, node)
+    End Function
+
 #End Region
 
 End Class

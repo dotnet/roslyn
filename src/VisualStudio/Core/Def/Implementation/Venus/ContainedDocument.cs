@@ -32,6 +32,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     /// <summary>
     /// An IVisualStudioDocument which represents the secondary buffer to the workspace API.
     /// </summary>

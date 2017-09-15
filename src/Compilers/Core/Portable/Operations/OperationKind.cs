@@ -85,8 +85,7 @@ namespace Microsoft.CodeAnalysis
         LocalReferenceExpression = 0x105,
         /// <summary>Indicates an <see cref="IParameterReferenceExpression"/>.</summary>
         ParameterReferenceExpression = 0x106,
-        /// <summary>Indicates an <see cref="ISyntheticLocalReferenceExpression"/>.</summary>
-        SyntheticLocalReferenceExpression = 0x107,
+        // Unused 0x107
         /// <summary>Indicates an <see cref="IFieldReferenceExpression"/>.</summary>
         FieldReferenceExpression = 0x108,
         /// <summary>Indicates an <see cref="IMethodReferenceExpression"/>.</summary>
@@ -148,6 +147,10 @@ namespace Microsoft.CodeAnalysis
         DynamicObjectCreationExpression = 0x125,
         /// <summary>Indicates an <see cref="IDynamicMemberReferenceExpression"/>.</summary>
         DynamicMemberReferenceExpression = 0x126,
+        /// <summary>Indicates an <see cref="IDynamicInvocationExpression"/>.</summary>
+        DynamicInvocationExpression = 0x127,
+        /// <summary>Indicates an <see cref="IDynamicIndexerAccessExpression"/>.</summary>
+        DynamicIndexerAccessExpression = 0x128,
 
         // Expressions that occur only in C#.
 
@@ -161,8 +164,10 @@ namespace Microsoft.CodeAnalysis
         // SizeOfExpression = 0x202,
         /// <summary>Indicates an <see cref="IAddressOfExpression"/>.</summary>
         AddressOfExpression = 0x203,
-        /// <summary>Indicates an <see cref="IPointerIndirectionReferenceExpression"/>.</summary>
-        PointerIndirectionReferenceExpression = 0x204,
+        // <summary>Indicates an <see cref="IPointerIndirectionReferenceExpression"/>.</summary>
+        // API Removed for V1
+        // https://github.com/dotnet/roslyn/issues/21295
+        //PointerIndirectionReferenceExpression = 0x204,
         /// <summary>Indicates an <see cref="IIsPatternExpression"/>.</summary>
         IsPatternExpression = 0x205,
         /// <summary>Indicates an <see cref="IIncrementExpression"/>.</summary>

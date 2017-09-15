@@ -3357,10 +3357,18 @@ class BAttribute : System.Attribute { }
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialModifierConflict, Line = 3, Column = 30 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialModifierConflict, Line = 9, Column = 32 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialModifierConflict, Line = 12, Column = 32 });
+            var comp = CreateStandardCompilation(text);
+            comp.VerifyDiagnostics(
+                // (3,30): error CS0262: Partial declarations of 'I' have conflicting accessibility modifiers
+                //     public partial interface I { }
+                Diagnostic(ErrorCode.ERR_PartialModifierConflict, "I").WithArguments("NS.I").WithLocation(3, 30),
+                // (9,32): error CS0262: Partial declarations of 'A.C' have conflicting accessibility modifiers
+                //         internal partial class C { }
+                Diagnostic(ErrorCode.ERR_PartialModifierConflict, "C").WithArguments("NS.A.C").WithLocation(9, 32),
+                // (12,32): error CS0262: Partial declarations of 'A.S' have conflicting accessibility modifiers
+                //         private partial struct S { }
+                Diagnostic(ErrorCode.ERR_PartialModifierConflict, "S").WithArguments("NS.A.S").WithLocation(12, 32)
+                );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...

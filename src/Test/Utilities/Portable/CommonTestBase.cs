@@ -682,8 +682,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     if (operation != null &&
                         operation.Kind != OperationKind.None &&
                         operation.Kind != OperationKind.InvalidExpression &&
-                        operation.Kind != OperationKind.InvalidStatement)
-                        //operation.Kind != OperationKind.PlaceholderExpression) https://github.com/dotnet/roslyn/issues/21294
+                        operation.Kind != OperationKind.InvalidStatement &&
+                        // operation.Kind != OperationKind.PlaceholderExpression && // https://github.com/dotnet/roslyn/issues/21294
+                        (operation.Kind != OperationKind.TupleExpression || !(semanticModel.GetOperationInternal(node.Parent)?.Kind == OperationKind.LoopStatement))) // https://github.com/dotnet/roslyn/issues/20798
                     {
                         Assert.True(set.Contains(operation));
                     }
@@ -724,45 +725,49 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
-            var vbNode = (VisualBasic.VisualBasicSyntaxNode)node;
-            switch (vbNode.Kind())
+            if (node is VisualBasic.VisualBasicSyntaxNode vbNode)
             {
-                case VisualBasic.SyntaxKind.SimpleArgument:
-                    return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.ArgumentList ||
-                           vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.TupleExpression;
-                case VisualBasic.SyntaxKind.VariableDeclarator:
-                    return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.LocalDeclarationStatement ||
-                           vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.FieldDeclaration;
-                case VisualBasic.SyntaxKind.EqualsValue:
-                    return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.VariableDeclarator;
-                case VisualBasic.SyntaxKind.NamedFieldInitializer:
-                    return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.ObjectMemberInitializer;
-                case VisualBasic.SyntaxKind.ObjectMemberInitializer:
-                    return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.AnonymousObjectCreationExpression;
-                case VisualBasic.SyntaxKind.SelectStatement:
-                    return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.SelectBlock;
-                case VisualBasic.SyntaxKind.CollectionInitializer:
-                case VisualBasic.SyntaxKind.ModifiedIdentifier:
-                case VisualBasic.SyntaxKind.CaseBlock:
-                case VisualBasic.SyntaxKind.CaseElseBlock:
-                case VisualBasic.SyntaxKind.CaseStatement:
-                case VisualBasic.SyntaxKind.CaseElseStatement:
-                case VisualBasic.SyntaxKind.WhileClause:
-                case VisualBasic.SyntaxKind.ArgumentList:
-                case VisualBasic.SyntaxKind.FromClause:
-                case VisualBasic.SyntaxKind.ExpressionRangeVariable:
-                case VisualBasic.SyntaxKind.LetClause:
-                case VisualBasic.SyntaxKind.JoinCondition:
-                case VisualBasic.SyntaxKind.AsNewClause:
-                case VisualBasic.SyntaxKind.ForStepClause:
-                case VisualBasic.SyntaxKind.UntilClause:
-                case VisualBasic.SyntaxKind.InterpolationAlignmentClause:
-                    return true;
-                default:
-                    return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.AddHandlerStatement ||
-                           vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.RemoveHandlerStatement ||
-                           vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.RaiseEventStatement;
+                switch (vbNode.Kind())
+                {
+                    case VisualBasic.SyntaxKind.SimpleArgument:
+                        return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.ArgumentList ||
+                               vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.TupleExpression;
+                    case VisualBasic.SyntaxKind.VariableDeclarator:
+                        return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.LocalDeclarationStatement ||
+                               vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.FieldDeclaration;
+                    case VisualBasic.SyntaxKind.EqualsValue:
+                        return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.VariableDeclarator;
+                    case VisualBasic.SyntaxKind.NamedFieldInitializer:
+                        return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.ObjectMemberInitializer;
+                    case VisualBasic.SyntaxKind.ObjectMemberInitializer:
+                        return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.AnonymousObjectCreationExpression;
+                    case VisualBasic.SyntaxKind.SelectStatement:
+                        return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.SelectBlock;
+                    case VisualBasic.SyntaxKind.CollectionInitializer:
+                    case VisualBasic.SyntaxKind.ModifiedIdentifier:
+                    case VisualBasic.SyntaxKind.CaseBlock:
+                    case VisualBasic.SyntaxKind.CaseElseBlock:
+                    case VisualBasic.SyntaxKind.CaseStatement:
+                    case VisualBasic.SyntaxKind.CaseElseStatement:
+                    case VisualBasic.SyntaxKind.WhileClause:
+                    case VisualBasic.SyntaxKind.ArgumentList:
+                    case VisualBasic.SyntaxKind.FromClause:
+                    case VisualBasic.SyntaxKind.ExpressionRangeVariable:
+                    case VisualBasic.SyntaxKind.LetClause:
+                    case VisualBasic.SyntaxKind.JoinCondition:
+                    case VisualBasic.SyntaxKind.AsNewClause:
+                    case VisualBasic.SyntaxKind.ForStepClause:
+                    case VisualBasic.SyntaxKind.UntilClause:
+                    case VisualBasic.SyntaxKind.InterpolationAlignmentClause:
+                        return true;
+                    default:
+                        return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.AddHandlerStatement ||
+                               vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.RemoveHandlerStatement ||
+                               vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.RaiseEventStatement;
+                }
             }
+
+            throw ExceptionUtilities.Unreachable;
         }
         #endregion
     }

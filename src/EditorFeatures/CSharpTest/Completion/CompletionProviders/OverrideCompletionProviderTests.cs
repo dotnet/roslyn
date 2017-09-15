@@ -164,7 +164,7 @@ public class a
 
 public class b : a
 {
-    protected override goo(){ }
+    protected override void goo() { }
 
     override $$
 }", "goo()");

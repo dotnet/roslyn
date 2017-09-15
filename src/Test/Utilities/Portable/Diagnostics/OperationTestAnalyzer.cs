@@ -1943,15 +1943,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      ILoopStatement loop = (ILoopStatement)operationContext.Operation;
-                     if (loop.LoopKind == LoopKind.For)
+                     if (loop.LoopKind == LoopKind.ForTo)
                      {
-                         IForLoopStatement forLoop = (IForLoopStatement)loop;
-                         var forCondition = forLoop.Condition;
+                         var forLoop = (IForToLoopStatement)loop;
+                         var forCondition = forLoop.LimitValue;
 
                          if (forCondition.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
                          {
                              // Generate a warning to prove we didn't crash
-                             operationContext.ReportDiagnostic(Diagnostic.Create(ForLoopConditionCrashDescriptor, forLoop.Condition.Syntax.GetLocation()));
+                             operationContext.ReportDiagnostic(Diagnostic.Create(ForLoopConditionCrashDescriptor, forLoop.LimitValue.Syntax.GetLocation()));
                          }
                      }
                  },

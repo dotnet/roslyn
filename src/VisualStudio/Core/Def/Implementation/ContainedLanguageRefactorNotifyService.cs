@@ -11,6 +11,8 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Export(typeof(IRefactorNotifyService))]
     internal sealed class ContainedLanguageRefactorNotifyService : IRefactorNotifyService
     {

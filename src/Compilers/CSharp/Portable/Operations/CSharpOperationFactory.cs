@@ -93,6 +93,10 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundParameterOperation((BoundParameter)boundNode);
                 case BoundKind.Literal:
                     return CreateBoundLiteralOperation((BoundLiteral)boundNode);
+                case BoundKind.DynamicInvocation:
+                    return CreateBoundDynamicInvocationExpressionOperation((BoundDynamicInvocation)boundNode);
+                case BoundKind.DynamicIndexerAccess:
+                    return CreateBoundDynamicIndexerAccessExpressionOperation((BoundDynamicIndexerAccess)boundNode);
                 case BoundKind.ObjectCreationExpression:
                     return CreateBoundObjectCreationExpressionOperation((BoundObjectCreationExpression)boundNode);
                 case BoundKind.DynamicObjectCreationExpression:
@@ -155,8 +159,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundAwaitExpressionOperation((BoundAwaitExpression)boundNode);
                 case BoundKind.ArrayAccess:
                     return CreateBoundArrayAccessOperation((BoundArrayAccess)boundNode);
-                case BoundKind.PointerIndirectionOperator:
-                    return CreateBoundPointerIndirectionOperatorOperation((BoundPointerIndirectionOperator)boundNode);
                 case BoundKind.NameOfOperator:
                     return CreateBoundNameOfOperatorOperation((BoundNameOfOperator)boundNode);
                 case BoundKind.ThrowExpression:
@@ -499,8 +501,6 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IDynamicObjectCreationExpression CreateBoundDynamicObjectCreationExpressionOperation(BoundDynamicObjectCreationExpression boundDynamicObjectCreationExpression)
         {
-            string name = boundDynamicObjectCreationExpression.Name;
-            ImmutableArray<ISymbol> applicableSymbols = StaticCast<ISymbol>.From(boundDynamicObjectCreationExpression.ApplicableMethods);
             Lazy<ImmutableArray<IOperation>> arguments = new Lazy<ImmutableArray<IOperation>>(() => boundDynamicObjectCreationExpression.Arguments.SelectAsArray(n => Create(n)));
             ImmutableArray<string> argumentNames = boundDynamicObjectCreationExpression.ArgumentNamesOpt.NullToEmpty();
             ImmutableArray<RefKind> argumentRefKinds = boundDynamicObjectCreationExpression.ArgumentRefKindsOpt.NullToEmpty();
@@ -509,7 +509,43 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = boundDynamicObjectCreationExpression.Type;
             Optional<object> constantValue = ConvertToOptional(boundDynamicObjectCreationExpression.ConstantValue);
             bool isImplicit = boundDynamicObjectCreationExpression.WasCompilerGenerated;
-            return new LazyDynamicObjectCreationExpression(name, applicableSymbols, arguments, argumentNames, argumentRefKinds, initializer, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyDynamicObjectCreationExpression(arguments, argumentNames, argumentRefKinds, initializer, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IDynamicInvocationExpression CreateBoundDynamicInvocationExpressionOperation(BoundDynamicInvocation boundDynamicInvocation)
+        {
+            Lazy<IOperation> expression;
+            if (boundDynamicInvocation.Expression.Kind == BoundKind.MethodGroup)
+            {
+                var methodGroup = (BoundMethodGroup)boundDynamicInvocation.Expression;
+                expression = new Lazy<IOperation>(() => CreateBoundDynamicMemberAccessOperation(methodGroup.ReceiverOpt, methodGroup.TypeArgumentsOpt,
+                    methodGroup.Name, methodGroup.Syntax, methodGroup.Type, methodGroup.ConstantValue, methodGroup.WasCompilerGenerated));
+            }
+            else
+            {
+                expression = new Lazy<IOperation>(() => Create(boundDynamicInvocation.Expression));
+            }
+            Lazy<ImmutableArray<IOperation>> arguments = new Lazy<ImmutableArray<IOperation>>(() => boundDynamicInvocation.Arguments.SelectAsArray(n => Create(n)));
+            ImmutableArray<string> argumentNames = boundDynamicInvocation.ArgumentNamesOpt.NullToEmpty();
+            ImmutableArray<RefKind> argumentRefKinds = boundDynamicInvocation.ArgumentRefKindsOpt.NullToEmpty();
+            SyntaxNode syntax = boundDynamicInvocation.Syntax;
+            ITypeSymbol type = boundDynamicInvocation.Type;
+            Optional<object> constantValue = ConvertToOptional(boundDynamicInvocation.ConstantValue);
+            bool isImplicit = boundDynamicInvocation.WasCompilerGenerated;
+            return new LazyDynamicInvocationExpression(expression, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IDynamicIndexerAccessExpression CreateBoundDynamicIndexerAccessExpressionOperation(BoundDynamicIndexerAccess boundDynamicIndexerAccess)
+        {
+            Lazy<IOperation> expression = new Lazy<IOperation>(() => Create(boundDynamicIndexerAccess.ReceiverOpt));
+            Lazy<ImmutableArray<IOperation>> arguments = new Lazy<ImmutableArray<IOperation>>(() => boundDynamicIndexerAccess.Arguments.SelectAsArray(n => Create(n)));
+            ImmutableArray<string> argumentNames = boundDynamicIndexerAccess.ArgumentNamesOpt.NullToEmpty();
+            ImmutableArray<RefKind> argumentRefKinds = boundDynamicIndexerAccess.ArgumentRefKindsOpt.NullToEmpty();
+            SyntaxNode syntax = boundDynamicIndexerAccess.Syntax;
+            ITypeSymbol type = boundDynamicIndexerAccess.Type;
+            Optional<object> constantValue = ConvertToOptional(boundDynamicIndexerAccess.ConstantValue);
+            bool isImplicit = boundDynamicIndexerAccess.WasCompilerGenerated;
+            return new LazyDynamicIndexerAccessExpression(expression, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IObjectOrCollectionInitializerExpression CreateBoundObjectInitializerExpressionOperation(BoundObjectInitializerExpression boundObjectInitializerExpression)
@@ -603,18 +639,27 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IDynamicMemberReferenceExpression CreateBoundDynamicMemberAccessOperation(BoundDynamicMemberAccess boundDynamicMemberAccess)
         {
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundDynamicMemberAccess.Receiver));
-            string memberName = boundDynamicMemberAccess.Name;
+            return CreateBoundDynamicMemberAccessOperation(boundDynamicMemberAccess.Receiver, boundDynamicMemberAccess.TypeArgumentsOpt, boundDynamicMemberAccess.Name,
+                boundDynamicMemberAccess.Syntax, boundDynamicMemberAccess.Type, boundDynamicMemberAccess.ConstantValue, boundDynamicMemberAccess.WasCompilerGenerated);
+        }
+
+        private IDynamicMemberReferenceExpression CreateBoundDynamicMemberAccessOperation(
+            BoundExpression receiver,
+            ImmutableArray<TypeSymbol> typeArgumentsOpt,
+            string memberName,
+            SyntaxNode syntaxNode,
+            ITypeSymbol type,
+            ConstantValue value,
+            bool isImplicit)
+        {
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(receiver));
             ImmutableArray<ITypeSymbol> typeArguments = ImmutableArray<ITypeSymbol>.Empty;
-            if (!boundDynamicMemberAccess.TypeArgumentsOpt.IsDefault)
+            if (!typeArgumentsOpt.IsDefault)
             {
-                typeArguments = ImmutableArray<ITypeSymbol>.CastUp(boundDynamicMemberAccess.TypeArgumentsOpt);
+                typeArguments = ImmutableArray<ITypeSymbol>.CastUp(typeArgumentsOpt);
             }
             ITypeSymbol containingType = null;
-            SyntaxNode syntaxNode = boundDynamicMemberAccess.Syntax;
-            ITypeSymbol type = boundDynamicMemberAccess.Type;
-            Optional<object> constantValue = ConvertToOptional(boundDynamicMemberAccess.ConstantValue);
-            bool isImplicit = boundDynamicMemberAccess.WasCompilerGenerated;
+            Optional<object> constantValue = ConvertToOptional(value);
             return new LazyDynamicMemberReferenceExpression(instance, memberName, typeArguments, containingType, _semanticModel, syntaxNode, type, constantValue, isImplicit);
         }
 
@@ -1160,62 +1205,73 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyIfStatement(condition, ifTrueStatement, ifFalseStatement, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IWhileUntilLoopStatement CreateBoundWhileStatementOperation(BoundWhileStatement boundWhileStatement)
+        private IWhileLoopStatement CreateBoundWhileStatementOperation(BoundWhileStatement boundWhileStatement)
         {
-            bool isTopTest = true;
-            bool isWhile = true;
             Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundWhileStatement.Condition));
-            LoopKind loopKind = LoopKind.WhileUntil;
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundWhileStatement.Body));
+            ImmutableArray<ILocalSymbol> locals = boundWhileStatement.Locals.As<ILocalSymbol>();
             SyntaxNode syntax = boundWhileStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundWhileStatement.WasCompilerGenerated;
-            return new LazyWhileUntilLoopStatement(isTopTest, isWhile, condition, loopKind, body, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyWhileLoopStatement(condition, body, locals, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IWhileUntilLoopStatement CreateBoundDoStatementOperation(BoundDoStatement boundDoStatement)
+        private IDoLoopStatement CreateBoundDoStatementOperation(BoundDoStatement boundDoStatement)
         {
-            bool isTopTest = false;
-            bool isWhile = true;
+            DoLoopKind doLoopKind = DoLoopKind.DoWhileBottomLoop;
             Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundDoStatement.Condition));
-            LoopKind loopKind = LoopKind.WhileUntil;
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundDoStatement.Body));
+            Lazy<IOperation> ignoredCondition = new Lazy<IOperation>(() => null);
+            ImmutableArray<ILocalSymbol> locals = boundDoStatement.Locals.As<ILocalSymbol>();
             SyntaxNode syntax = boundDoStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundDoStatement.WasCompilerGenerated;
-            return new LazyWhileUntilLoopStatement(isTopTest, isWhile, condition, loopKind, body, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyDoLoopStatement(doLoopKind, condition, body, ignoredCondition, locals, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IForLoopStatement CreateBoundForStatementOperation(BoundForStatement boundForStatement)
         {
             Lazy<ImmutableArray<IOperation>> before = new Lazy<ImmutableArray<IOperation>>(() => ToStatements(boundForStatement.Initializer));
+            Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundForStatement.Condition));
             Lazy<ImmutableArray<IOperation>> atLoopBottom = new Lazy<ImmutableArray<IOperation>>(() => ToStatements(boundForStatement.Increment));
             ImmutableArray<ILocalSymbol> locals = boundForStatement.OuterLocals.As<ILocalSymbol>();
-            Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundForStatement.Condition));
-            LoopKind loopKind = LoopKind.For;
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundForStatement.Body));
             SyntaxNode syntax = boundForStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundForStatement.WasCompilerGenerated;
-            return new LazyForLoopStatement(before, atLoopBottom, locals, condition, loopKind, body, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyForLoopStatement(before, condition, atLoopBottom, locals, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IForEachLoopStatement CreateBoundForEachStatementOperation(BoundForEachStatement boundForEachStatement)
         {
-            ILocalSymbol iterationVariable = boundForEachStatement.IterationVariables.Length == 1 ?
-                                                                                    boundForEachStatement.IterationVariables.FirstOrDefault() :
-                                                                                    null;
+            ImmutableArray<ILocalSymbol> locals = boundForEachStatement.IterationVariables.As<ILocalSymbol>();
+            Lazy<IOperation> loopControlVariable;
+            if (boundForEachStatement.DeconstructionOpt != null)
+            {
+                loopControlVariable = new Lazy<IOperation>(() => Create(boundForEachStatement.DeconstructionOpt));
+            }
+            else if (locals.Length == 1)
+            {
+                var local = (LocalSymbol)locals.Single();
+                bool isDeclaration = true;
+                loopControlVariable = new Lazy<IOperation>(() => new LocalReferenceExpression(local, isDeclaration, _semanticModel, local.GetDeclaratorSyntax(), local.Type, local.ConstantValue, local.IsImplicitlyDeclared));
+            }
+            else
+            {
+                loopControlVariable = new Lazy<IOperation>(() => null);
+            }
+
             Lazy<IOperation> collection = new Lazy<IOperation>(() => Create(boundForEachStatement.Expression));
-            LoopKind loopKind = LoopKind.ForEach;
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundForEachStatement.Body));
+            Lazy<ImmutableArray<IOperation>> nextVariables = new Lazy<ImmutableArray<IOperation>>(() => ImmutableArray<IOperation>.Empty);
             SyntaxNode syntax = boundForEachStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundForEachStatement.WasCompilerGenerated;
-            return new LazyForEachLoopStatement(iterationVariable, collection, loopKind, body, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyForEachLoopStatement(locals, loopControlVariable, collection, nextVariables, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ISwitchStatement CreateBoundSwitchStatementOperation(BoundSwitchStatement boundSwitchStatement)

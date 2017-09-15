@@ -319,7 +319,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             if (textBuffer != null)
             {
-                if (Workspace.TryGetWorkspace(textBuffer.AsTextContainer(), out var workspace))
+                if (CodeAnalysis.Workspace.TryGetWorkspace(textBuffer.AsTextContainer(), out var workspace))
                 {
                     var organizeImportsService = workspace.Services.GetLanguageServices(textBuffer).GetService<IOrganizeImportsService>();
                     if (organizeImportsService != null)

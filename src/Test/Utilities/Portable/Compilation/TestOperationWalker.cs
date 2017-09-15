@@ -100,30 +100,47 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitDefaultCaseClause(operation);
         }
 
-        public override void VisitWhileUntilLoopStatement(IWhileUntilLoopStatement operation)
-        {
-            var loopKind = operation.LoopKind;
-            var isTopTest = operation.IsTopTest;
-            var isWhile = operation.IsWhile;
-
-            base.VisitWhileUntilLoopStatement(operation);
-        }
-
-        public override void VisitForLoopStatement(IForLoopStatement operation)
+        private void WalkLoopStatement(ILoopStatement operation)
         {
             var loopKind = operation.LoopKind;
             foreach (var local in operation.Locals)
             {
                 // empty loop body, just want to make sure it won't crash.
             }
+        }
+
+        public override void VisitDoLoopStatement(IDoLoopStatement operation)
+        {
+            var doLoopKind = operation.DoLoopKind;
+            WalkLoopStatement(operation);
+
+            base.VisitDoLoopStatement(operation);
+        }
+
+        public override void VisitWhileLoopStatement(IWhileLoopStatement operation)
+        {
+            WalkLoopStatement(operation);
+
+            base.VisitWhileLoopStatement(operation);
+        }
+
+        public override void VisitForLoopStatement(IForLoopStatement operation)
+        {
+            WalkLoopStatement(operation);
 
             base.VisitForLoopStatement(operation);
         }
 
+        public override void VisitForToLoopStatement(IForToLoopStatement operation)
+        {
+            WalkLoopStatement(operation);
+
+            base.VisitForToLoopStatement(operation);
+        }
+
         public override void VisitForEachLoopStatement(IForEachLoopStatement operation)
         {
-            var loopKind = operation.LoopKind;
-            var iteraionVariable = operation.IterationVariable;
+            WalkLoopStatement(operation);
 
             base.VisitForEachLoopStatement(operation);
         }
@@ -233,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitArrayElementReferenceExpression(operation);
         }
 
-        public override void VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation)
+        internal override void VisitPointerIndirectionReferenceExpression(IPointerIndirectionReferenceExpression operation)
         {
             base.VisitPointerIndirectionReferenceExpression(operation);
         }
@@ -251,13 +268,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var parameter = operation.Parameter;
 
             base.VisitParameterReferenceExpression(operation);
-        }
-
-        public override void VisitSyntheticLocalReferenceExpression(ISyntheticLocalReferenceExpression operation)
-        {
-            var syntheticLocalKind = operation.SyntheticLocalKind;
-
-            base.VisitSyntheticLocalReferenceExpression(operation);
         }
 
         public override void VisitInstanceReferenceExpression(IInstanceReferenceExpression operation)
@@ -448,14 +458,31 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitAnonymousObjectCreationExpression(operation);
         }
 
-        public override void VisitDynamicObjectCreationExpression(IDynamicObjectCreationExpression operation)
+        private void VisitDynamicArguments(HasDynamicArgumentsExpression operation)
         {
-            var name = operation.Name;
-            var applicableSymbols = operation.ApplicableSymbols;
             var names = operation.ArgumentNames;
             var refKinds = operation.ArgumentRefKinds;
+        }
+
+        public override void VisitDynamicObjectCreationExpression(IDynamicObjectCreationExpression operation)
+        {
+            VisitDynamicArguments((HasDynamicArgumentsExpression)operation);
 
             base.VisitDynamicObjectCreationExpression(operation);
+        }
+
+        public override void VisitDynamicInvocationExpression(IDynamicInvocationExpression operation)
+        {
+            VisitDynamicArguments((HasDynamicArgumentsExpression)operation);
+
+            base.VisitDynamicInvocationExpression(operation);
+        }
+
+        public override void VisitDynamicIndexerAccessExpression(IDynamicIndexerAccessExpression operation)
+        {
+            VisitDynamicArguments((HasDynamicArgumentsExpression)operation);
+
+            base.VisitDynamicIndexerAccessExpression(operation);
         }
 
         public override void VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation)
