@@ -7926,36 +7926,32 @@ unsafe class C
             // NOTE: conversion is always unchecked, multiplication is always checked.
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", @"
 {
-  // Code size       31 (0x1f)
+  // Code size       27 (0x1b)
   .maxstack  2
   .locals init (int V_0) //count
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
-  IL_0002:  ldc.i4.2
+  IL_0002:  ldc.i4.8
   IL_0003:  conv.u
-  IL_0004:  ldc.i4.4
-  IL_0005:  mul.ovf.un
-  IL_0006:  localloc
-  IL_0008:  pop
-  IL_0009:  ldloc.0
-  IL_000a:  conv.u
-  IL_000b:  ldc.i4.2
-  IL_000c:  mul.ovf.un
-  IL_000d:  localloc
-  IL_000f:  pop
-  IL_0010:  ldc.i4.2
-  IL_0011:  conv.u
-  IL_0012:  ldc.i4.4
-  IL_0013:  mul.ovf.un
-  IL_0014:  localloc
-  IL_0016:  pop
-  IL_0017:  ldloc.0
-  IL_0018:  conv.u
-  IL_0019:  ldc.i4.2
-  IL_001a:  mul.ovf.un
-  IL_001b:  localloc
-  IL_001d:  pop
-  IL_001e:  ret
+  IL_0004:  localloc
+  IL_0006:  pop
+  IL_0007:  ldloc.0
+  IL_0008:  conv.u
+  IL_0009:  ldc.i4.2
+  IL_000a:  mul.ovf.un
+  IL_000b:  localloc
+  IL_000d:  pop
+  IL_000e:  ldc.i4.8
+  IL_000f:  conv.u
+  IL_0010:  localloc
+  IL_0012:  pop
+  IL_0013:  ldloc.0
+  IL_0014:  conv.u
+  IL_0015:  ldc.i4.2
+  IL_0016:  mul.ovf.un
+  IL_0017:  localloc
+  IL_0019:  pop
+  IL_001a:  ret
 }
 ");
         }
@@ -7980,23 +7976,54 @@ unsafe class C
 ";
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", @"
 {
-  // Code size       20 (0x14)
-  .maxstack  2
+  // Code size       16 (0x10)
+  .maxstack  1
   .locals init (void* V_0) //p
-  IL_0000:  ldc.i4.2
+  IL_0000:  ldc.i4.8
   IL_0001:  conv.u
-  IL_0002:  ldc.i4.4
-  IL_0003:  mul.ovf.un
-  IL_0004:  localloc
-  IL_0006:  stloc.0
-  IL_0007:  ldc.i4.2
-  IL_0008:  conv.u
-  IL_0009:  ldc.i4.4
-  IL_000a:  mul.ovf.un
-  IL_000b:  localloc
-  IL_000d:  call       ""C C.op_Implicit(int*)""
-  IL_0012:  pop
-  IL_0013:  ret
+  IL_0002:  localloc
+  IL_0004:  stloc.0
+  IL_0005:  ldc.i4.8
+  IL_0006:  conv.u
+  IL_0007:  localloc
+  IL_0009:  call       ""C C.op_Implicit(int*)""
+  IL_000e:  pop
+  IL_000f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void StackAllocConversionZero()
+        {
+            var text = @"
+unsafe class C
+{
+    void M()
+    {
+        void* p = stackalloc int[0];
+        C q = stackalloc int[0];
+    }
+
+    public static implicit operator C(int* p)
+    {
+        return null;
+    }
+}
+";
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (void* V_0) //p
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  conv.u
+  IL_0005:  call       ""C C.op_Implicit(int*)""
+  IL_000a:  pop
+  IL_000b:  ret
 }
 ");
         }
@@ -8069,35 +8096,31 @@ unsafe class C
             // for C.<>c__DisplayClass0.p is pushed onto the stack.
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size       28 (0x1c)
+  // Code size       24 (0x18)
   .maxstack  2
   .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
                 int* V_1)
   IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
   IL_0005:  stloc.0
-  IL_0006:  ldc.i4.2
+  IL_0006:  ldc.i4.8
   IL_0007:  conv.u
-  IL_0008:  ldc.i4.4
-  IL_0009:  mul.ovf.un
-  IL_000a:  localloc
-  IL_000c:  stloc.1
-  IL_000d:  ldloc.0
-  IL_000e:  ldloc.1
-  IL_000f:  stfld      ""int* C.<>c__DisplayClass0_0.p""
-  IL_0014:  ldc.i4.2
-  IL_0015:  conv.u
-  IL_0016:  ldc.i4.4
-  IL_0017:  mul.ovf.un
-  IL_0018:  localloc
-  IL_001a:  pop
-  IL_001b:  ret
+  IL_0008:  localloc
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  stfld      ""int* C.<>c__DisplayClass0_0.p""
+  IL_0012:  ldc.i4.8
+  IL_0013:  conv.u
+  IL_0014:  localloc
+  IL_0016:  pop
+  IL_0017:  ret
 }
 ");
 
             // Check that the same thing works inside a lambda.
             verifier.VerifyIL("C.<>c__DisplayClass0_0.<Main>b__0", @"
 {
-  // Code size       35 (0x23)
+  // Code size       31 (0x1f)
   .maxstack  2
   .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
                 int* V_1)
@@ -8106,22 +8129,18 @@ unsafe class C
   IL_0006:  ldloc.0
   IL_0007:  ldarg.0
   IL_0008:  stfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_1.CS$<>8__locals1""
-  IL_000d:  ldc.i4.2
+  IL_000d:  ldc.i4.8
   IL_000e:  conv.u
-  IL_000f:  ldc.i4.4
-  IL_0010:  mul.ovf.un
-  IL_0011:  localloc
-  IL_0013:  stloc.1
-  IL_0014:  ldloc.0
-  IL_0015:  ldloc.1
-  IL_0016:  stfld      ""int* C.<>c__DisplayClass0_1.r""
-  IL_001b:  ldc.i4.2
-  IL_001c:  conv.u
-  IL_001d:  ldc.i4.4
-  IL_001e:  mul.ovf.un
-  IL_001f:  localloc
-  IL_0021:  pop
-  IL_0022:  ret
+  IL_000f:  localloc
+  IL_0011:  stloc.1
+  IL_0012:  ldloc.0
+  IL_0013:  ldloc.1
+  IL_0014:  stfld      ""int* C.<>c__DisplayClass0_1.r""
+  IL_0019:  ldc.i4.8
+  IL_001a:  conv.u
+  IL_001b:  localloc
+  IL_001d:  pop
+  IL_001e:  ret
 }
 ");
         }
@@ -8146,52 +8165,48 @@ unsafe class T
 ";
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0").VerifyIL("T.Main", @"
 {
-  // Code size       43 (0x2b)
+  // Code size       41 (0x29)
   .maxstack  2
   .locals init (T.<>c__DisplayClass1_0 V_0, //CS$<>8__locals0
                 int* V_1)
   IL_0000:  newobj     ""T.<>c__DisplayClass1_0..ctor()""
   IL_0005:  stloc.0
-  IL_0006:  ldc.i4.1
+  IL_0006:  ldc.i4.4
   IL_0007:  conv.u
-  IL_0008:  ldc.i4.4
-  IL_0009:  mul.ovf.un
-  IL_000a:  localloc
-  IL_000c:  stloc.1
-  IL_000d:  ldloc.0
-  IL_000e:  ldloc.1
-  IL_000f:  stfld      ""int* T.<>c__DisplayClass1_0.v""
-  IL_0014:  ldloc.0
-  IL_0015:  ldftn      ""int T.<>c__DisplayClass1_0.<Main>b__0()""
-  IL_001b:  newobj     ""T.D..ctor(object, System.IntPtr)""
-  IL_0020:  callvirt   ""int T.D.Invoke()""
-  IL_0025:  call       ""void System.Console.WriteLine(int)""
-  IL_002a:  ret
+  IL_0008:  localloc
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  stfld      ""int* T.<>c__DisplayClass1_0.v""
+  IL_0012:  ldloc.0
+  IL_0013:  ldftn      ""int T.<>c__DisplayClass1_0.<Main>b__0()""
+  IL_0019:  newobj     ""T.D..ctor(object, System.IntPtr)""
+  IL_001e:  callvirt   ""int T.D.Invoke()""
+  IL_0023:  call       ""void System.Console.WriteLine(int)""
+  IL_0028:  ret
 }
 ");
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0").VerifyIL("T.Main", @"
 {
-  // Code size       43 (0x2b)
+  // Code size       41 (0x29)
   .maxstack  2
   .locals init (T.<>c__DisplayClass1_0 V_0, //CS$<>8__locals0
                 int* V_1)
   IL_0000:  newobj     ""T.<>c__DisplayClass1_0..ctor()""
   IL_0005:  stloc.0
-  IL_0006:  ldc.i4.1
+  IL_0006:  ldc.i4.4
   IL_0007:  conv.u
-  IL_0008:  ldc.i4.4
-  IL_0009:  mul.ovf.un
-  IL_000a:  localloc
-  IL_000c:  stloc.1
-  IL_000d:  ldloc.0
-  IL_000e:  ldloc.1
-  IL_000f:  stfld      ""int* T.<>c__DisplayClass1_0.v""
-  IL_0014:  ldloc.0
-  IL_0015:  ldftn      ""int T.<>c__DisplayClass1_0.<Main>b__0()""
-  IL_001b:  newobj     ""T.D..ctor(object, System.IntPtr)""
-  IL_0020:  callvirt   ""int T.D.Invoke()""
-  IL_0025:  call       ""void System.Console.WriteLine(int)""
-  IL_002a:  ret
+  IL_0008:  localloc
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  stfld      ""int* T.<>c__DisplayClass1_0.v""
+  IL_0012:  ldloc.0
+  IL_0013:  ldftn      ""int T.<>c__DisplayClass1_0.<Main>b__0()""
+  IL_0019:  newobj     ""T.D..ctor(object, System.IntPtr)""
+  IL_001e:  callvirt   ""int T.D.Invoke()""
+  IL_0023:  call       ""void System.Console.WriteLine(int)""
+  IL_0028:  ret
 }
 ");
         }

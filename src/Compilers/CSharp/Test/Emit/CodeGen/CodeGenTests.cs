@@ -15699,18 +15699,20 @@ class Test
 {
     public static void Main()
     {
-        Span<int> x = stackalloc int[10];
-        Console.WriteLine(x.Length);
+        Span<int> x = stackalloc int[33];
+        Console.Write(x.Length);
+        x = stackalloc int[0];
+        Console.Write(x.Length);
     }
 }", TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "10", verify: false).VerifyIL("Test.Main", @"
+            CompileAndVerify(comp, expectedOutput: "330", verify: false).VerifyIL("Test.Main", @"
 {
-  // Code size       29 (0x1d)
+  // Code size       49 (0x31)
   .maxstack  2
   .locals init (System.Span<int> V_0, //x
                 int V_1)
-  IL_0000:  ldc.i4.s   10
+  IL_0000:  ldc.i4.s   33
   IL_0002:  stloc.1
   IL_0003:  ldloc.1
   IL_0004:  conv.u
@@ -15722,8 +15724,13 @@ class Test
   IL_000f:  stloc.0
   IL_0010:  ldloca.s   V_0
   IL_0012:  call       ""int System.Span<int>.Length.get""
-  IL_0017:  call       ""void System.Console.WriteLine(int)""
-  IL_001c:  ret
+  IL_0017:  call       ""void System.Console.Write(int)""
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  initobj    ""System.Span<int>""
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  call       ""int System.Span<int>.Length.get""
+  IL_002b:  call       ""void System.Console.Write(int)""
+  IL_0030:  ret
 }");
         }
 
