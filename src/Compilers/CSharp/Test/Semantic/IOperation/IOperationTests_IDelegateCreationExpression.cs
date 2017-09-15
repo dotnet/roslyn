@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1296,7 +1296,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void DelegateCreationExpression_ImplicitMethodBinding_InvalidMultipleCandidates()
+        public void DelegateCreationExpression_ImplicitMethodBinding_MultipleCandidates_InvalidNoMatch()
         {
             string source = @"
 using System;
@@ -1354,6 +1354,65 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DelegateCreationExpression_ExplicitDelegateConstructorImplicitMethodBinding_MultipleCandidates()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        Action<string> a = /*<bind>*/new Action<string>(M1)/*</bind>*/;
+    }
+
+    void M1(object o) { }
+
+    void M1(string s) { }
+}
+";
+            string expectedOperationTree = @"
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action<System.String>) (Syntax: 'new Action<string>(M1)')
+  Target: IOperation:  (OperationKind.None) (Syntax: 'M1')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DelegateCreationExpression_ExplicitDelegateConstructorImplicitMethodBinding_MultipleCandidates_InvalidNoMatch()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        Action<int> a = /*<bind>*/new Action<int>(M1)/*</bind>*/;
+    }
+
+    void M1(object o) { }
+
+    void M1(string s) { }
+}
+";
+            string expectedOperationTree = @"
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action<System.Int32>, IsInvalid) (Syntax: 'new Action<int>(M1)')
+  Children(1):
+      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0123: No overload for 'Program.M1(object)' matches delegate 'Action<int>'
+                //         Action<int> a = /*<bind>*/new Action<int>(M1)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M1").WithArguments("Program.M1(object)", "System.Action<int>").WithLocation(7, 51)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
     }
 }

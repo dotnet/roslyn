@@ -739,12 +739,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             Lazy<IOperation> target = new Lazy<IOperation>(() =>
             {
-                if (boundDelegateCreationExpression.Argument is BoundMethodGroup boundMethodGroup &&
-                    boundMethodGroup.Methods.Length == 1)
+                if (boundDelegateCreationExpression.Argument.Kind == BoundKind.MethodGroup &&
+                    boundDelegateCreationExpression.MethodOpt != null)
                 {
-                    // If this is a method binding, and only 1 candidate method was found, then we want to expose
+                    // If this is a method binding, and a valid candidate method was found, then we want to expose
                     // this child as an IMethodBindingReference. Otherwise, we want to just delegate to the standard
                     // CSharpOperationFactory behavior
+                    BoundMethodGroup boundMethodGroup = (BoundMethodGroup)boundDelegateCreationExpression.Argument;
                     return CreateBoundMethodGroupSingleMethodOperation(boundMethodGroup, boundDelegateCreationExpression.MethodOpt, boundMethodGroup.SuppressVirtualCalls);
                 }
                 else
@@ -764,7 +765,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             bool isVirtual = methodSymbol != null && (methodSymbol.IsAbstract || methodSymbol.IsOverride || methodSymbol.IsVirtual) && !suppressVirtualCalls;
             Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundMethodGroup.InstanceOpt));
             SyntaxNode bindingSyntax = boundMethodGroup.Syntax;
-            ITypeSymbol bindingType = boundMethodGroup.Type;
+            ITypeSymbol bindingType = null;
             Optional<object> bindingConstantValue = ConvertToOptional(boundMethodGroup.ConstantValue);
             bool isImplicit = boundMethodGroup.WasCompilerGenerated;
             return new LazyMethodBindingExpression(methodSymbol, isVirtual, instance, _semanticModel, bindingSyntax, bindingType, bindingConstantValue, boundMethodGroup.WasCompilerGenerated);
