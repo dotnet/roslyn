@@ -127,7 +127,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (parameter.RefKind == RefKind.RefReadOnly)
                 {
-                    parameter.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, parameter.GetNonNullSyntaxNode().Location, modifyCompilationForRefReadOnly);
+                    // These parameters might not come from a compilation (example: lambdas evaluated in EE).
+                    // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
+                    parameter.DeclaringCompilation?.EnsureIsReadOnlyAttributeExists(diagnostics, parameter.GetNonNullSyntaxNode().Location, modifyCompilationForRefReadOnly);
                 }
             }
         }

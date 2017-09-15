@@ -66,8 +66,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
         {
+            return _additionalTypes;
+        }
+
+        internal override ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
+        {
             var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            builder.AddRange(_additionalTypes);
 
             CreateEmbeddedAttributesIfNeeded(diagnostics);
             if ((object)_lazyEmbeddedAttribute != null)
