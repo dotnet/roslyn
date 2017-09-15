@@ -3265,5 +3265,113 @@ static class Ex
             Assert.Equal(SpecialType.System_Boolean, type.Type.SpecialType);
             Assert.Equal(SpecialType.System_Boolean, type.ConvertedType.SpecialType);
         }
+
+        [Fact, WorkItem(20210, "https://github.com/dotnet/roslyn/issues/20210")]
+        public void SwitchOnNull_20210()
+        {
+            var source =
+@"class Sample
+{
+    void M()
+    {
+        switch (default(object))
+        {
+          case bool _:
+          case true:     // error: subsumed (1 of 12)
+          case false:    // error: subsumed (2 of 12)
+            break; // unreachable (1)
+        }
+
+        switch (new object())
+        {
+          case bool _:
+          case true:     // error: subsumed (3 of 12)
+          case false:    // error: subsumed (4 of 12)
+            break;
+        }
+
+        switch ((object)null)
+        {
+          case bool _:
+          case true:     // error: subsumed (5 of 12)
+          case false:    // error: subsumed (6 of 12)
+            break; // unreachable (2)
+        }
+
+        switch ((bool?)null)
+        {
+          case bool _:
+          case true:     // error: subsumed (7 of 12)
+          case false:    // error: subsumed (8 of 12)
+            break; // unreachable (3)
+        }
+
+        switch (default(bool?))
+        {
+          case bool _:
+          case true:     // error: subsumed (9 of 12)
+          case false:    // error: subsumed (10 of 12)
+            break; // unreachable (4)
+            // warning on the previous line missing due to https://github.com/dotnet/roslyn/issues/22125
+        }
+
+        switch (default(bool))
+        {
+          case bool _:
+          case true:     // error: subsumed (11 of 12)
+          case false:    // error: subsumed (12 of 12)
+            break;
+        }
+    }
+}";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+                // (8,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case true:     // error: subsumed (1 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(8, 11),
+                // (9,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case false:    // error: subsumed (2 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(9, 11),
+                // (16,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case true:     // error: subsumed (3 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(16, 11),
+                // (17,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case false:    // error: subsumed (4 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(17, 11),
+                // (24,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case true:     // error: subsumed (5 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(24, 11),
+                // (25,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case false:    // error: subsumed (6 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(25, 11),
+                // (32,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case true:     // error: subsumed (7 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(32, 11),
+                // (33,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case false:    // error: subsumed (8 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(33, 11),
+                // (40,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case true:     // error: subsumed (9 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(40, 11),
+                // (41,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case false:    // error: subsumed (10 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(41, 11),
+                // (49,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case true:     // error: subsumed (11 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case true:").WithLocation(49, 11),
+                // (50,11): error CS8120: The switch case has already been handled by a previous case.
+                //           case false:    // error: subsumed (12 of 12)
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case false:").WithLocation(50, 11),
+                // (10,13): warning CS0162: Unreachable code detected
+                //             break; // unreachable (1)
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 13),
+                // (26,13): warning CS0162: Unreachable code detected
+                //             break; // unreachable (2)
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(26, 13),
+                // (34,13): warning CS0162: Unreachable code detected
+                //             break; // unreachable (3)
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(34, 13)
+                );
+        }
     }
 }

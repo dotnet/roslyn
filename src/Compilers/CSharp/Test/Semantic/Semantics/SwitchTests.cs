@@ -3142,6 +3142,41 @@ class C
             comp.VerifyDiagnostics();
         }
 
+        [Fact]
+        public void ConstantNullSwitchExpression()
+        {
+            var text = @"
+public class TestClass
+{
+    public static void Main()
+    {
+        const string s = null;
+        switch (s)
+        {
+            default:
+                break; //1
+            case null:
+                break; //2
+        }
+    }
+}";
+            CreateStandardCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (10,17): warning CS0162: Unreachable code detected
+                //                 break; //1
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
+                );
+            CreateStandardCompilation(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
+                // (10,17): warning CS0162: Unreachable code detected
+                //                 break; //1
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
+                );
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (10,17): warning CS0162: Unreachable code detected
+                //                 break; //1
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
+                );
+        }
+
         #endregion
     }
 }
