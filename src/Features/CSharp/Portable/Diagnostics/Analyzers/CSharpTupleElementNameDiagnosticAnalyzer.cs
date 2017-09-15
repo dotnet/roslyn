@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             }
 
             var overriddenMethod = symbol.OverriddenMethod;
-            if (overriddenMethod != null && CompareMethods(symbol, overriddenMethod) != null)
+            if (overriddenMethod != null && ContainsTupleTypeWithNames(overriddenMethod))
             {
                 var optionSet = context.Options.GetDocumentOptionSetAsync(symbol.Locations[0].SourceTree, context.CancellationToken).GetAwaiter().GetResult();
                 context.ReportDiagnostic(Diagnostic.Create(GetDescriptor(optionSet), symbol.Locations[0]));
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 {
                     if (symbol.ContainingType.FindImplementationForInterfaceMember(member) == symbol)
                     {
-                        if (CompareMethods(symbol, member) != null)
+                        if (ContainsTupleTypeWithNames(member))
                         {
                             var optionSet = context.Options.GetDocumentOptionSetAsync(symbol.Locations[0].SourceTree, context.CancellationToken).GetAwaiter().GetResult();
                             context.ReportDiagnostic(Diagnostic.Create(GetDescriptor(optionSet), symbol.Locations[0]));
@@ -103,25 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                         break;
                     }
                 }
-            }
-
-            // Local Functions
-            ITypeSymbol CompareMethods(IMethodSymbol left, IMethodSymbol right)
-            {
-                if (WalkTypes(left.ReturnType, right.ReturnType, CompareTupleElements, null).Item1 is ITypeSymbol type)
-                {
-                    return type;
-                }
-
-                for (int i = 0; i < left.Parameters.Length; i++)
-                {
-                    if (WalkTypes(left.Parameters[i].Type, right.Parameters[i].Type, CompareTupleElements, null).Item1 is ITypeSymbol parameterType)
-                    {
-                        return parameterType;
-                    }
-                }
-
-                return null;
             }
         }
 
@@ -141,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             }
 
             var overriddenProperty = symbol.OverriddenProperty;
-            if (overriddenProperty != null && WalkTypes(symbol.Type, overriddenProperty.Type, CompareTupleElements, null).Item1 != null)
+            if (overriddenProperty != null && ContainsTupleTypeWithNames(overriddenProperty))
             {
                 var optionSet = context.Options.GetDocumentOptionSetAsync(symbol.Locations[0].SourceTree, context.CancellationToken).GetAwaiter().GetResult();
                 context.ReportDiagnostic(Diagnostic.Create(GetDescriptor(optionSet), symbol.Locations[0]));
@@ -154,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 {
                     if (symbol.ContainingType.FindImplementationForInterfaceMember(member) == symbol)
                     {
-                        if (WalkTypes(symbol.Type, member.Type, CompareTupleElements, null).Item1 != null)
+                        if (ContainsTupleTypeWithNames(member))
                         {
                             var optionSet = context.Options.GetDocumentOptionSetAsync(symbol.Locations[0].SourceTree, context.CancellationToken).GetAwaiter().GetResult();
                             context.ReportDiagnostic(Diagnostic.Create(GetDescriptor(optionSet), symbol.Locations[0]));
@@ -183,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             }
 
             var overriddenEvent = symbol.OverriddenEvent;
-            if (overriddenEvent != null && WalkTypes(symbol.Type, overriddenEvent.Type, CompareTupleElements, null).Item1 != null)
+            if (overriddenEvent != null && ContainsTupleType(overriddenEvent))
             {
                 var optionSet = context.Options.GetDocumentOptionSetAsync(symbol.Locations[0].SourceTree, context.CancellationToken).GetAwaiter().GetResult();
                 context.ReportDiagnostic(Diagnostic.Create(GetDescriptor(optionSet), symbol.Locations[0]));
@@ -196,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 {
                     if (symbol.ContainingType.FindImplementationForInterfaceMember(member) == symbol)
                     {
-                        if (WalkTypes(symbol.Type, member.Type, CompareTupleElements, null).Item1 != null)
+                        if (ContainsTupleType(member))
                         {
                             var optionSet = context.Options.GetDocumentOptionSetAsync(symbol.Locations[0].SourceTree, context.CancellationToken).GetAwaiter().GetResult();
                             context.ReportDiagnostic(Diagnostic.Create(GetDescriptor(optionSet), symbol.Locations[0]));
@@ -359,96 +340,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(current.TypeKind);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Visit the given type and, in the case of compound types, visit all "sub type"
-        /// (such as A in A[], or { A&lt;T&gt;, T, U } in A&lt;T&gt;.B&lt;U&gt;) invoking 'predicate'
-        /// with the type and 'arg' at each sub type. If the predicate returns true for any type,
-        /// traversal stops and that type is returned from this method. Otherwise if traversal
-        /// completes without the predicate returning true for any type, this method returns null.
-        /// </summary>
-        /// <remarks>
-        /// Taken from TypeSymbolExtensions.
-        /// </remarks>
-        internal static (ITypeSymbol, ITypeSymbol) WalkTypes<TArg>(ITypeSymbol left, ITypeSymbol right, Func<ITypeSymbol, ITypeSymbol, TArg, bool> predicate, TArg arg)
-        {
-            // In order to handle extremely "deep" types like "int[][][][][][][][][]...[]"
-            // or int*****************...* we implement manual tail recursion rather than 
-            // doing the natural recursion.
-
-            ITypeSymbol currentLeft = left;
-            ITypeSymbol currentRight = right;
-
-            while (true)
-            {
-                if (predicate(currentLeft, currentRight, arg))
-                {
-                    return (currentLeft, currentRight);
-                }
-
-                if (currentLeft.TypeKind != currentRight.TypeKind)
-                {
-                    return (null, null);
-                }
-
-                switch (currentLeft.TypeKind)
-                {
-                    case TypeKind.Error:
-                    case TypeKind.Dynamic:
-                    case TypeKind.TypeParameter:
-                    case TypeKind.Submission:
-                    case TypeKind.Enum:
-                        return (null, null);
-
-                    case TypeKind.Class:
-                    case TypeKind.Struct:
-                    case TypeKind.Interface:
-                    case TypeKind.Delegate:
-                        if (currentLeft.IsTupleType)
-                        {
-                            // turn tuple type elements into parameters
-                            currentLeft = ((INamedTypeSymbol)currentLeft).TupleUnderlyingType;
-                        }
-
-                        if (currentRight.IsTupleType)
-                        {
-                            // turn tuple type elements into parameters
-                            currentRight = ((INamedTypeSymbol)currentRight).TupleUnderlyingType;
-                        }
-
-                        if (!currentLeft.OriginalDefinition.Equals(currentRight.OriginalDefinition))
-                        {
-                            return (null, null);
-                        }
-
-                        var leftTypeArguments = ((INamedTypeSymbol)currentLeft).TypeArguments;
-                        var rightTypeArguments = ((INamedTypeSymbol)currentRight).TypeArguments;
-                        for (int i = 0; i < leftTypeArguments.Length; i++)
-                        {
-                            var result = WalkTypes(leftTypeArguments[i], rightTypeArguments[i], predicate, arg);
-                            if (result.Item1 != null || result.Item2 != null)
-                            {
-                                return result;
-                            }
-                        }
-
-                        return (null, null);
-
-                    case TypeKind.Array:
-                        currentLeft = ((IArrayTypeSymbol)currentLeft).ElementType;
-                        currentRight = ((IArrayTypeSymbol)currentRight).ElementType;
-                        continue;
-
-                    case TypeKind.Pointer:
-                        currentLeft = ((IPointerTypeSymbol)currentLeft).PointedAtType;
-                        currentRight = ((IPointerTypeSymbol)currentRight).PointedAtType;
-                        continue;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(currentLeft.TypeKind);
                 }
             }
         }
