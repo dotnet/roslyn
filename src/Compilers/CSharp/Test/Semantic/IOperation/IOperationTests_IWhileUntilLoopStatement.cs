@@ -756,11 +756,13 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'whi
           Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'd.Next();')
-        Expression: IOperation:  (OperationKind.None) (Syntax: 'd.Next()')
-            Children(1):
-                IDynamicMemberReferenceExpression (Member Name: ""Next"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Next')
-                  Type Arguments(0)
-                  Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
+        Expression: IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'd.Next()')
+            Expression: IDynamicMemberReferenceExpression (Member Name: ""Next"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Next')
+                Type Arguments(0)
+                Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd')
+            Arguments(0)
+            ArgumentNames(0)
+            ArgumentRefKinds(0)
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }

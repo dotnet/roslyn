@@ -397,7 +397,17 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitDynamicObjectCreationExpression(IDynamicObjectCreationExpression operation, object argument)
         {
-            return new DynamicObjectCreationExpression(operation.Name, operation.ApplicableSymbols, VisitArray(operation.Arguments), operation.ArgumentNames, operation.ArgumentRefKinds, Visit(operation.Initializer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new DynamicObjectCreationExpression(VisitArray(operation.Arguments), ((HasDynamicArgumentsExpression)operation).ArgumentNames, ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds, Visit(operation.Initializer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitDynamicInvocationExpression(IDynamicInvocationExpression operation, object argument)
+        {
+            return new DynamicInvocationExpression(Visit(operation.Expression), VisitArray(operation.Arguments), ((HasDynamicArgumentsExpression)operation).ArgumentNames, ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitDynamicIndexerAccessExpression(IDynamicIndexerAccessExpression operation, object argument)
+        {
+            return new DynamicIndexerAccessExpression(Visit(operation.Expression), VisitArray(operation.Arguments), ((HasDynamicArgumentsExpression)operation).ArgumentNames, ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitDefaultValueExpression(IDefaultValueExpression operation, object argument)
