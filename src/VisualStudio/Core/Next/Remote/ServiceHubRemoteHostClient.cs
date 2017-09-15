@@ -205,14 +205,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // operation timed out, more than we are willing to wait
             ShowInfoBar();
 
-            // create its own cancellation token and throw it
+            // user didn't ask for cancellation, but we can't fullfill this request. so we
+            // create our own cancellation token and then throw it. this doesn't guarantee
+            // 100% that we won't crash, but this is at least safest way we know until user
+            // restart VS (with info bar)
             using (var ownCancellationSource = new CancellationTokenSource())
             {
                 ownCancellationSource.Cancel();
                 ownCancellationSource.Token.ThrowIfCancellationRequested();
             }
 
-            // unreachable
             throw ExceptionUtilities.Unreachable;
         }
 
