@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -409,6 +409,50 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
             Dim model = compilation.GetSemanticModel(tree)
 
             VerifyParentOperations(model)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub TestEndStatement()
+            Dim source = <![CDATA[
+Class C
+    Public Shared i as Integer
+    Public Shared Sub Main()
+        If i = 0 Then
+            End'BIND:"End"
+        End If
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IEndStatement (OperationKind.None) (Syntax: 'End')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of StopOrEndStatementSyntax)(source, expectedOperationTree, expectedDiagnostics, compilationOptions:=TestOptions.ReleaseExe)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub TestStopStatement()
+            Dim source = <![CDATA[
+Class C
+    Public Shared i as Integer
+    Public Shared Sub Main()
+        If i = 0 Then
+            Stop'BIND:"Stop"
+        End If
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IStopStatement (OperationKind.None) (Syntax: 'Stop')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of StopOrEndStatementSyntax)(source, expectedOperationTree, expectedDiagnostics, compilationOptions:=TestOptions.ReleaseExe)
         End Sub
     End Class
 End Namespace
