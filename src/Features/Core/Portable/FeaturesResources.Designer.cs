@@ -2428,6 +2428,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer explicitly provided argument name.
+        /// </summary>
+        internal static string Prefer_explicitly_provided_argument_name {
+            get {
+                return ResourceManager.GetString("Prefer_explicitly_provided_argument_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer explicitly provided tuple element name.
         /// </summary>
         internal static string Prefer_explicitly_provided_tuple_element_name {

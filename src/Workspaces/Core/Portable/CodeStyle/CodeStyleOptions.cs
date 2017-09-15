@@ -179,5 +179,44 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
             return s_requireAccessibilityModifiersDefault;
         }
+
+        private static readonly CodeStyleOption<NamedArgumentsRequired> s_requireNamedArgumentsDefault =
+            new CodeStyleOption<NamedArgumentsRequired>(NamedArgumentsRequired.Never, NotificationOption.None);
+
+        internal static readonly PerLanguageOption<CodeStyleOption<NamedArgumentsRequired>> RequireNamedArguments =
+            new PerLanguageOption<CodeStyleOption<NamedArgumentsRequired>>(
+                nameof(CodeStyleOptions), nameof(NamedArgumentsRequired), defaultValue: s_requireNamedArgumentsDefault,
+                storageLocations: new OptionStorageLocation[]{
+                    new EditorConfigStorageLocation<CodeStyleOption<NamedArgumentsRequired>>("dotnet_style_require_named_arguments", s => ParseNamedArgumentsRequired(s)),
+                    new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NamedArgumentsRequired")});
+
+        private static CodeStyleOption<NamedArgumentsRequired> ParseNamedArgumetnsRequired(string optionString)
+        {
+            if (TryGetCodeStyleValueAndOptionalNotification(optionString,
+                    out var value, out var notificationOpt))
+            {
+                if (value == "never")
+                {
+                    // If they provide 'never', they don't need a notification level.
+                    notificationOpt = notificationOpt ?? NotificationOption.None;
+                }
+
+                if (notificationOpt != null)
+                {
+                    switch (value)
+                    {
+                        case "never":
+                            return new CodeStyleOption<NamedArgumentsRequired>(NamedArgumentsRequired.Never, notificationOpt);
+                        case "always":
+                            return new CodeStyleOption<NamedArgumentsRequired>(NamedArgumentsRequired.Always, notificationOpt);
+                        case "for_literals":
+                            return new CodeStyleOption<NamedArgumentsRequired>(NamedArgumentsRequired.ForLiterals, notificationOpt);
+                    }
+                }
+            }
+
+            return s_requireNamedArgumentsDefault;
+        }
+
     }
 }
