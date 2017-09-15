@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string AddParameter = nameof(AddParameter);
         public const string ApplyNamingStyle = nameof(ApplyNamingStyle);
         public const string AddBraces = nameof(AddBraces);
+        public const string AddTupleElementNames = nameof(AddTupleElementNames);
         public const string ChangeReturnType = nameof(ChangeReturnType);
         public const string ChangeToYield = nameof(ChangeToYield);
         public const string ConvertToAsync = nameof(ConvertToAsync);

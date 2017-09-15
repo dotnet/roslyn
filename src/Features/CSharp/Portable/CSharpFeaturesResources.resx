@@ -524,4 +524,19 @@
   <data name="Use_is_null_check" xml:space="preserve">
     <value>Use 'is null' check</value>
   </data>
+  <data name="ERR_CantChangeTupleNamesOnOverride" xml:space="preserve">
+    <value>'{0}': cannot change tuple element names when overriding inherited member '{1}'</value>
+  </data>
+  <data name="ERR_CantChangeTupleNamesOnOverride_Title" xml:space="preserve">
+    <value>Cannot change tuple element names when overriding an inherited member</value>
+  </data>
+  <data name="ERR_ImplBadTupleNames" xml:space="preserve">
+    <value>The tuple element names in the signature of method '{0}' must match the tuple element names of interface method '{1}' (including on the return type).</value>
+  </data>
+  <data name="ERR_ImplBadTupleNames_Title" xml:space="preserve">
+    <value>Cannot change tuple element names when implementing an interface member</value>
+  </data>
+  <data name="Add_tuple_element_names" xml:space="preserve">
+    <value>Add tuple element names</value>
+  </data>
 </root>

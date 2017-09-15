@@ -80,6 +80,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add tuple element names.
+        /// </summary>
+        internal static string Add_tuple_element_names {
+            get {
+                return ResourceManager.GetString("Add_tuple_element_names", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to anonymous method.
         /// </summary>
         internal static string anonymous_method {
@@ -356,6 +365,42 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string element_name {
             get {
                 return ResourceManager.GetString("element_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot change tuple element names when overriding inherited member &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_CantChangeTupleNamesOnOverride {
+            get {
+                return ResourceManager.GetString("ERR_CantChangeTupleNamesOnOverride", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot change tuple element names when overriding an inherited member.
+        /// </summary>
+        internal static string ERR_CantChangeTupleNamesOnOverride_Title {
+            get {
+                return ResourceManager.GetString("ERR_CantChangeTupleNamesOnOverride_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The tuple element names in the signature of method &apos;{0}&apos; must match the tuple element names of interface method &apos;{1}&apos; (including on the return type)..
+        /// </summary>
+        internal static string ERR_ImplBadTupleNames {
+            get {
+                return ResourceManager.GetString("ERR_ImplBadTupleNames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot change tuple element names when implementing an interface member.
+        /// </summary>
+        internal static string ERR_ImplBadTupleNames_Title {
+            get {
+                return ResourceManager.GetString("ERR_ImplBadTupleNames_Title", resourceCulture);
             }
         }
         
