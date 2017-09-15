@@ -61,17 +61,17 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitSingleValueCaseClause(ISingleValueCaseClause operation, object argument)
         {
-            return new SingleValueCaseClause(Visit(operation.Value), operation.CaseKind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new SingleValueCaseClause(Visit(operation.Value), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitRelationalCaseClause(IRelationalCaseClause operation, object argument)
         {
-            return new RelationalCaseClause(Visit(operation.Value), operation.Relation, operation.CaseKind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new RelationalCaseClause(Visit(operation.Value), operation.Relation, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitRangeCaseClause(IRangeCaseClause operation, object argument)
         {
-            return new RangeCaseClause(Visit(operation.MinimumValue), Visit(operation.MaximumValue), operation.CaseKind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new RangeCaseClause(Visit(operation.MinimumValue), Visit(operation.MaximumValue), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitDefaultCaseClause(IDefaultCaseClause operation, object argument)

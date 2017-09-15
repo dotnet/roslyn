@@ -1293,7 +1293,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             if (boundSwitchLabel.ExpressionOpt != null)
             {
                 Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundSwitchLabel.ExpressionOpt));
-                return new LazySingleValueCaseClause(value, CaseKind.SingleValue, _semanticModel, syntax, type, constantValue, isImplicit);
+                return new LazySingleValueCaseClause(value, _semanticModel, syntax, type, constantValue, isImplicit);
             }
             else
             {
