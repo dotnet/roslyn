@@ -313,6 +313,34 @@ IOperation:  (OperationKind.None) (Syntax: 'M1')
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        public void DelegateCreationExpression_ImplicitMethodBinding_FullTree()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        /*<bind>*/Action a = M1;/*</bind>*/
+    }
+    void M1() { }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Action a = M1;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'Action a = M1;')
+    Variables: Local_1: System.Action a
+    Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'M1')
+        Target: IMethodBindingExpression: void Program.M1() (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'M1')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M1')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void DelegateCreationExpression_ImplicitMethodBinding_InvalidIdentifier()
         {
             string source = @"
@@ -341,6 +369,38 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DelegateCreationExpression_ImplicitMethodBinding_InvalidIdentifer_FullTree()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        /*<bind>*/Action a = M1;/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Action a = M1;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Action a = M1;')
+    Variables: Local_1: System.Action a
+    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: 'M1')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M1')
+            Children(0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0103: The name 'M1' does not exist in the current context
+                //         /*<bind>*/Action a = M1;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(7, 30)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -379,6 +439,38 @@ IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        public void DelegateCreationExpression_ImplicitMethodBinding_InvalidReturnType_FullTree()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        /*<bind>*/Action a = M1;/*</bind>*/
+    }
+    int M1() => 1;
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Action a = M1;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Action a = M1;')
+    Variables: Local_1: System.Action a
+    Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: 'M1')
+        Target: IMethodBindingExpression: System.Int32 Program.M1() (OperationKind.MethodBindingExpression, Type: null, IsInvalid) (Syntax: 'M1')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0407: 'int Program.M1()' has the wrong return type
+                //         /*<bind>*/Action a = M1;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "int").WithLocation(7, 30)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void DelegateCreationExpression_ImplicitMethodBinding_InvalidArgumentType()
         {
             string source = @"
@@ -409,6 +501,39 @@ IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DelegateCreationExpression_ImplicitMethodBinding_InvalidArgumentType_FullTree()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        /*<bind>*/Action a = M1;/*</bind>*/
+    }
+    void M1(object o) { }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Action a = M1;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Action a = M1;')
+    Variables: Local_1: System.Action a
+    Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: 'M1')
+        Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
+            Children(1):
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0123: No overload for 'M1' matches delegate 'Action'
+                //         /*<bind>*/Action a = M1;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M1").WithArguments("M1", "System.Action").WithLocation(7, 30)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
