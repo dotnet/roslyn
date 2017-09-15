@@ -3548,6 +3548,31 @@ class Goo
             End Using
         End Function
 
+        <WorkItem(15348, "https://github.com/dotnet/roslyn/issues/15348")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAfterCasePatternSwitchLabel() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    void M()
+    {
+        object o = 1;
+        switch(o)
+        {
+            case int i:
+                $$
+                break;
+        }
+    }
+}
+                              </Document>)
+
+                state.SendTypeChars("this")
+                Await state.AssertSelectedCompletionItem(displayText:="this", isHardSelected:=True)
+            End Using
+        End Function
+
         Private Class TestSnippetClient
             Inherits AbstractSnippetExpansionClient
 
@@ -3674,31 +3699,6 @@ class C
                 Dim change = CompletionChange.Create(
                     New TextChange(New Text.TextSpan(0, _caretPosition), newText))
                 Return Task.FromResult(change)
-            End Function
-
-            <WorkItem(15348, "https://github.com/dotnet/roslyn/issues/15348")>
-            <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-            Public Async Function TestAfterCasePatternSwitchLabel() As Task
-                Using state = TestState.CreateCSharpTestState(
-                              <Document>
-class C
-{
-    void M()
-    {
-        object o = 1;
-        switch(o)
-        {
-            case int i:
-                $$
-                break;
-        }
-    }
-}
-                              </Document>)
-
-                    state.SendTypeChars("this")
-                    Await state.AssertSelectedCompletionItem(displayText:="this", isHardSelected:=True)
-                End Using
             End Function
         End Class
     End Class
