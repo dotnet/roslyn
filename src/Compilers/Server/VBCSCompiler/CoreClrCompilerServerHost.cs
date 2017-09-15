@@ -1,16 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#if NET46
+#if NETCOREAPP2_0
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    internal sealed class DesktopCompilerServerHost : CompilerServerHost
+    internal sealed class CoreClrCompilerServerHost : CompilerServerHost
     {
-        private static readonly IAnalyzerAssemblyLoader s_analyzerLoader = new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader"));
+        private static readonly IAnalyzerAssemblyLoader s_analyzerLoader = new CoreClrAnalyzerAssemblyLoader();
 
         // Caches are used by C# and VB compilers, and shared here.
         public static readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> SharedAssemblyReferenceProvider = (path, properties) => new CachingMetadataReference(path, properties);
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         public override Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider => SharedAssemblyReferenceProvider;
 
-        internal DesktopCompilerServerHost(string clientDirectory, string sdkDirectory)
+        internal CoreClrCompilerServerHost(string clientDirectory, string sdkDirectory)
             : base(clientDirectory, sdkDirectory)
         {
         }
