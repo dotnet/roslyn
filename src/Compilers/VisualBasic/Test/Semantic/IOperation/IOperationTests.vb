@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -429,6 +429,35 @@ IEndStatement (OperationKind.None) (Syntax: 'End')
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
+        Public Sub TestEndStatement_Parent()
+            Dim source = <![CDATA[
+Class C
+    Public Shared i As Integer
+    Public Shared Sub Main()
+        If i = 0 Then'BIND:"If i = 0 Then"
+            End
+        End If
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IIfStatement (OperationKind.IfStatement) (Syntax: 'If i = 0 Th ... End If')
+  Condition: IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i = 0')
+      Left: IFieldReferenceExpression: C.i As System.Int32 (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i')
+          Instance Receiver: null
+      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If i = 0 Th ... End If')
+      IEndStatement (OperationKind.None) (Syntax: 'End')
+  IfFalse: null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics, compilationOptions:=TestOptions.ReleaseExe)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
         Public Sub TestStopStatement()
             Dim source = <![CDATA[
 Class C
@@ -447,6 +476,35 @@ IStopStatement (OperationKind.None) (Syntax: 'Stop')
             Dim expectedDiagnostics = String.Empty
 
             VerifyOperationTreeAndDiagnosticsForTest(Of StopOrEndStatementSyntax)(source, expectedOperationTree, expectedDiagnostics, compilationOptions:=TestOptions.ReleaseExe)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub TestStopStatement_Parent()
+            Dim source = <![CDATA[
+Class C
+    Public Shared i As Integer
+    Public Shared Sub Main()
+        If i = 0 Then'BIND:"If i = 0 Then"
+            Stop
+        End If
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IIfStatement (OperationKind.IfStatement) (Syntax: 'If i = 0 Th ... End If')
+  Condition: IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i = 0')
+      Left: IFieldReferenceExpression: C.i As System.Int32 (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i')
+          Instance Receiver: null
+      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If i = 0 Th ... End If')
+      IStopStatement (OperationKind.None) (Syntax: 'Stop')
+  IfFalse: null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics, compilationOptions:=TestOptions.ReleaseExe)
         End Sub
     End Class
 End Namespace
