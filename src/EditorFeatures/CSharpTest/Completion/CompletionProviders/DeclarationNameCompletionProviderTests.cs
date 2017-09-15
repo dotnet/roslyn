@@ -626,6 +626,7 @@ class Test
 ";
             await VerifyItemExistsAsync(markup, "test");
         }
+<<<<<<< HEAD
 
 <<<<<<< HEAD
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
