@@ -95,7 +95,7 @@ When doing a test pass, copy this page and consider using these status indicator
 | | **Convert Lambda to Local Function** [Visual Studio 2017 version 15.5] | | | N/A |
 | | **Move Declaration Near Reference** [Visual Studio 2017 version 15.5] | | | N/A |
 | | **Introduce Pattern Matching** [Visual Studio 2017 version 15.5] | | | N/A |
-| | **Simplify Inferred Tuple Names** [Visual Studio 2017 version 15.5] | | | N/A |
+| | **Simplify Inferred Tuple Names** [Visual Studio 2017 version 15.5] | _Requires C# 7.1 or greater_ | | N/A |
 | | **Convert keyword and symbol references to doc comment tags** [Visual Studio 2017 version 15.5] | | | N/A |
 | **Fixes** | **Add Using**<br />- Triggers on appropriate constructs<br />- Including NuGet references<br />- Including Referenced Assemblies<br />- Includes spelling fixes | | | |
 | | **Generate Local**<br />- Select an expression and introduce a local variable to represent it<br />- This should start an Inline Rename session | | | N/A |
