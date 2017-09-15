@@ -23,6 +23,7 @@ BINARIES_PATH=${THIS_DIR}/Binaries
 BOOTSTRAP_PATH=${BINARIES_PATH}/Bootstrap
 SRC_PATH=${THIS_DIR}/src
 BUILD_LOG_PATH=${BINARIES_PATH}/Build.log
+TARGET_FRAMEWORK=netcoreapp2.0
 
 BUILD_CONFIGURATION=Debug
 CLEAN_RUN=false
@@ -107,7 +108,7 @@ dotnet restore ${RESTORE_ARGS} ${THIS_DIR}/build/ToolsetPackages/CoreToolset.csp
 echo "Restoring CrossPlatform.sln"
 dotnet restore ${RESTORE_ARGS} ${THIS_DIR}/CrossPlatform.sln
 
-BUILD_ARGS="--no-restore -c ${BUILD_CONFIGURATION} -r ${RUNTIME_ID} /nologo /consoleloggerparameters:Verbosity=minimal;summary /filelogger /fileloggerparameters:Verbosity=normal;logFile=${BUILD_LOG_PATH} /maxcpucount:1"
+BUILD_ARGS="--no-restore -f ${TARGET_FRAMEWORK} -c ${BUILD_CONFIGURATION} -r ${RUNTIME_ID} /nologo /consoleloggerparameters:Verbosity=minimal;summary /filelogger /fileloggerparameters:Verbosity=normal;logFile=${BUILD_LOG_PATH} /maxcpucount:1"
 
 echo "Building bootstrap csc"
 dotnet publish ${SRC_PATH}/Compilers/CSharp/csc -o ${BOOTSTRAP_PATH}/csc ${BUILD_ARGS}
