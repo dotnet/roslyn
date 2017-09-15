@@ -201,7 +201,7 @@ function Ensure-BasicTool([string]$name, [string]$version = "") {
     $p = Join-Path (Get-PackagesDir) "$($name).$($version)"
     if (-not (Test-Path $p)) {
         $nuget = Ensure-NuGet
-        Exec-Block { & $nuget install $name -OutputDirectory (Get-PackagesDir) -Version $version } | Out-Null
+        Exec-Block { & $nuget install $name -OutputDirectory ((Get-PackagesDir).TrimEnd("\")) -Version $version } | Out-Null
     }
     
     return $p
