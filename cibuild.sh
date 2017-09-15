@@ -19,9 +19,11 @@ usage()
 }
 
 THIS_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-BINARIES_PATH=${THIS_DIR}/Binaries
+source ${THIS_DIR}/build-utils.sh
+ROOT_PATH=$(get_repo_dir)
+BINARIES_PATH=${ROOT_PATH}/Binaries
 BOOTSTRAP_PATH=${BINARIES_PATH}/Bootstrap
-SRC_PATH=${THIS_DIR}/src
+SRC_PATH=${ROOT_PATH}/src
 BUILD_LOG_PATH=${BINARIES_PATH}/Build.log
 
 BUILD_CONFIGURATION=Debug
@@ -94,18 +96,18 @@ fi
 
 # obtain_dotnet.sh puts the right dotnet on the PATH
 FORCE_DOWNLOAD=true
-source ${THIS_DIR}/build/scripts/obtain_dotnet.sh
+source ${ROOT_PATH}/build/scripts/obtain_dotnet.sh
 
 RUNTIME_ID=$(dotnet --info | awk '/RID:/{print $2;}')
 echo "Using Runtime Identifier: ${RUNTIME_ID}"
 
 RESTORE_ARGS="-r ${RUNTIME_ID} -v Minimal --disable-parallel"
 echo "Restoring BaseToolset.csproj"
-dotnet restore ${RESTORE_ARGS} ${THIS_DIR}/build/ToolsetPackages/BaseToolset.csproj
+dotnet restore ${RESTORE_ARGS} ${ROOT_PATH}/build/ToolsetPackages/BaseToolset.csproj
 echo "Restoring CoreToolset.csproj"
-dotnet restore ${RESTORE_ARGS} ${THIS_DIR}/build/ToolsetPackages/CoreToolset.csproj
+dotnet restore ${RESTORE_ARGS} ${ROOT_PATH}/build/ToolsetPackages/CoreToolset.csproj
 echo "Restoring CrossPlatform.sln"
-dotnet restore ${RESTORE_ARGS} ${THIS_DIR}/CrossPlatform.sln
+dotnet restore ${RESTORE_ARGS} ${ROOT_PATH}/CrossPlatform.sln
 
 BUILD_ARGS="--no-restore -c ${BUILD_CONFIGURATION} -r ${RUNTIME_ID} /nologo /consoleloggerparameters:Verbosity=minimal;summary /filelogger /fileloggerparameters:Verbosity=normal;logFile=${BUILD_LOG_PATH} /maxcpucount:1"
 
@@ -117,10 +119,10 @@ rm -rf ${BINARIES_PATH}/${BUILD_CONFIGURATION}
 BUILD_ARGS+=" /p:CscToolPath=${BOOTSTRAP_PATH}/csc /p:CscToolExe=csc /p:VbcToolPath=${BOOTSTRAP_PATH}/vbc /p:VbcToolExe=vbc"
 
 echo "Building CrossPlatform.sln"
-dotnet build ${THIS_DIR}/CrossPlatform.sln ${BUILD_ARGS}
+dotnet build ${ROOT_PATH}/CrossPlatform.sln ${BUILD_ARGS}
 
 if [[ "${SKIP_TESTS}" == false ]]
 then
     echo "Running tests"
-    ${THIS_DIR}/build/scripts/tests.sh ${BUILD_CONFIGURATION}
+    ${ROOT_PATH}/build/scripts/tests.sh ${BUILD_CONFIGURATION}
 fi
