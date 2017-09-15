@@ -504,29 +504,59 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyInvalidExpression(children, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundTryCastOperation(boundTryCast As BoundTryCast) As IConversionExpression
-            Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundTryCast.Operand))
+        Private Function CreateBoundTryCastOperation(boundTryCast As BoundTryCast) As IOperation
             Dim syntax As SyntaxNode = boundTryCast.Syntax
+            Dim type As ITypeSymbol = boundTryCast.Type
+            Dim isImplicit As Boolean = boundTryCast.WasCompilerGenerated
+
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTryCast.ConstantValueOpt)
+            Dim conversionInformation = CreateConversionOperation(boundTryCast.Operand, boundTryCast.ConversionKind, boundTryCast.Syntax)
+            Dim methodSymbol As MethodSymbol = conversionInformation.methodSymbol
+            Dim operand As Lazy(Of IOperation) = conversionInformation.operation
+            Dim isAddressOfDelegateCreation As Boolean = conversionInformation.isAddressOfDelegateCreation
+
+            If isAddressOfDelegateCreation OrElse
+               ((boundTryCast.Operand.Kind = BoundKind.Lambda OrElse
+                 boundTryCast.Operand.Kind = BoundKind.QueryLambda OrElse
+                 boundTryCast.Operand.Kind = BoundKind.UnboundLambda) AndAlso
+                boundTryCast.Type.IsDelegateType()) Then
+                ' If this is a conversion from a lambda to a delegate type, or this is an AddressOf delegate creation
+                ' as determined above, we return a DelegateCreationExpression, instead of returning a conversion expression
+                Return New LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit)
+            End If
+
             Dim conversion As Conversion = New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(boundTryCast.ConversionKind, Nothing))
             Dim isExplicitCastInCode As Boolean = True
             Dim isTryCast As Boolean = True
             Dim isChecked As Boolean = False
-            Dim type As ITypeSymbol = boundTryCast.Type
-            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTryCast.ConstantValueOpt)
-            Dim isImplicit As Boolean = boundTryCast.WasCompilerGenerated
             Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicitCastInCode, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundDirectCastOperation(boundDirectCast As BoundDirectCast) As IConversionExpression
-            Dim operand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundDirectCast.Operand))
+        Private Function CreateBoundDirectCastOperation(boundDirectCast As BoundDirectCast) As IOperation
             Dim syntax As SyntaxNode = boundDirectCast.Syntax
+            Dim type As ITypeSymbol = boundDirectCast.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundDirectCast.ConstantValueOpt)
+            Dim isImplicit As Boolean = boundDirectCast.WasCompilerGenerated
+
+            Dim conversionInformation = CreateConversionOperation(boundDirectCast.Operand, boundDirectCast.ConversionKind, boundDirectCast.Syntax)
+            Dim methodSymbol As MethodSymbol = conversionInformation.methodSymbol
+            Dim operand As Lazy(Of IOperation) = conversionInformation.operation
+            Dim isAddressOfDelegateCreation As Boolean = conversionInformation.isAddressOfDelegateCreation
+
+            If isAddressOfDelegateCreation OrElse
+               ((boundDirectCast.Operand.Kind = BoundKind.Lambda OrElse
+                 boundDirectCast.Operand.Kind = BoundKind.QueryLambda OrElse
+                 boundDirectCast.Operand.Kind = BoundKind.UnboundLambda) AndAlso
+                boundDirectCast.Type.IsDelegateType()) Then
+                ' If this is a conversion from a lambda to a delegate type, or this is an AddressOf delegate creation
+                ' as determined above, we return a DelegateCreationExpression, instead of returning a conversion expression
+                Return New LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit)
+            End If
+
             Dim conversion As Conversion = New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(boundDirectCast.ConversionKind, Nothing))
             Dim isExplicit As Boolean = True
             Dim isTryCast As Boolean = False
             Dim isChecked As Boolean = False
-            Dim type As ITypeSymbol = boundDirectCast.Type
-            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundDirectCast.ConstantValueOpt)
-            Dim isImplicit As Boolean = boundDirectCast.WasCompilerGenerated
             Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
@@ -546,33 +576,14 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Return Create(boundConversion.Operand)
             End If
 
-            Dim operand As Lazy(Of IOperation)
             Dim type As ITypeSymbol = boundConversion.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundConversion.ConstantValueOpt)
             Dim isImplicit As Boolean = boundConversion.WasCompilerGenerated
-            Dim methodSymbol As MethodSymbol
-            Dim isAddressOfDelegateCreation As Boolean = False
 
-            If (boundConversion.ConversionKind And VisualBasic.ConversionKind.UserDefined) = VisualBasic.ConversionKind.UserDefined Then
-                Dim userDefinedConversion As BoundUserDefinedConversion = DirectCast(boundConversion.Operand, BoundUserDefinedConversion)
-                methodSymbol = userDefinedConversion.Call.Method
-                operand = New Lazy(Of IOperation)(Function() Create(userDefinedConversion.Operand))
-            ElseIf boundConversion.ConversionKind = VisualBasic.ConversionKind.Identity AndAlso
-                   boundConversion.Operand.Kind = BoundKind.DelegateCreationExpression AndAlso
-                   boundConversion.Syntax.Kind() = SyntaxKind.ObjectCreationExpression AndAlso
-                   boundConversion.Operand.Syntax.Kind() = SyntaxKind.AddressOfExpression Then
-                ' In this scenario, we're New DelegateType(AddressOf Method)
-                ' The binder inserts an Identity conversion here, to ensure that there is a bound
-                ' node for SemanticModel to get info about. However, this node is an implementation
-                ' detail, and we don't want to expose it in the IOperation tree. So, we have the operand
-                ' here be the child of the BoundDelegateCreationExpression
-                isAddressOfDelegateCreation = True
-                methodSymbol = Nothing
-                operand = New Lazy(Of IOperation)(Function() CreateBoundDelegateCreationExpressionChildOperation(DirectCast(boundConversion.Operand, BoundDelegateCreationExpression)))
-            Else
-                methodSymbol = Nothing
-                operand = New Lazy(Of IOperation)(Function() Create(boundConversion.Operand))
-            End If
+            Dim conversionInformation = CreateConversionOperation(boundConversion.Operand, boundConversion.ConversionKind, boundConversion.Syntax)
+            Dim methodSymbol As MethodSymbol = conversionInformation.methodSymbol
+            Dim operand As Lazy(Of IOperation) = conversionInformation.operation
+            Dim isAddressOfDelegateCreation As Boolean = conversionInformation.isAddressOfDelegateCreation
 
             If isAddressOfDelegateCreation OrElse
                ((boundConversion.Operand.Kind = BoundKind.Lambda OrElse
@@ -589,6 +600,48 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim isTryCast As Boolean = False
             Dim isChecked As Boolean = False
             Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function IsValidDelegateCreationSyntax(conversionKind As ConversionKind, conversionSyntax As SyntaxNode, operandSyntax As SyntaxNode) As Boolean
+            ' An identity conversion is introduced by the compiler on top of New DelegateType(AddressOf Method). This node
+            ' only exists for the convenience of SemanticModel, so we want to classify it as a Delegate Creation
+            Dim validConversionKind = conversionKind = ConversionKind.Identity OrElse
+                                      (conversionKind And (Not ConversionKind.DelegateRelaxationLevelMask)) = 0
+
+            ' Any of the explicit cast types, as well as New DelegateType(AddressOf Method)
+            Dim validConversionSyntax = conversionSyntax.Kind() = SyntaxKind.CTypeExpression OrElse
+                                        conversionSyntax.Kind() = SyntaxKind.DirectCastKeyword OrElse
+                                        conversionSyntax.Kind() = SyntaxKind.TryCastKeyword OrElse
+                                        conversionSyntax.Kind() = SyntaxKind.ObjectCollectionInitializer
+
+            Dim validOperandSyntax = operandSyntax.Kind() = SyntaxKind.AddressOfExpression
+
+            Return validConversionKind AndAlso validConversionSyntax AndAlso validOperandSyntax
+        End Function
+
+        Private Function CreateConversionOperation(operand As BoundNode, conversionKind As ConversionKind, conversionSyntax As SyntaxNode) As (methodSymbol As MethodSymbol, operation As Lazy(Of IOperation), isAddressOfDelegateCreation As Boolean)
+            If (conversionKind And VisualBasic.ConversionKind.UserDefined) = VisualBasic.ConversionKind.UserDefined Then
+                Dim userDefinedConversion As BoundUserDefinedConversion = DirectCast(operand, BoundUserDefinedConversion)
+                Return (userDefinedConversion.Call.Method, New Lazy(Of IOperation)(Function() Create(userDefinedConversion.Operand)), isAddressOfDelegateCreation:=False)
+            ElseIf IsValidDelegateCreationSyntax(conversionKind, conversionSyntax, operand.Syntax) Then
+                ' In this scenario, we're a delegate creation expression involving an AddressOf.
+                Dim methodSymbol As MethodSymbol = Nothing
+                Dim operandLazy As Lazy(Of IOperation)
+                If operand.Kind = BoundKind.DelegateCreationExpression Then
+                    operandLazy = New Lazy(Of IOperation)(Function() CreateBoundDelegateCreationExpressionChildOperation(DirectCast(operand, BoundDelegateCreationExpression)))
+                Else
+                    ' This is an error scenario in which we have a delegate conversion, but it failed to bind correctly, so the child here
+                    ' is either a bad expression or a method group. Delegate to standard operation handling for this.
+                    Debug.Assert(operand.Kind = BoundKind.MethodGroup OrElse
+                                 operand.Kind = BoundKind.BadExpression OrElse
+                                 operand.Kind = BoundKind.AddressOfOperator)
+                    operandLazy = New Lazy(Of IOperation)(Function() Create(operand))
+                End If
+                Return (methodSymbol, operandLazy, isAddressOfDelegateCreation:=True)
+            Else
+                Dim methodSymbol As MethodSymbol = Nothing
+                Return (methodSymbol, New Lazy(Of IOperation)(Function() Create(operand)), isAddressOfDelegateCreation:=False)
+            End If
         End Function
 
         Private Function CreateBoundDelegateCreationExpressionOperation(boundDelegateCreationExpression As BoundDelegateCreationExpression) As IDelegateCreationExpression
@@ -614,7 +667,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundDelegateCreationExpression.ConstantValueOpt)
             Dim isImplicit As Boolean = boundDelegateCreationExpression.WasCompilerGenerated
             Return New LazyMethodBindingExpression(method, isVirtual, instance, _semanticModel, syntax, type, constantValue, isImplicit)
-
         End Function
 
         Private Function CreateBoundTernaryConditionalExpressionOperation(boundTernaryConditionalExpression As BoundTernaryConditionalExpression) As IConditionalExpression

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -189,7 +189,7 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_ExplicitLambdaConversion()
+        Public Sub DelegateCreationExpression_ExplicitCTypeLambdaConversion()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -221,7 +221,7 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_ExplicitLambdaConversion_InvalidArgumentType()
+        Public Sub DelegateCreationExpression_ExplicitCTypeLambdaConversion_InvalidArgumentType()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -257,7 +257,7 @@ BC36670: Nested sub does not have a signature that is compatible with delegate '
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_ExplicitLambdaConversion_InvalidReturnType()
+        Public Sub DelegateCreationExpression_ExplicitCTypeLambdaConversion_InvalidReturnType()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -293,7 +293,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Stri
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_ExplicitLambdaConversion_ReturnRelaxation()
+        Public Sub DelegateCreationExpression_ExplicitCTypeLambdaConversion_ReturnRelaxation()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -325,7 +325,7 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateExpression_ExplicitLambdaConversion_ArgumentRelaxation()
+        Public Sub DelegateExpression_ExplicitCTypeLambdaConversion_ArgumentRelaxation()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -493,6 +493,35 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
             Dim expectedDiagnostics = String.Empty
 
             VerifyOperationTreeAndDiagnosticsForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact()>
+        Public Sub DelegateCreationExpression_ExplicitCTypeMethodBinding()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module Program
+    Sub Main()
+        Dim a As Action = CType(AddressOf M1, Action)'BIND:"CType(AddressOf M1, Action)"
+    End Sub
+
+    Sub M1()
+    End Sub
+End Module
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action) (Syntax: 'CType(Addre ... M1, Action)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'AddressOf M1')
+      Target: IMethodBindingExpression: Sub ConsoleApp2.Program.M1() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf M1')
+          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: ConsoleApp2.Program) (Syntax: 'M1')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
