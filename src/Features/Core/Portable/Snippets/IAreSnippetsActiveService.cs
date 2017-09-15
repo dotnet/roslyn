@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Snippets
 {
-    interface ISnippetExpansionSessionActiveService : IWorkspaceService
+    interface ISnippetExpansionSessionIsActiveService : IWorkspaceService
     {
         bool SnippetsAreActive(Document document);
     }

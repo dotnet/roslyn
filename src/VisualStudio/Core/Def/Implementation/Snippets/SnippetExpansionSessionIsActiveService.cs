@@ -15,8 +15,8 @@ using Microsoft.VisualStudio.TextManager.Interop;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
     [Shared]
-    [ExportWorkspaceService(typeof(ISnippetExpansionSessionActiveService))]
-    internal class SnippetExpansionSessionIsActiveService : ISnippetExpansionSessionActiveService
+    [ExportWorkspaceService(typeof(ISnippetExpansionSessionIsActiveService), layer: ServiceLayer.Host)]
+    internal class SnippetExpansionSessionIsActiveService : ISnippetExpansionSessionIsActiveService
     {
         IVsEditorAdaptersFactoryService _adapterFactory;
         IVsTextManager _textManager;

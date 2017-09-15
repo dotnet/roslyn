@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // If there's currently an active snippet expansion active,
             // don't suggest names: completion's commit behavior makes it
             // difficult to type names in snippet fields.
-            var snippetsAreActiveService = document.Project.Solution.Workspace.Services.GetService<ISnippetExpansionSessionActiveService>();
+            var snippetsAreActiveService = document.Project.Solution.Workspace.Services.GetService<ISnippetExpansionSessionIsActiveService>();
             if (snippetsAreActiveService.SnippetsAreActive(document))
             {
                 return;
