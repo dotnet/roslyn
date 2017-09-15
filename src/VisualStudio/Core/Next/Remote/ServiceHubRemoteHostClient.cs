@@ -176,25 +176,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             const int retry_delayInMS = 50;
 
-            var start = DateTime.UtcNow;
-            while (DateTime.UtcNow - start < timeout)
+            using (var pooledStopwatch = SharedPools.Default<Stopwatch>().GetPooledObject())
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                var watch = pooledStopwatch.Object;
+                watch.Start();
 
-                try
+                while (watch.Elapsed < timeout)
                 {
-                    return await funcAsync().ConfigureAwait(false);
-                }
-                catch (TException)
-                {
-                    // throw cancellation token if operation is cancelled
                     cancellationToken.ThrowIfCancellationRequested();
+
+                    try
+                    {
+                        return await funcAsync().ConfigureAwait(false);
+                    }
+                    catch (TException)
+                    {
+                        // throw cancellation token if operation is cancelled
+                        cancellationToken.ThrowIfCancellationRequested();
+                    }
+
+                    // wait for retry_delayInMS before next try
+                    await Task.Delay(retry_delayInMS, cancellationToken).ConfigureAwait(false);
+
+                    ReportTimeout(watch);
                 }
-
-                // wait for retry_delayInMS before next try
-                await Task.Delay(retry_delayInMS, cancellationToken).ConfigureAwait(false);
-
-                ReportTimeout(start);
             }
 
             // operation timed out, more than we are willing to wait
@@ -269,6 +274,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             throw ExceptionUtilities.Unreachable;
         }
 
+        #region code related to make diagnosis easier later
         private static int ReportDetailInfo(IFaultUtility faultUtility)
         {
             // 0 means send watson, otherwise, cancel watson
@@ -328,14 +334,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private static readonly TimeSpan s_reportTimeout = TimeSpan.FromMinutes(10);
         private static bool s_timeoutReported = false;
 
-        private static void ReportTimeout(DateTime start)
+        private static void ReportTimeout(Stopwatch watch)
         {
-            // if we tried for 10 min and still couldn't connect. NFW some data
-            if (!s_timeoutReported && (DateTime.UtcNow - start) > s_reportTimeout)
+            // if we tried for 10 min and still couldn't connect. NFW (non fatal watson) some data
+            if (!s_timeoutReported && watch.Elapsed > s_reportTimeout)
             {
                 s_timeoutReported = true;
 
-                // report service hug logs along with dump
+                // report service hub logs along with dump
                 WatsonReporter.Report("RequestServiceAsync Timeout", new Exception("RequestServiceAsync Timeout"), ReportDetailInfo);
             }
         }
@@ -355,5 +361,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     ServicesVSResources.Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio);
             }
         }
+        #endregion
     }
 }
