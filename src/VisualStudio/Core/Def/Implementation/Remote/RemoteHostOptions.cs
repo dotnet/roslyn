@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         // normally response time is within 10s ms. at most 100ms. if priority is changed to "Normal", most of time 10s ms.
         [ExportOption]
         public static readonly Option<int> RequestServiceTimeoutInMS = new Option<int>(
-            nameof(InternalFeatureOnOffOptions), nameof(RequestServiceTimeoutInMS), defaultValue: 10 * 60 * 1000,
+            nameof(InternalFeatureOnOffOptions), nameof(RequestServiceTimeoutInMS), defaultValue: 7 * 24 * 60 * 60 * 1000 /* 7 day */,
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(RequestServiceTimeoutInMS)));
 
         // This options allow users to restart OOP when it is killed by users
