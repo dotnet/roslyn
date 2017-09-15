@@ -795,6 +795,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, cancellationToken As CancellationToken) As IOperation
             ' see whether we can bind smaller scope than GetBindingRoot to make perf better
+            ' https://github.com/dotnet/roslyn/issues/22176
             Dim bindingRoot = DirectCast(GetBindingRoot(node), VisualBasicSyntaxNode)
 
             Dim statementOrRootOperation As IOperation = GetStatementOrRootOperation(bindingRoot, cancellationToken)

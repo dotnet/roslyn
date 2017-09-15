@@ -60,7 +60,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Action x = /*<bind>*/() => F();/*</bind>*/
+        Action x = /*<bind>*/() => F()/*</bind>*/;
     }
 
     static void F()
@@ -70,13 +70,13 @@ class Program
 ";
             string expectedOperationTree = @"
 IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => F()')
-    IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'F()')
-        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'F()')
-        Expression: IInvocationExpression (void Program.F()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'F()')
-            Instance Receiver: null
-            Arguments(0)
-        IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'F()')
-        ReturnedValue: null
+  IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'F()')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'F()')
+      Expression: IInvocationExpression (void Program.F()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'F()')
+          Instance Receiver: null
+          Arguments(0)
+    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'F()')
+      ReturnedValue: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
