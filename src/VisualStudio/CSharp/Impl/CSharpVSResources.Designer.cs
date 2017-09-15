@@ -943,6 +943,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer named arguments (C# 7.2 or greater).
+        /// </summary>
+        internal static string Prefer_named_arguments_CSharp_7_2_or_greater {
+            get {
+                return ResourceManager.GetString("Prefer_named_arguments_CSharp_7_2_or_greater", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer pattern matching over &apos;as&apos; with &apos;null&apos; check.
         /// </summary>
         internal static string Prefer_pattern_matching_over_as_with_null_check {

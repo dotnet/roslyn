@@ -480,6 +480,9 @@
   <data name="null_checking_colon" xml:space="preserve">
     <value>'null' checking:</value>
   </data>
+  <data name="Prefer_named_arguments_CSharp_7_2_or_greater" xml:space="preserve">
+    <value>Prefer named arguments (C# 7.2 or greater)</value>
+  </data>
   <data name="Prefer_throw_expression" xml:space="preserve">
     <value>Prefer throw-expression</value>
   </data>

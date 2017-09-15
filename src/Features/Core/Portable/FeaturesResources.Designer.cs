@@ -494,6 +494,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Argument can be named.
+        /// </summary>
+        internal static string Argument_can_be_named {
+            get {
+                return ResourceManager.GetString("Argument_can_be_named", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Argument cannot be empty..
         /// </summary>
         internal static string Argument_cannot_be_empty {
@@ -2197,6 +2206,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Moving_0_will_prevent_the_debug_session_from_continuing {
             get {
                 return ResourceManager.GetString("Moving_0_will_prevent_the_debug_session_from_continuing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name argument.
+        /// </summary>
+        internal static string Name_argument {
+            get {
+                return ResourceManager.GetString("Name_argument", resourceCulture);
             }
         }
         

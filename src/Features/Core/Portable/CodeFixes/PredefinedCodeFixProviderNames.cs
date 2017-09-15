@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string InsertMissingCast = nameof(InsertMissingCast);
         public const string MakeMethodSynchronous = nameof(MakeMethodSynchronous);
         public const string MoveToTopOfFile = nameof(MoveToTopOfFile);
+        public const string NameArguments = nameof(NameArguments);
         public const string PopulateSwitch = nameof(PopulateSwitch);
         public const string QualifyMemberAccess = nameof(QualifyMemberAccess);
         public const string RemoveUnnecessaryCast = nameof(RemoveUnnecessaryCast);

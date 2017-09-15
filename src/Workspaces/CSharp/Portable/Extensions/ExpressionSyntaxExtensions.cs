@@ -284,7 +284,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 expression.IsKind(SyntaxKind.NullLiteralExpression) ||
                 expression.IsKind(SyntaxKind.NumericLiteralExpression) ||
                 expression.IsKind(SyntaxKind.StringLiteralExpression) ||
-                expression.IsKind(SyntaxKind.TrueLiteralExpression);
+                expression.IsKind(SyntaxKind.TrueLiteralExpression) ||
+                expression.IsKind(SyntaxKind.DefaultLiteralExpression);
         }
 
         public static bool IsInConstantContext(this ExpressionSyntax expression)

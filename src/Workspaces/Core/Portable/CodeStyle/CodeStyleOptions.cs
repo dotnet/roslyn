@@ -134,6 +134,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_explicit_tuple_names"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferExplicitTupleNames") });
 
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferNamedArguments =
+            new PerLanguageOption<CodeStyleOption<bool>>(
+                nameof(CodeStyleOptions), nameof(PreferNamedArguments), defaultValue: TrueWithNoneEnforcement,
+                storageLocations: new OptionStorageLocation[] {
+                    EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_prefer_named_arguments"),
+                    new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(PreferNamedArguments)}")});
+
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferIsNullCheckOverReferenceEqualityMethod = new PerLanguageOption<CodeStyleOption<bool>>(
             nameof(CodeStyleOptions),
             nameof(PreferIsNullCheckOverReferenceEqualityMethod),
@@ -145,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private static readonly CodeStyleOption<AccessibilityModifiersRequired> s_requireAccessibilityModifiersDefault =
             new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.ForNonInterfaceMembers, NotificationOption.None);
 
-        internal static readonly PerLanguageOption<CodeStyleOption<AccessibilityModifiersRequired>> RequireAccessibilityModifiers = 
+        internal static readonly PerLanguageOption<CodeStyleOption<AccessibilityModifiersRequired>> RequireAccessibilityModifiers =
             new PerLanguageOption<CodeStyleOption<AccessibilityModifiersRequired>>(
                 nameof(CodeStyleOptions), nameof(RequireAccessibilityModifiers), defaultValue: s_requireAccessibilityModifiersDefault,
                 storageLocations: new OptionStorageLocation[]{
