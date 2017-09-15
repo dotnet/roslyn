@@ -237,6 +237,45 @@ class C
         }
 
         [Fact]
+        public void MissingInt()
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Enum { }
+    public class Attribute { }
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source =
+@"enum E { A }
+class C
+{
+    int F() => (int)E.A;
+}";
+            var comp = CreateCompilation(
+                source,
+                references: new[] { ref0 },
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics(
+                // (1,6): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                // enum E { A }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Int32").WithLocation(1, 6),
+                // (4,5): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     int F() => (int)E.A;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(4, 5),
+                // (4,17): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //     int F() => (int)E.A;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(4, 17));
+        }
+
+        [Fact]
         public void ReferenceTypesFromUnannotatedAssembliesAreNotNullable()
         {
             var source0 =
@@ -5622,6 +5661,9 @@ class CL1
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
+                // (17,14): warning CS8600: Cannot convert null to non-nullable reference.
+                //         y2 = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(17, 14)
                 );
         }
 
@@ -6802,24 +6844,15 @@ struct S1
                 // (84,14): warning CS8601: Possible null reference assignment.
                 //         x9 = v9.p2;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "v9.p2").WithLocation(84, 14),
-                // (98,15): warning CS8602: Possible dereference of a null reference.
-                //         x10 = u10.a0; // 4
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u10").WithLocation(98, 15),
                 // (98,15): warning CS8601: Possible null reference assignment.
                 //         x10 = u10.a0; // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "u10.a0").WithLocation(98, 15),
-                // (99,15): warning CS8602: Possible dereference of a null reference.
-                //         x10 = u10.a1.p1; // 5
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u10").WithLocation(99, 15),
                 // (99,15): warning CS8602: Possible dereference of a null reference.
                 //         x10 = u10.a1.p1; // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u10.a1").WithLocation(99, 15),
                 // (99,15): warning CS8601: Possible null reference assignment.
                 //         x10 = u10.a1.p1; // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "u10.a1.p1").WithLocation(99, 15),
-                // (100,15): warning CS8602: Possible dereference of a null reference.
-                //         x10 = u10.a2.p2; // 6 
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u10").WithLocation(100, 15),
                 // (100,15): warning CS8601: Possible null reference assignment.
                 //         x10 = u10.a2.p2; // 6 
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "u10.a2.p2").WithLocation(100, 15)
@@ -16570,51 +16603,6 @@ class A : System.Attribute
                 // (4,17): warning CS8600: Cannot convert null to non-nullable reference.
                 //     string P => null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 17));
-        }
-
-        // PROTOTYPE(NullableReferenceTypes)
-        [Fact(Skip = "Yes")]
-        public void DebugHelper()
-        {
-            CSharpCompilation c = CreateStandardCompilation(@"
-class C
-{
-    static void Main()
-    {}
-
-    void Test33(object x33)
-    {
-        var y33 = new { p = (object)null };
-        object o = y33.p;
-    }
-}
-
-//class CL1
-//{
-//    public CL1()
-//    {
-//        F1 = this;
-//    }
-
-//    public CL1 F1;
-//    public CL1? F2;
-
-//    public CL1 P1 { get; set; }
-//    public CL1? P2 { get; set; }
-
-//    public CL1 M1() { return new CL1(); }
-//    public CL1? M2() { return null; }
-//}
-
-//struct S1
-//{
-//    public CL1 F3;
-//    public CL1? F4;
-//}
-", parseOptions: TestOptions.Regular8);
-
-            c.VerifyDiagnostics(
-                );
         }
     }
 }

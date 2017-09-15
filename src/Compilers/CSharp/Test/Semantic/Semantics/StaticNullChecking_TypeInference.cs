@@ -69,9 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             Assert.Equal(true, symbol.Type.IsNullable);
         }
 
-        // PROTOTYPE(NullableReferenceTypes): `var s = string.Empty;`
-        // should declare non-nullable string.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void LocalVar_NonNull()
         {
             var source =
@@ -100,6 +98,64 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
             Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
             Assert.Equal(false, symbol.Type.IsNullable);
+        }
+
+        [Fact]
+        public void LocalVar_NonNull_CSharp7()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        var s = string.Empty;
+        s.ToString();
+        s = null;
+        s.ToString();
+    }
+}";
+
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
+            var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
+            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal(null, symbol.Type.IsNullable);
+        }
+
+        [Fact]
+        public void LocalVar_Cycle()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        var s = s;
+    }
+}";
+
+            var comp = CreateStandardCompilation(
+                source,
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,17): error CS0841: Cannot use local variable 's' before it is declared
+                //         var s = s;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "s").WithArguments("s").WithLocation(5, 17));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
+            var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
+            var type = symbol.Type;
+            Assert.True(type.IsErrorType());
+            Assert.Equal("var", type.ToTestDisplayString());
+            Assert.Equal(null, type.IsNullable);
         }
 
         // PROTOTYPE(NullableReferenceTypes): `var s0 = b ? string.Empty : string.Empty;`

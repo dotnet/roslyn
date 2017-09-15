@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             // PROTOTYPE(NullableReferenceTypes): Could we track nullability always,
             // even in C#7, but only report warnings when the feature is enabled?
-            var isNullable = includeNullability ? expr.IsNullable() : null;
+            var isNullable = includeNullability && !type.IsErrorType() ? expr.IsNullable() : null;
             return TypeSymbolWithAnnotations.Create(type, isNullable);
         }
 

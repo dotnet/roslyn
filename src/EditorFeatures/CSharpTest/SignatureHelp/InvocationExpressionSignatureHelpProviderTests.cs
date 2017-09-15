@@ -522,7 +522,7 @@ class Program
             var expectedOrderedItems = new List<SignatureHelpTestItem>
             {
                 new SignatureHelpTestItem(
-$@"void List<'a?>.Add('a? item)
+$@"void List<'a>.Add('a item)
 
 {FeaturesResources.Anonymous_Types_colon}
     'a {FeaturesResources.is_} new {{ string Name, int Age }}",
