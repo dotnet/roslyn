@@ -149,6 +149,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return CreateBoundParameterOperation(DirectCast(boundNode, BoundParameter))
                 Case BoundKind.Local
                     Return CreateBoundLocalOperation(DirectCast(boundNode, BoundLocal))
+                Case BoundKind.LateInvocation
+                    Return CreateBoundLateInvocationOperation(DirectCast(boundNode, BoundLateInvocation))
                 Case BoundKind.LateMemberAccess
                     Return CreateBoundLateMemberAccessOperation(DirectCast(boundNode, BoundLateMemberAccess))
                 Case BoundKind.FieldInitializer
@@ -586,6 +588,23 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTypeOf.ConstantValueOpt)
             Dim isImplicit As Boolean = boundTypeOf.WasCompilerGenerated
             Return New LazyIsTypeExpression(operand, isType, isNotTypeExpression, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundLateInvocationOperation(boundLateInvocation As BoundLateInvocation) As IOperation
+            Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundLateInvocation.Member))
+            Dim arguments As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
+                Function()
+                    Return If(boundLateInvocation.ArgumentsOpt.IsDefault,
+                    ImmutableArray(Of IOperation).Empty,
+                    boundLateInvocation.ArgumentsOpt.SelectAsArray(Function(n) Create(n)))
+                End Function)
+            Dim argumentNames As ImmutableArray(Of String) = boundLateInvocation.ArgumentNamesOpt
+            Dim argumentRefKinds As ImmutableArray(Of RefKind) = Nothing
+            Dim syntax As SyntaxNode = boundLateInvocation.Syntax
+            Dim type As ITypeSymbol = boundLateInvocation.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundLateInvocation.ConstantValueOpt)
+            Dim isImplicit As Boolean = boundLateInvocation.WasCompilerGenerated
+            Return New LazyDynamicInvocationExpression(expression, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundObjectCreationExpressionOperation(boundObjectCreationExpression As BoundObjectCreationExpression) As IObjectCreationExpression

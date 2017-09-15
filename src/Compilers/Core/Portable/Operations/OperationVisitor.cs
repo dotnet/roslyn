@@ -338,6 +338,16 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
+        public virtual void VisitDynamicInvocationExpression(IDynamicInvocationExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitDynamicIndexerAccessExpression(IDynamicIndexerAccessExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation)
         {
             DefaultVisit(operation);
@@ -807,6 +817,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitDynamicObjectCreationExpression(IDynamicObjectCreationExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitDynamicInvocationExpression(IDynamicInvocationExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitDynamicIndexerAccessExpression(IDynamicIndexerAccessExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

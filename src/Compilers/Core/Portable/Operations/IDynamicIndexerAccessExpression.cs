@@ -5,18 +5,18 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a dynamically bound new/New expression.
+    /// Represents a dynamic indexer expression in C#.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IDynamicObjectCreationExpression : IOperation
+    public interface IDynamicIndexerAccessExpression : IOperation
     {
         /// <summary>
-        /// Object or collection initializer, if any.
+        /// Dynamically indexed expression.
         /// </summary>
-        IObjectOrCollectionInitializerExpression Initializer { get; }
+        IOperation Expression { get; }
 
         /// <summary>
         /// Dynamically bound arguments, excluding the instance argument.

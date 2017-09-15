@@ -4577,17 +4577,40 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <remarks>
     /// Represents a dynamically bound new/New expression.
     /// </remarks>
-    internal abstract partial class BaseDynamicObjectCreationExpression : Operation, IHasDynamicArgumentsExpression, IDynamicObjectCreationExpression
+    internal abstract partial class HasDynamicArgumentsExpression : Operation
     {
-        public BaseDynamicObjectCreationExpression(string name, ImmutableArray<ISymbol> applicableSymbols, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.TypeParameterObjectCreationExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        protected HasDynamicArgumentsExpression(OperationKind operationKind, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(operationKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Name = name;
-            ApplicableSymbols = applicableSymbols;
             ArgumentNames = argumentNames;
             ArgumentRefKinds = argumentRefKinds;
         }
+
         protected abstract ImmutableArray<IOperation> ArgumentsImpl { get; }
+
+        /// <summary>
+        /// Optional argument names for named arguments.
+        /// </summary>
+        public ImmutableArray<string> ArgumentNames { get; }
+        /// <summary>
+        /// Optional argument ref kinds.
+        /// </summary>
+        public ImmutableArray<RefKind> ArgumentRefKinds { get; }
+        /// <summary>
+        /// Dynamically bound arguments, excluding the instance argument.
+        /// </summary>
+        public ImmutableArray<IOperation> Arguments => Operation.SetParentOperation(ArgumentsImpl, this);
+    }
+
+    /// <remarks>
+    /// Represents a dynamically bound new/New expression.
+    /// </remarks>
+    internal abstract partial class BaseDynamicObjectCreationExpression : HasDynamicArgumentsExpression, IDynamicObjectCreationExpression
+    {
+        public BaseDynamicObjectCreationExpression(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.DynamicObjectCreationExpression, argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
         protected abstract IObjectOrCollectionInitializerExpression InitializerImpl { get; }
 
         public override IEnumerable<IOperation> Children
@@ -4601,26 +4624,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 yield return Initializer;
             }
         }
-        /// <summary>
-        /// Name of the dynamically invoked member.
-        /// </summary>
-        public string Name { get; }
-        /// <summary>
-        /// List of applicable symbols that are dynamically bound to the <see cref="Name"/>.
-        /// </summary>
-        public ImmutableArray<ISymbol> ApplicableSymbols { get; }
-        /// <summary>
-        /// Optional argument names for named arguments.
-        /// </summary>
-        public ImmutableArray<string> ArgumentNames { get; }
-        /// <summary>
-        /// Optional argument ref kinds.
-        /// </summary>
-        public ImmutableArray<RefKind> ArgumentRefKinds { get; }
-        /// <summary>
-        /// Dynamically bound arguments, excluding the instance argument.
-        /// </summary>
-        public ImmutableArray<IOperation> Arguments => Operation.SetParentOperation(ArgumentsImpl, this);
         /// <summary>
         /// Object or collection initializer, if any.
         /// </summary>
@@ -4638,10 +4641,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <remarks>
     /// Represents a dynamically bound new/New expression.
     /// </remarks>
-    internal sealed partial class DynamicObjectCreationExpression : BaseDynamicObjectCreationExpression, IHasDynamicArgumentsExpression, IDynamicObjectCreationExpression
+    internal sealed partial class DynamicObjectCreationExpression : BaseDynamicObjectCreationExpression, IDynamicObjectCreationExpression
     {
-        public DynamicObjectCreationExpression(string name, ImmutableArray<ISymbol> applicableSymbols, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, IObjectOrCollectionInitializerExpression initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(name, applicableSymbols, argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
+        public DynamicObjectCreationExpression(ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, IObjectOrCollectionInitializerExpression initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
             ArgumentsImpl = arguments;
             InitializerImpl = initializer;
@@ -4653,18 +4656,154 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <remarks>
     /// Represents a dynamically bound new/New expression.
     /// </remarks>
-    internal sealed partial class LazyDynamicObjectCreationExpression : BaseDynamicObjectCreationExpression, IHasDynamicArgumentsExpression, IDynamicObjectCreationExpression
+    internal sealed partial class LazyDynamicObjectCreationExpression : BaseDynamicObjectCreationExpression, IDynamicObjectCreationExpression
     {
         private readonly Lazy<IObjectOrCollectionInitializerExpression> _lazyInitializer;
         private readonly Lazy<ImmutableArray<IOperation>> _lazyArguments;
-        public LazyDynamicObjectCreationExpression(string name, ImmutableArray<ISymbol> applicableSymbols, Lazy<ImmutableArray<IOperation>> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, Lazy<IObjectOrCollectionInitializerExpression> initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(name, applicableSymbols, argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyDynamicObjectCreationExpression(Lazy<ImmutableArray<IOperation>> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, Lazy<IObjectOrCollectionInitializerExpression> initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyArguments = arguments ?? throw new System.ArgumentNullException(nameof(arguments));
             _lazyInitializer = initializer ?? throw new System.ArgumentNullException(nameof(initializer));
         }
         protected override ImmutableArray<IOperation> ArgumentsImpl => _lazyArguments.Value;
         protected override IObjectOrCollectionInitializerExpression InitializerImpl => _lazyInitializer.Value;
+    }
+
+    /// <remarks>
+    /// Represents a dynamically bound invocation expression in C# and late bound invocation in VB.
+    /// </remarks>
+    internal abstract partial class BaseDynamicInvocationExpression : HasDynamicArgumentsExpression, IDynamicInvocationExpression
+    {
+        public BaseDynamicInvocationExpression(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.DynamicInvocationExpression, argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+        protected abstract IOperation ExpressionImpl { get; }
+
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Expression;
+                foreach (var argument in Arguments)
+                {
+                    yield return argument;
+                }
+            }
+        }
+        /// <summary>
+        /// Dynamically or late bound expression.
+        /// </summary>
+        public IOperation Expression => Operation.SetParentOperation(ExpressionImpl, this);
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitDynamicInvocationExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitDynamicInvocationExpression(this, argument);
+        }
+    }
+
+    /// <remarks>
+    /// Represents a dynamically bound invocation expression in C# and late bound invocation in VB.
+    /// </remarks>
+    internal sealed partial class DynamicInvocationExpression : BaseDynamicInvocationExpression, IDynamicInvocationExpression
+    {
+        public DynamicInvocationExpression(IOperation expression, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            ExpressionImpl = expression;
+            ArgumentsImpl = arguments;
+        }
+        protected override IOperation ExpressionImpl { get; }
+        protected override ImmutableArray<IOperation> ArgumentsImpl { get; }
+    }
+
+    /// <remarks>
+    /// Represents a dynamically bound invocation expression in C# and late bound invocation in VB.
+    /// </remarks>
+    internal sealed partial class LazyDynamicInvocationExpression : BaseDynamicInvocationExpression, IDynamicInvocationExpression
+    {
+        private readonly Lazy<IOperation> _lazyExpression;
+        private readonly Lazy<ImmutableArray<IOperation>> _lazyArguments;
+        public LazyDynamicInvocationExpression(Lazy<IOperation> expression, Lazy<ImmutableArray<IOperation>> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyExpression = expression ?? throw new System.ArgumentNullException(nameof(expression));
+            _lazyArguments = arguments ?? throw new System.ArgumentNullException(nameof(arguments));
+        }
+        protected override IOperation ExpressionImpl => _lazyExpression.Value;
+        protected override ImmutableArray<IOperation> ArgumentsImpl => _lazyArguments.Value;
+    }
+
+    /// <remarks>
+    /// Represents a dynamic indexer expression in C#.
+    /// </remarks>
+    internal abstract partial class BaseDynamicIndexerAccessExpression : HasDynamicArgumentsExpression, IDynamicIndexerAccessExpression
+    {
+        public BaseDynamicIndexerAccessExpression(ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.DynamicIndexerAccessExpression, argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+        protected abstract IOperation ExpressionImpl { get; }
+
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Expression;
+                foreach (var argument in Arguments)
+                {
+                    yield return argument;
+                }
+            }
+        }
+        /// <summary>
+        /// Dynamically indexed expression.
+        /// </summary>
+        public IOperation Expression => Operation.SetParentOperation(ExpressionImpl, this);
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitDynamicIndexerAccessExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitDynamicIndexerAccessExpression(this, argument);
+        }
+    }
+
+    /// <remarks>
+    /// Represents a dynamic indexer expression in C#.
+    /// </remarks>
+    internal sealed partial class DynamicIndexerAccessExpression : BaseDynamicIndexerAccessExpression, IDynamicIndexerAccessExpression
+    {
+        public DynamicIndexerAccessExpression(IOperation expression, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            ExpressionImpl = expression;
+            ArgumentsImpl = arguments;
+        }
+        protected override IOperation ExpressionImpl { get; }
+        protected override ImmutableArray<IOperation> ArgumentsImpl { get; }
+    }
+
+    /// <remarks>
+    /// Represents a dynamic indexer expression in C#.
+    /// </remarks>
+    internal sealed partial class LazyDynamicIndexerAccessExpression : BaseDynamicIndexerAccessExpression, IDynamicIndexerAccessExpression
+    {
+        private readonly Lazy<IOperation> _lazyExpression;
+        private readonly Lazy<ImmutableArray<IOperation>> _lazyArguments;
+        public LazyDynamicIndexerAccessExpression(Lazy<IOperation> expression, Lazy<ImmutableArray<IOperation>> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyExpression = expression ?? throw new System.ArgumentNullException(nameof(expression));
+            _lazyArguments = arguments ?? throw new System.ArgumentNullException(nameof(arguments));
+        }
+        protected override IOperation ExpressionImpl => _lazyExpression.Value;
+        protected override ImmutableArray<IOperation> ArgumentsImpl => _lazyArguments.Value;
     }
 
     /// <summary>

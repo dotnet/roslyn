@@ -458,14 +458,31 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitAnonymousObjectCreationExpression(operation);
         }
 
-        public override void VisitDynamicObjectCreationExpression(IDynamicObjectCreationExpression operation)
+        private void VisitDynamicArguments(HasDynamicArgumentsExpression operation)
         {
-            var name = operation.Name;
-            var applicableSymbols = operation.ApplicableSymbols;
             var names = operation.ArgumentNames;
             var refKinds = operation.ArgumentRefKinds;
+        }
+
+        public override void VisitDynamicObjectCreationExpression(IDynamicObjectCreationExpression operation)
+        {
+            VisitDynamicArguments((HasDynamicArgumentsExpression)operation);
 
             base.VisitDynamicObjectCreationExpression(operation);
+        }
+
+        public override void VisitDynamicInvocationExpression(IDynamicInvocationExpression operation)
+        {
+            VisitDynamicArguments((HasDynamicArgumentsExpression)operation);
+
+            base.VisitDynamicInvocationExpression(operation);
+        }
+
+        public override void VisitDynamicIndexerAccessExpression(IDynamicIndexerAccessExpression operation)
+        {
+            VisitDynamicArguments((HasDynamicArgumentsExpression)operation);
+
+            base.VisitDynamicIndexerAccessExpression(operation);
         }
 
         public override void VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation)
