@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
@@ -175,27 +176,46 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             const int retry_delayInMS = 50;
 
-            var start = DateTime.UtcNow;
-            while (DateTime.UtcNow - start < timeout)
+            using (var pooledStopwatch = SharedPools.Default<Stopwatch>().GetPooledObject())
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                var watch = pooledStopwatch.Object;
+                watch.Start();
 
-                try
+                while (watch.Elapsed < timeout)
                 {
-                    return await funcAsync().ConfigureAwait(false);
-                }
-                catch (TException)
-                {
-                    // throw cancellation token if operation is cancelled
                     cancellationToken.ThrowIfCancellationRequested();
-                }
 
-                // wait for retry_delayInMS before next try
-                await Task.Delay(retry_delayInMS, cancellationToken).ConfigureAwait(false);
+                    try
+                    {
+                        return await funcAsync().ConfigureAwait(false);
+                    }
+                    catch (TException)
+                    {
+                        // throw cancellation token if operation is cancelled
+                        cancellationToken.ThrowIfCancellationRequested();
+                    }
+
+                    // wait for retry_delayInMS before next try
+                    await Task.Delay(retry_delayInMS, cancellationToken).ConfigureAwait(false);
+
+                    ReportTimeout(watch);
+                }
             }
 
             // operation timed out, more than we are willing to wait
-            throw new TimeoutException("RequestServiceAsync timed out");
+            ShowInfoBar();
+
+            // user didn't ask for cancellation, but we can't fullfill this request. so we
+            // create our own cancellation token and then throw it. this doesn't guarantee
+            // 100% that we won't crash, but this is at least safest way we know until user
+            // restart VS (with info bar)
+            using (var ownCancellationSource = new CancellationTokenSource())
+            {
+                ownCancellationSource.Cancel();
+                ownCancellationSource.Token.ThrowIfCancellationRequested();
+            }
+
+            throw ExceptionUtilities.Unreachable;
         }
 
         private static async Task<Stream> RequestServiceAsync(
@@ -256,6 +276,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             throw ExceptionUtilities.Unreachable;
         }
 
+        #region code related to make diagnosis easier later
         private static int ReportDetailInfo(IFaultUtility faultUtility)
         {
             // 0 means send watson, otherwise, cancel watson
@@ -264,6 +285,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             try
             {
+                // add service hub process.
+                // we will record dumps for all service hub processes
+                foreach (var p in Process.GetProcessesByName("ServiceHub.RoslynCodeAnalysisService32"))
+                {
+                    // include all remote host processes
+                    faultUtility.AddProcessDump(p.Id);
+                }
+
                 var logPath = Path.Combine(Path.GetTempPath(), "servicehub", "logs");
                 if (!Directory.Exists(logPath))
                 {
@@ -303,5 +332,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // catch all exception. not worth crashing VS.
             return true;
         }
+
+        private static readonly TimeSpan s_reportTimeout = TimeSpan.FromMinutes(10);
+        private static bool s_timeoutReported = false;
+
+        private static void ReportTimeout(Stopwatch watch)
+        {
+            // if we tried for 10 min and still couldn't connect. NFW (non fatal watson) some data
+            if (!s_timeoutReported && watch.Elapsed > s_reportTimeout)
+            {
+                s_timeoutReported = true;
+
+                // report service hub logs along with dump
+                WatsonReporter.Report("RequestServiceAsync Timeout", new Exception("RequestServiceAsync Timeout"), ReportDetailInfo);
+            }
+        }
+
+        private static bool s_infoBarReported = false;
+
+        private static void ShowInfoBar()
+        {
+            // use info bar to show warning to users
+            if (CodeAnalysis.PrimaryWorkspace.Workspace != null && !s_infoBarReported)
+            {
+                // do not report it multiple times
+                s_infoBarReported = true;
+
+                // use info bar to show warning to users
+                CodeAnalysis.PrimaryWorkspace.Workspace.Services.GetService<IErrorReportingService>()?.ShowGlobalErrorInfo(
+                    ServicesVSResources.Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio);
+            }
+        }
+        #endregion
     }
 }

@@ -34,9 +34,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         // this is our timeout on how long we will try keep connecting. so far I saw over 2-3 seconds before connection made 
         // when there are many (over 10+ requests) at the same time. one of reasons of this is we put our service hub process as "Below Normal" priority.
         // normally response time is within 10s ms. at most 100ms. if priority is changed to "Normal", most of time 10s ms.
+        // 
+        // also another reason why timeout is so big is that, if user put this computer sleep, then timeout can happen. so for now, until we have
+        // sleep aware timer, we put very long timeout for request service (https://github.com/dotnet/roslyn/pull/22151)
         [ExportOption]
         public static readonly Option<int> RequestServiceTimeoutInMS = new Option<int>(
-            nameof(InternalFeatureOnOffOptions), nameof(RequestServiceTimeoutInMS), defaultValue: 10 * 60 * 1000,
+            nameof(InternalFeatureOnOffOptions), nameof(RequestServiceTimeoutInMS), defaultValue: 7 * 24 * 60 * 60 * 1000 /* 7 days */,
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(RequestServiceTimeoutInMS)));
 
         // This options allow users to restart OOP when it is killed by users
