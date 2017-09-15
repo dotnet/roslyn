@@ -861,12 +861,11 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundSimpleCaseClauseOperation(boundSimpleCaseClause As BoundSimpleCaseClause) As ISingleValueCaseClause
             Dim clauseValue = GetSingleValueCaseClauseValue(boundSimpleCaseClause)
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(clauseValue))
-            Dim CaseKind As CaseKind = CaseKind.SingleValue
             Dim syntax As SyntaxNode = boundSimpleCaseClause.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundSimpleCaseClause.WasCompilerGenerated
-            Return New LazySingleValueCaseClause(value, CaseKind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazySingleValueCaseClause(value, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundRangeCaseClauseOperation(boundRangeCaseClause As BoundRangeCaseClause) As IRangeCaseClause
@@ -900,24 +899,22 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
                     Return Nothing
                 End Function)
-            Dim CaseKind As CaseKind = CaseKind.Range
             Dim syntax As SyntaxNode = boundRangeCaseClause.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundRangeCaseClause.WasCompilerGenerated
-            Return New LazyRangeCaseClause(minimumValue, maximumValue, CaseKind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyRangeCaseClause(minimumValue, maximumValue, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundRelationalCaseClauseOperation(boundRelationalCaseClause As BoundRelationalCaseClause) As IRelationalCaseClause
             Dim valueExpression = GetRelationalCaseClauseValue(boundRelationalCaseClause)
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(valueExpression))
             Dim relation As BinaryOperatorKind = If(valueExpression IsNot Nothing, Helper.DeriveBinaryOperatorKind(boundRelationalCaseClause.OperatorKind, leftOpt:=Nothing), BinaryOperatorKind.Invalid)
-            Dim CaseKind As CaseKind = CaseKind.Relational
             Dim syntax As SyntaxNode = boundRelationalCaseClause.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundRelationalCaseClause.WasCompilerGenerated
-            Return New LazyRelationalCaseClause(value, relation, CaseKind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyRelationalCaseClause(value, relation, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundDoLoopStatementOperation(boundDoLoopStatement As BoundDoLoopStatement) As IDoLoopStatement
