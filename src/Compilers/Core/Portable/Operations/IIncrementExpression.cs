@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents an increment or decrement expression in C#.
+    /// Represents an increment (<see cref="OperationKind.IncrementExpression"/>) or decrement (<see cref="OperationKind.DecrementExpression"/>) expression in C#.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
@@ -15,12 +15,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Target of the assignment.
         /// </summary>
         IOperation Target { get; }
-
-        /// <summary>
-        /// <code>true</code> if this is a decrement expression.
-        /// <code>false</code> if this is an increment expression.
-        /// </summary>
-        bool IsDecrement { get; }
 
         /// <summary>
         /// <code>true</code> if this is a postfix expression.

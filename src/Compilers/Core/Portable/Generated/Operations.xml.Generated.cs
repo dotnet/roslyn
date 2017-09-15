@@ -2105,20 +2105,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal abstract partial class BaseIncrementExpression : Operation, IIncrementExpression
     {
         public BaseIncrementExpression(bool isDecrement, bool isPostfix, bool isLifted, bool isChecked, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.IncrementExpression, semanticModel, syntax, type, constantValue, isImplicit)
+            base(isDecrement ? OperationKind.DecrementExpression : OperationKind.IncrementExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            IsDecrement = isDecrement;
             IsPostfix = isPostfix;
             IsLifted = isLifted;
             IsChecked = isChecked;
             UsesOperatorMethod = usesOperatorMethod;
             OperatorMethod = operatorMethod;
         }
-        /// <summary>
-        /// <code>true</code> if this is a decrement expression.
-        /// <code>false</code> if this is an increment expression.
-        /// </summary>
-        public bool IsDecrement { get; }
         /// <summary>
         /// <code>true</code> if this is a postfix expression.
         /// <code>false</code> if this is a prefix expression.

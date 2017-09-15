@@ -1230,7 +1230,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IIncrementExpression));
 
             var kindStr = operation.IsPostfix ? "Postfix" : "Prefix";
-            kindStr += operation.IsDecrement ? "Decrement" : "Increment";
             if (operation.IsLifted)
             {
                 kindStr += ", IsLifted";

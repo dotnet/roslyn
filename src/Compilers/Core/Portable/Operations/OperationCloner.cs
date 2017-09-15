@@ -382,7 +382,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitIncrementExpression(IIncrementExpression operation, object argument)
         {
-            return new IncrementExpression(operation.IsDecrement, operation.IsPostfix, operation.IsLifted, operation.IsChecked, Visit(operation.Target), operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            bool isDecrement = operation.Kind == OperationKind.DecrementExpression;
+            return new IncrementExpression(isDecrement, operation.IsPostfix, operation.IsLifted, operation.IsChecked, Visit(operation.Target), operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitParenthesizedExpression(IParenthesizedExpression operation, object argument)

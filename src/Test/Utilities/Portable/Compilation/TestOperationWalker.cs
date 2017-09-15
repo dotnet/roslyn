@@ -556,7 +556,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
-            var isDecrement = operation.IsDecrement;
             var isPostFix = operation.IsPostfix;
 
             base.VisitIncrementExpression(operation);

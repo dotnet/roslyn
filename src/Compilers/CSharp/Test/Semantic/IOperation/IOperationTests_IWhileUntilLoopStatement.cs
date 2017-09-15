@@ -47,7 +47,7 @@ IDoLoopStatement (DoLoopKind: DoWhileBottomLoop) (LoopKind.Do) (OperationKind.Lo
                 Indices(1):
                     ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i++;')
-        Expression: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'i++')
+        Expression: IIncrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'i++')
             Target: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<DoStatementSyntax>(source, expectedOperationTree);
@@ -87,7 +87,7 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'whi
             Left: ILocalReferenceExpression: sum (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'sum')
             Right: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i++;')
-        Expression: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'i++')
+        Expression: IIncrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'i++')
             Target: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
@@ -125,7 +125,7 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'whi
       IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int value = ++index;')
         IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'int value = ++index;')
           Variables: Local_1: System.Int32 value
-          Initializer: IIncrementExpression (PrefixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++index')
+          Initializer: IIncrementExpression (Prefix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++index')
               Target: ILocalReferenceExpression: index (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'index')
       IIfStatement (OperationKind.IfStatement) (Syntax: 'if (value > ... }')
         Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'value > 10')
@@ -174,7 +174,7 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'whi
       IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int value = ++index;')
         IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'int value = ++index;')
           Variables: Local_1: System.Int32 value
-          Initializer: IIncrementExpression (PrefixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++index')
+          Initializer: IIncrementExpression (Prefix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++index')
               Target: ILocalReferenceExpression: index (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'index')
       IIfStatement (OperationKind.IfStatement) (Syntax: 'if (value > ... }')
         Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'value > 5')
@@ -235,7 +235,7 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'whi
       IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int value = ++index;')
         IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'int value = ++index;')
           Variables: Local_1: System.Int32 value
-          Initializer: IIncrementExpression (PrefixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++index')
+          Initializer: IIncrementExpression (Prefix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++index')
               Target: ILocalReferenceExpression: index (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'index')
       IIfStatement (OperationKind.IfStatement) (Syntax: 'if (value > ... }')
         Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'value > 100')
@@ -314,7 +314,7 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'whi
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'value--;')
-        Expression: IIncrementExpression (PostfixDecrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'value--')
+        Expression: IIncrementExpression (Postfix) (OperationKind.DecrementExpression, Type: System.Int32) (Syntax: 'value--')
             Target: ILocalReferenceExpression: value (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'value')
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
@@ -387,7 +387,7 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'whi
               ReturnedValue: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
         IfFalse: null
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'number++;')
-        Expression: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'number++')
+        Expression: IIncrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'number++')
             Target: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
@@ -433,7 +433,7 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'whi
             IBranchStatement (BranchKind.GoTo, Label: Even) (OperationKind.BranchStatement) (Syntax: 'goto Even;')
         IfFalse: null
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'number++;')
-        Expression: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'number++')
+        Expression: IIncrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'number++')
             Target: IParameterReferenceExpression: number (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'number')
       ILabeledStatement (Label: Even) (OperationKind.LabeledStatement) (Syntax: 'Even: ... urn number;')
         Statement: IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return number;')
@@ -473,7 +473,7 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement, IsInvalid) (S
       IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int value = ++index;')
         IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'int value = ++index;')
           Variables: Local_1: System.Int32 value
-          Initializer: IIncrementExpression (PrefixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++index')
+          Initializer: IIncrementExpression (Prefix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++index')
               Target: ILocalReferenceExpression: index (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'index')
       IIfStatement (OperationKind.IfStatement) (Syntax: 'if (value > ... }')
         Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'value > 100')
@@ -545,7 +545,7 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'whi
       Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   Body: IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i++;')
-        Expression: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'i++')
+        Expression: IIncrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'i++')
             Target: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       IIfStatement (OperationKind.IfStatement) (Syntax: 'if (i < 9) ... }')
         Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i < 9')
@@ -598,7 +598,7 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'whi
   Body: IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       Locals: Local_1: System.Int32 j
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i++;')
-        Expression: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'i++')
+        Expression: IIncrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'i++')
             Target: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0;')
         IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'int j = 0;')
@@ -610,7 +610,7 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'whi
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
         Body: IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'j++;')
-              Expression: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'j++')
+              Expression: IIncrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'j++')
                   Target: ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... iteLine(j);')
               Expression: IInvocationExpression (void System.Console.WriteLine(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(j)')
@@ -665,7 +665,7 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'whi
   Body: IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       Locals: Local_1: System.Int32 j
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i++;')
-        Expression: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'i++')
+        Expression: IIncrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'i++')
             Target: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int j = 0;')
         IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'int j = 0;')
@@ -677,7 +677,7 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'whi
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
         Body: IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'j++;')
-              Expression: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'j++')
+              Expression: IIncrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'j++')
                   Target: ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'j')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = i + j;')
               Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = i + j')
@@ -788,7 +788,7 @@ class Program
             string expectedOperationTree = @"
 IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'while ( ++i ... }')
   Condition: IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '++i < 5')
-      Left: IIncrementExpression (PrefixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++i')
+      Left: IIncrementExpression (Prefix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++i')
           Target: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
@@ -827,7 +827,7 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'whi
       Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i++;')
-        Expression: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'i++')
+        Expression: IIncrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'i++')
             Target: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
@@ -892,7 +892,7 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement) (Syntax: 'whi
   Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x-- > 0')
       Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'x--')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: IIncrementExpression (PostfixDecrement) (OperationKind.IncrementExpression, Type: System.SByte) (Syntax: 'x--')
+          Operand: IIncrementExpression (Postfix) (OperationKind.DecrementExpression, Type: System.SByte) (Syntax: 'x--')
               Target: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.SByte) (Syntax: 'x')
       Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')

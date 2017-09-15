@@ -69,6 +69,7 @@ Microsoft.CodeAnalysis.OperationKind.ConditionalExpression = 271 -> Microsoft.Co
 Microsoft.CodeAnalysis.OperationKind.ConstantPattern = 1039 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.ConversionExpression = 258 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.DeclarationPattern = 1040 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.DecrementExpression = 520 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.DefaultCaseClause = 1042 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.DefaultValueExpression = 512 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.DynamicInvocationExpression = 295 -> Microsoft.CodeAnalysis.OperationKind
@@ -329,7 +330,6 @@ Microsoft.CodeAnalysis.Semantics.IIfStatement.IfFalseStatement.get -> Microsoft.
 Microsoft.CodeAnalysis.Semantics.IIfStatement.IfTrueStatement.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IIncrementExpression
 Microsoft.CodeAnalysis.Semantics.IIncrementExpression.IsChecked.get -> bool
-Microsoft.CodeAnalysis.Semantics.IIncrementExpression.IsDecrement.get -> bool
 Microsoft.CodeAnalysis.Semantics.IIncrementExpression.IsLifted.get -> bool
 Microsoft.CodeAnalysis.Semantics.IIncrementExpression.IsPostfix.get -> bool
 Microsoft.CodeAnalysis.Semantics.IIncrementExpression.Target.get -> Microsoft.CodeAnalysis.IOperation
