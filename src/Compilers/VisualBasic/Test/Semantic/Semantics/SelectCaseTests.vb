@@ -409,6 +409,7 @@ End Module
             Assert.Equal(1, semanticSummary.ConstantValue.Value)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub SelectCase_RelationalCaseClauseExpression_IOperation()
             Dim source = <![CDATA[
@@ -424,7 +425,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IRelationalCaseClause (Relational operator kind: BinaryOperatorKind.LessThan) (CaseKind.Relational) (OperationKind.RelationalCaseClause) (Syntax: 'Is < j')
+IRelationalCaseClause (Relational operator kind: BinaryOperatorKind.LessThan) (CaseKind.Relational) (OperationKind.CaseClause) (Syntax: 'Is < j')
   Value: IParameterReferenceExpression: j (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'j')
 ]]>.Value
 
