@@ -10,6 +10,7 @@ _Install is available for Visual Studio versions 15.3 and 15.4 only. Installing 
 3. Click Add and enter:
 
     Name: Roslyn Nullable
+
     URL:  https://dotnet.myget.org/F/roslyn-nonnull/vsix/
 
 4. Use the checkbox at the top to enable or disable automatically updating the extension when Visual Studio is started
@@ -18,7 +19,7 @@ _Install is available for Visual Studio versions 15.3 and 15.4 only. Installing 
 
 ![tools-extensions-and-updates](https://user-images.githubusercontent.com/10732005/30494782-53f7a5a6-99fe-11e7-9c1f-3b11f4a321d8.png)
 
-7. Choose Roslyn Insiders for VS next
+7. Choose Online: Roslyn Nullable: Roslyn Insiders for VS next
 8. Click Download and Close
 9. Close Visual Studio
 10. Click Modify on the VSIX Installer that starts automatically
