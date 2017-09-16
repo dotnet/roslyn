@@ -7914,46 +7914,67 @@ unsafe class C
         {
             int* p = stackalloc int[2];
             char* q = stackalloc char[count];
+
+            Use(p);
+            Use(q);
         }
         unchecked
         {
             int* p = stackalloc int[2];
             char* q = stackalloc char[count];
+
+            Use(p);
+            Use(q);
         }
+    }
+
+    static void Use(int * ptr)
+    {        
+    }
+
+    static void Use(char * ptr)
+    {        
     }
 }
 ";
             // NOTE: conversion is always unchecked, multiplication is always checked.
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", @"
 {
-  // Code size       27 (0x1b)
+  // Code size       47 (0x2f)
   .maxstack  2
-  .locals init (int V_0) //count
+  .locals init (int V_0, //count
+                int* V_1, //p
+                int* V_2) //p
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldc.i4.8
   IL_0003:  conv.u
   IL_0004:  localloc
-  IL_0006:  pop
+  IL_0006:  stloc.1
   IL_0007:  ldloc.0
   IL_0008:  conv.u
   IL_0009:  ldc.i4.2
   IL_000a:  mul.ovf.un
   IL_000b:  localloc
-  IL_000d:  pop
-  IL_000e:  ldc.i4.8
-  IL_000f:  conv.u
-  IL_0010:  localloc
-  IL_0012:  pop
-  IL_0013:  ldloc.0
-  IL_0014:  conv.u
-  IL_0015:  ldc.i4.2
-  IL_0016:  mul.ovf.un
-  IL_0017:  localloc
-  IL_0019:  pop
-  IL_001a:  ret
+  IL_000d:  ldloc.1
+  IL_000e:  call       ""void C.Use(int*)""
+  IL_0013:  call       ""void C.Use(char*)""
+  IL_0018:  ldc.i4.8
+  IL_0019:  conv.u
+  IL_001a:  localloc
+  IL_001c:  stloc.2
+  IL_001d:  ldloc.0
+  IL_001e:  conv.u
+  IL_001f:  ldc.i4.2
+  IL_0020:  mul.ovf.un
+  IL_0021:  localloc
+  IL_0023:  ldloc.2
+  IL_0024:  call       ""void C.Use(int*)""
+  IL_0029:  call       ""void C.Use(char*)""
+  IL_002e:  ret
 }
 ");
+
         }
 
         [Fact]
@@ -8086,7 +8107,15 @@ unsafe class C
                 p = null; //capture p
                 r = null; //capture r
             };
+            
+            Use(s);
         };
+
+        Use(q);
+    }
+
+    static void Use(int * ptr)
+    {        
     }
 }
 ";
@@ -8096,7 +8125,7 @@ unsafe class C
             // for C.<>c__DisplayClass0.p is pushed onto the stack.
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size       24 (0x18)
+  // Code size       28 (0x1c)
   .maxstack  2
   .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
                 int* V_1)
@@ -8112,15 +8141,15 @@ unsafe class C
   IL_0012:  ldc.i4.8
   IL_0013:  conv.u
   IL_0014:  localloc
-  IL_0016:  pop
-  IL_0017:  ret
+  IL_0016:  call       ""void C.Use(int*)""
+  IL_001b:  ret
 }
 ");
 
             // Check that the same thing works inside a lambda.
             verifier.VerifyIL("C.<>c__DisplayClass0_0.<Main>b__0", @"
 {
-  // Code size       31 (0x1f)
+  // Code size       35 (0x23)
   .maxstack  2
   .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
                 int* V_1)
@@ -8139,8 +8168,8 @@ unsafe class C
   IL_0019:  ldc.i4.8
   IL_001a:  conv.u
   IL_001b:  localloc
-  IL_001d:  pop
-  IL_001e:  ret
+  IL_001d:  call       ""void C.Use(int*)""
+  IL_0022:  ret
 }
 ");
         }
@@ -8232,7 +8261,7 @@ public class C
     private static unsafe int Main()
     {
         Int64* intArray = stackalloc Int64[0x7fffffff];
-        return 0;
+        return (int)intArray[0];
     }
 }
 ";
@@ -8246,8 +8275,8 @@ public class C
   IL_0006:  ldc.i4.8
   IL_0007:  mul.ovf.un
   IL_0008:  localloc
-  IL_000a:  pop
-  IL_000b:  ldc.i4.0
+  IL_000a:  ldind.i8
+  IL_000b:  conv.i4
   IL_000c:  ret
 }
 ");
