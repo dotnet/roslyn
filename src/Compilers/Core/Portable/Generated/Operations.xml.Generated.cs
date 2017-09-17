@@ -811,8 +811,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class CaseClause : Operation, ICaseClause
     {
-        protected CaseClause(CaseKind caseKind, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(kind, semanticModel, syntax, type, constantValue, isImplicit)
+        protected CaseClause(CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.CaseClause, semanticModel, syntax, type, constantValue, isImplicit)
         {
             CaseKind = caseKind;
         }
@@ -3806,8 +3806,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseRangeCaseClause : CaseClause, IRangeCaseClause
     {
-        public BaseRangeCaseClause(CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(caseKind, OperationKind.RangeCaseClause, semanticModel, syntax, type, constantValue, isImplicit)
+        public BaseRangeCaseClause(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(CaseKind.Range, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -3845,8 +3845,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class RangeCaseClause : BaseRangeCaseClause, IRangeCaseClause
     {
-        public RangeCaseClause(IOperation minimumValue, IOperation maximumValue, CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(caseKind, semanticModel, syntax, type, constantValue, isImplicit)
+        public RangeCaseClause(IOperation minimumValue, IOperation maximumValue, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             MinimumValueImpl = minimumValue;
             MaximumValueImpl = maximumValue;
@@ -3864,8 +3864,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         private readonly Lazy<IOperation> _lazyMinimumValue;
         private readonly Lazy<IOperation> _lazyMaximumValue;
 
-        public LazyRangeCaseClause(Lazy<IOperation> minimumValue, Lazy<IOperation> maximumValue, CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(caseKind, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyRangeCaseClause(Lazy<IOperation> minimumValue, Lazy<IOperation> maximumValue, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyMinimumValue = minimumValue ?? throw new System.ArgumentNullException(nameof(minimumValue));
             _lazyMaximumValue = maximumValue ?? throw new System.ArgumentNullException(nameof(maximumValue));
@@ -3881,8 +3881,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseRelationalCaseClause : CaseClause, IRelationalCaseClause
     {
-        public BaseRelationalCaseClause(BinaryOperatorKind relation, CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(caseKind, OperationKind.RelationalCaseClause, semanticModel, syntax, type, constantValue, isImplicit)
+        public BaseRelationalCaseClause(BinaryOperatorKind relation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(CaseKind.Relational, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Relation = relation;
         }
@@ -3919,8 +3919,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class RelationalCaseClause : BaseRelationalCaseClause, IRelationalCaseClause
     {
-        public RelationalCaseClause(IOperation value, BinaryOperatorKind relation, CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(relation, caseKind, semanticModel, syntax, type, constantValue, isImplicit)
+        public RelationalCaseClause(IOperation value, BinaryOperatorKind relation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(relation, semanticModel, syntax, type, constantValue, isImplicit)
         {
             ValueImpl = value;
         }
@@ -3935,8 +3935,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyRelationalCaseClause(Lazy<IOperation> value, BinaryOperatorKind relation, CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(relation, caseKind, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyRelationalCaseClause(Lazy<IOperation> value, BinaryOperatorKind relation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(relation, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
@@ -4027,8 +4027,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseSingleValueCaseClause : CaseClause, ISingleValueCaseClause
     {
-        public BaseSingleValueCaseClause(CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(caseKind, OperationKind.SingleValueCaseClause, semanticModel, syntax, type, constantValue, isImplicit)
+        public BaseSingleValueCaseClause(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(CaseKind.SingleValue, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -4060,8 +4060,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class SingleValueCaseClause : BaseSingleValueCaseClause, ISingleValueCaseClause
     {
-        public SingleValueCaseClause(IOperation value, CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(caseKind, semanticModel, syntax, type, constantValue, isImplicit)
+        public SingleValueCaseClause(IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             ValueImpl = value;
         }
@@ -4076,8 +4076,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazySingleValueCaseClause(Lazy<IOperation> value, CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(caseKind, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazySingleValueCaseClause(Lazy<IOperation> value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
@@ -4091,7 +4091,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class DefaultCaseClause : CaseClause, IDefaultCaseClause
     {
         public DefaultCaseClause(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(CaseKind.Default, OperationKind.DefaultCaseClause, semanticModel, syntax, type, constantValue, isImplicit)
+            base(CaseKind.Default, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
         public override IEnumerable<IOperation> Children
@@ -5517,7 +5517,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal abstract partial class BasePatternCaseClause : CaseClause, IPatternCaseClause
     {
         protected BasePatternCaseClause(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-                    base(CaseKind.Pattern, OperationKind.PatternCaseClause, semanticModel, syntax, type, constantValue, isImplicit)
+                    base(CaseKind.Pattern, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Label = label;
         }

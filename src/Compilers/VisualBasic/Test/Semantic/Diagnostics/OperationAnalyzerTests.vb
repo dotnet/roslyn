@@ -9,6 +9,7 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
+    <CompilerTrait(CompilerFeature.IOperation)>
     Public Class OperationAnalyzerTests
         Inherits BasicTestBase
 
