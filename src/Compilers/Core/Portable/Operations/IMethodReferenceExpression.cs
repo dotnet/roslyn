@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IMethodBindingExpression : IMemberReferenceExpression
+    public interface IMethodReferenceExpression : IMemberReferenceExpression
     {
         /// <summary>
         /// Referenced method.

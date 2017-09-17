@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 SyntaxNode syntax = boundConversion.Syntax;
                 ITypeSymbol type = boundConversion.Type;
                 Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
-                return new LazyMethodBindingExpression(method, isVirtual, instance, method, _semanticModel, syntax, type, constantValue, isImplicit);
+                return new LazyMethodReferenceExpression(method, isVirtual, instance, method, _semanticModel, syntax, type, constantValue, isImplicit);
             }
             else
             {
@@ -1128,7 +1128,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 new Lazy<ImmutableArray<IOperation>>(() => boundBlock.Statements.Select(s => (bound: s, operation: Create(s)))
                                                                                 // Filter out all OperationKind.None except fixed statements for now.
                                                                                 // https://github.com/dotnet/roslyn/issues/21776
-                                                                                .Where(s => s.operation.Kind != OperationKind.None || s.bound.Kind == BoundKind.FixedStatement)
+                                                                                .Where(s => s.operation.Kind != OperationKind.None ||
+                                                                                s.bound.Kind == BoundKind.FixedStatement ||
+                                                                                s.bound.Kind == BoundKind.TryStatement)
                                                                                 .Select(s => s.operation).ToImmutableArray());
 
             ImmutableArray<ILocalSymbol> locals = boundBlock.Locals.As<ILocalSymbol>();
