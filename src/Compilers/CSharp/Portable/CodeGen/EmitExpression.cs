@@ -1828,9 +1828,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitConvertedStackAllocExpression(BoundConvertedStackAllocExpression expression, bool used)
         {
-            EmitExpression(expression.Count, used: true);
-            _builder.EmitOpCode(ILOpCode.Localloc);
-            EmitPopIfUnused(used); //localalloc could overflow the stack, so don't omit, even if used.
+            EmitExpression(expression.Count, used);
+
+            // the only sideeffect of a localloc is a nondeterminisic and generaly fatal StackOverflow.
+            // we can ignore that if the actual result is unused
+            if (used)
+            {
+                _builder.EmitOpCode(ILOpCode.Localloc);
+            }
         }
 
         private void EmitObjectCreationExpression(BoundObjectCreationExpression expression, bool used)

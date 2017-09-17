@@ -13,6 +13,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var rewrittenCount = VisitExpression(stackAllocNode.Count);
 
+            if (rewrittenCount.ConstantValue?.Int32Value == 0)
+            {
+                // either default(span) or nullptr
+                return _factory.Default(stackAllocNode.Type);
+            }
+
             var conversionKind = stackAllocNode.ConversionKind;
             var elementType = stackAllocNode.ElementType;
 
@@ -49,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression RewriteStackAllocCountToSize(BoundExpression count, TypeSymbol elementType)
+        private BoundExpression RewriteStackAllocCountToSize(BoundExpression countExpression, TypeSymbol elementType)
         {
             // From ILGENREC::genExpr:
             // EDMAURER always perform a checked multiply regardless of the context.
@@ -68,10 +74,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             // from int32 to native uint is emitted as conv_i.  The behavior we want to emulate is to re-interpret
             // (i.e. unchecked) an int32 as unsigned (i.e. uint32) and then convert it to a native uint *without* sign
             // extension.
-            BoundExpression convertedCount = _factory.Convert(uintType, count, Conversion.ExplicitNumeric);
-            convertedCount = _factory.Convert(uintPtrType, convertedCount, Conversion.IntegerToPointer);
 
             BoundExpression sizeOfExpression = _factory.Sizeof(elementType);
+
+            var sizeConst = sizeOfExpression.ConstantValue;
+            if (sizeConst != null)
+            {
+                int size = sizeConst.Int32Value;
+                Debug.Assert(size > 0);
+
+                // common case: stackalloc int[123]
+                var countConst = countExpression.ConstantValue;
+                if (countConst != null)
+                {
+                    var count = countConst.Int32Value;
+                    long folded = unchecked((uint)count * size);
+
+                    if (folded < uint.MaxValue)
+                    {
+                        return _factory.Convert(uintPtrType, _factory.Literal((uint)folded), Conversion.IntegerToPointer);
+                    }
+                }
+            }
+            
+            BoundExpression convertedCount = _factory.Convert(uintType, countExpression, Conversion.ExplicitNumeric);
+            convertedCount = _factory.Convert(uintPtrType, convertedCount, Conversion.IntegerToPointer);
+
+            // another common case: stackalloc byte[x]
+            if (sizeConst?.Int32Value == 1)
+            {
+                return convertedCount;
+            }
+
             BinaryOperatorKind multiplicationKind = BinaryOperatorKind.Checked | BinaryOperatorKind.UIntMultiplication; //"UInt" just to make it unsigned
             BoundExpression product = _factory.Binary(multiplicationKind, uintPtrType, convertedCount, sizeOfExpression);
 
