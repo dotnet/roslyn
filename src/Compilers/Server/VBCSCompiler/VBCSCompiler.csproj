@@ -10,9 +10,10 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CompilerServer</RootNamespace>
     <LargeAddressAware>true</LargeAddressAware>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFrameworks>net46;netcoreapp2.0</TargetFrameworks>
     <RuntimeIdentifiers>win7;ubuntu.14.04;osx.10.10</RuntimeIdentifiers>
     <UseVSHostingProcess>false</UseVSHostingProcess>
+    <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\CSharp\Portable\CSharpCodeAnalysis.csproj" />
@@ -22,9 +23,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <Reference Include="System" />
     <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
+    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Shared\BuildClient.cs">
@@ -32,6 +32,9 @@
     </Compile>
     <Compile Include="..\..\Shared\BuildServerConnection.cs">
       <Link>BuildServerConnection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Shared\CoreClrAnalyzerAssemblyLoader.cs">
+      <Link>CoreClrAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="..\..\Shared\DesktopAnalyzerAssemblyLoader.cs">
       <Link>DesktopAnalyzerAssemblyLoader.cs</Link>

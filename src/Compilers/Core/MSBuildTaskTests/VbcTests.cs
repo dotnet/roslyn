@@ -2,6 +2,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.BuildTasks;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
@@ -309,6 +310,48 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
             vbc.RefOnly = true;
             Assert.Equal("/optionstrict:custom /out:test.exe /refonly test.vb", vbc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        [WorkItem(21371, "https://github.com/dotnet/roslyn/issues/21371")]
+        public void GenerateDocumentationFalse()
+        {
+            var vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.GenerateDocumentation = false;
+            vbc.DocumentationFile = "test.xml";
+            Assert.Equal("/doc- /optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        [WorkItem(21371, "https://github.com/dotnet/roslyn/issues/21371")]
+        public void GenerateDocumentationTrue()
+        {
+            var vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.GenerateDocumentation = true;
+            vbc.DocumentationFile = "test.xml";
+            Assert.Equal("/doc+ /optionstrict:custom /doc:test.xml /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        [WorkItem(21371, "https://github.com/dotnet/roslyn/issues/21371")]
+        public void GenerateDocumentationTrueWithoutFile()
+        {
+            var vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.GenerateDocumentation = true;
+            Assert.Equal("/doc+ /optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        [WorkItem(21371, "https://github.com/dotnet/roslyn/issues/21371")]
+        public void GenerateDocumentationUnspecified()
+        {
+            var vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.DocumentationFile = "test.xml";
+            Assert.Equal("/optionstrict:custom /doc:test.xml /out:test.exe test.vb", vbc.GenerateResponseFileContents());
         }
     }
 }
