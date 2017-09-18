@@ -26,8 +26,6 @@ do the following:
 - Click on the hamburger menu, click Modify 
 - Choose the workloads listed above and click Modify
 
-During the last few weeks of a development cycle for a quarterly release (versions 15.3, 15.6, etc.), it is possible for the Roslyn codebase to make use of new language features, which will not be suppored by the last released version. During that period, it is recommended to use the [preview version of Visual Studio](https://www.visualstudio.com/vs/preview/) or [Roslyn nightlies](https://github.com/dotnet/roslyn/issues/18783#issuecomment-299064434). Alternatively, you can just ignore some red squiggles produced by the IDE that do not correspond to build errors (on portions of the code using the latest language features).
-
 ## Running Tests
 
 There are a number of options for running the core Roslyn unit tests
