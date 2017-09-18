@@ -5199,7 +5199,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Field-like events are not allowed in readonly structs.</value>
   </data>
   <data name="IDS_FeatureRefExtensionMethods" xml:space="preserve">
-    <value>ref or in extension methods</value>
+    <value>ref extension methods</value>
   </data>
   <data name="ERR_StackAllocConversionNotPossible" xml:space="preserve">
     <value>Conversion of a stackalloc expression of type '{0}' to type '{1}' is not possible.</value>

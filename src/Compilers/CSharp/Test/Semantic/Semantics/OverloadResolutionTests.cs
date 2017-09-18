@@ -9376,9 +9376,9 @@ public static class Program
 }";
 
             CreateStandardCompilation(code).VerifyDiagnostics(
-                // (11,16): error CS1503: Argument 1: cannot convert from 'System.Exception' to 'in int'
+                // (11,16): error CS1503: Argument 1: cannot convert from 'System.Exception' to 'ref readonly int'
                 //         Method(x);
-                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Exception", "in int").WithLocation(11, 16)
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Exception", "ref readonly int").WithLocation(11, 16)
             );
         }
 

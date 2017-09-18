@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -588,7 +588,7 @@ class Program
         return ref this[local];
     }
 
-    ref readonly int this[in int x] => ref x;
+    ref readonly int this[ref readonly int x] => ref x;
 }
 
 ";
@@ -598,9 +598,9 @@ class Program
                 // (8,25): error CS8168: Cannot return local 'local' by reference because it is not a ref local
                 //         return ref this[local];
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(8, 25),
-                // (8,20): error CS8521: Cannot use a result of 'Program.this[in int]' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (8,20): error CS8521: Cannot use a result of 'Program.this[ref readonly int]' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return ref this[local];
-                Diagnostic(ErrorCode.ERR_EscapeCall, "this[local]").WithArguments("Program.this[in int]", "x").WithLocation(8, 20)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "this[local]").WithArguments("Program.this[ref readonly int]", "x").WithLocation(8, 20)
             );
         }
 
@@ -615,7 +615,7 @@ class Program
         return ref this[42];
     }
 
-    ref readonly int this[in int x] => ref x;
+    ref readonly int this[ref readonly int x] => ref x;
 }
 
 ";
@@ -625,9 +625,9 @@ class Program
                 // (6,25): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref this[42];
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "42").WithLocation(6, 25),
-                // (6,20): error CS8521: Cannot use a result of 'Program.this[in int]' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (6,20): error CS8521: Cannot use a result of 'Program.this[ref readonly int]' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return ref this[42];
-                Diagnostic(ErrorCode.ERR_EscapeCall, "this[42]").WithArguments("Program.this[in int]", "x").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "this[42]").WithArguments("Program.this[ref readonly int]", "x").WithLocation(6, 20)
             );
         }
 
@@ -645,7 +645,7 @@ struct S1
         return ref this;
     }
 
-    ref readonly int this[in int i] => ref x;
+    ref readonly int this[ref readonly int i] => ref x;
 }
 
 ";
@@ -656,8 +656,8 @@ struct S1
                 //         return ref this;
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(8, 20),
                 // (11,44): error CS8170: Struct members cannot return 'this' or other instance members by reference
-                //     ref readonly int this[in int i] => ref x;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithArguments("this").WithLocation(11, 44)
+                //     ref readonly int this[ref readonly int i] => ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithArguments("this").WithLocation(11, 54)
             );
         }
 
@@ -695,7 +695,7 @@ class Program
         return ref M(42);
     }
 
-    ref readonly int M(in int x) => ref x;
+    ref readonly int M(ref readonly int x) => ref x;
 }
 
 ";
@@ -705,9 +705,9 @@ class Program
                 // (6,22): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref M(42);
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "42").WithLocation(6, 22),
-                // (6,20): error CS8521: Cannot use a result of 'Program.M(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (6,20): error CS8521: Cannot use a result of 'Program.M(ref readonly int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return ref M(42);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "M(42)").WithArguments("Program.M(in int)", "x").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M(42)").WithArguments("Program.M(ref readonly int)", "x").WithLocation(6, 20)
             );
         }
 
@@ -722,16 +722,16 @@ class Program
         return ref M();
     }
 
-    ref readonly int M(in int x = 42) => ref x;
+    ref readonly int M(ref readonly int x = 42) => ref x;
 }
 
 ";
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,20): error CS8521: Cannot use a result of 'Program.M(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (6,20): error CS8521: Cannot use a result of 'Program.M(ref readonly int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return ref M();
-                Diagnostic(ErrorCode.ERR_EscapeCall, "M()").WithArguments("Program.M(in int)", "x").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M()").WithArguments("Program.M(ref readonly int)", "x").WithLocation(6, 20)
             );
         }
 
@@ -747,7 +747,7 @@ class Program
         return ref M(b);
     }
 
-    ref readonly int M(in int x) => ref x;
+    ref readonly int M(ref readonly int x) => ref x;
 }
 
 ";
@@ -757,9 +757,9 @@ class Program
                 // (7,22): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref M(b);
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "b").WithLocation(7, 22),
-                // (7,20): error CS8521: Cannot use a result of 'Program.M(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (7,20): error CS8521: Cannot use a result of 'Program.M(ref readonly int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return ref M(b);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "M(b)").WithArguments("Program.M(in int)", "x").WithLocation(7, 20)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M(b)").WithArguments("Program.M(ref readonly int)", "x").WithLocation(7, 20)
             );
         }
     }

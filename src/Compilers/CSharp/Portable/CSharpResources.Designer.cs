@@ -10622,7 +10622,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ref or in extension methods.
+        ///   Looks up a localized string similar to ref extension methods.
         /// </summary>
         internal static string IDS_FeatureRefExtensionMethods {
             get {

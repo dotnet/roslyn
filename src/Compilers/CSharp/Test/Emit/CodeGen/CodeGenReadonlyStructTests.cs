@@ -387,7 +387,7 @@ class Program
     {
         Test(default(S1));
     }
-    static void Test(in S1 arg)
+    static void Test(ref readonly S1 arg)
     {
         System.Console.Write(arg.M1());
         System.Console.Write(arg.ToString());

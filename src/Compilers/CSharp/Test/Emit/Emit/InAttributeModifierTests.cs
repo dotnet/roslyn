@@ -619,9 +619,9 @@ public class Test
 }";
 
             CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (8,13): error CS0570: 'TestRef.M(in ?)' is not supported by the language
+                // (8,13): error CS0570: 'TestRef.M(ref readonly ?)' is not supported by the language
                 //         obj.M(value);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("TestRef.M(in ?)").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("TestRef.M(ref readonly ?)").WithLocation(8, 13));
         }
 
         [Fact]
@@ -805,9 +805,9 @@ public class Test
 }";
 
             CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (8,9): error CS1546: Property, indexer, or event 'TestRef.this[in ?]' is not supported by the language; try directly calling accessor method 'TestRef.set_Item(in ?, ?)'
+                // (8,9): error CS1546: Property, indexer, or event 'TestRef.this[ref readonly ?]' is not supported by the language; try directly calling accessor method 'TestRef.set_Item(ref readonly ?, ?)'
                 //         obj[value] = 0;
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[value]").WithArguments("TestRef.this[in ?]", "TestRef.set_Item(in ?, ?)").WithLocation(8, 9));
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[value]").WithArguments("TestRef.this[ref readonly ?]", "TestRef.set_Item(ref readonly ?, ?)").WithLocation(8, 9));
 
             code = @"
 public class Test
@@ -821,9 +821,9 @@ public class Test
 }";
 
             CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (8,13): error CS0570: 'TestRef.set_Item(in ?, ?)' is not supported by the language
+                // (8,13): error CS0570: 'TestRef.set_Item(ref readonly ?, ?)' is not supported by the language
                 //         obj.set_Item(value, 0);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Item").WithArguments("TestRef.set_Item(in ?, ?)").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Item").WithArguments("TestRef.set_Item(ref readonly ?, ?)").WithLocation(8, 13));
         }
 
         [Fact]
@@ -956,12 +956,12 @@ public class Test
 }";
 
             CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (6,17): error CS0570: 'D.Invoke(in ?)' is not supported by the language
+                // (6,17): error CS0570: 'D.Invoke(ref readonly ?)' is not supported by the language
                 //         Process((ref readonly int p) => System.Console.WriteLine(p));
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(ref readonly int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(in ?)").WithLocation(6, 17),
-                // (12,9): error CS0570: 'D.Invoke(in ?)' is not supported by the language
+                Diagnostic(ErrorCode.ERR_BindToBogus, "(ref readonly int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(ref readonly ?)").WithLocation(6, 17),
+                // (12,9): error CS0570: 'D.Invoke(ref readonly ?)' is not supported by the language
                 //         func(value);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "func(value)").WithArguments("D.Invoke(in ?)").WithLocation(12, 9));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "func(value)").WithArguments("D.Invoke(ref readonly ?)").WithLocation(12, 9));
         }
 
         [Fact]
@@ -2603,7 +2603,7 @@ public class Program
                 Assert.Empty(implicitParameter.RefCustomModifiers);
 
                 var explicitImplementation = type.GetMethod("Parent.M");
-                Assert.Equal("void Parent.M(in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 p)", explicitImplementation.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
+                Assert.Equal("void Parent.M(ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.Int32 p)", explicitImplementation.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
 
                 var explicitParameter = explicitImplementation.Parameters.Single();
                 Assert.Empty(explicitParameter.CustomModifiers);
@@ -3303,7 +3303,7 @@ public class Program
                 Assert.Empty(implicitParameter.RefCustomModifiers);
 
                 var explicitImplementation = type.GetMethod("Parent.set_Item");
-                Assert.Equal("void Parent.this[in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 p].set", explicitImplementation.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
+                Assert.Equal("void Parent.this[ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.Int32 p].set", explicitImplementation.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
 
                 var explicitParameter = explicitImplementation.Parameters.First();
                 Assert.Empty(explicitParameter.CustomModifiers);

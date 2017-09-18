@@ -3751,7 +3751,6 @@ tryAgain:
                 case SyntaxKind.OpenBracketToken: // attribute
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.OutKeyword:
-                case SyntaxKind.InKeyword:
                 case SyntaxKind.ParamsKeyword:
                 case SyntaxKind.ArgListKeyword:
                 case SyntaxKind.OpenParenToken:   // tuple
@@ -3875,7 +3874,6 @@ tryAgain:
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.OutKeyword:
                 case SyntaxKind.ParamsKeyword:
-                case SyntaxKind.InKeyword:
                 case SyntaxKind.ReadOnlyKeyword:
                     return true;
             }
@@ -3895,19 +3893,6 @@ tryAgain:
                         modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureExtensionMethod);
                         break;
 
-                    case SyntaxKind.InKeyword:
-                        {
-                            var nextKind = this.CurrentToken.Kind;
-
-                            // "in this"
-                            if (nextKind == SyntaxKind.ThisKeyword)
-                            {
-                                modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods);
-                            }
-
-                            modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureReadonlyReferences);
-                            break;
-                        }
                     case SyntaxKind.RefKeyword:
                         {
                             var nextKind = this.CurrentToken.Kind;
@@ -9866,7 +9851,6 @@ tryAgain:
                             }
                             break;
                         case SyntaxKind.OutKeyword:
-                        case SyntaxKind.InKeyword:
                         case SyntaxKind.ParamsKeyword:
                             this.EatToken();
                             foundParameterModifier = true;
@@ -10865,7 +10849,6 @@ tryAgain:
                 // recovery purposes and then give an error during semantic analysis.
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.OutKeyword:
-                case SyntaxKind.InKeyword:
                 case SyntaxKind.OpenParenToken:   // tuple
                     return true;
 

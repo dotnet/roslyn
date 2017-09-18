@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             return ref (new int[1])[0];
         }
 
-        static S1 MayWrap(in int arg)
+        static S1 MayWrap(ref readonly int arg)
         {
             return default;
         }
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             return ref (new int[1])[0];
         }
 
-        static S1 MayWrap(in int arg = 123)
+        static S1 MayWrap(ref readonly int arg = 123)
         {
             return default;
         }
@@ -295,9 +295,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (21,30): error CS8521: Cannot use a result of 'Program.MayWrap(in int)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                // (21,30): error CS8521: Cannot use a result of 'Program.MayWrap(ref readonly int)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //             return ref Test1(MayWrap());
-                Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap()").WithArguments("Program.MayWrap(in int)", "arg").WithLocation(21, 30),
+                Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap()").WithArguments("Program.MayWrap(ref readonly int)", "arg").WithLocation(21, 30),
                 // (21,24): error CS8521: Cannot use a result of 'Program.Test1(Program.S1)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //             return ref Test1(MayWrap());
                 Diagnostic(ErrorCode.ERR_EscapeCall, "Test1(MayWrap())").WithArguments("Program.Test1(Program.S1)", "arg").WithLocation(21, 24)
@@ -751,7 +751,7 @@ class Program
         int dummy3 = this[inner, rOuter];
     }
 
-    int this[in int arg1, in S1 arg2]
+    int this[ref readonly int arg1, ref readonly S1 arg2]
     {
         get
         {
@@ -761,7 +761,7 @@ class Program
         }
     }
 
-    int this[in S1 arg1, in S1 arg2]
+    int this[ref readonly S1 arg1, ref readonly S1 arg2]
     {
         get
         {
@@ -817,7 +817,7 @@ class Program
         int dummy4 = rOuter[inner];
     }
 
-    static S1 MayWrap(in int arg)
+    static S1 MayWrap(ref readonly int arg)
     {
         return default;
     }
@@ -826,7 +826,7 @@ class Program
     {
         public int field;
 
-        public int this[in int arg1]
+        public int this[ref readonly int arg1]
         {
             get
             {
@@ -836,7 +836,7 @@ class Program
             }
         }
 
-        public int this[in S1 arg1]
+        public int this[ref readonly S1 arg1]
         {
             get
             {
@@ -856,21 +856,21 @@ class Program
                 // (23,29): error CS8520: Cannot use local 'rInner' in this context because it may expose referenced variables outside of their declaration scope 
                 //         int dummy3 = rOuter[rInner];
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "rInner").WithArguments("rInner").WithLocation(23, 29),
-                // (23,22): error CS8524: This combination of arguments to 'Program.S1.this[in Program.S1]' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
+                // (23,22): error CS8524: This combination of arguments to 'Program.S1.this[ref readonly Program.S1]' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
                 //         int dummy3 = rOuter[rInner];
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "rOuter[rInner]").WithArguments("Program.S1.this[in Program.S1]", "arg1").WithLocation(23, 22),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "rOuter[rInner]").WithArguments("Program.S1.this[ref readonly Program.S1]", "arg1").WithLocation(23, 22),
                 // (26,29): error CS8168: Cannot return local 'inner' by reference because it is not a ref local
                 //         int dummy4 = rOuter[inner];
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "inner").WithArguments("inner").WithLocation(26, 29),
-                // (26,22): error CS8524: This combination of arguments to 'Program.S1.this[in int]' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
+                // (26,22): error CS8524: This combination of arguments to 'Program.S1.this[ref readonly int]' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
                 //         int dummy4 = rOuter[inner];
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "rOuter[inner]").WithArguments("Program.S1.this[in int]", "arg1").WithLocation(26, 22),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "rOuter[inner]").WithArguments("Program.S1.this[ref readonly int]", "arg1").WithLocation(26, 22),
                 // (53,32): error CS8167: Cannot return by reference a member of parameter 'arg1' because it is not a ref or out parameter
                 //                 this = MayWrap(arg1.field);
                 Diagnostic(ErrorCode.ERR_RefReturnParameter2, "arg1").WithArguments("arg1").WithLocation(53, 32),
-                // (53,24): error CS8521: Cannot use a result of 'Program.MayWrap(in int)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                // (53,24): error CS8521: Cannot use a result of 'Program.MayWrap(ref readonly int)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //                 this = MayWrap(arg1.field);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(arg1.field)").WithArguments("Program.MayWrap(in int)", "arg").WithLocation(53, 24)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(arg1.field)").WithArguments("Program.MayWrap(ref readonly int)", "arg").WithLocation(53, 24)
             );
         }
 
@@ -1030,12 +1030,12 @@ class Program
             MayAssign(ref rInner);
         }
 
-        static void MayAssign(ref S1 arg1, in int arg2 = 42)
+        static void MayAssign(ref S1 arg1, ref readonly int arg2 = 42)
         {
             arg1 = MayWrap(arg2);
         }
 
-        static S1 MayWrap(in int arg)
+        static S1 MayWrap(ref readonly int arg)
         {
             return default;
         }
@@ -1046,9 +1046,9 @@ class Program
     }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (16,13): error CS8524: This combination of arguments to 'Program.MayAssign(ref Program.S1, in int)' is disallowed because it may expose variables referenced by parameter 'arg2' outside of their declaration scope
+                // (16,13): error CS8524: This combination of arguments to 'Program.MayAssign(ref Program.S1, ref readonly int)' is disallowed because it may expose variables referenced by parameter 'arg2' outside of their declaration scope
                 //             MayAssign(ref rOuter);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign(ref rOuter)").WithArguments("Program.MayAssign(ref Program.S1, in int)", "arg2").WithLocation(16, 13)
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign(ref rOuter)").WithArguments("Program.MayAssign(ref Program.S1, ref readonly int)", "arg2").WithLocation(16, 13)
             );
         }
 

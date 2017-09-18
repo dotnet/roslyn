@@ -835,9 +835,9 @@ interface B : A
 }";
 
             var comp = CreateStandardCompilation(code).VerifyDiagnostics(
-                // (8,10): warning CS0108: 'B.M(in int)' hides inherited member 'A.M(in int)'. Use the new keyword if hiding was intended.
+                // (8,10): warning CS0108: 'B.M(ref readonly int)' hides inherited member 'A.M(ref readonly int)'. Use the new keyword if hiding was intended.
                 //     void M(ref readonly int x);
-                Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M(in int)", "A.M(in int)").WithLocation(8, 10));
+                Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M(ref readonly int)", "A.M(ref readonly int)").WithLocation(8, 10));
 
             var aMethod = comp.GetMember<MethodSymbol>("A.M");
             var bMethod = comp.GetMember<MethodSymbol>("B.M");
@@ -1169,9 +1169,9 @@ class B : A
 }";
 
             var comp = CreateStandardCompilation(code).VerifyDiagnostics(
-                // (6,11): error CS0535: 'B' does not implement interface member 'A.M(in int)'
+                // (6,11): error CS0535: 'B' does not implement interface member 'A.M(ref readonly int)'
                 // class B : A
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "A").WithArguments("B", "A.M(in int)").WithLocation(6, 11));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "A").WithArguments("B", "A.M(ref readonly int)").WithLocation(6, 11));
         }
 
         [Fact]
@@ -1214,9 +1214,9 @@ class ChildClass : BaseInterface
 }";
 
             var comp = CreateStandardCompilation(text).VerifyDiagnostics(
-                // (7,20): error CS0535: 'ChildClass' does not implement interface member 'BaseInterface.Method2(in int)'
+                // (7,20): error CS0535: 'ChildClass' does not implement interface member 'BaseInterface.Method2(ref readonly int)'
                 // class ChildClass : BaseInterface
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "BaseInterface").WithArguments("ChildClass", "BaseInterface.Method2(in int)").WithLocation(7, 20),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "BaseInterface").WithArguments("ChildClass", "BaseInterface.Method2(ref readonly int)").WithLocation(7, 20),
                 // (7,20): error CS0535: 'ChildClass' does not implement interface member 'BaseInterface.Method1(ref int)'
                 // class ChildClass : BaseInterface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "BaseInterface").WithArguments("ChildClass", "BaseInterface.Method1(ref int)").WithLocation(7, 20));
@@ -1348,9 +1348,9 @@ class B : A
 }";
 
             var comp = CreateStandardCompilation(code).VerifyDiagnostics(
-                // (6,11): error CS0535: 'B' does not implement interface member 'A.this[in int]'
+                // (6,11): error CS0535: 'B' does not implement interface member 'A.this[ref readonly int]'
                 // class B : A
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "A").WithArguments("B", "A.this[in int]").WithLocation(6, 11));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "A").WithArguments("B", "A.this[ref readonly int]").WithLocation(6, 11));
         }
 
         [Fact]
