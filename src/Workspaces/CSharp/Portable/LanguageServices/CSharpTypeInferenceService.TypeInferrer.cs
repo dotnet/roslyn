@@ -734,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (index < parameterSet.Length)
                         {
                             var parameter = parameterSet[index];
-                            var info = new TypeInferenceInfo(parameter.Type, parameter.IsParams);
+                            var info = new TypeInferenceInfo(parameter.Type, parameter.IsParams, parameter.Name);
                             allParameters.Add(info);
 
                             if (parameter.RefKind == refKind)

@@ -649,7 +649,23 @@ class Test
             {
                 workspace.Options = originalOptions;
             }
+		}
 
+        [WorkItem(21837, "https://github.com/dotnet/roslyn/issues/21837")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void OutParameterNamesSuggested()
+        {
+            var markup = @"
+class Test
+{
+    void Do<T>(out T goo)
+    {
+        Do(out Test $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "test");
+            await VerifyItemExistsAsync(markup, "goo");
         }
     }
 }

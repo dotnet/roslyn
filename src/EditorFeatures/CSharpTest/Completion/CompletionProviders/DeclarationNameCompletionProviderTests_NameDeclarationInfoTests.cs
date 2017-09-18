@@ -440,40 +440,40 @@ namespace ConsoleApp1
         private async Task VerifyNoType(string markup)
         {
             var result = await GetResultsAsync(markup);
-            Assert.Null(result.Type);
+            Assert.Null(result[0].Type);
         }
 
         private async Task VerifyTypeName(string markup, string typeName)
         {
             var result = await GetResultsAsync(markup);
-            Assert.Equal(typeName, result.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+            Assert.Equal(typeName, result[0].Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
         }
 
         private async Task VerifyNoModifiers(string markup)
         {
             var result = await GetResultsAsync(markup);
-            Assert.Equal(default(DeclarationModifiers), result.Modifiers);
+            Assert.Equal(default(DeclarationModifiers), result[0].Modifiers);
         }
 
         private async Task VerifySymbolKinds(string markup, params SymbolKind[] expectedSymbolKinds)
         {
             var result = await GetResultsAsync(markup);
-            Assert.True(expectedSymbolKinds.SequenceEqual(result.PossibleSymbolKinds));
+            Assert.True(expectedSymbolKinds.SequenceEqual(result[0].PossibleSymbolKinds));
         }
 
         private async Task VerifyModifiers(string markup, DeclarationModifiers modifiers)
         {
             var result = await GetResultsAsync(markup);
-            Assert.Equal(modifiers, result.Modifiers);
+            Assert.Equal(modifiers, result[0].Modifiers);
         }
 
         private async Task VerifyAccessibility(string markup, Accessibility accessibility)
         {
             var result = await GetResultsAsync(markup);
-            Assert.Equal(accessibility, result.DeclaredAccessibility);
+            Assert.Equal(accessibility, result[0].DeclaredAccessibility);
         }
 
-        private async Task<NameDeclarationInfo> GetResultsAsync(string markup)
+        private async Task<ImmutableArray<NameDeclarationInfo>> GetResultsAsync(string markup)
         {
             var (document, position) = ApplyChangesToFixture(markup);
             var result = await NameDeclarationInfo.GetDeclarationInfo(document, position, CancellationToken.None);
