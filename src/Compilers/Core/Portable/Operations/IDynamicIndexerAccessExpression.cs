@@ -5,23 +5,22 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a reference to a method other than as the target of an invocation.
+    /// Represents a dynamic indexer expression in C#.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IMethodBindingExpression : IMemberReferenceExpression
+    public interface IDynamicIndexerAccessExpression : IOperation
     {
         /// <summary>
-        /// Referenced method.
+        /// Dynamically indexed expression.
         /// </summary>
-        IMethodSymbol Method { get; }
+        IOperation Expression { get; }
 
         /// <summary>
-        /// Indicates whether the reference uses virtual semantics.
+        /// Dynamically bound arguments, excluding the instance argument.
         /// </summary>
-        bool IsVirtual { get; }
+        ImmutableArray<IOperation> Arguments { get; }
     }
 }
-

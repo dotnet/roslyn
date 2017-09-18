@@ -5,22 +5,22 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a C# while, for, foreach, or do statement, or a VB While, For, For Each, or Do statement.
+    /// Represents a dynamically bound invocation expression in C# and late bound invocation in VB.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface ILoopStatement : IOperation
+    public interface IDynamicInvocationExpression : IOperation
     {
         /// <summary>
-        /// Kind of the loop.
+        /// Dynamically or late bound expression.
         /// </summary>
-        LoopKind LoopKind { get; }
+        IOperation Expression { get; }
+
         /// <summary>
-        /// Body of the loop.
+        /// Dynamically bound arguments, excluding the instance argument.
         /// </summary>
-        IOperation Body { get; }
+        ImmutableArray<IOperation> Arguments { get; }
     }
 }
-

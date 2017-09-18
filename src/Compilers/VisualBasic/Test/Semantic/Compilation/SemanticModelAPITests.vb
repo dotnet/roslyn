@@ -2893,6 +2893,7 @@ End Class
     Class A
         Public X As Integer 
         Protected Y As Integer
+        Private Protected Z As Integer
     End Class
     Class B
         Inherits A 
@@ -2910,7 +2911,8 @@ End Class
     Namespace N  ' in N
     End Namespace
     </file>
-</compilation>)
+</compilation>,
+            parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -2923,15 +2925,20 @@ End Class
             Dim classA = DirectCast(globalNS.GetMembers("A").Single(), NamedTypeSymbol)
             Dim fieldX = DirectCast(classA.GetMembers("X").Single(), FieldSymbol)
             Dim fieldY = DirectCast(classA.GetMembers("Y").Single(), FieldSymbol)
+            Dim fieldZ = DirectCast(classA.GetMembers("Z").Single(), FieldSymbol)
 
             Assert.True(semanticModel.IsAccessible(positionInN, fieldX))
             Assert.False(semanticModel.IsAccessible(positionInN, fieldY))
+            Assert.False(semanticModel.IsAccessible(positionInN, fieldZ))
             Assert.True(semanticModel.IsAccessible(positionInB, fieldX))
             Assert.True(semanticModel.IsAccessible(positionInB, fieldY))
+            Assert.True(semanticModel.IsAccessible(positionInB, fieldZ))
             Assert.True(semanticModel.IsAccessible(positionInBGoo, fieldX))
             Assert.True(semanticModel.IsAccessible(positionInBGoo, fieldY))
+            Assert.True(semanticModel.IsAccessible(positionInBGoo, fieldZ))
             Assert.True(semanticModel.IsAccessible(positionInCGoo, fieldX))
             Assert.False(semanticModel.IsAccessible(positionInCGoo, fieldY))
+            Assert.False(semanticModel.IsAccessible(positionInCGoo, fieldZ))
 
             CompilationUtils.AssertNoErrors(compilation)
         End Sub

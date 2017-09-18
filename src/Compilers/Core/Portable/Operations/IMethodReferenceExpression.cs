@@ -5,22 +5,23 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a C# foreach statement or a VB For Each staement.
+    /// Represents a reference to a method other than as the target of an invocation.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IForEachLoopStatement : ILoopStatement
+    public interface IMethodReferenceExpression : IMemberReferenceExpression
     {
         /// <summary>
-        /// Iteration variable of the loop.
+        /// Referenced method.
         /// </summary>
-        ILocalSymbol IterationVariable { get; }
+        IMethodSymbol Method { get; }
+
         /// <summary>
-        /// Collection value over which the loop iterates.
+        /// Indicates whether the reference uses virtual semantics.
         /// </summary>
-        IOperation Collection { get; }
+        bool IsVirtual { get; }
     }
 }
 

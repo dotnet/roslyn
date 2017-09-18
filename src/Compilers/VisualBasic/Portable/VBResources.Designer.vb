@@ -3036,7 +3036,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Only one of &apos;Public&apos;, &apos;Private&apos;, &apos;Protected&apos;, &apos;Friend&apos;, or &apos;Protected Friend&apos; can be specified..
+        '''  Looks up a localized string similar to Only one of &apos;Public&apos;, &apos;Private&apos;, &apos;Protected&apos;, &apos;Friend&apos;, &apos;Protected Friend&apos;, or &apos;Private Protected&apos; can be specified..
         '''</summary>
         Friend ReadOnly Property ERR_DuplicateAccessCategoryUsed() As String
             Get
@@ -10289,7 +10289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Method in a structure cannot be declared &apos;Protected&apos; or &apos;Protected Friend&apos;..
+        '''  Looks up a localized string similar to Method in a structure cannot be declared &apos;Protected&apos;, &apos;Protected Friend&apos;, or &apos;Private Protected&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_StructureCantUseProtected() As String
             Get
@@ -12132,6 +12132,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property FEATURE_PartialModules() As String
             Get
                 Return ResourceManager.GetString("FEATURE_PartialModules", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Private Protected.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_PrivateProtected() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_PrivateProtected", resourceCulture)
             End Get
         End Property
         
