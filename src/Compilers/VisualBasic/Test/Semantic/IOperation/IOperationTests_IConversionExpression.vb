@@ -1044,6 +1044,46 @@ BC31143: Method 'Public Sub M2(i As Integer)' does not have a signature compatib
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
+        Public Sub ConversionExpression_Implicit_WideningMethodGroupToDelegate_RelaxationArguments_NonImplicitReceiver_InvalidConversion()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module Program
+    Sub M1()
+        Dim c1 As New C1
+        Dim a As Action = AddressOf c1.M2'BIND:"Dim a As Action = AddressOf c1.M2"
+    End Sub
+
+    Class C1
+        Sub M2(i As Integer)
+        End Sub
+    End Class
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... essOf c1.M2')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
+    Variables: Local_1: a As System.Action
+    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: 'AddressOf c1.M2')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf c1.M2')
+            Children(1):
+                IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'c1.M2')
+                  Children(1):
+                      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'c1')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC31143: Method 'Public Sub M2(i As Integer)' does not have a signature compatible with delegate 'Delegate Sub Action()'.
+        Dim a As Action = AddressOf c1.M2'BIND:"Dim a As Action = AddressOf c1.M2"
+                                    ~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
         Public Sub ConversionExpression_Implicit_WideningMethodGroupToDelegate_RelaxationReturnType()
             Dim source = <![CDATA[
 Option Strict On
