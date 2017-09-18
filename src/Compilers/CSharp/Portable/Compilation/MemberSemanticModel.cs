@@ -970,6 +970,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // we might optimize it later
+            // https://github.com/dotnet/roslyn/issues/22180
             return statementOrRootOperation.DescendantsAndSelf().FirstOrDefault(o => !o.IsImplicit && o.Syntax == node);
         }
 
@@ -1023,6 +1024,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode highestBoundNode;
             GetBoundNodes(node, out _, out _, out highestBoundNode, out _);
 
+            // decide whether we should use highest or lowest bound node here 
+            // https://github.com/dotnet/roslyn/issues/22179
             BoundNode result = highestBoundNode;
 
             // The CSharp operation factory assumes that UnboundLambda will be bound for error recovery and never be passed to the factory

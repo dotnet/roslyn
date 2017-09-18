@@ -804,6 +804,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' we might optimize it later
+            ' https://github.com/dotnet/roslyn/issues/22180
             Return statementOrRootOperation.DescendantsAndSelf().FirstOrDefault(Function(o) Not o.IsImplicit AndAlso o.Syntax Is node)
         End Function
 
@@ -811,6 +812,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(node Is GetBindingRoot(node))
 
             Dim summary As BoundNodeSummary = GetBoundNodeSummary(node)
+
+            ' decide whether we should use highest or lowest bound node here 
+            ' https://github.com/dotnet/roslyn/issues/22179
             Dim result As BoundNode = summary.HighestBoundNode
 
             Return _operationFactory.Value.Create(result)
