@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             Lazy<IOperation> instance = new Lazy<IOperation>(() => new InstanceReferenceExpression(
                 semanticModel: _semanticModel,
                 syntax: boundObjectInitializerMember.Syntax,
-                type: boundObjectInitializerMember.InstanceSymbol,
+                type: boundObjectInitializerMember.ReceiverSymbol,
                 constantValue: default(Optional<object>),
                 isImplicit: boundObjectInitializerMember.WasCompilerGenerated));
 

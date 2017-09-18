@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 memberInit.Expanded,
                                 memberInit.ArgsToParamsOpt,
                                 memberInit.ResultKind,
-                                memberInit.InstanceSymbol,
+                                memberInit.ReceiverSymbol,
                                 memberInit.BinderOpt,
                                 memberInit.Type);
                         }
