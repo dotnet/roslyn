@@ -403,9 +403,11 @@ Class Class1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... essOf Me.M)')
-  Target: IMethodBindingExpression: Sub Class1.M(x As System.Object, y As System.EventArgs) (OperationKind.MethodBindingExpression, Type: System.EventHandler) (Syntax: 'AddressOf Me.M')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class1) (Syntax: 'Me')
+IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... essOf Me.M)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler) (Syntax: 'AddressOf Me.M')
+      Target: IMethodBindingExpression: Sub Class1.M(x As System.Object, y As System.EventArgs) (OperationKind.MethodBindingExpression, Type: System.EventHandler) (Syntax: 'AddressOf Me.M')
+          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class1) (Syntax: 'Me')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

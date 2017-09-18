@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -293,6 +293,49 @@ BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Stri
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
+        Public Sub DelegateCreationExpression_ExplicitCTypeLambdaConversion_InvalidVariableType()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module Program
+    Sub Main()
+        Dim a As Action(Of Object) = CType(Sub(i As Integer) Console.WriteLine(), Action(Of Integer))'BIND:"Dim a As Action(Of Object) = CType(Sub(i As Integer) Console.WriteLine(), Action(Of Integer))"
+    End Sub
+End Module
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... f Integer))')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
+    Variables: Local_1: a As System.Action(Of System.Object)
+    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.Object), IsInvalid) (Syntax: 'CType(Sub(i ... f Integer))')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.Int32), IsInvalid) (Syntax: 'CType(Sub(i ... f Integer))')
+            Target: IAnonymousFunctionExpression (Symbol: Sub (i As System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(i As In ... WriteLine()')
+                IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub(i As In ... WriteLine()')
+                  IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub(i As In ... WriteLine()')
+                    IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine()')
+                      Expression: IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
+                          Instance Receiver: null
+                          Arguments(0)
+                  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'Sub(i As In ... WriteLine()')
+                    Statement: null
+                  IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Sub(i As In ... WriteLine()')
+                    ReturnedValue: null
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC36755: 'Action(Of Integer)' cannot be converted to 'Action(Of Object)' because 'Object' is not derived from 'Integer', as required for the 'In' generic parameter 'T' in 'Delegate Sub Action(Of In T)(obj As T)'.
+        Dim a As Action(Of Object) = CType(Sub(i As Integer) Console.WriteLine(), Action(Of Integer))'BIND:"Dim a As Action(Of Object) = CType(Sub(i As Integer) Console.WriteLine(), Action(Of Integer))"
+                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
         Public Sub DelegateCreationExpression_ExplicitCTypeLambdaConversion_ReturnRelaxation()
             Dim source = <![CDATA[
 Option Strict On
@@ -355,6 +398,76 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
             VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <Fact()>
+        Public Sub DelegateCreationExpression_DirectCastLambdaConversion()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module Program
+    Sub Main()
+        Dim a As Action = DirectCast(Sub() Console.WriteLine(), Action)'BIND:"DirectCast(Sub() Console.WriteLine(), Action)"
+    End Sub
+End Module
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'DirectCast( ... (), Action)')
+  Target: IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
+      IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Sub() Conso ... WriteLine()')
+        IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Sub() Conso ... WriteLine()')
+          IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine()')
+            Expression: IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine()')
+                Instance Receiver: null
+                Arguments(0)
+        ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'Sub() Conso ... WriteLine()')
+          Statement: null
+        IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Sub() Conso ... WriteLine()')
+          ReturnedValue: null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of DirectCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact()>
+        Public Sub DelegateCreationExpression_DirectCastLambdaConversion_InvalidArgumentType()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module Program
+    Sub Main()
+        Dim a As Action = DirectCast(Sub(i As Integer) Console.WriteLine(), Action)'BIND:"DirectCast(Sub(i As Integer) Console.WriteLine(), Action)"
+    End Sub
+End Module
+]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: 'DirectCast( ... (), Action)')
+  Target: IAnonymousFunctionExpression (Symbol: Sub (i As System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(i As In ... WriteLine()')
+      IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub(i As In ... WriteLine()')
+        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub(i As In ... WriteLine()')
+          IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine()')
+            Expression: IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
+                Instance Receiver: null
+                Arguments(0)
+        ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'Sub(i As In ... WriteLine()')
+          Statement: null
+        IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Sub(i As In ... WriteLine()')
+          ReturnedValue: null
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC36670: Nested sub does not have a signature that is compatible with delegate 'Action'.
+        Dim a As Action = DirectCast(Sub(i As Integer) Console.WriteLine(), Action)'BIND:"DirectCast(Sub(i As Integer) Console.WriteLine(), Action)"
+                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of DirectCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub DelegateCreationExpression_ImplicitMethodBinding()
@@ -400,6 +513,10 @@ End Module]]>.Value
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: 'AddressOf Method2')
   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
+      Children(1):
+          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
+            Children(1):
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -512,16 +629,53 @@ End Module
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action) (Syntax: 'CType(Addre ... M1, Action)')
-  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'AddressOf M1')
-      Target: IMethodBindingExpression: Sub ConsoleApp2.Program.M1() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf M1')
-          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: ConsoleApp2.Program) (Syntax: 'M1')
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'CType(Addre ... M1, Action)')
+  Target: IMethodBindingExpression: Sub Program.M1() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf M1')
+      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
             VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ExplicitCTypeMethodBinding_InvalidVariableType()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module Program
+    Sub Main()
+        Dim a As Action(Of Object) = CType(AddressOf M1, Action(Of Integer))'BIND:"Dim a As Action(Of Object) = CType(AddressOf M1, Action(Of Integer))"
+    End Sub
+
+    Sub M1(i As Integer)
+    End Sub
+End Module
+]]>.Value
+
+            ' Explicitly verifying the entire tree here to ensure that the top level initializer statement is actually an IConversion, and not
+            ' a delegate creation
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... f Integer))')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
+    Variables: Local_1: a As System.Action(Of System.Object)
+    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.Object), IsInvalid) (Syntax: 'CType(Addre ... f Integer))')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.Int32), IsInvalid) (Syntax: 'CType(Addre ... f Integer))')
+            Target: IMethodBindingExpression: Sub ConsoleApp2.Program.M1(i As System.Int32) (OperationKind.MethodBindingExpression, Type: System.Action(Of System.Int32), IsInvalid) (Syntax: 'AddressOf M1')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: ConsoleApp2.Program, IsInvalid) (Syntax: 'M1')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC36755: 'Action(Of Integer)' cannot be converted to 'Action(Of Object)' because 'Object' is not derived from 'Integer', as required for the 'In' generic parameter 'T' in 'Delegate Sub Action(Of In T)(obj As T)'.
+        Dim a As Action(Of Object) = CType(AddressOf M1, Action(Of Integer))'BIND:"Dim a As Action(Of Object) = CType(AddressOf M1, Action(Of Integer))"
+                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
@@ -698,9 +852,11 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'New Action( ... Of Method2)')
-  Target: IMethodBindingExpression: Sub M1.Method2() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf Method2')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1) (Syntax: 'Method2')
+IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action) (Syntax: 'New Action( ... Of Method2)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'AddressOf Method2')
+      Target: IMethodBindingExpression: Sub M1.Method2() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf Method2')
+          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -725,9 +881,11 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'New Action( ... Of Method2)')
-  Target: IMethodBindingExpression: Function M1.Method2() As System.Object (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf Method2')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1) (Syntax: 'Method2')
+IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action) (Syntax: 'New Action( ... Of Method2)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'AddressOf Method2')
+      Target: IMethodBindingExpression: Function M1.Method2() As System.Object (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf Method2')
+          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -751,9 +909,11 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.Int32)) (Syntax: 'New Action( ... Of Method2)')
-  Target: IMethodBindingExpression: Sub M1.Method2(o As System.Object) (OperationKind.MethodBindingExpression, Type: System.Action(Of System.Int32)) (Syntax: 'AddressOf Method2')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1) (Syntax: 'Method2')
+IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.Int32)) (Syntax: 'New Action( ... Of Method2)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.Int32)) (Syntax: 'AddressOf Method2')
+      Target: IMethodBindingExpression: Sub M1.Method2(o As System.Object) (OperationKind.MethodBindingExpression, Type: System.Action(Of System.Int32)) (Syntax: 'AddressOf Method2')
+          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -780,6 +940,10 @@ End Module]]>.Value
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: 'New Action( ... Of Method2)')
   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
+      Children(1):
+          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
+            Children(1):
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -810,6 +974,10 @@ End Module]]>.Value
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'New Func(Of ... Of Method2)')
   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Operand: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
+      Children(1):
+          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
+            Children(1):
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
