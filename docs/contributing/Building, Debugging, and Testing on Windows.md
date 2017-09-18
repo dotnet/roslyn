@@ -122,4 +122,4 @@ csc and vbc inside it. You can check the cibuild.cmd and see how it is used.
 
 ## Contributing
 
-Please see [Contributing Code](https://github.com/dotnet/roslyn/blob/master/CONTRIBUTING.md)) for details on contributing changes back to the code.
+Please see [Contributing Code](https://github.com/dotnet/roslyn/blob/master/CONTRIBUTING.md) for details on contributing changes back to the code.
