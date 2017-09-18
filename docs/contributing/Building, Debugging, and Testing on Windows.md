@@ -57,7 +57,7 @@ give it a try.
 The Rosyln solution is designed to support easy debugging via F5.  Several of our
 projects produce VSIX which deploy into Visual Studio during build.  The F5 operation 
 will start a new Visual Studio instance using those VSIX which override our installed
-binaries.  This means trying out a change to the languge, IDE or debugger is as
+binaries.  This means trying out a change to the language, IDE or debugger is as
 simple as hitting F5.
 
 The startup project needs to be set to VisualStudioSetup.Next.  This should be
