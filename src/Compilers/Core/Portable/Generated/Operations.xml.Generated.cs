@@ -2110,7 +2110,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an increment expression.
     /// </summary>
-    internal abstract partial class BaseIncrementExpression : Operation, IIncrementExpression
+    internal abstract partial class BaseIncrementExpression : Operation, IIncrementOrDecrementExpression
     {
         public BaseIncrementExpression(bool isDecrement, bool isPostfix, bool isLifted, bool isChecked, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(isDecrement ? OperationKind.DecrementExpression : OperationKind.IncrementExpression, semanticModel, syntax, type, constantValue, isImplicit)
@@ -2160,18 +2160,18 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitIncrementExpression(this);
+            visitor.VisitIncrementOrDecrementExpression(this);
         }
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitIncrementExpression(this, argument);
+            return visitor.VisitIncrementOrDecrementExpression(this, argument);
         }
     }
 
     /// <summary>
     /// Represents an increment expression.
     /// </summary>
-    internal sealed partial class IncrementExpression : BaseIncrementExpression, IIncrementExpression
+    internal sealed partial class IncrementExpression : BaseIncrementExpression, IIncrementOrDecrementExpression
     {
         public IncrementExpression(bool isDecrement, bool isPostfix, bool isLifted, bool isChecked, IOperation target, bool usesOperatorMethod, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(isDecrement, isPostfix, isLifted, isChecked, usesOperatorMethod, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
@@ -2185,7 +2185,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an increment expression.
     /// </summary>
-    internal sealed partial class LazyIncrementExpression : BaseIncrementExpression, IIncrementExpression
+    internal sealed partial class LazyIncrementExpression : BaseIncrementExpression, IIncrementOrDecrementExpression
     {
         private readonly Lazy<IOperation> _lazyTarget;
 

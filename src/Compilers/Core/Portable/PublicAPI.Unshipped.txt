@@ -303,11 +303,11 @@ Microsoft.CodeAnalysis.Semantics.IIfStatement
 Microsoft.CodeAnalysis.Semantics.IIfStatement.Condition.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IIfStatement.IfFalseStatement.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IIfStatement.IfTrueStatement.get -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.Semantics.IIncrementExpression
-Microsoft.CodeAnalysis.Semantics.IIncrementExpression.IsChecked.get -> bool
-Microsoft.CodeAnalysis.Semantics.IIncrementExpression.IsLifted.get -> bool
-Microsoft.CodeAnalysis.Semantics.IIncrementExpression.IsPostfix.get -> bool
-Microsoft.CodeAnalysis.Semantics.IIncrementExpression.Target.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IIncrementOrDecrementExpression
+Microsoft.CodeAnalysis.Semantics.IIncrementOrDecrementExpression.IsChecked.get -> bool
+Microsoft.CodeAnalysis.Semantics.IIncrementOrDecrementExpression.IsLifted.get -> bool
+Microsoft.CodeAnalysis.Semantics.IIncrementOrDecrementExpression.IsPostfix.get -> bool
+Microsoft.CodeAnalysis.Semantics.IIncrementOrDecrementExpression.Target.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IInstanceReferenceExpression
 Microsoft.CodeAnalysis.Semantics.IInterpolatedStringContent
 Microsoft.CodeAnalysis.Semantics.IInterpolatedStringExpression
@@ -514,7 +514,7 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitForEachLoopStatem
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitForLoopStatement(Microsoft.CodeAnalysis.Semantics.IForLoopStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitForToLoopStatement(Microsoft.CodeAnalysis.Semantics.IForToLoopStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitIfStatement(Microsoft.CodeAnalysis.Semantics.IIfStatement operation) -> void
-virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitIncrementExpression(Microsoft.CodeAnalysis.Semantics.IIncrementExpression operation) -> void
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitIncrementOrDecrementExpression(Microsoft.CodeAnalysis.Semantics.IIncrementOrDecrementExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitInstanceReferenceExpression(Microsoft.CodeAnalysis.Semantics.IInstanceReferenceExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitInterpolatedStringExpression(Microsoft.CodeAnalysis.Semantics.IInterpolatedStringExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitInterpolatedStringText(Microsoft.CodeAnalysis.Semantics.IInterpolatedStringText operation) -> void
@@ -594,7 +594,7 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.Vi
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitForLoopStatement(Microsoft.CodeAnalysis.Semantics.IForLoopStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitForToLoopStatement(Microsoft.CodeAnalysis.Semantics.IForToLoopStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitIfStatement(Microsoft.CodeAnalysis.Semantics.IIfStatement operation, TArgument argument) -> TResult
-virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitIncrementExpression(Microsoft.CodeAnalysis.Semantics.IIncrementExpression operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitIncrementOrDecrementExpression(Microsoft.CodeAnalysis.Semantics.IIncrementOrDecrementExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitInstanceReferenceExpression(Microsoft.CodeAnalysis.Semantics.IInstanceReferenceExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitInterpolatedStringExpression(Microsoft.CodeAnalysis.Semantics.IInterpolatedStringExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitInterpolatedStringText(Microsoft.CodeAnalysis.Semantics.IInterpolatedStringText operation, TArgument argument) -> TResult

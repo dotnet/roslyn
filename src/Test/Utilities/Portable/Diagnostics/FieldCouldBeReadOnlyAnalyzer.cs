@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                         {
                                             AssignTo(assignment.Target, inConstructor, staticConstructorType, assignedToFields, mightBecomeReadOnlyFields);
                                         }
-                                        else if (operationContext.Operation is IIncrementExpression increment)
+                                        else if (operationContext.Operation is IIncrementOrDecrementExpression increment)
                                         {
                                             AssignTo(increment.Target, inConstructor, staticConstructorType, assignedToFields, mightBecomeReadOnlyFields);
                                         }

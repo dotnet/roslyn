@@ -552,13 +552,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitCompoundAssignmentExpression(operation);
         }
 
-        public override void VisitIncrementExpression(IIncrementExpression operation)
+        public override void VisitIncrementOrDecrementExpression(IIncrementOrDecrementExpression operation)
         {
             var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
             var isPostFix = operation.IsPostfix;
 
-            base.VisitIncrementExpression(operation);
+            base.VisitIncrementOrDecrementExpression(operation);
         }
 
         public override void VisitParenthesizedExpression(IParenthesizedExpression operation)

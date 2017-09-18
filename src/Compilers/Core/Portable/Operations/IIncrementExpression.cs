@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IIncrementExpression : IOperation, IHasOperatorMethodExpression
+    public interface IIncrementOrDecrementExpression : IOperation, IHasOperatorMethodExpression
     {
         /// <summary>
         /// Target of the assignment.

@@ -1227,9 +1227,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Value, "Right");
         }
 
-        public override void VisitIncrementExpression(IIncrementExpression operation)
+        public override void VisitIncrementOrDecrementExpression(IIncrementOrDecrementExpression operation)
         {
-            LogString(nameof(IIncrementExpression));
+            LogString(nameof(IIncrementOrDecrementExpression));
 
             var kindStr = operation.IsPostfix ? "Postfix" : "Prefix";
             if (operation.IsLifted)

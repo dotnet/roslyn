@@ -3038,7 +3038,7 @@ class A
 }
 ";
             string expectedOperationTree = @"
-IIncrementExpression (Prefix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++i')
+IIncrementOrDecrementExpression (Prefix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++i')
   Target: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
 ";
 
@@ -3060,7 +3060,7 @@ class A
 }
 ";
             string expectedOperationTree = @"
-IIncrementExpression (Prefix) (OperationKind.DecrementExpression, Type: System.Int32) (Syntax: '--i')
+IIncrementOrDecrementExpression (Prefix) (OperationKind.DecrementExpression, Type: System.Int32) (Syntax: '--i')
   Target: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
