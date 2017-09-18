@@ -814,6 +814,8 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                 IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf S')
                   Children(1):
                       IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'S')
+                        Children(1):
+                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'S')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

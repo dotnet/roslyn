@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -361,6 +361,8 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
 "IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(New S ... ), Nothing)')
   Children(3):
       IOperation:  (OperationKind.None) (Syntax: 'Test2')
+        Children(1):
+            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Module1) (Syntax: 'Test2')
       IObjectCreationExpression (Constructor: Sub System.Guid..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Guid, IsInvalid) (Syntax: 'New System.Guid()')
         Arguments(0)
         Initializer: null
@@ -370,16 +372,69 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
 "IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test1(AddressOf Main)')
   Children(2):
       IOperation:  (OperationKind.None) (Syntax: 'Test1')
-      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Main')")
+        Children(1):
+            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Module1) (Syntax: 'Test1')
+      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Main')
+        Children(1):
+            IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Main')
+              Children(1):
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Module1, IsInvalid) (Syntax: 'Main')")
 
             comp.VerifyOperationTree(nodes(3), expectedOperationTree:=
 "IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(New S ... essOf Main)')
   Children(3):
       IOperation:  (OperationKind.None) (Syntax: 'Test2')
+        Children(1):
+            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Module1) (Syntax: 'Test2')
       IObjectCreationExpression (Constructor: Sub System.Guid..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Guid, IsInvalid) (Syntax: 'New System.Guid()')
         Arguments(0)
         Initializer: null
-      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Main')")
+      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Main')
+        Children(1):
+            IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Main')
+              Children(1):
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Module1, IsInvalid) (Syntax: 'Main')")
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub AddressOf_BoundMethodOrPropertyGroup_ExposesReceiver()
+            Dim source = <![CDATA[
+Imports System
+Module Program
+    Sub Main(args As String())
+        Dim c1 As New C1
+        Console.WriteLine(New With {Key .a = AddressOf c1.S})'BIND:"New With {Key .a = AddressOf c1.S}"
+    End Sub
+
+    Class C1
+        Sub S()
+        End Sub
+    End Class
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key a As ?>, IsInvalid) (Syntax: 'New With {K ... essOf c1.S}')
+  Initializers(1):
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: 'Key .a = AddressOf c1.S')
+        Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
+            Instance Receiver: null
+        Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'AddressOf c1.S')
+            Children(1):
+                IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf c1.S')
+                  Children(1):
+                      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'c1.S')
+                        Children(1):
+                            IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'c1')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30491: Expression does not produce a value.
+        Console.WriteLine(New With {Key .a = AddressOf c1.S})'BIND:"New With {Key .a = AddressOf c1.S}"
+                                             ~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>

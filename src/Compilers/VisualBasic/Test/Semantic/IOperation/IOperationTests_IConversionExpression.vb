@@ -1032,6 +1032,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         Operand: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf M2')
             Children(1):
                 IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M2')
+                  Children(1):
+                      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1123,6 +1125,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         Operand: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf M2')
             Children(1):
                 IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M2')
+                  Children(1):
+                      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1183,7 +1187,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ar ... teger(1) {}')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Array
@@ -1216,7 +1220,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a As Ar ... ger(1)() {}')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Array
@@ -1676,7 +1680,7 @@ Module Program
     End Sub
 End Module]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim s1 As S ...  Char(1) {}')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 's1')
     Variables: Local_1: s1 As System.String
@@ -2094,7 +2098,7 @@ Module Module1
 End Module
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim expr As ... um) num < 5')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'expr')
     Variables: Local_1: expr As System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean))
@@ -2368,6 +2372,14 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.String), IsInvalid) (Syntax: 'AddressOf M ... (Of String)')
+  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf M ... (Of String)')
+      Children(1):
+          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2(Of String)')
+            Children(2):
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid) (Syntax: 'Method2(Of String)')
+                IOperation:  (OperationKind.None, IsInvalid) (Syntax: '(Of String)')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

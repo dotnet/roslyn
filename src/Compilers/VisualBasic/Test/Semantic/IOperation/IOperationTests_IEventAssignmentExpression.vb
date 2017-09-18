@@ -169,6 +169,8 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Re
           Operand: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf M')
               Children(1):
                   IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M')
+                    Children(1):
+                        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsInvalid) (Syntax: 'M')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
