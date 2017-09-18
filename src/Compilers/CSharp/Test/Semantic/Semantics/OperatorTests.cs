@@ -545,16 +545,16 @@ IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: ''a'')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Char, Constant: a) (Syntax: ''a'')
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     IfFalse: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write('b');')
         Expression: IInvocationExpression (void System.Console.Write(System.Char value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write('b')')
             Instance Receiver: null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: ''b'')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Char, Constant: b) (Syntax: ''b'')
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... 'g' : 'h');')
     Expression: IInvocationExpression (void System.Console.Write(System.Char value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ...  'g' : 'h')')
         Instance Receiver: null
@@ -565,8 +565,8 @@ IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
                     Operand: IParameterReferenceExpression: one (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'one')
                 WhenTrue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Char, Constant: g) (Syntax: ''g'')
                 WhenFalse: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Char, Constant: h) (Syntax: ''h'')
-              InConversion: null
-              OutConversion: null
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -664,8 +664,8 @@ IBlockStatement (5 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperatorMethod: S S.op_UnaryPlus(S x)) (OperationKind.UnaryOperatorExpression, Type: S) (Syntax: '+a')
                     Operand: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
-              InConversion: null
-              OutConversion: null
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(-a);')
     Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(-a)')
         Instance Receiver: null
@@ -675,8 +675,8 @@ IBlockStatement (5 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperatorMethod: S S.op_UnaryNegation(S x)) (OperationKind.UnaryOperatorExpression, Type: S) (Syntax: '-a')
                     Operand: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
-              InConversion: null
-              OutConversion: null
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(~a);')
     Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(~a)')
         Instance Receiver: null
@@ -686,8 +686,8 @@ IBlockStatement (5 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperatorMethod: S S.op_OnesComplement(S x)) (OperationKind.UnaryOperatorExpression, Type: S) (Syntax: '~a')
                     Operand: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
-              InConversion: null
-              OutConversion: null
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(!a);')
     Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(!a)')
         Instance Receiver: null
@@ -697,8 +697,8 @@ IBlockStatement (5 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: IUnaryOperatorExpression (UnaryOperatorKind.Not) (OperatorMethod: S S.op_LogicalNot(S x)) (OperationKind.UnaryOperatorExpression, Type: S) (Syntax: '!a')
                     Operand: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
-              InConversion: null
-              OutConversion: null
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(+~!-a);')
     Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(+~!-a)')
         Instance Receiver: null
@@ -711,8 +711,8 @@ IBlockStatement (5 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
                         Operand: IUnaryOperatorExpression (UnaryOperatorKind.Not) (OperatorMethod: S S.op_LogicalNot(S x)) (OperationKind.UnaryOperatorExpression, Type: S) (Syntax: '!-a')
                             Operand: IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperatorMethod: S S.op_UnaryNegation(S x)) (OperationKind.UnaryOperatorExpression, Type: S) (Syntax: '-a')
                                 Operand: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
-              InConversion: null
-              OutConversion: null
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -761,8 +761,8 @@ IBlockStatement (4 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: IIncrementExpression (PrefixIncrement) (OperatorMethod: S S.op_Increment(S x)) (OperationKind.IncrementExpression, Type: S) (Syntax: '++a')
                     Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
-              InConversion: null
-              OutConversion: null
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(a++);')
     Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(a++)')
         Instance Receiver: null
@@ -772,8 +772,8 @@ IBlockStatement (4 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: IIncrementExpression (PostfixIncrement) (OperatorMethod: S S.op_Increment(S x)) (OperationKind.IncrementExpression, Type: S) (Syntax: 'a++')
                     Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
-              InConversion: null
-              OutConversion: null
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(--a);')
     Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(--a)')
         Instance Receiver: null
@@ -783,8 +783,8 @@ IBlockStatement (4 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: IIncrementExpression (PrefixDecrement) (OperatorMethod: S S.op_Decrement(S x)) (OperationKind.IncrementExpression, Type: S) (Syntax: '--a')
                     Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
-              InConversion: null
-              OutConversion: null
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(a--);')
     Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(a--)')
         Instance Receiver: null
@@ -794,8 +794,8 @@ IBlockStatement (4 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: IIncrementExpression (PostfixDecrement) (OperatorMethod: S S.op_Decrement(S x)) (OperationKind.IncrementExpression, Type: S) (Syntax: 'a--')
                     Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
-              InConversion: null
-              OutConversion: null
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -848,8 +848,8 @@ IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: IIncrementExpression (PrefixIncrement) (OperatorMethod: S S.op_Increment(S x)) (OperationKind.IncrementExpression, Type: S) (Syntax: '++a')
                       Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
-                InConversion: null
-                OutConversion: null
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(a++);')
       Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(a++)')
           Instance Receiver: null
@@ -859,8 +859,8 @@ IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: IIncrementExpression (PostfixIncrement) (OperatorMethod: S S.op_Increment(S x)) (OperationKind.IncrementExpression, Type: S) (Syntax: 'a++')
                       Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
-                InConversion: null
-                OutConversion: null
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(--a);')
       Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(--a)')
           Instance Receiver: null
@@ -870,8 +870,8 @@ IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: IIncrementExpression (PrefixDecrement) (OperatorMethod: S S.op_Decrement(S x)) (OperationKind.IncrementExpression, Type: S) (Syntax: '--a')
                       Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
-                InConversion: null
-                OutConversion: null
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(a--);')
       Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(a--)')
           Instance Receiver: null
@@ -881,8 +881,8 @@ IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Operand: IIncrementExpression (PostfixDecrement) (OperatorMethod: S S.op_Decrement(S x)) (OperationKind.IncrementExpression, Type: S) (Syntax: 'a--')
                       Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
-                InConversion: null
-                OutConversion: null
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -915,8 +915,8 @@ IBlockStatement (4 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
             IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '++a')
               IIncrementExpression (PrefixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++a')
                 Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
-              InConversion: null
-              OutConversion: null
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(a++);')
     Expression: IInvocationExpression (void System.Console.Write(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(a++)')
         Instance Receiver: null
@@ -924,8 +924,8 @@ IBlockStatement (4 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
             IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'a++')
               IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'a++')
                 Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
-              InConversion: null
-              OutConversion: null
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(--a);')
     Expression: IInvocationExpression (void System.Console.Write(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(--a)')
         Instance Receiver: null
@@ -933,8 +933,8 @@ IBlockStatement (4 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
             IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '--a')
               IIncrementExpression (PrefixDecrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '--a')
                 Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
-              InConversion: null
-              OutConversion: null
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(a--);')
     Expression: IInvocationExpression (void System.Console.Write(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(a--)')
         Instance Receiver: null
@@ -942,8 +942,8 @@ IBlockStatement (4 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
             IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'a--')
               IIncrementExpression (PostfixDecrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'a--')
                 Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
-              InConversion: null
-              OutConversion: null
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -980,8 +980,8 @@ IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
               IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '++a')
                 IIncrementExpression (PrefixIncrement, Checked) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++a')
                   Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
-                InConversion: null
-                OutConversion: null
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(a++);')
       Expression: IInvocationExpression (void System.Console.Write(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(a++)')
           Instance Receiver: null
@@ -989,8 +989,8 @@ IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
               IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'a++')
                 IIncrementExpression (PostfixIncrement, Checked) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'a++')
                   Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
-                InConversion: null
-                OutConversion: null
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(--a);')
       Expression: IInvocationExpression (void System.Console.Write(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(--a)')
           Instance Receiver: null
@@ -998,8 +998,8 @@ IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
               IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '--a')
                 IIncrementExpression (PrefixDecrement, Checked) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '--a')
                   Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
-                InConversion: null
-                OutConversion: null
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(a--);')
       Expression: IInvocationExpression (void System.Console.Write(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(a--)')
           Instance Receiver: null
@@ -1007,8 +1007,8 @@ IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }'
               IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'a--')
                 IIncrementExpression (PostfixDecrement, Checked) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'a--')
                   Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
-                InConversion: null
-                OutConversion: null
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

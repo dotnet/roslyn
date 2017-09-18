@@ -274,8 +274,8 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: 'y')
                   ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Alignment: null
         FormatString: null
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and constant ')
@@ -325,8 +325,8 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
                           Expression: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
                           Alignment: null
                           FormatString: null
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Alignment: null
         FormatString: null
 ";

@@ -151,8 +151,8 @@ ILocalFunctionStatement (Symbol: System.Int32 Local3(System.Int32 p1)) (Operatio
               Arguments(1):
                   IArgument (ArgumentKind.Explicit, Matching Parameter: p1) (OperationKind.Argument) (Syntax: 'p1')
                     IParameterReferenceExpression: p1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'p1')
-                    InConversion: null
-                    OutConversion: null
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -183,8 +183,8 @@ ILocalFunctionStatement (Symbol: System.Int32 Local(System.Int32 p1)) (Operation
                 IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + p1')
                   Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
                   Right: IParameterReferenceExpression: p1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'p1')
-                InConversion: null
-                OutConversion: null
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -216,14 +216,14 @@ class C
 ILocalFunctionStatement (Symbol: System.Threading.Tasks.Task<System.Int32> LocalAsync(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'async Task< ... }')
   IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
     IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'await Task.Delay(0);')
-      Expression: IAwaitExpression (OperationKind.AwaitExpression, Type: System.Void) (Syntax: 'await Task.Delay(0)')
+      Expression: IAwaitExpression (OperationKind.None) (Syntax: 'await Task.Delay(0)')
           AwaitedValue: IInvocationExpression (System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(System.Int32 millisecondsDelay)) (OperationKind.InvocationExpression, Type: System.Threading.Tasks.Task) (Syntax: 'Task.Delay(0)')
               Instance Receiver: null
               Arguments(1):
                   IArgument (ArgumentKind.Explicit, Matching Parameter: millisecondsDelay) (OperationKind.Argument) (Syntax: '0')
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-                    InConversion: null
-                    OutConversion: null
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return x + p1;')
       ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + p1')
           Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')

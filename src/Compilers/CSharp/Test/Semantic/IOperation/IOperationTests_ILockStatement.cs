@@ -336,8 +336,8 @@ ILockStatement (OperationKind.LockStatement) (Syntax: 'lock (new o ... }')
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '""Hello World!""')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""Hello World!"") (Syntax: '""Hello World!""')
-                  InConversion: null
-                  OutConversion: null
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

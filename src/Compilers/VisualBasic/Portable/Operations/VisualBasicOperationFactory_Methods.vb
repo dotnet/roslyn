@@ -71,6 +71,19 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return arguments.ToImmutableAndFree()
         End Function
 
+        Private Function CreateConversion(expression As BoundExpression) As Conversion
+            If expression.Kind = BoundKind.Conversion Then
+                Dim conversion = DirectCast(expression, BoundConversion)
+                Dim conversionKind = conversion.ConversionKind
+                Dim method As MethodSymbol = Nothing
+                If conversionKind.HasFlag(VisualBasic.ConversionKind.UserDefined) AndAlso conversion.Operand.Kind = BoundKind.UserDefinedConversion Then
+                    method = DirectCast(conversion.Operand, BoundUserDefinedConversion).Call.Method
+                End If
+                Return New Conversion(KeyValuePair.Create(conversionKind, method))
+            End If
+            Return New Conversion(Conversions.Identity)
+        End Function
+
         Private Function DeriveArgument(index As Integer, argument As BoundExpression, parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol)) As IArgument
             Dim isImplicit As Boolean = argument.WasCompilerGenerated
             Select Case argument.Kind
@@ -78,12 +91,13 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Dim byRefArgument = DirectCast(argument, BoundByRefArgumentWithCopyBack)
                     Dim parameter = parameters(index)
                     Dim value = Create(byRefArgument.OriginalArgument)
-                    Return New Argument(
+
+                    Return New VisualBasicArgument(
                         ArgumentKind.Explicit,
                         parameter,
                         value,
-                        Create(byRefArgument.InConversion),
-                        Create(byRefArgument.OutConversion),
+                        CreateConversion(byRefArgument.InConversion),
+                        CreateConversion(byRefArgument.OutConversion),
                         _semanticModel,
                         value.Syntax,
                         type:=Nothing,
@@ -91,47 +105,34 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         isImplicit:=isImplicit)
                 Case Else
                     Dim lastParameterIndex = parameters.Length - 1
+                    Dim kind As ArgumentKind
+
                     If index = lastParameterIndex AndAlso ParameterIsParamArray(parameters(lastParameterIndex)) Then
                         ' TODO: figure out if this is true:
                         '       a compiler generated argument for a ParamArray parameter is created iff
                         '       a list of arguments (including 0 argument) is provided for ParamArray parameter in source
                         '       https://github.com/dotnet/roslyn/issues/18550
-                        Dim kind = If(argument.WasCompilerGenerated AndAlso argument.Kind = BoundKind.ArrayCreation, ArgumentKind.ParamArray, ArgumentKind.Explicit)
-                        Dim parameter = parameters(lastParameterIndex)
-                        Dim value = Create(argument)
-
-                        Return New Argument(
-                            kind,
-                            parameter,
-                            value,
-                            inConversion:=Nothing,
-                            outConversion:=Nothing,
-                            semanticModel:=_semanticModel,
-                            syntax:=value.Syntax,
-                            type:=Nothing,
-                            constantValue:=Nothing,
-                            isImplicit:=isImplicit)
+                        kind = If(argument.WasCompilerGenerated AndAlso argument.Kind = BoundKind.ArrayCreation, ArgumentKind.ParamArray, ArgumentKind.Explicit)
                     Else
                         ' TODO: figure our if this is true:
                         '       a compiler generated argument for an Optional parameter is created iff
                         '       the argument is omitted from the source
                         '       https://github.com/dotnet/roslyn/issues/18550
-                        Dim kind = If(argument.WasCompilerGenerated, ArgumentKind.DefaultValue, ArgumentKind.Explicit)
-                        Dim parameter = parameters(index)
-                        Dim value = Create(argument)
-
-                        Return New Argument(
-                            kind,
-                            parameter,
-                            value,
-                            inConversion:=Nothing,
-                            outConversion:=Nothing,
-                            semanticModel:=_semanticModel,
-                            syntax:=value.Syntax,
-                            type:=Nothing,
-                            constantValue:=Nothing,
-                            isImplicit:=isImplicit)
+                        kind = If(argument.WasCompilerGenerated, ArgumentKind.DefaultValue, ArgumentKind.Explicit)
                     End If
+                    
+                    Dim value = Create(argument)
+                    Return New VisualBasicArgument(
+                        kind,
+                        parameters(index),
+                        value,
+                        inConversion:=New Conversion(Conversions.Identity),
+                        outConversion:=New Conversion(Conversions.Identity),
+                        semanticModel:=_semanticModel,
+                        syntax:=value.Syntax,
+                        type:=Nothing,
+                        constantValue:=Nothing,
+                        isImplicit:=isImplicit)
             End Select
         End Function
 
@@ -237,155 +238,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
             End If
 
             Return Nothing
-        End Function
-
-        Private Function GetForLoopStatementBefore(
-            controlVariable As BoundExpression,
-            initialValue As BoundExpression,
-            limitValue As IOperation,
-            stepValue As IOperation) As ImmutableArray(Of IOperation)
-            Dim statements As ArrayBuilder(Of IOperation) = ArrayBuilder(Of IOperation).GetInstance()
-
-            ' ControlVariable = InitialValue
-            If controlVariable IsNot Nothing Then
-                statements.Add(OperationFactory.CreateSimpleAssignmentExpressionStatement(Create(controlVariable), Create(initialValue), _semanticModel, initialValue.Syntax, isImplicit:=controlVariable.WasCompilerGenerated))
-            End If
-
-            ' T0 = LimitValue
-            If Not limitValue.ConstantValue.HasValue Then
-                statements.Add(
-                                OperationFactory.CreateSimpleAssignmentExpressionStatement(
-                                    New SyntheticLocalReferenceExpression(
-                                            SyntheticLocalKind.ForLoopLimitValue,
-                                            _semanticModel,
-                                            limitValue.Syntax,
-                                            limitValue.Type,
-                                            constantValue:=Nothing,
-                                            isImplicit:=limitValue.IsImplicit), limitValue, _semanticModel, limitValue.Syntax, limitValue.IsImplicit))
-            End If
-
-            ' T1 = StepValue
-            If stepValue IsNot Nothing AndAlso Not stepValue.ConstantValue.HasValue Then
-                statements.Add(
-                                OperationFactory.CreateSimpleAssignmentExpressionStatement(
-                                    New SyntheticLocalReferenceExpression(
-                                        SyntheticLocalKind.ForLoopStepValue,
-                                        _semanticModel,
-                                        stepValue.Syntax,
-                                        stepValue.Type,
-                                        constantValue:=Nothing,
-                                        isImplicit:=stepValue.IsImplicit), stepValue, _semanticModel, stepValue.Syntax, stepValue.IsImplicit))
-            End If
-
-            Return statements.ToImmutableAndFree()
-        End Function
-
-        Private Function GetForLoopStatementAtLoopBottom(
-            controlVariable As IOperation,
-            stepValue As BoundExpression,
-            operatorsOpt As BoundForToUserDefinedOperators) As ImmutableArray(Of IOperation)
-            Dim statements As ArrayBuilder(Of IOperation) = ArrayBuilder(Of IOperation).GetInstance()
-            If operatorsOpt IsNot Nothing Then
-                ' Use the operator methods. Figure out the precise rules first.
-            Else
-                If controlVariable IsNot Nothing Then
-                    ' ControlVariable += StepValue
-                    Dim controlType = DirectCast(controlVariable.Type, VisualBasic.Symbols.TypeSymbol)
-                    Dim stepValueExpression As BoundExpression = If(stepValue, New BoundLiteral(Nothing, Semantics.Expression.SynthesizeNumeric(controlType, 1), controlType))
-
-                    Dim value = Create(stepValueExpression)
-                    Dim stepOperand As IOperation =
-                                    If(stepValueExpression.IsConstant,
-                                        value,
-                                        New SyntheticLocalReferenceExpression(
-                                            SyntheticLocalKind.ForLoopStepValue,
-                                            _semanticModel,
-                                            value.Syntax,
-                                            value.Type,
-                                            constantValue:=Nothing,
-                                            isImplicit:=value.IsImplicit))
-                    statements.Add(OperationFactory.CreateCompoundAssignmentExpressionStatement(
-                        controlVariable, stepOperand,
-                        BinaryOperatorKind.Add, controlType.IsNullableType(), False,
-                        Nothing, _semanticModel, stepValueExpression.Syntax, value.IsImplicit))
-                End If
-            End If
-
-            Return statements.ToImmutableAndFree()
-        End Function
-
-        Private Function GetForWhileUntilLoopStatementCondition(
-            controlVariable As BoundExpression,
-            limitValue As BoundExpression,
-            stepValue As BoundExpression,
-            operatorsOpt As BoundForToUserDefinedOperators) As IOperation
-
-            Dim limitValueOperation = Create(limitValue)
-            Dim limitValueReference As IOperation =
-                        If(limitValue.IsConstant,
-                           limitValueOperation,
-                           New SyntheticLocalReferenceExpression(
-                               SyntheticLocalKind.ForLoopLimitValue,
-                               _semanticModel,
-                               limitValueOperation.Syntax,
-                               limitValueOperation.Type,
-                               constantValue:=Nothing,
-                               isImplicit:=limitValueOperation.IsImplicit))
-
-            ' controlVariable can be a BoundBadExpression in case of error
-            Dim booleanType As ITypeSymbol = controlVariable.ExpressionSymbol?.DeclaringCompilation.GetSpecialType(SpecialType.System_Boolean)
-
-            If operatorsOpt IsNot Nothing Then
-                ' Use the operator methods. Figure out the precise rules first.
-                Return Nothing
-            Else
-                ' We are comparing the control variable against the limit value.  Using
-                ' either the default stepping constant, or a user supplied constant.
-                ' This will be a lifted comparison if either the control variable or
-                ' limit value is nullable itself.
-                Dim isLifted = controlVariable.Type.IsNullableType() OrElse
-                               limitValue.Type.IsNullableType()
-
-                If stepValue Is Nothing OrElse (stepValue.IsConstant AndAlso stepValue.ConstantValueOpt IsNot Nothing) Then
-                    ' Either ControlVariable <= LimitValue or ControlVariable >= LimitValue, depending on whether the step value is negative.
-
-                    Dim relationalCode As BinaryOperatorKind =
-                        If(stepValue IsNot Nothing AndAlso stepValue.ConstantValueOpt.IsNegativeNumeric, BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThanOrEqual)
-                    Return OperationFactory.CreateBinaryOperatorExpression(
-                        relationalCode, _semanticModel.CloneOperation(Create(controlVariable)), limitValueReference, booleanType, _semanticModel, limitValueReference.Syntax, isLifted, isChecked:=False, isCompareText:=False, isImplicit:=limitValueReference.IsImplicit)
-                Else
-                    ' If(StepValue >= 0, ControlVariable <= LimitValue, ControlVariable >= LimitValue)
-                    Dim value = Create(stepValue)
-                    Dim stepValueReference As IOperation = New SyntheticLocalReferenceExpression(
-                                SyntheticLocalKind.ForLoopStepValue,
-                                _semanticModel,
-                                value.Syntax,
-                                value.Type,
-                                constantValue:=Nothing,
-                                isImplicit:=value.IsImplicit)
-
-                    Dim stepRelationalCode As BinaryOperatorKind = BinaryOperatorKind.GreaterThanOrEqual
-                    Dim stepConditionIsLifted = stepValue.Type.IsNullableType()
-                    Dim stepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(stepRelationalCode,
-                                 stepValueReference,
-                                 OperationFactory.CreateLiteralExpression(Semantics.Expression.SynthesizeNumeric(stepValueReference.Type, 0), stepValue.Type, _semanticModel, stepValue.Syntax, stepValueReference.IsImplicit),
-                                 booleanType,
-                                 _semanticModel,
-                                 stepValue.Syntax,
-                                 stepConditionIsLifted,
-                                 isChecked:=False,
-                                 isCompareText:=False,
-                                 isImplicit:=stepValue.WasCompilerGenerated)
-
-                    Dim positiveStepRelationalCode As BinaryOperatorKind = BinaryOperatorKind.LessThanOrEqual
-                    Dim positiveStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(positiveStepRelationalCode, _semanticModel.CloneOperation(Create(controlVariable)), limitValueReference, booleanType, _semanticModel, limitValueReference.Syntax, isLifted, isChecked:=False, isCompareText:=False, isImplicit:=limitValueReference.IsImplicit)
-
-                    Dim negativeStepRelationalCode As BinaryOperatorKind = BinaryOperatorKind.GreaterThanOrEqual
-                    Dim negativeStepCondition As IOperation = OperationFactory.CreateBinaryOperatorExpression(negativeStepRelationalCode, _semanticModel.CloneOperation(Create(controlVariable)), _semanticModel.CloneOperation(limitValueReference), booleanType, _semanticModel, limitValueReference.Syntax, isLifted, isChecked:=False, isCompareText:=False, isImplicit:=limitValueReference.IsImplicit)
-
-                    Return OperationFactory.CreateConditionalExpression(stepCondition, positiveStepCondition, negativeStepCondition, booleanType, _semanticModel, limitValueReference.Syntax, limitValueReference.IsImplicit)
-                End If
-            End If
         End Function
 
         Private Function GetVariableDeclarationStatementVariables(statement As BoundDimStatement) As ImmutableArray(Of IVariableDeclaration)

@@ -75,12 +75,22 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitWhileUntilLoopStatement(IWhileUntilLoopStatement operation)
+        public virtual void VisitDoLoopStatement(IDoLoopStatement operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitWhileLoopStatement(IWhileLoopStatement operation)
         {
             DefaultVisit(operation);
         }
 
         public virtual void VisitForLoopStatement(IForLoopStatement operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitForToLoopStatement(IForToLoopStatement operation)
         {
             DefaultVisit(operation);
         }
@@ -120,12 +130,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitTryStatement(ITryStatement operation)
+        // https://github.com/dotnet/roslyn/issues/22008
+        internal virtual void VisitTryStatement(ITryStatement operation)
         {
             DefaultVisit(operation);
         }
 
-        public virtual void VisitCatchClause(ICatchClause operation)
+        // https://github.com/dotnet/roslyn/issues/22008
+        internal virtual void VisitCatchClause(ICatchClause operation)
         {
             DefaultVisit(operation);
         }
@@ -146,17 +158,20 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitWithStatement(IWithStatement operation)
+        // https://github.com/dotnet/roslyn/issues/22005
+        internal virtual void VisitWithStatement(IWithStatement operation)
         {
             DefaultVisit(operation);
         }
 
-        public virtual void VisitStopStatement(IStopStatement operation)
+        // https://github.com/dotnet/roslyn/issues/21297
+        internal virtual void VisitStopStatement(IStopStatement operation)
         {
             DefaultVisit(operation);
         }
 
-        public virtual void VisitEndStatement(IEndStatement operation)
+        // https://github.com/dotnet/roslyn/issues/22004
+        internal virtual void VisitEndStatement(IEndStatement operation)
         {
             DefaultVisit(operation);
         }
@@ -176,7 +191,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation)
+        // https://github.com/dotnet/roslyn/issues/22006
+        internal virtual void VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -198,11 +214,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitSyntheticLocalReferenceExpression(ISyntheticLocalReferenceExpression operation)
-        {
-            DefaultVisit(operation);
-        }
-
         public virtual void VisitInstanceReferenceExpression(IInstanceReferenceExpression operation)
         {
             DefaultVisit(operation);
@@ -213,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitMethodBindingExpression(IMethodBindingExpression operation)
+        public virtual void VisitMethodReferenceExpression(IMethodReferenceExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -243,7 +254,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitPlaceholderExpression(IPlaceholderExpression operation)
+        // https://github.com/dotnet/roslyn/issues/21294
+        internal virtual void VisitPlaceholderExpression(IPlaceholderExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -278,12 +290,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitSizeOfExpression(ISizeOfExpression operation)
+        // https://github.com/dotnet/roslyn/issues/21296
+        internal virtual void VisitSizeOfExpression(ISizeOfExpression operation)
         {
             DefaultVisit(operation);
         }
 
-        public virtual void VisitTypeOfExpression(ITypeOfExpression operation)
+        // https://github.com/dotnet/roslyn/issues/22003
+        internal virtual void VisitTypeOfExpression(ITypeOfExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -298,7 +312,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitAwaitExpression(IAwaitExpression operation)
+        // https://github.com/dotnet/roslyn/issues/22007
+        internal virtual void VisitAwaitExpression(IAwaitExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -329,6 +344,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual void VisitDynamicObjectCreationExpression(IDynamicObjectCreationExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitDynamicInvocationExpression(IDynamicInvocationExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitDynamicIndexerAccessExpression(IDynamicIndexerAccessExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -543,12 +568,22 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitWhileUntilLoopStatement(IWhileUntilLoopStatement operation, TArgument argument)
+        public virtual TResult VisitDoLoopStatement(IDoLoopStatement operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitWhileLoopStatement(IWhileLoopStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
 
         public virtual TResult VisitForLoopStatement(IForLoopStatement operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitForToLoopStatement(IForToLoopStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -588,12 +623,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitTryStatement(ITryStatement operation, TArgument argument)
+        // https://github.com/dotnet/roslyn/issues/22008
+        internal virtual TResult VisitTryStatement(ITryStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitCatchClause(ICatchClause operation, TArgument argument)
+        // https://github.com/dotnet/roslyn/issues/22008
+        internal virtual TResult VisitCatchClause(ICatchClause operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -614,17 +651,20 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitWithStatement(IWithStatement operation, TArgument argument)
+        // https://github.com/dotnet/roslyn/issues/22005
+        internal virtual TResult VisitWithStatement(IWithStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitStopStatement(IStopStatement operation, TArgument argument)
+        // https://github.com/dotnet/roslyn/issues/21297
+        internal virtual TResult VisitStopStatement(IStopStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitEndStatement(IEndStatement operation, TArgument argument)
+        // https://github.com/dotnet/roslyn/issues/22004
+        internal virtual TResult VisitEndStatement(IEndStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -644,7 +684,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation, TArgument argument)
+        // https://github.com/dotnet/roslyn/issues/22006
+        internal virtual TResult VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -666,11 +707,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitSyntheticLocalReferenceExpression(ISyntheticLocalReferenceExpression operation, TArgument argument)
-        {
-            return DefaultVisit(operation, argument);
-        }
-
         public virtual TResult VisitInstanceReferenceExpression(IInstanceReferenceExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
@@ -681,7 +717,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitMethodBindingExpression(IMethodBindingExpression operation, TArgument argument)
+        public virtual TResult VisitMethodReferenceExpression(IMethodReferenceExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -711,7 +747,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitPlaceholderExpression(IPlaceholderExpression operation, TArgument argument)
+        // https://github.com/dotnet/roslyn/issues/21294
+        internal virtual TResult VisitPlaceholderExpression(IPlaceholderExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -746,12 +783,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitSizeOfExpression(ISizeOfExpression operation, TArgument argument)
+        // https://github.com/dotnet/roslyn/issues/21296
+        internal virtual TResult VisitSizeOfExpression(ISizeOfExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitTypeOfExpression(ITypeOfExpression operation, TArgument argument)
+        // https://github.com/dotnet/roslyn/issues/22003
+        internal virtual TResult VisitTypeOfExpression(ITypeOfExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -766,7 +805,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitAwaitExpression(IAwaitExpression operation, TArgument argument)
+        // https://github.com/dotnet/roslyn/issues/22007
+        internal virtual TResult VisitAwaitExpression(IAwaitExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -797,6 +837,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitDynamicObjectCreationExpression(IDynamicObjectCreationExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitDynamicInvocationExpression(IDynamicInvocationExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitDynamicIndexerAccessExpression(IDynamicIndexerAccessExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
