@@ -1,14 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
-using System.Linq;
-using System.Security.AccessControl;
-using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Globalization;
@@ -34,8 +28,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 
             // location of the response files.
             var clientDirectory = AppDomain.CurrentDomain.BaseDirectory;
+#if NET46
             var sdkDirectory = RuntimeEnvironment.GetRuntimeDirectory();
             var compilerServerHost = new DesktopCompilerServerHost(clientDirectory, sdkDirectory);
+#else
+            var sdkDirectory = (string)null;
+            var compilerServerHost = new CoreClrCompilerServerHost(clientDirectory, sdkDirectory);
+#endif
             return new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
         }
 
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     return ServerDispatcher.DefaultServerKeepAlive;
                 }
             }
-            catch (ConfigurationErrorsException e)
+            catch (Exception e)
             {
                 CompilerServerLogger.LogException(e, "Could not read AppSettings");
                 return ServerDispatcher.DefaultServerKeepAlive;

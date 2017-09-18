@@ -5,11 +5,11 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.UseNamedArguments;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseNamedArguments
+namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
 {
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpUseNamedArgumentsCodeRefactoringProvider)), Shared]
@@ -27,6 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseNamedArguments
 
             protected sealed override bool IsCloseParenOrComma(SyntaxToken token)
                 => token.IsKind(SyntaxKind.CloseParenToken, SyntaxKind.CommaToken);
+
+            protected override bool SupportsNonTrailingNamedArguments(ParseOptions options)
+                => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7_2;
         }
 
         private class ArgumentAnalyzer :

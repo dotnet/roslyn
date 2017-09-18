@@ -57,7 +57,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: '
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case 1')
           Clauses:
-              ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause) (Syntax: '1')
+              ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: '1')
                 Value: null
           Body:
               IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Case 1')
@@ -94,7 +94,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: '
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase, IsInvalid) (Syntax: 'Case x ... Exit Select')
           Clauses:
-              ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause, IsInvalid) (Syntax: 'x')
+              ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause, IsInvalid) (Syntax: 'x')
                 Value: null
           Body:
               IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Case x ... Exit Select')

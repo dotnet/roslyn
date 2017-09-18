@@ -31,6 +31,98 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        [WorkItem(21811, "https://github.com/dotnet/roslyn/issues/21811")]
+        public void Repro21811()
+        {
+            var comp = CreateStandardCompilation(@"
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var history = new List<long>();
+        Enumerable.Range(0, 5)
+            .Select(i =>
+            {
+                history.Insert(0, i);
+                return Test(i);
+
+                bool Test(int v)
+                {
+                    history.Remove(0);
+                    return Square(v) > 5;
+                }
+
+                int Square(int w)
+                {
+                    return w * w;
+                }
+            });
+    }
+}", references: new[] { LinqAssemblyRef });
+        }
+
+        [Fact]
+        [WorkItem(21645, "https://github.com/dotnet/roslyn/issues/21645")]
+        public void Repro21645()
+        {
+            CompileAndVerify(@"
+public class Class1
+{
+    private void Test()
+    {
+        bool outside = true;
+
+        void Inner() //This can also be a lambda (ie. Action action = () => { ... };)
+        {
+            void Bar()
+            {
+            }
+
+            void Foo()
+            {
+                Bar();
+
+                bool captured = outside;
+            }
+        }
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(21543, "https://github.com/dotnet/roslyn/issues/21543")]
+        public void Repro21543()
+        {
+            CompileAndVerify(@"
+using System;
+
+class Program
+{
+    static void Method(Action action) { }
+
+    static void Main()
+    {
+        int value = 0;
+        Method(() =>
+        {
+            local();
+            void local()
+            {
+                Console.WriteLine(value);
+                Method(() =>
+                {
+                    local();
+                });
+            }
+        });
+    }
+}");
+        }
+
+        [Fact]
         [WorkItem(472056, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=472056")]
         public void Repro472056()
         {

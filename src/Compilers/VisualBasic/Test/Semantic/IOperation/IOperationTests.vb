@@ -233,7 +233,7 @@ Class C
 End Class
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If x <> 0 T ... End If')
   Condition: IBinaryOperatorExpression (BinaryOperatorKind.NotEquals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x <> 0')
       Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
@@ -406,6 +406,108 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub TestEndStatement()
+            Dim source = <![CDATA[
+Class C
+    Public Shared i as Integer
+    Public Shared Sub Main()
+        If i = 0 Then
+            End'BIND:"End"
+        End If
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IEndStatement (OperationKind.None) (Syntax: 'End')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of StopOrEndStatementSyntax)(source, expectedOperationTree, expectedDiagnostics, compilationOptions:=TestOptions.ReleaseExe)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub TestEndStatement_Parent()
+            Dim source = <![CDATA[
+Class C
+    Public Shared i As Integer
+    Public Shared Sub Main()
+        If i = 0 Then'BIND:"If i = 0 Then"
+            End
+        End If
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IIfStatement (OperationKind.IfStatement) (Syntax: 'If i = 0 Th ... End If')
+  Condition: IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i = 0')
+      Left: IFieldReferenceExpression: C.i As System.Int32 (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i')
+          Instance Receiver: null
+      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If i = 0 Th ... End If')
+      IEndStatement (OperationKind.None) (Syntax: 'End')
+  IfFalse: null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics, compilationOptions:=TestOptions.ReleaseExe)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub TestStopStatement()
+            Dim source = <![CDATA[
+Class C
+    Public Shared i as Integer
+    Public Shared Sub Main()
+        If i = 0 Then
+            Stop'BIND:"Stop"
+        End If
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IStopStatement (OperationKind.None) (Syntax: 'Stop')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of StopOrEndStatementSyntax)(source, expectedOperationTree, expectedDiagnostics, compilationOptions:=TestOptions.ReleaseExe)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub TestStopStatement_Parent()
+            Dim source = <![CDATA[
+Class C
+    Public Shared i As Integer
+    Public Shared Sub Main()
+        If i = 0 Then'BIND:"If i = 0 Then"
+            Stop
+        End If
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IIfStatement (OperationKind.IfStatement) (Syntax: 'If i = 0 Th ... End If')
+  Condition: IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i = 0')
+      Left: IFieldReferenceExpression: C.i As System.Int32 (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i')
+          Instance Receiver: null
+      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If i = 0 Th ... End If')
+      IStopStatement (OperationKind.None) (Syntax: 'Stop')
+  IfFalse: null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics, compilationOptions:=TestOptions.ReleaseExe)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub TestCatchClause()
             Dim source = <![CDATA[
@@ -422,7 +524,7 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ICatchClause (Exception type: System.Exception, Exception local: ex As System.Exception) (OperationKind.CatchClause) (Syntax: 'Catch ex As ...  Is Nothing')
+ICatchClause (Exception type: System.Exception, Exception local: ex As System.Exception) (OperationKind.None) (Syntax: 'Catch ex As ...  Is Nothing')
   Filter: IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'ex Is Nothing')
       Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'ex')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)

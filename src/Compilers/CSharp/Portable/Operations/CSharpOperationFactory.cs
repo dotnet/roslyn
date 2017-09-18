@@ -66,6 +66,10 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundParameterOperation((BoundParameter)boundNode);
                 case BoundKind.Literal:
                     return CreateBoundLiteralOperation((BoundLiteral)boundNode);
+                case BoundKind.DynamicInvocation:
+                    return CreateBoundDynamicInvocationExpressionOperation((BoundDynamicInvocation)boundNode);
+                case BoundKind.DynamicIndexerAccess:
+                    return CreateBoundDynamicIndexerAccessExpressionOperation((BoundDynamicIndexerAccess)boundNode);
                 case BoundKind.ObjectCreationExpression:
                     return CreateBoundObjectCreationExpressionOperation((BoundObjectCreationExpression)boundNode);
                 case BoundKind.DynamicObjectCreationExpression:
@@ -459,8 +463,6 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IDynamicObjectCreationExpression CreateBoundDynamicObjectCreationExpressionOperation(BoundDynamicObjectCreationExpression boundDynamicObjectCreationExpression)
         {
-            string name = boundDynamicObjectCreationExpression.Name;
-            ImmutableArray<ISymbol> applicableSymbols = StaticCast<ISymbol>.From(boundDynamicObjectCreationExpression.ApplicableMethods);
             Lazy<ImmutableArray<IOperation>> arguments = new Lazy<ImmutableArray<IOperation>>(() => boundDynamicObjectCreationExpression.Arguments.SelectAsArray(n => Create(n)));
             ImmutableArray<string> argumentNames = boundDynamicObjectCreationExpression.ArgumentNamesOpt.NullToEmpty();
             ImmutableArray<RefKind> argumentRefKinds = boundDynamicObjectCreationExpression.ArgumentRefKindsOpt.NullToEmpty();
@@ -469,7 +471,43 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = boundDynamicObjectCreationExpression.Type;
             Optional<object> constantValue = ConvertToOptional(boundDynamicObjectCreationExpression.ConstantValue);
             bool isImplicit = boundDynamicObjectCreationExpression.WasCompilerGenerated;
-            return new LazyDynamicObjectCreationExpression(name, applicableSymbols, arguments, argumentNames, argumentRefKinds, initializer, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyDynamicObjectCreationExpression(arguments, argumentNames, argumentRefKinds, initializer, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IDynamicInvocationExpression CreateBoundDynamicInvocationExpressionOperation(BoundDynamicInvocation boundDynamicInvocation)
+        {
+            Lazy<IOperation> expression;
+            if (boundDynamicInvocation.Expression.Kind == BoundKind.MethodGroup)
+            {
+                var methodGroup = (BoundMethodGroup)boundDynamicInvocation.Expression;
+                expression = new Lazy<IOperation>(() => CreateBoundDynamicMemberAccessOperation(methodGroup.ReceiverOpt, methodGroup.TypeArgumentsOpt,
+                    methodGroup.Name, methodGroup.Syntax, methodGroup.Type, methodGroup.ConstantValue, methodGroup.WasCompilerGenerated));
+            }
+            else
+            {
+                expression = new Lazy<IOperation>(() => Create(boundDynamicInvocation.Expression));
+            }
+            Lazy<ImmutableArray<IOperation>> arguments = new Lazy<ImmutableArray<IOperation>>(() => boundDynamicInvocation.Arguments.SelectAsArray(n => Create(n)));
+            ImmutableArray<string> argumentNames = boundDynamicInvocation.ArgumentNamesOpt.NullToEmpty();
+            ImmutableArray<RefKind> argumentRefKinds = boundDynamicInvocation.ArgumentRefKindsOpt.NullToEmpty();
+            SyntaxNode syntax = boundDynamicInvocation.Syntax;
+            ITypeSymbol type = boundDynamicInvocation.Type;
+            Optional<object> constantValue = ConvertToOptional(boundDynamicInvocation.ConstantValue);
+            bool isImplicit = boundDynamicInvocation.WasCompilerGenerated;
+            return new LazyDynamicInvocationExpression(expression, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IDynamicIndexerAccessExpression CreateBoundDynamicIndexerAccessExpressionOperation(BoundDynamicIndexerAccess boundDynamicIndexerAccess)
+        {
+            Lazy<IOperation> expression = new Lazy<IOperation>(() => Create(boundDynamicIndexerAccess.ReceiverOpt));
+            Lazy<ImmutableArray<IOperation>> arguments = new Lazy<ImmutableArray<IOperation>>(() => boundDynamicIndexerAccess.Arguments.SelectAsArray(n => Create(n)));
+            ImmutableArray<string> argumentNames = boundDynamicIndexerAccess.ArgumentNamesOpt.NullToEmpty();
+            ImmutableArray<RefKind> argumentRefKinds = boundDynamicIndexerAccess.ArgumentRefKindsOpt.NullToEmpty();
+            SyntaxNode syntax = boundDynamicIndexerAccess.Syntax;
+            ITypeSymbol type = boundDynamicIndexerAccess.Type;
+            Optional<object> constantValue = ConvertToOptional(boundDynamicIndexerAccess.ConstantValue);
+            bool isImplicit = boundDynamicIndexerAccess.WasCompilerGenerated;
+            return new LazyDynamicIndexerAccessExpression(expression, arguments, argumentNames, argumentRefKinds, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IObjectOrCollectionInitializerExpression CreateBoundObjectInitializerExpressionOperation(BoundObjectInitializerExpression boundObjectInitializerExpression)
@@ -563,18 +601,27 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IDynamicMemberReferenceExpression CreateBoundDynamicMemberAccessOperation(BoundDynamicMemberAccess boundDynamicMemberAccess)
         {
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundDynamicMemberAccess.Receiver));
-            string memberName = boundDynamicMemberAccess.Name;
+            return CreateBoundDynamicMemberAccessOperation(boundDynamicMemberAccess.Receiver, boundDynamicMemberAccess.TypeArgumentsOpt, boundDynamicMemberAccess.Name,
+                boundDynamicMemberAccess.Syntax, boundDynamicMemberAccess.Type, boundDynamicMemberAccess.ConstantValue, boundDynamicMemberAccess.WasCompilerGenerated);
+        }
+
+        private IDynamicMemberReferenceExpression CreateBoundDynamicMemberAccessOperation(
+            BoundExpression receiver,
+            ImmutableArray<TypeSymbol> typeArgumentsOpt,
+            string memberName,
+            SyntaxNode syntaxNode,
+            ITypeSymbol type,
+            ConstantValue value,
+            bool isImplicit)
+        {
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(receiver));
             ImmutableArray<ITypeSymbol> typeArguments = ImmutableArray<ITypeSymbol>.Empty;
-            if (!boundDynamicMemberAccess.TypeArgumentsOpt.IsDefault)
+            if (!typeArgumentsOpt.IsDefault)
             {
-                typeArguments = ImmutableArray<ITypeSymbol>.CastUp(boundDynamicMemberAccess.TypeArgumentsOpt);
+                typeArguments = ImmutableArray<ITypeSymbol>.CastUp(typeArgumentsOpt);
             }
             ITypeSymbol containingType = null;
-            SyntaxNode syntaxNode = boundDynamicMemberAccess.Syntax;
-            ITypeSymbol type = boundDynamicMemberAccess.Type;
-            Optional<object> constantValue = ConvertToOptional(boundDynamicMemberAccess.ConstantValue);
-            bool isImplicit = boundDynamicMemberAccess.WasCompilerGenerated;
+            Optional<object> constantValue = ConvertToOptional(value);
             return new LazyDynamicMemberReferenceExpression(instance, memberName, typeArguments, containingType, _semanticModel, syntaxNode, type, constantValue, isImplicit);
         }
 
@@ -637,7 +684,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 SyntaxNode syntax = boundConversion.Syntax;
                 ITypeSymbol type = boundConversion.Type;
                 Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
-                return new LazyMethodBindingExpression(method, isVirtual, instance, method, _semanticModel, syntax, type, constantValue, isCompilerGenerated);
+                return new LazyMethodReferenceExpression(method, isVirtual, instance, method, _semanticModel, syntax, type, constantValue, isCompilerGenerated);
             }
             else
             {
@@ -1045,7 +1092,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 new Lazy<ImmutableArray<IOperation>>(() => boundBlock.Statements.Select(s => (bound: s, operation: Create(s)))
                                                                                 // Filter out all OperationKind.None except fixed statements for now.
                                                                                 // https://github.com/dotnet/roslyn/issues/21776
-                                                                                .Where(s => s.operation.Kind != OperationKind.None || s.bound.Kind == BoundKind.FixedStatement)
+                                                                                .Where(s => s.operation.Kind != OperationKind.None ||
+                                                                                s.bound.Kind == BoundKind.FixedStatement ||
+                                                                                s.bound.Kind == BoundKind.TryStatement)
                                                                                 .Select(s => s.operation).ToImmutableArray());
 
             ImmutableArray<ILocalSymbol> locals = boundBlock.Locals.As<ILocalSymbol>();
@@ -1210,7 +1259,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             if (boundSwitchLabel.ExpressionOpt != null)
             {
                 Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundSwitchLabel.ExpressionOpt));
-                return new LazySingleValueCaseClause(value, CaseKind.SingleValue, _semanticModel, syntax, type, constantValue, isImplicit);
+                return new LazySingleValueCaseClause(value, _semanticModel, syntax, type, constantValue, isImplicit);
             }
             else
             {

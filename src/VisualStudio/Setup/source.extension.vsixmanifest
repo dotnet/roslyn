@@ -33,6 +33,10 @@
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="snapshotService.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="codeAnalysisService.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="remoteSymbolSearchUpdateEngine.servicehub.service.json" />
+    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="remoteHostService64.servicehub.service.json" />
+    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="snapshotService64.servicehub.service.json" />
+    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="codeAnalysisService64.servicehub.service.json" />
+    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="remoteSymbolSearchUpdateEngine64.servicehub.service.json" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="BasicVisualStudio" Path="|BasicVisualStudio|" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="CSharpVisualStudio" Path="|CSharpVisualStudio|" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="SolutionExplorerShim" Path="|SolutionExplorerShim|" />

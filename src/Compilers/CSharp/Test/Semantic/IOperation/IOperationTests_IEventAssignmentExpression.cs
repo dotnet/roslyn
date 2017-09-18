@@ -38,7 +38,7 @@ class C
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void) (Syntax: 't.MyEvent += Handler')
   Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 't.MyEvent')
       Instance Receiver: ILocalReferenceExpression: t (OperationKind.LocalReferenceExpression, Type: Test) (Syntax: 't')
-  Handler: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: System.EventHandler) (Syntax: 'Handler')
+  Handler: IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: System.EventHandler) (Syntax: 'Handler')
       Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] { 
@@ -116,7 +116,7 @@ class C
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void) (Syntax: 'Test.MyEvent += Handler')
   Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 'Test.MyEvent')
       Instance Receiver: null
-  Handler: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: System.EventHandler) (Syntax: 'Handler')
+  Handler: IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: System.EventHandler) (Syntax: 'Handler')
       Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] { 
@@ -156,7 +156,7 @@ class C
 IEventAssignmentExpression (EventRemove)) (OperationKind.EventAssignmentExpression, Type: System.Void) (Syntax: 'Test.MyEvent -= Handler')
   Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 'Test.MyEvent')
       Instance Receiver: null
-  Handler: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: System.EventHandler) (Syntax: 'Handler')
+  Handler: IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: System.EventHandler) (Syntax: 'Handler')
       Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] { 
@@ -244,7 +244,7 @@ class C
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: 't.MyEvent += Handler')
   Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler, IsInvalid) (Syntax: 't.MyEvent')
       Instance Receiver: null
-  Handler: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: System.EventHandler) (Syntax: 'Handler')
+  Handler: IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: System.EventHandler) (Syntax: 'Handler')
       Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {                  
@@ -288,7 +288,7 @@ class C
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: 'Test.MyEvent += Handler')
   Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler, IsInvalid) (Syntax: 'Test.MyEvent')
       Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Test')
-  Handler: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: System.EventHandler) (Syntax: 'Handler')
+  Handler: IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: System.EventHandler) (Syntax: 'Handler')
       Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {                  
@@ -328,7 +328,7 @@ class Test
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void) (Syntax: 'MyEvent += Handler')
   Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 'MyEvent')
       Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Test) (Syntax: 'MyEvent')
-  Handler: IMethodBindingExpression: void Test.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: System.EventHandler) (Syntax: 'Handler')
+  Handler: IMethodReferenceExpression: void Test.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: System.EventHandler) (Syntax: 'Handler')
       Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Test) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {                  

@@ -911,10 +911,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  {
                      switch (operationContext.Operation.Kind)
                      {
-                         case OperationKind.SingleValueCaseClause:
-                         case OperationKind.RelationalCaseClause:
-                         case OperationKind.RangeCaseClause:
-                         case OperationKind.DefaultCaseClause:
+                         case OperationKind.CaseClause:
                              var caseClause = (ICaseClause)operationContext.Operation;
                              if (caseClause.CaseKind == CaseKind.Default)
                              {
@@ -931,10 +928,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      }
                  },
                  OperationKind.SwitchCase,
-                 OperationKind.SingleValueCaseClause,
-                 OperationKind.RangeCaseClause,
-                 OperationKind.RelationalCaseClause,
-                 OperationKind.DefaultCaseClause);
+                 OperationKind.CaseClause);
         }
 
         private static void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
@@ -1086,7 +1080,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  {
                      operationContext.ReportDiagnostic(Diagnostic.Create(MethodBindingDescriptor, operationContext.Operation.Syntax.GetLocation()));
                  },
-                 OperationKind.MethodBindingExpression);
+                 OperationKind.MethodReferenceExpression);
         }
     }
 
@@ -1411,9 +1405,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                              memberSymbol = ((IEventReferenceExpression)operation).Event;
                              receiver = ((IEventReferenceExpression)operation).Instance;
                              break;
-                         case OperationKind.MethodBindingExpression:
-                             memberSymbol = ((IMethodBindingExpression)operation).Method;
-                             receiver = ((IMethodBindingExpression)operation).Instance;
+                         case OperationKind.MethodReferenceExpression:
+                             memberSymbol = ((IMethodReferenceExpression)operation).Method;
+                             receiver = ((IMethodReferenceExpression)operation).Instance;
                              break;
                          case OperationKind.InvocationExpression:
                              memberSymbol = ((IInvocationExpression)operation).TargetMethod;
@@ -1435,7 +1429,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  OperationKind.FieldReferenceExpression,
                  OperationKind.PropertyReferenceExpression,
                  OperationKind.EventReferenceExpression,
-                 OperationKind.MethodBindingExpression,
+                 OperationKind.MethodReferenceExpression,
                  OperationKind.InvocationExpression);
         }
     }
@@ -1877,13 +1871,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  },
                  OperationKind.ConditionalAccessInstanceExpression);
 
-            context.RegisterOperationAction(
-                (operationContext) =>
-                {
-                    IPlaceholderExpression placeholder = (IPlaceholderExpression)operationContext.Operation;
-                    operationContext.ReportDiagnostic(Diagnostic.Create(ConditionalAccessInstanceOperationDescriptor, placeholder.Syntax.GetLocation()));
-                },
-                OperationKind.PlaceholderExpression);
+            // https://github.com/dotnet/roslyn/issues/21294
+            //context.RegisterOperationAction(
+            //    (operationContext) =>
+            //    {
+            //        IPlaceholderExpression placeholder = (IPlaceholderExpression)operationContext.Operation;
+            //        operationContext.ReportDiagnostic(Diagnostic.Create(ConditionalAccessInstanceOperationDescriptor, placeholder.Syntax.GetLocation()));
+            //    },
+            //    OperationKind.PlaceholderExpression);
         }
     }
 

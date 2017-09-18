@@ -5,18 +5,23 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents an expression operating on a type.
+    /// Represents a reference to a method other than as the target of an invocation.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface ITypeOperationExpression : IOperation
+    public interface IMethodReferenceExpression : IMemberReferenceExpression
     {
         /// <summary>
-        /// Type operand.
+        /// Referenced method.
         /// </summary>
-        ITypeSymbol TypeOperand { get; }
+        IMethodSymbol Method { get; }
+
+        /// <summary>
+        /// Indicates whether the reference uses virtual semantics.
+        /// </summary>
+        bool IsVirtual { get; }
     }
 }
 

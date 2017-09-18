@@ -436,7 +436,7 @@ internal class Class
 {
     public unsafe void M(int[] array)
     {
-        fixed (int* /*<bind>*/p = array/*</bind>*/)
+        fixed (int* p /*<bind>*/= array/*</bind>*/)
         {
             *p = 1;
         }
@@ -444,11 +444,12 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p = array')
-  Variables: Local_1: System.Int32* p
-  Initializer: IOperation:  (OperationKind.None) (Syntax: 'array')
-      Children(1):
-          IParameterReferenceExpression: array (OperationKind.ParameterReferenceExpression, Type: System.Int32[]) (Syntax: 'array')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'p /*<bind>*/= array')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p /*<bind>*/= array')
+    Variables: Local_1: System.Int32* p
+    Initializer: IOperation:  (OperationKind.None) (Syntax: 'array')
+        Children(1):
+            IParameterReferenceExpression: array (OperationKind.ParameterReferenceExpression, Type: System.Int32[]) (Syntax: 'array')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0227: Unsafe code may only appear if compiling with /unsafe
@@ -456,7 +457,7 @@ IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(6, 24)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -537,22 +538,24 @@ class Class1
 {
     public void M(dynamic d, int x)
     {
-        /*<bind>*/var y = d[x];/*</bind>*/
+        var y /*<bind>*/= d[x]/*</bind>*/;
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var y = d[x];')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'y = d[x]')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var y /*<bi ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'var y /*<bi ... *</bind>*/;')
     Variables: Local_1: dynamic y
-    Initializer: IOperation:  (OperationKind.None) (Syntax: 'd[x]')
-        Children(2):
-            IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
+    Initializer: IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'd[x]')
+        Expression: IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
+        Arguments(1):
             IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+        ArgumentNames(0)
+        ArgumentRefKinds(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -569,12 +572,14 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'x.M(y)')
-  Children(2):
-      IDynamicMemberReferenceExpression (Member Name: ""M"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'x.M')
-        Type Arguments(0)
-        Instance Receiver: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'x')
+IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'x.M(y)')
+  Expression: IDynamicMemberReferenceExpression (Member Name: ""M"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'x.M')
+      Type Arguments(0)
+      Instance Receiver: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'x')
+  Arguments(1):
       IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
+  ArgumentNames(0)
+  ArgumentRefKinds(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -595,10 +600,12 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'x(y)')
-  Children(2):
-      IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'x')
+IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'x(y)')
+  Expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'x')
+  Arguments(1):
       IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
+  ArgumentNames(0)
+  ArgumentRefKinds(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -622,10 +629,7 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IDynamicObjectCreationExpression (Name: Class) (OperationKind.TypeParameterObjectCreationExpression, Type: Class) (Syntax: 'new Class(x)')
-  ApplicableSymbols(2):
-    Symbol: Class..ctor(Class x)
-    Symbol: Class..ctor(System.String x)
+IDynamicObjectCreationExpression (OperationKind.DynamicObjectCreationExpression, Type: Class) (Syntax: 'new Class(x)')
   Arguments(1):
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'x')
   ArgumentNames(0)
@@ -759,7 +763,7 @@ internal class Class
             string expectedOperationTree = @"
 ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'case var y  ... break;')
     Clauses:
-        IPatternCaseClause (Label Symbol: case var y when (x >= 10):) (CaseKind.Pattern) (OperationKind.PatternCaseClause) (Syntax: 'case var y  ...  (x >= 10):')
+        IPatternCaseClause (Label Symbol: case var y when (x >= 10):) (CaseKind.Pattern) (OperationKind.CaseClause) (Syntax: 'case var y  ...  (x >= 10):')
           Pattern: IDeclarationPattern (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern) (Syntax: 'var y')
           Guard Expression: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x >= 10')
               Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
@@ -793,7 +797,7 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IDefaultCaseClause (CaseKind.Default) (OperationKind.DefaultCaseClause) (Syntax: 'default:')
+IDefaultCaseClause (CaseKind.Default) (OperationKind.CaseClause) (Syntax: 'default:')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
