@@ -1053,7 +1053,7 @@ class Test
         var span1 = condition ? stackalloc int[1] : new Span<int>(null, 2);
         Console.Write(span1.Length);
 
-        var span2 = condition ? new Span<int>(null, 3) : stackalloc int[4];
+        var span2 = condition ? stackalloc int[1] : stackalloc int[4];
         Console.Write(span2.Length);
     }
 }", TestOptions.UnsafeReleaseExe);

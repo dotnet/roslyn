@@ -3017,7 +3017,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool hasErrors = false;
 
-            if (!IsInMethodBody && !IsLocalFunctionsScopeBinder)
+            if (!IsInMethodBody && !IsLocalFunctionsScopeBinder ||
+                !node.IsLegalSpanStackAllocPosition())
             {
                 hasErrors = true;
                 diagnostics.Add(
@@ -3103,7 +3104,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundStackAllocArrayCreation(node, elementType, count, type: null, hasErrors: hasErrors || typeHasErrors);
+            TypeSymbol type = null;
+            if (!node.IsVariableDeclarationInitialization())
+            {
+                CheckFeatureAvailability(node, MessageID.IDS_FeatureRefStructs, diagnostics);
+                GetWellKnownTypeMember(Compilation, WellKnownMember.System_Span_T__ctor, diagnostics, syntax: node);
+
+                var spanType = GetWellKnownType(WellKnownType.System_Span_T, diagnostics, node);
+                if (!spanType.IsErrorType())
+                {
+                    type = spanType.Construct(elementType);
+                }
+            }
+
+            return new BoundStackAllocArrayCreation(node, elementType, count, type, hasErrors: hasErrors || typeHasErrors);
         }
 
         private static int? GetIntegerConstantForArraySize(BoundExpression expression)

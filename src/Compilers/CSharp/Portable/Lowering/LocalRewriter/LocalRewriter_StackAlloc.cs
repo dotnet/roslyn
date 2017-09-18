@@ -11,47 +11,47 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression stackAllocNode)
         {
+            return VisitStackAllocArrayCreation(stackAllocNode);
+        }
+
+        public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation stackAllocNode)
+        {
             var rewrittenCount = VisitExpression(stackAllocNode.Count);
+            var type = stackAllocNode.Type;
 
             if (rewrittenCount.ConstantValue?.Int32Value == 0)
             {
                 // either default(span) or nullptr
-                return _factory.Default(stackAllocNode.Type);
+                return _factory.Default(type);
             }
 
-            var conversionKind = stackAllocNode.ConversionKind;
             var elementType = stackAllocNode.ElementType;
 
-            switch (conversionKind)
+            if (type.IsPointerType())
             {
-                case ConversionKind.StackAllocToPointerType:
-                    {
-                        var stackSize = RewriteStackAllocCountToSize(rewrittenCount, elementType);
-                        return stackAllocNode.Update(elementType, stackSize, conversionKind, stackAllocNode.Type);
-                    }
-                case ConversionKind.StackAllocToSpanType:
-                    {
-                        Debug.Assert(stackAllocNode.Type.IsSpanType());
+                var stackSize = RewriteStackAllocCountToSize(rewrittenCount, elementType);
+                return new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, stackAllocNode.Type);
+            }
+            else if (type.IsSpanType())
+            {
+                var spanType = (NamedTypeSymbol)stackAllocNode.Type;
+                var countTemp = _factory.StoreToTemp(rewrittenCount, out BoundAssignmentOperator countTempAssignment);
+                var stackSize = RewriteStackAllocCountToSize(countTemp, elementType);
+                stackAllocNode = new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, spanType);
 
-                        var spanType = (NamedTypeSymbol)stackAllocNode.Type;
-                        var countTemp = _factory.StoreToTemp(rewrittenCount, out BoundAssignmentOperator countTempAssignment);
-                        var stackSize = RewriteStackAllocCountToSize(countTemp, elementType);
-                        stackAllocNode = stackAllocNode.Update(elementType, stackSize, conversionKind, spanType);
+                var spanCtor = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__ctor).SymbolAsMember(spanType);
+                var ctorCall = _factory.New(spanCtor, stackAllocNode, countTemp);
 
-                        var spanCtor = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__ctor).SymbolAsMember(spanType);
-                        var ctorCall = _factory.New(spanCtor, stackAllocNode, countTemp);
-
-                        return new BoundSequence(
-                            syntax: stackAllocNode.Syntax,
-                            locals: ImmutableArray.Create(countTemp.LocalSymbol),
-                            sideEffects: ImmutableArray.Create<BoundExpression>(countTempAssignment),
-                            value: ctorCall,
-                            type: spanType);
-                    }
-                default:
-                    {
-                        throw ExceptionUtilities.UnexpectedValue(conversionKind);
-                    }
+                return new BoundSequence(
+                    syntax: stackAllocNode.Syntax,
+                    locals: ImmutableArray.Create(countTemp.LocalSymbol),
+                    sideEffects: ImmutableArray.Create<BoundExpression>(countTempAssignment),
+                    value: ctorCall,
+                    type: spanType);
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(type);
             }
         }
 

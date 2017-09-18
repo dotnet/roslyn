@@ -2876,7 +2876,14 @@ unsafe class Test
             CreateStandardCompilation(text, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
                 // (4,30): error CS1525: Invalid expression term 'stackalloc'
                 //     int* property { get; } = stackalloc int[256];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 30));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 30),
+                // (4,30): error CS0656: Missing compiler required member 'System.Span`1..ctor'
+                //     int* property { get; } = stackalloc int[256];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "stackalloc int[256]").WithArguments("System.Span`1", ".ctor").WithLocation(4, 30),
+                // (4,30): error CS0518: Predefined type 'System.Span`1' is not defined or imported
+                //     int* property { get; } = stackalloc int[256];
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[256]").WithArguments("System.Span`1").WithLocation(4, 30)
+                );
         }
         [Fact]
         public void RefPropertyWithoutGetter()
