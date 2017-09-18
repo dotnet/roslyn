@@ -29,7 +29,7 @@ do the following:
 
 ## Running Tests
 
-There are a number of options for running the core Roslyn unit tests
+There are a number of options for running the core Roslyn unit tests:
 
 ### Command Line
 
