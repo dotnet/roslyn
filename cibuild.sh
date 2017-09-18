@@ -19,7 +19,7 @@ usage()
 }
 
 THIS_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-source ${THIS_DIR}/build-utils.sh
+source ${THIS_DIR}/build/scripts/build-utils.sh
 ROOT_PATH=$(get_repo_dir)
 BINARIES_PATH=${ROOT_PATH}/Binaries
 BOOTSTRAP_PATH=${BINARIES_PATH}/Bootstrap
