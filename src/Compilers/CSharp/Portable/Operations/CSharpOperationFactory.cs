@@ -1006,7 +1006,24 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IArrayElementReferenceExpression CreateBoundArrayAccessOperation(BoundArrayAccess boundArrayAccess)
         {
-            Lazy<IOperation> arrayReference = new Lazy<IOperation>(() => Create(boundArrayAccess.Expression));
+            // The compiler will dedupe the boundArrayAccess.Expression between different array references. Some example code:
+            //
+            // class C
+            // {
+            //     int[] a;
+
+            //     static void Main()
+            //     {
+            //         // Compiler dedupes the array access receiver for [0] and [1]
+            //         var a = new C { a = { [0] = 1, [1] = 2 } };
+            //     }
+            // }
+            //
+            // In order to prevent parent pointer from having an issue with this, we intentionally create a new IOperation node every time
+            // we encounter an array access. Since we create from the top down, it should be impossible for us to see the node in
+            // boundArrayAccess.Expression before seeing the boundArrayAccess itself, so this should not create any other parent pointer
+            // issues.
+            Lazy<IOperation> arrayReference = new Lazy<IOperation>(() => CreateInternal(boundArrayAccess.Expression));
             Lazy<ImmutableArray<IOperation>> indices = new Lazy<ImmutableArray<IOperation>>(() => boundArrayAccess.Indices.SelectAsArray(n => Create(n)));
             SyntaxNode syntax = boundArrayAccess.Syntax;
             ITypeSymbol type = boundArrayAccess.Type;

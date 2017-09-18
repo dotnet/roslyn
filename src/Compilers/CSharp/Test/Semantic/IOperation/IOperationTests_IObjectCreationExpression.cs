@@ -340,37 +340,27 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>) (Syntax: 'new List<Li ... }')
+IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C { a = ... [1] = 2 } }')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>) (Syntax: '{ ... }')
-      Initializers(2):
-          ICollectionElementInitializerExpression (AddMethod: void System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>.Add(System.Collections.Generic.List<System.Int32> item)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: 'new[] { x, y }.ToList()')
-            Arguments(1):
-                IInvocationExpression (System.Collections.Generic.List<System.Int32> System.Linq.Enumerable.ToList<System.Int32>(this System.Collections.Generic.IEnumerable<System.Int32> source)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'new[] { x, y }.ToList()')
-                  Instance Receiver: null
-                  Arguments(1):
-                      IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument) (Syntax: 'new[] { x, y }')
-                        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: 'new[] { x, y }')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                          Operand: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new[] { x, y }')
-                              Dimension Sizes(1):
-                                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'new[] { x, y }')
-                              Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{ x, y }')
-                                  Element Values(2):
-                                      IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                                      ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
-                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          ICollectionElementInitializerExpression (AddMethod: void System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>.Add(System.Collections.Generic.List<System.Int32> item)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: 'new List<int> { field }')
-            Arguments(1):
-                IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'new List<int> { field }')
-                  Arguments(0)
-                  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '{ field }')
-                      Initializers(1):
-                          ICollectionElementInitializerExpression (AddMethod: void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void) (Syntax: 'field')
-                            Arguments(1):
-                                IFieldReferenceExpression: System.Int32 C.field (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'field')
-                                  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'field')
+  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C) (Syntax: '{ a = { [0] ... [1] = 2 } }')
+      Initializers(1):
+          IMemberInitializerExpression (OperationKind.MemberInitializerExpression, Type: System.Int32[]) (Syntax: 'a = { [0] = 1, [1] = 2 }')
+            InitializedMember: IFieldReferenceExpression: System.Int32[] C.a (OperationKind.FieldReferenceExpression, Type: System.Int32[]) (Syntax: 'a')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'a')
+            Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Int32[]) (Syntax: '{ [0] = 1, [1] = 2 }')
+                Initializers(2):
+                    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '[0] = 1')
+                      Left: IArrayElementReferenceExpression (OperationKind.None) (Syntax: '[0]')
+                          Array reference: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: System.Int32[]) (Syntax: 'a')
+                          Indices(1):
+                              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '[1] = 2')
+                      Left: IArrayElementReferenceExpression (OperationKind.None) (Syntax: '[1]')
+                          Array reference: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: System.Int32[]) (Syntax: 'a')
+                          Indices(1):
+                              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
