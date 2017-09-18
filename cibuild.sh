@@ -108,12 +108,13 @@ dotnet restore ${RESTORE_ARGS} ${THIS_DIR}/build/ToolsetPackages/CoreToolset.csp
 echo "Restoring CrossPlatform.sln"
 dotnet restore ${RESTORE_ARGS} ${THIS_DIR}/CrossPlatform.sln
 
-BUILD_ARGS="--no-restore -f ${TARGET_FRAMEWORK} -c ${BUILD_CONFIGURATION} -r ${RUNTIME_ID} /nologo /consoleloggerparameters:Verbosity=minimal;summary /filelogger /fileloggerparameters:Verbosity=normal;logFile=${BUILD_LOG_PATH} /maxcpucount:1"
+BUILD_ARGS="--no-restore -c ${BUILD_CONFIGURATION} /nologo /consoleloggerparameters:Verbosity=minimal;summary /filelogger /fileloggerparameters:Verbosity=normal;logFile=${BUILD_LOG_PATH} /maxcpucount:1"
+PUBLISH_ARGS="-f ${TARGET_FRAMEWORK} -r ${RUNTIME_ID} ${BUILD_ARGS}"
 
 echo "Building bootstrap csc"
-dotnet publish ${SRC_PATH}/Compilers/CSharp/csc -o ${BOOTSTRAP_PATH}/csc ${BUILD_ARGS}
+dotnet publish ${SRC_PATH}/Compilers/CSharp/csc -o ${BOOTSTRAP_PATH}/csc ${PUBLISH_ARGS}
 echo "Building bootstrap vbc"
-dotnet publish ${SRC_PATH}/Compilers/VisualBasic/vbc -o ${BOOTSTRAP_PATH}/vbc ${BUILD_ARGS}
+dotnet publish ${SRC_PATH}/Compilers/VisualBasic/vbc -o ${BOOTSTRAP_PATH}/vbc ${PUBLISH_ARGS}
 rm -rf ${BINARIES_PATH}/${BUILD_CONFIGURATION}
 BUILD_ARGS+=" /p:CscToolPath=${BOOTSTRAP_PATH}/csc /p:CscToolExe=csc /p:VbcToolPath=${BOOTSTRAP_PATH}/vbc /p:VbcToolExe=vbc"
 
