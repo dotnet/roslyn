@@ -27,24 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
-    Partial Friend Class BoundMethodGroup
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
-            Get
-                Dim builder = ImmutableArray.CreateBuilder(Of BoundNode)
-                If Me.ReceiverOpt IsNot Nothing Then
-                    builder.Add(Me.ReceiverOpt)
-                End If
-
-                If Me.TypeArgumentsOpt IsNot Nothing Then
-                    builder.Add(Me.TypeArgumentsOpt)
-                End If
-
-                Return builder.ToImmutable()
-            End Get
-        End Property
-    End Class
-
-    Partial Friend Class BoundPropertyGroup
+    Partial Friend Class BoundMethodOrPropertyGroup
         Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get
                 If Me.ReceiverOpt IsNot Nothing Then
@@ -55,7 +38,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
     End Class
-
 
     Friend Partial Class BoundNullableIsTrueOperator
         Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)

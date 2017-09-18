@@ -2356,41 +2356,6 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact()>
-        Public Sub ConversionExpression_Implicit_WideningMethodGroupToDelegate_InvalidGenericArguments()
-            Dim source = <![CDATA[
-Option Strict On
-Imports System
-Module M1
-    Sub Method1()
-        Dim a As Action(Of String) = AddressOf Method2(Of String)'BIND:"AddressOf Method2(Of String)"
-    End Sub
-
-    Sub Method2(arg As Object)
-    End Sub
-End Module]]>.Value
-
-            Dim expectedOperationTree = <![CDATA[
-IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.String), IsInvalid) (Syntax: 'AddressOf M ... (Of String)')
-  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf M ... (Of String)')
-      Children(1):
-          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2(Of String)')
-            Children(2):
-                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid) (Syntax: 'Method2(Of String)')
-                IOperation:  (OperationKind.None, IsInvalid) (Syntax: '(Of String)')
-]]>.Value
-
-            Dim expectedDiagnostics = <![CDATA[
-BC32045: 'Public Sub Method2(arg As Object)' has no type parameters and so cannot have type arguments.
-        Dim a As Action(Of String) = AddressOf Method2(Of String)'BIND:"AddressOf Method2(Of String)"
-                                                      ~~~~~~~~~~~
-]]>.Value
-
-            VerifyOperationTreeAndDiagnosticsForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
-        End Sub
-
 #End Region
 
         Private Class ExpectedSymbolVerifier

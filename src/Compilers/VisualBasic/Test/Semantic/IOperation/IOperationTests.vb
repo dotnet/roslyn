@@ -391,7 +391,7 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub AddressOf_BoundMethodOrPropertyGroup_ExposesReceiver()
+        Public Sub AddressOf_BoundMethod_ExposesReceiver()
             Dim source = <![CDATA[
 Imports System
 Module Program
@@ -428,6 +428,51 @@ BC30491: Expression does not produce a value.
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub AddressOf_BoundProperty_ExposesReceiver()
+            Dim source = <![CDATA[
+Option Strict Off
+
+Class C
+    Private Sub M(c As C, d As Object)
+        Dim x = c(c, d)'BIND:"c(c, d)"
+    End Sub
+
+    Default ReadOnly Property P1(x As Integer, x2 As Object) As Integer
+        Get
+            Return 1
+        End Get
+    End Property
+
+    Default ReadOnly Property P1(x As String, x2 As Object) As Integer
+        Get
+            Return 1
+        End Get
+    End Property
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'c(c, d)')
+  Children(3):
+      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'c')
+        Children(1):
+            IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
+      IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30518: Overload resolution failed because no accessible 'P1' can be called with these arguments:
+    'Public ReadOnly Default Property P1(x As Integer, x2 As Object) As Integer': Value of type 'C' cannot be converted to 'Integer'.
+    'Public ReadOnly Default Property P1(x As String, x2 As Object) As Integer': Value of type 'C' cannot be converted to 'String'.
+        Dim x = c(c, d)'BIND:"c(c, d)"
+                ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
