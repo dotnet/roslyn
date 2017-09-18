@@ -87,11 +87,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             IClientConnectionHost clientConnectionHost = null)
         {
             pipeName = pipeName ?? Guid.NewGuid().ToString();
-#if NET46
             compilerServerHost = compilerServerHost ?? new DesktopCompilerServerHost(DefaultClientDirectory, DefaultSdkDirectory);
-#else
-            compilerServerHost = compilerServerHost ?? new CoreClrCompilerServerHost(DefaultClientDirectory, DefaultSdkDirectory);
-#endif
 
             var serverStatsSource = new TaskCompletionSource<ServerStats>();
             var serverListenSource = new TaskCompletionSource<bool>();
