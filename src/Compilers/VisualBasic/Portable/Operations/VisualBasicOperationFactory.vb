@@ -880,12 +880,11 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function CreateBoundSimpleCaseClauseOperation(boundSimpleCaseClause As BoundSimpleCaseClause) As ISingleValueCaseClause
             Dim clauseValue = GetSingleValueCaseClauseValue(boundSimpleCaseClause)
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(clauseValue))
-            Dim CaseKind As CaseKind = CaseKind.SingleValue
             Dim syntax As SyntaxNode = boundSimpleCaseClause.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundSimpleCaseClause.WasCompilerGenerated
-            Return New LazySingleValueCaseClause(value, CaseKind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazySingleValueCaseClause(value, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundRangeCaseClauseOperation(boundRangeCaseClause As BoundRangeCaseClause) As IRangeCaseClause
@@ -919,24 +918,22 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
                     Return Nothing
                 End Function)
-            Dim CaseKind As CaseKind = CaseKind.Range
             Dim syntax As SyntaxNode = boundRangeCaseClause.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundRangeCaseClause.WasCompilerGenerated
-            Return New LazyRangeCaseClause(minimumValue, maximumValue, CaseKind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyRangeCaseClause(minimumValue, maximumValue, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundRelationalCaseClauseOperation(boundRelationalCaseClause As BoundRelationalCaseClause) As IRelationalCaseClause
             Dim valueExpression = GetRelationalCaseClauseValue(boundRelationalCaseClause)
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(valueExpression))
             Dim relation As BinaryOperatorKind = If(valueExpression IsNot Nothing, Helper.DeriveBinaryOperatorKind(boundRelationalCaseClause.OperatorKind, leftOpt:=Nothing), BinaryOperatorKind.Invalid)
-            Dim CaseKind As CaseKind = CaseKind.Relational
             Dim syntax As SyntaxNode = boundRelationalCaseClause.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundRelationalCaseClause.WasCompilerGenerated
-            Return New LazyRelationalCaseClause(value, relation, CaseKind, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyRelationalCaseClause(value, relation, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundDoLoopStatementOperation(boundDoLoopStatement As BoundDoLoopStatement) As IDoLoopStatement
@@ -1052,7 +1049,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Function()
                     ' We should not be filtering OperationKind.None statements.
                     ' https://github.com/dotnet/roslyn/issues/21776
-                    Return boundBlock.Statements.Select(Function(n) Create(n)).Where(Function(s) s.Kind <> OperationKind.None).ToImmutableArray()
+                    Return boundBlock.Statements.Select(Function(n) (s:=Create(n), bound:=n)).Where(
+                        Function(tuple)
+                            Return tuple.s.Kind <> OperationKind.None OrElse tuple.bound.Kind = BoundKind.TryStatement OrElse
+                                tuple.bound.Kind = BoundKind.WithStatement OrElse tuple.bound.Kind = BoundKind.StopStatement OrElse
+                                tuple.bound.Kind = BoundKind.EndStatement
+                        End Function).Select(Function(tuple) tuple.s).ToImmutableArray()
                 End Function)
             Dim locals As ImmutableArray(Of ILocalSymbol) = boundBlock.Locals.As(Of ILocalSymbol)()
             Dim syntax As SyntaxNode = boundBlock.Syntax

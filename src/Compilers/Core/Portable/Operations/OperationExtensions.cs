@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// This will check whether context around the operation has any error such as syntax or semantic error
         /// </summary>
-        public static bool HasErrors(this IOperation operation, Compilation compilation, CancellationToken cancellationToken = default(CancellationToken))
+        internal static bool HasErrors(this IOperation operation, Compilation compilation, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (operation == null)
             {
