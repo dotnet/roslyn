@@ -15,6 +15,7 @@ Using the command line Roslyn can be developed using the following pattern:
     - Ensure C#, VB, MSBuild and Visual Studio Extensibility are included in the selected work loads
     - Ensure Visual Studio is on Version "15.3" or greater
 1. [.NET Core SDK 2.0](https://www.microsoft.com/net/download/core)
+1. [PowerShell 3.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on Windows 7. The download link is under the "upgrading existing Windows PowerShell" heading.
 1. Run Restore.cmd
 1. Open Roslyn.sln
 
