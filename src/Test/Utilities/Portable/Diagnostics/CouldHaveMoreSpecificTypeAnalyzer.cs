@@ -54,10 +54,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 operationBlockContext.RegisterOperationAction(
                                    (operationContext) =>
                                    {
-                                       IAssignmentExpression assignment = (IAssignmentExpression)operationContext.Operation;
-                                       AssignTo(assignment.Target, localsSourceTypes, fieldsSourceTypes, assignment.Value);
+                                       if (operationContext.Operation is IAssignmentExpression assignment)
+                                       {
+                                           AssignTo(assignment.Target, localsSourceTypes, fieldsSourceTypes, assignment.Value);
+                                       }
+                                       else if (operationContext.Operation is IIncrementExpression increment)
+                                       {
+                                           SyntaxNode syntax = increment.Syntax;
+                                           ITypeSymbol type = increment.Type;
+                                           Optional<object> constantValue = new Optional<object>(1);
+                                           bool isImplicit = increment.IsImplicit;
+                                           var value = new LiteralExpression(operationContext.Compilation.GetSemanticModel(syntax.SyntaxTree), syntax, type, constantValue, isImplicit);
+
+                                           AssignTo(increment.Target, localsSourceTypes, fieldsSourceTypes, value);
+                                       }
+                                       else
+                                       {
+                                           throw TestExceptionUtilities.UnexpectedValue(operationContext.Operation);
+                                       }
                                    },
-                                   OperationKind.AssignmentExpression,
+                                   OperationKind.SimpleAssignmentExpression,
                                    OperationKind.CompoundAssignmentExpression,
                                    OperationKind.IncrementExpression);
 
@@ -119,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 AssignTo(initializedField, initializedField.Type, fieldsSourceTypes, initializer.Value);
                             }
                         },
-                        OperationKind.FieldInitializerAtDeclaration);
+                        OperationKind.FieldInitializer);
 
                     // Report fields that could have more specific types.
                     compilationContext.RegisterCompilationEndAction(
@@ -258,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (value.Kind == OperationKind.ConversionExpression)
             {
                 IConversionExpression conversion = (IConversionExpression)value;
-                if (!conversion.IsExplicit)
+                if (!conversion.IsExplicitInCode)
                 {
                     return conversion.Operand.Type;
                 }

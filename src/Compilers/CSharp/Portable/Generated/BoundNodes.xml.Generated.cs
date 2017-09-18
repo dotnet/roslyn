@@ -4650,14 +4650,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDynamicObjectCreationExpression : BoundExpression
     {
-        public BoundDynamicObjectCreationExpression(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, BoundExpression initializerExpressionOpt, ImmutableArray<MethodSymbol> applicableMethods, TypeSymbol type, bool hasErrors = false)
+        public BoundDynamicObjectCreationExpression(SyntaxNode syntax, string name, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, BoundExpression initializerExpressionOpt, ImmutableArray<MethodSymbol> applicableMethods, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.DynamicObjectCreationExpression, syntax, type, hasErrors || arguments.HasErrors() || initializerExpressionOpt.HasErrors())
         {
 
+            Debug.Assert(name != null, "Field 'name' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(!applicableMethods.IsDefault, "Field 'applicableMethods' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
+            this.Name = name;
             this.Arguments = arguments;
             this.ArgumentNamesOpt = argumentNamesOpt;
             this.ArgumentRefKindsOpt = argumentRefKindsOpt;
@@ -4665,6 +4667,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ApplicableMethods = applicableMethods;
         }
 
+
+        public string Name { get; }
 
         public ImmutableArray<BoundExpression> Arguments { get; }
 
@@ -4681,11 +4685,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitDynamicObjectCreationExpression(this);
         }
 
-        public BoundDynamicObjectCreationExpression Update(ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, BoundExpression initializerExpressionOpt, ImmutableArray<MethodSymbol> applicableMethods, TypeSymbol type)
+        public BoundDynamicObjectCreationExpression Update(string name, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, BoundExpression initializerExpressionOpt, ImmutableArray<MethodSymbol> applicableMethods, TypeSymbol type)
         {
-            if (arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || initializerExpressionOpt != this.InitializerExpressionOpt || applicableMethods != this.ApplicableMethods || type != this.Type)
+            if (name != this.Name || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || initializerExpressionOpt != this.InitializerExpressionOpt || applicableMethods != this.ApplicableMethods || type != this.Type)
             {
-                var result = new BoundDynamicObjectCreationExpression(this.Syntax, arguments, argumentNamesOpt, argumentRefKindsOpt, initializerExpressionOpt, applicableMethods, type, this.HasErrors);
+                var result = new BoundDynamicObjectCreationExpression(this.Syntax, name, arguments, argumentNamesOpt, argumentRefKindsOpt, initializerExpressionOpt, applicableMethods, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -4761,7 +4765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundObjectInitializerMember : BoundExpression
     {
-        public BoundObjectInitializerMember(SyntaxNode syntax, Symbol memberSymbol, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
+        public BoundObjectInitializerMember(SyntaxNode syntax, Symbol memberSymbol, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, LookupResultKind resultKind, Binder binderOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.ObjectInitializerMember, syntax, type, hasErrors || arguments.HasErrors())
         {
 
@@ -4775,6 +4779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Expanded = expanded;
             this.ArgsToParamsOpt = argsToParamsOpt;
             this._ResultKind = resultKind;
+            this.BinderOpt = binderOpt;
         }
 
 
@@ -4793,16 +4798,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly LookupResultKind _ResultKind;
         public override LookupResultKind ResultKind { get { return _ResultKind;} }
 
+        public Binder BinderOpt { get; }
+
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitObjectInitializerMember(this);
         }
 
-        public BoundObjectInitializerMember Update(Symbol memberSymbol, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, LookupResultKind resultKind, TypeSymbol type)
+        public BoundObjectInitializerMember Update(Symbol memberSymbol, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, LookupResultKind resultKind, Binder binderOpt, TypeSymbol type)
         {
-            if (memberSymbol != this.MemberSymbol || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || resultKind != this.ResultKind || type != this.Type)
+            if (memberSymbol != this.MemberSymbol || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || resultKind != this.ResultKind || binderOpt != this.BinderOpt || type != this.Type)
             {
-                var result = new BoundObjectInitializerMember(this.Syntax, memberSymbol, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, resultKind, type, this.HasErrors);
+                var result = new BoundObjectInitializerMember(this.Syntax, memberSymbol, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, resultKind, binderOpt, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -5256,7 +5263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundFieldAccess : BoundExpression
     {
-        public BoundFieldAccess(SyntaxNode syntax, BoundExpression receiverOpt, FieldSymbol fieldSymbol, ConstantValue constantValueOpt, LookupResultKind resultKind, bool isByValue, TypeSymbol type, bool hasErrors = false)
+        public BoundFieldAccess(SyntaxNode syntax, BoundExpression receiverOpt, FieldSymbol fieldSymbol, ConstantValue constantValueOpt, LookupResultKind resultKind, bool isByValue, bool isDeclaration, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.FieldAccess, syntax, type, hasErrors || receiverOpt.HasErrors())
         {
 
@@ -5268,6 +5275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ConstantValueOpt = constantValueOpt;
             this._ResultKind = resultKind;
             this.IsByValue = isByValue;
+            this.IsDeclaration = isDeclaration;
         }
 
 
@@ -5282,16 +5290,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsByValue { get; }
 
+        public bool IsDeclaration { get; }
+
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitFieldAccess(this);
         }
 
-        public BoundFieldAccess Update(BoundExpression receiverOpt, FieldSymbol fieldSymbol, ConstantValue constantValueOpt, LookupResultKind resultKind, bool isByValue, TypeSymbol type)
+        public BoundFieldAccess Update(BoundExpression receiverOpt, FieldSymbol fieldSymbol, ConstantValue constantValueOpt, LookupResultKind resultKind, bool isByValue, bool isDeclaration, TypeSymbol type)
         {
-            if (receiverOpt != this.ReceiverOpt || fieldSymbol != this.FieldSymbol || constantValueOpt != this.ConstantValueOpt || resultKind != this.ResultKind || isByValue != this.IsByValue || type != this.Type)
+            if (receiverOpt != this.ReceiverOpt || fieldSymbol != this.FieldSymbol || constantValueOpt != this.ConstantValueOpt || resultKind != this.ResultKind || isByValue != this.IsByValue || isDeclaration != this.IsDeclaration || type != this.Type)
             {
-                var result = new BoundFieldAccess(this.Syntax, receiverOpt, fieldSymbol, constantValueOpt, resultKind, isByValue, type, this.HasErrors);
+                var result = new BoundFieldAccess(this.Syntax, receiverOpt, fieldSymbol, constantValueOpt, resultKind, isByValue, isDeclaration, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -9017,7 +9027,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
             BoundExpression initializerExpressionOpt = (BoundExpression)this.Visit(node.InitializerExpressionOpt);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, initializerExpressionOpt, node.ApplicableMethods, type);
+            return node.Update(node.Name, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, initializerExpressionOpt, node.ApplicableMethods, type);
         }
         public override BoundNode VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)
         {
@@ -9035,7 +9045,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.MemberSymbol, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, type);
+            return node.Update(node.MemberSymbol, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, node.BinderOpt, type);
         }
         public override BoundNode VisitDynamicObjectInitializerMember(BoundDynamicObjectInitializerMember node)
         {
@@ -9112,7 +9122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression receiverOpt = (BoundExpression)this.Visit(node.ReceiverOpt);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(receiverOpt, node.FieldSymbol, node.ConstantValueOpt, node.ResultKind, node.IsByValue, type);
+            return node.Update(receiverOpt, node.FieldSymbol, node.ConstantValueOpt, node.ResultKind, node.IsByValue, node.IsDeclaration, type);
         }
         public override BoundNode VisitHoistedFieldAccess(BoundHoistedFieldAccess node)
         {
@@ -10399,6 +10409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new TreeDumperNode("dynamicObjectCreationExpression", null, new TreeDumperNode[]
             {
+                new TreeDumperNode("name", node.Name, null),
                 new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
                 new TreeDumperNode("argumentNamesOpt", node.ArgumentNamesOpt, null),
                 new TreeDumperNode("argumentRefKindsOpt", node.ArgumentRefKindsOpt, null),
@@ -10438,6 +10449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("expanded", node.Expanded, null),
                 new TreeDumperNode("argsToParamsOpt", node.ArgsToParamsOpt, null),
                 new TreeDumperNode("resultKind", node.ResultKind, null),
+                new TreeDumperNode("binderOpt", node.BinderOpt, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );
@@ -10569,6 +10581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
                 new TreeDumperNode("resultKind", node.ResultKind, null),
                 new TreeDumperNode("isByValue", node.IsByValue, null),
+                new TreeDumperNode("isDeclaration", node.IsDeclaration, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

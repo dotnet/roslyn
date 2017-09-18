@@ -5,13 +5,14 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a C# fixed staement.
+    /// Represents a C# fixed statement.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IFixedStatement : IOperation
+    // Internal until reviewed: https://github.com/dotnet/roslyn/issues/21281
+    internal interface IFixedStatement : IOperation
     {
         /// <summary>
         /// Variables to be fixed.

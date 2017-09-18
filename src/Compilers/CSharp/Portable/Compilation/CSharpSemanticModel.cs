@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The root node of the syntax tree that this binding is based on.
         /// </summary>
-        internal abstract CSharpSyntaxNode Root { get; }
+        internal new abstract CSharpSyntaxNode Root { get; }
 
 
         // Is this node one that could be successfully interrogated by GetSymbolInfo/GetTypeInfo/GetMemberGroup/GetConstantValue?
@@ -465,6 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var csnode = (CSharpSyntaxNode)node;
             CheckSyntaxNode(csnode);
+
             return this.GetOperationWorker(csnode, GetOperationOptions.Lowest, cancellationToken);
         }
 
@@ -478,6 +479,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal virtual IOperation GetOperationWorker(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
         {
             return null;
+        }
+
+        internal override IOperation CloneOperationCore(IOperation operation)
+        {
+            return CSharpOperationCloner.Instance.Visit(operation);
         }
 
         #region GetSymbolInfo
@@ -4511,6 +4517,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.SyntaxTree;
             }
         }
+
+        protected sealed override SyntaxNode RootCore => this.Root;
 
         private SymbolInfo GetSymbolInfoFromNode(SyntaxNode node, CancellationToken cancellationToken)
         {
