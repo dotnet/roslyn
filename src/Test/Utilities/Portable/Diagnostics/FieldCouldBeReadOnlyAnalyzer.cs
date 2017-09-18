@@ -62,7 +62,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                     },
                                     OperationKind.SimpleAssignmentExpression,
                                     OperationKind.CompoundAssignmentExpression,
-                                    OperationKind.IncrementExpression);
+                                    OperationKind.IncrementExpression,
+                                    OperationKind.DecrementExpression);
 
                                  operationBlockContext.RegisterOperationAction(
                                      (operationContext) =>
