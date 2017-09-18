@@ -44,6 +44,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             nameof(InternalFeatureOnOffOptions), nameof(RestartRemoteHostAllowed), defaultValue: false,
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(RestartRemoteHostAllowed)));
 
+        // use 64bit OOP
+        public static readonly Option<bool> OOP64Bit = new Option<bool>(
+            nameof(InternalFeatureOnOffOptions), nameof(OOP64Bit), defaultValue: false,
+            storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(OOP64Bit)));
+
         public static readonly Option<bool> RemoteHostTest = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(RemoteHostTest), defaultValue: false);
     }
 
@@ -55,6 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS,
             RemoteHostOptions.RequestServiceTimeoutInMS,
             RemoteHostOptions.RestartRemoteHostAllowed,
+            RemoteHostOptions.OOP64Bit,
             RemoteHostOptions.RemoteHostTest);
     }
 }

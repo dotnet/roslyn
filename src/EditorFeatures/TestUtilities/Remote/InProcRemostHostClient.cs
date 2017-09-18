@@ -109,7 +109,7 @@ namespace Roslyn.Test.Utilities.Remote
             public ServiceProvider(bool runCacheCleanup)
             {
                 _storage = runCacheCleanup ?
-                    new AssetStorage(cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1)) :
+                    new AssetStorage(cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1), gcAfter: TimeSpan.FromMinutes(5)) :
                     new AssetStorage();
             }
 
