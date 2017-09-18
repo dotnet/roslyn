@@ -2,7 +2,6 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata minClientVersion="3.3">
     <id>Microsoft.CodeAnalysis.Compilers</id>
-    <summary>.NET Compiler Platform ("Roslyn")</summary>
     <description>
       .NET Compiler Platform ("Roslyn"). Install this package to get both C# and Visual Basic support. Install either of the dependencies directly to get one of the languages separately.
 

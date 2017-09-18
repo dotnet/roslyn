@@ -2,16 +2,15 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Microsoft.CodeAnalysis.Remote.Workspaces</id>
-    <summary>
-      A shared package used by the .NET Compiler Platform ("Roslyn") including support for coordinating analysis of projects and solutions using a separate server process.
-    </summary>
     <description>
       A shared package used by the .NET Compiler Platform ("Roslyn") including support for coordinating analysis of projects and solutions using a separate server process. Do not install this package manually, it will be added as a prerequisite by other packages that require it.
 
-Supported Platforms:
-- .NET Framework 4.6
+      Supported Platforms:
+      - .NET Framework 4.6
 
-    $commitPathMessage$
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
     </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Common" version="[$version$]" />
