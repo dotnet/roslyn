@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 //      [Import] public int Field1;
                 //      [Import] public int Field2;
                 var attributes = memberDeclNode.GetAttributes();
-                for (int i = 0; i < attributes.Count - 1; ++i)
+                for (int i = 0; i < attributes.Count; ++i)
                 {
                     AddSuppressWrappingIfOnSingleLineOperation(list,
                         attributes[i].GetFirstToken(includeZeroWidth: true),
