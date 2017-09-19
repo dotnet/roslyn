@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureLeadingDigitSeparator = MessageBase + 12723,
         IDS_FeatureNonTrailingNamedArguments = MessageBase + 12724,
 
-        IDS_FeatureReadonlyReferences = MessageBase + 12725,
+        IDS_FeatureReadOnlyReferences = MessageBase + 12725,
         IDS_FeatureRefStructs = MessageBase + 12726,
         IDS_FeatureReadOnlyStructs = MessageBase + 12727,
         IDS_FeatureRefExtensionMethods = MessageBase + 12728,
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // C# 7.2 features.
                 case MessageID.IDS_FeatureNonTrailingNamedArguments: // semantic check
                 case MessageID.IDS_FeatureLeadingDigitSeparator:
-                case MessageID.IDS_FeatureReadonlyReferences:
+                case MessageID.IDS_FeatureReadOnlyReferences:
                 case MessageID.IDS_FeatureRefStructs:
                 case MessageID.IDS_FeatureReadOnlyStructs:
                 case MessageID.IDS_FeatureRefExtensionMethods:

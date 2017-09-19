@@ -929,8 +929,11 @@ class C
             var o1 = new C1();
 
             (args != null ? ref o.field : ref o1.field).ToString();
+            System.Console.Write(o.field.value);
 
-            System.Console.WriteLine(o.field.value);
+            // no copying expected
+            (args != null ? ref o.field : ref o1.field).RoExtension();
+            System.Console.Write(o.field.value);
         }
     }
 
@@ -939,7 +942,7 @@ class C
         public readonly S1 field;
     }
 
-    struct S1
+    public struct S1
     {
         public int value;
 
@@ -949,14 +952,22 @@ class C
             return base.ToString();
         }
     }
+
+    public static class S1Ext
+    {
+        public static void RoExtension(ref readonly this S1 self)
+        {
+            // do nothing
+        }
+    }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, expectedOutput: "0", verify: false);
+            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef, SystemCoreRef }, expectedOutput: "00", verify: false);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("Program.Main", @"
 {
-  // Code size       61 (0x3d)
+  // Code size       99 (0x63)
   .maxstack  1
   .locals init (C1 V_0, //o
                 C1 V_1, //o1
@@ -980,8 +991,20 @@ class C
   IL_002c:  ldloc.0
   IL_002d:  ldflda     ""S1 C1.field""
   IL_0032:  ldfld      ""int S1.value""
-  IL_0037:  call       ""void System.Console.WriteLine(int)""
-  IL_003c:  ret
+  IL_0037:  call       ""void System.Console.Write(int)""
+  IL_003c:  ldarg.0
+  IL_003d:  brtrue.s   IL_0047
+  IL_003f:  ldloc.1
+  IL_0040:  ldflda     ""S1 C1.field""
+  IL_0045:  br.s       IL_004d
+  IL_0047:  ldloc.0
+  IL_0048:  ldflda     ""S1 C1.field""
+  IL_004d:  call       ""void S1Ext.RoExtension(in S1)""
+  IL_0052:  ldloc.0
+  IL_0053:  ldflda     ""S1 C1.field""
+  IL_0058:  ldfld      ""int S1.value""
+  IL_005d:  call       ""void System.Console.Write(int)""
+  IL_0062:  ret
 }
 ");
         }
