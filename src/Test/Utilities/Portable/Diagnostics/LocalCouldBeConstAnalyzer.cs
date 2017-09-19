@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                {
                                    AssignTo(assignment.Target, assignedToLocals, mightBecomeConstLocals);
                                }
-                               else if (operationContext.Operation is IIncrementExpression increment)
+                               else if (operationContext.Operation is IIncrementOrDecrementExpression increment)
                                {
                                    AssignTo(increment.Target, assignedToLocals, mightBecomeConstLocals);
                                }

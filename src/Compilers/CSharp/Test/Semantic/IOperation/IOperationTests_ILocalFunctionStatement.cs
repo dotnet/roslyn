@@ -30,7 +30,7 @@ class C
 ILocalFunctionStatement (Symbol: System.Int32 Local(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(i ... }')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return x++;')
-      ReturnedValue: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
+      ReturnedValue: IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
           Target: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -56,7 +56,7 @@ class C
 ILocalFunctionStatement (Symbol: System.Int32 Local(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(i ... p1) => x++;')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x++')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x++')
-      ReturnedValue: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
+      ReturnedValue: IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
           Target: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -82,7 +82,7 @@ class C
 ILocalFunctionStatement (Symbol: System.Int32 Local(System.Int32 x)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(int x) => x++;')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x++')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x++')
-      ReturnedValue: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
+      ReturnedValue: IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
           Target: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -281,7 +281,7 @@ class C
 ILocalFunctionStatement (Symbol: void F()) (OperationKind.LocalFunctionStatement) (Syntax: 'void F() => x++;')
   IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '=> x++')
     IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x++')
-      Expression: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
+      Expression: IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
           Target: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: '=> x++')
       ReturnedValue: null

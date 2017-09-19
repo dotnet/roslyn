@@ -170,10 +170,12 @@ namespace Microsoft.CodeAnalysis
         //PointerIndirectionReferenceExpression = 0x204,
         /// <summary>Indicates an <see cref="IIsPatternExpression"/>.</summary>
         IsPatternExpression = 0x205,
-        /// <summary>Indicates an <see cref="IIncrementExpression"/>.</summary>
+        /// <summary>Indicates an <see cref="IIncrementOrDecrementExpression"/> for increment operator.</summary>
         IncrementExpression = 0x206,
         /// <summary>Indicates an <see cref="IThrowExpression"/>.</summary>
         ThrowExpression = 0x207,
+        /// <summary>Indicates an <see cref="IIncrementOrDecrementExpression"/> for decrement operator.</summary>
+        DecrementExpression = 0x208,
 
         // Expressions that occur only in Visual Basic.
 

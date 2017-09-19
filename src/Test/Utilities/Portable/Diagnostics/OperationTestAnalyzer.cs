@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             }
             else if (advanceExpression.Kind == OperationKind.IncrementExpression)
             {
-                IIncrementExpression advanceAssignment = (IIncrementExpression)advanceExpression;
+                IIncrementOrDecrementExpression advanceAssignment = (IIncrementOrDecrementExpression)advanceExpression;
 
                 if (advanceAssignment.Target.Kind == OperationKind.LocalReferenceExpression &&
                     ((ILocalReferenceExpression)advanceAssignment.Target).Local == testVariable)
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             }
         }
 
-        private static ILiteralExpression CreateIncrementOneLiteralExpression(SemanticModel semanticModel, IIncrementExpression increment)
+        private static ILiteralExpression CreateIncrementOneLiteralExpression(SemanticModel semanticModel, IIncrementOrDecrementExpression increment)
         {
             string text = increment.Syntax.ToString();
             SyntaxNode syntax = increment.Syntax;
@@ -1814,7 +1814,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      }
                      else if (operation.Kind == OperationKind.IncrementExpression)
                      {
-                         var inc = (IIncrementExpression)operation;
+                         var inc = (IIncrementOrDecrementExpression)operation;
                          if (inc.HasErrors(operationContext.Compilation))
                          {
                              operationContext.ReportDiagnostic(Diagnostic.Create(InvalidIncrementDescriptor, inc.Syntax.GetLocation()));
