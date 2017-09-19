@@ -62,6 +62,125 @@ class C
             CompileAndVerify(source, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnStringParamsArgument()
+        {
+            var source = CreateCompilationWithMscorlib46(@"
+using System;
+
+class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, params object[] b)
+    {
+    }
+}
+
+[Mark(b: new string[] { ""Hello"", ""World"" }, a: true)]
+static class Program
+{
+}");
+            source.VerifyDiagnostics(
+                // (11,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [Mark(b: new string[] { "Hello", "World" }, a: true)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"Mark(b: new string[] { ""Hello"", ""World"" }, a: true)").WithLocation(11, 2)
+                );
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnObjectParamsArgument()
+        {
+            var source = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, params object[] b)
+    {
+        A = a;
+        B = b;
+    }
+    public bool A { get; }
+    public object[] B { get;  }
+}
+
+[Mark(b: new object[] { ""Hello"", ""World"" }, a: true)]
+static class Program
+{
+    private static void Test(bool a, params object[] b)
+        => PrintOutArgsInfo(b);
+
+    public static void Main()
+    {
+        Console.Write(""Method call: "");
+        Test(b: new object[] { ""Hello"", ""World"" }, a: true);
+
+        var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
+        Console.Write(""Attribute constructor call: "");
+        PrintOutArgsInfo(attr.B);
+    }
+
+    private static void PrintOutArgsInfo(object[] args)
+    {
+        Console.WriteLine($""{args[0]}"");
+    }
+}", options: TestOptions.DebugExe);
+            source.VerifyDiagnostics();
+
+            CompileAndVerify(source, expectedOutput:
+@"Method call: Hello
+Attribute constructor call: Hello");
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnNonParamsArgument()
+        {
+            var source = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(int a, int b)
+    {
+        A = a;
+        B = b;
+    }
+    public int A { get; }
+    public int B { get;  }
+}
+
+[Mark(b: 42, a: 1)]
+static class Program
+{
+    private static void Test(int a, int b)
+        => PrintOutArgsInfo(b);
+
+    public static void Main()
+    {
+        Console.Write(""Method call: "");
+        Test(b: 42, a: 1);
+
+        var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
+        Console.Write(""Attribute constructor call: "");
+        PrintOutArgsInfo(attr.B);
+    }
+
+    private static void PrintOutArgsInfo(int value)
+    {
+        Console.WriteLine($""Value={value}"");
+    }
+}", options: TestOptions.DebugExe);
+            source.VerifyDiagnostics();
+
+            CompileAndVerify(source, expectedOutput:
+@"Method call: Value=42
+Attribute constructor call: Value=42");
+        }
+
         [WorkItem(984896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984896")]
         [Fact]
         public void TestAssemblyAttributesErr()

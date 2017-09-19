@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (parameter.IsParams && parameter.Type.IsSZArray() && i + 1 == parameterCount)
                 {
-                    reorderedArgument = GetParamArrayArgument(parameter, constructorArgsArray, argumentsCount, argsConsumedCount, this.Conversions);
+                    reorderedArgument = GetParamArrayArgument(parameter, constructorArgsArray, constructorArgumentNamesOpt, argumentsCount, argsConsumedCount, this.Conversions);
                     sourceIndices = sourceIndices ?? CreateSourceIndicesArray(i, parameterCount);
                 }
                 else if (argsConsumedCount < argumentsCount)
@@ -820,7 +820,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static TypedConstant GetParamArrayArgument(ParameterSymbol parameter, ImmutableArray<TypedConstant> constructorArgsArray, int argumentsCount, int argsConsumedCount, Conversions conversions)
+        private static TypedConstant GetParamArrayArgument(ParameterSymbol parameter, ImmutableArray<TypedConstant> constructorArgsArray,
+            ImmutableArray<string> constructorArgumentNamesOpt, int argumentsCount, int argsConsumedCount, Conversions conversions)
         {
             Debug.Assert(argsConsumedCount <= argumentsCount);
 
@@ -830,15 +831,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new TypedConstant(parameter.Type, ImmutableArray<TypedConstant>.Empty);
             }
 
-            // If there's exactly one argument and it's an array of an appropriate type, then just return it.
-            if (paramArrayArgCount == 1 && constructorArgsArray[argsConsumedCount].Kind == TypedConstantKind.Array)
+            int argIndex = -1;
+            // If there's a named argument, we'll use that
+            if (!constructorArgumentNamesOpt.IsDefault)
             {
-                TypeSymbol argumentType = (TypeSymbol)constructorArgsArray[argsConsumedCount].Type;
+                argIndex = constructorArgumentNamesOpt.IndexOf(parameter.Name);
+            }
+
+            // If there's exactly one argument and it's an array, we'll use that
+            if (argIndex < 0 && paramArrayArgCount == 1 && constructorArgsArray[argsConsumedCount].Kind == TypedConstantKind.Array)
+            {
+                argIndex = argsConsumedCount;
+            }
+
+            if (argIndex >= 0)
+            {
+                TypeSymbol argumentType = (TypeSymbol)constructorArgsArray[argIndex].Type;
 
                 // Easy out (i.e. don't both classifying conversion).
                 if (argumentType == parameter.Type)
                 {
-                    return constructorArgsArray[argsConsumedCount];
+                    return constructorArgsArray[argIndex];
                 }
 
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null; // ignoring, since already bound argument and parameter
@@ -848,7 +861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // For example, passing int[] to params object[] actually treats the int[] as an element of the object[].
                 if (conversion.IsValid && conversion.Kind == ConversionKind.ImplicitReference)
                 {
-                    return constructorArgsArray[argsConsumedCount];
+                    return constructorArgsArray[argIndex];
                 }
             }
 
