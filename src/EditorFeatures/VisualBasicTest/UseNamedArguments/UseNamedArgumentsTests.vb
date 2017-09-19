@@ -2,9 +2,9 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.UseNamedArguments
+Imports Microsoft.CodeAnalysis.VisualBasic.UseNamedArguments
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.UseNamedArguments
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseNamedArguments
     Public Class UseNamedArgumentsTests
         Inherits AbstractVisualBasicCodeActionTest
 

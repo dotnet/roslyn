@@ -2,8 +2,13 @@
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal class WellKnownRemoteHostServices
+    internal static class WellKnownRemoteHostServices
     {
-        public const string RemoteHostService = "remoteHostService";
+        public static void Set64bit(bool x64)
+        {
+            RemoteHostService = "remoteHostService" + (x64 ? "64" : "");
+        }
+
+        public static string RemoteHostService { get; private set; } = "remoteHostService";
     }
 }

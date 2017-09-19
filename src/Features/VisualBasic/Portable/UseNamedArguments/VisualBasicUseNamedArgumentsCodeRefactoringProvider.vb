@@ -3,10 +3,10 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
+Imports Microsoft.CodeAnalysis.UseNamedArguments
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.UseNamedArguments
+Namespace Microsoft.CodeAnalysis.VisualBasic.UseNamedArguments
     <ExtensionOrder(After:=PredefinedCodeRefactoringProviderNames.IntroduceVariable)>
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicUseNamedArgumentsCodeRefactoringProvider)), [Shared]>
     Friend Class VisualBasicUseNamedArgumentsCodeRefactoringProvider
@@ -46,6 +46,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.UseNamedArguments
 
             Protected Overrides Function IsCloseParenOrComma(token As SyntaxToken) As Boolean
                 Return token.IsKind(SyntaxKind.CloseParenToken, SyntaxKind.CommaToken)
+            End Function
+
+            Protected Overrides Function SupportsNonTrailingNamedArguments(options As ParseOptions) As Boolean
+                Return DirectCast(options, VisualBasicParseOptions).LanguageVersion >= LanguageVersion.VisualBasic15_5
             End Function
         End Class
 

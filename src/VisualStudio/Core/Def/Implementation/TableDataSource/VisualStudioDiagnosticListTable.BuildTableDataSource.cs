@@ -94,15 +94,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private static IEnumerable<TableItem<DiagnosticData>> Order(IEnumerable<TableItem<DiagnosticData>> groupedItems)
             {
-                // this should make order of result always deterministic.
-                return groupedItems.OrderBy(d => d.Primary.ProjectId?.Id ?? Guid.Empty)
-                                   .ThenBy(d => d.Primary.DocumentId?.Id ?? Guid.Empty)
-                                   .ThenBy(d => d.Primary.DataLocation?.OriginalStartLine ?? 0)
-                                   .ThenBy(d => d.Primary.DataLocation?.OriginalStartColumn ?? 0)
-                                   .ThenBy(d => d.Primary.Id)
-                                   .ThenBy(d => d.Primary.Message)
-                                   .ThenBy(d => d.Primary.DataLocation?.OriginalEndLine ?? 0)
-                                   .ThenBy(d => d.Primary.DataLocation?.OriginalEndColumn ?? 0);
+                // errors are already given in order. use it as it is.
+                return groupedItems;
             }
 
             private class TableEntriesSource : DiagnosticTableEntriesSource
@@ -140,7 +133,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 private int GenerateDeduplicationKey(DiagnosticData diagnostic)
                 {
-                    if (diagnostic.DataLocation == null ||
+                    if (diagnostic.DocumentId == null ||
+                        diagnostic.DataLocation == null ||
                         diagnostic.DataLocation.OriginalFilePath == null)
                     {
                         return diagnostic.GetHashCode();

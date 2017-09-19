@@ -136,6 +136,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             SecurityIdentifier identifier = WindowsIdentity.GetCurrent().Owner;
             PipeSecurity security = new PipeSecurity();
 
+#if NET46
             // Restrict access to just this account.  
             PipeAccessRule rule = new PipeAccessRule(identifier, PipeAccessRights.ReadWrite | PipeAccessRights.CreateNewInstance, AccessControlType.Allow);
             security.AddAccessRule(rule);
@@ -151,6 +152,24 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 PipeBufferSize, // Default output buffer
                 security,
                 HandleInheritability.None);
+#else
+            // The overload of NamedPipeServerStream with the PipeAccessRule
+            // parameter was removed in netstandard. However, the default
+            // constructor does not provide WRITE_DAC, so attempting to use
+            // SetAccessControl will always fail. So, completely ignore ACLs on
+            // netcore, and trust that our `ClientAndOurIdentitiesMatch`
+            // verification will catch any invalid connections.
+            // Issue to add WRITE_DAC support:
+            // https://github.com/dotnet/corefx/issues/24040
+            NamedPipeServerStream pipeStream = new NamedPipeServerStream(
+                pipeName,
+                PipeDirection.InOut,
+                NamedPipeServerStream.MaxAllowedServerInstances, // Maximum connections.
+                PipeTransmissionMode.Byte,
+                PipeOptions.Asynchronous | PipeOptions.WriteThrough,
+                PipeBufferSize, // Default input buffer
+                PipeBufferSize);// Default output buffer
+#endif
 
             CompilerServerLogger.Log("Successfully constructed pipe '{0}'.", pipeName);
 
