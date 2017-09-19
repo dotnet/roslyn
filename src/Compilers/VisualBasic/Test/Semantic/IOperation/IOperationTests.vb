@@ -391,7 +391,7 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub AddressOf_BoundMethod_ExposesReceiver()
+        Public Sub BoundMethodGroup_ExposesReceiver()
             Dim source = <![CDATA[
 Imports System
 Module Program
@@ -432,7 +432,7 @@ BC30491: Expression does not produce a value.
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub AddressOf_BoundProperty_ExposesReceiver()
+        Public Sub BoundPropertyGroup_ExposesReceiver()
             Dim source = <![CDATA[
 Option Strict Off
 
