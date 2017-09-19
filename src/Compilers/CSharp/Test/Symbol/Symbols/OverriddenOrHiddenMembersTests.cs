@@ -4000,9 +4000,9 @@ class B : A
 }";
 
             var comp = CreateStandardCompilation(code).VerifyDiagnostics(
-                // (8,17): warning CS0108: 'B.M(in int)' hides inherited member 'A.M(in int)'. Use the new keyword if hiding was intended.
+                // (8,17): warning CS0108: 'B.M(ref readonly int)' hides inherited member 'A.M(ref readonly int)'. Use the new keyword if hiding was intended.
                 //     public void M(ref readonly int x) { }
-                Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M(in int)", "A.M(in int)").WithLocation(8, 17));
+                Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M(ref readonly int)", "A.M(ref readonly int)").WithLocation(8, 17));
 
             var aMethod = comp.GetMember<MethodSymbol>("A.M");
             var bMethod = comp.GetMember<MethodSymbol>("B.M");
@@ -4451,9 +4451,9 @@ class ChildClass : BaseClass
                 // (10,26): error CS0115: 'ChildClass.Method2(ref int)': no suitable method found to override
                 //     public override void Method2(ref int x) { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Method2").WithArguments("ChildClass.Method2(ref int)").WithLocation(10, 26),
-                // (9,26): error CS0115: 'ChildClass.Method1(in int)': no suitable method found to override
+                // (9,26): error CS0115: 'ChildClass.Method1(ref readonly int)': no suitable method found to override
                 //     public override void Method1(ref readonly int x) { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Method1").WithArguments("ChildClass.Method1(in int)").WithLocation(9, 26));
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Method1").WithArguments("ChildClass.Method1(ref readonly int)").WithLocation(9, 26));
         }
 
         [Fact]
@@ -4585,9 +4585,9 @@ class B : A
                 // (8,25): error CS0115: 'B.this[int]': no suitable method found to override
                 //     public override int this[int p] { get { return p; } }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("B.this[int]").WithLocation(8, 25),
-                // (6,7): error CS0534: 'B' does not implement inherited abstract member 'A.this[in int].get'
+                // (6,7): error CS0534: 'B' does not implement inherited abstract member 'A.this[ref readonly int].get'
                 // class B : A
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.this[in int].get").WithLocation(6, 7));
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.this[ref readonly int].get").WithLocation(6, 7));
         }
 
         [Fact]
@@ -4605,9 +4605,9 @@ class B : A
 }";
 
             var comp = CreateStandardCompilation(code).VerifyDiagnostics(
-                // (8,25): error CS0115: 'B.this[in int]': no suitable method found to override
+                // (8,25): error CS0115: 'B.this[ref readonly int]': no suitable method found to override
                 //     public override int this[ref readonly int p] { get { return p; } }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("B.this[in int]").WithLocation(8, 25),
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("B.this[ref readonly int]").WithLocation(8, 25),
                 // (6,7): error CS0534: 'B' does not implement inherited abstract member 'A.this[int].get'
                 // class B : A
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.this[int].get").WithLocation(6, 7));

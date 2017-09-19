@@ -743,7 +743,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AddSpace();
                         break;
                     case RefKind.RefReadOnly:
-                        AddKeyword(SyntaxKind.InKeyword);
+                        AddKeyword(SyntaxKind.RefKeyword);
+                        AddSpace();
+                        AddKeyword(SyntaxKind.ReadOnlyKeyword);
                         AddSpace();
                         break;
                 }
