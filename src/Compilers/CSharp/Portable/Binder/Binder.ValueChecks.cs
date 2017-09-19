@@ -949,21 +949,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> args,
             ImmutableArray<RefKind> argRefKinds,
             ImmutableArray<int> argsToParamsOpt,
-            uint scopeOfTheContainingExpression)
+            uint scopeOfTheContainingExpression,
+            bool isRefEscape
+        )
         {
             // SPEC: (also applies to the CheckInvocationEscape counterpart)
             //
             //            An lvalue resulting from a ref-returning method invocation e1.M(e2, ...) is ref-safe - to - escape the smallest of the following scopes:
             //•	The entire enclosing method
-            //•	the ref-safe-to-escape of all ref/out/in argument expressions(excluding the receiver and arguments that have ref-like type)
+            //•	the ref-safe-to-escape of all ref/out/in argument expressions(excluding the receiver)
             //•	the safe-to - escape of all argument expressions(including the receiver)
             //
             //            An rvalue resulting from a method invocation e1.M(e2, ...) is safe - to - escape from the smallest of the following scopes:
             //•	The entire enclosing method
-            //•	the ref-safe-to-escape of all ref/out/in argument expressions(excluding the receiver and arguments that have ref-like type)
             //•	the safe-to-escape of all argument expressions(including the receiver)
             //
-            // Note that these rules are identical to the above rules for ref-safe - to - escape, but apply only when the return type is a ref struct type.
 
             //by default it is safe to escape
             uint escapeScope = Binder.ExternalScope;
@@ -976,10 +976,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     RefKind effectiveRefKind = GetEffectiveRefKind(argIndex, argRefKinds, parameters, argsToParamsOpt, ref inParametersMatchedWithArgs);
 
-                    // if ref is passed and it is not a ref-like, check ref escape, 
-                    // since it is the same or narrower than val escape and callee may wrap the ref into a val
+                    // ref escape scope is the narrowest of 
+                    // - ref escape of all byref arguments
+                    // - val escape of all byval arguments  (ref-like values can be unwrapped into refs, so treat val escape of values as possible ref escape of the result)
+                    //
+                    // val escape scope is the narrowest of 
+                    // - val escape of all byval arguments  (refs cannot be wrapped into values, so their ref escape is irrelevant, only use val escapes)
+
                     var argument = args[argIndex];
-                    var argEscape = effectiveRefKind != RefKind.None && argument.Type?.IsByRefLikeType == false ?
+                    var argEscape = effectiveRefKind != RefKind.None && isRefEscape ?
                                         GetRefEscape(argument, scopeOfTheContainingExpression) :
                                         GetValEscape(argument, scopeOfTheContainingExpression);
 
@@ -999,9 +1004,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // handle omitted optional "in" parameters if there are any
             ParameterSymbol unmatchedInParameter = TryGetUnmatchedInParameterAndFreeMatchedArgs(parameters, ref inParametersMatchedWithArgs);
 
-            // unmatched "in" parameter is same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
-            //                                                its val escape is ExternalScope                   (does not affect overal result)
-            if (unmatchedInParameter != null)
+            // unmatched "in" parameter is the same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
+            //                                                    its val escape is ExternalScope                   (does not affect overal result)
+            if (unmatchedInParameter != null && isRefEscape)
             {
                 return scopeOfTheContainingExpression;
             }
@@ -1020,9 +1025,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The result indicates whether the escape is possible. 
         /// Additionally, the method emits diagnostics (possibly more than one, recursively) that would help identify the cause for the failure.
         /// 
-        /// NOTE: the escape scope for ref and val escapes is the same for invocations except for trivial cases (ordinary type returned by val) 
-        ///       where escape is known otherwise. Therefore we do not vave two ref/val variants of this.
-        ///       
         /// NOTE: we need scopeOfTheContainingExpression as some expressions such as optional `in` parameters or `ref dynamic` behave as 
         ///       local variables declared at the scope of the invocation.
         /// </summary>
@@ -1037,9 +1039,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool checkingReceiver,
             uint escapeFrom,
             uint escapeTo,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool isRefEscape
+        )
         {
-
             // SPEC: 
             //            In a method invocation, the following constraints apply:
             //•	If there is a ref or out argument to a ref struct type (including the receiver), with safe-to-escape E1, then
@@ -1053,10 +1056,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     RefKind effectiveRefKind = GetEffectiveRefKind(argIndex, argRefKinds, parameters, argsToParamsOpt, ref inParametersMatchedWithArgs);
 
-                    // if ref is passed and it is not a ref-like, check ref escape, 
-                    // since it is the same or narrower than val escape and callee may wrap the ref into a val
+                    // ref escape scope is the narrowest of 
+                    // - ref escape of all byref arguments
+                    // - val escape of all byval arguments  (ref-like values can be unwrapped into refs, so treat val escape of values as possible ref escape of the result)
+                    //
+                    // val escape scope is the narrowest of 
+                    // - val escape of all byval arguments  (refs cannot be wrapped into values, so their ref escape is irrelevant, only use val escapes)
+
                     var argument = args[argIndex];
-                    var valid = effectiveRefKind != RefKind.None && argument.Type.IsByRefLikeType == false ?
+                    var valid = effectiveRefKind != RefKind.None && isRefEscape ?
                                         CheckRefEscape(argument.Syntax, argument, escapeFrom, escapeTo, false, diagnostics) :
                                         CheckValEscape(argument.Syntax, argument, escapeFrom, escapeTo, false, diagnostics);
 
@@ -1077,9 +1085,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // handle omitted optional "in" parameters if there are any
             ParameterSymbol unmatchedInParameter = TryGetUnmatchedInParameterAndFreeMatchedArgs(parameters, ref inParametersMatchedWithArgs);
 
-            // unmatched "in" parameter is same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
-            //                                                its val escape is ExternalScope                   (does not affect overal result)
-            if (unmatchedInParameter != null)
+            // unmatched "in" parameter is the same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
+            //                                                    its val escape is ExternalScope                   (does not affect overal result)
+            if (unmatchedInParameter != null && isRefEscape)
             {
                 Error(diagnostics, GetStandardCallEscapeError(checkingReceiver), syntax, symbol, unmatchedInParameter.Name);
                 return false;
@@ -1139,27 +1147,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            // check that no ref/out/in or ref-like can be captured from a narrower scope
-            ArrayBuilder<bool> inParametersMatchedWithArgs = null;
-
             if (!args.IsDefault)
             {
                 for (var argIndex = 0; argIndex < args.Length; argIndex++)
                 {
-                    RefKind effectiveRefKind = GetEffectiveRefKind(argIndex, argRefKinds, parameters, argsToParamsOpt, ref inParametersMatchedWithArgs);
-
-                    // if ref is passed and it is not a ref-like, check ref escape, 
-                    // since it is the same or narrower than val escape and callee may wrap the ref into a val
+                    // check val escape of all arguments
                     var argument = args[argIndex];
-                    var valid = effectiveRefKind != RefKind.None && argument.Type?.IsByRefLikeType == false ?
-                                        CheckRefEscape(argument.Syntax, argument, scopeOfTheContainingExpression, escapeTo, false, diagnostics) :
-                                        CheckValEscape(argument.Syntax, argument, scopeOfTheContainingExpression, escapeTo, false, diagnostics);
+                    var valid = CheckValEscape(argument.Syntax, argument, scopeOfTheContainingExpression, escapeTo, false, diagnostics);
 
                     if (!valid)
                     {
-                        // no longer needed
-                        inParametersMatchedWithArgs?.Free();
-
                         var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
                         var parameterName = parameters[paramIndex].Name;
                         Error(diagnostics, ErrorCode.ERR_CallArgMixing, syntax, symbol, parameterName);
@@ -1168,18 +1165,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // handle omitted optional "in" parameters if there are any
-            ParameterSymbol unmatchedInParameter = TryGetUnmatchedInParameterAndFreeMatchedArgs(parameters, ref inParametersMatchedWithArgs);
+            //NB: we do not care about unmatched "ref readonly" parameters here. 
+            //    They have "outer" val escape, so cannot be worse than escapeTo.
 
-            // unmatched "in" parameter is same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
-            //                                                its val escape is ExternalScope                   (does not affect overal result)
-            if (unmatchedInParameter != null)
-            {
-                Error(diagnostics, ErrorCode.ERR_CallArgMixing, syntax, symbol, unmatchedInParameter.Name);
-                return false;
-            }
-
-            // check receiver if ref-like
+            // check val escape of receiver if ref-like
             if (receiverOpt?.Type?.IsByRefLikeType == true)
             {
                 return CheckValEscape(receiverOpt.Syntax, receiverOpt, scopeOfTheContainingExpression, escapeTo, false, diagnostics);
@@ -1633,7 +1622,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         call.Arguments,
                         call.ArgumentRefKindsOpt,
                         call.ArgsToParamsOpt,
-                        scopeOfTheContainingExpression);
+                        scopeOfTheContainingExpression,
+                        isRefEscape: true);
 
                 case BoundKind.IndexerAccess:
                     var indexerAccess = (BoundIndexerAccess)expr;
@@ -1645,7 +1635,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         indexerAccess.Arguments,
                         indexerAccess.ArgumentRefKindsOpt,
                         indexerAccess.ArgsToParamsOpt,
-                        scopeOfTheContainingExpression);
+                        scopeOfTheContainingExpression,
+                        isRefEscape: true);
 
                 case BoundKind.PropertyAccess:
                     var propertyAccess = (BoundPropertyAccess)expr;
@@ -1657,7 +1648,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         default,
                         default,
                         default,
-                        scopeOfTheContainingExpression);
+                        scopeOfTheContainingExpression,
+                        isRefEscape: true);
             }
 
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
@@ -1792,7 +1784,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         checkingReceiver,
                         escapeFrom,
                         escapeTo,
-                        diagnostics);
+                        diagnostics,
+                        isRefEscape: true);
 
                 case BoundKind.IndexerAccess:
                     var indexerAccess = (BoundIndexerAccess)expr;
@@ -1814,7 +1807,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         checkingReceiver,
                         escapeFrom,
                         escapeTo,
-                        diagnostics);
+                        diagnostics,
+                        isRefEscape: true);
 
                 case BoundKind.PropertyAccess:
                     var propertyAccess = (BoundPropertyAccess)expr;
@@ -1837,7 +1831,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         checkingReceiver,
                         escapeFrom,
                         escapeTo,
-                        diagnostics);
+                        diagnostics,
+                        isRefEscape: true);
             }
 
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
@@ -1910,7 +1905,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         call.Arguments,
                         call.ArgumentRefKindsOpt,
                         call.ArgsToParamsOpt,
-                        scopeOfTheContainingExpression);
+                        scopeOfTheContainingExpression,
+                        isRefEscape: false);
 
                 case BoundKind.IndexerAccess:
                     var indexerAccess = (BoundIndexerAccess)expr;
@@ -1922,7 +1918,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         indexerAccess.Arguments,
                         indexerAccess.ArgumentRefKindsOpt,
                         indexerAccess.ArgsToParamsOpt,
-                        scopeOfTheContainingExpression);
+                        scopeOfTheContainingExpression,
+                        isRefEscape: false);
 
                 case BoundKind.PropertyAccess:
                     var propertyAccess = (BoundPropertyAccess)expr;
@@ -1934,7 +1931,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         default,
                         default,
                         default,
-                        scopeOfTheContainingExpression);
+                        scopeOfTheContainingExpression,
+                        isRefEscape: false);
 
                 case BoundKind.ObjectCreationExpression:
                     var objectCreation = (BoundObjectCreationExpression)expr;
@@ -1946,7 +1944,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         objectCreation.Arguments,
                         objectCreation.ArgumentRefKindsOpt,
                         objectCreation.ArgsToParamsOpt,
-                        scopeOfTheContainingExpression);
+                        scopeOfTheContainingExpression,
+                        isRefEscape: false);
 
                     return escape;
 
@@ -2071,7 +2070,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         checkingReceiver,
                         escapeFrom,
                         escapeTo,
-                        diagnostics);
+                        diagnostics,
+                        isRefEscape: false);
 
                 case BoundKind.IndexerAccess:
                     var indexerAccess = (BoundIndexerAccess)expr;
@@ -2088,7 +2088,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         checkingReceiver,
                         escapeFrom,
                         escapeTo,
-                        diagnostics);
+                        diagnostics,
+                        isRefEscape: false);
 
                 case BoundKind.PropertyAccess:
                     var propertyAccess = (BoundPropertyAccess)expr;
@@ -2105,7 +2106,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         checkingReceiver,
                         escapeFrom,
                         escapeTo,
-                        diagnostics);
+                        diagnostics,
+                        isRefEscape: false);
 
                 case BoundKind.ObjectCreationExpression:
                     var objectCreation = (BoundObjectCreationExpression)expr;
@@ -2122,7 +2124,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         checkingReceiver,
                         escapeFrom,
                         escapeTo,
-                        diagnostics);
+                        diagnostics,
+                        isRefEscape: false);
 
                     return escape;
 
