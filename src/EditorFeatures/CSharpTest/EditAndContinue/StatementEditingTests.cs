@@ -6671,7 +6671,7 @@ class Program
                 "Update [void M() { }]@13 -> [void M() { void local(ref readonly int b) { throw null; } }]@13");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int b", "parameter"));
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int b", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -6686,7 +6686,7 @@ class Program
                 "Update [void M() { void local() { throw null; } }]@13 -> [void M() { void local(ref readonly int b) { throw null; } }]@13");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int b", "parameter"));
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int b", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -6701,7 +6701,7 @@ class Program
                 "Update [void M() { void local(int b) { throw null; } }]@13 -> [void M() { void local(ref readonly int b) { throw null; } }]@13");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int b", "parameter"));
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int b", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -6716,7 +6716,7 @@ class Program
                 "Update [void M() { }]@13 -> [void M() { ref readonly int local() { throw null; } }]@13");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "local", "local function"));
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "local", FeaturesResources.local_function));
         }
 
         [Fact]
@@ -6731,7 +6731,7 @@ class Program
                 "Update [void M() { int local() { throw null; } }]@13 -> [void M() { ref readonly int local() { throw null; } }]@13");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "local", "local function"));
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "local", FeaturesResources.local_function));
         }
 
         #endregion

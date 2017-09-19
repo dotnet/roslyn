@@ -1319,4 +1319,7 @@ This version used in: {2}</value>
   <data name="local_function" xml:space="preserve">
     <value>local function</value>
   </data>
+  <data name="indexer_" xml:space="preserve">
+    <value>indexer</value>
+  </data>
 </root>

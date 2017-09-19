@@ -1657,6 +1657,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to indexer.
+        /// </summary>
+        internal static string indexer_ {
+            get {
+                return ResourceManager.GetString("indexer_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Initialize field &apos;{0}&apos;.
         /// </summary>
         internal static string Initialize_field_0 {

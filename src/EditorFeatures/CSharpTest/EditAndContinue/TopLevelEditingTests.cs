@@ -688,7 +688,7 @@ public interface I
                 "Insert [ref struct X { }]@0");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RefStruct, "ref struct X", "struct"));
+                Diagnostic(RudeEditKind.RefStruct, "ref struct X", SyntaxFacts.GetText(SyntaxKind.StructKeyword)));
         }
 
         [Fact]
@@ -703,7 +703,7 @@ public interface I
                 "Insert [readonly struct X { }]@0");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyStruct, "readonly struct X", "struct"));
+                Diagnostic(RudeEditKind.ReadOnlyStruct, "readonly struct X", SyntaxFacts.GetText(SyntaxKind.StructKeyword)));
         }
 
         [Fact]
@@ -718,7 +718,7 @@ public interface I
                 "Update [struct X { }]@0 -> [ref struct X { }]@0");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "ref struct X", "struct"));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "ref struct X", SyntaxFacts.GetText(SyntaxKind.StructKeyword)));
         }
 
         [Fact]
@@ -733,7 +733,7 @@ public interface I
                 "Update [struct X { }]@0 -> [readonly struct X { }]@0");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "readonly struct X", "struct"));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "readonly struct X", SyntaxFacts.GetText(SyntaxKind.StructKeyword)));
         }
 
         #endregion
@@ -1494,7 +1494,7 @@ public interface I
                 "Insert [ref readonly int b]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int b", "parameter"));
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int b", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -1509,7 +1509,7 @@ public interface I
                 "Insert [ref readonly int b]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "ref readonly int b", "parameter"));
+                Diagnostic(RudeEditKind.Insert, "ref readonly int b", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -1524,7 +1524,7 @@ public interface I
                 "Update [int b]@22 -> [ref readonly int b]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "ref readonly int b", "parameter"));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "ref readonly int b", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -1540,7 +1540,7 @@ public interface I
                 "Insert [()]@34");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "public delegate ref readonly int D()", "delegate"));
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "public delegate ref readonly int D()", FeaturesResources.delegate_));
         }
 
         [Fact]
@@ -1555,7 +1555,7 @@ public interface I
                 "Update [public delegate int D();]@0 -> [public delegate ref readonly int D();]@0");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "public delegate ref readonly int D()", "delegate"));
+                Diagnostic(RudeEditKind.TypeUpdate, "public delegate ref readonly int D()", FeaturesResources.delegate_));
         }
 
         #endregion
@@ -3384,7 +3384,7 @@ class C
                 "Insert [ref readonly int b]@19");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int b", "parameter"));
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int b", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -3399,7 +3399,7 @@ class C
                 "Insert [ref readonly int b]@19");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "ref readonly int b", "parameter"));
+                Diagnostic(RudeEditKind.Insert, "ref readonly int b", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -3414,7 +3414,7 @@ class C
                 "Update [int b]@19 -> [ref readonly int b]@19");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "ref readonly int b", "parameter"));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "ref readonly int b", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -3430,7 +3430,7 @@ class C
                 "Insert [()]@31");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int M()", "method"));
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int M()", FeaturesResources.method));
         }
 
         [Fact]
@@ -3445,7 +3445,7 @@ class C
                 "Update [int M() => throw null;]@13 -> [ref readonly int M() => throw null;]@13");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "ref readonly int M()", "method"));
+                Diagnostic(RudeEditKind.TypeUpdate, "ref readonly int M()", FeaturesResources.method));
         }
 
         #endregion
@@ -3666,7 +3666,7 @@ class C
                 "Insert [ref readonly Test b]@43");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.InsertOperator, "public static bool operator !(ref readonly Test b)", "operator"));
+                 Diagnostic(RudeEditKind.InsertOperator, "public static bool operator !(ref readonly Test b)", FeaturesResources.operator_));
         }
 
         [Fact]
@@ -3681,7 +3681,7 @@ class C
                 "Update [Test b]@43 -> [ref readonly Test b]@43");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "ref readonly Test b", "parameter"));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "ref readonly Test b", FeaturesResources.parameter));
         }
 
         #endregion
@@ -4919,7 +4919,7 @@ public class C
                 "Insert [ref readonly int b]@18");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int b", "parameter"));
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int b", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -4934,7 +4934,7 @@ public class C
                 "Insert [ref readonly int b]@18");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "ref readonly int b", "parameter"));
+                Diagnostic(RudeEditKind.Insert, "ref readonly int b", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -4949,7 +4949,7 @@ public class C
                 "Update [int b]@18 -> [ref readonly int b]@18");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "ref readonly int b", "parameter"));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "ref readonly int b", FeaturesResources.parameter));
         }
 
         #endregion
@@ -7355,7 +7355,7 @@ class C
                 "Insert [()]@31");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int M()", "method"));
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int M()", FeaturesResources.method));
         }
 
         [Fact]
@@ -7370,7 +7370,7 @@ class C
                 "Update [int M() { get; }]@13 -> [ref readonly int M() { get; }]@13");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "ref readonly int M()", "method"));
+                Diagnostic(RudeEditKind.TypeUpdate, "ref readonly int M()", FeaturesResources.method));
         }
 
         #endregion
@@ -7986,7 +7986,7 @@ class SampleCollection<T>
                 "Insert [ref readonly int i]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int i", "parameter"));
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int i", FeaturesResources.parameter));
         }
         
         [Fact]
@@ -8001,7 +8001,7 @@ class SampleCollection<T>
                 "Update [int i]@22 -> [ref readonly int i]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "ref readonly int i", "parameter"));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "ref readonly int i", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -8018,7 +8018,7 @@ class SampleCollection<T>
                 "Insert [int i]@35");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int this[int i]", "indexer"));
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int this[int i]", FeaturesResources.indexer_));
         }
 
         [Fact]
@@ -8033,7 +8033,7 @@ class SampleCollection<T>
                 "Update [int this[int i] => throw null;]@13 -> [ref readonly int this[int i] => throw null;]@13");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "ref readonly int this[int i]", "indexer"));
+                Diagnostic(RudeEditKind.TypeUpdate, "ref readonly int this[int i]", FeaturesResources.indexer_));
         }
 
         #endregion
