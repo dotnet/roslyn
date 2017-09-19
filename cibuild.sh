@@ -110,7 +110,7 @@ dotnet restore ${RESTORE_ARGS} ${ROOT_PATH}/build/ToolsetPackages/CoreToolset.cs
 echo "Restoring CrossPlatform.sln"
 dotnet restore ${RESTORE_ARGS} ${ROOT_PATH}/CrossPlatform.sln
 
-BUILD_ARGS="--no-restore -c ${BUILD_CONFIGURATION} /nologo /consoleloggerparameters:Verbosity=minimal;summary /filelogger /fileloggerparameters:Verbosity=normal;logFile=${BUILD_LOG_PATH} /maxcpucount:1"
+BUILD_ARGS="--no-restore -c ${BUILD_CONFIGURATION} /nologo /consoleloggerparameters:Verbosity=minimal;summary /bl:${BUILD_LOG_PATH} /maxcpucount:1"
 PUBLISH_ARGS="-f ${TARGET_FRAMEWORK} -r ${RUNTIME_ID} ${BUILD_ARGS}"
 
 echo "Building bootstrap csc"

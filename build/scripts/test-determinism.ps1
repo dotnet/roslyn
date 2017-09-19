@@ -118,7 +118,7 @@ function Test-MapContents($dataMap) {
 }
 
 function Test-Build([string]$rootDir, $dataMap, [string]$pathMapBuildOption, [string]$logFile, [switch]$restore = $false) {
-    Run-Build $rootDir $pathMapBuildOption -restore:$restore
+    Run-Build $rootDir $pathMapBuildOption -logFile $logFile -restore:$restore
 
     $errorList = @()
     $allGood = $true
