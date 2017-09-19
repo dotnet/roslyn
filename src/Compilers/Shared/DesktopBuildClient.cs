@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
@@ -30,26 +31,23 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
         {
+#if NET46
+            var sdkDir = RuntimeEnvironment.GetRuntimeDirectory();
+#else
+            string sdkDir = null;
+
+            // Register encodings for console
+            // https://github.com/dotnet/roslyn/issues/10785 
+            // TODO(ashauck): Determine if this can go into desktop as well
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+#endif
             var client = new DesktopBuildClient(language, compileFunc, analyzerAssemblyLoader);
             var clientDir = AppContext.BaseDirectory;
-            var sdkDir = GetRuntimeDirectoryOpt();
             var workingDir = Directory.GetCurrentDirectory();
             var tempDir = BuildServerConnection.GetTempPath(workingDir);
             var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir, tempDir: tempDir);
-            var originalArguments = GetCommandLineArgs(arguments).ToArray();
+            var originalArguments = GetCommandLineArgs(arguments);
             return client.RunCompilation(originalArguments, buildPaths).ExitCode;
-        }
-
-        internal static string GetRuntimeDirectoryOpt()
-        {
-            Type runtimeEnvironmentType = Roslyn.Utilities.ReflectionUtilities.TryGetType(
-                "System.Runtime.InteropServices.RuntimeEnvironment, " +
-                "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-
-            return (string)runtimeEnvironmentType
-                ?.GetTypeInfo()
-                .GetDeclaredMethod("GetRuntimeDirectory")
-                ?.Invoke(obj: null, parameters: null);
         }
 
         protected override int RunLocalCompilation(string[] arguments, BuildPaths buildPaths, TextWriter textWriter)

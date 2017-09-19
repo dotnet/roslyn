@@ -461,11 +461,19 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             try
             {
+#if NET46
                 var currentIdentity = WindowsIdentity.GetCurrent();
                 var currentOwner = currentIdentity.Owner;
                 var remotePipeSecurity = GetPipeSecurity(pipeStream);
                 var remoteOwner = remotePipeSecurity.GetOwner(typeof(SecurityIdentifier));
                 return currentOwner.Equals(remoteOwner);
+#else
+                // TODO(portable vbcscompiler): Implement this.
+                // NamedPipeServerStream exposes GetImpersonationUserName,
+                // which the underlying linux APIs exist for client streams too,
+                // but it's not exposed.
+                return true;
+#endif
             }
             catch (Exception ex)
             {
