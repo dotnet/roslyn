@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SyntaxTreeSemanticModel _parentSemanticModelOpt;
         private readonly int _speculatedPosition;
 
+        private readonly Lazy<CSharpOperationFactory> _operationFactory;
+
         protected MemberSemanticModel(CSharpCompilation compilation, CSharpSyntaxNode root, Symbol memberSymbol, Binder rootBinder, SyntaxTreeSemanticModel parentSemanticModelOpt, int speculatedPosition)
         {
             Debug.Assert(compilation != null);
@@ -48,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.RootBinder = rootBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
             _parentSemanticModelOpt = parentSemanticModelOpt;
             _speculatedPosition = speculatedPosition;
+
+            _operationFactory = new Lazy<CSharpOperationFactory>(() => new CSharpOperationFactory(this));
         }
 
         public override CSharpCompilation Compilation
@@ -104,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override MemberSemanticModel GetMemberModel(SyntaxNode node)
         {
             // We do have to override this method, but should never call it because it might not do the right thing. 
-            Debug.Assert(false); 
+            Debug.Assert(false);
             return IsInTree(node) ? this : null;
         }
 
@@ -592,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static LocalFunctionSymbol GetDeclaredLocalFunction(Binder enclosingBinder, SyntaxToken declaredIdentifier)
         {
-            for (var binder = enclosingBinder ; binder != null; binder = binder.Next)
+            for (var binder = enclosingBinder; binder != null; binder = binder.Next)
             {
                 foreach (var localFunction in binder.LocalFunctions)
                 {
@@ -930,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var elements = tupleLiteralType.TupleElements;
 
-                if(!elements.IsDefault)
+                if (!elements.IsDefault)
                 {
                     var idx = tupleLiteral.Arguments.IndexOf(declaratorSyntax);
                     return elements[idx];
@@ -979,7 +983,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            return result as IOperation;
+            // The CSharp operation factory assumes that UnboundLambda will be bound for error recovery and never be passed to the factory
+            // as the start of a tree to get operations for. This is guaranteed by the builder that populates the node map, as it will call
+            // UnboundLambda.BindForErrorRecovery() when it encounters an UnboundLambda node.
+            Debug.Assert(result?.Kind != BoundKind.UnboundLambda);
+            return _operationFactory.Value.Create(result);
         }
 
         internal override SymbolInfo GetSymbolInfoWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))
@@ -1079,6 +1087,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void GetBoundNodes(CSharpSyntaxNode node, out CSharpSyntaxNode bindableNode, out BoundNode lowestBoundNode, out BoundNode highestBoundNode, out BoundNode boundParent)
         {
             bindableNode = this.GetBindableSyntaxNode(node);
+
             CSharpSyntaxNode bindableParent = this.GetBindableParentNode(bindableNode);
 
             // Special handling for the Color Color case.
@@ -1754,7 +1763,7 @@ done:
             }
 
             var parent = node.Parent;
-            if (parent != null)
+            if (parent != null && node != this.Root)
             {
                 switch (node.Kind())
                 {
@@ -1827,7 +1836,7 @@ done:
                 {
                     return null;
                 }
-                
+
                 throw new ArgumentException($"The parent of {nameof(node)} must not be null unless this is a speculative semantic model.", nameof(node));
             }
 
@@ -1936,7 +1945,7 @@ done:
                     // _lazyGuardedSynthesizedStatementsMap
                     if (statement.WasCompilerGenerated)
                     {
-                        _semanticModel.GuardedAddSynthesizedStatementToMap(node, statement); 
+                        _semanticModel.GuardedAddSynthesizedStatementToMap(node, statement);
                     }
 
                     return statement;
