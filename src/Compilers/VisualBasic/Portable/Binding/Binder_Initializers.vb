@@ -390,6 +390,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim asNew = DirectCast(equalsValueOrAsNewSyntax, AsNewClauseSyntax)
                 Select Case asNew.NewExpression.Kind
                     Case SyntaxKind.ObjectCreationExpression
+                        DisallowNewOnTupleType(asNew.Type, diagnostics)
+
                         Dim objectCreationExpressionSyntax = DirectCast(asNew.NewExpression, ObjectCreationExpressionSyntax)
                         boundInitExpression = BindObjectCreationExpression(asNew.NewExpression.Type,
                                                                            objectCreationExpressionSyntax.ArgumentList,

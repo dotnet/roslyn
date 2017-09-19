@@ -52,11 +52,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
             var originalNodes = diagnostics.SelectAsArray(
                 d => (DefaultExpressionSyntax)originalRoot.FindNode(d.Location.SourceSpan, getInnermostNodeForTie: true));
 
-            await editor.ApplySemanticEditsAsync(
+            await editor.ApplyExpressionLevelSemanticEditsAsync(
                 document, originalNodes,
                 (semanticModel, defaultExpression) => defaultExpression.CanReplaceWithDefaultLiteral(parseOptions, options, semanticModel, cancellationToken),
-                defaultExpression => SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)
-                                                  .WithTriviaFrom(defaultExpression),
+                (_, currentRoot, defaultExpression) => currentRoot.ReplaceNode(
+                    defaultExpression, 
+                    SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression).WithTriviaFrom(defaultExpression)),
                 cancellationToken).ConfigureAwait(false);
         }
 

@@ -844,6 +844,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert to full property.
+        /// </summary>
+        internal static string Convert_to_full_property {
+            get {
+                return ResourceManager.GetString("Convert_to_full_property", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Convert to hex.
         /// </summary>
         internal static string Convert_to_hex {
@@ -896,6 +905,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Create_and_initialize_property_0 {
             get {
                 return ResourceManager.GetString("Create_and_initialize_property_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deconstruct variable declaration.
+        /// </summary>
+        internal static string Deconstruct_variable_declaration {
+            get {
+                return ResourceManager.GetString("Deconstruct_variable_declaration", resourceCulture);
             }
         }
         
@@ -3596,6 +3614,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string User_Diagnostic_Analyzer_Failure {
             get {
                 return ResourceManager.GetString("User_Diagnostic_Analyzer_Failure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Variable declaration can be deconstructed.
+        /// </summary>
+        internal static string Variable_declaration_can_be_deconstructed {
+            get {
+                return ResourceManager.GetString("Variable_declaration_can_be_deconstructed", resourceCulture);
             }
         }
         

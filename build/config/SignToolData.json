@@ -50,7 +50,7 @@
         "Dlls\\Workspaces\\Microsoft.CodeAnalysis.Workspaces.dll",
         "Dlls\\XamlVisualStudio\\Microsoft.VisualStudio.LanguageServices.Xaml.dll",
         "Exes\\InteractiveHost\\InteractiveHost.exe",
-        "Exes\\VBCSCompiler\\VBCSCompiler.exe",
+        "Exes\\VBCSCompiler\\net46\\VBCSCompiler.exe",
         "Exes\\csc\\csc.exe",
         "Exes\\csccore\\csc.dll",
         "Exes\\csi\\csi.exe",
