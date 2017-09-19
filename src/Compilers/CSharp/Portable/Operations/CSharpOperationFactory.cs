@@ -1434,7 +1434,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             // lambda body can point to expression directly and binder can insert exression statement there. and end up statement pointing to
             // expression syntax node since there is no statement syntax node to point to. this will mark such one as implicit since it doesn't
             // actually exist in code
-            bool isImplicit = boundExpressionStatement.WasCompilerGenerated || !boundExpressionStatement.Syntax.IsKind(SyntaxKind.ExpressionStatement);
+            bool isImplicit = boundExpressionStatement.WasCompilerGenerated || boundExpressionStatement.Syntax == boundExpressionStatement.Expression.Syntax;
             return new LazyExpressionStatement(expression, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
