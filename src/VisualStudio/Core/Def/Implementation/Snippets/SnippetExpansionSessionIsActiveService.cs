@@ -5,11 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
@@ -18,34 +20,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
     [ExportWorkspaceService(typeof(ISnippetExpansionSessionIsActiveService), layer: ServiceLayer.Host)]
     internal class SnippetExpansionSessionIsActiveService : ISnippetExpansionSessionIsActiveService
     {
-        IVsEditorAdaptersFactoryService _adapterFactory;
-        IVsTextManager _textManager;
-
-        [ImportingConstructor]
-        internal SnippetExpansionSessionIsActiveService(SVsServiceProvider serviceProvider , IVsEditorAdaptersFactoryService adapterFactory)
+        public bool SnippetsAreActive(ITextView textView)
         {
-            _adapterFactory = adapterFactory;
-            _textManager = (IVsTextManager)serviceProvider.GetService(typeof(SVsTextManager));
-        }
-
-        public bool SnippetsAreActive(Document document)
-        {
-            if (document.TryGetText(out var text))
+            if (textView.Properties.TryGetProperty<AbstractSnippetExpansionClient>(typeof(AbstractSnippetExpansionClient), out var client))
             {
-                var buffer = text.Container.GetTextBuffer();
-                if (buffer != null)
-                {
-                    var bufferAdapter = _adapterFactory.GetBufferAdapter(buffer);
-                    if (_textManager.GetActiveView(1,  bufferAdapter, out var viewAdapter) == VSConstants.S_OK)
-                    {
-                        var wpfView = _adapterFactory.GetWpfTextView(viewAdapter);
-
-                        if (wpfView.Properties.TryGetProperty<AbstractSnippetExpansionClient>(typeof(AbstractSnippetExpansionClient), out var client))
-                        {
-                            return client.ExpansionSession != null;
-                        }
-                    }
-                }
+                return client.ExpansionSession != null;
             }
 
             return false;

@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -208,9 +209,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return null;
             }
 
-            return _isDebugger
+            var options = _isDebugger
                 ? workspace.Options.WithDebuggerCompletionOptions()
                 : workspace.Options;
+
+            var service = workspace.Services.GetService<ISnippetExpansionSessionIsActiveService>();
+            if (service.SnippetsAreActive(TextView))
+            {
+                options = options.WithChangedOption(CompletionControllerOptions.TextEditorSnipppetsAreActive, true);
+            }
+
+            return options;
         }
 
         private void CommitItem(CompletionItem item)
