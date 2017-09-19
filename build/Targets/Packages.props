@@ -128,7 +128,7 @@
     <MicrosoftWin32PrimitivesVersion>4.3.0</MicrosoftWin32PrimitivesVersion>
     <MDbgVersion>0.1.0</MDbgVersion>
     <MonoOptionsVersion>4.4.0</MonoOptionsVersion>
-    <MoqVersion>4.2.1402.2112</MoqVersion>
+    <MoqVersion>4.7.99</MoqVersion>
     <NerdbankFullDuplexStreamVersion>1.0.1</NerdbankFullDuplexStreamVersion>
     <NETStandardLibraryVersion>1.6.1</NETStandardLibraryVersion>
     <NewtonsoftJsonVersion>9.0.1</NewtonsoftJsonVersion>
