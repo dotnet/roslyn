@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (ErrorAssembly.IsErrorAssembly(containingAssembly))
                     {
+                        // Type references from the error assembly can be used without use-site diagnostics
                         return null;
                     }
                     else

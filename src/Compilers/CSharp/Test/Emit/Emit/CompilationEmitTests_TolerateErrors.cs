@@ -349,7 +349,7 @@ class D
             Assert.Null(peErrorType.ErrorInfo);
 
             // PROTOTYPE(tolerate-errors) In metadata, the nested error type is top-level
-            // PROTOTYPE(tolerate-errors) On a related not, the type parameters are not replaced in the namespace
+            // PROTOTYPE(tolerate-errors) On a related note, the type parameters are not replaced in the namespace
             // PROTOTYPE(tolerate-errors) The type parameters are not replaced in the name
         }
 
