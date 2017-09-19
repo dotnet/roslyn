@@ -5226,8 +5226,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundStackAllocArrayCreation : BoundExpression
+    internal partial class BoundStackAllocArrayCreation : BoundExpression
     {
+        protected BoundStackAllocArrayCreation(BoundKind kind, SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, TypeSymbol type, bool hasErrors = false)
+            : base(kind, syntax, type, hasErrors)
+        {
+
+            Debug.Assert(elementType != null, "Field 'elementType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(count != null, "Field 'count' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.ElementType = elementType;
+            this.Count = count;
+        }
+
         public BoundStackAllocArrayCreation(SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.StackAllocArrayCreation, syntax, type, hasErrors || count.HasErrors())
         {
@@ -5261,38 +5272,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundConvertedStackAllocExpression : BoundExpression
+    internal sealed partial class BoundConvertedStackAllocExpression : BoundStackAllocArrayCreation
     {
-        public BoundConvertedStackAllocExpression(SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, ConversionKind conversionKind, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ConvertedStackAllocExpression, syntax, type, hasErrors || count.HasErrors())
+        public BoundConvertedStackAllocExpression(SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ConvertedStackAllocExpression, syntax, elementType, count, type, hasErrors || count.HasErrors())
         {
 
             Debug.Assert(elementType != null, "Field 'elementType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(count != null, "Field 'count' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
-            this.ElementType = elementType;
-            this.Count = count;
-            this.ConversionKind = conversionKind;
         }
 
-
-        public TypeSymbol ElementType { get; }
-
-        public BoundExpression Count { get; }
-
-        public ConversionKind ConversionKind { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitConvertedStackAllocExpression(this);
         }
 
-        public BoundConvertedStackAllocExpression Update(TypeSymbol elementType, BoundExpression count, ConversionKind conversionKind, TypeSymbol type)
+        public new BoundConvertedStackAllocExpression Update(TypeSymbol elementType, BoundExpression count, TypeSymbol type)
         {
-            if (elementType != this.ElementType || count != this.Count || conversionKind != this.ConversionKind || type != this.Type)
+            if (elementType != this.ElementType || count != this.Count || type != this.Type)
             {
-                var result = new BoundConvertedStackAllocExpression(this.Syntax, elementType, count, conversionKind, type, this.HasErrors);
+                var result = new BoundConvertedStackAllocExpression(this.Syntax, elementType, count, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -9175,7 +9177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression count = (BoundExpression)this.Visit(node.Count);
             TypeSymbol elementType = this.VisitType(node.ElementType);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(elementType, count, node.ConversionKind, type);
+            return node.Update(elementType, count, type);
         }
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
@@ -10637,7 +10639,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 new TreeDumperNode("elementType", node.ElementType, null),
                 new TreeDumperNode("count", null, new TreeDumperNode[] { Visit(node.Count, null) }),
-                new TreeDumperNode("conversionKind", node.ConversionKind, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

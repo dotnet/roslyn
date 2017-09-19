@@ -227,7 +227,7 @@ namespace System
         }
 
         [Fact]
-        public void ConditionalExpressionOnSpan_NonConvertible()
+        public void ConditionalExpressionOnSpan_BothStackallocSpans()
         {
             CreateCompilationWithMscorlibAndSpan(@"
 class Test
@@ -236,10 +236,7 @@ class Test
     {
         var x = true ? stackalloc int [10] : stackalloc int [5];
     }
-}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'stackalloc int[10]' and 'stackalloc int[5]'
-                //         var x = true ? stackalloc int [10] : stackalloc int [5];
-                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? stackalloc int [10] : stackalloc int [5]").WithArguments("stackalloc int[10]", "stackalloc int[5]").WithLocation(6, 17));
+}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -317,9 +314,13 @@ class Test
         if(stackalloc int[10] == stackalloc int[10]) { }
     }
 }", TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,12): error CS0019: Operator '==' cannot be applied to operands of type 'stackalloc int[10]' and 'stackalloc int[10]'
+                // (6,12): error CS1525: Invalid expression term 'stackalloc'
                 //         if(stackalloc int[10] == stackalloc int[10]) { }
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "stackalloc int[10] == stackalloc int[10]").WithArguments("==", "stackalloc int[10]", "stackalloc int[10]").WithLocation(6, 12));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 12),
+                // (6,34): error CS1525: Invalid expression term 'stackalloc'
+                //         if(stackalloc int[10] == stackalloc int[10]) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 34)
+            );
         }
 
         [Fact]
@@ -435,9 +436,10 @@ public class Test
 }
 ";
             CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
-                // (7,31): error CS1510: A ref or out value must be an assignable variable
+                // (7,31): error CS1525: Invalid expression term 'stackalloc'
                 //         ref Span<int> p = ref stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "stackalloc int[1]").WithLocation(7, 31));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(7, 31)
+            );
         }
 
         [Fact]
@@ -457,9 +459,10 @@ public class Test
 }
 ";
             CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
-                // (7,9): error CS1525: Invalid expression term 'stackalloc'
+                // (7,11): error CS1525: Invalid expression term 'stackalloc'
                 //         N(stackalloc int[1]);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "N").WithArguments("stackalloc").WithLocation(7, 9));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(7, 11)
+            );
         }
 
         [Fact]
@@ -475,9 +478,10 @@ public class Test
 }
 ";
             CreateCompilationWithMscorlibAndSpan(test, TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (6,22): error CS0023: Operator '.' cannot be applied to operand of type 'stackalloc int[10]'
+                // (6,23): error CS1525: Invalid expression term 'stackalloc'
                 //         int length = (stackalloc int [10]).Length;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(stackalloc int [10]).Length").WithArguments(".", "stackalloc int[10]").WithLocation(6, 22));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 23)
+            );
         }
 
         [Fact]
@@ -499,9 +503,10 @@ unsafe public class Test
 }
 ";
             CreateCompilationWithMscorlibAndSpan(test, TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
-                // (7,16): error CS1503: Argument 1: cannot convert from 'stackalloc int[10]' to 'Span<short>'
+                // (7,16): error CS1525: Invalid expression term 'stackalloc'
                 //         Invoke(stackalloc int [10]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "stackalloc int [10]").WithArguments("1", "stackalloc int[10]", "System.Span<short>").WithLocation(7, 16));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(7, 16)
+            );
         }
     }
 }
