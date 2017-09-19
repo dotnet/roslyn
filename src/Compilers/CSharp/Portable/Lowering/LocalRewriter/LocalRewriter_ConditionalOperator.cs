@@ -49,11 +49,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantValue conditionConstantValue = rewrittenCondition.ConstantValue;
             if (conditionConstantValue == ConstantValue.True)
             {
-                return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenConsequence);
+                if (!isRef)
+                {
+                    rewrittenConsequence = EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenConsequence);
+                }
+
+                return rewrittenConsequence;
             }
             else if (conditionConstantValue == ConstantValue.False)
             {
-                return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenAlternative);
+                if (!isRef)
+                {
+                    rewrittenAlternative = EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenAlternative);
+                }
+
+                return rewrittenAlternative;
             }
             else
             {

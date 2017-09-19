@@ -1566,10 +1566,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
 
-                    // byref conditional defers to one operand. Since are here without errors, both operands must match.
                     if (conditional.IsByRef)
                     {
-                        return GetRefEscape(conditional.Consequence, scopeOfTheContainingExpression);
+                        // ref conditional defers to its operands
+                        return Math.Max(GetRefEscape(conditional.Consequence, scopeOfTheContainingExpression),
+                                        GetRefEscape(conditional.Alternative, scopeOfTheContainingExpression));
                     }
 
                     // otherwise it is an RValue
@@ -1740,11 +1741,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
 
-                    // byref conditional defers to one operand. Since are here without errors, both operands must match.
-                    if (conditional.IsByRef &&
-                        CheckRefEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics))
+                    if (conditional.IsByRef)
                     {
-                        return true;
+                        return CheckRefEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
+                               CheckRefEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
                     }
 
                     // report standard lvalue error
@@ -1883,8 +1883,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
 
-                    // conditional defers to its operands
-                    return Math.Max(GetValEscape(conditional.Consequence, scopeOfTheContainingExpression),
+                    var consEscape = GetValEscape(conditional.Consequence, scopeOfTheContainingExpression);
+
+                    if (conditional.IsByRef)
+                    {
+                        // ref conditional defers to one operand. 
+                        // the other one is the same or we will be reporting errors anyways.
+                        return consEscape;
+                    }
+                    
+                    // val conditional gets narrowest of its operands
+                    return Math.Max(consEscape,
                                     GetValEscape(conditional.Alternative, scopeOfTheContainingExpression));
 
                 case BoundKind.FieldAccess:
@@ -2043,8 +2052,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
 
-                    return CheckValEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
-                           CheckValEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+                    var consValid = CheckValEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+
+                    if (consValid || conditional.IsByRef)
+                    {
+                        // ref conditional defers to one operand. 
+                        // the other one is the same or we will be reporting errors anyways.
+                        return consValid;
+                    }
+
+                    return CheckValEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
                 case BoundKind.FieldAccess:
                     var fieldAccess = (BoundFieldAccess)expr;

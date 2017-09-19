@@ -185,7 +185,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             var sp = MayWrap(default);
 
             // returnable. 
-            // Even though sp is itself not ref-returnable, Test1 cannot ref-return it, so spR is returnable by value.
             var spR = MayWrap(Test1(ref sp));   
 
             Span<int> local = stackalloc int[1];
@@ -197,8 +196,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             // error
             spR = spNr;
 
-            // OK, since both are not ref returnable
-            ref var ternary = ref true? ref spR: ref spNr;
+            // ok, picks the narrowest val-escape
+            var ternary =  true? spR: spNr;
 
             // error
             spR = ternary;
@@ -210,12 +209,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     }
 ";
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // (34,19): error CS8526: Cannot use local 'spNr' in this context because it may expose referenced variables outside of their declaration scope
+                // (33,19): error CS8526: Cannot use local 'spNr' in this context because it may expose referenced variables outside of their declaration scope
                 //             spR = spNr;
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "spNr").WithArguments("spNr").WithLocation(34, 19),
-                // (40,19): error CS8526: Cannot use local 'ternary' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "spNr").WithArguments("spNr").WithLocation(33, 19),
+                // (39,19): error CS8526: Cannot use local 'ternary' in this context because it may expose referenced variables outside of their declaration scope
                 //             spR = ternary;
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "ternary").WithArguments("ternary").WithLocation(40, 19)
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "ternary").WithArguments("ternary").WithLocation(39, 19)
             );
         }
         
@@ -1055,31 +1054,35 @@ class Program
 
     public static int field = 1;
 
-    void Test1()
+    bool flag = true;
+
+    ref int Test1()
     {
         var local = 42;
-        ref var ternary1 = ref true ? ref field : ref local;
+
+        if (flag) 
+            return ref true ? ref field : ref local;
 
         ref var lr = ref local;
         ref var fr = ref field;
 
-        ref var ternary2 = ref true ? ref lr : ref fr;
+        ref var ternary1 = ref true ? ref lr : ref fr;
+
+        if (flag) 
+            return ref ternary1;
     }
 }
 ";
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // (13,55): error CS8168: Cannot return local 'local' by reference because it is not a ref local
-                //         ref var ternary1 = ref true ? ref field : ref local;
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(13, 55),
-                // (13,32): error CS8351: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes
-                //         ref var ternary1 = ref true ? ref field : ref local;
-                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "true ? ref field : ref local").WithLocation(13, 32),
-                // (18,43): error CS8157: Cannot return 'lr' by reference because it was initialized to a value that cannot be returned by reference
-                //         ref var ternary2 = ref true ? ref lr : ref fr;
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "lr").WithArguments("lr").WithLocation(18, 43),
-                // (18,32): error CS8351: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes
-                //         ref var ternary2 = ref true ? ref lr : ref fr;
-                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "true ? ref lr : ref fr").WithLocation(18, 32)
+                // (17,47): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                //             return ref true ? ref field : ref local;
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(17, 47),
+                // (25,24): error CS8157: Cannot return 'ternary1' by reference because it was initialized to a value that cannot be returned by reference
+                //             return ref ternary1;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "ternary1").WithArguments("ternary1").WithLocation(25, 24),
+                // (12,13): error CS0161: 'Program.Test1()': not all code paths return a value
+                //     ref int Test1()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Test1").WithArguments("Program.Test1()").WithLocation(12, 13)
                 );
         }
 
@@ -1105,12 +1108,23 @@ class Program
             Span<int> inner = stackalloc int[1];
             var sInner = MayWrap(ref inner);
 
-            ref var ternary1 = ref true ? ref sOuter[1] : ref sInner[1];
+            ref var ternarySame1 = ref true ? ref sInner : ref sInner;
+            ref var ternarySame2 = ref true ? ref sOuter : ref sOuter;
+
+            // error, mixing val escapes
+            ref var ternary1 = ref true ? ref sOuter : ref sInner;
+
+            // error, mixing val escapes
+            ref var ternary2 = ref true ? ref sInner : ref sOuter;
+
+            // error, mixing val escapes
+            ref var ternary3 = ref true ? ref ternarySame1 : ref ternarySame2;
 
             ref var ir = ref sInner[1];
             ref var or = ref sOuter[1];
 
-            ref var ternary2 = ref true ? ref ir : ref or;
+            // no error, indexer cannot ref-return the instance, so ir and or are both safe to return
+            ref var ternary4 = ref true ? ref ir : ref or;
         }
     }
 
@@ -1126,18 +1140,24 @@ class Program
 }
 ";
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // (20,63): error CS8526: Cannot use local 'sInner' in this context because it may expose referenced variables outside of their declaration scope
-                //             ref var ternary1 = ref true ? ref sOuter[1] : ref sInner[1];
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "sInner").WithArguments("sInner").WithLocation(20, 63),
-                // (20,36): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes
-                //             ref var ternary1 = ref true ? ref sOuter[1] : ref sInner[1];
-                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "true ? ref sOuter[1] : ref sInner[1]").WithLocation(20, 36),
-                // (25,47): error CS8157: Cannot return 'ir' by reference because it was initialized to a value that cannot be returned by reference
-                //             ref var ternary2 = ref true ? ref ir : ref or;
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "ir").WithArguments("ir").WithLocation(25, 47),
-                // (25,36): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes
-                //             ref var ternary2 = ref true ? ref ir : ref or;
-                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "true ? ref ir : ref or").WithLocation(25, 36)
+                // (24,60): error CS8526: Cannot use local 'sInner' in this context because it may expose referenced variables outside of their declaration scope
+                //             ref var ternary1 = ref true ? ref sOuter : ref sInner;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "sInner").WithArguments("sInner").WithLocation(24, 60),
+                // (24,36): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes
+                //             ref var ternary1 = ref true ? ref sOuter : ref sInner;
+                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "true ? ref sOuter : ref sInner").WithLocation(24, 36),
+                // (27,47): error CS8526: Cannot use local 'sInner' in this context because it may expose referenced variables outside of their declaration scope
+                //             ref var ternary2 = ref true ? ref sInner : ref sOuter;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "sInner").WithArguments("sInner").WithLocation(27, 47),
+                // (27,36): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes
+                //             ref var ternary2 = ref true ? ref sInner : ref sOuter;
+                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "true ? ref sInner : ref sOuter").WithLocation(27, 36),
+                // (30,47): error CS8526: Cannot use local 'ternarySame1' in this context because it may expose referenced variables outside of their declaration scope
+                //             ref var ternary3 = ref true ? ref ternarySame1 : ref ternarySame2;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "ternarySame1").WithArguments("ternarySame1").WithLocation(30, 47),
+                // (30,36): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes
+                //             ref var ternary3 = ref true ? ref ternarySame1 : ref ternarySame2;
+                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "true ? ref ternarySame1 : ref ternarySame2").WithLocation(30, 36)
             );
         }
 
@@ -1380,6 +1400,93 @@ class Program
                 //             new NotReadOnly<int>().CopyTo(stackAllocated);
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "new NotReadOnly<int>().CopyTo(stackAllocated)").WithArguments("NotReadOnly<int>.CopyTo(System.Span<int>)", "other").WithLocation(17, 13)
                 );
+        }
+
+        [WorkItem(22197, "https://github.com/dotnet/roslyn/issues/22197")]
+        [Fact()]
+        public void RefTernaryMustMatchValEscapes()
+        {
+            var text = @"
+    using System;
+
+    public class C
+    {
+        bool flag1 = true;
+        bool flag2 = false;
+
+        public void M(ref Span<int> global)
+        {
+            Span<int> local = stackalloc int[10];
+
+            ref var r1 = ref (flag1 ? ref global : ref local);
+            ref var r2 = ref (flag2 ? ref global : ref local);
+
+	        // same as         global = local;   which would be an error.
+            // but we can’t fail here, since r1 and r2 are basically the same, 
+            // so should fail when making r1 and r2 above.
+            r1 = r2;   
+        }
+
+        public static void Main()
+        {
+        }
+    }
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (13,56): error CS8526: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
+                //             ref var r1 = ref (flag1 ? ref global : ref local);
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(13, 56),
+                // (13,31): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes
+                //             ref var r1 = ref (flag1 ? ref global : ref local);
+                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "flag1 ? ref global : ref local").WithLocation(13, 31),
+                // (14,56): error CS8526: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
+                //             ref var r2 = ref (flag2 ? ref global : ref local);
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(14, 56),
+                // (14,31): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes
+                //             ref var r2 = ref (flag2 ? ref global : ref local);
+                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "flag2 ? ref global : ref local").WithLocation(14, 31)
+            );
+        }
+
+        [WorkItem(22197, "https://github.com/dotnet/roslyn/issues/22197")]
+        [Fact()]
+        public void RefTernaryMustMatchValEscapes1()
+        {
+            var text = @"
+    using System;
+
+    public class C
+    {
+        public void M(ref Span<int> global)
+        {
+            Span<int> local = stackalloc int[0];
+
+            // ok
+            (true ? ref local : ref local) = (false ? ref global : ref global);
+
+            // also OK
+            (true ? ref local : ref local) = (false ? global : local);
+        }
+
+        public static void Main()
+        {
+        }
+    }
+";
+            var comp = CreateCompilationWithMscorlibAndSpan(text);
+            comp.VerifyDiagnostics();
+
+            var compiled = CompileAndVerify(comp,expectedOutput: "", verify: false);
+            compiled.VerifyIL("C.M(ref System.Span<int>)", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ldobj      ""System.Span<int>""
+  IL_0006:  pop
+  IL_0007:  ret
+}
+");
         }
     }
 }

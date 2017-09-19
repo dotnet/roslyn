@@ -662,10 +662,7 @@ class C
             comp.VerifyEmitDiagnostics(
                 // (15,27): error CS8168: Cannot return local 'local1' by reference because it is not a ref local
                 //         return ref b? ref local1: ref local2;
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local1").WithArguments("local1").WithLocation(15, 27),
-                // (15,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
-                //         return ref b? ref local1: ref local2;
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "b? ref local1: ref local2").WithLocation(15, 20)
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local1").WithArguments("local1").WithLocation(15, 27)
                );
         }
 
@@ -696,10 +693,7 @@ class C
             comp.VerifyEmitDiagnostics(
                 // (14,37): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
                 //         return ref b? ref val1: ref local2;
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(14, 37),
-                // (14,20): error CS8351: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.
-                //         return ref b? ref val1: ref local2;
-                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "b? ref val1: ref local2").WithLocation(14, 20)
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(14, 37)
                );
         }
 
@@ -735,10 +729,7 @@ class C
             comp.VerifyEmitDiagnostics(
                 // (14,38): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
                 //         return ref (b? ref val1: ref local2).x;
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(14, 38),
-                // (14,21): error CS8351: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.
-                //         return ref (b? ref val1: ref local2).x;
-                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "b? ref val1: ref local2").WithLocation(14, 21)
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(14, 38)
                );
         }
 
@@ -773,12 +764,9 @@ class C
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (14,46): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
-                //         ref var temp = ref (b? ref val1: ref local2).x;
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(14, 46),
-                // (14,29): error CS8351: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.
-                //         ref var temp = ref (b? ref val1: ref local2).x;
-                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "b? ref val1: ref local2").WithLocation(14, 29)
+                // (15,20): error CS8157: Cannot return 'temp' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref temp;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "temp").WithArguments("temp").WithLocation(15, 20)
                );
         }
 
@@ -824,6 +812,81 @@ class C
   IL_000a:  ldsflda    ""C.S1 C.val1""
   IL_000f:  ldflda     ""int C.S1.x""
   IL_0014:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestRefConditionalSafeToReturn2()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        Test() ++;
+        System.Console.WriteLine(val1.x);
+    }
+
+    static ref int Test()
+    {
+        return ref (true? ref val1: ref val2).x;
+    }
+
+    static S1 val1;
+    static S1 val2;
+
+    struct S1
+    {
+        public int x;
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "1", verify: false);
+            comp.VerifyDiagnostics();
+
+            comp.VerifyIL("C.Test", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldsflda    ""C.S1 C.val1""
+  IL_0005:  ldflda     ""int C.S1.x""
+  IL_000a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestRefConditionalSafeToReturn3()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (false? ref val1: ref val2) = (true? 1: val2);
+        (true? ref val1: ref val2) = (false? ref val1: ref val2);
+        System.Console.WriteLine(val1);
+    }
+
+    static int val1;
+    static int val2;
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "1", verify: false);
+            comp.VerifyDiagnostics();
+
+            comp.VerifyIL("C.Main()", @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  stsfld     ""int C.val2""
+  IL_0006:  ldsfld     ""int C.val2""
+  IL_000b:  stsfld     ""int C.val1""
+  IL_0010:  ldsfld     ""int C.val1""
+  IL_0015:  call       ""void System.Console.WriteLine(int)""
+  IL_001a:  ret
 }
 ");
         }
