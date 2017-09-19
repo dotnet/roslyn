@@ -254,7 +254,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IIncrementExpression (UnaryOperandKind.Invalid) (BinaryOperationKind.Invalid) (OperationKind.IncrementExpression, Type: System.Object, IsInvalid) (Syntax: '++x')
+IIncrementOrDecrementExpression (UnaryOperandKind.Invalid) (BinaryOperationKind.Invalid) (OperationKind.IncrementExpression, Type: System.Object, IsInvalid) (Syntax: '++x')
   Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
   Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Object, Constant: 1) (Syntax: '++x')
 ";
