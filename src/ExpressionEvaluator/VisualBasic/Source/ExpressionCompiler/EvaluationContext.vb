@@ -414,6 +414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         nativePdbWriterOpt:=Nothing,
                         pdbPathOpt:=Nothing,
                         metadataOnly:=False,
+                        tolerateErrors:=False,
                         isDeterministic:=False,
                         emitTestCoverageData:=False,
                         cancellationToken:=Nothing)
@@ -462,6 +463,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         nativePdbWriterOpt:=Nothing,
                         pdbPathOpt:=Nothing,
                         metadataOnly:=False,
+                        tolerateErrors:=False,
                         isDeterministic:=False,
                         emitTestCoverageData:=False,
                         cancellationToken:=Nothing)
@@ -511,6 +513,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         nativePdbWriterOpt:=Nothing,
                         pdbPathOpt:=Nothing,
                         metadataOnly:=False,
+                        tolerateErrors:=False,
                         isDeterministic:=False,
                         emitTestCoverageData:=False,
                         cancellationToken:=Nothing)
