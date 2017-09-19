@@ -591,5 +591,29 @@ class C
 ";
             await VerifyItemExistsAsync(markup, "C<A>");
         }
+
+        [WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PropertyWithSameNameAsOtherType()
+        {
+            var markup =
+@"namespace ConsoleApplication1
+{
+    class Program
+    {
+        static A B { get; set; }
+        static B A { get; set; }
+
+        static void Main()
+        {
+            B = new $$
+        }
+    }
+    class A { }
+    class B { }
+}
+";
+            await VerifyItemExistsAsync(markup, "A");
+        }
     }
 }

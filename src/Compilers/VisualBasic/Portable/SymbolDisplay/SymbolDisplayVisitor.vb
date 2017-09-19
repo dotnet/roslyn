@@ -36,9 +36,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             positionOpt As Integer,
             escapeKeywordIdentifiers As Boolean,
             isFirstSymbolVisited As Boolean,
-            Optional inTypeArguments As Boolean = False)
+            Optional inNamespaceOrType As Boolean = False)
 
-            MyBase.New(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt, inTypeArguments)
+            MyBase.New(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt, inNamespaceOrType)
 
             Me._escapeKeywordIdentifiers = escapeKeywordIdentifiers
         End Sub
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me.positionOpt,
                     Me._escapeKeywordIdentifiers,
                     isFirstSymbolVisited:=False,
-                    inTypeArguments:=True)
+                    inNamespaceOrType:=True)
         End Function
 
         Friend Function CreatePart(kind As SymbolDisplayPartKind,

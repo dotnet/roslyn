@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool escapeKeywordIdentifiers,
             IDictionary<INamespaceOrTypeSymbol, IAliasSymbol> aliasMap,
             bool isFirstSymbolVisited,
-            bool inTypeArguments = false)
-            : base(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt, inTypeArguments)
+            bool inNamespaceOrType = false)
+            : base(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt, inNamespaceOrType)
         {
             _escapeKeywordIdentifiers = escapeKeywordIdentifiers;
             _lazyAliasMap = aliasMap;
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _escapeKeywordIdentifiers,
                 _lazyAliasMap,
                 isFirstSymbolVisited: false,
-                inTypeArguments: true);
+                inNamespaceOrType: true);
         }
 
         internal SymbolDisplayPart CreatePart(SymbolDisplayPartKind kind, ISymbol symbol, string text)

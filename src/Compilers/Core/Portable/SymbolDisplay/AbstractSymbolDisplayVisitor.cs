@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
         protected readonly ArrayBuilder<SymbolDisplayPart> builder;
         protected readonly SymbolDisplayFormat format;
         protected readonly bool isFirstSymbolVisited;
-        protected readonly bool inTypeArguments;
+        protected readonly bool inNamespaceOrType;
 
         protected readonly SemanticModel semanticModelOpt;
         protected readonly int positionOpt;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             bool isFirstSymbolVisited,
             SemanticModel semanticModelOpt,
             int positionOpt,
-            bool inTypeArguments = false)
+            bool inNamespaceOrType = false)
         {
             Debug.Assert(format != null);
 
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
 
             this.semanticModelOpt = semanticModelOpt;
             this.positionOpt = positionOpt;
-            this.inTypeArguments = inTypeArguments;
+            this.inNamespaceOrType = inNamespaceOrType;
 
             // If we're not the first symbol visitor, then we will just recurse into ourselves.
             if (!isFirstSymbolVisited)

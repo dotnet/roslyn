@@ -167,5 +167,30 @@ End Namespace
 
             Await VerifyItemExistsAsync(markup, "C(Of B)")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")>
+        Public Async Function PropertyWithSameNameAsOtherType() As Task
+            Dim markup = <Text><![CDATA[
+Namespace Foo
+    Module Program
+        Public Property A() As B
+        Public Property B() As A
+
+        Sub M()
+            B = New $$
+        End Sub
+    End Module
+
+    Class A
+    End Class
+
+    Class B
+    End Class
+End Namespace
+]]></Text>.Value
+
+            Await VerifyItemExistsAsync(markup, "A")
+        End Function
     End Class
 End Namespace
