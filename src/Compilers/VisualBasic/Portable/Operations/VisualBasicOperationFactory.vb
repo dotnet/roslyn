@@ -610,8 +610,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
             ' Any of the explicit cast types, as well as New DelegateType(AddressOf Method)
             Dim validConversionSyntax = conversionSyntax.Kind() = SyntaxKind.CTypeExpression OrElse
-                                        conversionSyntax.Kind() = SyntaxKind.DirectCastKeyword OrElse
-                                        conversionSyntax.Kind() = SyntaxKind.TryCastKeyword OrElse
+                                        conversionSyntax.Kind() = SyntaxKind.DirectCastExpression OrElse
+                                        conversionSyntax.Kind() = SyntaxKind.TryCastExpression OrElse
                                         conversionSyntax.Kind() = SyntaxKind.ObjectCollectionInitializer
 
             Dim validOperandSyntax = operandSyntax.Kind() = SyntaxKind.AddressOfExpression
