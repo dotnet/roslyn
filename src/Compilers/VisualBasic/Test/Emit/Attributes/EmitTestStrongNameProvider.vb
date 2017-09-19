@@ -12,8 +12,6 @@ Imports Roslyn.Test.Utilities.SigningTestHelpers
 Partial Public Class InternalsVisibleToAndStrongNameTests
     Inherits BasicTestBase
 
-    Private Shared ReadOnly BYPASS_STRONGNAME_FEATURE As KeyValuePair(Of String, String)() = {New KeyValuePair(Of String, String)("BypassStrongName", "+")}
-
     Private Class StrongNameProviderWithBadInputStream
         Inherits StrongNameProvider
         Private _underlyingProvider As StrongNameProvider
@@ -56,7 +54,6 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
     Public Sub BadInputStream()
         Dim testProvider = New StrongNameProviderWithBadInputStream(s_defaultDesktopProvider)
         Dim options = TestOptions.DebugDll.WithStrongNameProvider(testProvider).WithCryptoKeyContainer("RoslynTestContainer")
-        Dim parseOptions = TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE)
 
         Dim comp = CreateCompilationWithMscorlib(
             <compilation>
@@ -67,7 +64,7 @@ Public Class C
 End Class
 ]]>
                 </file>
-            </compilation>, options:=options, parseOptions:=parseOptions)
+            </compilation>, options:=options)
 
         comp.Emit(New MemoryStream()).Diagnostics.Verify(
             Diagnostic(ERRID.ERR_PeWritingFailure).WithArguments(testProvider.ThrownException.ToString()).WithLocation(1, 1))

@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal abstract partial class CommonCompiler
     {
-        internal sealed class LoggingStrongNameFileSystem: StrongNameFileSystem
+        internal sealed class LoggingStrongNameFileSystem : StrongNameFileSystem
         {
             private readonly TouchedFileLogger _loggerOpt;
 

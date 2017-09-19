@@ -1315,8 +1315,7 @@ End Class
 
         Dim other = CreateCompilationWithMscorlib(
             source,
-            options:=TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider),
-            parseOptions:=TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE))
+            options:=TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider))
 
         ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(other.EmitToStream(), AttributeDescription.AssemblyKeyFileAttribute)
     End Sub
@@ -1418,8 +1417,7 @@ End Class
 
         Dim other = CreateCompilationWithMscorlib(
             source,
-            options:=TestOptions.ReleaseModule.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultDesktopProvider),
-            parseOptions:=TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE))
+            options:=TestOptions.ReleaseModule.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultDesktopProvider))
 
         Dim outStrm = New MemoryStream()
         Dim success = other.Emit(outStrm)
@@ -1444,8 +1442,7 @@ End Class
 
         Dim other = CreateCompilationWithMscorlib(
             source,
-            options:=TestOptions.ReleaseModule.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultDesktopProvider),
-            parseOptions:=TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE))
+            options:=TestOptions.ReleaseModule.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultDesktopProvider))
 
         Dim outStrm = New MemoryStream()
         Dim success = other.Emit(outStrm)
@@ -1619,7 +1616,6 @@ End Class
 ]]>
     </file>
 </compilation>, {MscorlibRef_v4_0_30316_17626},
-        parseOptions:=TestOptions.Regular.WithFeatures(BYPASS_STRONGNAME_FEATURE),
         options:=TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultDesktopProvider))
 
         Dim outStrm = New MemoryStream()
