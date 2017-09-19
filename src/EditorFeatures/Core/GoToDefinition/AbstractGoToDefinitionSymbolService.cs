@@ -3,7 +3,8 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
@@ -12,12 +13,20 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     {
         protected abstract ISymbol FindRelatedExplicitlyDeclaredSymbol(ISymbol symbol, Compilation compilation);
 
+        protected abstract bool ShouldTryToNavigateToToken(SyntaxToken token);
+
         public async Task<(ISymbol, TextSpan)> GetSymbolAndBoundSpanAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var semanticInfo = await SymbolFinder.GetSemanticInfoAtPositionAsync(semanticModel, position, workspace, cancellationToken).ConfigureAwait(false);
+            var token = await GetToken(semanticModel, workspace, position, cancellationToken).ConfigureAwait(false);
+            if (!ShouldTryToNavigateToToken(token))
+            {
+                return EmptyResult;
+            }
+
+            var semanticInfo = semanticModel.GetSemanticInfo(token, workspace, cancellationToken);
 
             // prefer references to declarations.  It's more likely that the user is attempting to 
             // go to a definition at some other location, rather than the definition they're on.  
@@ -30,5 +39,22 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             return (FindRelatedExplicitlyDeclaredSymbol(symbol, semanticModel.Compilation), semanticInfo.Span);
         }
+
+        private async Task<SyntaxToken> GetToken(SemanticModel semanticModel, Workspace workspace, int position, CancellationToken cancellationToken)
+        {
+            var syntaxTree = semanticModel.SyntaxTree;
+            var syntaxFacts = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>();
+            var token = await syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
+
+            if (token != default &&
+                token.Span.IntersectsWith(position))
+            {
+                return token;
+            }
+
+            return default;
+        }
+
+        private static readonly (ISymbol, TextSpan) EmptyResult = (default, default);
     }
 }
