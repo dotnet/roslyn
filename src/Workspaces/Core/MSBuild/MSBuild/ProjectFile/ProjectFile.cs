@@ -242,9 +242,35 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return PathUtilities.GetFileName(assemblyName);
         }
 
-        protected bool IsProjectReferenceOutputAssembly(MSB.Framework.ITaskItem item)
+        protected static bool IsProjectReferenceOutputAssembly(MSB.Framework.ITaskItem item)
         {
             return item.GetMetadata("ReferenceOutputAssembly") == "true";
+        }
+
+        protected static string GetProjectDirectory(MSB.Execution.ProjectInstance project)
+        {
+            var projectDirectory = project.Directory;
+            var directorySeparator = Path.DirectorySeparatorChar.ToString();
+            if (!projectDirectory.EndsWith(directorySeparator, StringComparison.OrdinalIgnoreCase))
+            {
+                projectDirectory += directorySeparator;
+            }
+
+            return projectDirectory;
+        }
+
+        protected static bool IsTemporaryGeneratedFile(string filePath)
+        {
+            return Path.GetFileName(filePath).StartsWith("TemporaryGeneratedFile_", StringComparison.Ordinal);
+        }
+
+        protected DocumentFileInfo MakeDocumentFileInfo(string projectDirectory, MSB.Framework.ITaskItem item)
+        {
+            var filePath = GetDocumentFilePath(item);
+            var logicalPath = GetDocumentLogicalPath(item, projectDirectory);
+            var isLinked = IsDocumentLinked(item);
+            var isGenerated = IsDocumentGenerated(item);
+            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated);
         }
 
         protected IEnumerable<ProjectFileReference> GetProjectReferences(MSB.Execution.ProjectInstance executedProject)

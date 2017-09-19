@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private static async Task<MemoryStream> ReadFileAsync(string path, CancellationToken cancellationToken)
         {
-            MemoryStream memoryStream = new MemoryStream();
+            var memoryStream = new MemoryStream();
             var buffer = new byte[1024];
             using (var stream = FileUtilities.OpenAsyncRead(path))
             {
