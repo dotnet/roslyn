@@ -448,7 +448,8 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Type) (Syntax: 'F123 = typeof(ClassA)')
         Left: IPropertyReferenceExpression: System.Type <anonymous type: System.Type F123>.F123 { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Type) (Syntax: 'F123')
             Instance Receiver: null
-        Right: ITypeOfExpression (Type: ClassA) (OperationKind.TypeOfExpression, Type: System.Type) (Syntax: 'typeof(ClassA)')
+        Right: ITypeOfExpression (OperationKind.None) (Syntax: 'typeof(ClassA)')
+            TypeOperand: ClassA
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -506,8 +507,8 @@ IInvocationExpression (virtual System.Boolean System.Object.Equals(System.Object
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <empty anonymous type>) (Syntax: 'new { }')
               Initializers(0)
-        InConversion: null
-        OutConversion: null
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

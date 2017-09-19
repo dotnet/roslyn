@@ -39,7 +39,7 @@ IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression,
   Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 't.MyEvent')
       Instance Receiver: ILocalReferenceExpression: t (OperationKind.LocalReferenceExpression, Type: Test) (Syntax: 't')
   Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler) (Syntax: 'Handler')
-      Target: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'Handler')
+      Target: IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'Handler')
           Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] { 
@@ -118,7 +118,7 @@ IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression,
   Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 'Test.MyEvent')
       Instance Receiver: null
   Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler) (Syntax: 'Handler')
-      Target: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'Handler')
+      Target: IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'Handler')
           Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] { 
@@ -159,7 +159,7 @@ IEventAssignmentExpression (EventRemove)) (OperationKind.EventAssignmentExpressi
   Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 'Test.MyEvent')
       Instance Receiver: null
   Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler) (Syntax: 'Handler')
-      Target: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'Handler')
+      Target: IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'Handler')
           Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] { 
@@ -247,7 +247,7 @@ IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression,
   Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler, IsInvalid) (Syntax: 't.MyEvent')
       Instance Receiver: null
   Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler) (Syntax: 'Handler')
-      Target: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'Handler')
+      Target: IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'Handler')
           Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {                  
@@ -292,7 +292,7 @@ IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression,
   Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler, IsInvalid) (Syntax: 'Test.MyEvent')
       Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Test')
   Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler) (Syntax: 'Handler')
-      Target: IMethodBindingExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'Handler')
+      Target: IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'Handler')
           Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {                  
@@ -333,7 +333,7 @@ IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression,
   Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 'MyEvent')
       Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Test) (Syntax: 'MyEvent')
   Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler) (Syntax: 'Handler')
-      Target: IMethodBindingExpression: void Test.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodBindingExpression, Type: null) (Syntax: 'Handler')
+      Target: IMethodReferenceExpression: void Test.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'Handler')
           Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Test) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {                  

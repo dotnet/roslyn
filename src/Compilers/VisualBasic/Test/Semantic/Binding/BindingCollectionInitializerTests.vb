@@ -12,7 +12,8 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class BindingCollectionInitializerTests
         Inherits BasicTestBase
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub CollectionInitializerList()
             Dim source =
@@ -48,7 +49,8 @@ IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of S
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source.Value, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub CollectionInitializerListEachElementAsCollectionInitializer()
             Dim source =
@@ -93,7 +95,8 @@ IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of S
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source.Value, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub CollectionInitializerDictionary()
             Dim source =
@@ -141,7 +144,8 @@ IObjectCreationExpression (Constructor: Sub System.Collections.Generic.Dictionar
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source.Value, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub CollectionInitializerCustomCollection()
             Dim source =
@@ -244,7 +248,8 @@ IObjectCreationExpression (Constructor: Sub Custom..ctor()) (OperationKind.Objec
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source.Value, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub CollectionInitializerEmptyInitializers()
             Dim source = <![CDATA[
@@ -282,7 +287,8 @@ BC36721: An aggregate collection initializer entry must contain at least one ele
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub CollectionInitializerNotACollection()
             Dim source = <![CDATA[
@@ -315,7 +321,8 @@ BC36718: Cannot initialize the type 'C1' with a collection initializer because i
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub CollectionInitializerCannotCombineBothInitializers()
             Dim source = <![CDATA[
@@ -440,7 +447,8 @@ BC36720: An Object Initializer and a Collection Initializer cannot be combined i
 
             VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub CollectionInitializerNoAddMethod()
             Dim source = <![CDATA[
@@ -535,7 +543,8 @@ BC36719: Cannot initialize the type 'C5' with a collection initializer because i
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub CollectionInitializerAddMethodIsFunction()
             Dim source =
@@ -606,7 +615,8 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source.Value, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub CollectionInitializerOverloadResolutionErrors()
             Dim source = <![CDATA[
@@ -722,7 +732,8 @@ BC30439: Constant expression not representable in type 'Byte'.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCollectionInitializerSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub CollectionInitializerWarningsWillBeKept()
             Dim source = <![CDATA[
@@ -1023,7 +1034,8 @@ End Class
 
             CompileAndVerify(source, "Hello World!")
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub CollectionInitializerTypeConstraintsAndAmbiguity()
             Dim source = <![CDATA[
@@ -1074,7 +1086,8 @@ BC30521: Overload resolution failed because no accessible 'Add' is most specific
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <WorkItem(529265, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529265")>
         <Fact()>
         Public Sub CollectionInitializerCollectionInitializerArityCheck()
@@ -1375,7 +1388,8 @@ BC42104: Variable 'd' is used before it has been assigned a value. A null refere
                                                                                        ~
                                            </expected>)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub CollectionInitializerReferencingItself_2()
             Dim source = <![CDATA[
@@ -1404,8 +1418,8 @@ IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of S
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument) (Syntax: '0')
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-                        InConversion: null
-                        OutConversion: null
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1419,7 +1433,8 @@ BC42104: Variable 'z' is used before it has been assigned a value. A null refere
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub CollectionInitializerCustomCollectionOptionalParameter()
             Dim source =

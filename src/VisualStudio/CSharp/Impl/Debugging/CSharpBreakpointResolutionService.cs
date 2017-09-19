@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
             }
         }
 
-        public Task<ImmutableArray<BreakpointResolutionResult>> ResolveBreakpointsAsync(Solution solution, string name, CancellationToken cancellationToken)
+        public Task<IEnumerable<BreakpointResolutionResult>> ResolveBreakpointsAsync(Solution solution, string name, CancellationToken cancellationToken)
         {
             return new BreakpointResolver(solution, name).DoAsync(cancellationToken);
         }

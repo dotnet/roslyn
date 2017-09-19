@@ -33,7 +33,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'AddHandler  .
       Event Reference: IEventReferenceExpression: Event TestClass.TestEvent As System.Action (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
           Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'TestEvent')
       Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'AddressOf M')
-          Target: IMethodBindingExpression: Sub TestClass.M() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf M')
+          Target: IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: System.Action) (Syntax: 'AddressOf M')
               Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
 ]]>.Value
 
@@ -66,7 +66,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'RemoveHandl .
       Event Reference: IEventReferenceExpression: Event TestClass.TestEvent As System.Action (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
           Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'TestEvent')
       Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'AddressOf M')
-          Target: IMethodBindingExpression: Sub TestClass.M() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf M')
+          Target: IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: System.Action) (Syntax: 'AddressOf M')
               Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
 ]]>.Value
 
@@ -99,7 +99,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'AddHandler  .
       Event Reference: IEventReferenceExpression: Event TestClass.TestEvent As System.Action (Static) (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
           Instance Receiver: null
       Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'AddressOf M')
-          Target: IMethodBindingExpression: Sub TestClass.M() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf M')
+          Target: IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: System.Action) (Syntax: 'AddressOf M')
               Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
 ]]>.Value
 
@@ -132,7 +132,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'RemoveHandl .
       Event Reference: IEventReferenceExpression: Event TestClass.TestEvent As System.Action (Static) (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
           Instance Receiver: null
       Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'AddressOf M')
-          Target: IMethodBindingExpression: Sub TestClass.M() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf M')
+          Target: IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: System.Action) (Syntax: 'AddressOf M')
               Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
 ]]>.Value
 
@@ -204,7 +204,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'AddHandler  .
       Event Reference: IEventReferenceExpression: Event TestClass.TestEvent As System.Action (Static) (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'Me.TestEvent')
           Instance Receiver: null
       Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'AddressOf M')
-          Target: IMethodBindingExpression: Sub TestClass.M() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf M')
+          Target: IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: System.Action) (Syntax: 'AddressOf M')
               Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
 ]]>.Value
 
@@ -240,7 +240,7 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Ad
       Event Reference: IEventReferenceExpression: Event TestClass.TestEvent As System.Action (OperationKind.EventReferenceExpression, Type: System.Action, IsInvalid) (Syntax: 'TestClass.TestEvent')
           Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'TestClass')
       Handler: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'AddressOf M')
-          Target: IMethodBindingExpression: Sub TestClass.M() (OperationKind.MethodBindingExpression, Type: System.Action) (Syntax: 'AddressOf M')
+          Target: IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: System.Action) (Syntax: 'AddressOf M')
               Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass) (Syntax: 'M')
 ]]>.Value
 

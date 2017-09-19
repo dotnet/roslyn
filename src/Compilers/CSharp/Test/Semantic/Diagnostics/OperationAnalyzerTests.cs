@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    [CompilerTrait(CompilerFeature.IOperation)]
     public class OperationAnalyzerTests : CompilingTestBase
     {
         private readonly static CSharpParseOptions patternParseOptions = TestOptions.Regular;

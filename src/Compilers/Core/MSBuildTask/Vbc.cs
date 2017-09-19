@@ -472,7 +472,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 commandLine.AppendSwitchIfNotNull("/", this.Verbosity);
             }
 
-            commandLine.AppendSwitchIfNotNull("/doc:", this.DocumentationFile);
+            if ((bool?)this._store[nameof(GenerateDocumentation)] != false)
+            {
+                // Only provide the filename when GenerateDocumentation is not
+                // explicitly disabled.  Otherwise, the /doc switch (which comes
+                // later in the command) overrides and re-enabled generating
+                // documentation.
+                commandLine.AppendSwitchIfNotNull("/doc:", this.DocumentationFile);
+            }
+
             commandLine.AppendSwitchUnquotedIfNotNull("/define:", Vbc.GetDefineConstantsSwitch(this.DefineConstants));
             AddReferencesToCommandLine(commandLine);
             commandLine.AppendSwitchIfNotNull("/win32resource:", this.Win32Resource);

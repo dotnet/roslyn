@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 {
-    internal class DebuggerIntelliSenseWorkspace : Workspace
+    internal class DebuggerIntelliSenseWorkspace : Microsoft.CodeAnalysis.Workspace
     {
         public DebuggerIntelliSenseWorkspace(Solution solution)
             : base(solution.Workspace.Services.HostServices, "DebbugerIntellisense")
