@@ -101,8 +101,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If isReservedName AndAlso Not String.Equals(parameterName, StringConstants.Group, StringComparison.Ordinal) Then
                         If parameter.Type.IsErrorType() Then
-                            ' Skip adding to the range variable map for error case.
-                            firstUnmappedRangeVariable += 1
+                            ' Skip adding variables to the range variable map and bail out for error case.
+                            Return
                         Else
                             ' Compound variable.
                             ' Each range variable is an Anonymous Type property.

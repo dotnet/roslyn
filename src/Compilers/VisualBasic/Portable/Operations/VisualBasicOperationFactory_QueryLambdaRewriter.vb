@@ -42,8 +42,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Public Overrides Function VisitRangeVariable(node As BoundRangeVariable) As BoundNode
                 Dim expression As BoundExpression = Nothing
                 If Not _rangeVariableMap.TryGetValue(node.RangeVariable, expression) Then
-                    ' _rangeVariableMap should contain an entry for the range variable, except for error cases. 
-                    Debug.Assert(node.HasErrors OrElse node.RangeVariable.Type.IsErrorType())
+                    ' _rangeVariableMap might not contain an entry for the range variable for error cases. 
                     Return node
                 End If
 
