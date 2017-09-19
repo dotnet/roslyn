@@ -227,7 +227,7 @@ namespace System
         }
 
         [Fact]
-        public void ConditionalExpressionOnSpan_NonConvertible()
+        public void ConditionalExpressionOnSpan_BothStackallocSpans()
         {
             CreateCompilationWithMscorlibAndSpan(@"
 class Test

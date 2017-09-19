@@ -1887,6 +1887,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Local:
                     return ((BoundLocal)expr).LocalSymbol.ValEscapeScope;
 
+                case BoundKind.StackAllocArrayCreation:
                 case BoundKind.ConvertedStackAllocExpression:
                     return Binder.TopLevelScope;
 
@@ -2054,6 +2055,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     return true;
 
+                case BoundKind.StackAllocArrayCreation:
                 case BoundKind.ConvertedStackAllocExpression:
                     if (escapeTo < Binder.TopLevelScope)
                     {

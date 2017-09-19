@@ -7560,13 +7560,7 @@ unsafe class C
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,21): error CS1525: Invalid expression term 'stackalloc'
                 //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 21),
-                // (4,21): error CS0656: Missing compiler required member 'System.Span`1..ctor'
-                //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "stackalloc int[1]").WithArguments("System.Span`1", ".ctor").WithLocation(4, 21),
-                // (4,21): error CS0518: Predefined type 'System.Span`1' is not defined or imported
-                //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1]").WithArguments("System.Span`1").WithLocation(4, 21)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 21)
             );
         }
 

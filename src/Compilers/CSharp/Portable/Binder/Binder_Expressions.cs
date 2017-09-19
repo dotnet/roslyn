@@ -3016,9 +3016,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             StackAllocArrayCreationExpressionSyntax node, DiagnosticBag diagnostics)
         {
             bool hasErrors = false;
+            var inLegalPosition = (IsInMethodBody || IsLocalFunctionsScopeBinder) && node.IsLegalSpanStackAllocPosition();
 
-            if (!IsInMethodBody && !IsLocalFunctionsScopeBinder ||
-                !node.IsLegalSpanStackAllocPosition())
+            if (!inLegalPosition)
             {
                 hasErrors = true;
                 diagnostics.Add(
@@ -3105,7 +3105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeSymbol type = null;
-            if (!node.IsVariableDeclarationInitialization())
+            if (inLegalPosition && !node.IsVariableDeclarationInitialization())
             {
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureRefStructs, diagnostics);
                 GetWellKnownTypeMember(Compilation, WellKnownMember.System_Span_T__ctor, diagnostics, syntax: node);

@@ -75,20 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         sourceTuple.HasErrors);
                 }
 
-                // identity stackalloc conversions result in a converted node
-                // to indicate that stackalloc conversions are no longer applicable.
-                // nothing else changes
-                if (source.Kind == BoundKind.StackAllocArrayCreation)
-                {
-                    var sourceStackAlloc = (BoundStackAllocArrayCreation)source;
-                    source = new BoundConvertedStackAllocExpression(
-                        sourceStackAlloc.Syntax,
-                        sourceStackAlloc.ElementType,
-                        sourceStackAlloc.Count,
-                        sourceStackAlloc.Type, 
-                        sourceStackAlloc.HasErrors);
-                }
-
                 // We need to preserve any conversion that changes the type (even identity conversions, like object->dynamic),
                 // or that was explicitly written in code (so that GetSemanticInfo can find the syntax in the bound tree).
                 if (!isCast && source.Type == destination)
