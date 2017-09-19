@@ -11,6 +11,8 @@ using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
 using EnvDTE;
+using Microsoft.Test.Apex.VisualStudio;
+using Microsoft.Test.Apex.VisualStudio.Shell;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
@@ -59,9 +61,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public VisualStudioWorkspace_OutOfProc Workspace { get; }
 
+        public ImmediateWindow_OutOfProc ImmediateWindow { get; }
+
         internal DTE Dte { get; }
 
         internal Process HostProcess { get; }
+
+        internal VisualStudioHost VisualStudioHost { get; }
 
         /// <summary>
         /// The set of Visual Studio packages that are installed into this instance.
@@ -74,14 +80,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public string InstallationPath { get; }
 
-        public VisualStudioInstance(Process hostProcess, DTE dte, ImmutableHashSet<string> supportedPackageIds, string installationPath)
+        public VisualStudioInstance(VisualStudioHost visualStudioHost, Process hostProcess, ImmutableHashSet<string> supportedPackageIds, string installationPath)
         {
+            VisualStudioHost = visualStudioHost;
             HostProcess = hostProcess;
-            Dte = dte;
+            Dte = visualStudioHost.Dte;
             SupportedPackageIds = supportedPackageIds;
             InstallationPath = installationPath;
 
-            StartRemoteIntegrationService(dte);
+            StartRemoteIntegrationService(Dte);
 
             _integrationServiceChannel = new IpcClientChannel($"IPC channel client for {HostProcess.Id}", sinkProvider: null);
             ChannelServices.RegisterChannel(_integrationServiceChannel, ensureSecurity: true);
@@ -115,6 +122,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
             Workspace = new VisualStudioWorkspace_OutOfProc(this);
+            ImmediateWindow = new ImmediateWindow_OutOfProc(this);
 
             SendKeys = new SendKeys(this);
 

@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -83,17 +84,16 @@ End Module");
             VisualStudio.LocalsWindow.Verify.CheckEntry("myMulticastDelegate", "System.MulticastDelegate", "Nothing");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
+        [WpfFact]
         public void EvaluatePrimitiveValues()
         {
             VisualStudio.Debugger.Go(waitForBreakMode: true);
 
-            // It is better to use the Immediate Window but DTE does not provide an access to it.
-            VisualStudio.Debugger.CheckExpression("myByte", "Byte", "128");
-            VisualStudio.Debugger.CheckExpression("myFloat", "Single", "1.70141173E+38");
-            VisualStudio.Debugger.CheckExpression("myChar", "Char", "\"A\"c");
-            VisualStudio.Debugger.CheckExpression("myObject", "Object", "Nothing");
-            VisualStudio.Debugger.CheckExpression("myString", "String", "\"\"");
+            VisualStudio.ImmediateWindow.ValidateCommand("?myByte", "128");
+            VisualStudio.ImmediateWindow.ValidateCommand("?myFloat", "1.70141173E+38");
+            VisualStudio.ImmediateWindow.ValidateCommand("?myChar", "\"A\"c");
+            VisualStudio.ImmediateWindow.ValidateCommand("?myObject", "Nothing");
+            VisualStudio.ImmediateWindow.ValidateCommand("?myString", "\"\"");
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19526")]
@@ -104,14 +104,14 @@ End Module");
             VisualStudio.Debugger.CheckExpression("(Function(val)(val+val))(1)", "Integer", "2");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
+        [WpfFact]
         public void EvaluateInvalidExpressions()
         {
             VisualStudio.Debugger.Go(waitForBreakMode: true);
-            VisualStudio.Debugger.CheckExpression("myNonsense", "", "error BC30451: 'myNonsense' is not declared. It may be inaccessible due to its protection level.");
+            VisualStudio.ImmediateWindow.ValidateCommand("myNonsense", "error BC30451: 'myNonsense' is not declared. It may be inaccessible due to its protection level.");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20979")]
+        [WpfFact]
         public void StateMachineTypeParameters()
         {
             VisualStudio.Editor.SetText(@"
@@ -136,10 +136,9 @@ End Module
 ");
             VisualStudio.Debugger.Go(waitForBreakMode: true);
             VisualStudio.LocalsWindow.Verify.CheckEntry("Type variables", "", "");
-            VisualStudio.LocalsWindow.Verify.CheckEntry( new string[] { "Type variables", "T" }, "String", "String");
+            VisualStudio.LocalsWindow.Verify.CheckEntry(new string[] { "Type variables", "T" }, "String", "String");
 
-            // It is better to use the Immediate Window but DTE does not provide an access to it.
-            VisualStudio.Debugger.CheckExpression("GetType(T) = GetType(String)", "Boolean", "True");
+            VisualStudio.ImmediateWindow.ValidateCommand("?GetType(T) = GetType(String)", "True");
         }
     }
 }
