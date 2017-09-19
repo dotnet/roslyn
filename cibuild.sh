@@ -24,7 +24,7 @@ ROOT_PATH=$(get_repo_dir)
 BINARIES_PATH=${ROOT_PATH}/Binaries
 BOOTSTRAP_PATH=${BINARIES_PATH}/Bootstrap
 SRC_PATH=${ROOT_PATH}/src
-BUILD_LOG_PATH=${BINARIES_PATH}/Build.log
+BUILD_LOG_PATH=${BINARIES_PATH}/Build.binlog
 TARGET_FRAMEWORK=netcoreapp2.0
 
 BUILD_CONFIGURATION=Debug
@@ -110,7 +110,7 @@ dotnet restore ${RESTORE_ARGS} ${ROOT_PATH}/build/ToolsetPackages/CoreToolset.cs
 echo "Restoring CrossPlatform.sln"
 dotnet restore ${RESTORE_ARGS} ${ROOT_PATH}/CrossPlatform.sln
 
-BUILD_ARGS="--no-restore -c ${BUILD_CONFIGURATION} /nologo /consoleloggerparameters:Verbosity=minimal;summary /filelogger /fileloggerparameters:Verbosity=normal;logFile=${BUILD_LOG_PATH} /maxcpucount:1"
+BUILD_ARGS="--no-restore -c ${BUILD_CONFIGURATION} /nologo /consoleloggerparameters:Verbosity=minimal;summary /bl:${BUILD_LOG_PATH} /maxcpucount:1"
 PUBLISH_ARGS="-f ${TARGET_FRAMEWORK} -r ${RUNTIME_ID} ${BUILD_ARGS}"
 
 echo "Building bootstrap csc"
