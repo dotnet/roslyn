@@ -12,7 +12,9 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using EnvDTE;
-using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.Test.Apex;
+using Microsoft.Test.Apex.VisualStudio;
+using Microsoft.Test.Apex.Interop;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Process = System.Diagnostics.Process;
@@ -153,6 +155,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         private void UpdateCurrentlyRunningInstance(ImmutableHashSet<string> requiredPackageIds, bool shouldStartNewInstance)
         {
+            VisualStudioHost visualStudioHost;
             Process hostProcess;
             DTE dte;
             ImmutableHashSet<string> supportedPackageIds;
@@ -168,6 +171,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 installationPath = instance.GetInstallationPath();
 
                 hostProcess = StartNewVisualStudioProcess(installationPath);
+
+                var filter = new RetryMessageFilter();
+                var configuration = new TestOperationsConfiguration();
+                configuration.FailureAction = (s) => { };
+                Microsoft.Test.Apex.Operations.Configure(configuration);
+                IOperations operations = Microsoft.Test.Apex.Operations.Current;
+                visualStudioHost = operations.AttachToHost<VisualStudioHost>(hostProcess);
 
                 var procDumpInfo = ProcDumpInfo.ReadFromEnvironment();
                 if (procDumpInfo != null)
@@ -186,15 +196,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 Debug.Assert(_currentlyRunningInstance != null);
 
+                visualStudioHost = _currentlyRunningInstance.VisualStudioHost;
                 hostProcess = _currentlyRunningInstance.HostProcess;
-                dte = _currentlyRunningInstance.Dte;
                 supportedPackageIds = _currentlyRunningInstance.SupportedPackageIds;
                 installationPath = _currentlyRunningInstance.InstallationPath;
 
                 _currentlyRunningInstance.Close(exitHostProcess: false);
             }
 
-            _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte, supportedPackageIds, installationPath);
+            _currentlyRunningInstance = new VisualStudioInstance(visualStudioHost, hostProcess, supportedPackageIds, installationPath);
         }
 
         private static IEnumerable<ISetupInstance> EnumerateVisualStudioInstances()
