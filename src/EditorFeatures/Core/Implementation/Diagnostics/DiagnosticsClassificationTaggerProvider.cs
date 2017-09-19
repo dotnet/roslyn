@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         private readonly ClassificationTypeMap _typeMap;
         private readonly ClassificationTag _classificationTag;
+        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
 
         protected internal override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
 
@@ -34,16 +36,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             IDiagnosticService diagnosticService,
             ClassificationTypeMap typeMap,
             IForegroundNotificationService notificationService,
+            IEditorOptionsFactoryService editorOptionsFactoryService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> listeners)
             : base(diagnosticService, notificationService, new AggregateAsynchronousOperationListener(listeners, FeatureAttribute.Classification))
         {
             _typeMap = typeMap;
             _classificationTag = new ClassificationTag(_typeMap.GetClassificationType(ClassificationTypeDefinitions.UnnecessaryCode));
+            _editorOptionsFactoryService = editorOptionsFactoryService;
         }
 
-        // if we are under high contrast mode, don't return anything.
-        // this basically will make us not fade out in high contrast mode (ex, unused usings)
-        protected internal override bool IsEnabled => !HighContrastChecker.IsHighContrast;
+        // If we are under high contrast mode, the editor ignores classification tags that fade things out,
+        // because that reduces contrast. Since the editor will ignore them, there's no reason to produce them.
+        protected internal override bool IsEnabled => !_editorOptionsFactoryService.GlobalOptions.GetOptionValue(DefaultTextViewHostOptions.IsInContrastModeId);
 
         protected internal override bool IncludeDiagnostic(DiagnosticData data) =>
             data.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
