@@ -414,6 +414,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 yield return type;
             }
 
+            foreach (var type in GetEmbeddedTypes(context.Diagnostics))
+            {
+                yield return type;
+            }
+
             var namespacesToProcess = new Stack<NamespaceSymbol>();
             namespacesToProcess.Push(SourceModule.GlobalNamespace);
 
@@ -437,6 +442,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         internal virtual ImmutableArray<NamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
+        {
+            return ImmutableArray<NamedTypeSymbol>.Empty;
+        }
+
+        internal virtual ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }

@@ -1307,7 +1307,19 @@ This version used in: {2}</value>
   <data name="Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Switching between a lambda and a local function will prevent the debug session from continuing.</value>
   </data>
-  <data name="Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Switching between a lambda and a local function will prevent the debug session from continuing.</value>
+  <data name="Using_readonly_structs_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Using readonly structs will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Using_ref_structs_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Using ref structs will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Using_readonly_references_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Using readonly references will prevent the debug session from continuing.</value>
+  </data>
+  <data name="local_function" xml:space="preserve">
+    <value>local function</value>
+  </data>
+  <data name="indexer_" xml:space="preserve">
+    <value>indexer</value>
   </data>
 </root>
