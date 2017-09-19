@@ -12,6 +12,8 @@ Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
+Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.VisualStudio.Editor
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
@@ -51,6 +53,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)()
             Dim isPossibleTupleContext = syntaxFacts.IsPossibleTupleContext(syntaxTree, position, cancellationToken)
+
+            Dim trivia = syntaxTree.FindTriviaToLeft(position, cancellationToken)
+            If (trivia.IsKind(SyntaxKind.CommentTrivia, SyntaxKind.DocumentationCommentTrivia)) Then
+                Return
+            End If
 
             context.IsExclusive = ShouldBeExclusive(context.Options)
             context.AddItems(CreateCompletionItems(snippets, isPossibleTupleContext))
