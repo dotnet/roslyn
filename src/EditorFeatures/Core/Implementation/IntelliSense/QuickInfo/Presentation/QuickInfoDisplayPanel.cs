@@ -150,8 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
         private static string GetStringFromInline(Inline currentInline)
         {
-            var lineBreak = currentInline as LineBreak;
-            if (lineBreak != null)
+            if (currentInline is LineBreak lineBreak)
             {
                 return Environment.NewLine;
             }

@@ -25,9 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return GetType(compilation.GetModule(moduleVersionId), (TypeDefinitionHandle)MetadataTokens.Handle(typeToken));
         }
 
-        internal static PEMethodSymbol GetSourceMethod(this CSharpCompilation compilation, Guid moduleVersionId, int methodToken)
+        internal static PEMethodSymbol GetSourceMethod(this CSharpCompilation compilation, Guid moduleVersionId, MethodDefinitionHandle methodHandle)
         {
-            var methodHandle = (MethodDefinitionHandle)MetadataTokens.Handle(methodToken);
             var method = GetMethod(compilation, moduleVersionId, methodHandle);
             var metadataDecoder = new MetadataDecoder((PEModuleSymbol)method.ContainingModule);
             var containingType = method.ContainingType;
@@ -36,8 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 foreach (var member in containingType.ContainingType.GetMembers(sourceMethodName))
                 {
-                    var candidateMethod = member as PEMethodSymbol;
-                    if (candidateMethod != null)
+                    if (member is PEMethodSymbol candidateMethod)
                     {
                         var module = metadataDecoder.Module;
                         methodHandle = candidateMethod.Handle;

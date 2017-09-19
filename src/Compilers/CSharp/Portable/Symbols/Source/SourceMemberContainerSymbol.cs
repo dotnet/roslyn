@@ -28,21 +28,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // First int:
             //
-            // |  |d|yy|xxxxxxxxxxxxxxxxxxxxx|wwwwww|
+            // | |d|yy|xxxxxxxxxxxxxxxxxxxxxx|wwwwww|
             //
             // w = special type.  6 bits.
-            // x = modifiers.  21 bits.
+            // x = modifiers.  22 bits.
             // y = IsManagedType.  2 bits.
             // d = FieldDefinitionsNoted. 1 bit
             private const int SpecialTypeOffset = 0;
-            private const int DeclarationModifiersOffset = 6;
-            private const int IsManagedTypeOffset = 26;
+            private const int SpecialTypeSize = 6;
 
-            private const int SpecialTypeMask = 0x3F;
-            private const int DeclarationModifiersMask = 0x1FFFFF;
-            private const int IsManagedTypeMask = 0x3;
+            private const int DeclarationModifiersOffset = SpecialTypeSize;
+            private const int DeclarationModifiersSize = 22;
 
-            private const int FieldDefinitionsNotedBit = 1 << 28;
+            private const int IsManagedTypeOffset = DeclarationModifiersOffset + DeclarationModifiersSize;
+            private const int IsManagedTypeSize = 2;
+
+            private const int FieldDefinitionsNotedOffset = IsManagedTypeOffset + IsManagedTypeSize;
+            private const int FieldDefinitionsNotedSize = 1;
+
+            private const int SpecialTypeMask = (1 << SpecialTypeSize) - 1;
+            private const int DeclarationModifiersMask = (1 << DeclarationModifiersSize) - 1;
+            private const int IsManagedTypeMask = (1 << IsManagedTypeSize) - 1;
+
+            private const int FieldDefinitionsNotedBit = 1 << FieldDefinitionsNotedOffset;
 
             private int _flags;
 
@@ -179,6 +187,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeKind typeKind = declaration.Kind.ToTypeKind();
             var modifiers = MakeModifiers(typeKind, diagnostics);
 
+            foreach (var singleDeclaration in declaration.Declarations)
+            {
+                diagnostics.AddRange(singleDeclaration.Diagnostics);
+            }
+
             int access = (int)(modifiers & DeclarationModifiers.AccessibilityMask);
             if ((access & (access - 1)) != 0)
             {   // more than one access modifier
@@ -199,11 +212,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)containingType != null && containingType.IsSealed && this.DeclaredAccessibility.HasProtected())
             {
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), Locations[0], this);
-            }
-
-            foreach (var singleDeclaration in declaration.Declarations)
-            {
-                diagnostics.AddRange(singleDeclaration.Diagnostics);
             }
 
             state.NotePartComplete(CompletionPart.TypeArguments); // type arguments need not be computed separately
@@ -233,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? DeclarationModifiers.Internal
                 : DeclarationModifiers.Private;
 
-            var allowedModifiers = DeclarationModifiers.AccessibilityMask | DeclarationModifiers.Partial;
+            var allowedModifiers = DeclarationModifiers.AccessibilityMask;
 
             if (ContainingSymbol is TypeSymbol)
             {
@@ -251,11 +259,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case TypeKind.Class:
                 case TypeKind.Submission:
-                    // static, sealed, and abstract allowed if a class
-                    allowedModifiers |= DeclarationModifiers.Static | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract | DeclarationModifiers.Unsafe;
+                    allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Static | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract | DeclarationModifiers.Unsafe;
                     break;
                 case TypeKind.Struct:
                 case TypeKind.Interface:
+                    allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
+                    break;
                 case TypeKind.Delegate:
                     allowedModifiers |= DeclarationModifiers.Unsafe;
                     break;
@@ -323,16 +332,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     missingPartial = true;
                 }
 
+                if (!modifierErrors)
+                {
+                    mods = ModifierUtils.CheckModifiers(
+                        mods, allowedModifiers, declaration.Declarations[i].NameLocation, diagnostics,
+                        modifierTokensOpt: null, modifierErrors: out modifierErrors);
+
+                    // It is an error for the same modifier to appear multiple times.
+                    if (!modifierErrors)
+                    {
+                        var info = ModifierUtils.CheckAccessibility(mods);
+                        if (info != null)
+                        {
+                            diagnostics.Add(info, self.Locations[0]);
+                            modifierErrors = true;
+                        }
+                    }
+                }
+
                 if (result == DeclarationModifiers.Unset)
                 {
                     result = mods;
-                    continue;
+                }
+                else
+                {
+                    result |= mods;
                 }
 
-                result |= mods;
             }
-
-            result = ModifierUtils.CheckModifiers(result, allowedModifiers, self.Locations[0], diagnostics, out modifierErrors);
 
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)
             {
@@ -1544,6 +1571,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            // If method1 is a constructor only because its return type is missing, then
+            // we've already produced a diagnostic for the missing return type and we suppress the
+            // diagnostic about duplicate signature.
+            if (method1.MethodKind == MethodKind.Constructor &&
+                ((ConstructorDeclarationSyntax)method1.SyntaxRef.GetSyntax()).Identifier.ValueText != this.Name)
+            {
+                return;
+            }
+
             if (DifferByOutOrRef(method1, method2))
             {
                 // '{0}' cannot define overloaded methods that differ only on ref and out
@@ -1821,7 +1857,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    if (member.DeclaredAccessibility == Accessibility.Protected || member.DeclaredAccessibility == Accessibility.ProtectedOrInternal)
+                    if (member.DeclaredAccessibility.HasProtected())
                     {
                         if (member.Kind != SymbolKind.Method || ((MethodSymbol)member).MethodKind != MethodKind.Destructor)
                         {

@@ -7,11 +7,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Navigation;
-using EnvDTE;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
+using IVsUIShell = Microsoft.VisualStudio.Shell.Interop.IVsUIShell;
+using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 {
@@ -24,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
         private readonly string _id;
         private readonly bool _logIdVerbatimInTelemetry;
-        private readonly DTE _dte;
+        private readonly IVsUIShell _uiShell;
 
         private bool _isExpanded;
         private double _heightForThreeLineTitle;
@@ -39,14 +40,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             string helpLinkToolTipText,
             IReadOnlyList<object> previewContent,
             bool logIdVerbatimInTelemetry,
-            DTE dte,
-            Guid optionPageGuid = default(Guid))
+            IVsUIShell uiShell,
+            Guid optionPageGuid = default)
         {
             InitializeComponent();
 
             _id = id;
             _logIdVerbatimInTelemetry = logIdVerbatimInTelemetry;
-            _dte = dte;
+            _uiShell = uiShell;
 
             // Initialize header portion.
             if ((severityIcon != null) && !string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(title))
@@ -74,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
             _optionPageGuid = optionPageGuid;
 
-            if (optionPageGuid == default(Guid))
+            if (optionPageGuid == default)
             {
                 OptionsButton.Visibility = Visibility.Collapsed;
             }
@@ -356,9 +357,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
         private void OptionsButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_optionPageGuid != default(Guid))
+            if (_optionPageGuid != default)
             {
-                _dte.ExecuteCommand("Tools.Options", _optionPageGuid.ToString());
+                ErrorHandler.ThrowOnFailure(_uiShell.PostExecCommand(
+                    VSConstants.GUID_VSStandardCommandSet97,
+                    (uint)VSConstants.VSStd97CmdID.ToolsOptions,
+                    (uint)OLECMDEXECOPT.OLECMDEXECOPT_DODEFAULT,
+                    _optionPageGuid.ToString()));
             }
         }
     }

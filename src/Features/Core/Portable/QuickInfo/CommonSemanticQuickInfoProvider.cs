@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             SyntaxToken token,
             CancellationToken cancellationToken)
         {
-            // Linked files/shared projects: imagine the following when FOO is false
-            // #if FOO
+            // Linked files/shared projects: imagine the following when GOO is false
+            // #if GOO
             // int x = 3;
             // #endif 
             // var y = x$$;
@@ -150,9 +150,11 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 // Capturing more information for https://devdiv.visualstudio.com/DevDiv/_workitems?id=209299
                 var originalText = await originalDocument.GetTextAsync().ConfigureAwait(false);
                 var linkedText = await linkedDocument.GetTextAsync().ConfigureAwait(false);
-
                 var linkedFileException = new LinkedFileDiscrepancyException(thrownException, originalText.ToString(), linkedText.ToString());
-                FatalError.Report(linkedFileException);
+
+                // This problem itself does not cause any corrupted state, it just changes the set
+                // of symbols included in QuickInfo, so we report and continue running.
+                FatalError.ReportWithoutCrash(linkedFileException);
             }
 
             return default;

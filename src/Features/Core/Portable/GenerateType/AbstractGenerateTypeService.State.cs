@@ -24,15 +24,15 @@ namespace Microsoft.CodeAnalysis.GenerateType
             // generated.
             public TSimpleNameSyntax SimpleName { get; private set; }
 
-            // The entire expression containing the name, not including the creation.  i.e. "X.Foo"
-            // in "new X.Foo()".
+            // The entire expression containing the name, not including the creation.  i.e. "X.Goo"
+            // in "new X.Goo()".
             public TExpressionSyntax NameOrMemberAccessExpression { get; private set; }
 
-            // The object creation node if we have one.  i.e. if we're on the 'Foo' in "new X.Foo()".
+            // The object creation node if we have one.  i.e. if we're on the 'Goo' in "new X.Goo()".
             public TObjectCreationExpressionSyntax ObjectCreationExpressionOpt { get; private set; }
 
             // One of these will be non null.  It's also possible for both to be non null. For
-            // example, if you have "class C { Foo f; }", then "Foo" can be generated inside C or
+            // example, if you have "class C { Goo f; }", then "Goo" can be generated inside C or
             // inside the global namespace.  The namespace can be null or the type can be null if the
             // user has something like "ExistingType.NewType" or "ExistingNamespace.NewType".  In
             // that case they're being explicit about what they want to generate into.
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             // If we can infer a base type or interface for this type. 
             // 
-            // i.e.: "IList<int> foo = new MyList();"
+            // i.e.: "IList<int> goo = new MyList();"
             public INamedTypeSymbol BaseTypeOrInterfaceOpt { get; private set; }
             public bool IsInterface { get; private set; }
             public bool IsStruct { get; private set; }
@@ -101,8 +101,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 {
                     return false;
                 }
-                // We only support simple names or dotted names.  i.e. "(some + expr).Foo" is not a
-                // valid place to generate a type for Foo.
+                // We only support simple names or dotted names.  i.e. "(some + expr).Goo" is not a
+                // valid place to generate a type for Goo.
                 if (!service.TryInitializeState(document, this.SimpleName, cancellationToken, out var generateTypeServiceStateOptions))
                 {
                     return false;
@@ -200,9 +200,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // See if we can find a possible base type for the type being generated.
                 // NOTE(cyrusn): I currently limit this to when we have an object creation node.
                 // That's because that's when we would have an expression that could be converted to
-                // something else.  i.e. if the user writes "IList<int> list = new Foo()" then we can
-                // infer a base interface for 'Foo'.  However, if they write "IList<int> list = Foo"
-                // then we don't really want to infer a base type for 'Foo'.
+                // something else.  i.e. if the user writes "IList<int> list = new Goo()" then we can
+                // infer a base interface for 'Goo'.  However, if they write "IList<int> list = Goo"
+                // then we don't really want to infer a base type for 'Goo'.
 
                 // However, there are a few other cases were we can infer a base type.
                 var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
@@ -396,8 +396,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 else
                 {
                     // If it's a dotted name, then perhaps it's a namespace.  i.e. the user wrote
-                    // "new Foo.Bar.Baz()".  In this case we want to generate a namespace for
-                    // "Foo.Bar".
+                    // "new Goo.Bar.Baz()".  In this case we want to generate a namespace for
+                    // "Goo.Bar".
                     if (service.TryGetNameParts(leftSide, out var nameParts))
                     {
                         this.NamespaceToGenerateInOpt = string.Join(".", nameParts);

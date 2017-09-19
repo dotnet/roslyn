@@ -31,7 +31,7 @@ BC2014: the value '<%= badRootNS %>' is invalid for option 'RootNamespace'
 <compilation name="Banana">
     <file name="b.vb">
         Namespace NS
-            Public Class Foo
+            Public Class Goo
             End Class
         End Namespace
     </file>
@@ -60,7 +60,7 @@ BC2014: the value '<%= badRootNS %>' is invalid for option 'RootNamespace'
 <compilation name="Banana">
     <file name="m.vb">
         Namespace NS
-            Public Class Foo
+            Public Class Goo
             End Class
         End Namespace
     </file>
@@ -88,7 +88,7 @@ BC2014: the value '<%= badRootNS %>' is invalid for option 'RootNamespace'
 <compilation name="Banana">
     <file name="m.vb">
     Namespace NS
-        Module MFoo
+        Module MGoo
           Dim A As Integer
           Sub MySub()
           End Sub
@@ -101,9 +101,9 @@ BC2014: the value '<%= badRootNS %>' is invalid for option 'RootNamespace'
 </compilation>)
 
             Dim ns As NamespaceSymbol = DirectCast(compilation.SourceModule.GlobalNamespace.GetMembers("NS").Single(), NamespaceSymbol)
-            Dim sym1 = ns.GetMembers("MFoo").Single()
-            Assert.Equal("MFoo", sym1.Name)
-            Assert.Equal("NS.MFoo", sym1.ToTestDisplayString())
+            Dim sym1 = ns.GetMembers("MGoo").Single()
+            Assert.Equal("MGoo", sym1.Name)
+            Assert.Equal("NS.MGoo", sym1.ToTestDisplayString())
             Assert.Equal(SymbolKind.NamedType, sym1.Kind)
             ' default - Friend
             Assert.Equal(Accessibility.Friend, sym1.DeclaredAccessibility)
@@ -138,8 +138,8 @@ BC2014: the value '<%= badRootNS %>' is invalid for option 'RootNamespace'
         ' Check that we disallow certain kids of bad root namespaces
         <Fact>
         Public Sub BadDefaultNSTest()
-            BadDefaultNS("Foo.7")
-            BadDefaultNS("Foo..Bar")
+            BadDefaultNS("Goo.7")
+            BadDefaultNS("Goo..Bar")
             BadDefaultNS(".X")
             BadDefaultNS("$")
         End Sub
@@ -153,7 +153,7 @@ BC2014: the value '<%= badRootNS %>' is invalid for option 'RootNamespace'
         Imports System.7
     </file>
     <file name="b.vb">
-        Namespace Foo
+        Namespace Goo
         End Class
     </file>
 </compilation>)
@@ -163,7 +163,7 @@ BC30205: End of statement expected.
 Imports System.7
               ~~
 BC30626: 'Namespace' statement must end with a matching 'End Namespace'.
-Namespace Foo
+Namespace Goo
 ~~~~~~~~~~~~~
 BC30460: 'End Class' must be preceded by a matching 'Class'.
         End Class
@@ -265,7 +265,7 @@ End Namespace
 Namespace C
 End Namespace
     </file>
-</compilation>, options:=TestOptions.ReleaseExe.WithRootNamespace("Foo.Bar"))
+</compilation>, options:=TestOptions.ReleaseExe.WithRootNamespace("Goo.Bar"))
 
             Dim globalNS = compilation.SourceModule.GlobalNamespace
 
@@ -274,13 +274,13 @@ End Namespace
             Assert.Equal(1, globalNS.GetMembers().Length())
 
             Dim members = globalNS.GetMembers()
-            Dim nsFoo As NamespaceSymbol = DirectCast(members.First(), NamespaceSymbol)
-            Assert.Equal("Foo", nsFoo.Name, IdentifierComparison.Comparer)
-            Assert.Equal(SymbolKind.Namespace, nsFoo.Kind)
-            Assert.Equal(1, nsFoo.GetMembers().Length())
+            Dim nsGoo As NamespaceSymbol = DirectCast(members.First(), NamespaceSymbol)
+            Assert.Equal("Goo", nsGoo.Name, IdentifierComparison.Comparer)
+            Assert.Equal(SymbolKind.Namespace, nsGoo.Kind)
+            Assert.Equal(1, nsGoo.GetMembers().Length())
 
-            Dim membersFoo = nsFoo.GetMembers()
-            Dim nsBar As NamespaceSymbol = DirectCast(membersFoo.First(), NamespaceSymbol)
+            Dim membersGoo = nsGoo.GetMembers()
+            Dim nsBar As NamespaceSymbol = DirectCast(membersGoo.First(), NamespaceSymbol)
             Assert.Equal("Bar", nsBar.Name, IdentifierComparison.Comparer)
             Assert.Equal(SymbolKind.Namespace, nsBar.Kind)
             Assert.Equal(3, nsBar.GetMembers().Length())
@@ -320,18 +320,18 @@ End Namespace
 Class Type1
 End Class
     </file>
-</compilation>, options:=TestOptions.ReleaseExe.WithRootNamespace("Foo.Bar"))
+</compilation>, options:=TestOptions.ReleaseExe.WithRootNamespace("Goo.Bar"))
 
             Dim globalNS = compilation.SourceModule.GlobalNamespace
             Dim members = globalNS.GetMembers()
-            Dim nsFoo As NamespaceSymbol = DirectCast(members.First(), NamespaceSymbol)
-            Dim membersFoo = nsFoo.GetMembers()
-            Dim nsBar As NamespaceSymbol = DirectCast(membersFoo.First(), NamespaceSymbol)
+            Dim nsGoo As NamespaceSymbol = DirectCast(members.First(), NamespaceSymbol)
+            Dim membersGoo = nsGoo.GetMembers()
+            Dim nsBar As NamespaceSymbol = DirectCast(membersGoo.First(), NamespaceSymbol)
             Dim type1Sym = nsBar.GetMembers("Type1").Single()
 
             Assert.Same(nsBar, type1Sym.ContainingSymbol)
-            Assert.Same(nsFoo, nsBar.ContainingSymbol)
-            Assert.Same(globalNS, nsFoo.ContainingSymbol)
+            Assert.Same(nsGoo, nsBar.ContainingSymbol)
+            Assert.Same(globalNS, nsGoo.ContainingSymbol)
             Assert.Same(compilation.SourceModule, globalNS.ContainingSymbol)
         End Sub
 
@@ -405,7 +405,7 @@ End Namespace
 
             Dim text3 = <![CDATA[
     Namespace N1
-      Structure SFoo
+      Structure SGoo
       End Structure
     End Namespace
     ]]>.Value
@@ -414,7 +414,7 @@ End Namespace
 <compilation name="Test1">
     <file name="a.vb">
     Namespace N1
-      Class CFoo
+      Class CGoo
       End Class
     End Namespace
     </file>
@@ -424,7 +424,7 @@ End Namespace
 <compilation name="Test2">
     <file name="b.vb">
     Namespace N1
-      Interface IFoo
+      Interface IGoo
       End Interface
     End Namespace
     </file>
@@ -460,21 +460,21 @@ End Namespace
 
             Dim text1 = <![CDATA[
     Namespace N1
-      Class CFoo
+      Class CGoo
       End Class
     End Namespace
     ]]>.Value
 
             Dim text2 = <![CDATA[
     Namespace N1
-      Interface IFoo
+      Interface IGoo
       End Interface
     End Namespace
     ]]>.Value
 
             Dim text3 = <![CDATA[
     Namespace N1
-      Structure SFoo
+      Structure SGoo
       End Structure
     End Namespace
     ]]>.Value
@@ -515,7 +515,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim aliasedCorlib = TestReferences.NetFx.v4_0_30319.mscorlib.WithAliases(ImmutableArray.Create("Foo"))
+            Dim aliasedCorlib = TestReferences.NetFx.v4_0_30319.mscorlib.WithAliases(ImmutableArray.Create("Goo"))
 
             Dim comp = CreateCompilationWithReferences(source, {aliasedCorlib})
 

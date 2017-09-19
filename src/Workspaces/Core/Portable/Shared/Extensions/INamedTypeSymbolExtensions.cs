@@ -447,7 +447,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var result = new Dictionary<ISymbol, int>();
             var index = 0;
 
-            if (containingType != null && !containingType.IsScriptClass && !containingType.IsImplicitClass)
+            if (containingType != null && 
+                !containingType.IsScriptClass && 
+                !containingType.IsImplicitClass &&
+                !containingType.IsStatic)
             {
                 if (containingType.TypeKind == TypeKind.Class || containingType.TypeKind == TypeKind.Struct)
                 {

@@ -40,8 +40,8 @@
     <file src="Exes\vbc\vbc.exe"  target="tools" />
     <file src="Exes\vbc\vbc.exe.config"  target="tools" />
     <file src="Exes\vbc\vbc.rsp"  target="tools" />
-    <file src="Exes\VBCSCompiler\VBCSCompiler.exe" target="tools" />
-    <file src="Exes\VBCSCompiler\VBCSCompiler.exe.config" target="tools" />
+    <file src="Exes\VBCSCompiler\net46\VBCSCompiler.exe" target="tools" />
+    <file src="Exes\VBCSCompiler\net46\VBCSCompiler.exe.config" target="tools" />
     <file src="Dlls\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.dll" target="tools" />
     <file src="Dlls\MSbuildTask\Microsoft.CSharp.Core.targets" target="tools" />
     <file src="Dlls\MSbuildTask\Microsoft.VisualBasic.Core.targets" target="tools" />

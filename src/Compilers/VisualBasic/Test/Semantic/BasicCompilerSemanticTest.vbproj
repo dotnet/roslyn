@@ -1,51 +1,26 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{BF180BD2-4FB7-4252-A7EC-A00E0C7A028A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.VisualBasic.Semantic.UnitTests</AssemblyName>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
-      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
-      <Name>PdbUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
-      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
-      <Name>TestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj">
-      <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
-      <Name>CompilerTestResources</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj">
-      <Project>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F8}</Project>
-      <Name>BasicCompilerTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
+    <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\CSharp\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj" />
+    <ProjectReference Include="..\..\..\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj" />
+    <ProjectReference Include="..\..\Portable\BasicCodeAnalysis.vbproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -55,6 +30,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
+    <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
   </ItemGroup>
   <ItemGroup>
@@ -66,149 +42,21 @@
     <Import Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyAttributes.vb" />
-    <Compile Include="Binding\BadSymbolReference.vb" />
-    <Compile Include="Binding\Binder_Expressions_Tests.vb" />
-    <Compile Include="Binding\Binder_Statements_Tests.vb" />
-    <Compile Include="Binding\BindingCollectionInitializerTests.vb" />
-    <Compile Include="Binding\BindingDelegateCreationTests.vb" />
-    <Compile Include="Binding\BindingErrorTests.vb" />
-    <Compile Include="Binding\BindingObjectInitializerTests.vb" />
-    <Compile Include="Binding\BindingScopeTests.vb" />
-    <Compile Include="Binding\ForEachTests.vb" />
-    <Compile Include="Binding\GenericsTests.vb" />
-    <Compile Include="Binding\GotoTests.vb" />
-    <Compile Include="Binding\ImplicitVariableTests.vb" />
-    <Compile Include="Binding\LookupTests.vb" />
-    <Compile Include="Binding\MethodBodyBindingTests.vb" />
-    <Compile Include="Binding\SyncLockTests.vb" />
-    <Compile Include="Binding\UsingTests.vb" />
-    <Compile Include="Compilation\SuppressAccessibilityChecksTests.vb" />
-    <Compile Include="Compilation\CompilationAPITests.vb" />
-    <Compile Include="Compilation\GetSemanticInfoBrokenCodeTests.vb" />
-    <Compile Include="Compilation\MyTemplateTests.vb" />
-    <Compile Include="Compilation\ReferenceManagerTests.vb" />
-    <Compile Include="Compilation\SemanticModelAPITests.vb" />
-    <Compile Include="Compilation\SemanticModelGetDeclaredSymbolAPITests.vb" />
-    <Compile Include="Compilation\SemanticModelLookupSymbolsAPITests.vb" />
-    <Compile Include="Compilation\SymbolSearchTests.vb" />
-    <Compile Include="Compilation\VisualBasicCompilationOptionsTests.vb" />
-    <Compile Include="DeclaringSyntaxNodeTests.vb" />
-    <Compile Include="Diagnostics\CompilationEventTests.vb" />
-    <Compile Include="Diagnostics\DiagnosticAnalyzerTests.AllInOne.vb" />
-    <Compile Include="Diagnostics\DiagnosticAnalyzerTests.vb" />
-    <Compile Include="Diagnostics\DiagnosticTests.vb" />
-    <Compile Include="Diagnostics\GetDiagnosticsTests.vb" />
-    <Compile Include="IOperation\IOperationTests_IArgument.vb" />
-    <Compile Include="IOperation\IOperationTests_IFieldReferenceExpression.vb" />
-    <Compile Include="IOperation\IOperationTests_IObjectCreationExpression.vb" />
-    <Compile Include="IOperation\IOperationTests_IParameterReferenceExpression.vb" />
-    <Compile Include="IOperation\IOperationTests_InvalidStatement.vb" />
-    <Compile Include="IOperation\IOperationTests_InvalidExpression.vb" />
-    <Compile Include="IOperation\IOperationTests_IBlockStatement_MethodBlocks.vb" />
-    <Compile Include="IOperation\IOperationTests_IIfStatement.vb" />
-    <Compile Include="IOperation\IOperationTests_ISymbolInitializer.vb" />
-    <Compile Include="IOperation\IOperationTests.vb" />
-    <Compile Include="Diagnostics\OperationAnalyzerTests.vb" />
-    <Compile Include="ExtensionMethods\SemanticModelTests.vb" />
-    <Compile Include="Extensions.vb" />
-    <Compile Include="FlowAnalysis\FlowDiagnosticTests.vb" />
-    <Compile Include="FlowAnalysis\FlowTestBase.vb" />
-    <Compile Include="FlowAnalysis\ImplicitVariableTests.vb" />
-    <Compile Include="FlowAnalysis\IterationJumpYieldStatementTests.vb" />
-    <Compile Include="FlowAnalysis\RegionAnalysisTests.vb" />
-    <Compile Include="FlowAnalysis\RegionAnalysisTestsWithStaticLocals.vb" />
-    <Compile Include="FlowAnalysis\StructureAnalysisTests.vb" />
-    <Compile Include="FlowAnalysis\TryLockUsingStatementTests.vb" />
-    <Compile Include="IOperation\IOperationTests_IUsingStatement.vb" />
-    <Compile Include="IOperation\IOperationTests_IVariableDeclaration.vb" />
-    <Compile Include="Resource.Designer.vb">
+    <Compile Update="Resource.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resource.resx</DependentUpon>
     </Compile>
-    <Compile Include="Semantics\AccessCheck.vb" />
-    <Compile Include="Semantics\AnonymousTypesTests.vb" />
-    <Compile Include="Semantics\ArrayLiteralTests.vb" />
-    <Compile Include="Semantics\AsyncAwait.vb" />
-    <Compile Include="Semantics\BinaryOperators.vb" />
-    <Compile Include="Semantics\CompoundAssignment.vb" />
-    <Compile Include="Semantics\ConditionalAccessTests.vb" />
-    <Compile Include="Semantics\ConditionalExpressionsTests.vb" />
-    <Compile Include="Semantics\Conversions.vb" />
-    <Compile Include="Semantics\Conversions_AnonymousDelegates.vb" />
-    <Compile Include="Semantics\EraseStatementTests.vb" />
-    <Compile Include="Semantics\FieldInitializerBindingTests.vb" />
-    <Compile Include="Semantics\ForeachTest.vb" />
-    <Compile Include="Semantics\ForLoopTest.vb" />
-    <Compile Include="Semantics\GetExtendedSemanticInfoTests.vb" />
-    <Compile Include="Semantics\GetSemanticInfoTests.vb" />
-    <Compile Include="Semantics\GetUnusedImportDirectivesTests.vb" />
-    <Compile Include="Semantics\GotoTests.vb" />
-    <Compile Include="Semantics\IFOperatorTest.vb" />
-    <Compile Include="Semantics\InterpolatedStringTests.vb" />
-    <Compile Include="Semantics\IReadOnlyListAndCollection.vb" />
-    <Compile Include="Semantics\IsIsNot.vb" />
-    <Compile Include="Semantics\IteratorTests.vb" />
-    <Compile Include="Semantics\Lambda_AnonymousDelegateInference.vb" />
-    <Compile Include="Semantics\Lambda_Relaxation.vb" />
-    <Compile Include="Semantics\LambdaSemanticInfoTests.vb" />
-    <Compile Include="Semantics\LambdaTests.vb" />
-    <Compile Include="Semantics\MeMyBaseMyClassTests.vb" />
-    <Compile Include="Semantics\MethodCalls.vb" />
-    <Compile Include="Semantics\MissingRuntimeHelpers.vb" />
-    <Compile Include="Semantics\MultiDimensionalTest.vb" />
-    <Compile Include="Semantics\MyBaseMyClassTests.vb" />
-    <Compile Include="Semantics\NameLengthTests.vb" />
-    <Compile Include="Semantics\NameOfTests.vb" />
-    <Compile Include="Semantics\NewOnInterfaceTests.vb" />
-    <Compile Include="Semantics\NoncompliantOverloadingInMetadata.vb" />
-    <Compile Include="Semantics\OptionalArgumentTests.vb" />
-    <Compile Include="Semantics\OptionApis.vb" />
-    <Compile Include="Semantics\OverloadResolution.vb" />
-    <Compile Include="Semantics\Parenthesized.vb" />
-    <Compile Include="Semantics\PartialMethodsTest.vb" />
-    <Compile Include="Semantics\QueryExpressions.vb" />
-    <Compile Include="Semantics\QueryExpressions_FlowAnalysis.vb" />
-    <Compile Include="Semantics\QueryExpressions_LookupSymbols.vb" />
-    <Compile Include="Semantics\QueryExpressions_SemanticModel.vb" />
-    <Compile Include="Semantics\RedimStatementTests.vb" />
-    <Compile Include="Semantics\ScriptSemanticsTests.vb" />
-    <Compile Include="Semantics\SelectCaseTests.vb" />
-    <Compile Include="Semantics\SyncLockTests.vb" />
-    <Compile Include="Semantics\SyntaxTreeRootTests.vb" />
-    <Compile Include="Semantics\TooLongNameTests.vb" />
-    <Compile Include="Semantics\TypeArgumentInference.vb" />
-    <Compile Include="Semantics\TypeOfTests.vb" />
-    <Compile Include="Semantics\UnaryOperators.vb" />
-    <Compile Include="Semantics\UnstructuredExceptionHandling.vb" />
-    <Compile Include="Semantics\UserDefinedBinaryOperators.vb" />
-    <Compile Include="Semantics\UserDefinedConversions.vb" />
-    <Compile Include="Semantics\UserDefinedForToLoop.vb" />
-    <Compile Include="Semantics\UserDefinedUnaryOperators.vb" />
-    <Compile Include="Semantics\UseSiteErrorTests.vb" />
-    <Compile Include="Semantics\UsingStatementTest.vb" />
-    <Compile Include="Semantics\VariableTypeInference.vb" />
-    <Compile Include="Semantics\VarianceConversions.vb" />
-    <Compile Include="Semantics\WithBlockErrorTests.vb" />
-    <Compile Include="Semantics\WithBlockSemanticModelTests.vb" />
-    <Compile Include="Semantics\XmlLiteralSemanticModelTests.vb" />
     <Content Include="Semantics\Async_Overload_Change_3.vb.txt" />
     <Content Include="Semantics\BinaryOperatorsTestBaseline1.txt" />
     <Content Include="Semantics\BinaryOperatorsTestBaseline2.txt" />
     <Content Include="Semantics\BinaryOperatorsTestBaseline3.txt" />
     <Content Include="Semantics\BinaryOperatorsTestBaseline4.txt" />
     <Content Include="Semantics\BinaryOperatorsTestBaseline5.txt" />
-    <Content Include="Semantics\BinaryOperatorsTestSource1.vb" />
-    <Content Include="Semantics\BinaryOperatorsTestSource2.vb" />
-    <Content Include="Semantics\BinaryOperatorsTestSource3.vb" />
-    <Content Include="Semantics\BinaryOperatorsTestSource4.vb" />
-    <Content Include="Semantics\BinaryOperatorsTestSource5.vb" />
-    <Content Include="Semantics\OverloadResolutionTestSource.vb" />
-    <Content Include="Semantics\PrintResultTestSource.vb" />
     <EmbeddedResource Include="Binding\T_1247520.cs" />
     <EmbeddedResource Include="Binding\T_68086.vb" />
-    <EmbeddedResource Include="Resource.resx">
+    <Compile Remove="Binding\T_68086.vb" />
+    <EmbeddedResource Update="Resource.resx">
       <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic.UnitTests.My.Resources</CustomToolNamespace>
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resource.Designer.vb</LastGenOutput>
@@ -219,6 +67,22 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Semantics\BinaryOperatorsTestSource1.vb" />
+    <Content Include="Semantics\BinaryOperatorsTestSource2.vb" />
+    <Content Include="Semantics\BinaryOperatorsTestSource3.vb" />
+    <Content Include="Semantics\BinaryOperatorsTestSource4.vb" />
+    <Content Include="Semantics\BinaryOperatorsTestSource5.vb" />
+    <Content Include="Semantics\OverloadResolutionTestSource.vb" />
+    <Content Include="Semantics\PrintResultTestSource.vb" />
+    <Compile Remove="Semantics\BinaryOperatorsTestSource1.vb" />
+    <Compile Remove="Semantics\BinaryOperatorsTestSource2.vb" />
+    <Compile Remove="Semantics\BinaryOperatorsTestSource3.vb" />
+    <Compile Remove="Semantics\BinaryOperatorsTestSource4.vb" />
+    <Compile Remove="Semantics\BinaryOperatorsTestSource5.vb" />
+    <Compile Remove="Semantics\OverloadResolutionTestSource.vb" />
+    <Compile Remove="Semantics\PrintResultTestSource.vb" />
   </ItemGroup>
   <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestNotInTopLevelMethod()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"void Foo()
+@"void Goo()
 {
     $$
 }");
@@ -54,7 +54,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -123,7 +123,7 @@ class C
 
         [WorkItem(16335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/16335")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task InExpressionBodyAcessor()
+        public async Task InExpressionBodyAccessor()
         {
             await VerifyKeywordAsync(@"
 class B

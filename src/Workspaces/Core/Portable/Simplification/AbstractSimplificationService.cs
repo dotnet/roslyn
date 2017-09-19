@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.Simplification
             Document document,
             ImmutableArray<TextSpan> spans,
             OptionSet optionSet = null,
-            ImmutableArray<AbstractReducer> reducers = default(ImmutableArray<AbstractReducer>), 
-            CancellationToken cancellationToken = default(CancellationToken))
+            ImmutableArray<AbstractReducer> reducers = default, 
+            CancellationToken cancellationToken = default)
         {
             using (Logger.LogBlock(FunctionId.Simplifier_ReduceAsync, cancellationToken))
             {
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             // Create a simple interval tree for simplification spans.
             var spansTree = new SimpleIntervalTree<TextSpan>(TextSpanIntervalIntrospector.Instance, spans);
 
-            Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpans = nodeOrToken =>
+            bool isNodeOrTokenOutsideSimplifySpans(SyntaxNodeOrToken nodeOrToken) =>
                 !spansTree.HasIntervalThatOverlapsWith(nodeOrToken.FullSpan.Start, nodeOrToken.FullSpan.Length);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);

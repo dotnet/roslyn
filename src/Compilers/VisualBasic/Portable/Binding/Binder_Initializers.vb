@@ -390,6 +390,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim asNew = DirectCast(equalsValueOrAsNewSyntax, AsNewClauseSyntax)
                 Select Case asNew.NewExpression.Kind
                     Case SyntaxKind.ObjectCreationExpression
+                        DisallowNewOnTupleType(asNew.Type, diagnostics)
+
                         Dim objectCreationExpressionSyntax = DirectCast(asNew.NewExpression, ObjectCreationExpressionSyntax)
                         boundInitExpression = BindObjectCreationExpression(asNew.NewExpression.Type,
                                                                            objectCreationExpressionSyntax.ArgumentList,
@@ -543,7 +545,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' NOTE: a constant expression") and ERR_RequiredConstExpr ("Constant expression is required") in case
                 ' NOTE: the type (if declared) is a valid type for const fields. This is different from Dev10 that sometimes
                 ' NOTE: reported issues and sometimes not
-                ' NOTE: e.g. reports in "const foo as DelegateType = AddressOf methodName" (ERR_ConstAsNonConstant + ERR_RequiredConstExpr)
+                ' NOTE: e.g. reports in "const goo as DelegateType = AddressOf methodName" (ERR_ConstAsNonConstant + ERR_RequiredConstExpr)
                 ' NOTE: only type diagnostics for "const s as StructureType = nothing"
 
                 If boundInitValueHasErrorsOrConstTypeIsWrong Then
@@ -554,7 +556,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     constValue = Me.GetExpressionConstantValueIfAny(boundInitValue, initValueDiagnostics, ConstantContext.Default)
                 End If
 
-                ' e.g. the init value of "Public foo as Byte = 2.2" is still considered as constant and therefore a CByte(2)
+                ' e.g. the init value of "Public goo as Byte = 2.2" is still considered as constant and therefore a CByte(2)
                 ' is being assigned as the constant value of this field/enum. However in case of Option Strict On there has 
                 ' been a diagnostics in the call to ApplyImplicitConversion.
                 If constValue Is Nothing Then

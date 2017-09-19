@@ -24,7 +24,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    internal sealed partial class VisualStudioProjectTracker : ForegroundThreadAffinitizedObject, IDisposable, IVisualStudioHostProjectContainer
+    internal sealed partial class VisualStudioProjectTracker : ForegroundThreadAffinitizedObject, IVisualStudioHostProjectContainer
     {
         #region Readonly fields
         private static readonly ConditionalWeakTable<SolutionId, string> s_workingFolderPathMap = new ConditionalWeakTable<SolutionId, string>();
@@ -37,8 +37,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         #region Mutable fields accessed only from foreground thread - don't need locking for access (all accessing methods must have AssertIsForeground).
         private readonly List<WorkspaceHostState> _workspaceHosts;
-
-        private readonly HostWorkspaceServices _workspaceServices;
 
         /// <summary>
         /// Set to true while we're batching project loads. That is, between
@@ -113,6 +111,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        internal HostWorkspaceServices WorkspaceServices { get; }
+
         IReadOnlyList<IVisualStudioHostProject> IVisualStudioHostProjectContainer.GetProjects() => this.ImmutableProjects;
 
         void IVisualStudioHostProjectContainer.NotifyNonDocumentOpenedForProject(IVisualStudioHostProject project)
@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _serviceProvider = serviceProvider;
             _workspaceHosts = new List<WorkspaceHostState>(capacity: 1);
-            _workspaceServices = workspaceServices;
+            WorkspaceServices = workspaceServices;
 
             _vsSolution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
             _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
@@ -243,14 +243,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public DocumentProvider DocumentProvider { get; private set; }
         public VisualStudioMetadataReferenceManager MetadataReferenceProvider { get; private set; }
         public VisualStudioRuleSetManager RuleSetFileProvider { get; private set; }
-
-        public void Dispose()
-        {
-            if (this.RuleSetFileProvider != null)
-            {
-                this.RuleSetFileProvider.Dispose();
-            }
-        }
 
         internal AbstractProject GetProject(ProjectId id)
         {
@@ -438,18 +430,64 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 project = null;
-                if (_projectsByBinPath.TryGetValue(filePath, out var projects))
+                if (!_projectsByBinPath.TryGetValue(filePath, out var projects))
                 {
-                    // If for some reason we have more than one referencing project, it's ambiguous so bail
-                    if (projects.Length == 1)
+                    // Workaround https://github.com/dotnet/roslyn/issues/20412 by checking to see if */ref/A.dll can be
+                    // adjusted to */A.dll - only handles the default location for reference assemblies during a build.
+                    if (!HACK_StripRefDirectoryFromPath(filePath, out string binFilePath)
+                        || !_projectsByBinPath.TryGetValue(binFilePath, out projects))
                     {
-                        project = projects[0];
-                        return true;
+                        return false;
                     }
+                }
+
+                // If for some reason we have more than one referencing project, it's ambiguous so bail
+                if (projects.Length == 1)
+                {
+                    project = projects[0];
+                    return true;
                 }
 
                 return false;
             }
+        }
+
+        private static readonly char[] s_directorySeparatorChars = { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+
+        private bool HACK_StripRefDirectoryFromPath(string filePath, out string binFilePath)
+        {
+            const string refDirectoryName = "ref";
+
+            // looking for "/ref/" where:
+            // 1. the first / is a directory separator
+            // 2. 'ref' matches in a case-insensitive comparison
+            // 3. the second / is the last directory separator
+            var lastSeparator = filePath.LastIndexOfAny(s_directorySeparatorChars);
+            var secondToLastSeparator = lastSeparator - refDirectoryName.Length - 1;
+            if (secondToLastSeparator < 0)
+            {
+                // Failed condition 3
+                binFilePath = null;
+                return false;
+            }
+
+            if (filePath[secondToLastSeparator] != Path.DirectorySeparatorChar
+                && filePath[secondToLastSeparator] != Path.AltDirectorySeparatorChar)
+            {
+                // Failed condition 1
+                binFilePath = null;
+                return false;
+            }
+
+            if (string.Compare(refDirectoryName, 0, filePath, secondToLastSeparator + 1, lastSeparator - secondToLastSeparator - 1, StringComparison.OrdinalIgnoreCase) != 0)
+            {
+                // Failed condition 2
+                binFilePath = null;
+                return false;
+            }
+
+            binFilePath = filePath.Remove(secondToLastSeparator, lastSeparator - secondToLastSeparator);
+            return true;
         }
 
         /// <summary>
@@ -565,6 +603,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _projectPathToIdMap.Clear();
             }
 
+            RuleSetFileProvider.ClearCachedRuleSetFiles();
+
             foreach (var workspaceHost in _workspaceHosts)
             {
                 workspaceHost.SolutionClosed();
@@ -613,7 +653,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (solutionConfig != null)
             {
                 // Capture the context so that we come back on the UI thread, and do the actual project creation there.
-                var deferredProjectWorkspaceService = _workspaceServices.GetService<IDeferredProjectWorkspaceService>();
+                var deferredProjectWorkspaceService = WorkspaceServices.GetService<IDeferredProjectWorkspaceService>();
                 projectInfos = await deferredProjectWorkspaceService.GetDeferredProjectInfoForConfigurationAsync(
                     $"{solutionConfig.Name}|{solutionConfig.PlatformName}",
                     cancellationToken).ConfigureAwait(true);
@@ -654,7 +694,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var targetPathsToProjectPaths = BuildTargetPathMap(projectInfos);
 
             var solution7 = (IVsSolution7)_vsSolution;
-            var analyzerAssemblyLoader = _workspaceServices.GetRequiredService<IAnalyzerService>().GetLoader();
+            var analyzerAssemblyLoader = WorkspaceServices.GetRequiredService<IAnalyzerService>().GetLoader();
             var componentModel = _serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
             var workspaceProjectContextFactory = componentModel.GetService<IWorkspaceProjectContextFactory>();
             foreach (var (projectFilename, projectInfo) in projectInfos)
@@ -780,7 +820,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return null;
             }
 
-            var commandLineParser = _workspaceServices.GetLanguageServices(languageName).GetService<ICommandLineParserService>();
+            var commandLineParser = WorkspaceServices.GetLanguageServices(languageName).GetService<ICommandLineParserService>();
             var projectDirectory = PathUtilities.GetDirectoryName(projectFilename);
             var commandLineArguments = commandLineParser.Parse(
                 projectInfo.CommandLineArguments,
@@ -835,8 +875,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         targetPathsToProjectPaths);
                 }
 
-                var referencedProjectContext = referencedProject as IWorkspaceProjectContext;
-                if (referencedProjectContext != null)
+                if (referencedProject is IWorkspaceProjectContext referencedProjectContext)
                 {
                     // TODO: Can we get the properties from corresponding metadata reference in
                     // commandLineArguments?
@@ -865,7 +904,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            var addedReferencePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var metadataReferencesToAdd = new Dictionary<string, MetadataReferenceProperties>(StringComparer.OrdinalIgnoreCase);
+
             foreach (var reference in metadataReferences)
             {
                 var path = GetReferencePath(reference);
@@ -876,10 +916,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     continue;
                 }
 
-                if (addedReferencePaths.Add(path))
+                if (metadataReferencesToAdd.TryGetValue(path, out var existingProperties))
                 {
-                    projectContext.AddMetadataReference(path, reference.Properties);
+                    // Merge existing aliases the properties that are already there
+                    var allAliases = existingProperties.Aliases.AddRange(reference.Properties.Aliases);
+
+                    // If one is empty and the other isn't, then we need to toss the global alias in too. The other cases
+                    // are they're both empty (and this was a direct duplicate) or they're both non-empty and the merge
+                    // is OK.
+                    if ((existingProperties.Aliases.IsDefaultOrEmpty && !reference.Properties.Aliases.IsDefaultOrEmpty) ||
+                        (!existingProperties.Aliases.IsDefaultOrEmpty && reference.Properties.Aliases.IsDefaultOrEmpty))
+                    {
+                        allAliases = allAliases.Add(MetadataReferenceProperties.GlobalAlias);
+                    }
+                    else
+                    {
+                        allAliases = allAliases.Distinct();
+                    }
+
+                    metadataReferencesToAdd[path] = existingProperties.WithAliases(allAliases);
                 }
+                else
+                {
+                    metadataReferencesToAdd.Add(path, reference.Properties);
+                }
+            }
+
+            foreach (var metadataReferenceToAdd in metadataReferencesToAdd)
+            {
+                projectContext.AddMetadataReference(metadataReferenceToAdd.Key, metadataReferenceToAdd.Value);
             }
 
             var addedAnalyzerPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

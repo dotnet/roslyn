@@ -574,7 +574,7 @@
     <value>Leading '.' or '!' can only appear inside a 'With' statement.</value>
   </data>
   <data name="ERR_DuplicateAccessCategoryUsed" xml:space="preserve">
-    <value>Only one of 'Public', 'Private', 'Protected', 'Friend', or 'Protected Friend' can be specified.</value>
+    <value>Only one of 'Public', 'Private', 'Protected', 'Friend', 'Protected Friend', or 'Private Protected' can be specified.</value>
   </data>
   <data name="ERR_DuplicateModifierCategoryUsed" xml:space="preserve">
     <value>Only one of 'NotOverridable', 'MustOverride', or 'Overridable' can be specified.</value>
@@ -714,8 +714,14 @@
   <data name="ERR_ExpectedExitKind" xml:space="preserve">
     <value>'Exit' must be followed by 'Sub', 'Function', 'Property', 'Do', 'For', 'While', 'Select', or 'Try'.</value>
   </data>
-  <data name="ERR_ExpectedNamedArgument" xml:space="preserve">
+  <data name="ERR_ExpectedNamedArgumentInAttributeList" xml:space="preserve">
     <value>Named argument expected.</value>
+  </data>
+  <data name="ERR_NamedArgumentSpecificationBeforeFixedArgumentInLateboundInvocation" xml:space="preserve">
+    <value>Named argument specifications must appear after all fixed arguments have been specified in a late bound invocation.</value>
+  </data>
+  <data name="ERR_ExpectedNamedArgument" xml:space="preserve">
+    <value>Named argument expected. Please use language version {0} or greater to use non-trailing named arguments.</value>
   </data>
   <data name="ERR_BadMethodFlags1" xml:space="preserve">
     <value>'{0}' is not valid on a method declaration.</value>
@@ -1963,7 +1969,7 @@
     <value>'Set' parameter cannot be declared '{0}'.</value>
   </data>
   <data name="ERR_StructureCantUseProtected" xml:space="preserve">
-    <value>Method in a structure cannot be declared 'Protected' or 'Protected Friend'.</value>
+    <value>Method in a structure cannot be declared 'Protected', 'Protected Friend', or 'Private Protected'.</value>
   </data>
   <data name="ERR_BadInterfaceDelegateSpecifier1" xml:space="preserve">
     <value>Delegate in an interface cannot be declared '{0}'.</value>
@@ -5407,6 +5413,9 @@
   <data name="FEATURE_Tuples" xml:space="preserve">
     <value>tuples</value>
   </data>
+  <data name="FEATURE_PrivateProtected" xml:space="preserve">
+    <value>Private Protected</value>
+  </data>
   <data name="ERR_DebugEntryPointNotSourceMethodDefinition" xml:space="preserve">
     <value>Debug entry point must be a definition of a method declared in the current compilation.</value>
   </data>
@@ -5456,7 +5465,7 @@
     <value>An expression tree may not contain a call to a method or property that returns by reference.</value>
   </data>
   <data name="ERR_CannotEmbedWithoutPdb" xml:space="preserve">
-    <value>/embed switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded).</value>
+    <value>/embed switch is only supported when emitting a PDB.</value>
   </data>
   <data name="ERR_InvalidInstrumentationKind" xml:space="preserve">
     <value>Invalid instrumentation kind: {0}</value>
@@ -5479,6 +5488,9 @@
   <data name="ERR_NoNetModuleOutputWhenRefOutOrRefOnly" xml:space="preserve">
     <value>Cannot compile net modules when using /refout or /refonly.</value>
   </data>
+  <data name="ERR_BadNonTrailingNamedArgument" xml:space="preserve">
+    <value>Named argument '{0}' is used out-of-position but is followed by an unnamed argument</value>
+  </data>
   <data name="ERR_BadDocumentationMode" xml:space="preserve">
     <value>Provided documentation mode is unsupported or invalid: '{0}'.</value>
   </data>
@@ -5499,6 +5511,9 @@
   </data>
   <data name="ERR_InvalidDebugInfo" xml:space="preserve">
     <value>Unable to read debug information of method '{0}' (token 0x{1}) from assembly '{2}'</value>
+  </data>
+  <data name="FEATURE_LeadingDigitSeparator" xml:space="preserve">
+    <value>leading digit separator</value>
   </data>
 </root>
 

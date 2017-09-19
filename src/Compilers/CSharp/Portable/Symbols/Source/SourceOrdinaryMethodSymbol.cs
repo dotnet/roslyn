@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     syntax.Modifiers.Any(SyntaxKind.OverrideKeyword))
                 {
                     diagnostics.Add(
-                        ErrorCode.ERR_OverrideWithConstraints, 
+                        ErrorCode.ERR_OverrideWithConstraints,
                         syntax.ConstraintClauses[0].WhereKeyword.GetLocation());
                 }
             }
@@ -328,8 +328,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)overriddenMethod != null)
                     {
-                        CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType, 
-                                                                      out _lazyCustomModifiers, 
+                        CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType,
+                                                                      out _lazyCustomModifiers,
                                                                       out _lazyParameters, alsoCopyParamsModifier: true);
                     }
                 }
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(_lazyExplicitInterfaceImplementations.IsDefault);
                     _lazyExplicitInterfaceImplementations = ImmutableArray.Create<MethodSymbol>(implementedMethod);
 
-                    CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType, 
+                    CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType,
                                                                   out _lazyCustomModifiers,
                                                                   out _lazyParameters, alsoCopyParamsModifier: false);
                 }
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     AddDeclarationDiagnostics(diagnosticsOpt);
                 }
-                if (IsPartialDefinition && (object)PartialImplementationPart == null)
+                if (IsPartialDefinition)
                 {
                     DeclaringCompilation.SymbolDeclaredEvent(this);
                 }
@@ -759,8 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!isInterface)
             {
-                allowedModifiers |= DeclarationModifiers.Extern |
-                    DeclarationModifiers.Async;
+                allowedModifiers |= DeclarationModifiers.Extern | DeclarationModifiers.Async;
             }
 
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);

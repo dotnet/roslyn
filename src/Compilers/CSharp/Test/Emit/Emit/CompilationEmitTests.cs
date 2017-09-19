@@ -144,7 +144,7 @@ namespace N {
     }
 }
 
-namespace N.Foo;
+namespace N.Goo;
 ");
 
             EmitResult emitResult;
@@ -175,7 +175,7 @@ namespace N.Foo;
         public void EmitMetadataOnly()
         {
             CSharpCompilation comp = CreateStandardCompilation(@"
-namespace Foo.Bar
+namespace Goo.Bar
 {
     public class Test1
     {
@@ -192,7 +192,7 @@ namespace Foo.Bar
             x = 17;
         }
 
-        public string foo(int a)
+        public string goo(int a)
         {
             return a.ToString();
         }
@@ -215,7 +215,7 @@ namespace Foo.Bar
 
             var srcUsing = @"
 using System;
-using Foo.Bar;
+using Goo.Bar;
 
 class Test2
 {
@@ -587,6 +587,7 @@ public class C
         [InlineData("public int M() { return 1; }", "public int M() { error(); }", Match.BothMetadataAndRefOut)]
         [InlineData("private void M() { }", "", Match.RefOut)]
         [InlineData("internal void M() { }", "", Match.RefOut)]
+        [InlineData("private protected void M() { }", "", Match.RefOut)]
         [InlineData("private void M() { dynamic x = 1; }", "", Match.RefOut)] // no reference added from method bodies
         [InlineData(@"private void M() { var x = new { id = 1 }; }", "", Match.RefOut)]
         [InlineData("private int P { get { Error(); } set { Error(); } }", "", Match.RefOut)] // errors in methods bodies don't matter
@@ -783,6 +784,7 @@ public class D
 
         [Theory]
         [InlineData("internal void M() { }", "", Match.Different)]
+        [InlineData("private protected void M() { }", "", Match.Different)]
         public void RefAssembly_InvariantToSomeChangesWithInternalsVisibleTo(string left, string right, Match expectedMatch)
         {
             string sourceTemplate = @"
@@ -817,12 +819,12 @@ public class C
 
             string name = GetUniqueName();
             string source1 = sourceTemplate.Replace("CHANGE", change1);
-            CSharpCompilation comp1 = CreateStandardCompilation(Parse(source1),
+            CSharpCompilation comp1 = CreateStandardCompilation(Parse(source1, options: TestOptions.RegularLatest),
                 options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
             ImmutableArray<byte> image1 = comp1.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers));
 
             var source2 = sourceTemplate.Replace("CHANGE", change2);
-            Compilation comp2 = CreateStandardCompilation(Parse(source2),
+            Compilation comp2 = CreateStandardCompilation(Parse(source2, options: TestOptions.RegularLatest),
                 options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
             ImmutableArray<byte> image2 = comp2.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers));
 
@@ -1562,11 +1564,14 @@ public class PublicClass
     private void PrivateMethod() { System.Console.Write(""Hello""); }
     protected void ProtectedMethod() { System.Console.Write(""Hello""); }
     internal void InternalMethod() { System.Console.Write(""Hello""); }
+    protected internal void ProtectedInternalMethod() { }
+    private protected void PrivateProtectedMethod() { }
     public event System.Action PublicEvent;
     internal event System.Action InternalEvent;
 }
 ";
             CSharpCompilation comp = CreateCompilation(source, references: new[] { MscorlibRef },
+                parseOptions: TestOptions.Regular7_2,
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
             // verify metadata (types, members, attributes) of the regular assembly
@@ -1582,6 +1587,7 @@ public class PublicClass
             AssertEx.Equal(
                 new[] { "void PublicClass.PublicMethod()", "void PublicClass.PrivateMethod()",
                     "void PublicClass.ProtectedMethod()", "void PublicClass.InternalMethod()",
+                    "void PublicClass.ProtectedInternalMethod()", "void PublicClass.PrivateProtectedMethod()",
                     "void PublicClass.PublicEvent.add", "void PublicClass.PublicEvent.remove",
                     "void PublicClass.InternalEvent.add", "void PublicClass.InternalEvent.remove",
                     "PublicClass..ctor()",
@@ -1594,6 +1600,37 @@ public class PublicClass
                     "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
                     "System.Diagnostics.DebuggableAttribute" },
                 compWithReal.SourceModule.GetReferencedAssemblySymbols().Last().GetAttributes().Select(a => a.AttributeClass.ToTestDisplayString()));
+
+            // Verify metadata (types, members, attributes) of the regular assembly with IncludePrivateMembers accidentally set to false.
+            // Note this can happen because of binary clients compiled against old EmitOptions ctor which had IncludePrivateMembers=false by default.
+            // In this case, IncludePrivateMembers is silently set to true when emitting
+            // See https://github.com/dotnet/roslyn/issues/20873
+            var emitRegularWithoutPrivateMembers = EmitOptions.Default.WithIncludePrivateMembers(false);
+            CompileAndVerify(comp, emitOptions: emitRegularWithoutPrivateMembers, verify: true);
+
+            var realImage2 = comp.EmitToImageReference(emitRegularWithoutPrivateMembers);
+            var compWithReal2 = CreateCompilation("", references: new[] { MscorlibRef, realImage2 },
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            AssertEx.Equal(
+                new[] { "<Module>", "<>f__AnonymousType0<<anonymous>j__TPar>", "PublicClass" },
+                compWithReal2.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMembers().Select(m => m.ToDisplayString()));
+
+            AssertEx.Equal(
+                new[] { "void PublicClass.PublicMethod()", "void PublicClass.PrivateMethod()",
+                    "void PublicClass.ProtectedMethod()", "void PublicClass.InternalMethod()",
+                    "void PublicClass.ProtectedInternalMethod()", "void PublicClass.PrivateProtectedMethod()",
+                    "void PublicClass.PublicEvent.add", "void PublicClass.PublicEvent.remove",
+                    "void PublicClass.InternalEvent.add", "void PublicClass.InternalEvent.remove",
+                    "PublicClass..ctor()",
+                    "event System.Action PublicClass.PublicEvent", "event System.Action PublicClass.InternalEvent" },
+                compWithReal2.GetMember<NamedTypeSymbol>("PublicClass").GetMembers()
+                    .Select(m => m.ToTestDisplayString()));
+
+            AssertEx.Equal(
+                new[] { "System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
+                    "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
+                    "System.Diagnostics.DebuggableAttribute" },
+                compWithReal2.SourceModule.GetReferencedAssemblySymbols().Last().GetAttributes().Select(a => a.AttributeClass.ToTestDisplayString()));
 
             // verify metadata (types, members, attributes) of the metadata-only assembly
             var emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(true);
@@ -1609,6 +1646,7 @@ public class PublicClass
             AssertEx.Equal(
                 new[] { "void PublicClass.PublicMethod()", "void PublicClass.PrivateMethod()",
                     "void PublicClass.ProtectedMethod()", "void PublicClass.InternalMethod()",
+                    "void PublicClass.ProtectedInternalMethod()", "void PublicClass.PrivateProtectedMethod()",
                     "void PublicClass.PublicEvent.add", "void PublicClass.PublicEvent.remove",
                     "void PublicClass.InternalEvent.add", "void PublicClass.InternalEvent.remove",
                     "PublicClass..ctor()",
@@ -1636,6 +1674,7 @@ public class PublicClass
 
             AssertEx.Equal(
                 new[] { "void PublicClass.PublicMethod()", "void PublicClass.ProtectedMethod()",
+                    "void PublicClass.ProtectedInternalMethod()",
                     "void PublicClass.PublicEvent.add", "void PublicClass.PublicEvent.remove",
                     "PublicClass..ctor()", "event System.Action PublicClass.PublicEvent"},
                 compWithRef.GetMember<NamedTypeSymbol>("PublicClass").GetMembers().Select(m => m.ToTestDisplayString()));
@@ -1950,15 +1989,16 @@ struct S
         }
 
         [Fact]
-        public void MustIncludePrivateMembersUnlessRefAssembly()
+        [WorkItem(20873, "https://github.com/dotnet/roslyn/issues/20873")]
+        public void IncludePrivateMembersSilentlyAssumedTrueWhenEmittingRegular()
         {
             CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
             using (var output = new MemoryStream())
             {
-                Assert.Throws<ArgumentException>(() => comp.Emit(output,
-                    options: EmitOptions.Default.WithIncludePrivateMembers(false)));
+                // no exception
+                _ = comp.Emit(output, options: EmitOptions.Default.WithIncludePrivateMembers(false));
             }
         }
 
@@ -2185,7 +2225,7 @@ public class C
             CompileAndVerify(@"
 class C
 {
-    static bool Foo(int i)
+    static bool Goo(int i)
     {
         int y = 10;
         bool x = (y == null); // NYI: Implicit null conversion
@@ -3355,14 +3395,14 @@ using System;
             string source = @"
 public class Test
 {
-    public static decimal Foo(decimal d = 0)
+    public static decimal Goo(decimal d = 0)
     {
         return d;
     }
 
     public static void Main()
     {
-        System.Console.WriteLine(Foo());
+        System.Console.WriteLine(Goo());
     }
 }
 ";
@@ -3963,17 +4003,17 @@ class C
 
         private void TestReferenceToNestedGenericType()
         {
-            string p1 = @"public class Foo<T> { }";
+            string p1 = @"public class Goo<T> { }";
             string p2 = @"using System;
 
 public class Test
 {
     public class C<T> {}
-    public class J<T> : C<Foo<T>> { }
+    public class J<T> : C<Goo<T>> { }
     
     public static void Main()
     {
-        Console.WriteLine(typeof(J<int>).BaseType.Equals(typeof(C<Foo<int>>)) ? 0 : 1);
+        Console.WriteLine(typeof(J<int>).BaseType.Equals(typeof(C<Goo<int>>)) ? 0 : 1);
     }
 }";
             var c1 = CreateStandardCompilation(p1, options: TestOptions.ReleaseDll, assemblyName: Guid.NewGuid().ToString());
@@ -4517,7 +4557,7 @@ class C
         {
             //These tests ensure that users supplying a broken stream implementation via the emit API 
             //get exceptions enabling them to attribute the failure to their code and to debug.
-            string source = @"class Foo {}";
+            string source = @"class Goo {}";
             var compilation = CreateStandardCompilation(source);
 
             var output = new BrokenStream();
@@ -4542,7 +4582,7 @@ class C
         [Fact]
         public void BrokenPortablePdbStream()
         {
-            string source = @"class Foo {}";
+            string source = @"class Goo {}";
             var compilation = CreateStandardCompilation(source);
 
             using (var output = new MemoryStream())
@@ -4560,7 +4600,7 @@ class C
         [Fact]
         public void BrokenPDBStream()
         {
-            string source = @"class Foo {}";
+            string source = @"class Goo {}";
             var compilation = CreateStandardCompilation(source, null, TestOptions.DebugDll);
 
             var output = new MemoryStream();

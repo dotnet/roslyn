@@ -14,10 +14,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsCaseSensitive { get; }
         StringComparer StringComparer { get; }
 
+        SyntaxTrivia ElasticMarker { get; }
         SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
 
         bool SupportsIndexingInitializer(ParseOptions options);
         bool SupportsThrowExpression(ParseOptions options);
+
+        SyntaxToken ParseToken(string text);
 
         bool IsAwaitKeyword(SyntaxToken token);
         bool IsIdentifier(SyntaxToken token);
@@ -55,6 +58,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsDocumentationComment(SyntaxNode node);
         bool IsNumericLiteralExpression(SyntaxNode node);
         bool IsNullLiteralExpression(SyntaxNode node);
+        bool IsDefaultLiteralExpression(SyntaxNode node);
+        bool IsLiteralExpression(SyntaxNode node);
 
         string GetText(int kind);
         bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -92,7 +97,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsLeftSideOfAssignment(SyntaxNode node);
 
         bool IsSimpleAssignmentStatement(SyntaxNode statement);
-        void GetPartsOfAssignmentStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxNode right);
+        void GetPartsOfAssignmentStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
 
         // Left side of any assignment (for example  *=  or += )
         bool IsLeftSideOfAnyAssignment(SyntaxNode node);
@@ -130,6 +135,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsNamedParameter(SyntaxNode node);
         SyntaxNode GetDefaultOfParameter(SyntaxNode node);
+        SyntaxNode GetParameterList(SyntaxNode node);
 
         bool IsSkippedTokensTrivia(SyntaxNode node);
 
@@ -182,12 +188,32 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsForEachStatement(SyntaxNode node);
         bool IsLockStatement(SyntaxNode node);
         bool IsUsingStatement(SyntaxNode node);
+        bool IsStatement(SyntaxNode node);
+        bool IsParameter(SyntaxNode node);
+        bool IsVariableDeclarator(SyntaxNode node);
+
+        /// <summary>
+        /// Returns true for nodes that represent the body of a method.
+        /// 
+        /// For VB this will be 
+        /// MethodBlockBaseSyntax.  This will be true for things like constructor, method, operator
+        /// bodies as well as accessor bodies.  It will not be true for things like sub() function()
+        /// lambdas.  
+        /// 
+        /// For C# this will be the BlockSyntax or ArrowExpressionSyntax for a 
+        /// method/constructor/deconstructor/operator/accessor.  It will not be included for local
+        /// functions.
+        /// </summary>
+        bool IsMethodBody(SyntaxNode node);
 
         bool IsReturnStatement(SyntaxNode node);
         SyntaxNode GetExpressionOfReturnStatement(SyntaxNode node);
 
         bool IsLocalDeclarationStatement(SyntaxNode node);
-        bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declator, SyntaxNode localDeclarationStatement);
+        bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declarator, SyntaxNode localDeclarationStatement);
+        SeparatedSyntaxList<SyntaxNode> GetVariablesOfLocalDeclarationStatement(SyntaxNode node);
+        SyntaxNode GetInitializerOfVariableDeclarator(SyntaxNode node);
+        SyntaxNode GetValueOfEqualsValueClause(SyntaxNode node);
 
         bool IsThisConstructorInitializer(SyntaxToken token);
         bool IsBaseConstructorInitializer(SyntaxToken token);
@@ -224,6 +250,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsMethodLevelMember(SyntaxNode node);
         bool IsTopLevelNodeWithMembers(SyntaxNode node);
         bool HasIncompleteParentMember(SyntaxNode node);
+
+        bool IsExecutableBlock(SyntaxNode node);
+        SyntaxList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node);
+        SyntaxNode FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes);
 
         bool AreEquivalent(SyntaxToken token1, SyntaxToken token2);
         bool AreEquivalent(SyntaxNode node1, SyntaxNode node2);
@@ -289,12 +319,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxNode GetNextExecutableStatement(SyntaxNode statement);
 
+        ImmutableArray<SyntaxTrivia> GetLeadingBlankLines(SyntaxNode node);
+        TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode;
+
         ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxNode root);
+        ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxToken firstToken);
 
         bool ContainsInterleavedDirective(SyntaxNode node, CancellationToken cancellationToken);
         bool ContainsInterleavedDirective(ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken);
 
-        string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, CancellationToken cancellationToken);
+        string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, int maxBannerLength, CancellationToken cancellationToken);
 
         SyntaxTokenList GetModifiers(SyntaxNode node);
         SyntaxNode WithModifiers(SyntaxNode node, SyntaxTokenList modifiers);

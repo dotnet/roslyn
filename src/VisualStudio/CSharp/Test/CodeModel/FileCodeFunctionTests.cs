@@ -84,10 +84,10 @@ public abstract class C
     public abstract int MethodA(int intA);
 
     // This is a short comment.
-    public abstract int MethodB(string foo);
+    public abstract int MethodB(string goo);
 
     dynamic DynamicField;
-    dynamic DynamicMethod(dynamic foo = 5);
+    dynamic DynamicMethod(dynamic goo = 5);
 }
 
 public class Entity { }

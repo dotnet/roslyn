@@ -22,5 +22,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         Patterns,
         DefaultLiteral,
         AsyncMain,
+        NonTrailingNamedArgs,
+        PrivateProtected,
     }
 }

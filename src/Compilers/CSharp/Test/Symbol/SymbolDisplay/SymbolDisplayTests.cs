@@ -639,6 +639,41 @@ namespace N1 {
         }
 
         [Fact]
+        public void TestPrivateProtected()
+        {
+            var text = @"class C2 { private protected void M() {} }";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetTypeMembers("C2").Single().
+                GetMembers("M").Single();
+
+            var format = new SymbolDisplayFormat(
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeParameters |
+                    SymbolDisplayMemberOptions.IncludeModifiers |
+                    SymbolDisplayMemberOptions.IncludeAccessibility |
+                    SymbolDisplayMemberOptions.IncludeType |
+                    SymbolDisplayMemberOptions.IncludeContainingType);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "private protected void C2.M()",
+                SymbolDisplayPartKind.Keyword, // private
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // protected
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // void
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName, //C2
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.MethodName, //M
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation);
+        }
+
+        [Fact]
         public void TestNullParameters()
         {
             var text = @"
@@ -2343,7 +2378,7 @@ public class X : GC1<BOGUS> {}
         public void TestAlias1()
         {
             var text = @"
-using Foo = N1.N2.N3;
+using Goo = N1.N2.N3;
 
 namespace N1 {
     namespace N2.N3 {
@@ -2365,7 +2400,7 @@ namespace N1 {
                 text,
                 findSymbol,
                 format,
-                "Foo.C1.C2",
+                "Goo.C1.C2",
                 text.IndexOf("namespace", StringComparison.Ordinal),
                 true,
                 SymbolDisplayPartKind.AliasName,
@@ -2379,7 +2414,7 @@ namespace N1 {
         public void TestAlias2()
         {
             var text = @"
-using Foo = N1.N2.N3.C1;
+using Goo = N1.N2.N3.C1;
 
 namespace N1 {
     namespace N2.N3 {
@@ -2401,7 +2436,7 @@ namespace N1 {
                 text,
                 findSymbol,
                 format,
-                "Foo.C2",
+                "Goo.C2",
                 text.IndexOf("namespace", StringComparison.Ordinal),
                 true,
                 SymbolDisplayPartKind.AliasName,
@@ -2413,10 +2448,10 @@ namespace N1 {
         public void TestAlias3()
         {
             var text = @"
-using Foo = N1.C1;
+using Goo = N1.C1;
 
 namespace N1 {
-    class Foo { }
+    class Goo { }
     class C1 { }
 }
 ";
@@ -2432,7 +2467,7 @@ namespace N1 {
                 findSymbol,
                 format,
                 "C1",
-                text.IndexOf("class Foo", StringComparison.Ordinal),
+                text.IndexOf("class Goo", StringComparison.Ordinal),
                 true,
                 SymbolDisplayPartKind.ClassName);
         }
@@ -2565,18 +2600,18 @@ class class1Attribute { }
 using System.Collections.Generic;
 
 class C1 {
-    private System.Collections.Generic.IDictionary<System.Collections.Generic.IList<System.Int32>, System.String> foo;
+    private System.Collections.Generic.IDictionary<System.Collections.Generic.IList<System.Int32>, System.String> goo;
 }
 ";
 
             Func<NamespaceSymbol, Symbol> findSymbol = global =>
-                ((FieldSymbol)global.GetTypeMembers("C1").Single().GetMembers("foo").Single()).Type;
+                ((FieldSymbol)global.GetTypeMembers("C1").Single().GetMembers("goo").Single()).Type;
 
             var format = SymbolDisplayFormat.MinimallyQualifiedFormat;
 
             TestSymbolDescription(text, findSymbol, format,
                 "IDictionary<IList<int>, string>",
-                text.IndexOf("foo", StringComparison.Ordinal),
+                text.IndexOf("goo", StringComparison.Ordinal),
                 true,
                 SymbolDisplayPartKind.InterfaceName,
                 SymbolDisplayPartKind.Punctuation,
@@ -3868,12 +3903,12 @@ using System.Runtime.InteropServices;
 
 class C
 {
-    static void Foo([Optional][DateTimeConstant(100)] DateTime d) { }
+    static void Goo([Optional][DateTimeConstant(100)] DateTime d) { }
 }";
 
             Func<NamespaceSymbol, Symbol> findSymbol = global =>
                 global.GetMember<NamedTypeSymbol>("C").
-                GetMember<MethodSymbol>("Foo");
+                GetMember<MethodSymbol>("Goo");
 
             var format = new SymbolDisplayFormat(
                  memberOptions: SymbolDisplayMemberOptions.IncludeParameters,
@@ -3885,7 +3920,7 @@ class C
                 text,
                 findSymbol,
                 format,
-                "Foo(DateTime d)",
+                "Goo(DateTime d)",
                 SymbolDisplayPartKind.MethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.StructName,
@@ -4016,7 +4051,7 @@ public class C
         {
             var text = @"
 Class A
-   Public Sub Foo(a As Integer)
+   Public Sub Goo(a As Integer)
    End Sub
 End Class";
 
@@ -4027,12 +4062,12 @@ End Class";
 
             var comp = CreateVisualBasicCompilation("c", text);
             var a = (ITypeSymbol)comp.GlobalNamespace.GetMembers("A").Single();
-            var foo = a.GetMembers("Foo").Single();
-            var parts = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.ToDisplayParts(foo, format);
+            var goo = a.GetMembers("Goo").Single();
+            var parts = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.ToDisplayParts(goo, format);
 
             Verify(
                 parts,
-                "public void Foo(int a)",
+                "public void Goo(int a)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
@@ -5619,6 +5654,37 @@ class C
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ParameterName, // c
                 SymbolDisplayPartKind.Punctuation); // )
+        }
+
+        [Fact]
+        public void RangeVariable()
+        {
+            var srcTree = SyntaxFactory.ParseSyntaxTree(@"
+using System.Linq;
+class C
+{
+    void M()
+    {
+        var q = from x in new[] { 1, 2, 3 } where x < 3 select x;
+    }
+}");
+            var root = srcTree.GetRoot();
+            var comp = CreateStandardCompilation(srcTree, references: new[] { LinqAssemblyRef });
+
+            var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+            var queryExpression = root.DescendantNodes().OfType<QueryExpressionSyntax>().First();
+            var fromClauseRangeVariableSymbol = Assert.IsType<RangeVariableSymbol>(
+                semanticModel.GetDeclaredSymbol(queryExpression.FromClause));
+
+            Verify(
+                fromClauseRangeVariableSymbol.ToMinimalDisplayParts(
+                    semanticModel,
+                    queryExpression.FromClause.Identifier.SpanStart,
+                    SymbolDisplayFormat.MinimallyQualifiedFormat),
+                "int x",
+                SymbolDisplayPartKind.Keyword, //int
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.RangeVariableName); // x
         }
     }
 }

@@ -102,8 +102,13 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             Contract.ThrowIfNull(_solutionInfo);
 
-            var solutionController = (ISolutionController)RoslynServices.SolutionService;
-            return solutionController.GetSolutionAsync(_solutionInfo.SolutionChecksum, _solutionInfo.FromPrimaryBranch, cancellationToken);
+            return GetSolutionAsync(RoslynServices, _solutionInfo, cancellationToken);
+        }
+
+        protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        {
+            var localRoslynService = new RoslynServices(solutionInfo.ScopeId, AssetStorage);
+            return GetSolutionAsync(localRoslynService, solutionInfo, cancellationToken);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -157,6 +162,84 @@ namespace Microsoft.CodeAnalysis.Remote
                 // servicehub\log files. one can still make this to write logs by opting in.
                 Log(TraceEventType.Warning, $"Client stream disconnected unexpectedly: {e.Exception?.GetType().Name} {e.Exception?.Message}");
             }
+        }
+
+        private static Task<Solution> GetSolutionAsync(RoslynServices roslynService, PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        {
+            var solutionController = (ISolutionController)roslynService.SolutionService;
+            return solutionController.GetSolutionAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, cancellationToken);
+        }
+
+        protected async Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken)
+        {
+            AssetStorage.UpdateLastActivityTime();
+
+            try
+            {
+                return await callAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
+            {
+                // never reach
+                return default(T);
+            }
+        }
+
+        protected async Task RunServiceAsync(Func<Task> callAsync, CancellationToken cancellationToken)
+        {
+            AssetStorage.UpdateLastActivityTime();
+
+            try
+            {
+                await callAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
+            {
+                // never reach
+                return;
+            }
+        }
+
+        protected T RunService<T>(Func<T> call, CancellationToken cancellationToken)
+        {
+            AssetStorage.UpdateLastActivityTime();
+
+            try
+            {
+                return call();
+            }
+            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
+            {
+                // never reach
+                return default;
+            }
+        }
+
+        protected void RunService(Action call, CancellationToken cancellationToken)
+        {
+            AssetStorage.UpdateLastActivityTime();
+
+            try
+            {
+                call();
+            }
+            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
+            {
+                // never reach
+            }
+        }
+
+        private bool LogUnlessCanceled(Exception ex, CancellationToken cancellationToken)
+        {
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                LogError("Exception: " + ex.ToString());
+
+                var callStack = new StackTrace().ToString();
+                LogError("From: " + callStack);
+            }
+
+            return false;
         }
     }
 }

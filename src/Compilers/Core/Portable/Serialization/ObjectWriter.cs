@@ -72,7 +72,7 @@ namespace Roslyn.Utilities
         /// <param name="cancellationToken"></param>
         public ObjectWriter(
             Stream stream,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             // String serialization assumes both reader and writer to be of the same endianness.
             // It can be adjusted for BigEndian if needed.
@@ -118,6 +118,28 @@ namespace Roslyn.Utilities
         public void WriteUInt64(ulong value) => _writer.Write(value);
         public void WriteUInt16(ushort value) => _writer.Write(value);
         public void WriteString(string value) => WriteStringValue(value);
+
+        /// <summary>
+        /// Used so we can easily grab the low/high 64bits of a guid for serialization.
+        /// </summary>
+        [StructLayout(LayoutKind.Explicit)]
+        internal struct GuidAccessor
+        {
+            [FieldOffset(0)]
+            public Guid Guid;
+
+            [FieldOffset(0)]
+            public long Low64;
+            [FieldOffset(8)]
+            public long High64;
+        }
+
+        public void WriteGuid(Guid guid)
+        {
+            var accessor = new GuidAccessor { Guid = guid };
+            WriteInt64(accessor.Low64);
+            WriteInt64(accessor.High64);
+        }
 
         public void WriteValue(object value)
         {

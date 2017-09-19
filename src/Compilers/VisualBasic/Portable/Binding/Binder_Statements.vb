@@ -1154,8 +1154,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Debug.Assert(valueExpression Is Nothing)
 
                             If Not skipAsNewInitializer Then
-                                Dim objectCreationExpressionSyntax = DirectCast(asNew.NewExpression, objectCreationExpressionSyntax)
+                                DisallowNewOnTupleType(asNew.Type, diagnostics)
 
+                                Dim objectCreationExpressionSyntax = DirectCast(asNew.NewExpression, ObjectCreationExpressionSyntax)
                                 Dim asNewVariablePlaceholder As New BoundWithLValueExpressionPlaceholder(asClauseOpt, symbol.Type)
                                 asNewVariablePlaceholder.SetWasCompilerGenerated()
 
@@ -2343,7 +2344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          <Out()> ByRef eventSymbol As EventSymbol) As BoundExpression
 
             ' event must be a simple name that could be qualified and perhaps parenthesized
-            ' Examples:  foo , (foo) , (bar.foo) , baz.moo(of T).goo
+            ' Examples:  goo , (goo) , (bar.goo) , baz.moo(of T).goo
             Dim notParenthesizedSyntax = node
             While notParenthesizedSyntax.Kind = SyntaxKind.ParenthesizedExpression
                 notParenthesizedSyntax = DirectCast(notParenthesizedSyntax, ParenthesizedExpressionSyntax).Expression
@@ -3032,7 +3033,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If Not TypeOf currentBinder Is ForOrForEachBlockBinder Then
                             ' this happens for broken code, e.g.
                             ' for each a in arr1
-                            '   if foo() then
+                            '   if goo() then
                             '     for each b in arr2
                             '     next b, a
                             '   end if

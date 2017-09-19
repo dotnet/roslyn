@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
 
             private FrameworkElement CreateDocumentSpanPresentation(QuickInfoItem info, ITextSnapshot snapshot)
             {
-                return ElisionBufferContent.Create(
+                return ProjectionBufferContent.Create(
                     info.RelatedSpans.Select(s => new SnapshotSpan(snapshot, new Span(s.Start, s.Length))).ToImmutableArray(),
                     _projectionBufferFactoryService,
                     _editorOptionsFactoryService,

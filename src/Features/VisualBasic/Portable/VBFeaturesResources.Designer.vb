@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
     '''<summary>
     '''  A strongly-typed resource class, for looking up localized strings, etc.
     '''</summary>
-    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0"),  _
+    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0"),  _
      Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
      Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute(),  _
      Global.Microsoft.VisualBasic.HideModuleNameAttribute()>  _
@@ -3249,6 +3249,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property Use_In_for_a_type_that_will_only_be_used_for_ByVal_arguments_to_functions() As String
             Get
                 Return ResourceManager.GetString("Use_In_for_a_type_that_will_only_be_used_for_ByVal_arguments_to_functions", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Use &apos;Is Nothing&apos; check.
+        '''</summary>
+        Friend ReadOnly Property Use_Is_Nothing_check() As String
+            Get
+                Return ResourceManager.GetString("Use_Is_Nothing_check", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Use &apos;IsNot Nothing&apos; check.
+        '''</summary>
+        Friend ReadOnly Property Use_IsNot_Nothing_check() As String
+            Get
+                Return ResourceManager.GetString("Use_IsNot_Nothing_check", resourceCulture)
             End Get
         End Property
         

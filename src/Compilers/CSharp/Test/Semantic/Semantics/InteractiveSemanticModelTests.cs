@@ -18,17 +18,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void NamespaceBindingInInteractiveCode()
         {
             var compilation = CreateStandardCompilation(@"
-using Z = Foo.Bar.Script.C;
+using Z = Goo.Bar.Script.C;
 
 class C { }
 
-namespace Foo.Bar
+namespace Goo.Bar
 {
     class B : Z { }
 }
 ",
                 parseOptions: TestOptions.Script,
-                options: TestOptions.ReleaseExe.WithScriptClassName("Foo.Bar.Script")
+                options: TestOptions.ReleaseExe.WithScriptClassName("Goo.Bar.Script")
             );
 
             var tree = compilation.SyntaxTrees[0];
@@ -47,10 +47,10 @@ namespace Foo.Bar
         {
             CompileAndVerifyBindInfo(@"
 public static string[] str = null;
-public static void Foo(string[] r, string i) { str = r;}
-public static void Foo(params string[] r) { str = r;}
-/*<bind>*/ Foo(""1"", ""2"") /*</bind>*/;",
-"Foo(params string[])");
+public static void Goo(string[] r, string i) { str = r;}
+public static void Goo(params string[] r) { str = r;}
+/*<bind>*/ Goo(""1"", ""2"") /*</bind>*/;",
+"Goo(params string[])");
         }
 
         [Fact]
@@ -71,8 +71,8 @@ InnerClass iC = new InnerClass();
         public void MethodCallBinding()
         {
             var testSrc = @"
-void Foo() {};
-/*<bind>*/Foo()/*</bind>*/;
+void Goo() {};
+/*<bind>*/Goo()/*</bind>*/;
 ";
             // Get the bind info for the text identified within the commented <bind> </bind> tags
             var bindInfo = GetBindInfoForTest(testSrc);
@@ -255,7 +255,7 @@ public struct var { }
             string testSrc = @"
 using System.Linq;
 
-var x = from c in ""foo"" select /*<bind>*/c/*</bind>*/";
+var x = from c in ""goo"" select /*<bind>*/c/*</bind>*/";
             // Get the bind info for the text identified within the commented <bind> </bind> tags
             var semanticInfo = GetBindInfoForTest(testSrc);
             Assert.Equal("c", semanticInfo.Symbol.Name);

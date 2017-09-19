@@ -18,18 +18,20 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell;
+using IVsUIShell = Microsoft.VisualStudio.Shell.Interop.IVsUIShell;
+using SVsUIShell = Microsoft.VisualStudio.Shell.Interop.SVsUIShell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 {
     [ExportWorkspaceServiceFactory(typeof(IPreviewPaneService), ServiceLayer.Host), Shared]
     internal class PreviewPaneService : ForegroundThreadAffinitizedObject, IPreviewPaneService, IWorkspaceServiceFactory
     {
-        private readonly EnvDTE.DTE _dte;
+        private readonly IVsUIShell _uiShell;
 
         [ImportingConstructor]
         public PreviewPaneService(SVsServiceProvider serviceProvider)
         {
-            _dte = serviceProvider.GetService(typeof(EnvDTE.DTE)) as EnvDTE.DTE;
+            _uiShell = serviceProvider.GetService(typeof(SVsUIShell)) as IVsUIShell;
         }
 
         IWorkspaceService IWorkspaceServiceFactory.CreateService(HostWorkspaceServices workspaceServices)
@@ -107,13 +109,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
                 return new PreviewPane(
                     severityIcon: null, id: null, title: null, description: null, helpLink: null, helpLinkToolTipText: null,
-                    previewContent: previewContent, logIdVerbatimInTelemetry: false, dte: _dte);
+                    previewContent: previewContent, logIdVerbatimInTelemetry: false, uiShell: _uiShell);
             }
 
             var helpLinkToolTipText = string.Empty;
             Uri helpLink = GetHelpLink(diagnostic, language, projectType, out helpLinkToolTipText);
 
-            Guid optionPageGuid = default(Guid);
+            Guid optionPageGuid = default;
             if (diagnostic.Properties.TryGetValue("OptionName", out var optionName))
             {
                 diagnostic.Properties.TryGetValue("OptionLanguage", out var optionLanguage);
@@ -128,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 helpLinkToolTipText: helpLinkToolTipText,
                 previewContent: previewContent,
                 logIdVerbatimInTelemetry: diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry),
-                dte: _dte,
+                uiShell: _uiShell,
                 optionPageGuid: optionPageGuid);
         }
 
@@ -157,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 }
             }
 
-            return default(Guid);
+            return default;
         }
     }
 }

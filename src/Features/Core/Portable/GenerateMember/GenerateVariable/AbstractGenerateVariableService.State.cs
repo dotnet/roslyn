@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             public bool IsContainedInUnsafeType { get; private set; }
             public ImmutableArray<IParameterSymbol> Parameters { get; private set; }
 
-            // Just the name of the method.  i.e. "Foo" in "Foo" or "X.Foo"
+            // Just the name of the method.  i.e. "Goo" in "Goo" or "X.Goo"
             public SyntaxToken IdentifierToken { get; private set; }
             public TSimpleNameSyntax SimpleNameOpt { get; private set; }
 
-            // The entire expression containing the name.  i.e. "X.Foo"
+            // The entire expression containing the name.  i.e. "X.Goo"
             public TExpressionSyntax SimpleNameOrMemberAccessExpressionOpt { get; private set; }
 
             public ITypeSymbol TypeMemberType { get; private set; }
@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 {
                     // Cases that we deal with currently:
                     //
-                    // 1) expr.Foo
-                    // 2) expr->Foo
-                    // 3) Foo
+                    // 1) expr.Goo
+                    // 2) expr->Goo
+                    // 3) Goo
                     if (!TryInitializeSimpleName(service, document, (TSimpleNameSyntax)node, cancellationToken))
                     {
                         return false;
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
                 else if (service.IsExplicitInterfaceGeneration(node))
                 {
-                    // 4)  bool IFoo.NewProp
+                    // 4)  bool IGoo.NewProp
                     if (!TryInitializeExplicitInterface(service, document, node, cancellationToken))
                     {
                         return false;
