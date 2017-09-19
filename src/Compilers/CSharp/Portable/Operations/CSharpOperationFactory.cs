@@ -864,7 +864,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyCompoundAssignmentExpression(operatorKind, isLifted, isChecked, target, value, usesOperatorMethod, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IIncrementExpression CreateBoundIncrementOperatorOperation(BoundIncrementOperator boundIncrementOperator)
+        private IIncrementOrDecrementExpression CreateBoundIncrementOperatorOperation(BoundIncrementOperator boundIncrementOperator)
         {
             bool isDecrement = Helper.IsDecrement(boundIncrementOperator.OperatorKind);
             bool isPostfix = Helper.IsPostfixIncrementOrDecrement(boundIncrementOperator.OperatorKind);

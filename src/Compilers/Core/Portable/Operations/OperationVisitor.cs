@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitIncrementExpression(IIncrementExpression operation)
+        public virtual void VisitIncrementOrDecrementExpression(IIncrementOrDecrementExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -901,7 +901,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitIncrementExpression(IIncrementExpression operation, TArgument argument)
+        public virtual TResult VisitIncrementOrDecrementExpression(IIncrementOrDecrementExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
