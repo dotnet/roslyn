@@ -1461,12 +1461,12 @@ public readonly struct S1
 
     abstract class C<U>
     {
-        public abstract void M1<T>(in T arg) where T : U, I1;
+        public abstract void M1<T>(ref readonly T arg) where T : U, I1;
     }
 
     class D: C<S1>
     {
-        public override void M1<T>(in T arg)
+        public override void M1<T>(ref readonly T arg)
         {
             arg.M3();
         }
@@ -1490,7 +1490,7 @@ public readonly struct S1
 
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"0");
 
-            comp.VerifyIL("D.M1<T>(in T)", @"
+            comp.VerifyIL("D.M1<T>(ref readonly T)", @"
 {
   // Code size       21 (0x15)
   .maxstack  1
@@ -1522,12 +1522,12 @@ public readonly struct S1
 
     abstract class C<U>
     {
-        public abstract void M1<T>(in T arg) where T : U, I1;
+        public abstract void M1<T>(ref readonly T arg) where T : U, I1;
     }
 
     class D: C<S1>
     {
-        public override void M1<T>(in T arg)
+        public override void M1<T>(ref readonly T arg)
         {
             arg.M3();
         }
@@ -1548,7 +1548,7 @@ public readonly struct S1
 
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"");
 
-            comp.VerifyIL("D.M1<T>(in T)", @"
+            comp.VerifyIL("D.M1<T>(ref readonly T)", @"
 {
   // Code size       21 (0x15)
   .maxstack  1
