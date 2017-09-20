@@ -144,6 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureReadOnlyStructs = MessageBase + 12727,
         IDS_FeatureRefExtensionMethods = MessageBase + 12728,
         IDS_StackAllocExpression = MessageBase + 12729,
+        IDS_FeaturePrivateProtected = MessageBase + 12730,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -203,6 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // C# 7.2 features.
                 case MessageID.IDS_FeatureNonTrailingNamedArguments: // semantic check
                 case MessageID.IDS_FeatureLeadingDigitSeparator:
+                case MessageID.IDS_FeaturePrivateProtected:
                 case MessageID.IDS_FeatureReadOnlyReferences:
                 case MessageID.IDS_FeatureRefStructs:
                 case MessageID.IDS_FeatureReadOnlyStructs:

@@ -57,18 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            protected override OperationKind ExpressionKind => OperationKind.None;
-
-            public override void Accept(OperationVisitor visitor)
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-
-            public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-
             public ImmutableArray<LocalSymbol> GetLocals()
             {
                 return (_locals == null) ? ImmutableArray<LocalSymbol>.Empty : _locals.ToImmutable();

@@ -126,7 +126,7 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$pa
     }
     
     if ($logFile -ne "") {
-        $args += " /filelogger /fileloggerparameters:Verbosity=normal;logFile=$logFile";
+        $args += " /bl:$logFile"
     }
 
     if ($cibuild) { 
@@ -152,7 +152,7 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$pa
 # building the bootstrap.
 function Make-BootstrapBuild() {
 
-    $bootstrapLog = Join-Path $binariesDir "Bootstrap.log"
+    $bootstrapLog = Join-Path $binariesDir "Bootstrap.binlog"
     Write-Host "Building Bootstrap compiler"
     Run-MSBuild "/p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP build\Toolset\Toolset.csproj" -logFile $bootstrapLog 
     $dir = Join-Path $binariesDir "Bootstrap"
@@ -185,10 +185,10 @@ function Build-ExtraSignArtifacts() {
     Push-Location (Join-Path $repoDir "src\Setup")
     try {
         # Publish the CoreClr projects (CscCore and VbcCore) and dependencies for later NuGet packaging.
-        Write-Host "Publishing CscCore"
-        Run-MSBuild "..\Compilers\CSharp\CscCore\CscCore.csproj /t:PublishWithoutBuilding"
-        Write-Host "Publishing VbcCore"
-        Run-MSBuild "..\Compilers\VisualBasic\VbcCore\VbcCore.csproj /t:PublishWithoutBuilding"
+        Write-Host "Publishing csc"
+        Run-MSBuild "..\Compilers\CSharp\csc\csc.csproj /p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
+        Write-Host "Publishing csc"
+        Run-MSBuild "..\Compilers\VisualBasic\vbc\vbc.csproj /p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
 
         # No need to build references here as we just built the rest of the source tree. 
         # We build these serially to work around https://github.com/dotnet/roslyn/issues/11856,

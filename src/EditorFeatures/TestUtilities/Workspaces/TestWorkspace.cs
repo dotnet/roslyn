@@ -194,7 +194,6 @@ of the problem.");
             var aggregate = new AggregateException(exceptions);
             return aggregate.Flatten().InnerExceptions
                 .Select(UnwrapException)
-                .Where(ex => !(ex is JoinableTaskContextException))
                 .ToList();
         }
 

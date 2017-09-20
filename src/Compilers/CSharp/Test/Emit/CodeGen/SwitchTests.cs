@@ -9566,6 +9566,9 @@ public class Program
             );
             compVerifier.VerifyPdb(
 @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <entryPoint declaringType=""Program"" methodName=""Main"" />
   <methods>
     <method containingType=""Program"" name=""Main"">
@@ -9575,8 +9578,8 @@ public class Program
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
@@ -9597,30 +9600,30 @@ public class Program
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""19"" />
-        <entry offset=""0x4"" hidden=""true"" />
-        <entry offset=""0xa4"" hidden=""true"" />
-        <entry offset=""0xa6"" startLine=""12"" startColumn=""24"" endLine=""12"" endColumn=""30"" />
-        <entry offset=""0xb2"" startLine=""12"" startColumn=""32"" endLine=""12"" endColumn=""38"" />
-        <entry offset=""0xb4"" startLine=""13"" startColumn=""24"" endLine=""13"" endColumn=""30"" />
-        <entry offset=""0xc0"" startLine=""13"" startColumn=""32"" endLine=""13"" endColumn=""38"" />
-        <entry offset=""0xc2"" hidden=""true"" />
-        <entry offset=""0xc4"" startLine=""14"" startColumn=""24"" endLine=""14"" endColumn=""30"" />
-        <entry offset=""0xcd"" startLine=""14"" startColumn=""32"" endLine=""14"" endColumn=""38"" />
-        <entry offset=""0xcf"" startLine=""15"" startColumn=""24"" endLine=""15"" endColumn=""30"" />
-        <entry offset=""0xdb"" startLine=""15"" startColumn=""32"" endLine=""15"" endColumn=""38"" />
-        <entry offset=""0xdd"" hidden=""true"" />
-        <entry offset=""0xe0"" startLine=""16"" startColumn=""24"" endLine=""16"" endColumn=""30"" />
-        <entry offset=""0xe9"" startLine=""16"" startColumn=""32"" endLine=""16"" endColumn=""38"" />
-        <entry offset=""0xeb"" startLine=""17"" startColumn=""24"" endLine=""17"" endColumn=""30"" />
-        <entry offset=""0xf4"" startLine=""17"" startColumn=""32"" endLine=""17"" endColumn=""38"" />
-        <entry offset=""0xf6"" hidden=""true"" />
-        <entry offset=""0xf9"" startLine=""18"" startColumn=""24"" endLine=""18"" endColumn=""30"" />
-        <entry offset=""0x102"" startLine=""18"" startColumn=""32"" endLine=""18"" endColumn=""38"" />
-        <entry offset=""0x104"" startLine=""19"" startColumn=""24"" endLine=""19"" endColumn=""30"" />
-        <entry offset=""0x10d"" startLine=""19"" startColumn=""32"" endLine=""19"" endColumn=""38"" />
-        <entry offset=""0x10f"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x4"" hidden=""true"" document=""1"" />
+        <entry offset=""0xa4"" hidden=""true"" document=""1"" />
+        <entry offset=""0xa6"" startLine=""12"" startColumn=""24"" endLine=""12"" endColumn=""30"" document=""1"" />
+        <entry offset=""0xb2"" startLine=""12"" startColumn=""32"" endLine=""12"" endColumn=""38"" document=""1"" />
+        <entry offset=""0xb4"" startLine=""13"" startColumn=""24"" endLine=""13"" endColumn=""30"" document=""1"" />
+        <entry offset=""0xc0"" startLine=""13"" startColumn=""32"" endLine=""13"" endColumn=""38"" document=""1"" />
+        <entry offset=""0xc2"" hidden=""true"" document=""1"" />
+        <entry offset=""0xc4"" startLine=""14"" startColumn=""24"" endLine=""14"" endColumn=""30"" document=""1"" />
+        <entry offset=""0xcd"" startLine=""14"" startColumn=""32"" endLine=""14"" endColumn=""38"" document=""1"" />
+        <entry offset=""0xcf"" startLine=""15"" startColumn=""24"" endLine=""15"" endColumn=""30"" document=""1"" />
+        <entry offset=""0xdb"" startLine=""15"" startColumn=""32"" endLine=""15"" endColumn=""38"" document=""1"" />
+        <entry offset=""0xdd"" hidden=""true"" document=""1"" />
+        <entry offset=""0xe0"" startLine=""16"" startColumn=""24"" endLine=""16"" endColumn=""30"" document=""1"" />
+        <entry offset=""0xe9"" startLine=""16"" startColumn=""32"" endLine=""16"" endColumn=""38"" document=""1"" />
+        <entry offset=""0xeb"" startLine=""17"" startColumn=""24"" endLine=""17"" endColumn=""30"" document=""1"" />
+        <entry offset=""0xf4"" startLine=""17"" startColumn=""32"" endLine=""17"" endColumn=""38"" document=""1"" />
+        <entry offset=""0xf6"" hidden=""true"" document=""1"" />
+        <entry offset=""0xf9"" startLine=""18"" startColumn=""24"" endLine=""18"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x102"" startLine=""18"" startColumn=""32"" endLine=""18"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x104"" startLine=""19"" startColumn=""24"" endLine=""19"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x10d"" startLine=""19"" startColumn=""32"" endLine=""19"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x10f"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x110"">
         <scope startOffset=""0xa4"" endOffset=""0xb4"">
@@ -9642,7 +9645,7 @@ public class Program
         <forward declaringType=""Program"" methodName=""Main"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""27"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""27"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>

@@ -639,6 +639,41 @@ namespace N1 {
         }
 
         [Fact]
+        public void TestPrivateProtected()
+        {
+            var text = @"class C2 { private protected void M() {} }";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetTypeMembers("C2").Single().
+                GetMembers("M").Single();
+
+            var format = new SymbolDisplayFormat(
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeParameters |
+                    SymbolDisplayMemberOptions.IncludeModifiers |
+                    SymbolDisplayMemberOptions.IncludeAccessibility |
+                    SymbolDisplayMemberOptions.IncludeType |
+                    SymbolDisplayMemberOptions.IncludeContainingType);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "private protected void C2.M()",
+                SymbolDisplayPartKind.Keyword, // private
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // protected
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // void
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName, //C2
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.MethodName, //M
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation);
+        }
+
+        [Fact]
         public void TestNullParameters()
         {
             var text = @"

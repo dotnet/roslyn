@@ -13,6 +13,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal class GraphQueryManager
     {
         private readonly Workspace _workspace;

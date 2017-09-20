@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         protected AbstractGraphProvider(
             IGlyphService glyphService,
             SVsServiceProvider serviceProvider,
-            Workspace workspace,
+            CodeAnalysis.Workspace workspace,
             IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _glyphService = glyphService;

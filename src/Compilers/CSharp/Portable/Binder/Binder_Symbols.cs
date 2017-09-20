@@ -2075,21 +2075,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, DiagnosticBag diagnostics, Location locationOpt = null)
         {
-            CSDiagnosticInfo error = GetFeatureAvailabilityDiagnosticInfo(syntax, feature);
+            return CheckFeatureAvailability(syntax.SyntaxTree, feature, diagnostics, locationOpt ?? syntax.GetLocation());
+        }
+
+        internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, DiagnosticBag diagnostics, Location location)
+        {
+            CSDiagnosticInfo error = GetFeatureAvailabilityDiagnosticInfo(tree, feature);
 
             if (error is null)
             {
                 return true;
             }
 
-            var location = locationOpt ?? syntax.GetLocation();
             diagnostics.Add(new CSDiagnostic(error, location));
             return false;
         }
 
         internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            CSDiagnosticInfo error = GetFeatureAvailabilityDiagnosticInfo(syntax, feature);
+            CSDiagnosticInfo error = GetFeatureAvailabilityDiagnosticInfo(syntax.SyntaxTree, feature);
 
             if (error is null)
             {
@@ -2100,9 +2104,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private static CSDiagnosticInfo GetFeatureAvailabilityDiagnosticInfo(SyntaxNode syntax, MessageID feature)
+        private static CSDiagnosticInfo GetFeatureAvailabilityDiagnosticInfo(SyntaxTree tree, MessageID feature)
         {
-            CSharpParseOptions options = (CSharpParseOptions)syntax.SyntaxTree.Options;
+            CSharpParseOptions options = (CSharpParseOptions)tree.Options;
 
             if (options.IsFeatureEnabled(feature))
             {

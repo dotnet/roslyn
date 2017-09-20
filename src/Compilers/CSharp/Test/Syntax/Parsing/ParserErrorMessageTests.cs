@@ -41,7 +41,11 @@ class Test : Itest
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "."), Diagnostic(ErrorCode.ERR_MemberNeedsType, "E"));
+            ParseAndValidate(test,
+                // (9,17): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+                //    event D ITest.E()   // CS0071
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(9, 17)
+                );
         }
 
         // Infinite loop 
@@ -117,22 +121,43 @@ class C
         {
             var test = @"
 public class C
-    {
+{
     private internal void f() {}
-    public static int Main()
-        {
+    public private int F = 1;
+    public private int P { get => 1; }
+    public int Q { get => 1; private public set {} }
+    public private C() {}
+    public private static int Main()
+    {
         return 1;
-        }
     }
+}
 ";
 
+            ParseAndValidate(test);
             CreateStandardCompilation(test).VerifyDiagnostics(
-                // (4,13): error CS0107: More than one protection modifier
-                //     private internal void f() {}
-                Diagnostic(ErrorCode.ERR_BadMemberProtection, "internal").WithLocation(4, 13),
                 // (4,27): error CS0107: More than one protection modifier
                 //     private internal void f() {}
-                Diagnostic(ErrorCode.ERR_BadMemberProtection, "f").WithLocation(4, 27));
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "f").WithLocation(4, 27),
+                // (5,24): error CS0107: More than one protection modifier
+                //     public private int F = 1;
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "F").WithLocation(5, 24),
+                // (6,24): error CS0107: More than one protection modifier
+                //     public private int P { get => 1; }
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "P").WithLocation(6, 24),
+                // (7,45): error CS0107: More than one protection modifier
+                //     public int Q { get => 1; private public set {} }
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "set").WithLocation(7, 45),
+                // (7,45): error CS0273: The accessibility modifier of the 'C.Q.set' accessor must be more restrictive than the property or indexer 'C.Q'
+                //     public int Q { get => 1; private public set {} }
+                Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "set").WithArguments("C.Q.set", "C.Q").WithLocation(7, 45),
+                // (8,20): error CS0107: More than one protection modifier
+                //     public private C() {}
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "C").WithLocation(8, 20),
+                // (9,31): error CS0107: More than one protection modifier
+                //     public private static int Main()
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "Main").WithLocation(9, 31)
+                );
         }
 
         [Fact, WorkItem(543622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543622")]
@@ -146,24 +171,22 @@ public class C
 }";
             // Extra errors
             ParseAndValidate(test,
-    // (1,1): error CS1022: Type or namespace definition, or end-of-file expected
-    // {
-    Diagnostic(ErrorCode.ERR_EOFExpected, "{"),
-    // (3,5): error CS1022: Type or namespace definition, or end-of-file expected
-    //     {
-    Diagnostic(ErrorCode.ERR_EOFExpected, "{"),
-    // (3,6): error CS1520: Method must have a return type
-    //     {
-    Diagnostic(ErrorCode.ERR_MemberNeedsType, ""),
-    // (2,5): error CS0116: A namespace does not directly contain members such as fields or methods
-    //     get
-    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "get"),
-    // (5,5): error CS1022: Type or namespace definition, or end-of-file expected
-    //     }
-    Diagnostic(ErrorCode.ERR_EOFExpected, "}"),
-    // (6,1): error CS1022: Type or namespace definition, or end-of-file expected
-    // }
-    Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
+                // (1,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // {
+                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(1, 1),
+                // (3,5): error CS1022: Type or namespace definition, or end-of-file expected
+                //     {
+                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(3, 5),
+                // (2,5): error CS0116: A namespace cannot directly contain members such as fields or methods
+                //     get
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "get").WithLocation(2, 5),
+                // (5,5): error CS1022: Type or namespace definition, or end-of-file expected
+                //     }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(5, 5),
+                // (6,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 1)
+                );
         }
 
         [Fact]
@@ -725,28 +748,6 @@ class C
                 // (5,18): error CS0514: 'C': static constructor cannot have an explicit 'this' or 'base' constructor call
                 //     static C() : this() { } //CS0514
                 Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "this").WithArguments("C").WithLocation(5, 18));
-        }
-
-        [Fact]
-        public void CS0574ERR_BadDestructorName()
-        {
-            var test = @"
-namespace x
-{
-    public class iii
-    {
-        ~iiii(){}
-        public static void Main()
-        {
-        }
-    }
-}
-";
-
-            CreateStandardCompilation(test).VerifyDiagnostics(
-                // (6,10): error CS0574: Name of destructor must match name of class
-                //         ~iiii(){}
-                Diagnostic(ErrorCode.ERR_BadDestructorName, "iiii").WithLocation(6, 10));
         }
 
         // Extra same errors
@@ -3926,7 +3927,7 @@ namespace x {
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_MemberNeedsType, "x"));
+            ParseAndValidate(test);
         }
 
         [Fact]
@@ -4807,10 +4808,7 @@ public static int Main(){return 0;}
             ParseAndValidate(test,
     // (7,24): error CS1585: Member modifier 'virtual' must precede the member type and name
     //     public static void virtual f() {}
-    Diagnostic(ErrorCode.ERR_BadModifierLocation, "virtual").WithArguments("virtual"),
-    // (7,32): error CS1520: Method must have a return type
-    //     public static void virtual f() {}
-    Diagnostic(ErrorCode.ERR_MemberNeedsType, "f"));
+    Diagnostic(ErrorCode.ERR_BadModifierLocation, "virtual").WithArguments("virtual"));
         }
 
         [Fact]

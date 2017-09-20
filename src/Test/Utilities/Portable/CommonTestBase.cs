@@ -13,7 +13,9 @@ using System.Reflection.PortableExecutable;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -519,6 +521,254 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             };
         }
 
+        #endregion
+
+        #region Operation Test Helpers
+        internal static void VerifyParentOperations(SemanticModel model)
+        {
+            HashSet<string> output = new HashSet<string>();
+
+            var parentMap = GetParentOperationsMap(model);
+
+            // check parent for each child
+            foreach (var (child, parent) in parentMap)
+            {
+                // check parent property returns same parent we gathered by walking down operation tree
+                Assert.Equal(child.Parent, parent);
+
+                // check SearchparentOperation return same parent
+                Assert.Equal(((Operation)child).SearchParentOperation(), parent);
+
+                if (parent == null && child.Kind != OperationKind.None)
+                {
+                    // this is root of operation tree
+                    VerifyOperationTreeContracts(child, output);
+                }
+            }
+        }
+
+        private static Dictionary<IOperation, IOperation> GetParentOperationsMap(SemanticModel model)
+        {
+            // get top operations first
+            var topOperations = new HashSet<IOperation>();
+            var root = model.SyntaxTree.GetRoot();
+
+            CollectTopOperations(model, root, topOperations);
+
+            // dig down the each operation tree to create the parent operation map
+            var map = new Dictionary<IOperation, IOperation>();
+            foreach (var topOperation in topOperations)
+            {
+                // this is top of the operation tree
+                map.Add(topOperation, null);
+
+                CollectParentOperations(topOperation, map);
+            }
+
+            return map;
+        }
+
+        private static void CollectParentOperations(IOperation operation, Dictionary<IOperation, IOperation> map)
+        {
+            // walk down to collect all parent operation map for this tree
+            foreach (var child in operation.Children.WhereNotNull())
+            {
+                map.Add(child, operation);
+
+                CollectParentOperations(child, map);
+            }
+        }
+
+        private static void CollectTopOperations(SemanticModel model, SyntaxNode node, HashSet<IOperation> topOperations)
+        {
+            foreach (var child in node.ChildNodes())
+            {
+                var operation = model.GetOperationInternal(child);
+                if (operation != null)
+                {
+                    // found top operation
+                    topOperations.Add(operation);
+
+                    // don't dig down anymore
+                    continue;
+                }
+
+                // sub tree might have the top operation
+                CollectTopOperations(model, child, topOperations);
+            }
+        }
+
+        internal static void VerifyClone(SemanticModel model)
+        {
+            foreach (var node in model.SyntaxTree.GetRoot().DescendantNodes())
+            {
+                var operation = model.GetOperationInternal(node);
+                if (operation == null)
+                {
+                    continue;
+                }
+
+                var clonedOperation = model.CloneOperation(operation);
+
+                // check whether cloned IOperation is same as original one
+                var original = OperationTreeVerifier.GetOperationTree(model.Compilation, operation);
+                var cloned = OperationTreeVerifier.GetOperationTree(model.Compilation, clonedOperation);
+
+                Assert.Equal(original, cloned);
+
+                // make sure cloned operation is value equal but doesn't share any IOperations
+                var originalSet = new HashSet<IOperation>(operation.DescendantsAndSelf());
+                var clonedSet = new HashSet<IOperation>(clonedOperation.DescendantsAndSelf());
+
+                Assert.Equal(originalSet.Count, clonedSet.Count);
+                Assert.Equal(0, originalSet.Intersect(clonedSet).Count());
+            }
+        }
+
+        private static void VerifyOperationTreeContracts(IOperation root, HashSet<string> output)
+        {
+            var semanticModel = ((Operation)root).SemanticModel;
+            var set = new HashSet<IOperation>(root.DescendantsAndSelf());
+
+            foreach (var child in GetOperationsUptoInvalidOperation(root))
+            {
+                // all spine of child.Syntax node must have IOperation up to the root
+                VerifyOperationTreeSpine(semanticModel, set, child.Syntax, output);
+
+                // operation tree's node must be part of root of semantic model which is 
+                // owner of operation's lifetime
+                Assert.True(semanticModel.Root.FullSpan.Contains(child.Syntax.FullSpan));
+            }
+        }
+
+        private static IEnumerable<IOperation> GetOperationsUptoInvalidOperation(IOperation root)
+        {
+            foreach (var child in root.Children)
+            {
+                // don't go down invalid expression/statement until
+                // we decide what to do with such case.
+                // https://github.com/dotnet/roslyn/issues/21187
+                // in current implementation, below invalid expression/statements are all messed up
+                // and we can't gurantee it will return same operation tree
+                if (child == null ||
+                    child.Kind == OperationKind.InvalidExpression ||
+                    child.Kind == OperationKind.InvalidStatement)
+                {
+                    continue;
+                }
+
+                yield return child;
+
+                foreach (var nested in GetOperationsUptoInvalidOperation(child))
+                {
+                    yield return nested;
+                }
+            }
+        }
+
+        private static void VerifyOperationTreeSpine(
+            SemanticModel semanticModel, HashSet<IOperation> set, SyntaxNode node, HashSet<string> output)
+        {
+            while (node != semanticModel.Root)
+            {
+                if (!IsIgnoredNode(node))
+                {
+                    var operation = semanticModel.GetOperationInternal(node);
+                    Assert.NotNull(operation);
+
+                    // all operation from same sub tree must belong to same operation tree
+                    // except OperationKind.None and OperationKind.InvalidExpression and InvalidStatement
+                    // for those kinds, we can't guarantee it will share same tree
+                    if (operation != null &&
+                        operation.Kind != OperationKind.None &&
+                        operation.Kind != OperationKind.InvalidExpression &&
+                        operation.Kind != OperationKind.InvalidStatement &&
+                        // operation.Kind != OperationKind.PlaceholderExpression && // https://github.com/dotnet/roslyn/issues/21294
+                        (operation.Kind != OperationKind.TupleExpression || !(semanticModel.GetOperationInternal(node.Parent)?.Kind == OperationKind.LoopStatement))) // https://github.com/dotnet/roslyn/issues/20798
+                    {
+                        Assert.True(set.Contains(operation));
+                    }
+                }
+
+                node = node.Parent;
+            }
+        }
+
+        private static bool IsIgnoredNode(SyntaxNode node)
+        {
+            // this should be removed once this is fixed
+            // https://github.com/dotnet/roslyn/issues/21187
+            // basically, for these node. GetOpeartion will return null 
+            // even though GetOperation returns IOperation for its child (syntax node)
+            // violating our assumption that all spine once a node has IOperation should
+            // have an IOperation
+            if (node is CSharp.CSharpSyntaxNode csNode)
+            {
+                switch (csNode.Kind())
+                {
+                    case CSharp.SyntaxKind.VariableDeclarator:
+                        return csNode.Parent?.Kind() == CSharp.SyntaxKind.VariableDeclaration;
+                    case CSharp.SyntaxKind.EqualsValueClause:
+                        return csNode.Parent?.Kind() == CSharp.SyntaxKind.VariableDeclarator &&
+                               csNode.Parent?.Parent?.Kind() == CSharp.SyntaxKind.VariableDeclaration;
+                    case CSharp.SyntaxKind.IdentifierName when csNode.ToString() == "E":
+                        // related issue - https://github.com/dotnet/roslyn/pull/20960
+                        return csNode.Parent?.Kind() == CSharp.SyntaxKind.AddAssignmentExpression ||
+                               csNode.Parent?.Kind() == CSharp.SyntaxKind.SubtractAssignmentExpression;
+                    case CSharp.SyntaxKind.CheckedStatement:
+                    case CSharp.SyntaxKind.UncheckedStatement:
+                    case CSharp.SyntaxKind.UnsafeStatement:
+                        return true;
+
+                    default:
+                        return false;
+                }
+            }
+
+            if (node is VisualBasic.VisualBasicSyntaxNode vbNode)
+            {
+                switch (vbNode.Kind())
+                {
+                    case VisualBasic.SyntaxKind.SimpleArgument:
+                        return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.ArgumentList ||
+                               vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.TupleExpression;
+                    case VisualBasic.SyntaxKind.VariableDeclarator:
+                        return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.LocalDeclarationStatement ||
+                               vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.FieldDeclaration;
+                    case VisualBasic.SyntaxKind.EqualsValue:
+                        return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.VariableDeclarator;
+                    case VisualBasic.SyntaxKind.NamedFieldInitializer:
+                        return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.ObjectMemberInitializer;
+                    case VisualBasic.SyntaxKind.ObjectMemberInitializer:
+                        return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.AnonymousObjectCreationExpression;
+                    case VisualBasic.SyntaxKind.SelectStatement:
+                        return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.SelectBlock;
+                    case VisualBasic.SyntaxKind.CollectionInitializer:
+                    case VisualBasic.SyntaxKind.ModifiedIdentifier:
+                    case VisualBasic.SyntaxKind.CaseBlock:
+                    case VisualBasic.SyntaxKind.CaseElseBlock:
+                    case VisualBasic.SyntaxKind.CaseStatement:
+                    case VisualBasic.SyntaxKind.CaseElseStatement:
+                    case VisualBasic.SyntaxKind.WhileClause:
+                    case VisualBasic.SyntaxKind.ArgumentList:
+                    case VisualBasic.SyntaxKind.FromClause:
+                    case VisualBasic.SyntaxKind.ExpressionRangeVariable:
+                    case VisualBasic.SyntaxKind.LetClause:
+                    case VisualBasic.SyntaxKind.JoinCondition:
+                    case VisualBasic.SyntaxKind.AsNewClause:
+                    case VisualBasic.SyntaxKind.ForStepClause:
+                    case VisualBasic.SyntaxKind.UntilClause:
+                    case VisualBasic.SyntaxKind.InterpolationAlignmentClause:
+                        return true;
+                    default:
+                        return vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.AddHandlerStatement ||
+                               vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.RemoveHandlerStatement ||
+                               vbNode.Parent?.Kind() == VisualBasic.SyntaxKind.RaiseEventStatement;
+                }
+            }
+
+            throw ExceptionUtilities.Unreachable;
+        }
         #endregion
     }
 }

@@ -1118,7 +1118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         return Cci.TypeMemberVisibility.Family;
                     }
 
-                case Accessibility.ProtectedAndInternal: // Not supported by language, but we should be able to import it.
+                case Accessibility.ProtectedAndInternal:
                     Debug.Assert(symbol.ContainingType.TypeKind != TypeKind.Submission);
                     return Cci.TypeMemberVisibility.FamilyAndAssembly;
 

@@ -3943,17 +3943,15 @@ static class Extension
         public void InferredName_Conversion()
         {
             var source =
-@"using System.Collections.Generic;
-class C
+@"class C
 {
-    static void F((int, IList<object>) items)
+    static void F((object, object) t)
     {
     }
-    static void Test()
+    static void G(object o)
     {
-        var items = new List<object>();
-        var group = (1, items);
-        F(group);
+        var t = (1, o);
+        F(t);
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),

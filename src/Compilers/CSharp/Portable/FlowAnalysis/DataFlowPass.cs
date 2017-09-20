@@ -1504,7 +1504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected void VisitStatementsWithLocalFunctions(BoundBlock block)
+        private void VisitStatementsWithLocalFunctions(BoundBlock block)
         {
             // Visit the statements in two phases:
             //   1. Local function declarations
@@ -1527,8 +1527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (stmt.Kind == BoundKind.LocalFunctionStatement)
                     {
-                        VisitLocalFunctionStatement(
-                            (BoundLocalFunctionStatement)stmt);
+                        VisitAlways(stmt);
                     }
                 }
             }
