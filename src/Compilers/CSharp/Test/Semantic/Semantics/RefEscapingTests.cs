@@ -1111,6 +1111,15 @@ class Program
             ref var ternarySame1 = ref true ? ref sInner : ref sInner;
             ref var ternarySame2 = ref true ? ref sOuter : ref sOuter;
 
+            // ok
+            ternarySame2 = true ? sOuter : sOuter;
+
+            // error
+            ternarySame2 = true ? sOuter : sInner;
+
+            // error
+            ternarySame2 = true ? sInner : sOuter;
+
             // error, mixing val escapes
             ref var ternary1 = ref true ? ref sOuter : ref sInner;
 
@@ -1140,24 +1149,30 @@ class Program
 }
 ";
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // (24,60): error CS8526: Cannot use local 'sInner' in this context because it may expose referenced variables outside of their declaration scope
+                // (27,44): error CS8526: Cannot use local 'sInner' in this context because it may expose referenced variables outside of their declaration scope
+                //             ternarySame2 = true ? sOuter : sInner;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "sInner").WithArguments("sInner").WithLocation(27, 44),
+                // (30,35): error CS8526: Cannot use local 'sInner' in this context because it may expose referenced variables outside of their declaration scope
+                //             ternarySame2 = true ? sInner : sOuter;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "sInner").WithArguments("sInner").WithLocation(30, 35),
+                // (33,60): error CS8526: Cannot use local 'sInner' in this context because it may expose referenced variables outside of their declaration scope
                 //             ref var ternary1 = ref true ? ref sOuter : ref sInner;
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "sInner").WithArguments("sInner").WithLocation(24, 60),
-                // (24,36): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "sInner").WithArguments("sInner").WithLocation(33, 60),
+                // (33,36): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes
                 //             ref var ternary1 = ref true ? ref sOuter : ref sInner;
-                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "true ? ref sOuter : ref sInner").WithLocation(24, 36),
-                // (27,47): error CS8526: Cannot use local 'sInner' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "true ? ref sOuter : ref sInner").WithLocation(33, 36),
+                // (36,47): error CS8526: Cannot use local 'sInner' in this context because it may expose referenced variables outside of their declaration scope
                 //             ref var ternary2 = ref true ? ref sInner : ref sOuter;
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "sInner").WithArguments("sInner").WithLocation(27, 47),
-                // (27,36): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "sInner").WithArguments("sInner").WithLocation(36, 47),
+                // (36,36): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes
                 //             ref var ternary2 = ref true ? ref sInner : ref sOuter;
-                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "true ? ref sInner : ref sOuter").WithLocation(27, 36),
-                // (30,47): error CS8526: Cannot use local 'ternarySame1' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "true ? ref sInner : ref sOuter").WithLocation(36, 36),
+                // (39,47): error CS8526: Cannot use local 'ternarySame1' in this context because it may expose referenced variables outside of their declaration scope
                 //             ref var ternary3 = ref true ? ref ternarySame1 : ref ternarySame2;
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "ternarySame1").WithArguments("ternarySame1").WithLocation(30, 47),
-                // (30,36): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "ternarySame1").WithArguments("ternarySame1").WithLocation(39, 47),
+                // (39,36): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes
                 //             ref var ternary3 = ref true ? ref ternarySame1 : ref ternarySame2;
-                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "true ? ref ternarySame1 : ref ternarySame2").WithLocation(30, 36)
+                Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "true ? ref ternarySame1 : ref ternarySame2").WithLocation(39, 36)
             );
         }
 

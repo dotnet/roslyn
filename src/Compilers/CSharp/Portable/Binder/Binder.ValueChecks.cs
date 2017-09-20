@@ -2054,7 +2054,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var consValid = CheckValEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
-                    if (consValid || conditional.IsByRef)
+                    if (!consValid || conditional.IsByRef)
                     {
                         // ref conditional defers to one operand. 
                         // the other one is the same or we will be reporting errors anyways.
