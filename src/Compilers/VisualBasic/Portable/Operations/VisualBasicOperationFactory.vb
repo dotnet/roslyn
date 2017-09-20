@@ -68,6 +68,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return boundNode.Syntax.Parent.Kind() = SyntaxKind.AddHandlerStatement OrElse
                            boundNode.Syntax.Parent.Kind() = SyntaxKind.RemoveHandlerStatement OrElse
                            boundNode.Syntax.Parent.Kind() = SyntaxKind.RaiseEventAccessorStatement
+                Case BoundKind.FieldAccess
+                    Return boundNode.Syntax.Parent.Kind() = SyntaxKind.RaiseEventStatement
             End Select
 
             Return False
@@ -1241,7 +1243,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundRaiseEventStatementOperation(boundRaiseEventStatement As BoundRaiseEventStatement) As IExpressionStatement
-            Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundRaiseEventStatement.EventInvocation))
+            Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() GetRaiseEventExpression(boundRaiseEventStatement))
             Dim syntax As SyntaxNode = boundRaiseEventStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()

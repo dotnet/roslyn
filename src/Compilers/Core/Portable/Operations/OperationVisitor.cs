@@ -487,6 +487,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             DefaultVisit(operation);
         }
+
+        public virtual void VisitRaiseEventExpression(IRaiseEventExpression operation)
+        {
+            DefaultVisit(operation);
+        }
     }
 
     /// <summary>
@@ -977,6 +982,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitTupleExpression(ITupleExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitRaiseEventExpression(IRaiseEventExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

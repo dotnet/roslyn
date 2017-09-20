@@ -276,6 +276,47 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim adds = statement.Kind = BoundKind.AddHandlerStatement
             Return New EventAssignmentExpression(
                 eventReference, Create(statement.Handler), adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=statement.WasCompilerGenerated)
+        End Function        
+
+        Private Function GetRaiseEventExpression(raiseEventStatement As BoundRaiseEventStatement) As IOperation
+            Dim eventInvocation = TryCast(raiseEventStatement.EventInvocation, BoundCall)
+
+            ' Return an operation for invalid raise event expression
+            If eventInvocation Is Nothing OrElse eventInvocation.ReceiverOpt Is Nothing OrElse eventInvocation.ReceiverOpt.Kind <> BoundKind.FieldAccess
+                Debug.Assert(raiseEventStatement.HasErrors)
+                Return Create(raiseEventStatement.EventInvocation)
+            End If 
+
+            Dim eventSymbol = raiseEventStatement.EventSymbol
+            Dim eventFieldAccess = CType(eventInvocation.ReceiverOpt, BoundFieldAccess)
+
+            Debug.Assert(eventFieldAccess.FieldSymbol.AssociatedSymbol = eventSymbol)
+
+            Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(
+                Function()
+                    If eventSymbol.IsShared Then
+                        Return Nothing
+                    Else
+                        Return Create(eventFieldAccess.ReceiverOpt)
+                    End If
+                End Function)
+            
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(eventFieldAccess.ConstantValueOpt)
+            Dim EventReference As Lazy(Of IEventReferenceExpression) = New Lazy(Of IEventReferenceExpression)(Function() As IEventReferenceExpression
+                                                                                                                  Return New LazyEventReferenceExpression(eventSymbol, 
+                                                                                                                                                          instance, 
+                                                                                                                                                          eventSymbol, 
+                                                                                                                                                          _semanticModel, 
+                                                                                                                                                          eventFieldAccess.Syntax, 
+                                                                                                                                                          eventSymbol.Type, 
+                                                                                                                                                          constantValue, 
+                                                                                                                                                          eventInvocation.WasCompilerGenerated)
+                                                                                                              End Function)
+            Dim argumentsInEvaluationOrder As Lazy(Of ImmutableArray(Of IArgument)) = New Lazy(Of ImmutableArray(Of IArgument))(
+                Function()
+                    Return DeriveArguments(eventInvocation.Arguments, eventInvocation.Method.Parameters)
+                End Function)
+            Return New LazyRaiseEventExpression(eventReference, argumentsInEvaluationOrder, _semanticModel, syntax:=eventInvocation.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=eventInvocation.WasCompilerGenerated)
         End Function
 
         Friend Class Helper

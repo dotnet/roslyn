@@ -829,7 +829,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var kindStr = operation.Adds ? "EventAdd" : "EventRemove";
             LogString($"{nameof(IEventAssignmentExpression)} ({kindStr})");
-            LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.EventReference, header: "Event Reference");
@@ -1430,6 +1429,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.Pattern, "Pattern");
             Visit(operation.GuardExpression, "Guard Expression");
+        }
+
+        public override void VisitRaiseEventExpression(IRaiseEventExpression operation)
+        {
+            LogString(nameof(IRaiseEventExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.EventReference, header: "Event Reference");
+            VisitArguments(operation);
         }
 
         #endregion

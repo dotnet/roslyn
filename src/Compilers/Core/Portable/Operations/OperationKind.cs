@@ -151,6 +151,8 @@ namespace Microsoft.CodeAnalysis
         DynamicInvocationExpression = 0x127,
         /// <summary>Indicates an <see cref="IDynamicIndexerAccessExpression"/>.</summary>
         DynamicIndexerAccessExpression = 0x128,
+        /// <summary>Indicates an <see cref="IRaiseEventExpression"/>.</summary>
+        RaiseEventExpression = 0x129,
 
         // Expressions that occur only in C#.
 

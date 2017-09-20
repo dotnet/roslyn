@@ -2630,6 +2630,84 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a C# or VB raise event expression.
+    /// </summary>
+    internal abstract partial class BaseRaiseEventExpression : Operation, IHasArgumentsExpression, IRaiseEventExpression
+    {
+        protected BaseRaiseEventExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+                    base(OperationKind.RaiseEventExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+
+        protected abstract IEventReferenceExpression EventReferenceImpl { get; }
+        protected abstract ImmutableArray<IArgument> ArgumentsInEvaluationOrderImpl { get; }
+
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return EventReference;
+                foreach (var argumentsInEvaluationOrder in ArgumentsInEvaluationOrder)
+                {
+                    yield return argumentsInEvaluationOrder;
+                }
+            }
+        }
+        /// <summary>
+        /// Reference to the event to be raised.
+        /// </summary>
+        public IEventReferenceExpression EventReference => Operation.SetParentOperation(EventReferenceImpl, this);
+
+        public ImmutableArray<IArgument> ArgumentsInEvaluationOrder => Operation.SetParentOperation(ArgumentsInEvaluationOrderImpl, this);
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitRaiseEventExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitRaiseEventExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# or VB raise event expression.
+    /// </summary>
+    internal sealed partial class RaiseEventExpression : BaseRaiseEventExpression, IHasArgumentsExpression, IRaiseEventExpression
+    {
+        public RaiseEventExpression(IEventReferenceExpression eventReference, ImmutableArray<IArgument> argumentsInEvaluationOrder, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : 
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            EventReferenceImpl = eventReference;
+            ArgumentsInEvaluationOrderImpl = argumentsInEvaluationOrder;
+        }
+
+        protected override IEventReferenceExpression EventReferenceImpl { get; }
+
+        protected override ImmutableArray<IArgument> ArgumentsInEvaluationOrderImpl { get; }
+    }
+
+    /// <summary>
+    /// Represents a C# or VB raise event expression.
+    /// </summary>
+    internal sealed partial class LazyRaiseEventExpression : BaseRaiseEventExpression, IHasArgumentsExpression, IRaiseEventExpression
+    {
+        private readonly Lazy<IEventReferenceExpression> _lazyEventReference;
+        private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInEvaluationOrder;
+
+        public LazyRaiseEventExpression(Lazy<IEventReferenceExpression> eventReference, Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : 
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyEventReference = eventReference;
+            _lazyArgumentsInEvaluationOrder = argumentsInEvaluationOrder;
+        }
+
+        protected override IEventReferenceExpression EventReferenceImpl => _lazyEventReference.Value;
+
+        protected override ImmutableArray<IArgument> ArgumentsInEvaluationOrderImpl => _lazyArgumentsInEvaluationOrder.Value;
+    }
+
+    /// <summary>
     /// Represents an expression that tests if a value is of a specific type.
     /// </summary>
     internal abstract partial class BaseIsTypeExpression : Operation, IIsTypeExpression
