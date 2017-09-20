@@ -1,5 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -9,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.ExtensionMethods
     Public Class AnonymousTypesTests
         Inherits BasicTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldsReferences()
             Dim source = <![CDATA[
@@ -46,7 +48,8 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeErrorInFieldReference()
             Dim source = <![CDATA[
@@ -81,7 +84,8 @@ BC30451: 'sss' is not declared. It may be inaccessible due to its protection lev
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldOfRestrictedType()
             Dim source = <![CDATA[
@@ -146,7 +150,8 @@ BC31396: 'TypedReference' cannot be made nullable, and cannot be used as the dat
 
             VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeReferenceToOuterTypeField()
             Dim source = <![CDATA[
@@ -183,7 +188,8 @@ BC36557: 'a' is not a member of '<anonymous type>'; it does not exist in the cur
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldReferenceOutOfOrder01()
             Dim source = <![CDATA[
@@ -218,7 +224,8 @@ BC36559: Anonymous type member property 'c' cannot be used to infer the type of 
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldReferenceOutOfOrder02()
             Dim source = <![CDATA[
@@ -252,7 +259,8 @@ BC36559: Anonymous type member property 'c' cannot be used to infer the type of 
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldInitializedWithInstanceMethod()
             Dim source = <![CDATA[
@@ -282,7 +290,8 @@ BC36557: 'ToString' is not a member of '<anonymous type>'; it does not exist in 
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldInitializedWithSharedMethod()
             Dim source = <![CDATA[
@@ -314,7 +323,8 @@ BC36557: 'ReferenceEquals' is not a member of '<anonymous type>'; it does not ex
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldInitializedWithExtensionMethod()
             Dim source = <![CDATA[
@@ -349,7 +359,8 @@ BC36557: 'EM' is not a member of '<anonymous type>'; it does not exist in the cu
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldInitializedWithConstructorCall()
             Dim source = <![CDATA[
@@ -379,7 +390,8 @@ BC36557: 'New' is not a member of '<anonymous type>'; it does not exist in the c
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldOfVoidType()
             Dim source = <![CDATA[
@@ -412,7 +424,8 @@ BC30491: Expression does not produce a value.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldNameWithGeneric()
             Dim source = <![CDATA[
@@ -444,7 +457,8 @@ BC32045: 'Public Property a As T0' has no type parameters and so cannot have typ
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldWithSyntaxError()
             Dim source = <![CDATA[
@@ -472,7 +486,8 @@ BC30203: Identifier expected.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldWithNothingLiteral()
             Dim source = <![CDATA[
@@ -497,7 +512,8 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldNameInferenceFromGeneric01()
             Dim source = <![CDATA[
@@ -531,7 +547,8 @@ BC36556: Anonymous type member name can be inferred only from a simple or qualif
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldNameInferenceFromXml01()
             Dim source = <![CDATA[
@@ -556,7 +573,8 @@ BC36556: Anonymous type member name can be inferred only from a simple or qualif
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics, additionalReferences:=XmlReferences)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldNameInferenceFromXml02()
             Dim source = <![CDATA[
@@ -576,7 +594,8 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics, additionalReferences:=XmlReferences)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldNameInferenceFromXml03()
             Dim source = <![CDATA[
@@ -600,7 +619,8 @@ BC36613: Anonymous type member name cannot be inferred from an XML identifier th
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics, additionalReferences:=XmlReferences)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <WorkItem(544370, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544370")>
         <Fact>
         Public Sub AnonymousTypeFieldNameInferenceFromXml04()
@@ -642,7 +662,8 @@ BC36613: Anonymous type member name cannot be inferred from an XML identifier th
 
             VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics, additionalReferences:=XmlReferences)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldNameInferenceFromExpression01()
             Dim source = <![CDATA[
@@ -669,7 +690,8 @@ BC36556: Anonymous type member name can be inferred only from a simple or qualif
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldNameInferenceFromExpression02()
             Dim source = <![CDATA[
@@ -698,7 +720,8 @@ BC36547: Anonymous type member or property 'a' is already declared.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldNameInferenceFromExpression03()
             Dim source = <![CDATA[
@@ -729,7 +752,8 @@ BC36547: Anonymous type member or property 'FLD' is already declared.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldNameInferenceFromExpression04()
             Dim source = <![CDATA[
@@ -753,8 +777,8 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
         Arguments(1):
             IArgument (ArgumentKind.Explicit, Matching Parameter: key) (OperationKind.Argument, IsInvalid) (Syntax: 'x')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "x", IsInvalid) (Syntax: 'x')
-              InConversion: null
-              OutConversion: null
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -765,7 +789,8 @@ BC36547: Anonymous type member or property 'x' is already declared.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldInitializedWithAddressOf()
             Dim source = <![CDATA[
@@ -787,6 +812,10 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
         Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'AddressOf S')
             Children(1):
                 IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf S')
+                  Children(1):
+                      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'S')
+                        Children(1):
+                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'S')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -797,7 +826,8 @@ BC30491: Expression does not produce a value.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldInitializedWithDelegate01()
             Dim source = <![CDATA[
@@ -850,7 +880,8 @@ BC36549: Anonymous type property 'x' cannot be used in the definition of a lambd
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldInitializedWithDelegate02()
             Dim source = <![CDATA[
@@ -904,7 +935,8 @@ BC36559: Anonymous type member property 'a' cannot be used to infer the type of 
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldInitializedWithDelegate03()
             Dim source = <![CDATA[
@@ -958,7 +990,8 @@ BC36557: 'x' is not a member of '<anonymous type>'; it does not exist in the cur
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldInitializedWithDelegate04()
             Dim source = <![CDATA[
@@ -1026,7 +1059,8 @@ BC36557: 'x' is not a member of '<anonymous type>'; it does not exist in the cur
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <WorkItem(542940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542940")>
         <Fact>
         Public Sub LambdaReturningAnonymousType()
@@ -1051,7 +1085,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
         <WorkItem(543286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543286")>
         <Fact>
         Public Sub AnonymousTypeInALambdaInGenericMethod1()
@@ -1079,7 +1113,8 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
             Dim verifier = CompileAndVerify(compilation, expectedOutput:="{ x2 = 0 }")
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeInALambdaInGenericMethod1_OperationTree()
             Dim source = <![CDATA[

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SyntaxTreeSemanticModel _parentSemanticModelOpt;
         private readonly int _speculatedPosition;
 
-        private readonly CSharpOperationFactory _operationFactory;
+        private readonly Lazy<CSharpOperationFactory> _operationFactory;
 
         protected MemberSemanticModel(CSharpCompilation compilation, CSharpSyntaxNode root, Symbol memberSymbol, Binder rootBinder, SyntaxTreeSemanticModel parentSemanticModelOpt, int speculatedPosition)
         {
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _parentSemanticModelOpt = parentSemanticModelOpt;
             _speculatedPosition = speculatedPosition;
 
-            _operationFactory = new CSharpOperationFactory(this);
+            _operationFactory = new Lazy<CSharpOperationFactory>(() => new CSharpOperationFactory(this));
         }
 
         public override CSharpCompilation Compilation
@@ -987,7 +987,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // as the start of a tree to get operations for. This is guaranteed by the builder that populates the node map, as it will call
             // UnboundLambda.BindForErrorRecovery() when it encounters an UnboundLambda node.
             Debug.Assert(result?.Kind != BoundKind.UnboundLambda);
-            return _operationFactory.Create(result);
+            return _operationFactory.Value.Create(result);
         }
 
         internal override SymbolInfo GetSymbolInfoWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))

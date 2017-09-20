@@ -59,8 +59,8 @@ IOperation:  (OperationKind.None) (Syntax: 'fixed(int * ... }')
                                     ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: System.Int32*) (Syntax: 'p')
                             Alignment: null
                             FormatString: null
-                    InConversion: null
-                    OutConversion: null
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

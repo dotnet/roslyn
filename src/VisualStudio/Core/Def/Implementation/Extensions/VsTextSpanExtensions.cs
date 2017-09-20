@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
 {
     internal static class VsTextSpanExtensions
     {
-        public static bool TryMapSpanFromSecondaryBufferToPrimaryBuffer(this VsTextSpan spanInSecondaryBuffer, Workspace workspace, DocumentId documentId, out VsTextSpan spanInPrimaryBuffer)
+        public static bool TryMapSpanFromSecondaryBufferToPrimaryBuffer(this VsTextSpan spanInSecondaryBuffer, Microsoft.CodeAnalysis.Workspace workspace, DocumentId documentId, out VsTextSpan spanInPrimaryBuffer)
         {
             spanInPrimaryBuffer = default;
 

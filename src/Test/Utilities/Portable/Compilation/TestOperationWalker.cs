@@ -100,30 +100,47 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitDefaultCaseClause(operation);
         }
 
-        public override void VisitWhileUntilLoopStatement(IWhileUntilLoopStatement operation)
-        {
-            var loopKind = operation.LoopKind;
-            var isTopTest = operation.IsTopTest;
-            var isWhile = operation.IsWhile;
-
-            base.VisitWhileUntilLoopStatement(operation);
-        }
-
-        public override void VisitForLoopStatement(IForLoopStatement operation)
+        private void WalkLoopStatement(ILoopStatement operation)
         {
             var loopKind = operation.LoopKind;
             foreach (var local in operation.Locals)
             {
                 // empty loop body, just want to make sure it won't crash.
             }
+        }
+
+        public override void VisitDoLoopStatement(IDoLoopStatement operation)
+        {
+            var doLoopKind = operation.DoLoopKind;
+            WalkLoopStatement(operation);
+
+            base.VisitDoLoopStatement(operation);
+        }
+
+        public override void VisitWhileLoopStatement(IWhileLoopStatement operation)
+        {
+            WalkLoopStatement(operation);
+
+            base.VisitWhileLoopStatement(operation);
+        }
+
+        public override void VisitForLoopStatement(IForLoopStatement operation)
+        {
+            WalkLoopStatement(operation);
 
             base.VisitForLoopStatement(operation);
         }
 
+        public override void VisitForToLoopStatement(IForToLoopStatement operation)
+        {
+            WalkLoopStatement(operation);
+
+            base.VisitForToLoopStatement(operation);
+        }
+
         public override void VisitForEachLoopStatement(IForEachLoopStatement operation)
         {
-            var loopKind = operation.LoopKind;
-            var iteraionVariable = operation.IterationVariable;
+            WalkLoopStatement(operation);
 
             base.VisitForEachLoopStatement(operation);
         }
@@ -163,12 +180,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitLockStatement(operation);
         }
 
-        public override void VisitTryStatement(ITryStatement operation)
+        internal override void VisitTryStatement(ITryStatement operation)
         {
             base.VisitTryStatement(operation);
         }
 
-        public override void VisitCatchClause(ICatchClause operation)
+        internal override void VisitCatchClause(ICatchClause operation)
         {
             var caughtType = operation.CaughtType;
             var exceptionLocal = operation.ExceptionLocal;
@@ -192,17 +209,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitExpressionStatement(operation);
         }
 
-        public override void VisitWithStatement(IWithStatement operation)
+        internal override void VisitWithStatement(IWithStatement operation)
         {
             base.VisitWithStatement(operation);
         }
 
-        public override void VisitStopStatement(IStopStatement operation)
+        internal override void VisitStopStatement(IStopStatement operation)
         {
             base.VisitStopStatement(operation);
         }
 
-        public override void VisitEndStatement(IEndStatement operation)
+        internal override void VisitEndStatement(IEndStatement operation)
         {
             base.VisitEndStatement(operation);
         }
@@ -228,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitOmittedArgumentExpression(operation);
         }
 
-        public override void VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation)
+        internal override void VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation)
         {
             base.VisitArrayElementReferenceExpression(operation);
         }
@@ -253,13 +270,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitParameterReferenceExpression(operation);
         }
 
-        public override void VisitSyntheticLocalReferenceExpression(ISyntheticLocalReferenceExpression operation)
-        {
-            var syntheticLocalKind = operation.SyntheticLocalKind;
-
-            base.VisitSyntheticLocalReferenceExpression(operation);
-        }
-
         public override void VisitInstanceReferenceExpression(IInstanceReferenceExpression operation)
         {
             base.VisitInstanceReferenceExpression(operation);
@@ -273,12 +283,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitFieldReferenceExpression(operation);
         }
 
-        public override void VisitMethodBindingExpression(IMethodBindingExpression operation)
+        public override void VisitMethodReferenceExpression(IMethodReferenceExpression operation)
         {
             var member = operation.Member;
             var method = operation.Method;
 
-            base.VisitMethodBindingExpression(operation);
+            base.VisitMethodReferenceExpression(operation);
         }
 
         public override void VisitPropertyReferenceExpression(IPropertyReferenceExpression operation)
@@ -314,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitConditionalAccessInstanceExpression(operation);
         }
 
-        public override void VisitPlaceholderExpression(IPlaceholderExpression operation)
+        internal override void VisitPlaceholderExpression(IPlaceholderExpression operation)
         {
             base.VisitPlaceholderExpression(operation);
         }
@@ -383,14 +393,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitIsTypeExpression(operation);
         }
 
-        public override void VisitSizeOfExpression(ISizeOfExpression operation)
+        internal override void VisitSizeOfExpression(ISizeOfExpression operation)
         {
             var typeOperand = operation.TypeOperand;
 
             base.VisitSizeOfExpression(operation);
         }
 
-        public override void VisitTypeOfExpression(ITypeOfExpression operation)
+        internal override void VisitTypeOfExpression(ITypeOfExpression operation)
         {
             var typeOperand = operation.TypeOperand;
 
@@ -416,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitLiteralExpression(operation);
         }
 
-        public override void VisitAwaitExpression(IAwaitExpression operation)
+        internal override void VisitAwaitExpression(IAwaitExpression operation)
         {
             base.VisitAwaitExpression(operation);
         }
@@ -448,14 +458,31 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitAnonymousObjectCreationExpression(operation);
         }
 
-        public override void VisitDynamicObjectCreationExpression(IDynamicObjectCreationExpression operation)
+        private void VisitDynamicArguments(HasDynamicArgumentsExpression operation)
         {
-            var name = operation.Name;
-            var applicableSymbols = operation.ApplicableSymbols;
             var names = operation.ArgumentNames;
             var refKinds = operation.ArgumentRefKinds;
+        }
+
+        public override void VisitDynamicObjectCreationExpression(IDynamicObjectCreationExpression operation)
+        {
+            VisitDynamicArguments((HasDynamicArgumentsExpression)operation);
 
             base.VisitDynamicObjectCreationExpression(operation);
+        }
+
+        public override void VisitDynamicInvocationExpression(IDynamicInvocationExpression operation)
+        {
+            VisitDynamicArguments((HasDynamicArgumentsExpression)operation);
+
+            base.VisitDynamicInvocationExpression(operation);
+        }
+
+        public override void VisitDynamicIndexerAccessExpression(IDynamicIndexerAccessExpression operation)
+        {
+            VisitDynamicArguments((HasDynamicArgumentsExpression)operation);
+
+            base.VisitDynamicIndexerAccessExpression(operation);
         }
 
         public override void VisitObjectOrCollectionInitializerExpression(IObjectOrCollectionInitializerExpression operation)
@@ -525,14 +552,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitCompoundAssignmentExpression(operation);
         }
 
-        public override void VisitIncrementExpression(IIncrementExpression operation)
+        public override void VisitIncrementOrDecrementExpression(IIncrementOrDecrementExpression operation)
         {
             var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
-            var isDecrement = operation.IsDecrement;
             var isPostFix = operation.IsPostfix;
 
-            base.VisitIncrementExpression(operation);
+            base.VisitIncrementOrDecrementExpression(operation);
         }
 
         public override void VisitParenthesizedExpression(IParenthesizedExpression operation)

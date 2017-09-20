@@ -15,7 +15,8 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class BindingMemberInitializerTests
         Inherits BasicTestBase
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub SimpleObjectInitialization()
             Dim source = <![CDATA[
@@ -49,7 +50,8 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializationWithFieldOnRight()
             Dim source = <![CDATA[
@@ -85,7 +87,8 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerEmptyInitializers()
             Dim source = <![CDATA[
@@ -117,7 +120,8 @@ BC30996: Initializer expected.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerMissingIdentifierInInitializer()
             Dim source = <![CDATA[
@@ -173,7 +177,8 @@ BC30451: 'Unknown' is not declared. It may be inaccessible due to its protection
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerOnlyDotIdentifierInInitializer()
             Dim source = <![CDATA[
@@ -214,7 +219,8 @@ BC30984: '=' expected (object initializer).
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerMissingExpressionInInitializer()
             Dim source = <![CDATA[
@@ -252,7 +258,8 @@ BC30201: Expression expected.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <WorkItem(529213, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529213")>
         <Fact()>
         Public Sub ObjectInitializerKeyKeywordInInitializer()
@@ -300,7 +307,8 @@ BC30451: 'Key' is not declared. It may be inaccessible due to its protection lev
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <WorkItem(544357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544357")>
         <Fact()>
         Public Sub ObjectInitializerMultipleInitializations()
@@ -346,7 +354,8 @@ BC30989: Multiple initializations of 'Field'.  Fields and properties can be init
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerInitializingObject()
             Dim source = <![CDATA[
@@ -412,7 +421,8 @@ End Class
 Hello World!
 ]]>)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerInitializeSharedFieldOnNewInstance()
             Dim source = <![CDATA[
@@ -448,7 +458,8 @@ BC30991: Member 'Field1' cannot be initialized in an object initializer expressi
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerInitializeNonExistentField()
             Dim source = <![CDATA[
@@ -498,7 +509,8 @@ BC30456: 'Field1' is not a member of 'C1'.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerInitializeInaccessibleField()
             Dim source = <![CDATA[
@@ -542,7 +554,8 @@ BC30389: 'C2.Field' is not accessible in this context because it is 'Protected'.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerInitializeNonWriteableMember()
             Dim source = <![CDATA[
@@ -569,6 +582,8 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
             Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.Goo = "Hello World!"')
                 Children(1):
                     IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Goo')
+                      Children(1):
+                          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C1() Wi ... lo World!"}')
             Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: ?) (Syntax: '"Hello World!"')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
@@ -582,7 +597,8 @@ BC30990: Member 'Goo' cannot be initialized in an object initializer expression 
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerInitializeReadOnlyProperty()
             Dim source = <![CDATA[
@@ -621,7 +637,8 @@ BC30526: Property 'X' is 'ReadOnly'.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerInitializeReadOnlyField()
             Dim source = <![CDATA[
@@ -660,7 +677,8 @@ BC30064: 'ReadOnly' variable cannot be the target of an assignment.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerPropertyWithInaccessibleSet()
             Dim source = <![CDATA[
@@ -701,7 +719,8 @@ BC31102: 'Set' accessor of property 'X' is not accessible.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerTypeIsErrorType()
             Dim source = <![CDATA[
@@ -781,7 +800,8 @@ BC30451: 'Unknown' is not declared. It may be inaccessible due to its protection
 
             VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerNewTWith()
             Dim source = <![CDATA[
@@ -818,7 +838,8 @@ ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreatio
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerTypeParametersInInitializers()
             Dim source = <![CDATA[
@@ -858,7 +879,8 @@ IObjectCreationExpression (Constructor: Sub C1(Of T)..ctor()) (OperationKind.Obj
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerNestedInWithStatement_1()
             Dim source =
@@ -909,7 +931,8 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source.Value, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerNestedInWithStatement_2()
             Dim source = <![CDATA[
@@ -958,7 +981,8 @@ BC30456: 'Field2' is not a member of 'C1'.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerNestedInitializers_1()
             Dim source =
@@ -1018,7 +1042,8 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source.Value, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerNestedInitializers_2()
             Dim source = <![CDATA[
@@ -1075,7 +1100,8 @@ BC30456: 'Field2' is not a member of 'C2'.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerCaptureFieldForLambda()
             Dim source =
@@ -1137,7 +1163,8 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source.Value, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerUsedInFieldInitializers()
             Dim source =
@@ -1210,7 +1237,8 @@ BC42104: Variable 'y' is used before it has been assigned a value. A null refere
                                                </expected>)
             ' Yeah! We did not have this in Dev10 :)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerInitializePropertyWithOptionalParameters()
             Dim source = <![CDATA[
@@ -1240,8 +1268,8 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
                 Arguments(1):
                     IArgument (ArgumentKind.DefaultValue, Matching Parameter: p) (OperationKind.Argument) (Syntax: 'X')
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 23) (Syntax: 'X')
-                      InConversion: null
-                      OutConversion: null
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
 ]]>.Value
 
@@ -1249,7 +1277,8 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerMemberAccessOnInitExpressionAllowsAllFields()
             Dim source = <![CDATA[
@@ -1289,23 +1318,24 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
                 Arguments(1):
                     IArgument (ArgumentKind.DefaultValue, Matching Parameter: p) (OperationKind.Argument) (Syntax: 'X')
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 23) (Syntax: 'X')
-                      InConversion: null
-                      OutConversion: null
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Right: IInvocationExpression ( Function C1.InstanceFunction(p As System.String) As System.String) (OperationKind.InvocationExpression, Type: System.String) (Syntax: '.InstanceFu ... on(.ROProp)')
                 Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1() Wi ... n(.ROProp)}')
                 Arguments(1):
                     IArgument (ArgumentKind.Explicit, Matching Parameter: p) (OperationKind.Argument) (Syntax: '.ROProp')
                       IPropertyReferenceExpression: ReadOnly Property C1.ROProp As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: '.ROProp')
                         Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1() Wi ... n(.ROProp)}')
-                      InConversion: null
-                      OutConversion: null
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerUsingInitializedTargetInInitializerValueType()
             Dim source = <![CDATA[
@@ -1353,7 +1383,8 @@ IObjectCreationExpression (Constructor: Sub s1..ctor()) (OperationKind.ObjectCre
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerWithLifting_1()
             Dim source = <![CDATA[
@@ -1426,7 +1457,8 @@ IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCre
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerDictionaryLookupOperatorSupported()
             Dim source = <![CDATA[
@@ -1466,15 +1498,16 @@ IObjectCreationExpression (Constructor: Sub cust..ctor()) (OperationKind.ObjectC
                     Arguments(1):
                         IArgument (ArgumentKind.Explicit, Matching Parameter: arg) (OperationKind.Argument) (Syntax: 'a')
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "a") (Syntax: 'a')
-                          InConversion: null
-                          OutConversion: null
+                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerInField()
             Dim source = <![CDATA[

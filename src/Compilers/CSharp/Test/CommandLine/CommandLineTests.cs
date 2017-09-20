@@ -1417,7 +1417,7 @@ d.cs
         public void LanguageVersion_TryParseTurkishDisplayString()
         {
             var originalCulture = Thread.CurrentThread.CurrentCulture;
-            Thread.CurrentThread.CurrentCulture = new CultureInfo("tr-TR");
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("tr-TR", useUserOverride: false);
             Assert.True("ISO-1".TryParse(out var version));
             Assert.Equal(LanguageVersion.CSharp1, version);
             Thread.CurrentThread.CurrentCulture = originalCulture;
