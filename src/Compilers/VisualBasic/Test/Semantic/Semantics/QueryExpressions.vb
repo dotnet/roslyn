@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -155,8 +155,6 @@ End Class
 Module Module1
     Sub Main()
         Dim q As New QueryAble()
-        Dim q1 As Object = From s In q Where s > 0
-        System.Console.WriteLine("-----")
         Dim q2 As Object = From s In q Where s > 0 Where 10 > s'BIND:"From s In q Where s > 0 Where 10 > s"
     End Sub
 End Module]]>.Value
@@ -536,8 +534,6 @@ End Class
 
 Module Module1
     Sub Main()
-        Dim q As New QueryAble2()
-        Dim q1 As Object = From s In q
         Dim y = From z In New C Select z Select z = z.ToString() Select z.ToUpper()'BIND:"From z In New C Select z Select z = z.ToString() Select z.ToUpper()"
     End Sub
 End Module]]>.Value

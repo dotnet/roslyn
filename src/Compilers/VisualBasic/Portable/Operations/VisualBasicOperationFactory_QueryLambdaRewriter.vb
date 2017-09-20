@@ -69,8 +69,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Private ReadOnly _uniqueNodes As New HashSet(Of BoundParameter)
 
             Public Overrides Function VisitParameter(node As BoundParameter) As BoundNode
-                node = DirectCast(MyBase.VisitParameter(node), BoundParameter)
-
                 If node.ParameterSymbol?.ContainingSymbol.IsQueryLambdaMethod AndAlso Not _uniqueNodes.Add(node) Then
                     node = New BoundParameter(node.Syntax, node.ParameterSymbol, node.IsLValue, node.SuppressVirtualCalls, node.Type, node.HasErrors)
                 End If
