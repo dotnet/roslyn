@@ -485,6 +485,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             DefaultVisit(operation);
         }
+
+        public virtual void VisitTranslatedQueryExpression(ITranslatedQueryExpression operation)
+        {
+            DefaultVisit(operation);
+        }
     }
 
     /// <summary>
@@ -973,6 +978,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitTupleExpression(ITupleExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitTranslatedQueryExpression(ITranslatedQueryExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

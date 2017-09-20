@@ -638,5 +638,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             base.VisitPatternCaseClause(operation);
         }
+
+        public override void VisitTranslatedQueryExpression(ITranslatedQueryExpression operation)
+        {
+            base.VisitTranslatedQueryExpression(operation);
+        }
     }
 }

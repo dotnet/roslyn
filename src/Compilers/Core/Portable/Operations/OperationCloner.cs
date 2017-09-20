@@ -475,5 +475,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return new TupleExpression(VisitArray(operation.Elements), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
+
+        public override IOperation VisitTranslatedQueryExpression(ITranslatedQueryExpression operation, object argument)
+        {
+            return new TranslatedQueryExpression(Visit(operation.Expression), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
     }
 }
