@@ -280,12 +280,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new IsTypeExpression(Visit(operation.Operand), operation.IsType, operation.IsNotTypeExpression, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        internal override IOperation VisitSizeOfExpression(ISizeOfExpression operation, object argument)
+        public override IOperation VisitSizeOfExpression(ISizeOfExpression operation, object argument)
         {
             return new SizeOfExpression(operation.TypeOperand, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        internal override IOperation VisitTypeOfExpression(ITypeOfExpression operation, object argument)
+        public override IOperation VisitTypeOfExpression(ITypeOfExpression operation, object argument)
         {
             return new TypeOfExpression(operation.TypeOperand, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }

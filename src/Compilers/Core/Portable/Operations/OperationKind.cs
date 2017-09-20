@@ -156,12 +156,10 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>Indicates an <see cref="IDefaultValueExpression"/>.</summary>
         DefaultValueExpression = 0x200,
-        // https://github.com/dotnet/roslyn/issues/22003
-        // /// <summary>Indicates an <see cref="ITypeOfExpression"/>.</summary>
-        // TypeOfExpression = 0x201,
-        // https://github.com/dotnet/roslyn/issues/21296
-        // /// <summary>Indicates an <see cref="ISizeOfExpression"/>.</summary>
-        // SizeOfExpression = 0x202,
+        /// <summary>Indicates an <see cref="ITypeOfExpression"/>.</summary>
+        TypeOfExpression = 0x201,
+        /// <summary>Indicates an <see cref="ISizeOfExpression"/>.</summary>
+        SizeOfExpression = 0x202,
         /// <summary>Indicates an <see cref="IAddressOfExpression"/>.</summary>
         AddressOfExpression = 0x203,
         // <summary>Indicates an <see cref="IPointerIndirectionReferenceExpression"/>.</summary>

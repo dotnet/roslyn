@@ -976,7 +976,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Unindent();
         }
 
-        internal override void VisitSizeOfExpression(ISizeOfExpression operation)
+        public override void VisitSizeOfExpression(ISizeOfExpression operation)
         {
             LogString(nameof(ISizeOfExpression));
             LogCommonPropertiesAndNewLine(operation);
@@ -987,7 +987,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Unindent();
         }
 
-        internal override void VisitTypeOfExpression(ITypeOfExpression operation)
+        public override void VisitTypeOfExpression(ITypeOfExpression operation)
         {
             LogString(nameof(ITypeOfExpression));
             LogCommonPropertiesAndNewLine(operation);
