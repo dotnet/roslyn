@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             isImplicit As Boolean) As IArgument
 
             ' put argument syntax to argument operation
-            Dim argumentExist = TypeOf value.Syntax?.Parent Is ArgumentSyntax
+            Dim argument = TryCast(value.Syntax?.Parent, ArgumentSyntax)
 
             ' if argument syntax doesn't exist, then this operation is implicit
             Return New VisualBasicArgument(
@@ -147,10 +147,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 inConversion:=inConversion,
                 outConversion:=outConversion,
                 semanticModel:=_semanticModel,
-                syntax:=If(argumentExist, value.Syntax.Parent, value.Syntax),
+                syntax:=If(argument, value.Syntax),
                 type:=Nothing,
                 constantValue:=Nothing,
-                isImplicit:=isImplicit OrElse Not argumentExist)
+                isImplicit:=isImplicit OrElse argument Is Nothing)
         End Function
 
         Private Shared Function ParameterIsParamArray(parameter As VisualBasic.Symbols.ParameterSymbol) As Boolean

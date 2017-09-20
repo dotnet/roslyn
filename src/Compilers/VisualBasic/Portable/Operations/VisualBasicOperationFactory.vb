@@ -1083,7 +1083,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
 
-            ' if child has syntax node point to same syntax node as bad statement, then this invalid statement Is implicit
+            ' if child has syntax node point to same syntax node as bad statement, then this invalid statement is implicit
             Dim isImplicit = boundBadStatement.WasCompilerGenerated OrElse boundBadStatement.ChildBoundNodes.Any(Function(e) e?.Syntax Is boundBadStatement.Syntax)
             Return New LazyInvalidStatement(children, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
