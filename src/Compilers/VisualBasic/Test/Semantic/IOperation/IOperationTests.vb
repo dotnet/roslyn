@@ -382,7 +382,7 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/22224")>
         Public Sub TestClone()
             Dim sourceCode = TestResource.AllInOneVisualBasicCode
 
@@ -397,7 +397,7 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/22224")>
         Public Sub TestParentOperations()
             Dim sourceCode = TestResource.AllInOneVisualBasicCode
 
