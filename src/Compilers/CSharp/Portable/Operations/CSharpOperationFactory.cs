@@ -241,13 +241,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         private ImmutableArray<IOperation> GetIOperationChildren(BoundNode boundNode)
         {
             var boundNodeWithChildren = (IBoundNodeWithIOperationChildren)boundNode;
-            if (boundNodeWithChildren.Children.IsDefaultOrEmpty)
+            var children = boundNodeWithChildren.Children;
+            if (children.IsDefaultOrEmpty)
             {
                 return ImmutableArray<IOperation>.Empty;
             }
 
-            var builder = ArrayBuilder<IOperation>.GetInstance(boundNodeWithChildren.Children.Length);
-            foreach (BoundNode childNode in boundNodeWithChildren.Children)
+            var builder = ArrayBuilder<IOperation>.GetInstance(children.Length);
+            foreach (BoundNode childNode in children)
             {
                 IOperation operation = Create(childNode);
                 if (operation == null)

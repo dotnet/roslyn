@@ -980,38 +980,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // if binding root is parameter, make it equal value
             // we need to do this since node map doesn't contain bound node for parameter
-            var parameter = bindingRoot as ParameterSyntax;
-            if (parameter != null && parameter.Default?.FullSpan.Contains(node.Span) == true)
+            if (bindingRoot is ParameterSyntax parameter && parameter.Default?.FullSpan.Contains(node.Span) == true)
             {
-                bindingRoot = parameter.Default;
+                return parameter.Default;
             }
 
             // if binding root is field variable declarator, make it initializer
             // we need to do this since node map doesn't contain bound node for field/event variable declarator
-            var variableDeclarator = bindingRoot as VariableDeclaratorSyntax;
-            if (variableDeclarator != null && variableDeclarator.Initializer?.FullSpan.Contains(node.Span) == true)
+            if (bindingRoot is VariableDeclaratorSyntax variableDeclarator && variableDeclarator.Initializer?.FullSpan.Contains(node.Span) == true)
             {
                 if (variableDeclarator.Parent?.Parent.IsKind(SyntaxKind.FieldDeclaration) == true ||
                     variableDeclarator.Parent?.Parent.IsKind(SyntaxKind.EventFieldDeclaration) == true)
                 {
-                    bindingRoot = variableDeclarator.Initializer;
+                    return variableDeclarator.Initializer;
                 }
             }
 
             // if binding root is enum member decleration, make it equal value
             // we need to do this since node map doesn't contain bound node for enum member decl
-            var enumMember = bindingRoot as EnumMemberDeclarationSyntax;
-            if (enumMember != null && enumMember.EqualsValue?.FullSpan.Contains(node.Span) == true)
+            if (bindingRoot is EnumMemberDeclarationSyntax enumMember && enumMember.EqualsValue?.FullSpan.Contains(node.Span) == true)
             {
-                bindingRoot = enumMember.EqualsValue;
+                return enumMember.EqualsValue;
             }
 
             // if binding root is property member decleration, make it equal value
             // we need to do this since node map doesn't contain bound node for property initializer
-            var propertyMember = bindingRoot as PropertyDeclarationSyntax;
-            if (propertyMember != null && propertyMember.Initializer?.FullSpan.Contains(node.Span) == true)
+            if (bindingRoot is PropertyDeclarationSyntax propertyMember && propertyMember.Initializer?.FullSpan.Contains(node.Span) == true)
             {
-                bindingRoot = propertyMember.Initializer;
+                return propertyMember.Initializer;
             }
 
             return bindingRoot;
@@ -1336,8 +1332,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
-            StatementSyntax enclosingStatement = null;
-
 #if DEBUG
             for (CSharpSyntaxNode current = node; current != this.Root; current = current.ParentOrStructuredTriviaParent)
             {
@@ -1348,10 +1342,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (CSharpSyntaxNode current = node; current != this.Root; current = current.ParentOrStructuredTriviaParent)
             {
-                enclosingStatement = current as StatementSyntax;
-                if (enclosingStatement != null)
+                if (current is StatementSyntax)
                 {
-                    return enclosingStatement;
+                    return current;
                 }
             }
 

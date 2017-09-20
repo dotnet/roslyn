@@ -141,13 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundStatementList
     {
-        protected override ImmutableArray<BoundNode> Children
-        {
-            get
-            {
-                System.Diagnostics.Debug.Assert(this.Kind == BoundKind.StatementList || this.Kind == BoundKind.Scope);
-                return StaticCast<BoundNode>.From(this.Statements);
-            }
-        }
+        protected override ImmutableArray<BoundNode> Children => 
+            (this.Kind == BoundKind.StatementList || this.Kind == BoundKind.Scope) ? StaticCast<BoundNode>.From(this.Statements) : ImmutableArray<BoundNode>.Empty;
     }
 }
