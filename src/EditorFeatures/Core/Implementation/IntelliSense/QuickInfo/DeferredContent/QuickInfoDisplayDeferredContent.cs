@@ -36,32 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             _exceptionText = exceptionText;
         }
 
-        public FrameworkElement Create()
-        {
-            FrameworkElement warningGlyphElement = null;
-            if (_warningGlyph != null)
-            {
-                warningGlyphElement = _warningGlyph.Create();
-            }
-
-            FrameworkElement symbolGlyphElement = null;
-            if (_symbolGlyph != null)
-            {
-                symbolGlyphElement = _symbolGlyph.Create();
-            }
-
-            return new QuickInfoDisplayPanel(
-                symbolGlyphElement,
-                warningGlyphElement,
-                _mainDescription.Create(),
-                _documentation.Create(),
-                _typeParameterMap.Create(),
-                _anonymousTypes.Create(),
-                _usageText.Create(),
-                _exceptionText.Create());
-        }
-
-        // For testing...
         internal ClassifiableDeferredContent MainDescription
         {
             get

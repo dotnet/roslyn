@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Editor.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -15,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
         private class QuickInfoPresenterSession : ForegroundThreadAffinitizedObject, IQuickInfoPresenterSession
         {
             private readonly IQuickInfoBroker _quickInfoBroker;
+            private readonly DeferredContentFrameworkElementFactory _elementFactory;
             private readonly ITextView _textView;
             private readonly ITextBuffer _subjectBuffer;
 
@@ -25,14 +27,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
 
             public event EventHandler<EventArgs> Dismissed;
 
-            public QuickInfoPresenterSession(IQuickInfoBroker quickInfoBroker, ITextView textView, ITextBuffer subjectBuffer)
-                : this(quickInfoBroker, textView, subjectBuffer, null)
+            public QuickInfoPresenterSession(IQuickInfoBroker quickInfoBroker, DeferredContentFrameworkElementFactory elementFactory, ITextView textView, ITextBuffer subjectBuffer)
+                : this(quickInfoBroker, elementFactory, textView, subjectBuffer, null)
             {
             }
 
-            public QuickInfoPresenterSession(IQuickInfoBroker quickInfoBroker, ITextView textView, ITextBuffer subjectBuffer, IQuickInfoSession sessionOpt)
+            public QuickInfoPresenterSession(IQuickInfoBroker quickInfoBroker, DeferredContentFrameworkElementFactory elementFactory, ITextView textView, ITextBuffer subjectBuffer, IQuickInfoSession sessionOpt)
             {
                 _quickInfoBroker = quickInfoBroker;
+                _elementFactory = elementFactory;
                 _textView = textView;
                 _subjectBuffer = subjectBuffer;
                 _editorSessionOpt = sessionOpt;
@@ -101,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
             internal void AugmentQuickInfoSession(IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
             {
                 applicableToSpan = _triggerSpan;
-                quickInfoContent.Add(_item.Content.Create());
+                quickInfoContent.Add(_elementFactory.CreateElement(_item.Content));
             }
         }
     }
