@@ -36,6 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, location, diagnostics, out modifierErrors);
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false);
 
+            if (syntax.Identifier.ValueText != containingType.Name)
+            {
+                // This is probably a method declaration with the type missing.
+                diagnostics.Add(ErrorCode.ERR_MemberNeedsType, location);
+            }
+
             bool hasBlockBody = syntax.Body != null;
             _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
 

@@ -2313,7 +2313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType, diagnostics, typeSyntax);
 
-                return new BoundLocal(declarationExpression, localSymbol, isDeclaration:true, constantValueOpt: null, type: declType);
+                return new BoundLocal(declarationExpression, localSymbol, isDeclaration: true, constantValueOpt: null, type: declType);
             }
 
             // Is this a field?
@@ -2342,7 +2342,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol fieldType = expressionVariableField.GetFieldType(this.FieldsBeingBound);
             return new BoundFieldAccess(declarationExpression,
                                         receiver,
-                                        expressionVariableField, null, LookupResultKind.Viable, fieldType);
+                                        expressionVariableField,
+                                        null,
+                                        LookupResultKind.Viable,
+                                        isDeclaration: true,
+                                        type: fieldType);
         }
 
         /// <summary>
@@ -3958,8 +3962,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expanded,
                 argsToParamsOpt,
                 resultKind,
-                boundMember.Type,
-                hasErrors);
+                binderOpt: this,
+                type: boundMember.Type,
+                hasErrors: hasErrors);
         }
 
         private static bool CheckNestedObjectInitializerPropertySymbol(
@@ -4412,6 +4417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     result = new BoundDynamicObjectCreationExpression(
                         node,
+                        typeName,
                         argArray,
                         analyzedArguments.GetNames(),
                         analyzedArguments.RefKinds.ToImmutableOrNull(),

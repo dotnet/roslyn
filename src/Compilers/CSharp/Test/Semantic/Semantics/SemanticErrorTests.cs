@@ -10813,6 +10813,28 @@ class D : C
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_BadTypeReference, Line = 16, Column = 32 } });
         }
 
+        [Fact]
+        public void CS0574ERR_BadDestructorName()
+        {
+            var test = @"
+namespace x
+{
+    public class iii
+    {
+        ~iiii(){}
+        public static void Main()
+        {
+        }
+    }
+}
+";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (6,10): error CS0574: Name of destructor must match name of class
+                //         ~iiii(){}
+                Diagnostic(ErrorCode.ERR_BadDestructorName, "iiii").WithLocation(6, 10));
+        }
+
         [WorkItem(541951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541951")]
         [Fact]
         public void CS0611ERR_ArrayElementCantBeRefAny()
@@ -13447,6 +13469,26 @@ public class A : Attribute
 ";
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_BaseInBadContext, Line = 4, Column = 18 } });
+        }
+
+        [Fact]
+        public void CS1520ERR_MemberNeedsType_02()
+        {
+            CreateStandardCompilation(
+@"class Program
+{
+    Main() {}
+    Helper() {}
+    \u0050rogram(int x) {}
+}")
+                .VerifyDiagnostics(
+                // (3,5): error CS1520: Method must have a return type
+                //     Main() {}
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Main"),
+                // (4,5): error CS1520: Method must have a return type
+                //     Helper() {}
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Helper").WithLocation(4, 5)
+                );
         }
 
         [Fact]

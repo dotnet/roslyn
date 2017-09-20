@@ -4391,9 +4391,6 @@ class C
 ";
             var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (3,2): error CS1520: Method must have a return type
-                // {
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "").WithLocation(3, 2),
                 // (4,11): error CS1001: Identifier expected
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(4, 11),
@@ -4418,15 +4415,18 @@ class C
                 // (4,19): error CS1519: Invalid token '1' in class, struct, or interface member declaration
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "1").WithArguments("1").WithLocation(4, 19),
+                // (4,5): error CS1520: Method must have a return type
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "var").WithLocation(4, 5),
+                // (4,5): error CS0501: 'C.C(x, y)' must declare a body because it is not marked abstract, extern, or partial
+                //     var (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "var").WithArguments("C.C(x, y)").WithLocation(4, 5),
                 // (4,10): error CS0246: The type or namespace name 'x' could not be found (are you missing a using directive or an assembly reference?)
                 //     var (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "x").WithArguments("x").WithLocation(4, 10),
                 // (4,13): error CS0246: The type or namespace name 'y' could not be found (are you missing a using directive or an assembly reference?)
                 //     var (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "y").WithArguments("y").WithLocation(4, 13),
-                // (4,5): error CS0501: 'C.var(x, y)' must declare a body because it is not marked abstract, extern, or partial
-                //     var (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "var").WithArguments("C.var(x, y)").WithLocation(4, 5)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "y").WithArguments("y").WithLocation(4, 13)
                 );
 
             var nodes = comp.SyntaxTrees[0].GetCompilationUnitRoot().DescendantNodesAndSelf();

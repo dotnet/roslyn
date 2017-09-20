@@ -1417,7 +1417,7 @@ d.cs
         public void LanguageVersion_TryParseTurkishDisplayString()
         {
             var originalCulture = Thread.CurrentThread.CurrentCulture;
-            Thread.CurrentThread.CurrentCulture = new CultureInfo("tr-TR");
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("tr-TR", useUserOverride: false);
             Assert.True("ISO-1".TryParse(out var version));
             Assert.Equal(LanguageVersion.CSharp1, version);
             Thread.CurrentThread.CurrentCulture = originalCulture;
@@ -9211,6 +9211,77 @@ class C {
                 var pdbPath = Path.Combine(dir.Path, "a.pdb");
                 AssertPdbEmit(dir, pdbPath, @"a.pdb", $@"/features:pdb-path-determinism");
             }
+        }
+
+        [CompilerTrait(CompilerFeature.Determinism)]
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void DeterministicPdbsRegardlessOfBitness()
+        {
+            var dir = Temp.CreateDirectory();
+            var dir32 = dir.CreateDirectory("32");
+            var dir64 = dir.CreateDirectory("64");
+
+            var programExe32 = dir32.CreateFile("Program.exe");
+            var programPdb32 = dir32.CreateFile("Program.pdb");
+            var programExe64 = dir64.CreateFile("Program.exe");
+            var programPdb64 = dir64.CreateFile("Program.pdb");
+
+            var sourceFile = dir.CreateFile("Source.cs").WriteAllText(@"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+namespace N
+{
+    using I4 = System.Int32;
+    
+    class Program
+    {
+        public static IEnumerable<int> F() 
+        {
+            I4 x = 1; 
+            yield return 1;
+            yield return x;
+        }
+
+        public static void Main(string[] args) 
+        {
+            dynamic x = 1;
+            const int a = 1;
+            F().ToArray();
+            Console.WriteLine(x + a);
+        }
+    }
+}");
+            var csc32src = $@"
+using System;
+using System.Reflection;
+
+class Runner
+{{
+    static int Main(string[] args)
+    {{
+        var assembly = Assembly.LoadFrom(@""{s_CSharpCompilerExecutable}"");
+        var program = assembly.GetType(""{typeof(Program).FullName}"");
+        var main = program.GetMethod(""Main"");
+        return (int)main.Invoke(null, new object[] {{ args }});
+    }}
+}}
+";
+            var csc32 = CreateCompilationWithMscorlib46(csc32src, options: TestOptions.ReleaseExe.WithPlatform(Platform.X86), assemblyName: "csc32");
+            var csc32exe = dir.CreateFile("csc32.exe").WriteAllBytes(csc32.EmitToArray());
+
+            dir.CopyFile(Path.ChangeExtension(s_CSharpCompilerExecutable, ".exe.config"), "csc32.exe.config");
+            dir.CopyFile(Path.Combine(Path.GetDirectoryName(s_CSharpCompilerExecutable), "csc.rsp"));
+
+            var output = ProcessUtilities.RunAndGetOutput(csc32exe.Path, $@"/nologo /debug:full /deterministic /out:Program.exe /pathmap:{dir32.Path}=X:\ ""{sourceFile.Path}""", expectedRetCode: 0, startFolder: dir32.Path);
+            Assert.Equal("", output);
+
+            output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, $@"/nologo /debug:full /deterministic /out:Program.exe /pathmap:{dir64.Path}=X:\ ""{sourceFile.Path}""", expectedRetCode: 0, startFolder: dir64.Path);
+            Assert.Equal("", output);
+
+            AssertEx.Equal(programExe32.ReadAllBytes(), programExe64.ReadAllBytes());
+            AssertEx.Equal(programPdb32.ReadAllBytes(), programPdb64.ReadAllBytes());
         }
 
         [WorkItem(7588, "https://github.com/dotnet/roslyn/issues/7588")]

@@ -15,9 +15,9 @@ Imports Microsoft.CodeAnalysis.SymbolSearch
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     <ComVisible(True)>
     Public Class AutomationObject
-        Private ReadOnly _workspace As Workspace
+        Private ReadOnly _workspace As CodeAnalysis.Workspace
 
-        Friend Sub New(workspace As Workspace)
+        Friend Sub New(workspace As CodeAnalysis.Workspace)
             _workspace = workspace
         End Sub
 

@@ -36,8 +36,8 @@
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
     <MicrosoftDiagnosticsTracingTraceEventVersion>1.0.35</MicrosoftDiagnosticsTracingTraceEventVersion>
     <MicrosoftDiaSymReaderVersion>1.2.0-beta1-62008-01</MicrosoftDiaSymReaderVersion>
-    <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta1-62016-01</MicrosoftDiaSymReaderConverterXmlVersion>
-    <MicrosoftDiaSymReaderNativeVersion>1.7.0-private-25604</MicrosoftDiaSymReaderNativeVersion>
+    <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta1-62106-02</MicrosoftDiaSymReaderConverterXmlVersion>
+    <MicrosoftDiaSymReaderNativeVersion>1.7.0-beta-25631</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion>1.4.0-beta1-62016-01</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftDotNetIBCMerge>4.7.2-alpha-00001</MicrosoftDotNetIBCMerge>
     <MicrosoftDotNetVersionToolsVersion>1.0.27-prerelease-01811-02</MicrosoftDotNetVersionToolsVersion>
@@ -48,7 +48,7 @@
     <MicrosoftMSXMLVersion>8.0.0.0-alpha</MicrosoftMSXMLVersion>
     <MicrosoftNETTestSdkVersion>15.3.0</MicrosoftNETTestSdkVersion>
     <MicrosoftNetCompilersVersion>2.3.1</MicrosoftNetCompilersVersion>
-    <MicrosoftNetRoslynDiagnosticsVersion>2.3.0-beta1</MicrosoftNetRoslynDiagnosticsVersion>
+    <MicrosoftNetRoslynDiagnosticsVersion>2.3.0-beta2-62118-03</MicrosoftNetRoslynDiagnosticsVersion>
     <MicrosoftNetCoreILAsmVersion>2.0.0</MicrosoftNetCoreILAsmVersion>
     <MicrosoftNETCoreCompilersVersion>2.3.1-beta1-61919-13</MicrosoftNETCoreCompilersVersion>
     <MicrosoftNETCoreVersion>5.0.0</MicrosoftNETCoreVersion>
@@ -93,8 +93,7 @@
     <MicrosoftVisualStudioProjectSystemVersion>15.3.178-pre-g209fb07c2e</MicrosoftVisualStudioProjectSystemVersion>
     <MicrosoftVisualStudioQualityToolsUnitTestFrameworkVersion>10.0.0.0-alpha</MicrosoftVisualStudioQualityToolsUnitTestFrameworkVersion>
     <MicrosoftVisualStudioRemoteControlVersion>14.0.249-master2E2DC10C</MicrosoftVisualStudioRemoteControlVersion>
-    <MicrosoftVisualStudioSetupConfigurationInteropVersion>1.3.269-rc</MicrosoftVisualStudioSetupConfigurationInteropVersion>
-    <MicrosoftVisualStudioSetupConfigurationNativex86Version>1.3.269-rc</MicrosoftVisualStudioSetupConfigurationNativex86Version>
+    <MicrosoftVisualStudioSetupConfigurationInteropVersion>1.11.2290</MicrosoftVisualStudioSetupConfigurationInteropVersion>
     <MicrosoftVisualStudioSettings140Version>14.3.25407</MicrosoftVisualStudioSettings140Version>
     <MicrosoftVisualStudioShell140Version>14.3.25407</MicrosoftVisualStudioShell140Version>
     <MicrosoftVisualStudioShell150Version>15.0.26606</MicrosoftVisualStudioShell150Version>
@@ -129,7 +128,7 @@
     <MicrosoftWin32PrimitivesVersion>4.3.0</MicrosoftWin32PrimitivesVersion>
     <MDbgVersion>0.1.0</MDbgVersion>
     <MonoOptionsVersion>4.4.0</MonoOptionsVersion>
-    <MoqVersion>4.2.1402.2112</MoqVersion>
+    <MoqVersion>4.7.99</MoqVersion>
     <NerdbankFullDuplexStreamVersion>1.0.1</NerdbankFullDuplexStreamVersion>
     <NETStandardLibraryVersion>1.6.1</NETStandardLibraryVersion>
     <NewtonsoftJsonVersion>9.0.1</NewtonsoftJsonVersion>
@@ -172,6 +171,7 @@
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
     <SystemIOFileSystemWatcherVersion>4.3.0</SystemIOFileSystemWatcherVersion>
     <SystemIOPipesVersion>4.3.0</SystemIOPipesVersion>
+    <SystemIOPipesAccessControlVersion>4.3.0</SystemIOPipesAccessControlVersion>
     <SystemLinqVersion>4.3.0</SystemLinqVersion>
     <SystemLinqExpressionsVersion>4.3.0</SystemLinqExpressionsVersion>
     <SystemLinqParallelVersion>4.3.0</SystemLinqParallelVersion>

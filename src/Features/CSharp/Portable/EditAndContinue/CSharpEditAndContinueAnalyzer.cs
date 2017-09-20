@@ -3217,51 +3217,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SyntaxNode newActiveStatement,
             bool isLeaf)
         {
-            ReportRudeEditsForUnsupportedCSharp7EnC(diagnostics, match);
             ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement, isLeaf);
             ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isLeaf);
-        }
-
-        /// <summary>
-        /// If either trees (after or before the edit) contain unsupported C# 7 features around the active statement, report it.
-        /// </summary>
-        private void ReportRudeEditsForUnsupportedCSharp7EnC(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match)
-        {
-            SyntaxNode foundCSharp7Syntax = match.NewRoot.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharp7EnCNode(n));
-            if (foundCSharp7Syntax != null)
-            {
-                AddRudeUpdateAroundActiveStatement(diagnostics, foundCSharp7Syntax);
-                return;
-            }
-
-            foundCSharp7Syntax = match.OldRoot.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharp7EnCNode(n));
-            if (foundCSharp7Syntax != null)
-            {
-                AddRudeUpdateInCSharp7Method(diagnostics, foundCSharp7Syntax);
-            }
-        }
-
-        /// <summary>
-        /// If the active method used unsupported C# 7 features before the edit, it needs to be reported.
-        /// </summary>
-        private void AddRudeUpdateInCSharp7Method(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldCSharp7Syntax)
-        {
-            diagnostics.Add(new RudeEditDiagnostic(
-                RudeEditKind.UpdateAroundActiveStatement,
-                default, // no span since the offending node is in the old syntax
-                oldCSharp7Syntax,
-                new[] { GetStatementDisplayName(oldCSharp7Syntax, EditKind.Update) }));
-        }
-
-        private static bool IsUnsupportedCSharp7EnCNode(SyntaxNode n)
-        {
-            switch (n.Kind())
-            {
-                case SyntaxKind.LocalFunctionStatement:
-                    return true;
-                default:
-                    return false;
-            }
         }
 
         private void ReportRudeEditsForCheckedStatements(

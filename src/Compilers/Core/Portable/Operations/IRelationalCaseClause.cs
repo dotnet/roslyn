@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Relational operator used to compare the switch value with the case value.
         /// </summary>
-        BinaryOperationKind Relation { get; }
+        BinaryOperatorKind Relation { get; }
     }
 }
 

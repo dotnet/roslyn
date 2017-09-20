@@ -23,11 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // We currently pack everything into a 32 bit int with the following layout:
             //
-            // |   |s|r|q|z|y|xxxxxxxxxxxxxxxxxxxxx|wwwww|
+            // |   |s|r|q|z|y|xxxxxxxxxxxxxxxxxxxxxx|wwwww|
             // 
             // w = method kind.  5 bits.
             //
-            // x = modifiers.  21 bits.
+            // x = modifiers.  22 bits.
             //
             // y = returnsVoid. 1 bit.
             //

@@ -830,6 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             field,
                                             constantValueOpt: null,
                                             resultKind: LookupResultKind.Viable,
+                                            isDeclaration: true,
                                             type: fieldType);
             }
 
