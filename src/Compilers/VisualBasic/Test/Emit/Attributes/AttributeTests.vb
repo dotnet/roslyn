@@ -63,6 +63,54 @@ End Class
             CompilationUtils.AssertNoDiagnostics(comp)
         End Sub
 
+        <Fact>
+        <WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")>
+        Public Sub TestNamedArgumentOnStringParamsArgument()
+            Dim source =
+                <compilation>
+                    <file name="a.vb">
+                        <![CDATA[
+Imports System
+
+Class MarkAttribute
+    Inherits Attribute
+
+    Public Sub New(ByVal otherArg As Boolean, ParamArray args As Object())
+    End Sub
+End Class
+
+<Mark(args:=New String() {"Hello", "World"}, otherArg:=True)>
+Module Program
+
+    Private Sub Test(ByVal otherArg As Boolean, ParamArray args As Object())
+    End Sub
+
+    Sub Main()
+        Console.WriteLine("Method call")
+        Test(args:=New String() {"Hello", "World"}, otherArg:=True)
+    End Sub
+End Module
+]]>
+                    </file>
+                </compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC30455: Argument not specified for parameter 'otherArg' of 'Public Sub New(otherArg As Boolean, ParamArray args As Object())'.
+<Mark(args:=New String() {"Hello", "World"}, otherArg:=True)>
+ ~~~~
+BC30661: Field or property 'args' is not found.
+<Mark(args:=New String() {"Hello", "World"}, otherArg:=True)>
+      ~~~~
+BC30661: Field or property 'otherArg' is not found.
+<Mark(args:=New String() {"Hello", "World"}, otherArg:=True)>
+                                             ~~~~~~~~
+BC30587: Named argument cannot match a ParamArray parameter.
+        Test(args:=New String() {"Hello", "World"}, otherArg:=True)
+             ~~~~
+                                        ]]></errors>)
+        End Sub
+
         ''' <summary>
         ''' This function is the same as PEParameterSymbolParamArray
         ''' except that we check attributes first (to check for race
