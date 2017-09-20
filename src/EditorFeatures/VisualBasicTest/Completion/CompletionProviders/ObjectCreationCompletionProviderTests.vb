@@ -169,7 +169,7 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")>
+        <WorkItem(21674, "https://github.com/dotnet/roslyn/issues/21674")>
         Public Async Function PropertyWithSameNameAsOtherType() As Task
             Dim markup = <Text><![CDATA[
 Namespace Foo

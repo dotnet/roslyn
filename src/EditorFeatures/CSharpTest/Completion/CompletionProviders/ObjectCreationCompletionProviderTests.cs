@@ -592,7 +592,7 @@ class C
             await VerifyItemExistsAsync(markup, "C<A>");
         }
 
-        [WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")]
+        [WorkItem(21674, "https://github.com/dotnet/roslyn/issues/21674")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task PropertyWithSameNameAsOtherType()
         {
