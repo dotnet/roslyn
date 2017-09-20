@@ -215,7 +215,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8414: The first parameter of the reference extension method 'PrintValue' must be a value type or a generic type constrained to struct.
+                // (4,24): error CS8337: The first parameter of the reference extension method 'PrintValue' must be a value type or a generic type constrained to struct.
                 //     public static void PrintValue(ref this string p)
                 Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -259,7 +259,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8414: The first parameter of the reference extension method 'PrintValue' must be a value type or a generic type constrained to struct.
+                // (4,24): error CS8337: The first parameter of the reference extension method 'PrintValue' must be a value type or a generic type constrained to struct.
                 //     public static void PrintValue(ref this System.IComparable p)
                 Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'IComparable' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'IComparable' could be found (are you missing a using directive or an assembly reference?)
@@ -303,7 +303,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8414: The first parameter of the reference extension method 'PrintValue' must be a value type or a generic type constrained to struct.
+                // (4,24): error CS8337: The first parameter of the reference extension method 'PrintValue' must be a value type or a generic type constrained to struct.
                 //     public static void PrintValue<T>(ref this T p)
                 Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -385,7 +385,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8414: The first parameter of the reference extension method 'PrintValue' must be a value type or a generic type constrained to struct.
+                // (4,24): error CS8337: The first parameter of the reference extension method 'PrintValue' must be a value type or a generic type constrained to struct.
                 //     public static void PrintValue<T>(ref this T p) where T : class
                 Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -429,7 +429,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8414: The first parameter of the reference extension method 'PrintValue' must be a value type or a generic type constrained to struct.
+                // (4,24): error CS8337: The first parameter of the reference extension method 'PrintValue' must be a value type or a generic type constrained to struct.
                 //     public static void PrintValue<T>(ref this T p) where T : System.IComparable
                 Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -760,7 +760,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8415: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
+                // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
                 //     public static void PrintValue(ref readonly this string p)
                 Diagnostic(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -804,7 +804,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8415: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
+                // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
                 //     public static void PrintValue(ref readonly this System.IComparable p)
                 Diagnostic(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'IComparable' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'IComparable' could be found (are you missing a using directive or an assembly reference?)
@@ -848,7 +848,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8415: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
+                // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
                 //     public static void PrintValue<T>(ref readonly this T p)
                 Diagnostic(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -892,7 +892,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8415: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
+                // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
                 //     public static void PrintValue<T>(ref readonly this T p) where T : struct
                 Diagnostic(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'int' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
@@ -936,7 +936,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8415: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
+                // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
                 //     public static void PrintValue<T>(ref readonly this T p) where T : class
                 Diagnostic(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -980,7 +980,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8415: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
+                // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
                 //     public static void PrintValue<T>(ref readonly this T p) where T : System.IComparable
                 Diagnostic(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -1810,12 +1810,17 @@ public struct S1
 }
 public static class Extensions
 {
-    public static void PrintValue(ref readonly this S1 obj)
+    public static void PrintValue(ref readonly this S1 obj, S1 other)
     {
-        if (obj.i > 0)
+        if (other.i > 0)
         {
+            // should not mutate
             obj.Mutate();
-            obj.PrintValue();
+
+            // should mutate
+            other.Mutate();
+
+            obj.PrintValue(other);
         }
     }
 }
@@ -1824,11 +1829,11 @@ public class Program
     public static void Main()
     {
         var obj = new S1 { i = 5 };
-        obj.PrintValue();
+        obj.PrintValue(obj);
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "54321");
+            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "5554535251");
         }
 
         [Fact]

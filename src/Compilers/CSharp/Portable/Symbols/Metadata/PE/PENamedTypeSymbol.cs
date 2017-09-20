@@ -2062,9 +2062,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     if (this.TypeKind == TypeKind.Struct)
                     {
-                        //PROTOTYPE(span): Span and ReadOnlySpan should have ByRefLike attribute, eventually.
-                        //                 For now assume that any "System.Span" and "System.ReadOnlySpan" structs 
-                        //                 are ByRefLike
                         if (this.IsSpanType())
                         {
                             isByRefLike = ThreeState.True;
@@ -2098,9 +2095,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     var isReadOnly = ThreeState.False;
 
-                    //PROTOTYPE(span): Span and ReadOnlySpan should have IsReadOnly attribute, eventually.
-                    //                 For now assume that any "System.Span" and "System.ReadOnlySpan" structs 
-                    //                 are ReadOnly
                     if (this.IsSpanType())
                     {
                         isReadOnly = ThreeState.True;

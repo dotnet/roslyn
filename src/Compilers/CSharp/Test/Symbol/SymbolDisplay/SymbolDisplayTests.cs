@@ -5510,7 +5510,6 @@ public class C
             var compB = CreateVisualBasicCompilation(GetUniqueName(), "", referencedAssemblies: new[] { MscorlibRef, refA });
             compB.VerifyDiagnostics();
             // From VB symbols.
-            //PROTOTYPE(refReadonly): metadata emit and VB NYI
             //RefReadonlyReturnInternal(compB);
         }
 
@@ -5536,7 +5535,6 @@ public class C
             var compB = CreateVisualBasicCompilation(GetUniqueName(), "", referencedAssemblies: new[] { MscorlibRef, refA });
             compB.VerifyDiagnostics();
             // From VB symbols.
-            //PROTOTYPE(refReadonly): metadata emit and VB NYI
             //RefReadonlyReturnInternal(compB);
         }
 

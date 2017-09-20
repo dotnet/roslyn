@@ -524,7 +524,7 @@ class C
             var comp = CreateCompilationWithMscorlib45(source,options: TestOptions.ReleaseExe);
   
             comp.VerifyEmitDiagnostics(
-                // (16,10): error CS8401: 'await' cannot be used in an expression containing a ref conditional operator
+                // (16,10): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
                 //         (b? ref val1: ref val2) += await One();
                 Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "b? ref val1: ref val2").WithLocation(16, 10)
                 );
@@ -569,7 +569,7 @@ class C
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (16,35): error CS8401: 'await' cannot be used in an expression containing a ref conditional operator
+                // (16,35): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
                 //         (b? ref val1: ref val2) = await One();
                 Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "await One()").WithLocation(16, 35)
                );
@@ -596,10 +596,10 @@ class C
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (8,43): error CS8402: Both conditional operator values must be ref values or neither may be a ref value
+                // (8,43): error CS8326: Both conditional operator values must be ref values or neither may be a ref value
                 //         System.Console.Write(b? val1: ref val2);
                 Diagnostic(ErrorCode.ERR_RefConditionalNeedsTwoRefs, "val2").WithLocation(8, 43),
-                // (9,37): error CS8402: Both conditional operator values must be ref values or neither may be a ref value
+                // (9,37): error CS8326: Both conditional operator values must be ref values or neither may be a ref value
                 //         System.Console.Write(b? ref val1: val2);
                 Diagnostic(ErrorCode.ERR_RefConditionalNeedsTwoRefs, "val1").WithLocation(9, 37)
                );
@@ -697,7 +697,7 @@ class C
                 // (14,37): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
                 //         return ref b? ref val1: ref local2;
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(14, 37),
-                // (14,20): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.
+                // (14,20): error CS8351: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.
                 //         return ref b? ref val1: ref local2;
                 Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "b? ref val1: ref local2").WithLocation(14, 20)
                );
@@ -736,7 +736,7 @@ class C
                 // (14,38): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
                 //         return ref (b? ref val1: ref local2).x;
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(14, 38),
-                // (14,21): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.
+                // (14,21): error CS8351: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.
                 //         return ref (b? ref val1: ref local2).x;
                 Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "b? ref val1: ref local2").WithLocation(14, 21)
                );
@@ -776,7 +776,7 @@ class C
                 // (14,46): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
                 //         ref var temp = ref (b? ref val1: ref local2).x;
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(14, 46),
-                // (14,29): error CS8525: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.
+                // (14,29): error CS8351: Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes.
                 //         ref var temp = ref (b? ref val1: ref local2).x;
                 Diagnostic(ErrorCode.ERR_MismatchedRefEscapeInTernary, "b? ref val1: ref local2").WithLocation(14, 29)
                );
@@ -848,7 +848,7 @@ class C
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (8,47): error CS8403: The expression must be of type 'int' to match the alternative ref value
+                // (8,47): error CS8327: The expression must be of type 'int' to match the alternative ref value
                 //         System.Console.Write(b? ref val1: ref val2);
                 Diagnostic(ErrorCode.ERR_RefConditionalDifferentTypes, "val2").WithArguments("int").WithLocation(8, 47)
                );
@@ -915,6 +915,165 @@ class C
   IL_0019:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void TestRefConditionalHomelessBranches()
+        {
+            var source = @"
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var o = new C1();
+            var o1 = new C1();
+
+            (args != null ? ref o.field : ref o1.field).ToString();
+            System.Console.Write(o.field.value);
+
+            // no copying expected
+            (args != null ? ref o.field : ref o1.field).RoExtension();
+            System.Console.Write(o.field.value);
+        }
+    }
+
+    class C1
+    {
+        public readonly S1 field;
+    }
+
+    public struct S1
+    {
+        public int value;
+
+        public override string ToString()
+        {
+            value = 42;
+            return base.ToString();
+        }
+    }
+
+    public static class S1Ext
+    {
+        public static void RoExtension(ref readonly this S1 self)
+        {
+            // do nothing
+        }
+    }
+";
+
+            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef, SystemCoreRef }, expectedOutput: "00", verify: false);
+            comp.VerifyDiagnostics();
+
+            comp.VerifyIL("Program.Main", @"
+{
+  // Code size       99 (0x63)
+  .maxstack  1
+  .locals init (C1 V_0, //o
+                C1 V_1, //o1
+                S1 V_2)
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  newobj     ""C1..ctor()""
+  IL_000b:  stloc.1
+  IL_000c:  ldarg.0
+  IL_000d:  brtrue.s   IL_0017
+  IL_000f:  ldloc.1
+  IL_0010:  ldfld      ""S1 C1.field""
+  IL_0015:  br.s       IL_001d
+  IL_0017:  ldloc.0
+  IL_0018:  ldfld      ""S1 C1.field""
+  IL_001d:  stloc.2
+  IL_001e:  ldloca.s   V_2
+  IL_0020:  constrained. ""S1""
+  IL_0026:  callvirt   ""string object.ToString()""
+  IL_002b:  pop
+  IL_002c:  ldloc.0
+  IL_002d:  ldflda     ""S1 C1.field""
+  IL_0032:  ldfld      ""int S1.value""
+  IL_0037:  call       ""void System.Console.Write(int)""
+  IL_003c:  ldarg.0
+  IL_003d:  brtrue.s   IL_0047
+  IL_003f:  ldloc.1
+  IL_0040:  ldflda     ""S1 C1.field""
+  IL_0045:  br.s       IL_004d
+  IL_0047:  ldloc.0
+  IL_0048:  ldflda     ""S1 C1.field""
+  IL_004d:  call       ""void S1Ext.RoExtension(ref readonly S1)""
+  IL_0052:  ldloc.0
+  IL_0053:  ldflda     ""S1 C1.field""
+  IL_0058:  ldfld      ""int S1.value""
+  IL_005d:  call       ""void System.Console.Write(int)""
+  IL_0062:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestRefConditionalOneHomelessBranch()
+        {
+            var source = @"
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var o = new C1();
+
+            Test(true, o);
+            Test(false, o);
+
+            System.Console.Write(o.field.value);
+            System.Console.Write(o.field1.value);
+        }
+
+        private static void Test(bool flag, C1 o)
+        {
+            (flag ? ref o.field : ref o.field1).ToString();
+        }
+    }
+
+    class C1
+    {
+        public readonly S1 field;
+        public S1 field1;
+    }
+
+    struct S1
+    {
+        public int value;
+
+        public override string ToString()
+        {
+            value = 42;
+            return base.ToString();
+        }
+    }
+";
+
+            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, expectedOutput: "042", verify: false);
+            comp.VerifyDiagnostics();
+
+            comp.VerifyIL("Program.Test", @"
+{
+  // Code size       33 (0x21)
+  .maxstack  1
+  .locals init (S1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000b
+  IL_0003:  ldarg.1
+  IL_0004:  ldflda     ""S1 C1.field1""
+  IL_0009:  br.s       IL_0014
+  IL_000b:  ldarg.1
+  IL_000c:  ldfld      ""S1 C1.field""
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  constrained. ""S1""
+  IL_001a:  callvirt   ""string object.ToString()""
+  IL_001f:  pop
+  IL_0020:  ret
+}
+");
+
         }
 
         [Fact]

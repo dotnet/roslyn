@@ -1058,9 +1058,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         #endregion
 
         #region Span
-        //PROTOTYPE(span): this will be updated when rules for defining span are implemented
-        //                 most likely we would just pick the actual binary/corlib where
-        //                 span lives.
+
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
             var reference = CreateCompilation(
@@ -1080,9 +1078,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return comp;
         }
 
-        //PROTOTYPE(span): this will be updated when rules for defining span are implemented
-        //                 most likely we would just pick the actual binary/corlib where
-        //                 span lives.
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpanSrc(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
             var textWitSpan = new string[] { text, spanSource };
@@ -1095,9 +1090,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return comp;
         }
 
-        //PROTOTYPE(span): this will be updated when rules for defining span are implemented
-        //                 most likely we would just pick the actual binary/corlib where
-        //                 span lives.
         private static string spanSource = @"
 namespace System
 {

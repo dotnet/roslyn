@@ -475,7 +475,7 @@ class C
 
             var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,58): error CS8404:  The parameter modifier 'params' cannot be used with 'out' 
+                // (4,58): error CS8328:  The parameter modifier 'params' cannot be used with 'out' 
                 //     public void Deconstruct(out int a, out string b, out params int[] c)
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "out").WithLocation(4, 58));
         }

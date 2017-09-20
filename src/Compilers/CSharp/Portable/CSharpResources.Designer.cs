@@ -10606,9 +10606,9 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to readonly references.
         /// </summary>
-        internal static string IDS_FeatureReadonlyReferences {
+        internal static string IDS_FeatureReadOnlyReferences {
             get {
-                return ResourceManager.GetString("IDS_FeatureReadonlyReferences", resourceCulture);
+                return ResourceManager.GetString("IDS_FeatureReadOnlyReferences", resourceCulture);
             }
         }
         

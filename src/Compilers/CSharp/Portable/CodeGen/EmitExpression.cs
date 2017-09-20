@@ -1490,10 +1490,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         // we use a constrained virtual call. If possible, it will skip boxing.
                         if (method.IsMetadataVirtual())
                         {
-                            //PROTOTYPE(readonlyRefs): all methods that a struct could inherit from bases are non-mutating
-                            //                         we are passing here "Writeable" just to keep verifier happy
-                            //                         we should pass here "ReadOnly" and avoid unnecessary copy
-                            tempOpt = EmitReceiverRef(receiver, AddressKind.Writeable);
+                            // NB: all methods that a struct could inherit from bases are non-mutating
+                            //     we are passing here "Writeable" just to keep verifier happy
+                            //     we can pass here "ReadOnly" and avoid unnecessary copy
+                            var addressKind = EnablePEVerifyCompat() ?
+                                                AddressKind.Writeable :
+                                                AddressKind.ReadOnly;
+
+                            tempOpt = EmitReceiverRef(receiver, addressKind);
                             callKind = CallKind.ConstrainedCallVirt;
                         }
                         else
@@ -2796,7 +2800,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        //PROTOTYPE(readonly-ref): check the callers of this method, they may want to call EmitDefaultValue instead for its optimizations.
         private void EmitInitObj(TypeSymbol type, bool used, SyntaxNode syntaxNode)
         {
             if (used)

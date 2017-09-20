@@ -40,11 +40,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         bool ReturnsByRef { get; }
 
-        // PROTOTYPE(readonlyRefs): this is very preliminary. 
-        //                          We may actually need 3 APIs here:
-        //                          1) Does it return an ordinary writeable ref?
-        //                          2) Does it return a readonly ref?
-        //                          3) Does it return any kind of ref?
         /// <summary>
         /// Returns true if this property returns by reference a readonly variable.
         /// </summary>

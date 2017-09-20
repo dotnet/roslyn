@@ -489,7 +489,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                //PROTOTYPE(readonly ref): is this always false? consider overriding/constraints
+                // even if T is indirectly constrained to a struct, 
+                // we only can use members via constrained calls, so "true" would have no effect
                 return false;
             }
         }

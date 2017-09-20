@@ -34,7 +34,7 @@ public readonly struct A
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (11,9): error CS8515: Auto-implemented instance properties in readonly structs must be readonly.
+                // (11,9): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
                 //     int rw {get; set;}
                 Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "rw").WithLocation(11, 9)
     );
@@ -67,7 +67,7 @@ public readonly struct A
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (11,9): error CS8514: Instance fields of readonly structs must be readonly.
+                // (11,9): error CS8340: Instance fields of readonly structs must be readonly.
                 //     int x;    
                 Diagnostic(ErrorCode.ERR_FieldsInRoStruct, "x").WithLocation(11, 9),
                 // (16,9): error CS1604: Cannot assign to 'this' because it is read-only
@@ -139,10 +139,10 @@ interface I1
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (7,32): error CS8516: Field-like events are not allowed in readonly structs.
+                // (7,32): error CS8342: Field-like events are not allowed in readonly structs.
                 //     public event System.Action e;
                 Diagnostic(ErrorCode.ERR_FieldlikeEventsInRoStruct, "e").WithLocation(7, 32),
-                // (10,25): error CS8516: Field-like events are not allowed in readonly structs.
+                // (10,25): error CS8342: Field-like events are not allowed in readonly structs.
                 //     public event Action ei1;
                 Diagnostic(ErrorCode.ERR_FieldlikeEventsInRoStruct, "ei1").WithLocation(10, 25),
                 // (43,9): error CS1604: Cannot assign to 'this' because it is read-only

@@ -1522,6 +1522,64 @@ public class D
 ");
         }
 
+        [Fact]
+        public void InheritedCallOnReadOnly()
+        {
+            string source = @"
+    class Program
+    {
+        static void Main()
+        {
+            var obj = new C1();
+            System.Console.WriteLine(obj.field.ToString());
+        }
+    }
+
+    class C1
+    {
+        public readonly S1 field;
+    }
+
+    struct S1
+    {
+    }
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "S1", verify: false);
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size       27 (0x1b)
+  .maxstack  1
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  ldflda     ""S1 C1.field""
+  IL_000a:  constrained. ""S1""
+  IL_0010:  callvirt   ""string object.ToString()""
+  IL_0015:  call       ""void System.Console.WriteLine(string)""
+  IL_001a:  ret
+}
+");
+            compilation = CompileAndVerify(source, expectedOutput: "S1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size       30 (0x1e)
+  .maxstack  1
+  .locals init (S1 V_0)
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  ldfld      ""S1 C1.field""
+  IL_000a:  stloc.0
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  constrained. ""S1""
+  IL_0013:  callvirt   ""string object.ToString()""
+  IL_0018:  call       ""void System.Console.WriteLine(string)""
+  IL_001d:  ret
+}
+");
+        }
+
         #endregion
         #region "Enum"
 

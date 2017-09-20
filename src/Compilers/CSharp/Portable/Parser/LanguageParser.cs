@@ -3900,7 +3900,7 @@ tryAgain:
                             // "ref readonly"
                             if (nextKind == SyntaxKind.ReadOnlyKeyword)
                             {
-                                modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureReadonlyReferences);
+                                modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureReadOnlyReferences);
                                 nextKind = PeekToken(1).Kind;
                             }
 
@@ -6156,7 +6156,7 @@ tryAgain:
                 if (this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword)
                 {
                     readonlyKeyword = this.EatToken();
-                    readonlyKeyword = this.CheckFeatureAvailability(readonlyKeyword, MessageID.IDS_FeatureReadonlyReferences);
+                    readonlyKeyword = this.CheckFeatureAvailability(readonlyKeyword, MessageID.IDS_FeatureReadOnlyReferences);
                 }
 
                 var type = ParseTypeCore(mode, expectSizes);

@@ -205,7 +205,7 @@ class Test
 }";
 
             CreateStandardCompilation(code, assemblyName: "testModule").VerifyEmitDiagnostics(
-                // (4,18): error CS8413: The type name 'Microsoft.CodeAnalysis.EmbeddedAttribute' is reserved to be used by the compiler.
+                // (4,18): error CS8336: The type name 'Microsoft.CodeAnalysis.EmbeddedAttribute' is reserved to be used by the compiler.
                 //     public class EmbeddedAttribute : System.Attribute { }
                 Diagnostic(ErrorCode.ERR_TypeReserved, "EmbeddedAttribute").WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(4, 18));
         }

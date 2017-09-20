@@ -1440,5 +1440,128 @@ public readonly struct S1
 }
 ");
         }
+
+        [Fact]
+        public void InParamGenericReadonly()
+        {
+            var text = @"
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var o = new D();
+            var s = new S1();
+            o.M1(s);
+
+            // should not be mutated.
+            System.Console.WriteLine(s.field);
+        }
+    }
+
+    abstract class C<U>
+    {
+        public abstract void M1<T>(ref readonly T arg) where T : U, I1;
+    }
+
+    class D: C<S1>
+    {
+        public override void M1<T>(ref readonly T arg)
+        {
+            arg.M3();
+        }
+    }
+
+    public struct S1: I1
+    {
+        public int field;
+
+        public void M3()
+        {
+            field = 42;
+        }
+    }
+
+    interface I1
+    {
+        void M3();
+    }
+";
+
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"0");
+
+            comp.VerifyIL("D.M1<T>(ref readonly T)", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldobj      ""T""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. ""T""
+  IL_000f:  callvirt   ""void I1.M3()""
+  IL_0014:  ret
+}");
+        }
+
+        [Fact]
+        public void InParamGenericReadonlyROstruct()
+        {
+            var text = @"
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var o = new D();
+            var s = new S1();
+            o.M1(s);
+        }
+    }
+
+    abstract class C<U>
+    {
+        public abstract void M1<T>(ref readonly T arg) where T : U, I1;
+    }
+
+    class D: C<S1>
+    {
+        public override void M1<T>(ref readonly T arg)
+        {
+            arg.M3();
+        }
+    }
+
+    public readonly struct S1: I1
+    {
+        public void M3()
+        {
+        }
+    }
+
+    interface I1
+    {
+        void M3();
+    }
+";
+
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"");
+
+            comp.VerifyIL("D.M1<T>(ref readonly T)", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldobj      ""T""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. ""T""
+  IL_000f:  callvirt   ""void I1.M3()""
+  IL_0014:  ret
+}");
+        }
+
     }
 }

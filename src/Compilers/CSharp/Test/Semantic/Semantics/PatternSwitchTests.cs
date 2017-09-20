@@ -2957,10 +2957,10 @@ class Program
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
-                // (9,18): error CS8407: It is not legal to use the type 'dynamic' in a pattern.
+                // (9,18): error CS8330: It is not legal to use the type 'dynamic' in a pattern.
                 //             case dynamic x: // error 1
                 Diagnostic(ErrorCode.ERR_PatternDynamicType, "dynamic"),
-                // (12,18): error CS8407: It is not legal to use the type 'dynamic' in a pattern.
+                // (12,18): error CS8330: It is not legal to use the type 'dynamic' in a pattern.
                 //         if (d is dynamic y) {} // error 2
                 Diagnostic(ErrorCode.ERR_PatternDynamicType, "dynamic").WithLocation(12, 18)
                 );
