@@ -3,10 +3,11 @@
   <metadata>
     <id>Microsoft.CodeAnalysis.Remote.ServiceHub</id>
     <summary>
-      A shared package used by the .NET Compiler Platform ("Roslyn") including support for coordinating analysis of projects and solutions using a separate server process. Do not install this package manually, it will be added as a prerequisite by other packages that require it.
+      A shared package used by the .NET Compiler Platform ("Roslyn") including support for coordinating analysis of projects and solutions using a separate server process.
     </summary>
     <description>
-      A shared package used by the .NET Compiler Platform ("Roslyn") including support for coordinating analysis of projects and solutions using a separate server process. Do not install this package manually, it will be added as a prerequisite by other packages that require it.
+      A shared package used by the .NET Compiler Platform ("Roslyn") including support for coordinating analysis of projects and solutions using a separate server process.
+      Do not install this package manually, it will be added as a prerequisite by other packages that require it.
 
       Supported Platforms:
       - .NET Framework 4.6
