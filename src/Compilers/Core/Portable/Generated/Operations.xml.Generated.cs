@@ -4111,9 +4111,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class SizeOfExpression : Operation, ISizeOfExpression
     {
         public SizeOfExpression(ITypeSymbol typeOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            // https://github.com/dotnet/roslyn/issues/21296
-            // base(OperationKind.SizeOfExpression, semanticModel, syntax, type, constantValue, isImplicit)
-            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+            base(OperationKind.SizeOfExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
             TypeOperand = typeOperand;
         }
@@ -4495,9 +4493,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class TypeOfExpression : Operation, ITypeOfExpression
     {
         public TypeOfExpression(ITypeSymbol typeOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            // https://github.com/dotnet/roslyn/issues/22003
-            // base(OperationKind.TypeOfExpression, semanticModel, syntax, type, constantValue, isImplicit)
-            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+            base(OperationKind.TypeOfExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
             TypeOperand = typeOperand;
         }
