@@ -354,7 +354,21 @@ namespace Microsoft.CodeAnalysis
 
         public override bool Equals(object obj)
         {
-            return Object.Equals(this, obj);
+            if (obj is null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+
+            var other = (DesktopStrongNameProvider)obj;
+            if (!FileSystem.Equals(other.FileSystem))
+            {
+                return false;
+            } 
+            if (!_keyFileSearchPaths.SequenceEqual(other._keyFileSearchPaths, StringComparer.Ordinal))
+            {
+                return false;
+            }
+            return Object.ReferenceEquals(_tempPath, other._tempPath) || (_tempPath != null && other._tempPath != null && _tempPath.Equals(other._tempPath, StringComparison.Ordinal));
         }
     }
 }

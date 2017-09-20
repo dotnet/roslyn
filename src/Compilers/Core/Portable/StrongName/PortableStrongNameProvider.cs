@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Security.Cryptography;
 using System.Text;
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis
     internal sealed class PortableStrongNameProvider : StrongNameProvider
     {
         private readonly ImmutableArray<string> _keyFileSearchPaths;
-        internal StrongNameFileSystem FileSystem { get; private set; }
+        internal StrongNameFileSystem FileSystem { get; set; }
 
         public PortableStrongNameProvider(ImmutableArray<string> keySearchPaths = default, StrongNameFileSystem strongNameFileSystem = default)
         {
@@ -44,7 +45,9 @@ namespace Microsoft.CodeAnalysis
                     string resolvedKeyFile = FileSystem.ResolveStrongNameKeyFile(keyFilePath, _keyFileSearchPaths);
                     if (resolvedKeyFile == null)
                     {
-                        throw new FileNotFoundException(CodeAnalysisResources.FileNotFound, keyFilePath);
+                        // Used for getting the exception message.
+                        var exception = new FileNotFoundException(CodeAnalysisResources.FileNotFound, keyFilePath);
+                        return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, exception.Message));
                     }
 
                     Debug.Assert(PathUtilities.IsAbsolute(resolvedKeyFile));
@@ -74,7 +77,15 @@ namespace Microsoft.CodeAnalysis
 
         public override bool Equals(object obj)
         {
-            return Object.Equals(this, obj);
+            if (obj is null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+
+            var other = (PortableStrongNameProvider)obj;
+            return FileSystem.Equals(other.FileSystem) &&
+                _keyFileSearchPaths.SequenceEqual(other._keyFileSearchPaths);
+                    
         }
     }
 }
