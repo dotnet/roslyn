@@ -3,15 +3,15 @@
 using System;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
-    public class ISymbolExtensionsTests : TestBase
+    public class GlyphExtensionsTests : TestBase
     {
         [Fact]
         public void GetGlyphGroupTests()
