@@ -123,6 +123,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return CreateBoundTernaryConditionalExpressionOperation(DirectCast(boundNode, BoundTernaryConditionalExpression))
                 Case BoundKind.TypeOf
                     Return CreateBoundTypeOfOperation(DirectCast(boundNode, BoundTypeOf))
+                Case BoundKind.GetType
+                    Return CreateBoundGetTypeOperation(DirectCast(boundNode, BoundGetType))
                 Case BoundKind.ObjectCreationExpression
                     Return CreateBoundObjectCreationExpressionOperation(DirectCast(boundNode, BoundObjectCreationExpression))
                 Case BoundKind.ObjectInitializerExpression
@@ -588,6 +590,15 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTypeOf.ConstantValueOpt)
             Dim isImplicit As Boolean = boundTypeOf.WasCompilerGenerated
             Return New LazyIsTypeExpression(operand, isType, isNotTypeExpression, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundGetTypeOperation(boundGetType As BoundGetType) As ITypeOfExpression
+            Dim typeOperand As ITypeSymbol = boundGetType.SourceType.Type
+            Dim syntax As SyntaxNode = boundGetType.Syntax
+            Dim type As ITypeSymbol = boundGetType.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundGetType.ConstantValueOpt)
+            Dim isImplicit As Boolean = boundGetType.WasCompilerGenerated
+            Return New TypeOfExpression(typeOperand, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundLateInvocationOperation(boundLateInvocation As BoundLateInvocation) As IOperation
