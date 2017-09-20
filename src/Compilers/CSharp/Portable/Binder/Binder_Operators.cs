@@ -3629,20 +3629,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var currentScope = this.LocalScopeDepth;
 
-                // ref-escape must agree on both branches.
-                uint whenTrueEscape = GetRefEscape(trueExpr, currentScope);
-                uint whenFalseEscape = GetRefEscape(falseExpr, currentScope);
+                // val-escape must agree on both branches.
+                uint whenTrueEscape = GetValEscape(trueExpr, currentScope);
+                uint whenFalseEscape = GetValEscape(falseExpr, currentScope);
 
                 if (whenTrueEscape != whenFalseEscape)
                 {
                     // ask the one with narrower escape, for the wider - hopefully the errors will make the violation easier to fix.
                     if (whenTrueEscape < whenFalseEscape)
                     {
-                        CheckRefEscape(falseExpr.Syntax, falseExpr, currentScope, whenTrueEscape, checkingReceiver: false, diagnostics: diagnostics);
+                        CheckValEscape(falseExpr.Syntax, falseExpr, currentScope, whenTrueEscape, checkingReceiver: false, diagnostics: diagnostics);
                     }
                     else
                     {
-                        CheckRefEscape(trueExpr.Syntax, trueExpr, currentScope, whenFalseEscape, checkingReceiver: false, diagnostics: diagnostics);
+                        CheckValEscape(trueExpr.Syntax, trueExpr, currentScope, whenFalseEscape, checkingReceiver: false, diagnostics: diagnostics);
                     }
 
                     diagnostics.Add(ErrorCode.ERR_MismatchedRefEscapeInTernary, node.Location);
