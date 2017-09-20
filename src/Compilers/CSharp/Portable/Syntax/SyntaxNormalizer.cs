@@ -425,6 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 if (!next.IsKind(SyntaxKind.ColonToken) &&
                     !next.IsKind(SyntaxKind.DotToken) &&
+                    !next.IsKind(SyntaxKind.QuestionToken) &&
                     !next.IsKind(SyntaxKind.SemicolonToken) &&
                     !next.IsKind(SyntaxKind.OpenBracketToken) &&
                     !next.IsKind(SyntaxKind.CloseParenToken) &&

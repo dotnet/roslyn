@@ -459,9 +459,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
-        public void TestSpacingOnNullableType()
+        public void TestSpacingOnNullableIntType()
         {
-            var syntaxNode = 
+            var syntaxNode =
                 SyntaxFactory.CompilationUnit()
                 .WithMembers(
                     SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
@@ -477,10 +477,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                         SyntaxFactory.AccessorList())))))
                 .NormalizeWhitespace();
 
+            // no space between int and ?
             Assert.Equal(
 @"class C
 {
-    int ? P
+    int? P
+    {
+    }
+}", syntaxNode.ToFullString());
+        }
+
+        [Fact]
+        [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
+        public void TestSpacingOnNullableDatetimeType()
+        {
+            var syntaxNode =
+                SyntaxFactory.CompilationUnit()
+                .WithMembers(
+                    SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
+                        SyntaxFactory.ClassDeclaration("C")
+                        .WithMembers(
+                            SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
+                                SyntaxFactory.PropertyDeclaration(
+                                    SyntaxFactory.NullableType(
+                                        SyntaxFactory.ParseTypeName("DateTime")),
+                                    SyntaxFactory.Identifier("P"))
+                                    .WithAccessorList(
+                                        SyntaxFactory.AccessorList())))))
+                .NormalizeWhitespace();
+
+            // no space between DateTime and ?
+            Assert.Equal(
+@"class C
+{
+    DateTime? P
     {
     }
 }", syntaxNode.ToFullString());
