@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundConvertedStackAllocExpression
     {
-        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Count);
+        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Count);
     }
 
     internal partial class BoundDynamicObjectCreationExpression

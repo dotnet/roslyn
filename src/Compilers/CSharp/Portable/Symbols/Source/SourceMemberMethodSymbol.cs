@@ -23,13 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // We currently pack everything into a 32 bit int with the following layout:
             //
-            // |   |s|r|q|z|y|xxxxxxxxxxxxxxxxxxxxxx|wwwww|
+            // |   |s|r|q|z|xxxxxxxxxxxxxxxxxxxxxxx|wwwww|
             // 
             // w = method kind.  5 bits.
             //
-            // x = modifiers.  22 bits.
-            //
-            // y = returnsVoid. 1 bit.
+            // x = modifiers.  23 bits.
             //
             // z = isExtensionMethod. 1 bit.
             //
@@ -43,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int DeclarationModifiersOffset = 5;
 
             private const int MethodKindMask = 0x1F;
-            private const int DeclarationModifiersMask = 0x3FFFFF;
+            private const int DeclarationModifiersMask = 0x7FFFFF;
 
             private const int ReturnsVoidBit = 1 << 27;
             private const int IsExtensionMethodBit = 1 << 28;
@@ -52,11 +50,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int IsMetadataVirtualLockedBit = 1 << 31;
 
             private int _flags;
+            private bool _returnsVoid;
 
             public bool ReturnsVoid
             {
-                get { return (_flags & ReturnsVoidBit) != 0; }
-                set { _flags = value ? (_flags | ReturnsVoidBit) : (_flags & ~ReturnsVoidBit); }
+                get { return _returnsVoid; }
+                set { _returnsVoid = value; }
             }
 
             public MethodKind MethodKind
@@ -115,12 +114,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 int methodKindInt = ((int)methodKind & MethodKindMask) << MethodKindOffset;
                 int declarationModifiersInt = ((int)declarationModifiers & DeclarationModifiersMask) << DeclarationModifiersOffset;
-                int returnsVoidInt = returnsVoid ? ReturnsVoidBit : 0;
                 int isExtensionMethodInt = isExtensionMethod ? IsExtensionMethodBit : 0;
                 int isMetadataVirtualIgnoringInterfaceImplementationChangesInt = isMetadataVirtual ? IsMetadataVirtualIgnoringInterfaceChangesBit : 0;
                 int isMetadataVirtualInt = isMetadataVirtual ? IsMetadataVirtualBit : 0;
 
-                _flags = methodKindInt | declarationModifiersInt | returnsVoidInt | isExtensionMethodInt | isMetadataVirtualIgnoringInterfaceImplementationChangesInt | isMetadataVirtualInt;
+                _flags = methodKindInt | declarationModifiersInt | isExtensionMethodInt | isMetadataVirtualIgnoringInterfaceImplementationChangesInt | isMetadataVirtualInt;
+                _returnsVoid = returnsVoid;
             }
 
             public bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
