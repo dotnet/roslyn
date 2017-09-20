@@ -456,5 +456,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(Location.None, token.GetLocation());
             token.GetDiagnostics().Verify();
         }
+
+        [Fact]
+        [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
+        public void TestSpacingOnNullableType()
+        {
+            var syntaxNode = 
+                SyntaxFactory.CompilationUnit()
+                .WithMembers(
+                    SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
+                        SyntaxFactory.ClassDeclaration("C")
+                        .WithMembers(
+                            SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
+                                SyntaxFactory.PropertyDeclaration(
+                                    SyntaxFactory.NullableType(
+                                        SyntaxFactory.PredefinedType(
+                                            SyntaxFactory.Token(SyntaxKind.IntKeyword))),
+                                    SyntaxFactory.Identifier("P"))
+                                    .WithAccessorList(
+                                        SyntaxFactory.AccessorList())))))
+                .NormalizeWhitespace();
+
+            Assert.Equal(
+@"class C
+{
+    int ? P
+    {
+    }
+}", syntaxNode.ToFullString());
+        }
     }
 }
