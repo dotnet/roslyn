@@ -214,12 +214,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitWithStatement(operation);
         }
 
-        internal override void VisitStopStatement(IStopStatement operation)
+        public override void VisitStopStatement(IStopStatement operation)
         {
             base.VisitStopStatement(operation);
         }
 
-        internal override void VisitEndStatement(IEndStatement operation)
+        public override void VisitEndStatement(IEndStatement operation)
         {
             base.VisitEndStatement(operation);
         }

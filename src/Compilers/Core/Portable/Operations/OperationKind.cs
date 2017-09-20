@@ -58,12 +58,10 @@ namespace Microsoft.CodeAnalysis
 
         // Statements that occur only in Visual Basic.
 
-        // https://github.com/dotnet/roslyn/issues/21297
-        // /// <summary>Indicates an <see cref="IStopStatement"/>.</summary>
-        // StopStatement = 0x50,
-        // https://github.com/dotnet/roslyn/issues/22004
-        // /// <summary>Indicates an <see cref="IEndStatement"/>.</summary>
-        // EndStatement = 0x51,
+        /// <summary>Indicates an <see cref="IStopStatement"/>.</summary>
+        StopStatement = 0x50,
+        /// <summary>Indicates an <see cref="IEndStatement"/>.</summary>
+        EndStatement = 0x51,
         // https://github.com/dotnet/roslyn/issues/22005
         // /// <summary>Indicates an <see cref="IWithStatement"/>.</summary>
         // WithStatement = 0x52,
