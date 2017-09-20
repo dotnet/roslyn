@@ -142,14 +142,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 var content = new ProjectionBufferDeferredContent(
                     snapshotSpan,
-                    Presenter.ProjectionBufferFactoryService,
-                    Presenter.EditorOptionsFactoryService,
-                    Presenter.TextEditorFactoryService,
                     contentType,
                     roleSet);
 
-                var element = content.Create();
-                return element;
+                return (ContentControl)Presenter.DeferredContentFrameworkElementFactory.CreateElement(content);
             }
 
             private ITextBuffer CreateNewBuffer()

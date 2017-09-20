@@ -13,18 +13,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
     [ExportQuickInfoProvider(PredefinedQuickInfoProviderNames.Semantic, LanguageNames.CSharp)]
     internal class SemanticQuickInfoProvider : AbstractSemanticQuickInfoProvider
     {
-        [ImportingConstructor]
-        public SemanticQuickInfoProvider(
-            IProjectionBufferFactoryService projectionBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
-            ITextEditorFactoryService textEditorFactoryService,
-            IGlyphService glyphService,
-            ClassificationTypeMap typeMap)
-            : base(projectionBufferFactoryService, editorOptionsFactoryService,
-                   textEditorFactoryService, glyphService, typeMap)
-        {
-        }
-
         protected override bool ShouldCheckPreviousToken(SyntaxToken token)
         {
             return !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);

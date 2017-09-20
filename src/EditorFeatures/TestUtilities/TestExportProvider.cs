@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 // ROSLYN
                 typeof(CodeAnalysis.CSharp.IntroduceVariable.CSharpIntroduceVariableService), // Ensures that CSharpFeatures is included in the composition
                 typeof(CodeAnalysis.VisualBasic.IntroduceVariable.VisualBasicIntroduceVariableService), // Ensures that BasicFeatures is included in the composition
-                typeof(Implementation.InlineRename.InlineRenameService), // Ensure that EditorFeatures.Wpf is included in the composition
                 typeof(CSharp.ContentType.ContentTypeDefinitions), // CSharp Content Type
                 typeof(VisualBasic.ContentType.ContentTypeDefinitions), // VB Content Type
                 typeof(VisualBasic.Formatting.Indentation.VisualBasicIndentationService),
