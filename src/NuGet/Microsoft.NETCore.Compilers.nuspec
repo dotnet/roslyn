@@ -2,6 +2,9 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Microsoft.NETCore.Compilers</id>
+    <summary>
+      CoreCLR-compatible versions of the C# and VB compilers for use in MSBuild.
+    </summary>
     <description>
       CoreCLR-compatible versions of the C# and VB compilers for use in MSBuild.
 

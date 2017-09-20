@@ -2,6 +2,9 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata minClientVersion="3.3">
     <id>Microsoft.CodeAnalysis.CSharp.CodeStyle</id>
+    <summary>
+      .NET Compiler Platform ("Roslyn") code style analyzers for C#.
+    </summary>
     <description>
       .NET Compiler Platform ("Roslyn") code style analyzers for C#.
 

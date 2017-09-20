@@ -2,6 +2,9 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Microsoft.Net.CSharp.Interactive.netcore</id>
+    <summary>
+      CoreCLR-compatible version of csi.exe.
+    </summary>
     <description>
       CoreCLR-compatible version of csi.exe.
 
