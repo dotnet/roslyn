@@ -834,13 +834,13 @@ Public Class BuildDevDivInsertionFiles
             Next
         Next
 
-        add("Exes\csc\csc.exe.config")
-        add("Exes\csc\csc.rsp")
-        add("Exes\vbc\vbc.exe.config")
-        add("Exes\vbc\vbc.rsp")
+        add("Exes\csc\net46\csc.exe.config")
+        add("Exes\csc\net46\csc.rsp")
+        add("Exes\vbc\net46\vbc.exe.config")
+        add("Exes\vbc\net46\vbc.rsp")
         add("Exes\VBCSCompiler\net46\VBCSCompiler.exe.config")
         add("Exes\InteractiveHost\InteractiveHost.exe.config")
-        add("Exes\csi\csi.rsp")
+        add("Exes\csi\net46\csi.rsp")
         add("Vsix\VisualStudioInteractiveComponents\CSharpInteractive.rsp")
         add("Vsix\VisualStudioSetup\Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll")
         add("Vsix\VisualStudioSetup\System.Composition.Convention.dll")
