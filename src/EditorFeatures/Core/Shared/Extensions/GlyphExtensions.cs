@@ -209,11 +209,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             }
         }
 
-        public static ImageSource GetImageSource(this Glyph? glyph, IGlyphService glyphService)
-        {
-            return glyph.HasValue ? glyph.Value.GetImageSource(glyphService) : null;
-        }
-
         public static ImageSource GetImageSource(this Glyph glyph, IGlyphService glyphService)
         {
             return glyphService.GetGlyph(glyph.GetStandardGlyphGroup(), glyph.GetStandardGlyphItem());
