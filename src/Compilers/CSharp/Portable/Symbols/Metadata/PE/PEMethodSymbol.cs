@@ -11,6 +11,7 @@ using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -178,47 +179,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public ParameterSymbol _lazyThisParameter;
             public Tuple<CultureInfo, string> _lazyDocComment;
             public OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembersResult;
-            public ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
-            public ImmutableArray<string> _lazyConditionalAttributeSymbols;
+            public ImmutableArray<CSharpAttributeData> _lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
+            public ImmutableArray<string> _lazyConditionalAttributeSymbols = ImmutableArray<string>.Empty;
             public ObsoleteAttributeData _lazyObsoleteAttributeData;
             public DiagnosticInfo _lazyUseSiteDiagnostic;
-        }
-
-        private UncommonFields CreateUncommonFields()
-        {
-            var retVal = new UncommonFields();
-            if (!_packedFlags.IsObsoleteAttributePopulated)
-            {
-                retVal._lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
-            }
-
-            if (!_packedFlags.IsUseSiteDiagnosticPopulated)
-            {
-                retVal._lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state.
-            }
-
-            if (_packedFlags.IsCustomAttributesPopulated)
-            {
-                retVal._lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
-            }
-
-            if (_packedFlags.IsConditionalPopulated)
-            {
-                retVal._lazyConditionalAttributeSymbols = ImmutableArray<string>.Empty;
-            }
-
-            if (_packedFlags.IsOverriddenOrHiddenMembersPopulated)
-            {
-                retVal._lazyOverriddenOrHiddenMembersResult = OverriddenOrHiddenMembersResult.Empty;
-            }
-
-            return retVal;
         }
 
         private UncommonFields AccessUncommonFields()
         {
             var retVal = _uncommonFields;
-            return retVal ?? InterlockedOperations.Initialize(ref _uncommonFields, CreateUncommonFields());
+            return retVal ?? InterlockedOperations.Initialize(ref _uncommonFields, new UncommonFields());
         }
 
         private readonly MethodDefinitionHandle _handle;
@@ -733,26 +703,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 Debug.Assert(!attributeData.IsDefault);
                 if (!attributeData.IsEmpty)
                 {
-                    attributeData = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyCustomAttributes, attributeData);
+                    attributeData = InterlockedOperations.Initialize(
+                        ref AccessUncommonFields()._lazyCustomAttributes, 
+                        attributeData,
+                        ImmutableArray<CSharpAttributeData>.Empty);
                 }
 
                 _packedFlags.SetIsCustomAttributesPopulated();
+
                 return attributeData;
             }
 
             // Retrieve cached or inferred value.
-            var uncommonFields = _uncommonFields;
-            if (uncommonFields == null)
-            {
-                return ImmutableArray<CSharpAttributeData>.Empty;
-            }
-            else
-            {
-                var attributeData = uncommonFields._lazyCustomAttributes;
-                return attributeData.IsDefault
-                    ? InterlockedOperations.Initialize(ref uncommonFields._lazyCustomAttributes, ImmutableArray<CSharpAttributeData>.Empty)
-                    : attributeData;
-            }
+            return _uncommonFields?._lazyCustomAttributes ?? ImmutableArray<CSharpAttributeData>.Empty;
         }
 
         internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState) => GetAttributes();
@@ -866,10 +829,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         case WellKnownMemberNames.ExplicitConversionName:
                             return IsValidUserDefinedOperatorSignature(1) ? MethodKind.Conversion : MethodKind.Ordinary;
 
-                        //case WellKnownMemberNames.ConcatenateOperatorName:
-                        //case WellKnownMemberNames.ExponentOperatorName:
-                        //case WellKnownMemberNames.IntegerDivisionOperatorName:
-                        //case WellKnownMemberNames.LikeOperatorName:
+                            //case WellKnownMemberNames.ConcatenateOperatorName:
+                            //case WellKnownMemberNames.ExponentOperatorName:
+                            //case WellKnownMemberNames.IntegerDivisionOperatorName:
+                            //case WellKnownMemberNames.LikeOperatorName:
                             //// Non-C#-supported overloaded operator
                             //return MethodKind.Ordinary;
                     }
@@ -992,26 +955,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return InitializeUseSiteDiagnostic(result);
             }
 
-            var uncommonFields = _uncommonFields;
-            if (uncommonFields == null)
-            {
-                return null;
-            }
-            else
-            {
-                var result = uncommonFields._lazyUseSiteDiagnostic;
-                return CSDiagnosticInfo.IsEmpty(result)
-                       ? InterlockedOperations.Initialize(ref uncommonFields._lazyUseSiteDiagnostic, null, CSDiagnosticInfo.EmptyErrorInfo)
-                       : result;
-            }
+            return _uncommonFields?._lazyUseSiteDiagnostic;
         }
 
         private DiagnosticInfo InitializeUseSiteDiagnostic(DiagnosticInfo diagnostic)
         {
-            Debug.Assert(!CSDiagnosticInfo.IsEmpty(diagnostic));
+            if (_packedFlags.IsUseSiteDiagnosticPopulated)
+            {
+                return _uncommonFields?._lazyUseSiteDiagnostic;
+            }
+
             if (diagnostic != null)
             {
-                diagnostic = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUseSiteDiagnostic, diagnostic, CSDiagnosticInfo.EmptyErrorInfo);
+                Debug.Assert(!CSDiagnosticInfo.IsEmpty(diagnostic));
+                diagnostic = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUseSiteDiagnostic, diagnostic);
             }
 
             _packedFlags.SetIsUseSiteDiagnosticPopulated();
@@ -1026,25 +983,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 Debug.Assert(!result.IsDefault);
                 if (!result.IsEmpty)
                 {
-                    result = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyConditionalAttributeSymbols, result);
+                    result = InterlockedOperations.Initialize(
+                        ref AccessUncommonFields()._lazyConditionalAttributeSymbols, 
+                        result,
+                        ImmutableArray<string>.Empty);
                 }
 
                 _packedFlags.SetIsConditionalAttributePopulated();
                 return result;
             }
 
-            var uncommonFields = _uncommonFields;
-            if (uncommonFields == null)
-            {
-                return ImmutableArray<string>.Empty;
-            }
-            else
-            {
-                var result = uncommonFields._lazyConditionalAttributeSymbols;
-                return result.IsDefault
-                    ? InterlockedOperations.Initialize(ref uncommonFields._lazyConditionalAttributeSymbols, ImmutableArray<string>.Empty)
-                    : result;
-            }
+            return _uncommonFields?._lazyConditionalAttributeSymbols ?? ImmutableArray<string>.Empty;
         }
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
@@ -1061,25 +1010,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     var result = ObsoleteAttributeHelpers.GetObsoleteDataFromMetadata(_handle, (PEModuleSymbol)ContainingModule);
                     if (result != null)
                     {
-                        result = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyObsoleteAttributeData, result, ObsoleteAttributeData.Uninitialized);
+                        result = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyObsoleteAttributeData, result, null);
                     }
 
                     _packedFlags.SetIsObsoleteAttributePopulated();
                     return result;
                 }
 
-                var uncommonFields = _uncommonFields;
-                if (uncommonFields == null)
-                {
-                    return null;
-                }
-                else
-                {
-                    var result = uncommonFields._lazyObsoleteAttributeData;
-                    return ReferenceEquals(result, ObsoleteAttributeData.Uninitialized)
-                        ? InterlockedOperations.Initialize(ref uncommonFields._lazyObsoleteAttributeData, null, ObsoleteAttributeData.Uninitialized)
-                        : result;
-                }
+                return _uncommonFields?._lazyObsoleteAttributeData;
             }
         }
 
@@ -1102,13 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return result;
                 }
 
-                var uncommonFields = _uncommonFields;
-                if (uncommonFields == null)
-                {
-                    return OverriddenOrHiddenMembersResult.Empty;
-                }
-
-                return uncommonFields._lazyOverriddenOrHiddenMembersResult ?? InterlockedOperations.Initialize(ref uncommonFields._lazyOverriddenOrHiddenMembersResult, OverriddenOrHiddenMembersResult.Empty);
+                return _uncommonFields?._lazyOverriddenOrHiddenMembersResult ?? OverriddenOrHiddenMembersResult.Empty;
             }
         }
 
