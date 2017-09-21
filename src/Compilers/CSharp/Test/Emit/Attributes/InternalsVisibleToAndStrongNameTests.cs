@@ -1280,11 +1280,16 @@ public class Z
         {
             string s = "public class C {}";
 
-            var options = TestOptions.ReleaseModule.WithCryptoKeyFile(PublicKeyFile).WithStrongNameProvider(s_defaultPortableProvider);
+            var options = TestOptions.ReleaseDll.WithCryptoKeyFile(PublicKeyFile).WithStrongNameProvider(s_defaultPortableProvider);
             var other = CreateStandardCompilation(s, options: options);
 
-            var outStrm = other.EmitToStream();
-            Assert.False(IsStreamSigned(outStrm));
+            var outStrm = new MemoryStream();
+            var refStrm = new MemoryStream();
+            var success = other.Emit(outStrm, metadataPEStream: refStrm);
+
+            Assert.False(success.Success);
+            // The diagnostic contains a random file path, so just check the code.
+            Assert.True(success.Diagnostics[0].Code == (int)ErrorCode.ERR_SignButNoPrivateKey);
         }
 
         [Fact()]
@@ -1292,11 +1297,16 @@ public class Z
         {
             string s = "public class C {}";
 
-            var options = TestOptions.ReleaseModule.WithCryptoKeyFile(PublicKeyFile).WithStrongNameProvider(s_defaultDesktopProvider);
+            var options = TestOptions.ReleaseDll.WithCryptoKeyFile(PublicKeyFile).WithStrongNameProvider(s_defaultDesktopProvider);
             var other = CreateStandardCompilation(s, options: options);
 
-            var outStrm = other.EmitToStream();
-            Assert.False(IsStreamSigned(outStrm));
+            var outStrm = new MemoryStream();
+            var refStrm = new MemoryStream();
+            var success = other.Emit(outStrm, metadataPEStream: refStrm);
+
+            Assert.False(success.Success);
+            // The diagnostic contains a random file path, so just check the code.
+            Assert.True(success.Diagnostics[0].Code == (int)ErrorCode.ERR_SignButNoPrivateKey);
         }
 
         [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
@@ -1356,6 +1366,43 @@ public class C {}";
         [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
         [Fact()]
         public void SignModuleKeyFileCmdLine()
+        {
+            string s = "public class C {}";
+
+            var options = TestOptions.ReleaseModule.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultPortableProvider);
+            var other = CreateStandardCompilation(s, options: options);
+
+            var outStrm = new MemoryStream();
+            var success = other.Emit(outStrm);
+            Assert.True(success.Success);
+
+            ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyFileAttribute, legacyStrongName: false);
+        }
+
+        [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
+        [Fact()]
+        public void SignRefAssemblyKeyFileCmdLine()
+        {
+            string s = "public class C {}";
+
+            var options = TestOptions.DebugDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultPortableProvider);
+            var other = CreateStandardCompilation(s, options: options);
+
+            var outStrm = new MemoryStream();
+            var refStrm = new MemoryStream();
+            var success = other.Emit(outStrm, metadataPEStream: refStrm);
+            Assert.True(success.Success);
+
+            outStrm.Position = 0;
+            refStrm.Position = 0;
+
+            Assert.True(IsStreamSigned(outStrm));
+            Assert.True(IsStreamSigned(refStrm));
+        }
+
+        [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
+        [Fact()]
+        public void SignModuleKeyFileCmdLine_Legacy()
         {
             string s = "public class C {}";
 

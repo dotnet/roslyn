@@ -5827,6 +5827,72 @@ public class C
         }
 
         [Fact]
+        public void CreateCompilationWithKeyFile()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+    }
+}";
+
+            var fileName = "a.cs";
+            var dir = Temp.CreateDirectory();
+            var file = dir.CreateFile(fileName);
+            file.WriteAllText(source);
+
+            var cmd = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "a.cs", "/keyfile:key.snk", });
+            var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), ErrorLogger.Null);
+
+            Assert.Equal(comp.Options.StrongNameProvider.GetType(), typeof(PortableStrongNameProvider));
+        }
+
+        [Fact]
+        public void CreateCompilationWithKeyContainer()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+    }
+}";
+
+            var fileName = "a.cs";
+            var dir = Temp.CreateDirectory();
+            var file = dir.CreateFile(fileName);
+            file.WriteAllText(source);
+
+            var cmd = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "a.cs", "/keycontainer:bbb", });
+            var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), ErrorLogger.Null);
+
+            Assert.Equal(comp.Options.StrongNameProvider.GetType(), typeof(DesktopStrongNameProvider));
+        }
+
+        [Fact]
+        public void CreateCompilationFallbackCommand()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+    }
+}";
+
+            var fileName = "a.cs";
+            var dir = Temp.CreateDirectory();
+            var file = dir.CreateFile(fileName);
+            file.WriteAllText(source);
+
+            var cmd = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "a.cs", "/keyFile:key.snk", "/features:BypassStrongName" });
+            var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), ErrorLogger.Null);
+
+            Assert.Equal(comp.Options.StrongNameProvider.GetType(), typeof(DesktopStrongNameProvider));
+        }
+
+        [Fact]
         public void CreateCompilation_MainAndTargetIncompatibilities()
         {
             string source = @"

@@ -2226,7 +2226,6 @@ namespace Microsoft.CodeAnalysis
                 if (Options.StrongNameProvider?.Capability == SigningCapability.SignsPeBuilder && !Options.PublicSign)
                 {
                     privateKeyOpt = StrongNameKeys.PrivateKey;
-                    // PROTOTYPE(strongname): Report an error if PrivateKey is null, meaning that they passed in a public key file.
                 }
 
                 if (success)
@@ -2671,7 +2670,7 @@ namespace Microsoft.CodeAnalysis
                     metadataOnly: true,
                     isDeterministic: true,
                     emitTestCoverageData: false,
-                    privateKeyOpt: null, // PROTOTYPE(strongname): Do we need to sign ref assemblies? 
+                    privateKeyOpt: privateKeyOpt,
                     cancellationToken: cancellationToken))
                 {
                     return false;
