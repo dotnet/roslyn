@@ -476,7 +476,7 @@ BC30518: Overload resolution failed because no accessible 'P1' can be called wit
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/22224")>
         Public Sub TestClone()
             Dim sourceCode = TestResource.AllInOneVisualBasicCode
 
@@ -491,7 +491,7 @@ BC30518: Overload resolution failed because no accessible 'P1' can be called wit
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/22224")>
         Public Sub TestParentOperations()
             Dim sourceCode = TestResource.AllInOneVisualBasicCode
 

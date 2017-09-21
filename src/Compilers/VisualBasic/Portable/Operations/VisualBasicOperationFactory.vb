@@ -26,11 +26,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
             ' this should be removed once this issue is fixed
             ' https://github.com/dotnet/roslyn/issues/21186
-            If TypeOf boundNode Is BoundValuePlaceholderBase Then
-                ' since same place holder bound node appears in multiple places in the tree
+            ' https://github.com/dotnet/roslyn/issues/21554
+            If TypeOf boundNode Is BoundValuePlaceholderBase OrElse
+               (TypeOf boundNode Is BoundParameter AndAlso boundNode.WasCompilerGenerated) Then
+                ' since same bound node appears in multiple places in the tree
                 ' we can't use bound node to operation map.
-                ' for now, we will just create new operation and return clone but we need to figure out
-                ' what we want to do with place holder node such as just returning nothing
+                ' for now, we will just create new operation and return cloned
                 Return _semanticModel.CloneOperation(CreateInternal(boundNode))
             End If
 
@@ -91,6 +92,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return CreateBoundTernaryConditionalExpressionOperation(DirectCast(boundNode, BoundTernaryConditionalExpression))
                 Case BoundKind.TypeOf
                     Return CreateBoundTypeOfOperation(DirectCast(boundNode, BoundTypeOf))
+                Case BoundKind.GetType
+                    Return CreateBoundGetTypeOperation(DirectCast(boundNode, BoundGetType))
                 Case BoundKind.ObjectCreationExpression
                     Return CreateBoundObjectCreationExpressionOperation(DirectCast(boundNode, BoundObjectCreationExpression))
                 Case BoundKind.ObjectInitializerExpression
@@ -206,6 +209,36 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return Create(DirectCast(boundNode, BoundAnonymousTypeFieldInitializer).Value)
                 Case BoundKind.AnonymousTypePropertyAccess
                     Return CreateBoundAnonymousTypePropertyAccessOperation(DirectCast(boundNode, BoundAnonymousTypePropertyAccess))
+                Case BoundKind.QueryExpression
+                    Return CreateBoundQueryExpressionOperation(DirectCast(boundNode, BoundQueryExpression))
+                Case BoundKind.QueryClause
+                    ' Query clause has no special representation in the IOperation tree
+                    Return Create(DirectCast(boundNode, BoundQueryClause).UnderlyingExpression)
+                Case BoundKind.QueryableSource
+                    ' Queryable source has no special representation in the IOperation tree
+                    Return Create(DirectCast(boundNode, BoundQueryableSource).Source)
+                Case BoundKind.AggregateClause
+                    ' Aggregate clause has no special representation in the IOperation tree
+                    Return Create(DirectCast(boundNode, BoundAggregateClause).UnderlyingExpression)
+                Case BoundKind.Ordering
+                    ' Ordering clause has no special representation in the IOperation tree
+                    Return Create(DirectCast(boundNode, BoundOrdering).UnderlyingExpression)
+                Case BoundKind.GroupAggregation
+                    ' Group aggregation has no special representation in the IOperation tree
+                    Return Create(DirectCast(boundNode, BoundGroupAggregation).Group)
+                Case BoundKind.QuerySource
+                    ' Query source has no special representation in the IOperation tree
+                    Return Create(DirectCast(boundNode, BoundQuerySource).Expression)
+                Case BoundKind.ToQueryableCollectionConversion
+                    ' Queryable collection conversion has no special representation in the IOperation tree
+                    Return Create(DirectCast(boundNode, BoundToQueryableCollectionConversion).ConversionCall)
+                Case BoundKind.QueryLambda
+                    ' Query lambda must be lowered to the regular lambda form for the operation tree.
+                    Dim rewrittenLambda As BoundNode = RewriteQueryLambda(DirectCast(boundNode, BoundQueryLambda))
+                    Return Create(rewrittenLambda)
+                Case BoundKind.RangeVariableAssignment
+                    ' Range variable assignment has no special representation in the IOperation tree
+                    Return Create(DirectCast(boundNode, BoundRangeVariableAssignment).Value)
                 Case Else
                     Dim constantValue = ConvertToOptional(TryCast(boundNode, BoundExpression)?.ConstantValueOpt)
                     Dim isImplicit As Boolean = boundNode.WasCompilerGenerated
@@ -564,6 +597,15 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTypeOf.ConstantValueOpt)
             Dim isImplicit As Boolean = boundTypeOf.WasCompilerGenerated
             Return New LazyIsTypeExpression(operand, isType, isNotTypeExpression, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundGetTypeOperation(boundGetType As BoundGetType) As ITypeOfExpression
+            Dim typeOperand As ITypeSymbol = boundGetType.SourceType.Type
+            Dim syntax As SyntaxNode = boundGetType.Syntax
+            Dim type As ITypeSymbol = boundGetType.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundGetType.ConstantValueOpt)
+            Dim isImplicit As Boolean = boundGetType.WasCompilerGenerated
+            Return New TypeOfExpression(typeOperand, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundLateInvocationOperation(boundLateInvocation As BoundLateInvocation) As IOperation
@@ -1343,6 +1385,15 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAnonymousTypePropertyAccess.ConstantValueOpt)
             Dim isImplicit As Boolean = boundAnonymousTypePropertyAccess.WasCompilerGenerated
             Return New LazyPropertyReferenceExpression([property], instance, [property], argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundQueryExpressionOperation(boundQueryExpression As BoundQueryExpression) As IOperation
+            Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundQueryExpression.LastOperator))
+            Dim syntax As SyntaxNode = boundQueryExpression.Syntax
+            Dim type As ITypeSymbol = boundQueryExpression.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundQueryExpression.ConstantValueOpt)
+            Dim isImplicit As Boolean = boundQueryExpression.WasCompilerGenerated
+            Return New LazyTranslatedQueryExpression(expression, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
     End Class
 End Namespace

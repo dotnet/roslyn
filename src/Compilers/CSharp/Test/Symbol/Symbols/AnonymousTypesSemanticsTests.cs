@@ -448,7 +448,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Type) (Syntax: 'F123 = typeof(ClassA)')
         Left: IPropertyReferenceExpression: System.Type <anonymous type: System.Type F123>.F123 { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Type) (Syntax: 'F123')
             Instance Receiver: null
-        Right: ITypeOfExpression (OperationKind.None) (Syntax: 'typeof(ClassA)')
+        Right: ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type) (Syntax: 'typeof(ClassA)')
             TypeOperand: ClassA
 ";
             var expectedDiagnostics = DiagnosticDescription.None;

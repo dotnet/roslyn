@@ -230,6 +230,8 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundPatternSwitchLabelOperation((BoundPatternSwitchLabel)boundNode);
                 case BoundKind.IsPatternExpression:
                     return CreateBoundIsPatternExpressionOperation((BoundIsPatternExpression)boundNode);
+                case BoundKind.QueryClause:
+                    return CreateBoundQueryClauseOperation((BoundQueryClause)boundNode);
                 default:
                     Optional<object> constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
                     bool isImplicit = boundNode.WasCompilerGenerated;
@@ -1555,6 +1557,22 @@ namespace Microsoft.CodeAnalysis.Semantics
             Optional<object> constantValue = ConvertToOptional(boundIsPatternExpression.ConstantValue);
             bool isImplicit = boundIsPatternExpression.WasCompilerGenerated;
             return new LazyIsPatternExpression(expression, pattern, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IOperation CreateBoundQueryClauseOperation(BoundQueryClause boundQueryClause)
+        {
+            if (boundQueryClause.Syntax.Kind() != SyntaxKind.QueryExpression)
+            {
+                // Currently we have no IOperation APIs for different query clauses or continuation.
+                return Create(boundQueryClause.Value);
+            }
+
+            Lazy<IOperation> expression = new Lazy<IOperation>(() => Create(boundQueryClause.Value));
+            SyntaxNode syntax = boundQueryClause.Syntax;
+            ITypeSymbol type = boundQueryClause.Type;
+            Optional<object> constantValue = ConvertToOptional(boundQueryClause.ConstantValue);
+            bool isImplicit = boundQueryClause.WasCompilerGenerated;
+            return new LazyTranslatedQueryExpression(expression, _semanticModel, syntax, type, constantValue, isImplicit);
         }
     }
 }
