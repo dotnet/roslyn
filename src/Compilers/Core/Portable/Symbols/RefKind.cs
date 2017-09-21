@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
         Out = 2,
 
         /// <summary>
-        /// Indicates a "ref readonly" or an "in" parameter.
+        /// Indicates a "ref readonly" parameter.
         /// </summary>
         RefReadOnly = 3,
     }
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
             {
                 case RefKind.Out: return "out";
                 case RefKind.Ref: return "ref";
-                case RefKind.RefReadOnly: return "in";
+                case RefKind.RefReadOnly: return "ref readonly";
                 default: throw new ArgumentException($"Invalid RefKind for parameters: {kind}");
             }
         }

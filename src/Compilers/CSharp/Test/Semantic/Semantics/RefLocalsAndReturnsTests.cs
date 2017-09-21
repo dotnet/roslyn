@@ -2696,5 +2696,77 @@ class TestClass
                     Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Task.FromResult(1)").WithArguments("TestClass.this[int, int].get").WithLocation(36, 22)
             );
         }
+
+        [Fact]
+        public void RefReadOnlyInAsyncMethodDisallowed()
+        {
+            CreateCompilationWithMscorlib45(@"
+using System.Threading.Tasks;
+class Test
+{
+    async Task Method(ref readonly int p)
+    {
+        await Task.FromResult(0);
+    }
+}").VerifyDiagnostics(
+                // (5,40): error CS1988: Async methods cannot have ref or out parameters
+                //     async Task Method(ref readonly int p)
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "p").WithLocation(5, 40));
+        }
+
+        [Fact]
+        public void RefReadOnlyIIteratorMethodDisallowed()
+        {
+            CreateCompilationWithMscorlib45(@"
+using System.Collections.Generic;
+class Test
+{
+    IEnumerable<int> Method(ref readonly int p)
+    {
+        yield return 0;
+        yield return 1;
+        yield return 2;
+    }
+}").VerifyDiagnostics(
+                // (5,46): error CS1623: Iterators cannot have ref or out parameters
+                //     IEnumerable<int> Method(ref readonly int p)
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "p").WithLocation(5, 46));
+        }
+
+        [Fact]
+        public void RefReadOnlyInIteratorMethods()
+        {
+            CreateStandardCompilation(@"
+using System.Collections.Generic;
+class Test
+{
+    public IEnumerator<int> GetEnumerator(ref readonly int p)
+    {
+        yield return 0;
+    }
+}").VerifyDiagnostics(
+                // (5,60): error CS1623: Iterators cannot have ref or out parameters
+                //     public IEnumerator<int> GetEnumerator(ref readonly int p)
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "p").WithLocation(5, 60));
+        }
+
+        [Fact]
+        public void CannotCallRefReadOnlyMethodsUsingDiscardParameter()
+        {
+            CreateStandardCompilation(@"
+class Test
+{
+	void M(ref readonly int p)
+    {
+    }
+    void N()
+    {
+        M(_);
+    }
+}").VerifyDiagnostics(
+                // (9,11): error CS0103: The name '_' does not exist in the current context
+                //         M(_);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(9, 11));
+        }
     }
 }
