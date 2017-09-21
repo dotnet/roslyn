@@ -47,7 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.positionOpt,
                 _escapeKeywordIdentifiers,
                 _lazyAliasMap,
-                isFirstSymbolVisited: inNamespaceOrType);
+                isFirstSymbolVisited: false,
+                inNamespaceOrType: inNamespaceOrType);
         }
 
         internal SymbolDisplayPart CreatePart(SymbolDisplayPartKind kind, ISymbol symbol, string text)
