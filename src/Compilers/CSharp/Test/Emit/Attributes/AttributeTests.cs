@@ -99,39 +99,86 @@ sealed class MarkAttribute : Attribute
 {
     public MarkAttribute(bool a, params object[] b)
     {
-        A = a;
         B = b;
     }
-    public bool A { get; }
-    public object[] B { get;  }
+    public object[] B { get; }
 }
 
 [Mark(b: new object[] { ""Hello"", ""World"" }, a: true)]
 static class Program
 {
-    private static void Test(bool a, params object[] b)
-        => PrintOutArgsInfo(b);
-
     public static void Main()
     {
-        Console.Write(""Method call: "");
-        Test(b: new object[] { ""Hello"", ""World"" }, a: true);
-
         var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
-        Console.Write(""Attribute constructor call: "");
-        PrintOutArgsInfo(attr.B);
-    }
-
-    private static void PrintOutArgsInfo(object[] args)
-    {
-        Console.WriteLine($""{args[0]}"");
+        Console.Write(attr.B[0]);
     }
 }", options: TestOptions.DebugExe);
             source.VerifyDiagnostics();
 
-            CompileAndVerify(source, expectedOutput:
-@"Method call: Hello
-Attribute constructor call: Hello");
+            CompileAndVerify(source, expectedOutput: @"Hello");
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnObjectParamsArgument2()
+        {
+            var source = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, params object[] b)
+    {
+        B = b;
+    }
+    public object[] B { get; }
+}
+
+[Mark(b: ""Hello"", a: true)]
+static class Program
+{
+    public static void Main()
+    {
+        var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
+        Console.Write(attr.B[0]);
+    }
+}", options: TestOptions.DebugExe);
+            source.VerifyDiagnostics();
+
+            CompileAndVerify(source, expectedOutput: @"Hello");
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnObjectParamsArgument3()
+        {
+            var source = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, params object[] b)
+    {
+        B = b;
+    }
+    public object[] B { get; }
+}
+
+[Mark(true, new object[] { ""Hello"" }, new object[] { ""World"" })]
+static class Program
+{
+    public static void Main()
+    {
+        var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
+        var worldArray = (object[])attr.B[1];
+        Console.Write(worldArray[0]);
+    }
+}", options: TestOptions.DebugExe);
+            source.VerifyDiagnostics();
+
+            CompileAndVerify(source, expectedOutput: @"World");
         }
 
         [Fact]
@@ -146,39 +193,23 @@ sealed class MarkAttribute : Attribute
 {
     public MarkAttribute(int a, int b)
     {
-        A = a;
         B = b;
     }
-    public int A { get; }
     public int B { get;  }
 }
 
 [Mark(b: 42, a: 1)]
 static class Program
 {
-    private static void Test(int a, int b)
-        => PrintOutArgsInfo(b);
-
     public static void Main()
     {
-        Console.Write(""Method call: "");
-        Test(b: 42, a: 1);
-
         var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
-        Console.Write(""Attribute constructor call: "");
-        PrintOutArgsInfo(attr.B);
-    }
-
-    private static void PrintOutArgsInfo(int value)
-    {
-        Console.WriteLine($""Value={value}"");
+        Console.Write(attr.B);
     }
 }", options: TestOptions.DebugExe);
             source.VerifyDiagnostics();
 
-            CompileAndVerify(source, expectedOutput:
-@"Method call: Value=42
-Attribute constructor call: Value=42");
+            CompileAndVerify(source, expectedOutput: "42");
         }
 
         [WorkItem(984896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984896")]

@@ -825,49 +825,39 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(argsConsumedCount <= argumentsCount);
 
+            // If there's a named argument, we'll use that
+            if (!constructorArgumentNamesOpt.IsDefault)
+            {
+                int argIndex = constructorArgumentNamesOpt.IndexOf(parameter.Name);
+                if (TryGetNormalParamValue(parameter, constructorArgsArray, argIndex, conversions, out var namedValue))
+                {
+                    return namedValue;
+                }
+
+                // A named argument for a params parameter must be trailing, so expanded params must have a single value
+                var singleValue = new TypedConstant[1] { constructorArgsArray[argIndex] };
+                return new TypedConstant(parameter.Type, singleValue.AsImmutableOrNull());
+            }
+
             int paramArrayArgCount = argumentsCount - argsConsumedCount;
+
+            // If there are zero arguments left
             if (paramArrayArgCount == 0)
             {
                 return new TypedConstant(parameter.Type, ImmutableArray<TypedConstant>.Empty);
             }
 
-            int argIndex = -1;
-            // If there's a named argument, we'll use that
-            if (!constructorArgumentNamesOpt.IsDefault)
+            // If there's exactly one argument left and it's an array, we'll try that
+            if (paramArrayArgCount == 1 &&
+                TryGetNormalParamValue(parameter, constructorArgsArray,argsConsumedCount, conversions, out var lastValue))
             {
-                argIndex = constructorArgumentNamesOpt.IndexOf(parameter.Name);
-            }
-
-            // If there's exactly one argument and it's an array, we'll use that
-            if (argIndex < 0 && paramArrayArgCount == 1 && constructorArgsArray[argsConsumedCount].Kind == TypedConstantKind.Array)
-            {
-                argIndex = argsConsumedCount;
-            }
-
-            if (argIndex >= 0)
-            {
-                TypeSymbol argumentType = (TypeSymbol)constructorArgsArray[argIndex].Type;
-
-                // Easy out (i.e. don't both classifying conversion).
-                if (argumentType == parameter.Type)
-                {
-                    return constructorArgsArray[argIndex];
-                }
-
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null; // ignoring, since already bound argument and parameter
-                Conversion conversion = conversions.ClassifyBuiltInConversion(argumentType, parameter.Type, ref useSiteDiagnostics);
-
-                // NOTE: Won't always succeed, even though we've performed overload resolution.
-                // For example, passing int[] to params object[] actually treats the int[] as an element of the object[].
-                if (conversion.IsValid && conversion.Kind == ConversionKind.ImplicitReference)
-                {
-                    return constructorArgsArray[argIndex];
-                }
+                return lastValue;
             }
 
             Debug.Assert(!constructorArgsArray.IsDefault);
             Debug.Assert(argsConsumedCount <= constructorArgsArray.Length);
 
+            // Take the trailing arguments as an array for expanded form
             var values = new TypedConstant[paramArrayArgCount];
 
             for (int i = 0; i < paramArrayArgCount; i++)
@@ -876,6 +866,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new TypedConstant(parameter.Type, values.AsImmutableOrNull());
+        }
+
+        private static bool TryGetNormalParamValue(ParameterSymbol parameter, ImmutableArray<TypedConstant> constructorArgsArray, 
+            int argIndex, Conversions conversions, out TypedConstant result)
+        {
+            TypedConstant argument = constructorArgsArray[argIndex];
+            if (argument.Kind != TypedConstantKind.Array)
+            {
+                result = default;
+                return false;
+            }
+
+            TypeSymbol argumentType = (TypeSymbol)argument.Type;
+            // Easy out (i.e. don't both classifying conversion).
+            if (argumentType == parameter.Type)
+            {
+                result = argument;
+                return true;
+            }
+
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null; // ignoring, since already bound argument and parameter
+            Conversion conversion = conversions.ClassifyBuiltInConversion(argumentType, parameter.Type, ref useSiteDiagnostics);
+
+            // NOTE: Won't always succeed, even though we've performed overload resolution.
+            // For example, passing int[] to params object[] actually treats the int[] as an element of the object[].
+            if (conversion.IsValid && conversion.Kind == ConversionKind.ImplicitReference)
+            {
+                result = argument;
+                return true;
+            }
+
+            result = default;
+            return false;
         }
 
         #endregion
