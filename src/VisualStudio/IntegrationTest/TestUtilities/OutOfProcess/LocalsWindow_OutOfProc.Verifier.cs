@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -28,7 +26,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
             public void CheckEntry(string[] entryNames, string expectedType, string expectedValue)
             {
-                var entry =  GetEntry(entryNames);
+                var entry =  _localsWindow.GetEntry(entryNames);
                 Assert.Equal(expectedType, entry.Type);
                 Assert.Equal(expectedValue, entry.Value);
             }
