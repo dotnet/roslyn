@@ -333,6 +333,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
         }
       
+        [Fact]
         [WorkItem(21371, "https://github.com/dotnet/roslyn/issues/21371")]
         public void GenerateDocumentationFalse()
         {
