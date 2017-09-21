@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, nameof(keyFileSearchPaths));
             }
 
-            FileSystem = strongNameFileSystem ?? new StrongNameFileSystem();
+            FileSystem = strongNameFileSystem ?? StrongNameFileSystem.s_StrongNameFileSystemInstance;
             _keyFileSearchPaths = keyFileSearchPaths.NullToEmpty();
             _tempPath = tempPath;
         }

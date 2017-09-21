@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis
         private readonly ImmutableArray<string> _keyFileSearchPaths;
         internal StrongNameFileSystem FileSystem { get; set; }
 
-        public PortableStrongNameProvider(ImmutableArray<string> keySearchPaths = default, StrongNameFileSystem strongNameFileSystem = default)
+        public PortableStrongNameProvider(ImmutableArray<string> keySearchPaths, StrongNameFileSystem strongNameFileSystem)
         {
-            FileSystem = strongNameFileSystem ?? new StrongNameFileSystem();
+            FileSystem = strongNameFileSystem ?? StrongNameFileSystem.s_StrongNameFileSystemInstance;
             _keyFileSearchPaths = keySearchPaths.NullToEmpty();
         }
 

@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis
 {
     internal class StrongNameFileSystem
     {
+        internal readonly static StrongNameFileSystem s_StrongNameFileSystemInstance = new StrongNameFileSystem();
+        protected StrongNameFileSystem()
+        {
+        }
+
         internal virtual byte[] ReadAllBytes(string fullPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
@@ -57,12 +62,7 @@ namespace Microsoft.CodeAnalysis
 
         public override bool Equals(object obj)
         {
-            if (obj is null || GetType() != obj.GetType())
-            {
-                return false;
-            }
-
-            return true;
+            return object.ReferenceEquals(this, obj);
         }
 
         public override int GetHashCode() => 0;
