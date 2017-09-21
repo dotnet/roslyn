@@ -146,6 +146,8 @@
     <RoslynBuildUtilVersion>0.9.8-beta</RoslynBuildUtilVersion>
     <RoslynDependenciesMicrosoftVisualStudioWorkspaceVersion>15.0.215-pre</RoslynDependenciesMicrosoftVisualStudioWorkspaceVersion>
     <RoslynDependenciesOptimizationDataVersion>2.6.0-beta1-62205-01</RoslynDependenciesOptimizationDataVersion>
+    <RoslynDependenciesMicrosoftVisualStudioWorkspaceVersion>15.0.215-pre</RoslynDependenciesMicrosoftVisualStudioWorkspaceVersion>
+    <RoslynDependenciesOptimizationDataVersion>2.3.0-beta3-61801-06</RoslynDependenciesOptimizationDataVersion>
     <RoslynToolsMicrosoftLocateVSVersion>0.2.4-beta</RoslynToolsMicrosoftLocateVSVersion>
     <RoslynToolsMicrosoftSignToolVersion>0.3.7-beta</RoslynToolsMicrosoftSignToolVersion>
     <RoslynToolsMicrosoftVSIXExpInstallerVersion>0.4.0-beta</RoslynToolsMicrosoftVSIXExpInstallerVersion>
