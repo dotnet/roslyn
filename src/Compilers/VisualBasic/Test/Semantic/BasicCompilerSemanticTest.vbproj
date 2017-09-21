@@ -42,6 +42,7 @@
     <Import Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Update="Resource.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resource.resx</DependentUpon>
