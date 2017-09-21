@@ -856,7 +856,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundCompoundAssignmentOperator.Operator.Kind);
             Lazy<IOperation> target = new Lazy<IOperation>(() => Create(boundCompoundAssignmentOperator.Left));
             Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundCompoundAssignmentOperator.Right));
-            bool isLifted = boundCompoundAssignmentOperator.Type.IsNullableType();
+            bool isLifted = boundCompoundAssignmentOperator.Operator.Kind.IsLifted();
             bool isChecked = boundCompoundAssignmentOperator.Operator.Kind.IsChecked();
             bool usesOperatorMethod = (boundCompoundAssignmentOperator.Operator.Kind & CSharp.BinaryOperatorKind.TypeMask) == CSharp.BinaryOperatorKind.UserDefined;
             IMethodSymbol operatorMethod = boundCompoundAssignmentOperator.Operator.Method;
