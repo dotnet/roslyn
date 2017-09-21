@@ -6360,14 +6360,12 @@ BC37289: Tuple element name 'M' is inferred. Please use language version 15.3 or
         Public Sub InferredName_Conversion()
             Dim source = <compilation>
                              <file>
-Imports System.Collections.Generic
 Class C
-    Shared Sub F(items As (Integer, IList(Of Object)))
+    Shared Sub F(t As (Object, Object))
     End Sub
-    Shared Sub Test()
-        Dim items = New List(Of Object)()
-        Dim group = (1, items)
-        F(group)
+    Shared Sub G(o As Object)
+        Dim t = (1, o)
+        F(t)
     End Sub
 End Class
     </file>

@@ -975,7 +975,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Unindent();
         }
 
-        internal override void VisitSizeOfExpression(ISizeOfExpression operation)
+        public override void VisitSizeOfExpression(ISizeOfExpression operation)
         {
             LogString(nameof(ISizeOfExpression));
             LogCommonPropertiesAndNewLine(operation);
@@ -986,7 +986,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Unindent();
         }
 
-        internal override void VisitTypeOfExpression(ITypeOfExpression operation)
+        public override void VisitTypeOfExpression(ITypeOfExpression operation)
         {
             LogString(nameof(ITypeOfExpression));
             LogCommonPropertiesAndNewLine(operation);
@@ -1429,6 +1429,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.Pattern, "Pattern");
             Visit(operation.GuardExpression, "Guard Expression");
+        }
+
+        public override void VisitTranslatedQueryExpression(ITranslatedQueryExpression operation)
+        {
+            LogString(nameof(ITranslatedQueryExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Expression, "Expression");
         }
 
         public override void VisitRaiseEventExpression(IRaiseEventExpression operation)

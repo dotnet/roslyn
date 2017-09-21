@@ -83,6 +83,7 @@ public class ClassA
             Assert.Equal(info3.Type, info4.Type);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact()]
         public void AnonymousTypeSymbols_Simple_OperationTree()
         {
@@ -128,7 +129,7 @@ class ClassA
     public static SSS CCC = new SSS();
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IBlockStatement (4 statements, 4 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
   Locals: Local_1: System.Object v1
     Local_2: System.Object v2
@@ -249,6 +250,7 @@ class ClassA
                 info1.Symbol.ToTestDisplayString());
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact()]
         public void AnonymousTypeSymbols_ContextualKeywordsInFields_OperationTree()
         {
@@ -277,7 +279,7 @@ class ClassA
     public const string global = "" -=-= -"";
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: System.String var, <empty anonymous type> get, <anonymous type: System.Int32 select, System.String global> partial>) (Syntax: 'new ... }')
   Initializers(3):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, Constant: ""var"") (Syntax: 'var = ""var""')
@@ -328,6 +330,7 @@ class ClassA
             Assert.Equal("<anonymous type: D1 module>..ctor(D1 module)", info0.Symbol.ToTestDisplayString());
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact()]
         public void AnonymousTypeSymbols_DelegateMembers_OperationTree()
         {
@@ -388,6 +391,7 @@ class ClassA: ClassB
             Assert.Equal("System.Int32 System.Func<System.Int32, System.Int32>.Invoke(System.Int32 arg)", info1.Symbol.ToTestDisplayString());
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact()]
         public void AnonymousTypeSymbols_BaseAccessInMembers_OperationTree()
         {
@@ -433,6 +437,7 @@ class ClassA
             Assert.Equal("<anonymous type: System.Type F123>", info0.Type.ToTestDisplayString());
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact()]
         public void AnonymousTypeSymbols_InFieldInitializer_OperationTree()
         {
@@ -448,7 +453,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Type) (Syntax: 'F123 = typeof(ClassA)')
         Left: IPropertyReferenceExpression: System.Type <anonymous type: System.Type F123>.F123 { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Type) (Syntax: 'F123')
             Instance Receiver: null
-        Right: ITypeOfExpression (OperationKind.None) (Syntax: 'typeof(ClassA)')
+        Right: ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type) (Syntax: 'typeof(ClassA)')
             TypeOperand: ClassA
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -477,6 +482,7 @@ class ClassA
             Assert.Equal("object.Equals(object)", method.ToDisplayString());
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact()]
         public void AnonymousTypeSymbols_Equals_OperationTree()
         {
@@ -661,6 +667,7 @@ class ClassA
             Assert.Equal("System.Int32 <anonymous type: System.Int32 x, System.Int32 y>.y { get; }", info2.Symbol.ToTestDisplayString());
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact()]
         public void AnonymousTypeFieldCreatedInQuery_OperationTree()
         {
@@ -720,6 +727,7 @@ class ClassA
             Assert.Equal("y", info2.Symbol.ToDisplayString());
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact()]
         public void AnonymousTypeFieldCreatedInQuery2_OperationTree()
         {
@@ -771,6 +779,7 @@ class ClassA
             Assert.Equal("<anonymous type: System.Int32 x, <empty anonymous type> y>..ctor(System.Int32 x, <empty anonymous type> y)", info0.Symbol.ToTestDisplayString());
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact()]
         public void AnonymousTypeFieldCreatedInLambda_OperationTree()
         {
@@ -829,6 +838,7 @@ class ClassA
             Assert.Equal("<anonymous type: System.Int32 x, <empty anonymous type> y>..ctor(System.Int32 x, <empty anonymous type> y)", info0.Symbol.ToTestDisplayString());
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact()]
         public void AnonymousTypeFieldCreatedInLambda2_OperationTree()
         {
@@ -981,6 +991,7 @@ public class ClassA
             Assert.Equal("<anonymous type: ? aa, ? BB, ? CCC>", info2.Type.ToTestDisplayString());
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact()]
         public void AnonymousTypeSymbols_Error_Simple_OperationTree()
         {
@@ -1117,6 +1128,7 @@ public class ClassA
             Assert.Equal("<empty anonymous type>", info0.Type.ToTestDisplayString());
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact()]
         public void AnonymousTypeSymbols_Error_InUsingStatement_OperationTree()
         {
@@ -1131,7 +1143,7 @@ class ClassA
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IUsingStatement (OperationKind.UsingStatement, IsInvalid) (Syntax: 'using (/*<b ... }')
   Declaration: IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var v1 = new { }')
       IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'v1 = new { }')
@@ -1188,6 +1200,7 @@ public class ClassA
             Assert.Equal("System.Double <anonymous type: System.Int32 aa, System.String $1, System.Double bb>.bb { get; }", properties[2].ToTestDisplayString());
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20338")]
         public void AnonymousTypeSymbols_Error_DuplicateName_OperationTree()
         {
@@ -1299,6 +1312,7 @@ public class A
             Assert.Equal("<anonymous type: int a>.a", info.Symbol.ToDisplayString());
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact()]
         public void CheckAnonymousTypeAsConstValue_OperationTree()
         {
@@ -1353,6 +1367,7 @@ public class Program
 }", additionalRefs: new[] { SystemCoreRef }).VerifyDiagnostics();
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
         [ClrOnlyFact]
         public void TestAnonymousTypeInsideGroupBy_Queryable_OperationTree()

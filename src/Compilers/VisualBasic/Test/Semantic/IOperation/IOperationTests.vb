@@ -354,6 +354,8 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
 "IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(New S ... ), Nothing)')
   Children(3):
       IOperation:  (OperationKind.None) (Syntax: 'Test2')
+        Children(1):
+            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Module1) (Syntax: 'Test2')
       IObjectCreationExpression (Constructor: Sub System.Guid..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Guid, IsInvalid) (Syntax: 'New System.Guid()')
         Arguments(0)
         Initializer: null
@@ -363,20 +365,118 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
 "IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test1(AddressOf Main)')
   Children(2):
       IOperation:  (OperationKind.None) (Syntax: 'Test1')
-      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Main')")
+        Children(1):
+            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Module1) (Syntax: 'Test1')
+      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Main')
+        Children(1):
+            IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Main')
+              Children(1):
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Module1, IsInvalid) (Syntax: 'Main')")
 
             comp.VerifyOperationTree(nodes(3), expectedOperationTree:=
 "IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(New S ... essOf Main)')
   Children(3):
       IOperation:  (OperationKind.None) (Syntax: 'Test2')
+        Children(1):
+            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Module1) (Syntax: 'Test2')
       IObjectCreationExpression (Constructor: Sub System.Guid..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Guid, IsInvalid) (Syntax: 'New System.Guid()')
         Arguments(0)
         Initializer: null
-      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Main')")
+      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Main')
+        Children(1):
+            IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Main')
+              Children(1):
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Module1, IsInvalid) (Syntax: 'Main')")
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact>
+        <Fact()>
+        Public Sub BoundMethodGroup_ExposesReceiver()
+            Dim source = <![CDATA[
+Imports System
+Module Program
+    Sub Main(args As String())
+        Dim c1 As New C1
+        Console.WriteLine(New With {Key .a = AddressOf c1.S})'BIND:"New With {Key .a = AddressOf c1.S}"
+    End Sub
+
+    Class C1
+        Sub S()
+        End Sub
+    End Class
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key a As ?>, IsInvalid) (Syntax: 'New With {K ... essOf c1.S}')
+  Initializers(1):
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: 'Key .a = AddressOf c1.S')
+        Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
+            Instance Receiver: null
+        Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'AddressOf c1.S')
+            Children(1):
+                IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf c1.S')
+                  Children(1):
+                      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'c1.S')
+                        Children(1):
+                            IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'c1')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30491: Expression does not produce a value.
+        Console.WriteLine(New With {Key .a = AddressOf c1.S})'BIND:"New With {Key .a = AddressOf c1.S}"
+                                             ~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub BoundPropertyGroup_ExposesReceiver()
+            Dim source = <![CDATA[
+Option Strict Off
+
+Class C
+    Private Sub M(c As C, d As Object)
+        Dim x = c(c, d)'BIND:"c(c, d)"
+    End Sub
+
+    Default ReadOnly Property P1(x As Integer, x2 As Object) As Integer
+        Get
+            Return 1
+        End Get
+    End Property
+
+    Default ReadOnly Property P1(x As String, x2 As Object) As Integer
+        Get
+            Return 1
+        End Get
+    End Property
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'c(c, d)')
+  Children(3):
+      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'c')
+        Children(1):
+            IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
+      IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30518: Overload resolution failed because no accessible 'P1' can be called with these arguments:
+    'Public ReadOnly Default Property P1(x As Integer, x2 As Object) As Integer': Value of type 'C' cannot be converted to 'Integer'.
+    'Public ReadOnly Default Property P1(x As String, x2 As Object) As Integer': Value of type 'C' cannot be converted to 'String'.
+        Dim x = c(c, d)'BIND:"c(c, d)"
+                ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/22224")>
         Public Sub TestClone()
             Dim sourceCode = TestResource.AllInOneVisualBasicCode
 
@@ -391,7 +491,7 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/22224")>
         Public Sub TestParentOperations()
             Dim sourceCode = TestResource.AllInOneVisualBasicCode
 

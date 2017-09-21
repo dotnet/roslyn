@@ -4189,9 +4189,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class SizeOfExpression : Operation, ISizeOfExpression
     {
         public SizeOfExpression(ITypeSymbol typeOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            // https://github.com/dotnet/roslyn/issues/21296
-            // base(OperationKind.SizeOfExpression, semanticModel, syntax, type, constantValue, isImplicit)
-            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+            base(OperationKind.SizeOfExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
             TypeOperand = typeOperand;
         }
@@ -4573,9 +4571,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class TypeOfExpression : Operation, ITypeOfExpression
     {
         public TypeOfExpression(ITypeSymbol typeOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            // https://github.com/dotnet/roslyn/issues/22003
-            // base(OperationKind.TypeOfExpression, semanticModel, syntax, type, constantValue, isImplicit)
-            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+            base(OperationKind.TypeOfExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
             TypeOperand = typeOperand;
         }
@@ -5947,5 +5943,79 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         protected override ImmutableArray<IOperation> ArgumentsImpl => _lazyArguments.Value;
+    }
+
+    /// <summary>
+    /// Represents an unrolled/lowered query expression in C# and VB.
+    /// For example, for the query expression "from x in set where x.Name != null select x.Name", the Operation tree has the following shape:
+    ///   ITranslatedQueryExpression
+    ///     IInvocationExpression ('Select' invocation for "select x.Name")
+    ///       IInvocationExpression ('Where' invocation for "where x.Name != null")
+    ///         IInvocationExpression ('From' invocation for "from x in set")
+    /// </summary>
+    internal abstract partial class BaseTranslatedQueryExpression : Operation, ITranslatedQueryExpression
+    {
+        protected BaseTranslatedQueryExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+                    base(OperationKind.TranslatedQueryExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+        protected abstract IOperation ExpressionImpl { get; }
+        /// <summary>
+        /// Underlying unrolled expression.
+        /// </summary>
+        public IOperation Expression => Operation.SetParentOperation(ExpressionImpl, this);
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Expression;
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitTranslatedQueryExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitTranslatedQueryExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents an unrolled/lowered query expression in C# and VB.
+    /// For example, for the query expression "from x in set where x.Name != null select x.Name", the Operation tree has the following shape:
+    ///   ITranslatedQueryExpression
+    ///     IInvocationExpression ('Select' invocation for "select x.Name")
+    ///       IInvocationExpression ('Where' invocation for "where x.Name != null")
+    ///         IInvocationExpression ('From' invocation for "from x in set")
+    /// </summary>
+    internal sealed partial class TranslatedQueryExpression : BaseTranslatedQueryExpression, ITranslatedQueryExpression
+    {
+        public TranslatedQueryExpression(IOperation expression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            ExpressionImpl = expression;
+        }
+        protected override IOperation ExpressionImpl { get; }
+    }
+
+    /// <summary>
+    /// Represents an unrolled/lowered query expression in C# and VB.
+    /// For example, for the query expression "from x in set where x.Name != null select x.Name", the Operation tree has the following shape:
+    ///   ITranslatedQueryExpression
+    ///     IInvocationExpression ('Select' invocation for "select x.Name")
+    ///       IInvocationExpression ('Where' invocation for "where x.Name != null")
+    ///         IInvocationExpression ('From' invocation for "from x in set")
+    /// </summary>
+    internal sealed partial class LazyTranslatedQueryExpression : BaseTranslatedQueryExpression, ITranslatedQueryExpression
+    {
+        private readonly Lazy<IOperation> _lazyExpression;
+
+        public LazyTranslatedQueryExpression(Lazy<IOperation> expression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyExpression = expression ?? throw new System.ArgumentNullException(nameof(expression));
+        }
+        protected override IOperation ExpressionImpl => _lazyExpression.Value;
     }
 }
