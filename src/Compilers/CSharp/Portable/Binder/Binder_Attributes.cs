@@ -829,14 +829,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!constructorArgumentNamesOpt.IsDefault)
             {
                 int argIndex = constructorArgumentNamesOpt.IndexOf(parameter.Name);
-                if (TryGetNormalParamValue(parameter, constructorArgsArray, argIndex, conversions, out var namedValue))
+                if (argIndex >= 0)
                 {
-                    return namedValue;
-                }
+                    if (TryGetNormalParamValue(parameter, constructorArgsArray, argIndex, conversions, out var namedValue))
+                    {
+                        return namedValue;
+                    }
 
-                // A named argument for a params parameter must be trailing, so expanded params must have a single value
-                var singleValue = new TypedConstant[1] { constructorArgsArray[argIndex] };
-                return new TypedConstant(parameter.Type, singleValue.AsImmutableOrNull());
+                    // A named argument for a params parameter must be trailing, so expanded params must have a single value
+                    return new TypedConstant(parameter.Type, ImmutableArray.Create(constructorArgsArray[argIndex] ));
+                }
             }
 
             int paramArrayArgCount = argumentsCount - argsConsumedCount;
@@ -847,9 +849,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new TypedConstant(parameter.Type, ImmutableArray<TypedConstant>.Empty);
             }
 
-            // If there's exactly one argument left and it's an array, we'll try that
+            // If there's exactly one argument left, we'll try to use it in normal form
             if (paramArrayArgCount == 1 &&
-                TryGetNormalParamValue(parameter, constructorArgsArray,argsConsumedCount, conversions, out var lastValue))
+                TryGetNormalParamValue(parameter, constructorArgsArray, argsConsumedCount, conversions, out var lastValue))
             {
                 return lastValue;
             }
@@ -868,7 +870,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TypedConstant(parameter.Type, values.AsImmutableOrNull());
         }
 
-        private static bool TryGetNormalParamValue(ParameterSymbol parameter, ImmutableArray<TypedConstant> constructorArgsArray, 
+        private static bool TryGetNormalParamValue(ParameterSymbol parameter, ImmutableArray<TypedConstant> constructorArgsArray,
             int argIndex, Conversions conversions, out TypedConstant result)
         {
             TypedConstant argument = constructorArgsArray[argIndex];
@@ -879,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeSymbol argumentType = (TypeSymbol)argument.Type;
-            // Easy out (i.e. don't both classifying conversion).
+            // Easy out (i.e. don't bother classifying conversion).
             if (argumentType == parameter.Type)
             {
                 result = argument;

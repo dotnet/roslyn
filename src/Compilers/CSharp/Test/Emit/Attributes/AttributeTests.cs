@@ -183,6 +183,38 @@ static class Program
 
         [Fact]
         [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnObjectParamsArgument4()
+        {
+            var source = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, params object[] b)
+    {
+        B = b;
+    }
+    public object[] B { get; }
+}
+
+[Mark(a: true, new object[] { ""Hello"" }, new object[] { ""World"" })]
+static class Program
+{
+    public static void Main()
+    {
+        var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
+        var worldArray = (object[])attr.B[1];
+        Console.Write(worldArray[0]);
+    }
+}", options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2);
+            source.VerifyDiagnostics();
+
+            CompileAndVerify(source, expectedOutput: @"World");
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
         public void TestNamedArgumentOnNonParamsArgument()
         {
             var source = CreateCompilationWithMscorlib46(@"
