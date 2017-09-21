@@ -2623,6 +2623,8 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: ?, Is
             IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'from y in Main')
               Children(1):
                   IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Main')
+                    Children(1):
+                        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'Main')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: 'y')
@@ -3460,6 +3462,8 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: X, Is
                 IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'x.ToString()')
                   ReturnedValue: IInvocationExpression ( ? Program.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'x.ToString()')
                       Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'x.ToString')
+                          Children(1):
+                              IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'x')
                       Arguments(0)
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
