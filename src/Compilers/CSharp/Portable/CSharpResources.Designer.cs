@@ -4598,7 +4598,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 7. Please use language version {1} or greater..
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 7.0. Please use language version {1} or greater..
         /// </summary>
         internal static string ERR_FeatureNotAvailableInVersion7 {
             get {
