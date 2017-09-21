@@ -12,6 +12,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             node As ObjectCreationExpressionSyntax,
             diagnostics As DiagnosticBag
         ) As BoundExpression
+
+            DisallowNewOnTupleType(node.Type, diagnostics)
             Dim type As TypeSymbol = Me.BindTypeSyntax(node.Type, diagnostics)
 
             ' When the type is an error still try to bind the arguments for better data flow analysis and 
@@ -56,6 +58,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return BindObjectCreationExpression(node.Type, node.ArgumentList, type, node, diagnostics, Nothing)
         End Function
+
+        Private Shared Sub DisallowNewOnTupleType(type As TypeSyntax, diagnostics As DiagnosticBag)
+            If type.Kind = SyntaxKind.TupleType Then
+                diagnostics.Add(ERRID.ERR_NewWithTupleTypeSyntax, type.Location)
+            End If
+        End Sub
 
         Friend Function BindObjectCreationExpression(
             typeNode As TypeSyntax,

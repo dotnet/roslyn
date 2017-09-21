@@ -475,10 +475,9 @@ class C
 
             var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,58): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
+                // (4,58): error CS8328:  The parameter modifier 'params' cannot be used with 'out' 
                 //     public void Deconstruct(out int a, out string b, out params int[] c)
-                Diagnostic(ErrorCode.ERR_MultiParamMod, "params").WithLocation(4, 58)
-                );
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "out").WithLocation(4, 58));
         }
 
         [Fact]
