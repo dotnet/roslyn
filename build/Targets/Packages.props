@@ -62,6 +62,7 @@
     <MicrosoftNuGetBuildTasksVersion>0.1.0</MicrosoftNuGetBuildTasksVersion>
     <MicrosoftPortableTargetsVersion>0.1.2-dev</MicrosoftPortableTargetsVersion>
     <MicrosoftServiceHubClientVersion>1.1.122-rc</MicrosoftServiceHubClientVersion>
+    <MicrosoftTestApexVersion>15.0.26621.11111</MicrosoftTestApexVersion>
     <MicrosoftTplDataflowVersion>4.5.24</MicrosoftTplDataflowVersion>
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.0.26606-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
@@ -139,7 +140,7 @@
     <OctokitVersion>0.23.0</OctokitVersion>
     <RestSharpVersion>105.2.3</RestSharpVersion>
     <RoslynBuildUtilVersion>0.9.8-beta</RoslynBuildUtilVersion>
-    <RoslynDependenciesMicrosoftVisualStudioWorkspaceVersion>14.0.983-pre-ge167e81694</RoslynDependenciesMicrosoftVisualStudioWorkspaceVersion>
+    <RoslynDependenciesMicrosoftVisualStudioWorkspaceVersion>15.0.215-pre</RoslynDependenciesMicrosoftVisualStudioWorkspaceVersion>
     <RoslynDependenciesOptimizationDataVersion>2.3.0-beta3-61801-06</RoslynDependenciesOptimizationDataVersion>
     <RoslynToolsMicrosoftLocateVSVersion>0.2.4-beta</RoslynToolsMicrosoftLocateVSVersion>
     <RoslynToolsMicrosoftSignToolVersion>0.3.0-beta</RoslynToolsMicrosoftSignToolVersion>
