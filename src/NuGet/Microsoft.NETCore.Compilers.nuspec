@@ -5,7 +5,13 @@
     <summary>
       CoreCLR-compatible versions of the C# and VB compilers for use in MSBuild.
     </summary>
-    <description>$commitPathMessage$</description>
+    <description>
+      CoreCLR-compatible versions of the C# and VB compilers for use in MSBuild.
+
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
+    </description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
