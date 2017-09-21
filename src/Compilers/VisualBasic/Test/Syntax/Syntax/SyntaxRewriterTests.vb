@@ -1,12 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class SyntaxRewriterTests
@@ -524,6 +519,188 @@ End Class
 
             Assert.Equal(expectedText, newRoot.ToFullString())
         End Sub
+
+        <Fact>
+        <WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")>
+        Public Sub TestReplaceNodeShouldNotLoseParseOptions()
+            Dim tree = SyntaxFactory.ParseSyntaxTree("System.Console.Write(""Before"")", TestOptions.Script)
+            Assert.Equal(SourceCodeKind.Script, tree.Options.Kind)
+
+            Dim root = tree.GetRoot()
+            Dim before = root.DescendantNodes().OfType(Of LiteralExpressionSyntax)().Single()
+            Dim after = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal("After"))
+
+            Dim newRoot = root.ReplaceNode(before, after)
+            Dim newTree = newRoot.SyntaxTree
+            Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind)
+            Assert.Equal(tree.Options, newTree.Options)
+        End Sub
+
+        <Fact>
+        <WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")>
+        Public Sub TestReplaceNodeInListShouldNotLoseParseOptions()
+
+            Dim tree = SyntaxFactory.ParseSyntaxTree("m(a, b)", TestOptions.Script)
+            Assert.Equal(SourceCodeKind.Script, tree.Options.Kind)
+
+            Dim argC = SyntaxFactory.SimpleArgument(SyntaxFactory.ParseExpression("c"))
+            Dim argD = SyntaxFactory.SimpleArgument(SyntaxFactory.ParseExpression("d"))
+            Dim root = tree.GetRoot()
+            Dim invocation = root.DescendantNodes().OfType(Of InvocationExpressionSyntax)().Single()
+            Dim newRoot = root.ReplaceNode(invocation.ArgumentList.Arguments(0), New SyntaxNode() {argC, argD})
+            Assert.Equal("m(c,d, b)", newRoot.ToFullString())
+
+            Dim newTree = newRoot.SyntaxTree
+            Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind)
+            Assert.Equal(tree.Options, newTree.Options)
+        End Sub
+
+        <Fact>
+        <WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")>
+        Public Sub TestInsertNodeShouldNotLoseParseOptions()
+
+            Dim tree = SyntaxFactory.ParseSyntaxTree("m(a, b)", TestOptions.Script)
+            Assert.Equal(SourceCodeKind.Script, tree.Options.Kind)
+
+            Dim argC = SyntaxFactory.SimpleArgument(SyntaxFactory.ParseExpression("c"))
+            Dim argD = SyntaxFactory.SimpleArgument(SyntaxFactory.ParseExpression("d"))
+            Dim root = tree.GetRoot()
+            Dim invocation = root.DescendantNodes().OfType(Of InvocationExpressionSyntax)().Single()
+
+            ' insert before first
+            Dim newNode = invocation.InsertNodesBefore(invocation.ArgumentList.Arguments(0), New SyntaxNode() {argC, argD})
+            Assert.Equal("m(c,d,a, b)", newNode.ToFullString())
+            Dim newTree = newNode.SyntaxTree
+            Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind)
+            Assert.Equal(tree.Options, newTree.Options)
+
+            ' insert after first
+            Dim newNode2 = invocation.InsertNodesAfter(invocation.ArgumentList.Arguments(0), New SyntaxNode() {argC, argD})
+            Assert.Equal("m(a,c,d, b)", newNode2.ToFullString())
+            Dim newTree2 = newNode2.SyntaxTree
+            Assert.Equal(SourceCodeKind.Script, newTree2.Options.Kind)
+            Assert.Equal(tree.Options, newTree2.Options)
+        End Sub
+
+        <Fact>
+        <WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")>
+        Public Sub TestReplaceTokenShouldNotLoseParseOptions()
+
+            Dim tree = SyntaxFactory.ParseSyntaxTree("Private Class C  ", options:=TestOptions.Script)
+            Assert.Equal(SourceCodeKind.Script, tree.Options.Kind)
+
+            Dim root = tree.GetRoot()
+            Dim privateToken = root.DescendantTokens().First()
+            Dim publicToken = SyntaxFactory.ParseToken("Public ")
+            Dim partialToken = SyntaxFactory.ParseToken("Partial ")
+
+            Dim newRoot = root.ReplaceToken(privateToken, New SyntaxToken() {publicToken, partialToken})
+            Assert.Equal("Public Partial Class C  ", newRoot.ToFullString())
+
+            Dim newTree = newRoot.SyntaxTree
+            Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind)
+            Assert.Equal(tree.Options, newTree.Options)
+        End Sub
+
+        <Fact>
+        <WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")>
+        Public Sub TestInsertTokenShouldNotLoseParseOptions()
+
+            Dim tree = SyntaxFactory.ParseSyntaxTree("Public Class C" & vbCrLf & "End Class", options:=TestOptions.Script)
+            Dim root = tree.GetRoot()
+            Dim publicToken = root.DescendantTokens().First()
+            Dim partialToken = SyntaxFactory.ParseToken("Partial ")
+            Dim staticToken = SyntaxFactory.ParseToken("Shared ")
+
+            Dim newRoot = root.InsertTokensBefore(publicToken, New SyntaxToken() {staticToken})
+            Assert.Equal("Shared Public Class C" & vbCrLf & "End Class", newRoot.ToFullString())
+
+            Dim newTree = newRoot.SyntaxTree
+            Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind)
+            Assert.Equal(tree.Options, newTree.Options)
+
+            Dim newRoot2 = root.InsertTokensAfter(publicToken, New SyntaxToken() {staticToken})
+            Assert.Equal("Public Shared Class C" & vbCrLf & "End Class", newRoot2.ToFullString())
+            Dim newTree2 = newRoot2.SyntaxTree
+            Assert.Equal(SourceCodeKind.Script, newTree2.Options.Kind)
+            Assert.Equal(tree.Options, newTree2.Options)
+        End Sub
+
+        <Fact>
+        <WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")>
+        Public Sub TestReplaceTriviaShouldNotLoseParseOptions()
+
+            Dim tree = SyntaxFactory.ParseSyntaxTree("Dim identifier 'c", options:=TestOptions.Script)
+            Dim field = tree.GetRoot().DescendantNodes().OfType(Of FieldDeclarationSyntax).Single()
+            Dim trailingTrivia = field.GetTrailingTrivia()
+            Assert.Equal(2, trailingTrivia.Count)
+            Dim comment1 = trailingTrivia(1)
+            Assert.Equal(SyntaxKind.CommentTrivia, comment1.Kind())
+
+            Dim newComment1 = SyntaxFactory.ParseLeadingTrivia("'a")(0)
+            Dim newComment2 = SyntaxFactory.ParseLeadingTrivia("'b")(0)
+
+            Dim newField = field.ReplaceTrivia(comment1, New SyntaxTrivia() {newComment1, newComment2})
+            Assert.Equal("Dim identifier 'a'b", newField.ToFullString())
+            Dim newTree = newField.SyntaxTree
+            Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind)
+            Assert.Equal(tree.Options, newTree.Options)
+
+            Dim newRoot2 = field.ReplaceTrivia(comment1, New SyntaxTrivia() {})
+            Assert.Equal("Dim identifier ", newRoot2.ToFullString())
+            Dim newTree2 = newRoot2.SyntaxTree
+            Assert.Equal(SourceCodeKind.Script, newTree2.Options.Kind)
+            Assert.Equal(tree.Options, newTree2.Options)
+        End Sub
+
+        <Fact>
+        <WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")>
+        Public Sub TestInsertTriviaShouldNotLoseParseOptions()
+
+            Dim tree = SyntaxFactory.ParseSyntaxTree("Dim identifier 'c", options:=TestOptions.Script)
+            Dim field = tree.GetRoot().DescendantNodes().OfType(Of FieldDeclarationSyntax).Single()
+            Dim trailingTrivia = field.GetTrailingTrivia()
+            Assert.Equal(2, trailingTrivia.Count)
+            Dim comment1 = trailingTrivia(1)
+            Assert.Equal(SyntaxKind.CommentTrivia, comment1.Kind())
+
+            Dim newComment1 = SyntaxFactory.ParseLeadingTrivia("'a")(0)
+            Dim newComment2 = SyntaxFactory.ParseLeadingTrivia("'b")(0)
+
+            Dim newField = field.InsertTriviaAfter(comment1, New SyntaxTrivia() {newComment1, newComment2})
+            Assert.Equal("Dim identifier 'c'a'b", newField.ToFullString())
+
+            Dim newTree = newField.SyntaxTree
+            Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind)
+            Assert.Equal(tree.Options, newTree.Options)
+        End Sub
+
+        <Fact>
+        <WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")>
+        Public Sub TestRemoveNodeShouldNotLoseParseOptions()
+
+            Dim tree = SyntaxFactory.ParseSyntaxTree("Private Class C" & vbCrLf & "End Class", options:=TestOptions.Script)
+            Dim root = tree.GetRoot()
+            Dim newRoot = root.RemoveNode(root.DescendantNodes().First(), SyntaxRemoveOptions.KeepDirectives)
+
+            Dim newTree = newRoot.SyntaxTree
+            Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind)
+            Assert.Equal(tree.Options, newTree.Options)
+        End Sub
+
+        <Fact>
+        <WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")>
+        Public Sub TestNormalizeWhitespaceShouldNotLoseParseOptions()
+
+            Dim tree = SyntaxFactory.ParseSyntaxTree("Private Class C" & vbCrLf & "End Class", options:=TestOptions.Script)
+            Dim root = tree.GetRoot()
+            Dim newRoot = root.NormalizeWhitespace("  ")
+
+            Dim newTree = newRoot.SyntaxTree
+            Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind)
+            Assert.Equal(tree.Options, newTree.Options)
+        End Sub
+
 
         Private Class RemoveRegionRewriter
             Inherits VisualBasicSyntaxRewriter
