@@ -503,5 +503,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // no space between DateTime and ?
             Assert.Equal("class C\r\n{\r\n    DateTime? P\r\n    {\r\n    }\r\n}", syntaxNode.ToFullString());
         }
+
+        [Fact]
+        [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
+        public void TestSpacingOnTernary()
+        {
+            var syntaxNode = SyntaxFactory.ParseExpression("x is int? y: z").NormalizeWhitespace();
+
+            // space between int and ?
+            Assert.Equal("x is int ? y : z", syntaxNode.ToFullString());
+
+            var syntaxNode2 = SyntaxFactory.ParseExpression("x is DateTime? y: z").NormalizeWhitespace();
+
+            // space between DateTime and ?
+            Assert.Equal("x is DateTime ? y : z", syntaxNode2.ToFullString());
+        }
     }
 }
