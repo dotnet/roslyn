@@ -44,17 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ' in case the display of a symbol is different for a type that acts as a container, use this visitor
-        Protected Overrides Function MakeNotFirstVisitor() As AbstractSymbolDisplayVisitor
-            Return New SymbolDisplayVisitor(
-                    Me.builder,
-                        Me.format,
-                    Me.semanticModelOpt,
-                    Me.positionOpt,
-                        Me._escapeKeywordIdentifiers,
-                    isFirstSymbolVisited:=False)
-        End Function
-
-        Protected Overrides Function MakeNotFirstVisitorNamespaceOrType() As AbstractSymbolDisplayVisitor
+        Protected Overrides Function MakeNotFirstVisitor(Optional inNamespaceOrType As Boolean = False) As AbstractSymbolDisplayVisitor
             Return New SymbolDisplayVisitor(
                     Me.builder,
                     Me.format,
@@ -62,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me.positionOpt,
                     Me._escapeKeywordIdentifiers,
                     isFirstSymbolVisited:=False,
-                    inNamespaceOrType:=True)
+                    inNamespaceOrType:=inNamespaceOrType)
         End Function
 
         Friend Function CreatePart(kind As SymbolDisplayPartKind,

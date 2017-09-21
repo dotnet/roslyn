@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _lazyAliasMap = aliasMap;
         }
 
-        protected override AbstractSymbolDisplayVisitor MakeNotFirstVisitor()
+        protected override AbstractSymbolDisplayVisitor MakeNotFirstVisitor(bool inNamespaceOrType = false)
         {
             return new SymbolDisplayVisitor(
                 this.builder,
@@ -47,20 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.positionOpt,
                 _escapeKeywordIdentifiers,
                 _lazyAliasMap,
-                isFirstSymbolVisited: false);
-        }
-
-        protected override AbstractSymbolDisplayVisitor MakeNotFirstVisitorNamespaceOrType()
-        {
-            return new SymbolDisplayVisitor(
-                this.builder,
-                this.format,
-                this.semanticModelOpt,
-                this.positionOpt,
-                _escapeKeywordIdentifiers,
-                _lazyAliasMap,
-                isFirstSymbolVisited: false,
-                inNamespaceOrType: true);
+                isFirstSymbolVisited: inNamespaceOrType);
         }
 
         internal SymbolDisplayPart CreatePart(SymbolDisplayPartKind kind, ISymbol symbol, string text)

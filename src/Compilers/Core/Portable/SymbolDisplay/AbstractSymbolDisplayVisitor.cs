@@ -64,15 +64,14 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             {
                 if (_lazyNotFirstVisitorNamespaceOrType == null)
                 {
-                    _lazyNotFirstVisitorNamespaceOrType = MakeNotFirstVisitorNamespaceOrType();
+                    _lazyNotFirstVisitorNamespaceOrType = MakeNotFirstVisitor(inNamespaceOrType: true);
                 }
 
                 return _lazyNotFirstVisitorNamespaceOrType;
             }
         }
 
-        protected abstract AbstractSymbolDisplayVisitor MakeNotFirstVisitor();
-        protected abstract AbstractSymbolDisplayVisitor MakeNotFirstVisitorNamespaceOrType();
+        protected abstract AbstractSymbolDisplayVisitor MakeNotFirstVisitor(bool inNamespaceOrType = false);
 
         protected abstract void AddLiteralValue(SpecialType type, object value);
         protected abstract void AddExplicitlyCastedLiteralValue(INamedTypeSymbol namedType, SpecialType type, object value);

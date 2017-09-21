@@ -105,7 +105,7 @@ End Namespace
         Public Async Function InPropertyWithSameNameAsGenericTypeArgument1() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Collections.Generic
-Namespace Foo
+Namespace Namespace1
     Module Program
         Public Bar As List(Of Bar)
 
@@ -127,7 +127,7 @@ End Namespace
         Public Async Function InPropertyWithSameNameAsGenericTypeArgument2() As Task
             Dim markup = <Text><![CDATA[
 Imports System.Collections.Generic
-Namespace Foo
+Namespace Namespace1
     Module Program
         Public Bar As List(Of Bar) = New $$
     End Module
@@ -144,7 +144,7 @@ End Namespace
         <WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")>
         Public Async Function InPropertyWithSameNameAsGenericTypeArgument3() As Task
             Dim markup = <Text><![CDATA[
-Namespace Foo
+Namespace Namespace1
     Module Program
         Public A As C(Of B)
         Public B As C(Of A)
@@ -172,7 +172,7 @@ End Namespace
         <WorkItem(21674, "https://github.com/dotnet/roslyn/issues/21674")>
         Public Async Function PropertyWithSameNameAsOtherType() As Task
             Dim markup = <Text><![CDATA[
-Namespace Foo
+Namespace Namespace1
     Module Program
         Public Property A() As B
         Public Property B() As A
