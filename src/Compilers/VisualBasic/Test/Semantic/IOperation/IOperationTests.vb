@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -476,7 +476,7 @@ BC30518: Overload resolution failed because no accessible 'P1' can be called wit
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/22224")>
+        <Fact>
         Public Sub TestClone()
             Dim sourceCode = TestResource.AllInOneVisualBasicCode
 
@@ -491,7 +491,7 @@ BC30518: Overload resolution failed because no accessible 'P1' can be called wit
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/22224")>
+        <Fact>
         Public Sub TestParentOperations()
             Dim sourceCode = TestResource.AllInOneVisualBasicCode
 
