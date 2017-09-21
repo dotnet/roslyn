@@ -518,5 +518,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // space between DateTime and ?
             Assert.Equal("x is DateTime ? y : z", syntaxNode2.ToFullString());
         }
+
+        [Fact]
+        [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
+        public void TestSpacingOnCoalescing()
+        {
+            var syntaxNode = SyntaxFactory.ParseExpression("x is int??y").NormalizeWhitespace();
+            Assert.Equal("x is int ?? y", syntaxNode.ToFullString());
+
+            var syntaxNode2 = SyntaxFactory.ParseExpression("x is DateTime??y").NormalizeWhitespace();
+            Assert.Equal("x is DateTime ?? y", syntaxNode2.ToFullString());
+
+            var syntaxNode3 = SyntaxFactory.ParseExpression("x is object??y").NormalizeWhitespace();
+            Assert.Equal("x is object ?? y", syntaxNode3.ToFullString());
+        }
     }
 }
