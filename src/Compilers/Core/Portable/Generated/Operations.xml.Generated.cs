@@ -2630,7 +2630,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a C# or VB raise event expression.
+    /// Represents a VB raise event expression.
     /// </summary>
     internal abstract partial class BaseRaiseEventExpression : Operation, IHasArgumentsExpression, IRaiseEventExpression
     {
@@ -2671,7 +2671,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a C# or VB raise event expression.
+    /// Represents a VB raise event expression.
     /// </summary>
     internal sealed partial class RaiseEventExpression : BaseRaiseEventExpression, IHasArgumentsExpression, IRaiseEventExpression
     {
@@ -2688,7 +2688,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a C# or VB raise event expression.
+    /// Represents a VB raise event expression.
     /// </summary>
     internal sealed partial class LazyRaiseEventExpression : BaseRaiseEventExpression, IHasArgumentsExpression, IRaiseEventExpression
     {

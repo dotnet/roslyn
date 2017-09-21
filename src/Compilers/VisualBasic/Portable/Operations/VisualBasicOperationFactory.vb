@@ -67,9 +67,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Case BoundKind.EventAccess
                     Return boundNode.Syntax.Parent.Kind() = SyntaxKind.AddHandlerStatement OrElse
                            boundNode.Syntax.Parent.Kind() = SyntaxKind.RemoveHandlerStatement OrElse
-                           boundNode.Syntax.Parent.Kind() = SyntaxKind.RaiseEventAccessorStatement
+                           boundNode.Syntax.Parent.Kind() = SyntaxKind.RaiseEventStatement
                 Case BoundKind.FieldAccess
                     Return boundNode.Syntax.Parent.Kind() = SyntaxKind.RaiseEventStatement
+                Case BoundKind.Call
+                    Return boundNode.Syntax.Parent.Kind() = SyntaxKind.RaiseEventStatement
+
             End Select
 
             Return False

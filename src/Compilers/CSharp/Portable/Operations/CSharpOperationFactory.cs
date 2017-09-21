@@ -292,13 +292,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new PlaceholderExpression(_semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IHasArgumentsExpression CreateBoundCallOperation(BoundCall boundCall)
+        private IInvocationExpression CreateBoundCallOperation(BoundCall boundCall)
         {
             IMethodSymbol targetMethod = boundCall.Method;
-            SyntaxNode syntax = boundCall.Syntax;
-            ITypeSymbol type = boundCall.Type;
-            Optional<object> constantValue = ConvertToOptional(boundCall.ConstantValue);
-            bool isImplicit = boundCall.WasCompilerGenerated;
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(((object)boundCall.Method == null || boundCall.Method.IsStatic) ? null : boundCall.ReceiverOpt));
+            bool isVirtual = (object)boundCall.Method != null &&
+                        boundCall.ReceiverOpt != null &&
+                        (boundCall.Method.IsVirtual || boundCall.Method.IsAbstract || boundCall.Method.IsOverride) &&
+                        !boundCall.ReceiverOpt.SuppressVirtualCalls;
             Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder = new Lazy<ImmutableArray<IArgument>>(() =>
             {
                 return DeriveArguments(
@@ -315,21 +316,11 @@ namespace Microsoft.CodeAnalysis.Semantics
                     boundCall.Syntax,
                     boundCall.InvokedAsExtensionMethod);
             });
-
-            if (targetMethod.MethodKind == MethodKind.DelegateInvoke && boundCall.ReceiverOpt?.Kind == BoundKind.EventAccess)
-            {
-                Lazy<IEventReferenceExpression> eventReference = new Lazy<IEventReferenceExpression>(() => (IEventReferenceExpression)Create(boundCall.ReceiverOpt));
-                return new LazyRaiseEventExpression(eventReference, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit);
-            }
-            else
-            {
-                Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(((object)boundCall.Method == null || boundCall.Method.IsStatic) ? null : boundCall.ReceiverOpt));
-                bool isVirtual = (object)boundCall.Method != null &&
-                            boundCall.ReceiverOpt != null &&
-                            (boundCall.Method.IsVirtual || boundCall.Method.IsAbstract || boundCall.Method.IsOverride) &&
-                            !boundCall.ReceiverOpt.SuppressVirtualCalls;
-                return new LazyInvocationExpression(targetMethod, instance, isVirtual, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit);
-            }
+            SyntaxNode syntax = boundCall.Syntax;
+            ITypeSymbol type = boundCall.Type;
+            Optional<object> constantValue = ConvertToOptional(boundCall.ConstantValue);
+            bool isImplicit = boundCall.WasCompilerGenerated;
+            return new LazyInvocationExpression(targetMethod, instance, isVirtual, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ILocalReferenceExpression CreateBoundLocalOperation(BoundLocal boundLocal)

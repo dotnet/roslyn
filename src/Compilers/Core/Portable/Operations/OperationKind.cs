@@ -151,8 +151,6 @@ namespace Microsoft.CodeAnalysis
         DynamicInvocationExpression = 0x127,
         /// <summary>Indicates an <see cref="IDynamicIndexerAccessExpression"/>.</summary>
         DynamicIndexerAccessExpression = 0x128,
-        /// <summary>Indicates an <see cref="IRaiseEventExpression"/>.</summary>
-        RaiseEventExpression = 0x129,
 
         // Expressions that occur only in C#.
 
@@ -183,7 +181,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>Indicates an <see cref="IOmittedArgumentExpression"/>.</summary>
         OmittedArgumentExpression = 0x300,
-        // 0x301 was removed, and is available for use.
+        /// <summary>Indicates an <see cref="IRaiseEventExpression"/>.</summary>
+        RaiseEventExpression = 0x301,
         // https://github.com/dotnet/roslyn/issues/21294
         // /// <summary>Indicates an <see cref="IPlaceholderExpression"/>.</summary>
         // PlaceholderExpression = 0x302,

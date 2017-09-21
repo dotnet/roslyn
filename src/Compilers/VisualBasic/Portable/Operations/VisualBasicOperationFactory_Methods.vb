@@ -280,42 +280,45 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function GetRaiseEventExpression(raiseEventStatement As BoundRaiseEventStatement) As IOperation
             Dim eventInvocation = TryCast(raiseEventStatement.EventInvocation, BoundCall)
+            Dim eventSymbol = raiseEventStatement.EventSymbol
 
             ' Return an operation for invalid raise event expression
-            If eventInvocation Is Nothing OrElse eventInvocation.ReceiverOpt Is Nothing OrElse eventInvocation.ReceiverOpt.Kind <> BoundKind.FieldAccess
+            If eventInvocation Is Nothing OrElse eventInvocation.ReceiverOpt Is Nothing
                 Debug.Assert(raiseEventStatement.HasErrors)
                 Return Create(raiseEventStatement.EventInvocation)
             End If 
 
-            Dim eventSymbol = raiseEventStatement.EventSymbol
-            Dim eventFieldAccess = CType(eventInvocation.ReceiverOpt, BoundFieldAccess)
+            Dim receiver = eventInvocation.ReceiverOpt
+            Dim syntax = receiver.Syntax
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(receiver.ConstantValueOpt)
+            Dim boundInstance As BoundNode
+            If receiver.Kind = BoundKind.FieldAccess
+                Dim eventFieldAccess = CType(eventInvocation.ReceiverOpt, BoundFieldAccess)
+                Debug.Assert(eventFieldAccess.FieldSymbol.AssociatedSymbol = eventSymbol)
 
-            Debug.Assert(eventFieldAccess.FieldSymbol.AssociatedSymbol = eventSymbol)
+                boundInstance = eventFieldAccess.ReceiverOpt
+            Else 
+                boundInstance = receiver
+            End If
 
-            Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(
-                Function()
-                    If eventSymbol.IsShared Then
-                        Return Nothing
-                    Else
-                        Return Create(eventFieldAccess.ReceiverOpt)
-                    End If
-                End Function)
+            Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() If(eventSymbol.IsShared, Nothing, Create(boundInstance)))
             
-            Dim constantValue As [Optional](Of Object) = ConvertToOptional(eventFieldAccess.ConstantValueOpt)
             Dim EventReference As Lazy(Of IEventReferenceExpression) = New Lazy(Of IEventReferenceExpression)(Function() As IEventReferenceExpression
                                                                                                                   Return New LazyEventReferenceExpression(eventSymbol, 
                                                                                                                                                           instance, 
                                                                                                                                                           eventSymbol, 
                                                                                                                                                           _semanticModel, 
-                                                                                                                                                          eventFieldAccess.Syntax, 
+                                                                                                                                                          syntax, 
                                                                                                                                                           eventSymbol.Type, 
                                                                                                                                                           constantValue, 
                                                                                                                                                           eventInvocation.WasCompilerGenerated)
                                                                                                               End Function)
+
             Dim argumentsInEvaluationOrder As Lazy(Of ImmutableArray(Of IArgument)) = New Lazy(Of ImmutableArray(Of IArgument))(
                 Function()
                     Return DeriveArguments(eventInvocation.Arguments, eventInvocation.Method.Parameters)
                 End Function)
+
             Return New LazyRaiseEventExpression(eventReference, argumentsInEvaluationOrder, _semanticModel, syntax:=eventInvocation.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=eventInvocation.WasCompilerGenerated)
         End Function
 

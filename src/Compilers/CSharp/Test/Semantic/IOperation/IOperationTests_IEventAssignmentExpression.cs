@@ -357,8 +357,8 @@ class Test
 }
 ";
             string expectedOperationTree = @"
-IRaiseEventExpression (OperationKind.RaiseEventExpression, Type: System.Void) (Syntax: 'MyEvent(this, null)')
-  Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 'MyEvent')
+IInvocationExpression (virtual void System.EventHandler.Invoke(System.Object sender, System.EventArgs e)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'MyEvent(this, null)')
+  Instance Receiver: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 'MyEvent')
       Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Test) (Syntax: 'MyEvent')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: sender) (OperationKind.Argument) (Syntax: 'this')
@@ -397,8 +397,8 @@ class Test
 }
 ";
             string expectedOperationTree = @"
-IRaiseEventExpression (OperationKind.RaiseEventExpression, Type: System.Void) (Syntax: 'MyEvent(this, null)')
-  Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 'MyEvent')
+IInvocationExpression (virtual void System.EventHandler.Invoke(System.Object sender, System.EventArgs e)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'MyEvent(this, null)')
+  Instance Receiver: IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 'MyEvent')
       Instance Receiver: null
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: sender) (OperationKind.Argument) (Syntax: 'this')
@@ -411,42 +411,6 @@ IRaiseEventExpression (OperationKind.RaiseEventExpression, Type: System.Void) (S
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventArgs, Constant: null) (Syntax: 'null')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-";
-            var expectedDiagnostics = Array.Empty<DiagnosticDescription>();
-
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void RaiseUndefinedEvent()
-        {
-            string source = @"
-using System;
-
-class Test
-{
-    public event EventHandler MyEvent;  
-
-    void M()
-    {
-        /*<bind>*/MyEvent.Invoke(this, null)/*<bind>*/;
-    }  
-}
-";
-            string expectedOperationTree = @"
-Actual:   IInvocationExpression ( ? ?.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'MyEvent2(this, null)')
-  Instance Receiver: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'MyEvent2')
-      Children(0)
-  Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: 'this')
-        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Test) (Syntax: 'this')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: 'null')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -473,8 +437,8 @@ class Test
 }
 ";
             string expectedOperationTree = @"
-IRaiseEventExpression (OperationKind.RaiseEventExpression, Type: System.Void, IsInvalid) (Syntax: 'MyEvent(0)')
-  Event Reference: IEventReferenceExpression: event System.Action Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.Action, IsInvalid) (Syntax: 'MyEvent')
+IInvocationExpression (virtual void System.Action.Invoke()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'MyEvent(0)')
+  Instance Receiver: IEventReferenceExpression: event System.Action Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.Action, IsInvalid) (Syntax: 'MyEvent')
       Instance Receiver: null
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: '0')
