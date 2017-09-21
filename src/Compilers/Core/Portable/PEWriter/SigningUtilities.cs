@@ -3,10 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Security.Cryptography;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
+using static Roslyn.Utilities.IncrementalHashExtensions;
 
 namespace Microsoft.Cci
 {
@@ -29,12 +31,7 @@ namespace Microsoft.Cci
         {
             using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
             {
-                foreach (var blob in content)
-                {
-                    var segment = blob.GetBytes();
-                    hash.AppendData(segment.Array, segment.Offset, segment.Count);
-                }
-
+                hash.AppendData(content);
                 return hash.GetHashAndReset();
             }
         }

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal class StrongNameFileSystem
     {
-        internal readonly static StrongNameFileSystem s_StrongNameFileSystemInstance = new StrongNameFileSystem();
+        internal readonly static StrongNameFileSystem Instance = new StrongNameFileSystem();
         protected StrongNameFileSystem()
         {
         }

@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis
     internal sealed class PortableStrongNameProvider : StrongNameProvider
     {
         private readonly ImmutableArray<string> _keyFileSearchPaths;
-        internal StrongNameFileSystem FileSystem { get; set; }
+        internal StrongNameFileSystem FileSystem { get; }
 
         public PortableStrongNameProvider(ImmutableArray<string> keySearchPaths, StrongNameFileSystem strongNameFileSystem)
         {
-            FileSystem = strongNameFileSystem ?? StrongNameFileSystem.s_StrongNameFileSystemInstance;
+            FileSystem = strongNameFileSystem ?? StrongNameFileSystem.Instance;
             _keyFileSearchPaths = keySearchPaths.NullToEmpty();
         }
 
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var other = (PortableStrongNameProvider)obj;
-            return FileSystem.Equals(other.FileSystem) &&
+            return FileSystem == other.FileSystem &&
                 _keyFileSearchPaths.SequenceEqual(other._keyFileSearchPaths);
                     
         }

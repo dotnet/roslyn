@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, nameof(keyFileSearchPaths));
             }
 
-            FileSystem = strongNameFileSystem ?? StrongNameFileSystem.s_StrongNameFileSystemInstance;
+            FileSystem = strongNameFileSystem ?? StrongNameFileSystem.Instance;
             _keyFileSearchPaths = keyFileSearchPaths.NullToEmpty();
             _tempPath = tempPath;
         }
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var other = (DesktopStrongNameProvider)obj;
-            if (!FileSystem.Equals(other.FileSystem))
+            if (FileSystem != other.FileSystem)
             {
                 return false;
             } 
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis
             {
                 return false;
             }
-            return Object.ReferenceEquals(_tempPath, other._tempPath) || (_tempPath != null && other._tempPath != null && _tempPath.Equals(other._tempPath, StringComparison.Ordinal));
+            return string.Equals(_tempPath, other._tempPath, StringComparison.Ordinal);
         }
     }
 }

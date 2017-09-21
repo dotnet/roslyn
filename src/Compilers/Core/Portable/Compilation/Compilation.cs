@@ -2466,7 +2466,7 @@ namespace Microsoft.CodeAnalysis
                     getPortablePdbStream = null;
                 }
 
-                // PROROTYPE(strongname): simplify this code
+                // PROTOTYPE(strongname): simplify this code
                 Func<Stream> getPeStream = () =>
                 {
                     if (metadataDiagnostics.HasAnyErrors())
