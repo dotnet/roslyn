@@ -105,7 +105,7 @@ unsafe struct C
         public void LocalInUnsafeBlock()
         {
             var source = @"
-unsafe struct C
+struct C
 {
     void A()
     {
