@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             private readonly List<RenameTrackingSpan> _conflictResolutionRenameTrackingSpans = new List<RenameTrackingSpan>();
             private readonly IList<IReadOnlyRegion> _readOnlyRegions = new List<IReadOnlyRegion>();
 
-            private readonly IList<IWpfTextView> _textViews = new List<IWpfTextView>();
+            private readonly IList<ITextView> _textViews = new List<ITextView>();
 
             private TextSpan? _activeSpan;
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 UpdateReadOnlyRegions();
             }
 
-            public IWpfTextView ActiveTextview
+            public ITextView ActiveTextView
             {
                 get
                 {
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            internal void ConnectToView(IWpfTextView textView)
+            internal void ConnectToView(ITextView textView)
             {
                 textView.Closed += OnTextViewClosed;
                 _textViews.Add(textView);
@@ -201,8 +201,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         ? _activeSpan
                         : spans.Where(s =>
                                 // in tests `ActiveTextview` can be null so don't depend on it
-                                ActiveTextview == null ||
-                                ActiveTextview.GetSpanInView(_subjectBuffer.CurrentSnapshot.GetSpan(s.ToSpan())).Count != 0) // spans were successfully projected
+                                ActiveTextView == null ||
+                                ActiveTextView.GetSpanInView(_subjectBuffer.CurrentSnapshot.GetSpan(s.ToSpan())).Count != 0) // spans were successfully projected
                             .FirstOrNullable(); // filter to spans that have a projection
 
                     UpdateReadOnlyRegions();
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                     var singleTrackingSpanTouched = trackingSpansTouched.Single();
                     _activeSpan = _referenceSpanToLinkedRenameSpanMap.Where(kvp => kvp.Value.TrackingSpan.GetSpan(args.After).Contains(boundingIntersectionSpan)).Single().Key;
-                    _session.UndoManager.OnTextChanged(this.ActiveTextview.Selection, singleTrackingSpanTouched);
+                    _session.UndoManager.OnTextChanged(this.ActiveTextView.Selection, singleTrackingSpanTouched);
                 }
             }
 
@@ -257,12 +257,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             private bool AreAllReferenceSpansMappable()
             {
                 // in tests `ActiveTextview` could be null so don't depend on it
-                return ActiveTextview == null ||
+                return ActiveTextView == null ||
                     _referenceSpanToLinkedRenameSpanMap.Keys
                     .Select(s => s.ToSpan())
                     .All(s =>
                         s.End <= _subjectBuffer.CurrentSnapshot.Length && // span is valid for the snapshot
-                        ActiveTextview.GetSpanInView(_subjectBuffer.CurrentSnapshot.GetSpan(s)).Count != 0); // spans were successfully projected
+                        ActiveTextView.GetSpanInView(_subjectBuffer.CurrentSnapshot.GetSpan(s)).Count != 0); // spans were successfully projected
             }
 
             internal void ApplyReplacementText(bool updateSelection = true)
@@ -280,10 +280,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     s_propagateSpansEditTag,
                     _referenceSpanToLinkedRenameSpanMap.Values.Where(r => r.Type != RenameSpanKind.None).Select(r => r.TrackingSpan));
 
-                if (updateSelection && _activeSpan.HasValue && this.ActiveTextview != null)
+                if (updateSelection && _activeSpan.HasValue && this.ActiveTextView != null)
                 {
                     var snapshot = _subjectBuffer.CurrentSnapshot;
-                    _session.UndoManager.UpdateSelection(this.ActiveTextview, _subjectBuffer, _referenceSpanToLinkedRenameSpanMap[_activeSpan.Value].TrackingSpan);
+                    _session.UndoManager.UpdateSelection(this.ActiveTextView, _subjectBuffer, _referenceSpanToLinkedRenameSpanMap[_activeSpan.Value].TrackingSpan);
                 }
             }
 
@@ -671,7 +671,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     _active = null;
                     _activeSpan = default;
 
-                    var textView = openTextBufferManager.ActiveTextview;
+                    var textView = openTextBufferManager.ActiveTextView;
                     if (textView == null)
                     {
                         return;
@@ -713,7 +713,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 public void Dispose()
                 {
-                    var textView = _openTextBufferManager.ActiveTextview;
+                    var textView = _openTextBufferManager.ActiveTextView;
                     if (textView == null)
                     {
                         return;
@@ -746,7 +746,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     var endPoint = _openTextBufferManager._referenceSpanToLinkedRenameSpanMap.ContainsKey(span)
                         ? _openTextBufferManager._referenceSpanToLinkedRenameSpanMap[span].TrackingSpan.GetEndPoint(snapshot)
                         : _openTextBufferManager._referenceSpanToLinkedRenameSpanMap.First(kvp => kvp.Key.OverlapsWith(span)).Value.TrackingSpan.GetEndPoint(snapshot);
-                    return _openTextBufferManager.ActiveTextview.BufferGraph.MapUpToBuffer(endPoint, PointTrackingMode.Positive, PositionAffinity.Successor, _openTextBufferManager.ActiveTextview.TextBuffer).Value;
+                    return _openTextBufferManager.ActiveTextView.BufferGraph.MapUpToBuffer(endPoint, PointTrackingMode.Positive, PositionAffinity.Successor, _openTextBufferManager.ActiveTextView.TextBuffer).Value;
                 }
             }
         }
