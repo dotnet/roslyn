@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.VisualStudio.Shell;
@@ -17,10 +19,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             base.Initialize();
 
-            // Assume that we are being initialized on the UI thread at this point.
-            var defaultForegroundThreadData = ForegroundThreadData.CreateDefault(
-                defaultKind: ForegroundThreadDataKind.ForcedByPackageInitialize);
-            ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = defaultForegroundThreadData;
+            // Assume that we are being initialized on the UI thread at this point, and setup our foreground state
+            var kind = ForegroundThreadDataInfo.CreateDefault(ForegroundThreadDataKind.ForcedByPackageInitialize);
+
+            // None of the work posted to the foregroundTaskScheduler should block pending keyboard/mouse input from the user.
+            // So instead of using the default priority which is above user input, we use Background priority which is 1 level
+            // below user input.
+            var taskScheduler = new SynchronizationContextTaskScheduler(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher, DispatcherPriority.Background));
+
+            ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = new ForegroundThreadData(Thread.CurrentThread, taskScheduler, kind);
             ForegroundObject = new ForegroundThreadAffinitizedObject();
         }
 
