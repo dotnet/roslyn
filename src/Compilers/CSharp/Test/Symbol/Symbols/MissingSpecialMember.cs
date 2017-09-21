@@ -29,7 +29,7 @@ public class Program
         yield return 1;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator);
 
@@ -61,7 +61,7 @@ public class Program
         yield return 1;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(SpecialMember.System_IDisposable__Dispose);
 
@@ -93,7 +93,7 @@ public class Program
         yield return 1;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
 
@@ -116,7 +116,7 @@ public static class Program
 
     public static void Extension(this string x) {}
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
 
@@ -558,7 +558,10 @@ namespace System
                         continue;
                     case WellKnownType.System_FormattableString:
                     case WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory:
-                        // Not yet in the platform.
+                    case WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute:
+                    case WellKnownType.System_Span_T:
+                    // Not yet in the platform.
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
                         // Not always available.
                         continue;
@@ -836,7 +839,7 @@ namespace System
                 SystemRef_v4_0_30319_17929,
                 SystemCoreRef_v4_0_30319_17929,
                 MsvbRef_v4_0_30319_17929,
-                CSharpRef,
+                DesktopCSharpRef,
                 SystemXmlRef,
                 SystemXmlLinqRef,
                 SystemWindowsFormsRef,
@@ -856,9 +859,13 @@ namespace System
                         // C# can't embed VB core.
                         continue;
                     case WellKnownMember.System_Array__Empty:
+                    case WellKnownMember.System_Span_T__ctor:
                         // Not yet in the platform.
                         continue;
-                    case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload:
+                    case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
+                    case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles:
+                    case WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor:
                         // Not always available.
                         continue;
                 }
@@ -883,7 +890,7 @@ public class MyClass
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.MakeMemberMissing(SpecialMember.System_IntPtr__op_Explicit_FromInt32);
             comp.VerifyEmitDiagnostics(
                 // (8,10): error CS0656: Missing compiler required member 'System.IntPtr.op_Explicit'
@@ -2008,10 +2015,7 @@ public class X
                 Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "x is bool is bool").WithArguments("bool").WithLocation(16, 38),
                 // (12,19): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
                 //         {if (x is int y) Console.WriteLine("4. {0}", y);}
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int y").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(12, 19),
-                // (15,19): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
-                //         {if (x is int y) Console.WriteLine("6. {0}", y);}
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int y").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(15, 19)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int y").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(12, 19)
                 );
         }
 

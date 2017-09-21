@@ -1,19 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
+using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
-    public class SolutionExplorer_OutOfProc : OutOfProcComponent
+    public partial class SolutionExplorer_OutOfProc : OutOfProcComponent
     {
+        public Verifier Verify { get; }
+
         private readonly SolutionExplorer_InProc _inProc;
+        private readonly VisualStudioInstance _instance;
 
         public SolutionExplorer_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
+            _instance = visualStudioInstance;
             _inProc = CreateInProcComponent<SolutionExplorer_InProc>(visualStudioInstance);
+            Verify = new Verifier(this);
         }
 
         public void CloseSolution(bool saveFirst = false)
@@ -36,44 +42,82 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void OpenSolution(string path, bool saveExistingSolutionIfExists = false)
             => _inProc.OpenSolution(path, saveExistingSolutionIfExists);
 
-        public void AddProject(string projectName, string projectTemplate, string languageName)
-            => _inProc.AddProject(projectName, projectTemplate, languageName);
+        public void AddProject(ProjectUtils.Project projectName, string projectTemplate, string languageName)
+            => _inProc.AddProject(projectName.Name, projectTemplate, languageName);
 
-        public void AddProjectReference(string fromProjectName, string toProjectName)
-            => _inProc.AddProjectReference(fromProjectName, toProjectName);
+        public void AddProjectReference(ProjectUtils.Project fromProjectName, ProjectUtils.ProjectReference toProjectName)
+        {
+            _inProc.AddProjectReference(fromProjectName.Name, toProjectName.Name);
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
+
+        public void RemoveProjectReference(ProjectUtils.Project projectName, ProjectUtils.ProjectReference projectReferenceName)
+        {
+            _inProc.RemoveProjectReference(projectName.Name, projectReferenceName.Name);
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
+
+        public void AddMetadataReference(ProjectUtils.AssemblyReference fullyQualifiedAssemblyName, ProjectUtils.Project projectName)
+        {
+            _inProc.AddMetadataReference(fullyQualifiedAssemblyName.Name, projectName.Name);
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
+
+        public void RemoveMetadataReference(ProjectUtils.AssemblyReference assemblyName, ProjectUtils.Project projectName)
+        {
+            _inProc.RemoveMetadataReference(assemblyName.Name, projectName.Name);
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
+
+        /// <summary>
+        /// Add a PackageReference to the specified project. Generally this should be followed up by
+        /// a call to <see cref="RestoreNuGetPackages"/>.
+        /// </summary>
+        public void AddPackageReference(ProjectUtils.Project project, ProjectUtils.PackageReference package)
+            => _inProc.AddPackageReference(project.Name, package.Name, package.Version);
+
+        /// <summary>
+        /// Remove a PackageReference from the specified project. Generally this should be followed up by
+        /// a call to <see cref="RestoreNuGetPackages"/>.
+        /// </summary>
+        public void RemovePackageReference(ProjectUtils.Project project, ProjectUtils.PackageReference package)
+            => _inProc.RemovePackageReference(project.Name, package.Name);
 
         public void CleanUpOpenSolution()
             => _inProc.CleanUpOpenSolution();
 
-        public int ErrorListErrorCount
-            => _inProc.GetErrorListErrorCount();
+        public void AddFile(ProjectUtils.Project project, string fileName, string contents = null, bool open = false)
+            => _inProc.AddFile(project.Name, fileName, contents, open);
 
-        public void AddFile(string projectName, string fileName, string contents = null, bool open = false)
-            => _inProc.AddFile(projectName, fileName, contents, open);
+        public void SetFileContents(ProjectUtils.Project project, string fileName, string contents)
+            => _inProc.SetFileContents(project.Name, fileName, contents);
 
-        public void SetFileContents(string projectName, string fileName, string contents)
-            => _inProc.SetFileContents(projectName, fileName, contents);
-
-        public string GetFileContents(string projectName, string fileName)
-            => _inProc.GetFileContents(projectName, fileName);
+        public string GetFileContents(ProjectUtils.Project project, string fileName)
+            => _inProc.GetFileContents(project.Name, fileName);
 
         public void BuildSolution(bool waitForBuildToFinish)
             => _inProc.BuildSolution(waitForBuildToFinish);
 
-        public void OpenFileWithDesigner(string projectName, string fileName)
-            => _inProc.OpenFileWithDesigner(projectName, fileName);
+        public void OpenFileWithDesigner(ProjectUtils.Project project, string fileName)
+            => _inProc.OpenFileWithDesigner(project.Name, fileName);
 
-        public void OpenFile(string projectName, string fileName)
-            => _inProc.OpenFile(projectName, fileName);
+        public void OpenFile(ProjectUtils.Project project, string fileName)
+            => _inProc.OpenFile(project.Name, fileName);
 
-        public void CloseFile(string projectName, string fileName, bool saveFile)
-            => _inProc.CloseFile(projectName, fileName, saveFile);
+        public void UpdateFile(string projectName, string fileName, string contents, bool open = false)
+            => _inProc.UpdateFile(projectName, fileName, contents, open);
 
-        public void SaveFile(string projectName, string fileName)
-            => _inProc.SaveFile(projectName, fileName);
+        public void RenameFile(ProjectUtils.Project project, string oldFileName, string newFileName)
+            => _inProc.RenameFile(project.Name, oldFileName, newFileName);
 
-        public void ReloadProject(string projectName)
-            => _inProc.ReloadProject(projectName);
+        public void CloseFile(ProjectUtils.Project project, string fileName, bool saveFile)
+            => _inProc.CloseFile(project.Name, fileName, saveFile);
+
+        public void SaveFile(ProjectUtils.Project project, string fileName)
+            => _inProc.SaveFile(project.Name, fileName);
+
+        public void ReloadProject(ProjectUtils.Project project)
+            => _inProc.ReloadProject(project.RelativePath);
 
         public void RestoreNuGetPackages()
             => _inProc.RestoreNuGetPackages();
@@ -81,22 +125,58 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SaveAll()
             => _inProc.SaveAll();
 
-        public void ShowErrorList()
-            => _inProc.ShowErrorList();
-
         public void ShowOutputWindow()
             => _inProc.ShowOutputWindow();
 
-        public void UnloadProject(string projectName)
-            => _inProc.UnloadProject(projectName);
+        public void UnloadProject(ProjectUtils.Project project)
+            => _inProc.UnloadProject(project.Name);
 
-        public void WaitForNoErrorsInErrorList()
-            => _inProc.WaitForNoErrorsInErrorList();
+        public string[] GetProjectReferences(ProjectUtils.Project project)
+            => _inProc.GetProjectReferences(project.Name);
 
-        public string[] GetProjectReferences(string projectName)
-            => _inProc.GetProjectReferences(projectName);
+        public string[] GetAssemblyReferences(ProjectUtils.Project project)
+            => _inProc.GetAssemblyReferences(project.Name);
 
-        public string[] GetAssemblyReferences(string projectName)
-            => _inProc.GetAssemblyReferences(projectName);
+        /// <summary>
+        /// Selects an item named by the <paramref name="itemName"/> parameter.
+        /// Note that this selects the first item of the given name found. In situations where
+        /// there may be more than one item of a given name, use <see cref="SelectItemAtPath(string[])"/>
+        /// instead.
+        /// </summary>
+        public void SelectItem(string itemName)
+            => _inProc.SelectItem(itemName);
+
+        /// <summary>
+        /// Selects the specific item at the given "path".
+        /// </summary>
+        public void SelectItemAtPath(params string[] path)
+            => _inProc.SelectItemAtPath(path);
+
+        /// <summary>
+        /// Returns the names of the immediate children of the given item.
+        /// Note that this uses the first item of the given name found. In situations where there
+        /// may be more than one item of a given name, use <see cref="GetChildrenOfItemAtPath(string[])"/>
+        /// instead.
+        /// </summary>
+        public string[] GetChildrenOfItem(string itemName)
+            => _inProc.GetChildrenOfItem(itemName);
+
+        /// <summary>
+        /// Returns the names of the immediate children of the item at the given "path".
+        /// </summary>
+        public string[] GetChildrenOfItemAtPath(params string[] path)
+            => _inProc.GetChildrenOfItemAtPath(path);
+
+        public void ClearBuildOutputWindowPane()
+            => _inProc.ClearBuildOutputWindowPane();
+
+        public void WaitForBuildToFinish()
+            => _inProc.WaitForBuildToFinish();
+
+        public void EditProjectFile(ProjectUtils.Project project)
+            => _inProc.EditProjectFile(project.Name);
+
+        public void AddStandaloneFile(string fileName)
+            => _inProc.AddStandaloneFile(fileName);
     }
 }

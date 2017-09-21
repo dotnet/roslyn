@@ -1,18 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
 Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
-    Friend Partial Class CodeGenerator
+    Partial Friend Class CodeGenerator
         Private _recursionDepth As Integer
 
         Private Class EmitCancelledException
@@ -1516,7 +1511,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             If (used) Then
                 Dim temp = Me.AllocateTemp(type, syntaxNode)
                 _builder.EmitLocalAddress(temp)                  '  ldloca temp
-                _builder.EmitOpCode(ILOpCode.Initobj)            '  intitobj  <MyStruct>
+                _builder.EmitOpCode(ILOpCode.Initobj)            '  initobj  <MyStruct>
                 EmitSymbolToken(type, syntaxNode)
                 _builder.EmitLocalLoad(temp)                     '  ldloc temp
                 FreeTemp(temp)
@@ -1745,7 +1740,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Dim temp = Me.EmitAddress(target, AddressKind.Writeable)
             Debug.Assert(temp Is Nothing, "temp is not expected when in-place assigning")
 
-            Me._builder.EmitOpCode(ILOpCode.Initobj)    '  intitobj  <MyStruct>
+            Me._builder.EmitOpCode(ILOpCode.Initobj)    '  initobj  <MyStruct>
             Me.EmitSymbolToken(target.Type, target.Syntax)
 
             If used Then
@@ -2205,7 +2200,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Debug.Assert(node.Method.IsDefinition)
             Debug.Assert(node.Type.SpecialType = SpecialType.System_Int32)
             _builder.EmitOpCode(ILOpCode.Ldtoken)
-            EmitSymbolToken(node.Method, node.Syntax, encodeAsRawDefinitionToken:=True)
+
+            ' For partial methods, we emit pseudo token based on the symbol for the partial
+            ' definition part as opposed to the symbol for the partial implementation part.
+            ' We will need to resolve the symbol associated with each pseudo token in order
+            ' to compute the real method definition tokens later. For partial methods, this
+            ' resolution can only succeed if the associated symbol is the symbol for the
+            ' partial definition and not the symbol for the partial implementation (see
+            ' MethodSymbol.ResolvedMethodImpl()).
+            Dim symbol = If(node.Method.PartialDefinitionPart, node.Method)
+
+            EmitSymbolToken(symbol, node.Syntax, encodeAsRawDefinitionToken:=True)
         End Sub
 
         Private Sub EmitMaximumMethodDefIndexExpression(node As BoundMaximumMethodDefIndex)

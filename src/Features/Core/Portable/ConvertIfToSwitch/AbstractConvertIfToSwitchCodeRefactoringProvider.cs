@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 {
@@ -77,6 +78,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     return;
                 }
 
+                // To prevent noisiness, only show this feature on the 'if' keyword of the if-statement.
                 var token = ifStatement.GetFirstToken();
                 if (!token.Span.Contains(context.Span))
                 {
@@ -84,7 +86,22 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 }
 
                 var switchSections = GetSections(ifStatement).ToList();
-                if (switchSections.Count == 0)
+
+                // To prevent noisiness we don't offer this unless we're going to generate at least
+                // two switch labels.  It can be quite annoying to basically have this offered
+                // on pretty much any simple 'if' like "if (a == 0)" or "if (x == null)".  In these
+                // cases, the converted code just looks and feels worse, and it ends up causing the
+                // lightbulb to appear too much.
+                //
+                // This does mean that if someone has a simple if, and is about to add a lot more 
+                // cases, and says to themselves "let me convert this to a switch first!", then they'll
+                // be out of luck.  However, I believe the core value here is in taking existing large
+                // if-chains/checks and easily converting them over to a switch.  So not offering the
+                // feature on simple if-statements seems like an acceptable compromise to take to ensure
+                // the overall user experience isn't degraded.
+                var labelCount = switchSections.SelectMany(t => t.patterns).Count() +
+                    (_switchDefaultBodyOpt.HasValue ? 1 : 0);
+                if (labelCount < 2)
                 {
                     return;
                 }
@@ -93,7 +110,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     UpdateDocumentAsync(root, document, ifStatement, switchSections)));
             }
 
-            private IEnumerable<(IEnumerable<IPattern<TSwitchLabelSyntax>>, TStatementSyntax)> GetSections(
+            private IEnumerable<(IEnumerable<IPattern<TSwitchLabelSyntax>> patterns, TStatementSyntax statement)> GetSections(
                 TIfStatementSyntax rootIfStatement)
             {
                 // Iterate over subsequent if-statements whose endpoint is unreachable.
@@ -178,7 +195,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 (constant, expression) =
                         IsConstant(expression1) ? (expression1, expression2) :
                         IsConstant(expression2) ? (expression2, expression1) :
-                        default((TExpressionSyntax, TExpressionSyntax));
+                        default;
 
                 return constant != null;
             }
@@ -211,13 +228,21 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 }
 
                 var ifSpan = ifStatement.Span;
-                var @switch = generator.SwitchStatement(_switchExpression, sectionList);
+                var @switch = CreateSwitchStatement(ifStatement, _switchExpression, sectionList);
                 var nodesToRemove = GetSubsequentStatements(ifStatement)
-                    .Skip(1).Take(_numberOfSubsequentIfStatementsToRemove);
+                    .Skip(1).Take(_numberOfSubsequentIfStatementsToRemove).ToList();
                 root = root.RemoveNodes(nodesToRemove, SyntaxRemoveOptions.KeepNoTrivia);
+
+                var lastNode = nodesToRemove.LastOrDefault() ?? ifStatement;
+                @switch = @switch.WithLeadingTrivia(ifStatement.GetLeadingTrivia())
+                                 .WithTrailingTrivia(lastNode.GetTrailingTrivia())
+                                 .WithAdditionalAnnotations(Formatter.Annotation);
+
                 root = root.ReplaceNode(root.FindNode(ifSpan), @switch);
                 return Task.FromResult(document.WithSyntaxRoot(root));
             }
+
+            protected abstract SyntaxNode CreateSwitchStatement(TIfStatementSyntax ifStatement, TExpressionSyntax expression, List<SyntaxNode> sectionList);
 
             protected abstract TExpressionSyntax UnwrapCast(TExpressionSyntax expression);
 

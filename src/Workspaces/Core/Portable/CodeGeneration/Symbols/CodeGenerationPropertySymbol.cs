@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             DeclarationModifiers modifiers,
             ITypeSymbol type,
             bool returnsByRef,
-            IPropertySymbol explicitInterfaceSymbolOpt,
+            ImmutableArray<IPropertySymbol> explicitInterfaceImplementations,
             string name,
             bool isIndexer,
             ImmutableArray<IParameterSymbol> parametersOpt,
@@ -38,9 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.ReturnsByRef = returnsByRef;
             this.IsIndexer = isIndexer;
             this.Parameters = parametersOpt.NullToEmpty();
-            this.ExplicitInterfaceImplementations = explicitInterfaceSymbolOpt == null
-                ? ImmutableArray.Create<IPropertySymbol>()
-                : ImmutableArray.Create(explicitInterfaceSymbolOpt);
+            this.ExplicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
             this.GetMethod = getMethod;
             this.SetMethod = setMethod;
         }
@@ -49,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             var result = new CodeGenerationPropertySymbol(
                 this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
-                this.Modifiers, this.Type, this.ReturnsByRef, this.ExplicitInterfaceImplementations.FirstOrDefault(),
+                this.Modifiers, this.Type, this.ReturnsByRef, this.ExplicitInterfaceImplementations,
                 this.Name, this.IsIndexer, this.Parameters,
                 this.GetMethod, this.SetMethod);
             CodeGenerationPropertyInfo.Attach(result,
@@ -86,7 +82,21 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public new IPropertySymbol OriginalDefinition => this;
 
-        public IPropertySymbol OverriddenProperty => null;
+        public bool ReturnsByRefReadonly
+        {
+            get
+            {
+                return this.GetMethod != null && this.GetMethod.ReturnsByRefReadonly;
+            }
+        }
+
+        public IPropertySymbol OverriddenProperty
+        {
+            get
+            {
+                return null;
+            }
+        }
 
         public bool IsWithEvents => false;
 

@@ -1,25 +1,27 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Extensions
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
     Public Class SemanticClassifierTests
         Inherits AbstractVisualBasicClassifierTests
 
-        Friend Overrides Async Function GetClassificationSpansAsync(code As String, textSpan As TextSpan) As Tasks.Task(Of IEnumerable(Of ClassifiedSpan))
+        Friend Overrides Async Function GetClassificationSpansAsync(code As String, textSpan As TextSpan) As Task(Of ImmutableArray(Of ClassifiedSpan))
             Using workspace = TestWorkspace.CreateVisualBasic(code)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
 
-                Dim service = document.GetLanguageService(Of IClassificationService)()
+                Dim service = document.GetLanguageService(Of ISyntaxClassificationService)()
 
                 Dim tree = Await document.GetSyntaxTreeAsync()
 
-                Dim result = New List(Of ClassifiedSpan)
+                Dim result = ArrayBuilder(Of ClassifiedSpan).GetInstance()
                 Dim classifiers = service.GetDefaultSyntaxClassifiers()
                 Dim extensionManager = workspace.Services.GetService(Of IExtensionManager)
 
@@ -28,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                     extensionManager.CreateTokenExtensionGetter(classifiers, Function(c) c.SyntaxTokenKinds),
                     result, CancellationToken.None)
 
-                Return result
+                Return result.ToImmutableAndFree()
             End Using
         End Function
 
@@ -91,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             Dim text = StringFromLines(
                 "Module M",
                 "    Sub S()",
-                "        Dim foo",
+                "        Dim goo",
                 "    End Sub",
                 "End Module")
             Await TestAsync(text)
@@ -509,7 +511,7 @@ End Class
 <code>
 Class C
     Sub M()
-        Dim m = My.Foo
+        Dim m = My.Goo
     End Sub
 End Class
 </code>.NormalizedValue()
@@ -542,6 +544,17 @@ end sub
 </code>.NormalizedValue()
 
             Await TestInClassAsync(text)
+        End Function
+
+        <WorkItem(21524, "https://github.com/dotnet/roslyn/issues/21524")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestAttribute() As Task
+            Await TestAsync("Imports System
+
+<AttributeUsage()>
+Class Program
+End Class",
+                [Class]("AttributeUsage"))
         End Function
     End Class
 End Namespace

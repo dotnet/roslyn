@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -475,11 +476,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CorLibrary.GetDeclaredSpecialType(type);
         }
 
-        internal NamedTypeSymbol GetWellKnownType(WellKnownType type)
-        {
-            return this.GetTypeByMetadataName(WellKnownTypes.GetMetadataName(type));
-        }
-
         internal static TypeSymbol DynamicType
         {
             get
@@ -778,6 +774,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 if ((object)candidate == null)
+                {
+                    continue;
+                }
+
+                if (candidate.IsHiddenByCodeAnalysisEmbeddedAttribute())
                 {
                     continue;
                 }

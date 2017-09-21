@@ -1,6 +1,9 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Xunit;
 using System.Linq;
 using System.Collections.Generic;
@@ -106,7 +109,7 @@ public class Derived<T> : Outer<(int e1, (int e2, int e3) e4)>.Inner<
         [Fact]
         public void TestTupleAttributes()
         {
-            var comp = CreateCompilationWithMscorlib(s_tuplesTestSource,
+            var comp = CreateStandardCompilation(s_tuplesTestSource,
                 options: TestOptions.UnsafeReleaseDll,
                 references: s_attributeRefs);
             TupleAttributeValidator.ValidateTupleAttributes(comp);
@@ -115,7 +118,7 @@ public class Derived<T> : Outer<(int e1, (int e2, int e3) e4)>.Inner<
         [Fact]
         public void TupleAttributeWithOnlyOneConstructor()
         {
-            var comp = CreateCompilationWithMscorlib(
+            var comp = CreateStandardCompilation(
                 s_tuplesTestSource + TestResources.NetFX.ValueTuple.tuplelib_cs + @"
 namespace System.Runtime.CompilerServices
 {
@@ -641,7 +644,7 @@ class C
         [Fact]
         public void TupleAttributeMissing()
         {
-            var comp = CreateCompilationWithMscorlib(
+            var comp = CreateStandardCompilation(
                 s_tuplesTestSource + TestResources.NetFX.ValueTuple.tuplelib_cs,
                 references: new[] { SystemCoreRef },
                 options: TestOptions.ReleaseDll);
@@ -803,36 +806,36 @@ public class C
 public struct S
 {
 }";
-            var comp = CreateCompilationWithMscorlib(text, references: s_attributeRefs);
+            var comp = CreateStandardCompilation(text, references: s_attributeRefs);
             comp.VerifyDiagnostics(
-                // (31,2): error CS8208: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
+                // (31,2): error CS8331: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 // [TupleElementNames(new[] { "a", "b" })]
                 Diagnostic(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, @"TupleElementNames(new[] { ""a"", ""b"" })").WithLocation(31, 2),
-                // (5,2): error CS8208: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
+                // (5,2): error CS8331: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 // [TupleElementNames(new[] { "a", "b" })]
                 Diagnostic(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, @"TupleElementNames(new[] { ""a"", ""b"" })").WithLocation(5, 2),
-                // (18,10): error CS8208: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
+                // (18,10): error CS8331: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 //         [TupleElementNames(new[] { "x" })]ValueTuple<T> args);
                 Diagnostic(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, @"TupleElementNames(new[] { ""x"" })").WithLocation(18, 10),
-                // (11,6): error CS8208: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
+                // (11,6): error CS8331: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 //     [TupleElementNames(new[] { "x", "y" })]
                 Diagnostic(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, @"TupleElementNames(new[] { ""x"", ""y"" })").WithLocation(11, 6),
-                // (14,14): error CS8208: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
+                // (14,14): error CS8331: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 //     [return: TupleElementNames(new string[] { null, null })]
                 Diagnostic(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, "TupleElementNames(new string[] { null, null })").WithLocation(14, 14),
-                // (15,36): error CS8208: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
+                // (15,36): error CS8331: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 //     public ValueTuple<int, int> M([TupleElementNames(new string[] { null})] ValueTuple x) => (0, 0);
                 Diagnostic(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, "TupleElementNames(new string[] { null})").WithLocation(15, 36),
                 // (20,6): error CS0592: Attribute 'TupleElementNames' is not valid on this declaration type. It is only valid on 'class, struct, property, indexer, field, parameter, return' declarations.
                 //     [TupleElementNames(new[] { "y" })]
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "TupleElementNames").WithArguments("TupleElementNames", "class, struct, property, indexer, field, parameter, return").WithLocation(20, 6),
-                // (27,6): error CS8208: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
+                // (27,6): error CS8331: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 //     [TupleElementNames(new[] { "a", "b" })]
                 Diagnostic(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, @"TupleElementNames(new[] { ""a"", ""b"" })").WithLocation(27, 6),
-                // (28,33): error CS8208: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
+                // (28,33): error CS8331: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 //     public (int x, int y) this[[TupleElementNames](int a, int b) t] => t;
                 Diagnostic(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, "TupleElementNames").WithLocation(28, 33),
-                // (8,6): error CS8208: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
+                // (8,6): error CS8331: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 //     [TupleElementNames(new string[] { null, null })]
                 Diagnostic(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, "TupleElementNames(new string[] { null, null })").WithLocation(8, 6));
         }

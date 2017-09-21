@@ -2474,20 +2474,20 @@ using Windows.UI.Xaml;
 using Windows.ApplicationModel;
                             
 public class abcdef{
-    public void foo(){
+    public void goo(){
         Application x = null; 
         x.Suspending += (object sender, SuspendingEventArgs e) => {};
     }
 
     public static void Main(){
             var a = new abcdef();
-            a.foo();
+            a.goo();
     }
 } ";
 
             var cv = this.CompileAndVerifyOnWin8Only(text);
 
-            cv.VerifyIL("abcdef.foo()", @"
+            cv.VerifyIL("abcdef.goo()", @"
 {
   // Code size       65 (0x41)
   .maxstack  4
@@ -2507,7 +2507,7 @@ public class abcdef{
   IL_0022:  brtrue.s   IL_003b
   IL_0024:  pop
   IL_0025:  ldsfld     ""abcdef.<>c abcdef.<>c.<>9""
-  IL_002a:  ldftn      ""void abcdef.<>c.<foo>b__0_0(object, Windows.ApplicationModel.SuspendingEventArgs)""
+  IL_002a:  ldftn      ""void abcdef.<>c.<goo>b__0_0(object, Windows.ApplicationModel.SuspendingEventArgs)""
   IL_0030:  newobj     ""Windows.UI.Xaml.SuspendingEventHandler..ctor(object, System.IntPtr)""
   IL_0035:  dup
   IL_0036:  stsfld     ""Windows.UI.Xaml.SuspendingEventHandler abcdef.<>c.<>9__0_0""
@@ -2533,7 +2533,7 @@ public class abcdef{
                                 {  
                                 }
 
-                                public void foo(){
+                                public void goo(){
                                     Application x = null; 
                                     x.Suspending += OnSuspending;
                                     x.Suspending -= OnSuspending;
@@ -2541,7 +2541,7 @@ public class abcdef{
 
                                 public static void Main(){
                                         var a = new abcdef();
-                                        a.foo();
+                                        a.goo();
                                 }
                             } ";
 
@@ -2578,7 +2578,7 @@ public class abcdef{
   IL_004b:  ret
 }
 ";
-            cv.VerifyIL("abcdef.foo()", ExpectedIl);
+            cv.VerifyIL("abcdef.goo()", ExpectedIl);
         }
 
         /// <summary>
@@ -2598,20 +2598,20 @@ public class abcdef{
 
     private Application getApplication(){return null;}
 
-    public void foo(){
+    public void goo(){
         getApplication().Suspending += OnSuspending;
         getApplication().Suspending -= OnSuspending;
     }
 
     public static void Main(){
             var a = new abcdef();
-            a.foo();
+            a.goo();
     }
 }";
 
             var cv = this.CompileAndVerifyOnWin8Only(text);
 
-            cv.VerifyIL("abcdef.foo()", @"
+            cv.VerifyIL("abcdef.goo()", @"
 {
   // Code size       86 (0x56)
   .maxstack  4
@@ -3230,7 +3230,7 @@ class C
 ";
 
             // NB: not referencing WinRtRefs
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseWinMD);
+            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseWinMD);
             comp.VerifyDiagnostics(
                 // Add accessor signature:
                 // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken' is not defined or imported
@@ -3287,7 +3287,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source, WinRtRefs, TestOptions.ReleaseWinMD).VerifyDiagnostics(
+            CreateStandardCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD).VerifyDiagnostics(
                 // (9,17): error CS7084: A Windows Runtime event may not be passed as an out or ref parameter.
                 //         Ref(ref Instance);
                 Diagnostic(ErrorCode.ERR_WinRtEventPassedByRef, "Instance").WithArguments("C.Instance"),
@@ -3336,7 +3336,7 @@ namespace System.Runtime.InteropServices.WindowsRuntime
     }
 }
 ";
-            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseWinMD).VerifyEmitDiagnostics(
+            CreateStandardCompilation(source, options: TestOptions.ReleaseWinMD).VerifyEmitDiagnostics(
                 // (4,32): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.AddEventHandler'
                 //     public event System.Action E;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1", "AddEventHandler"),

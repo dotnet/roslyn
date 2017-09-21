@@ -424,6 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt: default(ImmutableArray<int>),
                 constantValueOpt: ConstantValueOpt,
                 initializerExpressionOpt: newInitializerExpression,
+                binderOpt: BinderOpt,
                 type: changeTypeOpt ?? Type);
         }
     }
@@ -460,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundDefaultOperator
+    internal partial class BoundDefaultExpression
     {
         public override ConstantValue ConstantValue
         {

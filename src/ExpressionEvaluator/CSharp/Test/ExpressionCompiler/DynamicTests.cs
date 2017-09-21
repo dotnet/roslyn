@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -201,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -246,7 +247,7 @@ class Generic<T>
 {
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -296,7 +297,7 @@ class Generic<T>
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M", atLineNumber: 799);
@@ -365,7 +366,7 @@ class Generic<T>
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M", atLineNumber: 799);
@@ -432,7 +433,7 @@ class Generic<T>
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M", atLineNumber: 799);
@@ -531,7 +532,7 @@ class Generic<T>
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M", atLineNumber: 799);
@@ -599,7 +600,7 @@ class Generic<T>
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.M");
@@ -641,7 +642,7 @@ class Generic<T>
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -680,7 +681,7 @@ class Generic<T>
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -719,7 +720,7 @@ class Generic<T>
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -767,7 +768,7 @@ public class Outer<T, U>
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -854,7 +855,7 @@ public class Outer<T, U>
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(
@@ -933,7 +934,7 @@ public class Outer<T, U>
         dynamic d = 1;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -970,7 +971,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1050,7 +1051,7 @@ class C
                 var methodData = testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
                 methodData.VerifyIL(@"
 {
-  // Code size      544 (0x220)
+  // Code size      542 (0x21e)
   .maxstack  10
   .locals init (int V_0,
                 <>x.<>c__DisplayClass0_0 V_1,
@@ -1183,7 +1184,7 @@ class C
     IL_017d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ICriticalNotifyCompletion, <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d>(ref System.Runtime.CompilerServices.ICriticalNotifyCompletion, ref <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d)""
     IL_0182:  ldnull
     IL_0183:  stloc.s    V_4
-    IL_0185:  leave      IL_021f
+    IL_0185:  leave      IL_021d
     IL_018a:  ldarg.0
     IL_018b:  ldfld      ""object <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>u__1""
     IL_0190:  stloc.3
@@ -1218,31 +1219,29 @@ class C
     IL_01e2:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__3""
     IL_01e7:  ldloc.3
     IL_01e8:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
-    IL_01ed:  ldnull
-    IL_01ee:  stloc.3
-    IL_01ef:  stloc.2
-    IL_01f0:  leave.s    IL_020b
+    IL_01ed:  stloc.2
+    IL_01ee:  leave.s    IL_0209
   }
   catch System.Exception
   {
-    IL_01f2:  stloc.s    V_6
-    IL_01f4:  ldarg.0
-    IL_01f5:  ldc.i4.s   -2
-    IL_01f7:  stfld      ""int <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>1__state""
-    IL_01fc:  ldarg.0
-    IL_01fd:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>t__builder""
-    IL_0202:  ldloc.s    V_6
-    IL_0204:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetException(System.Exception)""
-    IL_0209:  leave.s    IL_021f
+    IL_01f0:  stloc.s    V_6
+    IL_01f2:  ldarg.0
+    IL_01f3:  ldc.i4.s   -2
+    IL_01f5:  stfld      ""int <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>1__state""
+    IL_01fa:  ldarg.0
+    IL_01fb:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>t__builder""
+    IL_0200:  ldloc.s    V_6
+    IL_0202:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetException(System.Exception)""
+    IL_0207:  leave.s    IL_021d
   }
-  IL_020b:  ldarg.0
-  IL_020c:  ldc.i4.s   -2
-  IL_020e:  stfld      ""int <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>1__state""
-  IL_0213:  ldarg.0
-  IL_0214:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>t__builder""
-  IL_0219:  ldloc.2
-  IL_021a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetResult(object)""
-  IL_021f:  ret
+  IL_0209:  ldarg.0
+  IL_020a:  ldc.i4.s   -2
+  IL_020c:  stfld      ""int <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>1__state""
+  IL_0211:  ldarg.0
+  IL_0212:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>t__builder""
+  IL_0217:  ldloc.2
+  IL_0218:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetResult(object)""
+  IL_021d:  ret
 }
 ");
             });
@@ -1257,19 +1256,19 @@ class C
 {
     static dynamic x;
 
-    static void Foo(dynamic y)
+    static void Goo(dynamic y)
     {
-        System.Action a = () => Foo(x);
+        System.Action a = () => Goo(x);
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
-                var context = CreateMethodContext(runtime, "C.Foo");
+                var context = CreateMethodContext(runtime, "C.Goo");
                 var testData = new CompilationTestData();
                 string error;
-                var result = context.CompileAssignment("a", "() => Foo(x)", out error, testData);
+                var result = context.CompileAssignment("a", "() => Goo(x)", out error, testData);
                 Assert.Null(error);
                 VerifyCustomTypeInfo(result, null);
                 testData.GetMethodData("<>x.<>c.<<>m0>b__0_0").VerifyIL(@"
@@ -1279,7 +1278,7 @@ class C
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> <>x.<>o__0.<>p__0""
   IL_0005:  brtrue.s   IL_0046
   IL_0007:  ldc.i4     0x100
-  IL_000c:  ldstr      ""Foo""
+  IL_000c:  ldstr      ""Goo""
   IL_0011:  ldnull
   IL_0012:  ldtoken    ""C""
   IL_0017:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -1310,9 +1309,9 @@ class C
   IL_0069:  ret
 }");
 
-                context = CreateMethodContext(runtime, "C.<>c.<Foo>b__1_0");
+                context = CreateMethodContext(runtime, "C.<>c.<Goo>b__1_0");
                 testData = new CompilationTestData();
-                result = context.CompileExpression("Foo(x)", out error, testData);
+                result = context.CompileExpression("Goo(x)", out error, testData);
                 Assert.Null(error);
                 VerifyCustomTypeInfo(result, 0x01);
                 var methodData = testData.GetMethodData("<>x.<>m0");
@@ -1323,7 +1322,7 @@ class C
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> <>x.<>o__0.<>p__0""
   IL_0005:  brtrue.s   IL_0042
   IL_0007:  ldc.i4.0
-  IL_0008:  ldstr      ""Foo""
+  IL_0008:  ldstr      ""Goo""
   IL_000d:  ldnull
   IL_000e:  ldtoken    ""C""
   IL_0013:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -1369,19 +1368,19 @@ class C
         System.Func<dynamic> a = () => x + y;
     }
 
-    static void Foo(int x)
+    static void Goo(int x)
     {
         M(x);
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
                 var testData = new CompilationTestData();
                 string error;
-                var result = context.CompileExpression("Foo(x)", out error, testData);
+                var result = context.CompileExpression("Goo(x)", out error, testData);
                 Assert.Null(error);
                 VerifyCustomTypeInfo(result, 0x01);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
@@ -1393,7 +1392,7 @@ class C
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> <>x.<>o__0.<>p__0""
   IL_0005:  brtrue.s   IL_0042
   IL_0007:  ldc.i4.0
-  IL_0008:  ldstr      ""Foo""
+  IL_0008:  ldstr      ""Goo""
   IL_000d:  ldnull
   IL_000e:  ldtoken    ""C""
   IL_0013:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -1425,7 +1424,7 @@ class C
   IL_0066:  ret
 }");
                 testData = new CompilationTestData();
-                result = context.CompileExpression("Foo(y)", out error, testData);
+                result = context.CompileExpression("Goo(y)", out error, testData);
                 Assert.Null(error);
                 VerifyCustomTypeInfo(result, 0x01);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
@@ -1437,7 +1436,7 @@ class C
   IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> <>x.<>o__0.<>p__0""
   IL_0005:  brtrue.s   IL_0042
   IL_0007:  ldc.i4.0
-  IL_0008:  ldstr      ""Foo""
+  IL_0008:  ldstr      ""Goo""
   IL_000d:  ldnull
   IL_000e:  ldtoken    ""C""
   IL_0013:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""

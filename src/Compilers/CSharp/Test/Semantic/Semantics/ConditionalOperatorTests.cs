@@ -175,11 +175,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestConditional("1 ? 2 : 3", null,
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "bool"));
 
-            TestConditional("foo ? 'a' : 'b'", null,
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "foo").WithArguments("foo"));
+            TestConditional("goo ? 'a' : 'b'", null,
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "goo").WithArguments("goo"));
 
-            TestConditional("new Foo() ? GetObject() : null", null,
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Foo").WithArguments("Foo"));
+            TestConditional("new Goo() ? GetObject() : null", null,
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Goo").WithArguments("Goo"));
 
             // CONSIDER: dev10 reports ERR_ConstOutOfRange
             TestConditional("1 ? null : null", null,
@@ -1176,7 +1176,7 @@ System.Collections.Generic.List`1[System.Int32]
         return b ? c : d;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (3,34): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D"));
         }
@@ -1212,7 +1212,7 @@ interface I<in T, out U> {{ }}";
             var source = string.Format(sourceTemplate, conditionalExpression);
             var tree = Parse(source);
 
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             var compUnit = tree.GetCompilationUnitRoot();
@@ -1264,7 +1264,7 @@ class TestClass
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"----
@@ -1319,7 +1319,7 @@ class TestClass
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"----
@@ -1366,7 +1366,7 @@ class TestClass
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
 
             compilation.VerifyDiagnostics(
     // (10,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
@@ -1428,7 +1428,7 @@ class TestClass
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe,
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe,
                                                             parseOptions: CSharpParseOptions.Default.WithPreprocessorSymbols("DEBUG"));
 
             CompileAndVerify(compilation, expectedOutput:
@@ -1448,7 +1448,7 @@ Self
 Test
 ");
 
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: "---");
         }

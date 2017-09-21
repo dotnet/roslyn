@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -56,11 +56,11 @@ delegate void D();
         Public Sub TestAssemblyLevelAttribute()
             Dim code =
 <Code>
-[assembly: Foo(0, true, S = "x")]
+[assembly: Goo(0, true, S = "x")]
 
-class FooAttribute : System.Attribute
+class GooAttribute : System.Attribute
 {
-    public FooAttribute(int i, bool b) { }
+    public GooAttribute(int i, bool b) { }
 
     public string S { get { return string.Empty; } set { } }
 }
@@ -75,8 +75,8 @@ class FooAttribute : System.Attribute
                 Assert.NotNull(codeAttribute)
 
                 Assert.Same(workspaceAndFileCodeModel.FileCodeModel, codeAttribute.Parent)
-                Assert.Equal("Foo", codeAttribute.Name)
-                Assert.Equal("FooAttribute", codeAttribute.FullName)
+                Assert.Equal("Goo", codeAttribute.Name)
+                Assert.Equal("GooAttribute", codeAttribute.FullName)
                 Assert.Equal("assembly", codeAttribute.Target)
                 Assert.Equal("0, true, S = ""x""", codeAttribute.Value)
 
@@ -441,22 +441,22 @@ class C : B, I
             Dim code =
 <Code>
 class B { }
-interface $$IFoo { }
+interface $$IGoo { }
 interface IBar { }
 </Code>
 
             Dim expected =
 <Code>
 class B { }
-interface IFoo { }
+interface IGoo { }
 interface IBar { }
 
-class C : B, IFoo, IBar
+class C : B, IGoo, IBar
 {
 }
 </Code>
 
-            Await TestAddClass(code, expected, New ClassData With {.Name = "C", .Position = "IBar", .Bases = "B", .ImplementedInterfaces = {"IFoo", "IBar"}})
+            Await TestAddClass(code, expected, New ClassData With {.Name = "C", .Position = "IBar", .Bases = "B", .ImplementedInterfaces = {"IGoo", "IBar"}})
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -464,7 +464,7 @@ class C : B, IFoo, IBar
             Dim code =
 <Code>
 class B { }
-interface $$IFoo { }
+interface $$IGoo { }
 interface IBar { }
 </Code>
 
@@ -472,7 +472,7 @@ interface IBar { }
                 Sub(fileCodeModel)
                     For i = 1 To 100
                         Dim name = $"C{i}"
-                        Dim newClass = fileCodeModel.AddClass(name, Position:=-1, Bases:="B", ImplementedInterfaces:={"IFoo", "IBar"})
+                        Dim newClass = fileCodeModel.AddClass(name, Position:=-1, Bases:="B", ImplementedInterfaces:={"IGoo", "IBar"})
                         Assert.NotNull(newClass)
                         Assert.Equal(name, newClass.Name)
                     Next

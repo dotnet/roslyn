@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestProperty((old, value) => old.WithOutputNameOverride(value), opt => opt.OutputNameOverride, @"x.dll");
             TestProperty((old, value) => old.WithDebugInformationFormat(value), opt => opt.DebugInformationFormat, (DebugInformationFormat)2);
             TestProperty((old, value) => old.WithTolerateErrors(value), opt => opt.TolerateErrors, true);
-            TestProperty((old, value) => old.WithIncludePrivateMembers(value), opt => opt.IncludePrivateMembers, true);
+            TestProperty((old, value) => old.WithIncludePrivateMembers(value), opt => opt.IncludePrivateMembers, false);
             TestProperty((old, value) => old.WithInstrumentationKinds(value), opt => opt.InstrumentationKinds, ImmutableArray.Create(InstrumentationKind.TestCoverage));
         }
 

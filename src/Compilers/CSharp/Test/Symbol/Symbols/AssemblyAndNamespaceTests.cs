@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }
 ";
             var simpleName = GetUniqueName();
-            var comp = CreateCompilationWithMscorlib(text, assemblyName: simpleName);
+            var comp = CreateStandardCompilation(text, assemblyName: simpleName);
             var sym = comp.Assembly;
             // See bug 2058: the following lines assume System.Reflection.AssemblyName preserves the case of
             // the "displayName" passed to it, but it sometimes does not.
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     class A {}
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text, assemblyName: "Test");
+            var comp = CreateStandardCompilation(text, assemblyName: "Test");
 
             var sym = comp.SourceModule;
             Assert.Equal("Test.dll", sym.Name);
@@ -133,11 +133,11 @@ namespace N1 {
             var text = @"using Gen = System.Collections.Generic;
 
 namespace NS {
-    public interface IFoo {}
+    public interface IGoo {}
 }
 
 namespace NS.NS1 {
-    using F = NS.IFoo;
+    using F = NS.IGoo;
     class A : F { }
 }
 ";
@@ -154,7 +154,7 @@ namespace NS.NS1 {
     }
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(text);
+            var comp1 = CreateStandardCompilation(text);
             var compRef = new CSharpCompilationReference(comp1);
 
             var comp = CSharpCompilation.Create(assemblyName: "Test1", options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
@@ -163,13 +163,13 @@ namespace NS.NS1 {
 
             var global = comp.GlobalNamespace;
             var ns = global.GetMembers("NS").Single() as NamespaceSymbol;
-            Assert.Equal(1, ns.GetTypeMembers().Length); // IFoo
-            Assert.Equal(3, ns.GetMembers().Length); // NS1, NS2, IFoo
+            Assert.Equal(1, ns.GetTypeMembers().Length); // IGoo
+            Assert.Equal(3, ns.GetMembers().Length); // NS1, NS2, IGoo
 
             var ns1 = ns.GetMembers("NS1").Single() as NamespaceSymbol;
             var type1 = ns1.GetTypeMembers("A").SingleOrDefault() as NamedTypeSymbol;
             Assert.Equal(1, type1.Interfaces.Length);
-            Assert.Equal("IFoo", type1.Interfaces[0].Name);
+            Assert.Equal("IGoo", type1.Interfaces[0].Name);
 
             var ns2 = ns.GetMembers("NS2").Single() as NamespaceSymbol;
             var type2 = ns2.GetTypeMembers("C").SingleOrDefault() as NamedTypeSymbol;
@@ -187,16 +187,16 @@ namespace NS.NS1 {
 ";
             var text2 = @"namespace N1
 {
-    interface IFoo {}
+    interface IGoo {}
 }
 ";
             var text3 = @"namespace N1
 {
-    struct SFoo {}
+    struct SGoo {}
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(text1, assemblyName: "Compilation1");
-            var comp2 = CreateCompilationWithMscorlib(text2, assemblyName: "Compilation2");
+            var comp1 = CreateStandardCompilation(text1, assemblyName: "Compilation1");
+            var comp2 = CreateStandardCompilation(text2, assemblyName: "Compilation2");
 
             var compRef1 = new CSharpCompilationReference(comp1);
             var compRef2 = new CSharpCompilationReference(comp2);
@@ -208,7 +208,7 @@ namespace NS.NS1 {
 
             var global = comp.GlobalNamespace; // throw
             var ns = global.GetMembers("N1").Single() as NamespaceSymbol;
-            Assert.Equal(3, ns.GetTypeMembers().Length); // A, IFoo & SFoo
+            Assert.Equal(3, ns.GetTypeMembers().Length); // A, IGoo & SGoo
             Assert.Equal(NamespaceKind.Compilation, ns.Extent.Kind);
 
             var constituents = ns.ConstituentNamespaces;
@@ -235,12 +235,12 @@ namespace NS.NS1 {
 ";
             var text2 = @"namespace N1
 {
-    interface IFoo {}
+    interface IGoo {}
 }
 ";
             var text3 = @"namespace N1
 {
-    struct SFoo {}
+    struct SGoo {}
 }
 ";
 
@@ -256,7 +256,7 @@ namespace NS.NS1 {
 
             var global = comp.GlobalNamespace; // throw
             var ns = global.GetMembers("N1").Single() as NamespaceSymbol;
-            Assert.Equal(3, ns.GetTypeMembers().Length); // A, IFoo & SFoo
+            Assert.Equal(3, ns.GetTypeMembers().Length); // A, IGoo & SGoo
             Assert.Equal(NamespaceKind.Compilation, ns.Extent.Kind);
 
             var constituents = ns.ConstituentNamespaces;
@@ -338,7 +338,7 @@ namespace NS
         public void GenericNamespace()
         {
             var compilation = CreateCompilation(@"
-namespace Foo<T>
+namespace Goo<T>
 {
     class Program    
     {        
@@ -350,7 +350,7 @@ namespace Foo<T>
 ");
             var global = compilation.GlobalNamespace;
 
-            var @namespace = global.GetMember<NamespaceSymbol>("Foo");
+            var @namespace = global.GetMember<NamespaceSymbol>("Goo");
             Assert.NotNull(@namespace);
 
             var @class = @namespace.GetMember<NamedTypeSymbol>("Program");
@@ -366,7 +366,7 @@ namespace Foo<T>
         {
             var source = @"public class C { }";
 
-            var aliasedCorlib = TestReferences.NetFx.v4_0_30319.mscorlib.WithAliases(ImmutableArray.Create("Foo"));
+            var aliasedCorlib = TestReferences.NetFx.v4_0_30319.mscorlib.WithAliases(ImmutableArray.Create("Goo"));
 
             var comp = CreateCompilation(source, new[] { aliasedCorlib });
 
@@ -431,9 +431,7 @@ class App
             Assert.Equal("System.Threading.Tasks.Task", taskType.ToTestDisplayString());
 
             // When we look in a single assembly, we don't consider referenced assemblies.
-            Assert.Null(comp.Assembly.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task));
             Assert.Null(comp.Assembly.GetTypeByMetadataName("System.Threading.Tasks.Task"));
-            Assert.Equal(taskType, comp.Assembly.CorLibrary.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task));
             Assert.Equal(taskType, comp.Assembly.CorLibrary.GetTypeByMetadataName("System.Threading.Tasks.Task"));
         }
     }

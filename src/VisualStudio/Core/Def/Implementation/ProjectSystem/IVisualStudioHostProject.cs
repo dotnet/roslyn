@@ -21,7 +21,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         IVsHierarchy Hierarchy { get; }
         Guid Guid { get; }
 
-        Workspace Workspace { get; }
+        Microsoft.CodeAnalysis.Workspace Workspace { get; }
+
+        /// <summary>
+        /// The public display name of the project. This name is not unique and may be shared
+        /// between multiple projects, especially in cases like Venus where the intellisense
+        /// projects will match the name of their logical parent project.
+        /// </summary>
+        string DisplayName { get; }
+
+        /// <summary>
+        /// The name of the project according to the project system. In "regular" projects this is
+        /// equivalent to <see cref="DisplayName"/>, but in Venus cases these will differ. The
+        /// ProjectSystemName is the 2_Default.aspx project name, whereas the regular display name
+        /// matches the display name of the project the user actually sees in the solution explorer.
+        /// These can be assumed to be unique within the Visual Studio workspace.
+        /// </summary>
         string ProjectSystemName { get; }
 
         IVisualStudioHostDocument GetDocumentOrAdditionalDocument(DocumentId id);

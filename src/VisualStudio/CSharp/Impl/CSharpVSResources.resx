@@ -315,9 +315,6 @@
   <data name="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere" xml:space="preserve">
     <value>_Move local declaration to the extracted method if it is not used elsewhere</value>
   </data>
-  <data name="Enable_full_solution_analysis" xml:space="preserve">
-    <value>Enable full solution _analysis</value>
-  </data>
   <data name="Show_procedure_line_separators" xml:space="preserve">
     <value>_Show procedure line separators</value>
   </data>
@@ -506,5 +503,29 @@
   </data>
   <data name="Automatically_format_when_typing" xml:space="preserve">
     <value>Automatically format when typing</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="When_on_single_line" xml:space="preserve">
+    <value>When on single line</value>
+  </data>
+  <data name="When_possible" xml:space="preserve">
+    <value>When possible</value>
+  </data>
+  <data name="Indent_case_contents_when_block" xml:space="preserve">
+    <value>Indent case contents (when block)</value>
+  </data>
+  <data name="Fade_out_unused_usings" xml:space="preserve">
+    <value>Fade out unused usings</value>
+  </data>
+  <data name="Prefer_is_null_over_ReferenceEquals" xml:space="preserve">
+    <value>Prefer 'is null' over 'object.ReferenceEquals(..., null)'</value>
+  </data>
+  <data name="Report_invalid_placeholders_in_string_dot_format_calls" xml:space="preserve">
+    <value>Report invalid placeholders in 'string.Format' calls</value>
+  </data>
+  <data name="Separate_using_directive_groups" xml:space="preserve">
+    <value>Separate using directive groups</value>
   </data>
 </root>

@@ -121,6 +121,8 @@ Once all conflicts are resolved and all the tests pass, you are free to merge th
             // 422 (Unprocessable Entity) indicates there were no commits to merge
             if (response.StatusCode == (HttpStatusCode)422)
             {
+                // Delete the pr branch if the PR was not created.
+                await _client.DeleteAsync($"repos/{repoOwner}/{repoName}/git/refs/heads/{prBranchName}");
                 return response;
             }
 

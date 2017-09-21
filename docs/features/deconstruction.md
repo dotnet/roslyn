@@ -3,10 +3,11 @@ Quickstart guide for deconstructions (C# 7.0)
 ----------------------------------------------
 1. Install Visual Studio 2017 
 2. Start a C# project
-3. Add a reference to the `System.ValueTuple` package from NuGet
+3. Add a reference to the `System.ValueTuple` package from NuGet  
 ![Install the ValueTuple package](img/install-valuetuple.png)
 4. Use deconstructions:
-    ```C#
+
+```C#
 public class C
 {
         public static void Main()
@@ -35,7 +36,7 @@ public class Deconstructable
                 y = "world";
         }
 }
-    ```
+```
 
 Design
 ------
@@ -62,7 +63,7 @@ class C
 }
 ```
 
-###Deconstruction-assignment (deconstruction into existing variables):
+### Deconstruction-assignment (deconstruction into existing variables):
 
 This doesn't introduce any changes to the language grammar. We have an *assignment-expression* (also simply called *assignment* in the C# grammar) where the *unary-expression* (the left-hand-side) is a *tuple-expression* containing values that can be assigned to.
 In short, what this does in the general case is find a `Deconstruct` method on the expression on the right-hand-side of the assignment, invoke it with the appropriate number of `out var` parameters, converts those output values (if needed) and assign them to the variables on the left-hand-side. But in the special case where the expression on the right-hand-side is a tuple (tuple expression or tuple type), then the elements of the tuple are assigned to the variables on the left-hand-side without calling Deconstruct.
@@ -138,7 +139,7 @@ This implies that `rhs` cannot be dynamic and that none of the parameters of the
 Also, the `Deconstruct` method must be an instance method or an extension (but not a static method). It also must return `void`.
 
 
-###Deconstruction-declaration (deconstruction into new variables):
+### Deconstruction-declaration (deconstruction into new variables):
 
 The *deconstruction-declaration* is also represented with an *assignment*, but the left-hand-side is either a *declaration-expression* or a tuple expression containing *declaration-expressions*.
 *Deconstruction-declarations* can be thought of as two steps: (1) declaring new locals, and (2) applying a *deconstruction-assignment* into those locals.
@@ -150,7 +151,7 @@ For example, in `(string x, byte y, var z) = (null, 1, 2);`, `null` has type `st
 
 In C#7.0, *deconstruction-declarations* are only allowed as top-level statements. They do not allow mixing of declaration expressions and assignable expressions (such as `(existing, var declared) = (1, 2)`).
 
-###Grammar changes
+### Grammar changes
 
 ```ANTLR
 expression
@@ -187,7 +188,24 @@ foreach_variable_statement // new
 
 **References**
 
-[C# Design Notes for Apr 12-22, 2016](https://github.com/dotnet/roslyn/issues/11031)
+[C# Design Notes for Oct 25-26, 2016](https://github.com/dotnet/csharplang/blob/master/meetings/2016/LDM-2016-10-25-26.md)
+
+[C# Design Notes for Sep 6, 2016](https://github.com/dotnet/csharplang/blob/master/meetings/2016/LDM-2016-09-06.md)
+
+[C# Design Notes for July 13, 2016](https://github.com/dotnet/csharplang/blob/master/meetings/2016/LDM-2016-07-13.md)
+
+[C# Design Notes for May 3-4, 2016](https://github.com/dotnet/csharplang/blob/master/meetings/2016/LDM-2016-05-03-04.md)
+
+[C# Design Notes for Apr 12-22, 2016](https://github.com/dotnet/csharplang/blob/master/meetings/2016/LDM-2016-04-12-22.md)
+
+[Design for declaration expressions](https://github.com/dotnet/csharplang/issues/365)
 
 The [What's new in C# 7.0](https://blogs.msdn.microsoft.com/dotnet/2016/08/24/whats-new-in-csharp-7-0) post has a section on deconstructions.
 
+**Possible future expansions**
+- deconstruction in [let and from clause](https://github.com/dotnet/csharplang/issues/189) 
+- deconstruction in [lambda argument lists](https://github.com/dotnet/csharplang/issues/258)
+- [deconstruction patterns](https://github.com/dotnet/csharplang/issues/277)
+- allowing deconstructions with [mix of assignment and declaration](https://github.com/dotnet/csharplang/issues/125), thus also allowing deconstruction-declarations in expression contexts
+
+See [C# Lang](https://github.com/dotnet/csharplang) repo for more up-to-date proposals and discussions.

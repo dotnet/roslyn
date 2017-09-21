@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
@@ -44,7 +44,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -188,28 +188,28 @@ class C {
         public async Task TestInterfaceTypeVarianceAfterAngle()
         {
             await VerifyKeywordAsync(
-@"interface IFoo<$$");
+@"interface IGoo<$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInterfaceTypeVarianceNotAfterIn()
         {
             await VerifyAbsenceAsync(
-@"interface IFoo<in $$");
+@"interface IGoo<in $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInterfaceTypeVarianceAfterComma()
         {
             await VerifyKeywordAsync(
-@"interface IFoo<Foo, $$");
+@"interface IGoo<Goo, $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInterfaceTypeVarianceAfterAttribute()
         {
             await VerifyKeywordAsync(
-@"interface IFoo<[Foo]$$");
+@"interface IGoo<[Goo]$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -223,43 +223,43 @@ class C {
         public async Task TestDelegateTypeVarianceAfterComma()
         {
             await VerifyKeywordAsync(
-@"delegate void D<Foo, $$");
+@"delegate void D<Goo, $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestDelegateTypeVarianceAfterAttribute()
         {
             await VerifyKeywordAsync(
-@"delegate void D<[Foo]$$");
+@"delegate void D<[Goo]$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInClassTypeVarianceAfterAngle()
         {
             await VerifyAbsenceAsync(
-@"class IFoo<$$");
+@"class IGoo<$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInStructTypeVarianceAfterAngle()
         {
             await VerifyAbsenceAsync(
-@"struct IFoo<$$");
+@"struct IGoo<$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInBaseListAfterAngle()
         {
             await VerifyAbsenceAsync(
-@"interface IFoo : Bar<$$");
+@"interface IGoo : Bar<$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInGenericMethod()
         {
             await VerifyAbsenceAsync(
-@"interface IFoo {
-    void Foo<$$");
+@"interface IGoo {
+    void Goo<$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

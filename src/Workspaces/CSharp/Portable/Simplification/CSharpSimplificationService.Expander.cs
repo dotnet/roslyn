@@ -257,10 +257,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                 var newArgument = (ArgumentSyntax)base.VisitArgument(node);
 
+                if (node.NameColon == null
+                    && node.Parent is TupleExpressionSyntax tuple
+                    && !IsTupleInDeconstruction(tuple)) // The language currently does not allow explicit element names in deconstruction
+                {
+                    var inferredName = node.Expression.TryGetInferredMemberName();
+                    if (CanMakeNameExplicitInTuple(tuple, inferredName))
+                    {
+                        var identifier = SyntaxFactory.Identifier(inferredName);
+                        identifier = TryEscapeIdentifierToken(identifier, node, _semanticModel);
+
+                        newArgument = newArgument
+                            .WithoutLeadingTrivia()
+                            .WithNameColon(SyntaxFactory.NameColon(SyntaxFactory.IdentifierName(identifier)))
+                            .WithAdditionalAnnotations(Simplifier.Annotation)
+                            .WithLeadingTrivia(node.GetLeadingTrivia());
+                    }
+                }
+
                 var argumentType = _semanticModel.GetTypeInfo(node.Expression).ConvertedType;
                 if (argumentType != null &&
                     !IsPassedToDelegateCreationExpression(node, argumentType) &&
-                    node.Expression.Kind() != SyntaxKind.DeclarationExpression)
+                    node.Expression.Kind() != SyntaxKind.DeclarationExpression &&
+                    node.RefOrOutKeyword.Kind() == SyntaxKind.None)
                 {
                     if (TryCastTo(argumentType, node.Expression, newArgument.Expression, out var newArgumentExpressionWithCast))
                     {
@@ -269,6 +288,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 return newArgument;
+            }
+
+            private static bool CanMakeNameExplicitInTuple(TupleExpressionSyntax tuple, string name)
+            {
+                if (name == null || SyntaxFacts.IsReservedTupleElementName(name))
+                {
+                    return false;
+                }
+
+                bool found = false;
+                foreach (var argument in tuple.Arguments)
+                {
+                    string elementName = null;
+                    if (argument.NameColon != null)
+                    {
+                        elementName = argument.NameColon.Name.Identifier.ValueText;
+                    }
+                    else
+                    {
+                        elementName = argument.Expression?.TryGetInferredMemberName();
+                    }
+
+                    if (elementName?.Equals(name, StringComparison.Ordinal) == true)
+                    {
+                        if (found)
+                        {
+                            // No duplicate names allowed
+                            return false;
+                        }
+                        found = true;
+                    }
+                }
+
+                return true;
+            }
+
+            public override SyntaxNode VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
+            {
+                var newDeclarator = (AnonymousObjectMemberDeclaratorSyntax)base.VisitAnonymousObjectMemberDeclarator(node);
+                if (node.NameEquals == null)
+                {
+                    var inferredName = node.Expression.TryGetInferredMemberName();
+                    if (inferredName != null)
+                    {
+                        var identifier = SyntaxFactory.Identifier(inferredName);
+                        identifier = TryEscapeIdentifierToken(identifier, node, _semanticModel);
+
+                        newDeclarator = newDeclarator
+                            .WithoutLeadingTrivia()
+                            .WithNameEquals(SyntaxFactory.NameEquals(SyntaxFactory.IdentifierName(identifier))
+                                .WithLeadingTrivia(node.GetLeadingTrivia()))
+                            .WithAdditionalAnnotations(Simplifier.Annotation);
+                    }
+                }
+
+                return newDeclarator;
             }
 
             public override SyntaxNode VisitBinaryExpression(BinaryExpressionSyntax node)
@@ -981,7 +1056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 Debug.Assert(false, "This method is used only replacing the '<' and '>' to '{' and '}' respectively");
-                return default(SyntaxToken);
+                return default;
             }
 
             private bool IsTypeOfUnboundGenericType(SemanticModel semanticModel, TypeOfExpressionSyntax typeOfExpression)
@@ -1008,6 +1083,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax originalNode)
             {
+                if (this._semanticModel.GetSymbolInfo(originalNode).Symbol.IsLocalFunction())
+                {
+                    return originalNode;
+                }
+
                 var rewrittenNode = (InvocationExpressionSyntax)base.VisitInvocationExpression(originalNode);
                 if (originalNode.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
                 {

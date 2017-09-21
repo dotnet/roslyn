@@ -36,7 +36,7 @@ class C
     int[] a = new[] { 1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9, };
 }
 ";
-            var reference = CreateCompilationWithMscorlib(source).EmitToImageReference();
+            var reference = CreateStandardCompilation(source).EmitToImageReference();
 
             var comp = CreateCompilation("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
@@ -57,7 +57,7 @@ unsafe struct S
     public fixed char C[5];
 }
 ";
-            var reference = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
+            var reference = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
             var comp = CreateCompilation("", new[] { reference }, options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             var s = (NamedTypeSymbol)comp.GlobalNamespace.GetMembers("S").Single();
@@ -83,7 +83,7 @@ class Test
 ";
             foreach (var options in new[] { TestOptions.DebugDll, TestOptions.ReleaseDll })
             {
-                var comp = CreateCompilationWithMscorlib(source, options: options);
+                var comp = CreateStandardCompilation(source, options: options);
 
                 var c = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
                 var p = c.GetMember<PropertySymbol>("MyProp");
@@ -121,7 +121,7 @@ abstract class C
 ";
             foreach (var options in new[] { TestOptions.DebugDll, TestOptions.ReleaseDll })
             {
-                var comp = CreateCompilationWithMscorlib(source, options: options);
+                var comp = CreateStandardCompilation(source, options: options);
 
                 var c = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var p = c.GetMember<PropertySymbol>("P");
@@ -160,7 +160,7 @@ using System;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         int a = 1, b = 2;
         Func<int, int, int> d = (x, y) => a*x+b*y; 
@@ -169,7 +169,7 @@ class C
 ";
             foreach (var options in new[] { TestOptions.DebugDll, TestOptions.ReleaseDll })
             {
-                var comp = CreateCompilationWithMscorlib(source, options: options);
+                var comp = CreateStandardCompilation(source, options: options);
 
                 CompileAndVerify(comp, symbolValidator: m =>
                 {
@@ -190,7 +190,7 @@ class C
             string source = @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         var x = new { X = 1, Y = 2 };
     }
@@ -198,7 +198,7 @@ class C
 ";
             foreach (var options in new[] { TestOptions.DebugDll, TestOptions.ReleaseDll })
             {
-                var comp = CreateCompilationWithMscorlib(source, options: options);
+                var comp = CreateStandardCompilation(source, options: options);
 
                 CompileAndVerify(comp, symbolValidator: m =>
                 {
@@ -257,7 +257,7 @@ class C
             string source = @"
 public class C
 {
-   public void Foo() 
+   public void Goo() 
    {
 	  var _0 = new { };
 	  var _1 = new { X0 = 1 };
@@ -282,7 +282,7 @@ public class C
    }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
 
             CompileAndVerify(comp, symbolValidator: m =>
             {
@@ -337,7 +337,7 @@ public class C
 ";
             foreach (var options in new[] { TestOptions.DebugDll, TestOptions.ReleaseDll })
             {
-                var comp = CreateCompilationWithMscorlib(source, options: options);
+                var comp = CreateStandardCompilation(source, options: options);
 
                 CompileAndVerify(comp, symbolValidator: module =>
                 {
@@ -380,11 +380,11 @@ using System.Threading.Tasks;
 
 class C
 {
-    public async Task<int> Foo()
+    public async Task<int> Goo()
     {
         for (int x = 1; x < 10; x++)
         {
-            await Foo();
+            await Goo();
         }
         
         return 1;
@@ -397,12 +397,12 @@ class C
 
                 CompileAndVerify(comp, symbolValidator: m =>
                 {
-                    var foo = m.GlobalNamespace.GetMember<MethodSymbol>("C.Foo");
+                    var goo = m.GlobalNamespace.GetMember<MethodSymbol>("C.Goo");
                     AssertEx.SetEqual(options.OptimizationLevel == OptimizationLevel.Debug ?
                                         new[] { "AsyncStateMachineAttribute", "DebuggerStepThroughAttribute" } :
-                                        new[] { "AsyncStateMachineAttribute" }, GetAttributeNames(foo.GetAttributes()));
+                                        new[] { "AsyncStateMachineAttribute" }, GetAttributeNames(goo.GetAttributes()));
 
-                    var iter = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<Foo>d__0");
+                    var iter = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<Goo>d__0");
                     AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(iter.GetAttributes()));
 
                     foreach (var member in iter.GetMembers().Where(s => s.Kind == SymbolKind.Method))
@@ -489,7 +489,7 @@ public class Test
 }";
             foreach (OutputKind outputKind in Enum.GetValues(typeof(OutputKind)))
             {
-                var compilation = CreateCompilationWithMscorlib(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
+                var compilation = CreateStandardCompilation(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
 
                 var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
                 var synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes();
@@ -528,7 +528,7 @@ public class Test
 }";
             foreach (OutputKind outputKind in Enum.GetValues(typeof(OutputKind)))
             {
-                var compilation = CreateCompilationWithMscorlib(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
+                var compilation = CreateStandardCompilation(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
 
                 var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
 
@@ -571,7 +571,7 @@ public class Test
 }";
             foreach (OutputKind outputKind in Enum.GetValues(typeof(OutputKind)))
             {
-                var compilation = CreateCompilationWithMscorlib(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
+                var compilation = CreateStandardCompilation(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
 
                 var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
 
@@ -615,7 +615,7 @@ public class Test
 }";
             foreach (OutputKind outputKind in Enum.GetValues(typeof(OutputKind)))
             {
-                var compilation = CreateCompilationWithMscorlib(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
+                var compilation = CreateStandardCompilation(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
 
                 var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
 
@@ -661,7 +661,7 @@ public class Test
 }";
             foreach (OutputKind outputKind in Enum.GetValues(typeof(OutputKind)))
             {
-                var compilation = CreateCompilationWithMscorlib(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
+                var compilation = CreateStandardCompilation(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
 
                 var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
 
@@ -744,7 +744,7 @@ public class Test
 }";
             foreach (OutputKind outputKind in Enum.GetValues(typeof(OutputKind)))
             {
-                var compilation = CreateCompilationWithMscorlib(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
+                var compilation = CreateStandardCompilation(source, options: new CSharpCompilationOptions(outputKind, optimizationLevel: OptimizationLevel.Release));
 
                 if (!outputKind.IsNetModule())
                 {
@@ -1270,7 +1270,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll);
             compilation.VerifyDiagnostics();
 
             var assembly = (SourceAssemblySymbol)compilation.Assembly;
@@ -1292,7 +1292,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll.WithOutputKind(OutputKind.NetModule));
+            var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll.WithOutputKind(OutputKind.NetModule));
             compilation.VerifyDiagnostics();
 
             var assembly = (SourceAssemblySymbol)compilation.Assembly;

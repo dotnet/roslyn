@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -25,6 +26,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _speculatedPosition As Integer
         Private ReadOnly _ignoresAccessibility As Boolean
 
+        Private ReadOnly _operationFactory As Lazy(Of VisualBasicOperationFactory)
+
         Friend Sub New(root As SyntaxNode, rootBinder As Binder, parentSemanticModelOpt As SyntaxTreeSemanticModel, speculatedPosition As Integer, Optional ignoreAccessibility As Boolean = False)
             Debug.Assert(parentSemanticModelOpt Is Nothing OrElse Not parentSemanticModelOpt.IsSpeculativeSemanticModel, VBResources.ChainingSpeculativeModelIsNotSupported)
 
@@ -33,6 +36,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _rootBinder = SemanticModelBinder.Mark(rootBinder, ignoreAccessibility)
             _parentSemanticModelOpt = parentSemanticModelOpt
             _speculatedPosition = speculatedPosition
+
+            _operationFactory = New Lazy(Of VisualBasicOperationFactory)(Function() New VisualBasicOperationFactory(Me))
         End Sub
 
         Friend ReadOnly Property RootBinder As Binder
@@ -98,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim vbDestination = destination.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(destination))
 
-            Dim boundExpression = TryCast(Me.GetLowerBoundNode(expression), boundExpression)
+            Dim boundExpression = TryCast(Me.GetLowerBoundNode(expression), BoundExpression)
 
             If boundExpression Is Nothing OrElse vbDestination.IsErrorType() Then
                 Return New Conversion(Nothing)  ' NoConversion
@@ -172,17 +177,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            Dim expressionSyntax = TryCast(parent, expressionSyntax)
+            Dim expressionSyntax = TryCast(parent, ExpressionSyntax)
             If expressionSyntax IsNot Nothing Then
                 Return SyntaxFactory.GetStandaloneExpression(expressionSyntax)
             End If
 
-            Dim statementSyntax = TryCast(parent, statementSyntax)
+            Dim statementSyntax = TryCast(parent, StatementSyntax)
             If statementSyntax IsNot Nothing AndAlso IsStandaloneStatement(statementSyntax) Then
                 Return statementSyntax
             End If
 
-            Dim attributeSyntax = TryCast(parent, attributeSyntax)
+            Dim attributeSyntax = TryCast(parent, AttributeSyntax)
             If attributeSyntax IsNot Nothing Then
                 Return attributeSyntax
             End If
@@ -788,19 +793,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return GetSymbolInfoForNode(options, GetBoundNodeSummary(node), binderOpt:=Nothing)
         End Function
 
-        Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
-            Dim summary = GetBoundNodeSummary(node)
-            Dim result As BoundNode
-            Select Case options
-                Case GetOperationOptions.Highest
-                    result = summary.HighestBoundNode
-                Case GetOperationOptions.Parent
-                    result = summary.LowestBoundNodeOfSyntacticParent
-                Case Else
-                    result = summary.LowestBoundNode
-            End Select
+        Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, cancellationToken As CancellationToken) As IOperation
+            ' see whether we can bind smaller scope than GetBindingRoot to make perf better
+            ' https://github.com/dotnet/roslyn/issues/22176
+            Dim bindingRoot = DirectCast(GetBindingRoot(node), VisualBasicSyntaxNode)
 
-            Return TryCast(result, IOperation)
+            Dim statementOrRootOperation As IOperation = GetStatementOrRootOperation(bindingRoot, cancellationToken)
+            If statementOrRootOperation Is Nothing Then
+                Return Nothing
+            End If
+
+            ' we might optimize it later
+            ' https://github.com/dotnet/roslyn/issues/22180
+            Return statementOrRootOperation.DescendantsAndSelf().FirstOrDefault(Function(o) Not o.IsImplicit AndAlso o.Syntax Is node)
+        End Function
+
+        Private Function GetStatementOrRootOperation(node As VisualBasicSyntaxNode, cancellationToken As CancellationToken) As IOperation
+            Debug.Assert(node Is GetBindingRoot(node))
+
+            Dim summary As BoundNodeSummary = GetBoundNodeSummary(node)
+
+            ' decide whether we should use highest or lowest bound node here 
+            ' https://github.com/dotnet/roslyn/issues/22179
+            Dim result As BoundNode = summary.HighestBoundNode
+
+            Return _operationFactory.Value.Create(result)
         End Function
 
         Friend Overrides Function GetExpressionTypeInfo(node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicTypeInfo
@@ -1946,7 +1963,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' and returns it instead of rebinding it. 
         ''' 
         ''' FOr example, we might have:
-        '''    While x > foo()
+        '''    While x > goo()
         '''      y = y * x
         '''      z = z + y
         '''    End While

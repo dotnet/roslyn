@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck
         public async Task TestNoSpellcheckForIfOnly2Characters()
         {
             var text =
-@"class Foo
+@"class Goo
 {
     void Bar()
     {
@@ -39,15 +39,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck
         public async Task TestAfterNewExpression()
         {
             var text =
-@"class Foo
+@"class Goo
 {
     void Bar()
     {
-        void a = new [|Fooa|].ToString();
+        void a = new [|Gooa|].ToString();
     }
 }";
 
-            await TestExactActionSetOfferedAsync(text, new[] { String.Format(FeaturesResources.Change_0_to_1, "Fooa", "Foo") });
+            await TestExactActionSetOfferedAsync(text, new[] { String.Format(FeaturesResources.Change_0_to_1, "Gooa", "Goo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -75,14 +75,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck
             var text = @"
 using System;
 
-class Foo
+class Goo
 {
-    void Bar(Func<[|Foa|]> f)
+    void Bar(Func<[|Goa|]> f)
     {
     }
 }";
             await TestExactActionSetOfferedAsync(text,
-                new[] { String.Format(FeaturesResources.Change_0_to_1, "Foa", "Foo") });
+                new[] { String.Format(FeaturesResources.Change_0_to_1, "Goa", "Goo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -185,14 +185,14 @@ class c
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
         public async Task TestGenericName1()
         {
-            var text = @"class Foo<T>
+            var text = @"class Goo<T>
 {
-    private [|Foo2|]<T> x;
+    private [|Goo2|]<T> x;
 }";
 
-            var expected = @"class Foo<T>
+            var expected = @"class Goo<T>
 {
-    private Foo<T> x;
+    private Goo<T> x;
 }";
 
             await TestInRegularAndScriptAsync(text, expected);
@@ -201,14 +201,14 @@ class c
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
         public async Task TestGenericName2()
         {
-            var text = @"class Foo<T>
+            var text = @"class Goo<T>
 {
-    private [|Foo2|] x;
+    private [|Goo2|] x;
 }";
 
-            var expected = @"class Foo<T>
+            var expected = @"class Goo<T>
 {
-    private Foo x;
+    private Goo x;
 }";
 
             await TestInRegularAndScriptAsync(text, expected);
@@ -219,10 +219,10 @@ class c
         {
             var text = @"class Program
 {
-   private object x = new [|Foo2|].Bar
+   private object x = new [|Goo2|].Bar
 }
 
-class Foo
+class Goo
 {
     class Bar
     {
@@ -231,10 +231,10 @@ class Foo
 
             var expected = @"class Program
 {
-   private object x = new Foo.Bar
+   private object x = new Goo.Bar
 }
 
-class Foo
+class Goo
 {
     class Bar
     {
@@ -249,10 +249,10 @@ class Foo
         {
             var text = @"class Program
 {
-    private object x = new Foo.[|Ba2|]
+    private object x = new Goo.[|Ba2|]
 }
 
-class Foo
+class Goo
 {
     public class Bar
     {
@@ -261,10 +261,10 @@ class Foo
 
             var expected = @"class Program
 {
-    private object x = new Foo.Bar
+    private object x = new Goo.Bar
 }
 
-class Foo
+class Goo
 {
     public class Bar
     {
@@ -315,7 +315,7 @@ class c
     {
     }
 
-    void Foo()
+    void Goo()
     {
         [|Method|]();
     }
@@ -432,14 +432,14 @@ class C
 {
     void M()
     {
-        var foo = new [|AwesomeClas()|];
+        var goo = new [|AwesomeClas()|];
     }
 }",
 @"class AwesomeClass
 {
     void M()
     {
-        var foo = new AwesomeClass();
+        var goo = new AwesomeClass();
     }
 }");
         }
@@ -475,7 +475,7 @@ class C
   }
 }";
 
-            await TestInRegularAndScriptAsync(text, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
@@ -502,6 +502,39 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        [WorkItem(18626, "https://github.com/dotnet/roslyn/issues/18626")]
+        public async Task TestForExplicitInterfaceTypeName()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface IProjectConfigurationsService
+{
+    void Method();
+}
+
+class Program : IProjectConfigurationsService
+{
+    void [|IProjectConfigurationService|].Method()
+    {
+
+    }
+}",
+@"interface IProjectConfigurationsService
+{
+    void Method();
+}
+
+class Program : IProjectConfigurationsService
+{
+    void IProjectConfigurationsService.Method()
+    {
+
+    }
+}");
+        }
+
+        
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
         [WorkItem(13345, "https://github.com/dotnet/roslyn/issues/13345")]
         public async Task TestMissingOnKeywordWhichIsOnlyASnippet()
         {
@@ -511,7 +544,7 @@ class C
     void M()
     {
         // here 'for' is *only* a snippet, and we should not offer to spell check to it.
-        var v = [|foo|];
+        var v = [|goo|];
     }
 }");
         }

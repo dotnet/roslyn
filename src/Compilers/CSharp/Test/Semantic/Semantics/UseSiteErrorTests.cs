@@ -963,16 +963,16 @@ class C : ILErrors.InterfaceEvents
 {
 
 
-    public static T foo<T>(DelegateWithoutInvoke.DelegateGenericFunctionWithoutInvoke<T> del)
+    public static T goo<T>(DelegateWithoutInvoke.DelegateGenericFunctionWithoutInvoke<T> del)
     {
-        return del(""foo""); // will show ERR_InvalidDelegateType instead of ERR_NoSuchMemberOrExtension
+        return del(""goo""); // will show ERR_InvalidDelegateType instead of ERR_NoSuchMemberOrExtension
     }
 
 
     public static void Main() 
     {
         DelegateWithoutInvoke.DelegateSubWithoutInvoke myDelegate1 = bar;
-        myDelegate1.Invoke(""foo""); // will show an ERR_NoSuchMemberOrExtension
+        myDelegate1.Invoke(""goo""); // will show an ERR_NoSuchMemberOrExtension
         DelegateWithoutInvoke.DelegateSubWithoutInvoke myDelegate2 = new DelegateWithoutInvoke.DelegateSubWithoutInvoke(myDelegate1);
         object myDelegate3 = new DelegateWithoutInvoke.DelegateSubWithoutInvoke(bar2);
         DelegateWithoutInvoke.DelegateSubWithoutInvoke myDelegate4 = x => System.Console.WriteLine(""Hello World"");
@@ -991,15 +991,15 @@ class C : ILErrors.InterfaceEvents
 }";
 
             var delegatesWithoutInvokeReference = TestReferences.SymbolsTests.DelegateImplementation.DelegatesWithoutInvoke;
-            CreateCompilationWithMscorlib(text, new MetadataReference[] { delegatesWithoutInvokeReference }).VerifyDiagnostics(
+            CreateStandardCompilation(text, new MetadataReference[] { delegatesWithoutInvokeReference }).VerifyDiagnostics(
                 // (7,16): error CS7023: Delegate 'DelegateWithoutInvoke.DelegateGenericFunctionWithoutInvoke<T>' has no invoke method or an invoke method with a return type or parameter types that are not supported.
-                //         return del("foo"); // will show ERR_InvalidDelegateType instead of ERR_NoSuchMemberOrExtension
-                Diagnostic(ErrorCode.ERR_InvalidDelegateType, @"del(""foo"")").WithArguments("DelegateWithoutInvoke.DelegateGenericFunctionWithoutInvoke<T>"),
+                //         return del("goo"); // will show ERR_InvalidDelegateType instead of ERR_NoSuchMemberOrExtension
+                Diagnostic(ErrorCode.ERR_InvalidDelegateType, @"del(""goo"")").WithArguments("DelegateWithoutInvoke.DelegateGenericFunctionWithoutInvoke<T>"),
                 // (13,70): error CS7023: Delegate 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' has no invoke method or an invoke method with a return type or parameter types that are not supported.
                 //         DelegateWithoutInvoke.DelegateSubWithoutInvoke myDelegate1 = bar;
                 Diagnostic(ErrorCode.ERR_InvalidDelegateType, "bar").WithArguments("DelegateWithoutInvoke.DelegateSubWithoutInvoke"),
                 // (14,21): error CS1061: 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' does not contain a definition for 'Invoke' and no extension method 'Invoke' accepting a first argument of type 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' could be found (are you missing a using directive or an assembly reference?)
-                //         myDelegate1.Invoke("foo"); // will show an ERR_NoSuchMemberOrExtension
+                //         myDelegate1.Invoke("goo"); // will show an ERR_NoSuchMemberOrExtension
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Invoke").WithArguments("DelegateWithoutInvoke.DelegateSubWithoutInvoke", "Invoke"),
                 // (15,70): error CS7023: Delegate 'DelegateWithoutInvoke.DelegateSubWithoutInvoke' has no invoke method or an invoke method with a return type or parameter types that are not supported.
                 //         DelegateWithoutInvoke.DelegateSubWithoutInvoke myDelegate2 = new DelegateWithoutInvoke.DelegateSubWithoutInvoke(myDelegate1);
@@ -1022,15 +1022,15 @@ class C : ILErrors.InterfaceEvents
             var text =
 @"class C 
 {
-    public static T foo<T>(CSharpErrors.DelegateParameterType3<T> del)
+    public static T goo<T>(CSharpErrors.DelegateParameterType3<T> del)
     {
-        return del.Invoke(""foo"");
+        return del.Invoke(""goo"");
     }
 
     public static void Main() 
     {
         CSharpErrors.DelegateReturnType1 myDelegate1 = bar;
-        myDelegate1(""foo"");
+        myDelegate1(""goo"");
         CSharpErrors.DelegateReturnType1 myDelegate2 = new CSharpErrors.DelegateReturnType1(myDelegate1);
         object myDelegate3 = new CSharpErrors.DelegateReturnType1(bar);
         CSharpErrors.DelegateReturnType1 myDelegate4 = x => System.Console.WriteLine(""Hello World"");
@@ -1050,16 +1050,16 @@ class C : ILErrors.InterfaceEvents
 
             var csharpAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.CSharp;
             var ilAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.IL;
-            CreateCompilationWithMscorlib(text, new MetadataReference[] { csharpAssemblyReference, ilAssemblyReference }).VerifyDiagnostics(
+            CreateStandardCompilation(text, new MetadataReference[] { csharpAssemblyReference, ilAssemblyReference }).VerifyDiagnostics(
                 // (5,16): error CS0012: The type 'UnavailableClass<>' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         return del.Invoke("foo");
+                //         return del.Invoke("goo");
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "del.Invoke").WithArguments("UnavailableClass<>", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 // (13,56): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         CSharpErrors.DelegateReturnType1 myDelegate1 = bar;
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "bar").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 // (14,9): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //         myDelegate1("foo");
-                Diagnostic(ErrorCode.ERR_NoTypeDef, @"myDelegate1(""foo"")").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                //         myDelegate1("goo");
+                Diagnostic(ErrorCode.ERR_NoTypeDef, @"myDelegate1(""goo"")").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 // (15,56): error CS0012: The type 'UnavailableClass' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         CSharpErrors.DelegateReturnType1 myDelegate2 = new CSharpErrors.DelegateReturnType1(myDelegate1);
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "new CSharpErrors.DelegateReturnType1(myDelegate1)").WithArguments("UnavailableClass", "Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -1119,26 +1119,26 @@ class Program
             var xSource = @"
 public class X {}
 ";
-            var xRef = CreateCompilationWithMscorlib(xSource, assemblyName: "Test").EmitToImageReference();
+            var xRef = CreateStandardCompilation(xSource, assemblyName: "Test").EmitToImageReference();
 
 
             var libSource = @"
 public interface I
 {
-    void Foo(X a);
+    void Goo(X a);
 }
 
 public class C
 {
-    public void Foo(X a) { }
+    public void Goo(X a) { }
 }
 ";
-            var lib = CreateCompilationWithMscorlib(libSource, new[] { xRef }, assemblyName: "Test");
+            var lib = CreateStandardCompilation(libSource, new[] { xRef }, assemblyName: "Test");
 
             var mainSource = @"
 class B : C, I { }
 ";
-            var main = CreateCompilationWithMscorlib(mainSource, new[] { new CSharpCompilationReference(lib) }, assemblyName: "Main");
+            var main = CreateStandardCompilation(mainSource, new[] { new CSharpCompilationReference(lib) }, assemblyName: "Main");
 
             main.VerifyDiagnostics(
                 // (2,7): error CS7068: Reference to type 'X' claims it is defined in this assembly, but it is not defined in source or any added modules
@@ -1152,25 +1152,25 @@ class B : C, I { }
             var xSource = @"
 public class X {}
 ";
-            var xRef = CreateCompilationWithMscorlib(xSource, assemblyName: "X").EmitToImageReference();
+            var xRef = CreateStandardCompilation(xSource, assemblyName: "X").EmitToImageReference();
 
             var libSource = @"
 public interface I
 {
-    void Foo(X a);
+    void Goo(X a);
 }
 
 public class C
 {
-    public virtual void Foo(X a) { }
+    public virtual void Goo(X a) { }
 }
 ";
-            var lib = CreateCompilationWithMscorlib(libSource, new[] { xRef }, assemblyName: "Lib");
+            var lib = CreateStandardCompilation(libSource, new[] { xRef }, assemblyName: "Lib");
 
             var mainSource = @"
 class B : C, I { }
 ";
-            var main = CreateCompilationWithMscorlib(mainSource, new[] { new CSharpCompilationReference(lib) }, assemblyName: "Main");
+            var main = CreateStandardCompilation(mainSource, new[] { new CSharpCompilationReference(lib) }, assemblyName: "Main");
 
             main.VerifyEmitDiagnostics();
         }
@@ -1181,7 +1181,7 @@ class B : C, I { }
             var xSource = @"
 public class X {}
 ";
-            var xRef = CreateCompilationWithMscorlib(xSource, assemblyName: "X").EmitToImageReference();
+            var xRef = CreateStandardCompilation(xSource, assemblyName: "X").EmitToImageReference();
 
             var libSource = @"
 public interface I
@@ -1194,12 +1194,12 @@ public class C
     public int this[X a] { get { return 1; } set { } }
 }
 ";
-            var lib = CreateCompilationWithMscorlib(libSource, new[] { xRef }, assemblyName: "Lib");
+            var lib = CreateStandardCompilation(libSource, new[] { xRef }, assemblyName: "Lib");
 
             var mainSource = @"
 class B : C, I { }
 ";
-            var main = CreateCompilationWithMscorlib(mainSource, new[] { new CSharpCompilationReference(lib) }, assemblyName: "Main");
+            var main = CreateStandardCompilation(mainSource, new[] { new CSharpCompilationReference(lib) }, assemblyName: "Main");
 
             main.VerifyDiagnostics(
                 // (2,7): error CS0012: The type 'X' is defined in an assembly that is not referenced. You must add a reference to assembly 'X, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -1219,7 +1219,7 @@ class B : C, I { }
             var mainSource = @"
 class B : ILErrors.ClassEventsNonVirtual, ILErrors.InterfaceEvents { }
 ";
-            var main = CreateCompilationWithMscorlib(mainSource, new[] { ilRef, unavailableRef });
+            var main = CreateStandardCompilation(mainSource, new[] { ilRef, unavailableRef });
 
             CompileAndVerify(main);
         }
@@ -1233,7 +1233,7 @@ class B : ILErrors.ClassEventsNonVirtual, ILErrors.InterfaceEvents { }
             var mainSource = @"
 class B : ILErrors.ClassEvents, ILErrors.InterfaceEvents { }
 ";
-            var main = CreateCompilationWithMscorlib(mainSource, new[] { ilRef, unavailableRef });
+            var main = CreateStandardCompilation(mainSource, new[] { ilRef, unavailableRef });
 
             CompileAndVerify(main);
         }
@@ -1247,7 +1247,7 @@ class B : ILErrors.ClassEvents, ILErrors.InterfaceEvents { }
             var mainSource = @"
 class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents { }
 ";
-            var main = CreateCompilationWithMscorlib(mainSource, new[] { ilRef, unavailableRef });
+            var main = CreateStandardCompilation(mainSource, new[] { ilRef, unavailableRef });
 
             main.VerifyDiagnostics(
     // (2,49): error CS0648: '' is a type not supported by the language
@@ -1296,10 +1296,10 @@ class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents {
         {
             var baseSource =
 @"public class Base {}";
-            var baseLib = CreateCompilationWithMscorlib(baseSource, assemblyName: "BaseAssembly");
+            var baseLib = CreateStandardCompilation(baseSource, assemblyName: "BaseAssembly");
             var derivedSource =
 @"public class Derived : Base {}";
-            var derivedLib = CreateCompilationWithMscorlib(derivedSource, assemblyName: "DerivedAssembly", references: new[] { new CSharpCompilationReference(baseLib) });
+            var derivedLib = CreateStandardCompilation(derivedSource, assemblyName: "DerivedAssembly", references: new[] { new CSharpCompilationReference(baseLib) });
             var programSource =
 @"
 class Program
@@ -1314,7 +1314,7 @@ class Program
         }
     }
 }";
-            CreateCompilationWithMscorlib(programSource, references: new[] { new CSharpCompilationReference(derivedLib) }).VerifyDiagnostics(
+            CreateStandardCompilation(programSource, references: new[] { new CSharpCompilationReference(derivedLib) }).VerifyDiagnostics(
                 // (10,13): error CS0012: The type 'Base' is defined in an assembly that is not referenced. You must add a reference to assembly 'BaseAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             case Derived d: break;
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "case Derived d:").WithArguments("Base", "BaseAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(10, 13)
@@ -1708,9 +1708,9 @@ class C
     }
 }
 ";
-            var missingRef = CreateCompilationWithMscorlib(missingSource, assemblyName: "Missing").EmitToImageReference();
-            var libRef = CreateCompilationWithMscorlib(libSource, new[] { missingRef }).EmitToImageReference();
-            CreateCompilationWithMscorlib(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
+            var missingRef = CreateStandardCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
+            var libRef = CreateStandardCompilation(libSource, new[] { missingRef }).EmitToImageReference();
+            CreateStandardCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
                 // (8,22): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         var c1 = new Constructor1(1);
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "Constructor1").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -1779,12 +1779,12 @@ class Derived : Base
     public int this[string x] { get { return 0; } }
 }
 ";
-            var missingRef = CreateCompilationWithMscorlib(missingSource, assemblyName: "Missing").EmitToImageReference();
-            var libRef = CreateCompilationWithMscorlib(libSource, new[] { missingRef }).EmitToImageReference();
-            CreateCompilationWithMscorlib(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
+            var missingRef = CreateStandardCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
+            var libRef = CreateStandardCompilation(libSource, new[] { missingRef }).EmitToImageReference();
+            CreateStandardCompilation(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
 
             // NOTE: No errors reported when the Derived member wins.
-            CreateCompilationWithMscorlib(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
+            CreateStandardCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
                 // (9,13): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         i = d.M(1);
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "d.M").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -1834,11 +1834,11 @@ class Test
     }
 }
 ";
-            var missingRef = CreateCompilationWithMscorlib(missingSource, assemblyName: "Missing").EmitToImageReference();
-            var libRef = CreateCompilationWithMscorlib(libSource, new[] { missingRef }).EmitToImageReference();
-            CreateCompilationWithMscorlib(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
+            var missingRef = CreateStandardCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
+            var libRef = CreateStandardCompilation(libSource, new[] { missingRef }).EmitToImageReference();
+            CreateStandardCompilation(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
 
-            CreateCompilationWithMscorlib(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
+            CreateStandardCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
                 // (10,17): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         c = new C("A"); // Error
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -1891,11 +1891,11 @@ class Test
     }
 }
 ";
-            var missingRef = CreateCompilationWithMscorlib(missingSource, assemblyName: "Missing").EmitToImageReference();
-            var libRef = CreateCompilationWithMscorlib(libSource, new[] { missingRef }).EmitToImageReference();
-            CreateCompilationWithMscorlib(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
+            var missingRef = CreateStandardCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
+            var libRef = CreateStandardCompilation(libSource, new[] { missingRef }).EmitToImageReference();
+            CreateStandardCompilation(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
 
-            CreateCompilationWithMscorlib(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
+            CreateStandardCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
                 // (10,17): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         c = new C("A", null); // Error
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -1948,11 +1948,11 @@ class Test
     }
 }
 ";
-            var missingRef = CreateCompilationWithMscorlib(missingSource, assemblyName: "Missing").EmitToImageReference();
-            var libRef = CreateCompilationWithMscorlib(libSource, new[] { missingRef }).EmitToImageReference();
-            CreateCompilationWithMscorlib(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
+            var missingRef = CreateStandardCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
+            var libRef = CreateStandardCompilation(libSource, new[] { missingRef }).EmitToImageReference();
+            CreateStandardCompilation(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
 
-            CreateCompilationWithMscorlib(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
+            CreateStandardCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
                 // (10,17): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         c = new C(null, "A"); // Error
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -1995,12 +1995,12 @@ class Test
     }
 }
 ";
-            var missingRef = CreateCompilationWithMscorlib(missingSource, assemblyName: "Missing").EmitToImageReference();
-            var libRef = CreateCompilationWithMscorlib(libSource, new[] { missingRef }).EmitToImageReference();
-            CreateCompilationWithMscorlib(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
+            var missingRef = CreateStandardCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
+            var libRef = CreateStandardCompilation(libSource, new[] { missingRef }).EmitToImageReference();
+            CreateStandardCompilation(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
             var getMissingDiagnostic = Diagnostic(ErrorCode.ERR_NoTypeDef, @"C.GetMissing").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
             var setMissingDiagnostic = Diagnostic(ErrorCode.ERR_NoTypeDef, @"C.SetMissing").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
-            CreateCompilationWithMscorlib(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
+            CreateStandardCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
                 getMissingDiagnostic,
                 getMissingDiagnostic,
                 setMissingDiagnostic,
@@ -2236,13 +2236,13 @@ class C
 using System;
 public class GeneralException : Exception {}";
 
-            CSharpCompilation comp1 = CreateCompilationWithMscorlib(source1, assemblyName: "Base");
+            CSharpCompilation comp1 = CreateStandardCompilation(source1, assemblyName: "Base");
 
             var source2 = @"
 public class SpecificException : GeneralException
 {}";
 
-            CSharpCompilation comp2 = CreateCompilationWithMscorlib(source2, new MetadataReference[] { new CSharpCompilationReference(comp1) });
+            CSharpCompilation comp2 = CreateStandardCompilation(source2, new MetadataReference[] { new CSharpCompilationReference(comp1) });
 
             var source3 = @"
 class Test
@@ -2260,7 +2260,7 @@ class Test
     }
 }";
 
-            CSharpCompilation comp3 = CreateCompilationWithMscorlib(source3, new MetadataReference[] { new CSharpCompilationReference(comp2) });
+            CSharpCompilation comp3 = CreateStandardCompilation(source3, new MetadataReference[] { new CSharpCompilationReference(comp2) });
 
             DiagnosticDescription[] expected =
             {
@@ -2280,7 +2280,7 @@ class Test
 
             comp3.VerifyDiagnostics(expected);
 
-            comp3 = CreateCompilationWithMscorlib(source3, new MetadataReference[] { comp2.EmitToImageReference() });
+            comp3 = CreateStandardCompilation(source3, new MetadataReference[] { comp2.EmitToImageReference() });
 
             comp3.VerifyDiagnostics(expected);
         }
@@ -2331,10 +2331,10 @@ namespace System
             var csharpAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.CSharp;
             var ilAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.IL;
 
-            var successfulCompilation = CreateCompilationWithMscorlib(source, new MetadataReference[] { unavailableAssemblyReference, csharpAssemblyReference, ilAssemblyReference });
+            var successfulCompilation = CreateStandardCompilation(source, new MetadataReference[] { unavailableAssemblyReference, csharpAssemblyReference, ilAssemblyReference });
             successfulCompilation.VerifyDiagnostics(); // No diagnostics when reference is present
 
-            var failingCompilation = CreateCompilationWithMscorlib(source, new MetadataReference[] { csharpAssemblyReference, ilAssemblyReference });
+            var failingCompilation = CreateStandardCompilation(source, new MetadataReference[] { csharpAssemblyReference, ilAssemblyReference });
             return failingCompilation;
         }
 

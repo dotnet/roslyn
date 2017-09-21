@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (rewrittenCondition.ConstantValue == null)
             {
-                return node.Update(rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.ConstantValueOpt, node.Type);
+                return node.Update(node.IsByRef, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.ConstantValueOpt, node.Type);
             }
 
             return RewriteConditionalOperator(
@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenConsequence,
                 rewrittenAlternative,
                 node.ConstantValueOpt,
-                node.Type);
+                node.Type,
+                node.IsByRef);
         }
 
         private static BoundExpression RewriteConditionalOperator(
@@ -42,26 +43,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenConsequence,
             BoundExpression rewrittenAlternative,
             ConstantValue constantValueOpt,
-            TypeSymbol rewrittenType)
+            TypeSymbol rewrittenType,
+            bool isRef)
         {
-            // NOTE: This optimization assumes that a constant has no side effects. In the future we 
-            // might wish to represent nodes that are known to the optimizer as having constant
-            // values as a sequence of side effects and a constant value; in that case the result
-            // of this should be a sequence containing the side effect and the consequence or alternative.
-
             ConstantValue conditionConstantValue = rewrittenCondition.ConstantValue;
             if (conditionConstantValue == ConstantValue.True)
             {
+                if (!isRef)
+                {
+                    rewrittenConsequence = EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenConsequence);
+                }
+
                 return rewrittenConsequence;
             }
             else if (conditionConstantValue == ConstantValue.False)
             {
+                if (!isRef)
+                {
+                    rewrittenAlternative = EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenAlternative);
+                }
+
                 return rewrittenAlternative;
             }
             else
             {
                 return new BoundConditionalOperator(
                     syntax,
+                    isRef,
                     rewrittenCondition,
                     rewrittenConsequence,
                     rewrittenAlternative,

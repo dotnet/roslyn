@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text = @"public class C { public void M() { int x = 10; } }";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
 
             var model1 = comp.GetSemanticModel(tree);
             var model2 = comp.GetSemanticModel(tree);
@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text = @"public class C { public void M() { int x = 10; } }";
             var tree = Parse(text);
-            var comp1 = CreateCompilationWithMscorlib(tree);
-            var comp2 = CreateCompilationWithMscorlib(tree);
+            var comp1 = CreateStandardCompilation(tree);
+            var comp2 = CreateStandardCompilation(tree);
 
             var model1 = comp1.GetSemanticModel(tree);
             var model2 = comp2.GetSemanticModel(tree);
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text = @"public class C { public void M() { label: goto label; } }";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
 
             var model1 = comp.GetSemanticModel(tree);
             var model2 = comp.GetSemanticModel(tree);
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text = @"using System; public class C { public void M() { Func<int,int> f = (p) => p; } }";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
 
             var model1 = comp.GetSemanticModel(tree);
             var model2 = comp.GetSemanticModel(tree);
@@ -139,8 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = @"using System; public class C { public void M() { Func<int,int> f = (p) => p; } }";
             var tree1 = Parse(text);
             var tree2 = Parse(text);
-            var comp1 = CreateCompilationWithMscorlib(tree1);
-            var comp2 = CreateCompilationWithMscorlib(tree2);
+            var comp1 = CreateStandardCompilation(tree1);
+            var comp2 = CreateStandardCompilation(tree2);
 
             var model1 = comp1.GetSemanticModel(tree1);
             var model2 = comp2.GetSemanticModel(tree2);
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text = "namespace";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var errors = comp.GetDiagnostics().ToArray();
             Assert.Equal(3, errors.Length);
@@ -202,7 +202,7 @@ class A : L
     public K.S v = null;
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var abase = a.BaseType;
@@ -226,7 +226,7 @@ class A : L
 class A : A {}
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
 
             var errs = comp.GetSemanticModel(tree).GetDeclarationDiagnostics();
             Assert.Equal(1, errs.Count());
@@ -239,7 +239,7 @@ class A : A {}
 @"
 partial class A 
 { 
-    void foo() { int x = y; }
+    void goo() { int x = y; }
 }
 
 class C : B {}
@@ -258,7 +258,7 @@ class B : NonExistent {}
 
             var partial1Tree = Parse(partial1);
             var partial2Tree = Parse(partial2);
-            var comp = CreateCompilationWithMscorlib(new SyntaxTree[] { partial1Tree, partial2Tree });
+            var comp = CreateStandardCompilation(new SyntaxTree[] { partial1Tree, partial2Tree });
 
             var errs = comp.GetSemanticModel(partial1Tree).GetDiagnostics();
             Assert.Equal(1, errs.Count());
@@ -273,7 +273,7 @@ class B : A {}
 class A {}
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
 
             var bdecl = tree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             var bbase = bdecl.BaseList.Types[0].Type as TypeSyntax;
@@ -299,7 +299,7 @@ public class A {
 public class B : A {}
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
 
             var cdecl = tree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             var cbase = cdecl.BaseList.Types[0].Type as TypeSyntax;
@@ -325,7 +325,7 @@ public class B {
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
 
             var cdecl = tree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             var cbase = cdecl.BaseList.Types[0].Type as TypeSyntax;
@@ -348,7 +348,7 @@ class B<T> : A<T> {}
 class A<T> {}
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
 
             var bdecl = tree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             var bbase = bdecl.BaseList.Types[0].Type as TypeSyntax; // A<T>
@@ -381,7 +381,7 @@ class Program
     static Program Field;
 }";
             var tree1 = Parse(text);
-            var compilation = CreateCompilationWithMscorlib(tree1);
+            var compilation = CreateStandardCompilation(tree1);
 
             var tree2 = Parse(text);
             var classProgram = tree2.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
@@ -413,7 +413,7 @@ class Program
 }";
 
             var tree1 = Parse(text);
-            var compilation = CreateCompilationWithMscorlib(tree1);
+            var compilation = CreateStandardCompilation(tree1);
 
             var decl = tree1.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             var field = decl.Members[0] as FieldDeclarationSyntax;
@@ -441,7 +441,7 @@ class Program
 
             var tree1 = Parse(text);
             var tree2 = Parse(text);
-            var compilation = CreateCompilationWithMscorlib(new SyntaxTree[] { tree1, tree2 });
+            var compilation = CreateStandardCompilation(new SyntaxTree[] { tree1, tree2 });
 
             var decl = tree1.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             var method = decl.Members[0] as MethodDeclarationSyntax;
@@ -464,7 +464,7 @@ class B {
 class A {}
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
 
             var bdecl = tree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             var xdecl = bdecl.Members[0] as FieldDeclarationSyntax;
@@ -491,7 +491,7 @@ class A {
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
 
             var adecl = tree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             var bdecl = adecl.Members[0] as TypeDeclarationSyntax;
@@ -522,7 +522,7 @@ class A {
 class B {}
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
 
             var root = tree.GetCompilationUnitRoot();
@@ -557,7 +557,7 @@ namespace N {
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var root = tree.GetCompilationUnitRoot();
@@ -578,12 +578,12 @@ namespace N {
             var text = @"
 public class A 
 {
-	int foo	{	void foo() {}	} // Error
+	int goo	{	void goo() {}	} // Error
 	static int Main() {	return 1;    }
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var mems = comp.SourceModule.GlobalNamespace.GetMembers();
 
             var typeA = mems.Where(s => s.Name == "A").Select(s => s);
@@ -609,7 +609,7 @@ partial class PC
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var pTypeSym = comp.SourceModule.GlobalNamespace.GetTypeMembers("PC").Single();
             var pMethodSym = pTypeSym.GetMembers("PM").Single();
 
@@ -660,12 +660,12 @@ using System;
 
 class Test
 {
-    public delegate void DFoo(byte i = 1);
-    protected internal void MFoo(sbyte j = 2) { }
+    public delegate void DGoo(byte i = 1);
+    protected internal void MGoo(sbyte j = 2) { }
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
             var exprs = root.DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
@@ -688,7 +688,7 @@ using System;
 
 partial class Partial001
 {
-    static partial void Foo(ulong x);
+    static partial void Goo(ulong x);
 }
 ";
 
@@ -697,13 +697,13 @@ using System;
 
 partial class Partial001
 {
-    static partial void Foo(ulong x)  {    }
+    static partial void Goo(ulong x)  {    }
     static int Main()  {    return 1;    }
 }
 ";
             var tree1 = Parse(text1);
             var tree2 = Parse(text2);
-            var comp = CreateCompilationWithMscorlib(new List<SyntaxTree> { tree1, tree2 });
+            var comp = CreateStandardCompilation(new List<SyntaxTree> { tree1, tree2 });
 
             var model1 = comp.GetSemanticModel(tree1);
             var model2 = comp.GetSemanticModel(tree2);
@@ -729,7 +729,7 @@ using System;
 
 partial class Partial001
 {
-    static partial void Foo<T>(T x);
+    static partial void Goo<T>(T x);
 }
 ";
 
@@ -738,13 +738,13 @@ using System;
 
 partial class Partial001
 {
-    static partial void Foo<T>(T x)  {    }
+    static partial void Goo<T>(T x)  {    }
     static int Main()  {    return 1;    }
 }
 ";
             var tree1 = Parse(text1);
             var tree2 = Parse(text2);
-            var comp = CreateCompilationWithMscorlib(new List<SyntaxTree> { tree1, tree2 });
+            var comp = CreateStandardCompilation(new List<SyntaxTree> { tree1, tree2 });
 
             var model1 = comp.GetSemanticModel(tree1);
             var model2 = comp.GetSemanticModel(tree2);
@@ -782,7 +782,7 @@ struct AnonTypeTest
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var anonProps = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectMemberDeclaratorSyntax>();
             Assert.Equal(4, anonProps.Count());
@@ -813,7 +813,7 @@ class AnonTypeTest
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var anonProps = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectMemberDeclaratorSyntax>();
             Assert.Equal(5, anonProps.Count());
@@ -854,7 +854,7 @@ class AnonTypeTest : Base
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var anonProps = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectMemberDeclaratorSyntax>();
             Assert.Equal(4, anonProps.Count());
@@ -877,9 +877,9 @@ enum E { a, b, c }
 struct S
 {
     public static E sField;
-    public interface IFoo {  }
-    public IFoo GetFoo { get; set; }
-    public IFoo GetFoo2() { return null; }
+    public interface IGoo {  }
+    public IGoo GetGoo { get; set; }
+    public IGoo GetGoo2() { return null; }
 }
 
 class AnonTypeTest
@@ -888,17 +888,17 @@ class AnonTypeTest
     {
         add
         {
-            var anonType = new { a1 = new { S.sField, ifoo = new { new S().GetFoo } } };
+            var anonType = new { a1 = new { S.sField, igoo = new { new S().GetGoo } } };
         }
         remove 
         {
-            var anonType = new { a1 = new { a2 = new { a2 = S.sField, a3 = new { a3 = new S().GetFoo2() } } } };
+            var anonType = new { a1 = new { a2 = new { a2 = S.sField, a3 = new { a3 = new S().GetGoo2() } } } };
         }
     }
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var anonProps = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectMemberDeclaratorSyntax>();
             Assert.Equal(9, anonProps.Count());
@@ -908,7 +908,7 @@ class AnonTypeTest
                           select apsym.Name;
 
             var results = string.Join(", ", symList);
-            Assert.Equal("a1, a1, a2, a2, a3, a3, GetFoo, ifoo, sField", results);
+            Assert.Equal("a1, a1, a2, a2, a3, a3, GetGoo, igoo, sField", results);
         }
 
         [Fact(), WorkItem(542861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542861"), WorkItem(529673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529673")]
@@ -934,7 +934,7 @@ public class Test
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var descendants = tree.GetCompilationUnitRoot().DescendantNodes();
 
@@ -971,7 +971,7 @@ using X = System;
 class X { }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -1001,10 +1001,10 @@ class Test
     }
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib("public class C { }");
+            var comp1 = CreateStandardCompilation("public class C { }");
             var ref1 = comp1.EmitToImageReference(aliases: ImmutableArray.Create("X"));
 
-            var comp2 = CreateCompilationWithMscorlib(source, new[] { ref1 });
+            var comp2 = CreateStandardCompilation(source, new[] { ref1 });
             var tree = comp2.SyntaxTrees.Single();
             var model = comp2.GetSemanticModel(tree);
 
@@ -1045,7 +1045,7 @@ class Test
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -1072,7 +1072,7 @@ class Test
         {
             var source = "using X = System;";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (1,1): info CS8019: Unnecessary using directive.
                 // using X = System;
@@ -1098,7 +1098,7 @@ class Test
     C() : this((int) 1) { }
 }";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -1127,7 +1127,7 @@ class Test
     C() { }
 }";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -1144,7 +1144,7 @@ class Test
         [Fact]
         public void TestGetSpeculativeSemanticModelInFieldInitializer()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class C 
 {
   object y = 1;
@@ -1188,7 +1188,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelInEnumMember()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 enum C 
 {
   y = 1
@@ -1226,7 +1226,7 @@ enum C
         [WorkItem(648305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648305")]
         public void TestGetSpeculativeSemanticModelInDefaultValueArgument()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class C 
 {
   void M(int x = 1)
@@ -1270,7 +1270,7 @@ class C
         [WorkItem(746002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/746002")]
         public void TestGetSpeculativeSemanticModelInDefaultValueArgument2()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 using System;
 
 enum E
@@ -1314,7 +1314,7 @@ interface I
         [WorkItem(657701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/657701")]
         public void TestGetSpeculativeSemanticModelInConstructorDefaultValueArgument()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class C 
 {
   C(int x = 1)
@@ -1357,7 +1357,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelInExpressionBody_Property()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class C 
 {
   public object X => 0;
@@ -1375,7 +1375,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelInExpressionBody_Method()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class C 
 {
   public object X() => 0;
@@ -1393,7 +1393,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelInExpressionBody_Indexer()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class C 
 {
   public object this[int x] => 0;
@@ -1452,7 +1452,7 @@ class Q
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,9): warning CS0169: The field 'Q.q' is never used
                 //     var q;
@@ -1494,7 +1494,7 @@ class Q
         [Fact]
         public void TestGetSpeculativeSemanticModelForStatement()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class C 
 {
   void M(int x)
@@ -1553,7 +1553,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForStatement_DeclaredLocal()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class C 
 {
   void M(int x)
@@ -1601,7 +1601,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForStatement_GetDeclaredLabelSymbol()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class C 
 {
   void M(int x)
@@ -1633,7 +1633,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForStatement_GetDeclaredSwitchLabelSymbol()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class C 
 {
   void M(int x)
@@ -1710,7 +1710,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForStatement_ForEach()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class C 
 {
   void M(int x)
@@ -1754,7 +1754,7 @@ foreach(short ele in a)
     int X { get; } = 1;
 }";
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular);
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular);
             var tree = comp.SyntaxTrees.Single();
 
             var model = comp.GetSemanticModel(tree);
@@ -1804,7 +1804,7 @@ foreach(short ele in a)
     C() : this((int) 1) { }
 }";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -1873,7 +1873,7 @@ foreach(short ele in a)
     C() { }
 }";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -1892,7 +1892,7 @@ foreach(short ele in a)
         [Fact]
         public void TestArgumentsToGetSpeculativeSemanticModelAPI()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class C 
 {
   public C(): this(0) {}
@@ -1937,7 +1937,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelOnSpeculativeSemanticModel()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class C 
 {
   public C(): this(0) {}
@@ -1983,7 +1983,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelInsideUnsafeCode()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 unsafe class C
 {
     void M()
@@ -2037,14 +2037,14 @@ class C
 {
     C P
     {
-        foo
+        goo
         {
             return null;
         }
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -2066,7 +2066,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForMethodBody()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class C 
 {
   void M(int x)
@@ -2158,7 +2158,7 @@ class Parent {}
         [Fact]
         public void TestGetSpeculativeSemanticModelForIndexerAccessorBody()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class C 
 {
     private int this[int x]
@@ -2200,7 +2200,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForPropertyAccessorBody()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class C 
 {
     private int M
@@ -2242,7 +2242,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForEventAccessorBody()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class C 
 {
     private event System.Action E
@@ -2287,7 +2287,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForMethodBody_DeclaredLocal()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class C 
 {
   void M(int x)
@@ -2359,7 +2359,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForMethodBody_GetDeclaredLabelSymbol()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class C 
 {
   void M(int x)
@@ -2479,7 +2479,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForMethodBody_SwitchStatement()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 using System;
 
 class C 
@@ -2530,7 +2530,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForTypeSyntax_InGlobalUsing()
         {
-            var compilation = CreateCompilationWithMscorlib(@"using System.Runtime;");
+            var compilation = CreateStandardCompilation(@"using System.Runtime;");
 
             var tree = compilation.SyntaxTrees[0];
             var root = tree.GetCompilationUnitRoot();
@@ -2545,7 +2545,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForTypeSyntax_InGlobalAlias()
         {
-            var compilation = CreateCompilationWithMscorlib(@"using A = System.Exception;");
+            var compilation = CreateStandardCompilation(@"using A = System.Exception;");
 
             var tree = compilation.SyntaxTrees[0];
             var root = tree.GetCompilationUnitRoot();
@@ -2560,7 +2560,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForTypeSyntax_InBaseList()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class MyException : System.Exception
 {
 }
@@ -2580,7 +2580,7 @@ class MyException : System.Exception
         [Fact]
         public void TestGetSpeculativeSemanticModelForTypeSyntax_InMemberDeclaration()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class Program
 {
     System.Exception field = null;
@@ -2612,7 +2612,7 @@ class Program
         [Fact]
         public void TestGetSpeculativeSemanticModelForTypeSyntax_AliasName()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 using A = System.ArgumentException;
 
 class Program
@@ -2855,7 +2855,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -2883,7 +2883,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -2918,7 +2918,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -3246,12 +3246,12 @@ class C
         [Fact]
         public void BindSpeculativeAttributeWithExpressionVariable_1()
         {
-            new ObsoleteAttribute("foo");
+            new ObsoleteAttribute("goo");
 
             var source =
 @"using System;
 class C { }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -3267,12 +3267,12 @@ class C { }";
         [Fact]
         public void BindSpeculativeAttributeWithExpressionVariable_2()
         {
-            new ObsoleteAttribute("foo");
+            new ObsoleteAttribute("goo");
 
             var source =
 @"using System;
 class C { }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -3310,7 +3310,7 @@ struct S
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -3341,7 +3341,7 @@ class Program
     {
     }
 }", CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
-            var compilation = CreateCompilationWithMscorlib(tree);
+            var compilation = CreateStandardCompilation(tree);
             var root = tree.GetCompilationUnitRoot();
             var crefSyntax = root.DescendantNodes(descendIntoTrivia: true).OfType<QualifiedCrefSyntax>().Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -3468,7 +3468,7 @@ class Derived : Test
 
         private static void CheckLambdaArgumentInBadCall(string source)
         {
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
 
             var tree = comp.SyntaxTrees.Single();
             Assert.NotEmpty(tree.GetDiagnostics());
@@ -3538,8 +3538,8 @@ class C
 
 ";
 
-            var libRef = CreateCompilationWithMscorlib("", assemblyName: "lib").EmitToImageReference(aliases: ImmutableArray.Create("Alias"));
-            var comp = CreateCompilationWithMscorlib(source, new[] { libRef });
+            var libRef = CreateStandardCompilation("", assemblyName: "lib").EmitToImageReference(aliases: ImmutableArray.Create("Alias"));
+            var comp = CreateStandardCompilation(source, new[] { libRef });
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -3576,7 +3576,7 @@ static class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -3773,7 +3773,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             foreach (var interp in tree.GetRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>())
@@ -3797,7 +3797,7 @@ using System.Dynamic;
         }   
      }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var typeSyntax = SyntaxFactory.ParseTypeName("dynamic");
@@ -3806,11 +3806,73 @@ using System.Dynamic;
             Assert.Equal(TypeKind.Dynamic, dynamicType.Type.TypeKind);
         }
 
+        [Fact]
+        public void IsAccessible()
+        {
+            var source =
+@"using System;
+class A
+{
+    public int X;
+    protected int Y;
+    private protected int Z;
+}
+class B : A
+{
+    void Goo()
+    {
+        // in B.Goo
+    }
+    // in B class level
+    int field;
+}
+class C
+{
+    void Goo()
+    {
+        // in C.Goo
+    }
+}
+namespace N
+{
+    // in N
+}";
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
+
+            var tree = compilation.SyntaxTrees[0];
+            var text = tree.GetText().ToString();
+            var semanticModel = compilation.GetSemanticModel(tree);
+            int positionInB = text.IndexOf("in B class level");
+            int positionInBGoo = text.IndexOf("in B.Goo");
+            int positionInCGoo = text.IndexOf("in C.Goo");
+            int positionInN = text.IndexOf("in N");
+
+            var globalNs = compilation.GlobalNamespace;
+            var classA = (NamedTypeSymbol)globalNs.GetMembers("A").Single();
+            var fieldX = (FieldSymbol)classA.GetMembers("X").Single();
+            var fieldY = (FieldSymbol)classA.GetMembers("Y").Single();
+            var fieldZ = (FieldSymbol)classA.GetMembers("Z").Single();
+
+            Assert.True(semanticModel.IsAccessible(positionInN, fieldX));
+            Assert.False(semanticModel.IsAccessible(positionInN, fieldY));
+            Assert.False(semanticModel.IsAccessible(positionInN, fieldZ));
+            Assert.True(semanticModel.IsAccessible(positionInB, fieldX));
+            Assert.True(semanticModel.IsAccessible(positionInB, fieldY));
+            Assert.True(semanticModel.IsAccessible(positionInB, fieldZ));
+            Assert.True(semanticModel.IsAccessible(positionInBGoo, fieldX));
+            Assert.True(semanticModel.IsAccessible(positionInBGoo, fieldY));
+            Assert.True(semanticModel.IsAccessible(positionInBGoo, fieldZ));
+            Assert.True(semanticModel.IsAccessible(positionInCGoo, fieldX));
+            Assert.False(semanticModel.IsAccessible(positionInCGoo, fieldY));
+            Assert.False(semanticModel.IsAccessible(positionInCGoo, fieldZ));
+        }
+
         #region "regression helper"
         private void Regression(string text)
         {
             var tree = Parse(text);
-            var compilation = CreateCompilationWithMscorlib(tree);
+            var compilation = CreateStandardCompilation(tree);
             var model = compilation.GetSemanticModel(tree);
             var exprSynList = new List<ExpressionSyntax>();
             GetExpressionSyntax(tree.GetCompilationUnitRoot(), exprSynList);

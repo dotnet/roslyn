@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -332,7 +332,7 @@ class Program
 
         string y = x ?? string.Empty;
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(17028, "https://github.com/dotnet/roslyn/issues/17028")]
@@ -358,6 +358,136 @@ class C
     void Main(string s, string y)
     {
         Expression<Func<string>> e = () => {|Warning:s ?? y|};
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestUnconstrainedTypeParameter()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C<T>
+{
+    void Main(T t)
+    {
+        var v = [||]t == null ? throw new Exception() : t;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestStructConstrainedTypeParameter()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C<T> where T : struct
+{
+    void Main(T t)
+    {
+        var v = [||]t == null ? throw new Exception() : t;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestClassConstrainedTypeParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C<T> where T : class
+{
+    void Main(T t)
+    {
+        var v = [||]t == null ? throw new Exception() : t;
+    }
+}",
+@"
+class C<T> where T : class
+{
+    void Main(T t)
+    {
+        var v = t ?? throw new Exception();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestNotOnNullable()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void Main(int? t)
+    {
+        var v = [||]t == null ? throw new Exception() : t;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestOnArray()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void Main(int[] t)
+    {
+        var v = [||]t == null ? throw new Exception() : t;
+    }
+}",
+@"
+class C
+{
+    void Main(int[] t)
+    {
+        var v = t ?? throw new Exception();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestOnInterface()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void Main(System.ICloneable t)
+    {
+        var v = [||]t == null ? throw new Exception() : t;
+    }
+}",
+@"
+class C
+{
+    void Main(System.ICloneable t)
+    {
+        var v = t ?? throw new Exception();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCoalesceExpression)]
+        public async Task TestOnDynamic()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void Main(dynamic t)
+    {
+        var v = [||]t == null ? throw new Exception() : t;
+    }
+}",
+@"
+class C
+{
+    void Main(dynamic t)
+    {
+        var v = t ?? throw new Exception();
     }
 }");
         }

@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -299,6 +301,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return method.IsAsync
                 && method.ReturnType.IsGenericTaskType(compilation);
+        }
+
+        internal static CSharpSyntaxNode ExtractReturnTypeSyntax(this MethodSymbol method)
+        {
+            method = method.PartialDefinitionPart ?? method;
+            foreach (var reference in method.DeclaringSyntaxReferences)
+            {
+                if (reference.GetSyntax() is MethodDeclarationSyntax methodDeclaration)
+                {
+                    return methodDeclaration.ReturnType;
+                }
+            }
+
+            return (CSharpSyntaxNode)CSharpSyntaxTree.Dummy.GetRoot();
         }
     }
 }

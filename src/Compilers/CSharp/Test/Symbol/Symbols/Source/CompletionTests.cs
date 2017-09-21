@@ -65,7 +65,7 @@ class A {
     object P { get; set; }
     object this[object o] { get { return null; } set { } }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
 
             var a = global.GetMember<NamedTypeSymbol>("A");
@@ -134,7 +134,7 @@ class A {
         }
 
         /// <summary>
-        /// This test demonstrates the correctness of <see cref="Microsoft.CodeAnalysis.CSharp.Symbol.HasAtMostOneBitSet"/>.
+        /// This test demonstrates the correctness of <see cref="SymbolCompletionState.HasAtMostOneBitSet"/>.
         /// </summary>
         [Fact]
         public void TestHasAtMostOneBitSet()
@@ -147,7 +147,7 @@ class A {
         }
 
         /// <summary>
-        /// This is the simple implementation of the sbyte version of <see cref="Microsoft.CodeAnalysis.CSharp.Symbol.HasAtMostOneBitSet"/>.
+        /// This is the simple implementation of the sbyte version of <see cref="SymbolCompletionState.HasAtMostOneBitSet"/>.
         /// Hopefully, it is obviously correct.
         /// </summary>
         private static bool HasAtMostOneBitSetSafe(sbyte bits)
@@ -168,7 +168,7 @@ class A {
         }
 
         /// <summary>
-        /// This is the sbyte version of <see cref="Microsoft.CodeAnalysis.CSharp.Symbol.HasAtMostOneBitSet"/>.
+        /// This is the sbyte version of <see cref="SymbolCompletionState.HasAtMostOneBitSet"/>.
         /// It can be exhaustively tested more quickly than the full version.
         /// </summary>
         private static bool HasAtMostOneBitSetFast(sbyte bits)

@@ -11,10 +11,8 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class TemporaryWorkspace : Workspace
     {
-        public const string WorkspaceKind_TemporaryWorkspace = "TemporaryWorkspace";
-
         public TemporaryWorkspace(Solution solution)
-            : base(RoslynServices.HostServices, workspaceKind: TemporaryWorkspace.WorkspaceKind_TemporaryWorkspace)
+            : base(RoslynServices.HostServices, workspaceKind: WorkspaceKind.RemoteTemporaryWorkspace)
         {
             Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
 
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public TemporaryWorkspace(SolutionInfo solutionInfo)
-            : base(RoslynServices.HostServices, workspaceKind: TemporaryWorkspace.WorkspaceKind_TemporaryWorkspace)
+            : base(RoslynServices.HostServices, workspaceKind: WorkspaceKind.RemoteTemporaryWorkspace)
         {
             Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
 

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Always use the local build task, even if we just shell out to an exe in case there are
+       new properties in the local build task. -->
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc"
+             AssemblyFile="$(MSBuildThisFileDirectory)..\tools\Microsoft.Build.Tasks.CodeAnalysis.dll" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc"
+             AssemblyFile="$(MSBuildThisFileDirectory)..\tools\Microsoft.Build.Tasks.CodeAnalysis.dll" />
+  <PropertyGroup>
+    <CSharpCoreTargetsPath>$(MSBuildThisFileDirectory)..\tools\Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
+    <BasicCoreTargetsPath>$(MSBuildThisFileDirectory)..\tools\Microsoft.VisualBasic.Core.targets</BasicCoreTargetsPath>
+  </PropertyGroup>
+
+  <!-- Set ToolPath/Exe to direct to the exes in this package -->
+  <PropertyGroup>
+    <!-- Compiler server is not currently supported on CoreCLR -->
+    <UseSharedCompilation>false</UseSharedCompilation>
+    <CscToolPath>$(MSBuildThisFileDirectory)..\tools\bincore</CscToolPath>
+    <CscToolExe Condition="'$(OS)' == 'Windows_NT'">RunCsc.cmd</CscToolExe>
+    <CscToolExe Condition="'$(OS)' != 'Windows_NT'">RunCsc</CscToolExe>
+    <VbcToolPath>$(MSBuildThisFileDirectory)..\tools\bincore</VbcToolPath>
+    <VbcToolExe Condition="'$(OS)' == 'Windows_NT'">RunVbc.cmd</VbcToolExe>
+    <VbcToolExe Condition="'$(OS)' != 'Windows_NT'">RunVbc</VbcToolExe>
+  </PropertyGroup>
+
+  <!-- If packaged on Windows, the RunCsc and RunVbc scripts may not be marked
+       executable. If we're not running on Windows, mark them as such, just in case -->
+  <Target Name="MakeCompilerScriptsExecutable"
+          Condition="'$(BuildingProject)' == 'true' AND '$(OS)' != 'Windows_NT'"
+          BeforeTargets="CoreCompile">
+    <Exec Command="chmod +x &quot;$(CscToolPath)/$(CscToolExe)&quot; &quot;$(VbcToolPath)/$(VbcToolExe)&quot;" />
+  </Target>
+</Project>

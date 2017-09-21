@@ -1,5 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -14,7 +15,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             // We actually want to collect two sets of named parameters to present the user.  The
             // normal named parameters that come from the attribute constructors.  These will be
-            // presented like "foo:".  And also the named parameters that come from the writable
+            // presented like "goo:".  And also the named parameters that come from the writable
             // fields/properties in the attribute.  These will be presented like "bar =".  
 
             var existingNamedParameters = GetExistingNamedParameters(attributeArgumentList, position);

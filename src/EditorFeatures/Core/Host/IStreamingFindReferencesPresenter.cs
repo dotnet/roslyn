@@ -43,17 +43,17 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         /// </summary>
         public static async Task<bool> TryNavigateToOrPresentItemsAsync(
             this IStreamingFindUsagesPresenter presenter,
-            string title, ImmutableArray<DefinitionItem> items)
+            Workspace workspace, string title, ImmutableArray<DefinitionItem> items)
         {
             // Ignore any definitions that we can't navigate to.
-            var definitions = items.WhereAsArray(d => d.CanNavigateTo());
+            var definitions = items.WhereAsArray(d => d.CanNavigateTo(workspace));
 
             // See if there's a third party external item we can navigate to.  If so, defer 
             // to that item and finish.
             var externalItems = definitions.WhereAsArray(d => d.IsExternal);
             foreach (var item in externalItems)
             {
-                if (item.TryNavigateTo())
+                if (item.TryNavigateTo(workspace, isPreview: true))
                 {
                     return true;
                 }
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 nonExternalItems[0].SourceSpans.Length <= 1)
             {
                 // There was only one location to navigate to.  Just directly go to that location.
-                return nonExternalItems[0].TryNavigateTo();
+                return nonExternalItems[0].TryNavigateTo(workspace, isPreview: true);
             }
 
             if (presenter != null)

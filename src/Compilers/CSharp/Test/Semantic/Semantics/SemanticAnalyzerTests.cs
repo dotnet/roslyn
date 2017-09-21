@@ -53,7 +53,7 @@ class C
 }
 
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -75,7 +75,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
 // (8,40): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'Program.C' is null
 //         var o1 = (D)(delegate{ var s = default(C).ToString();});
@@ -102,7 +102,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,18): error CS0118: 'N' is a namespace but is used like a variable
                 //         int y = (N).D.x;
                 Diagnostic(ErrorCode.ERR_BadSKknown, "N").WithArguments("N", "namespace", "variable").WithLocation(8, 18),
@@ -132,7 +132,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,17): error CS0020: Division by constant zero
                 //         int a = 10 / 0;
                 Diagnostic(ErrorCode.ERR_IntDivByZero, "10 / 0").WithLocation(6, 17),
@@ -156,7 +156,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,9): error CS0103: The name 'x' does not exist in the current context
                 //         x;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 9),
@@ -189,7 +189,7 @@ static class D2 { }
 static class D3 { }
 static class D4 { }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,9): error CS0723: Cannot declare a variable of static type 'D1'
                 //         D1 x1; 
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "D1").WithArguments("D1").WithLocation(7, 9),
@@ -447,7 +447,7 @@ class C
 
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (84,29): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 //     public static void PExt(this P p) {}
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(84, 29),
@@ -585,7 +585,7 @@ class C
         b.W = 0; // CS1656
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (18,16): warning CS0108: 'B.Q' hides inherited member 'A.Q()'. Use the new keyword if hiding was intended.
                 //     public int Q { get; set; } // CS0108
                 Diagnostic(ErrorCode.WRN_NewRequired, "Q").WithArguments("B.Q", "A.Q()").WithLocation(18, 16),
@@ -678,7 +678,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,7): error CS0161: 'C.GetS(Q<string, double>?[][*,*][*,*,*], int?)': not all code paths return a value
                 //     S GetS(N.Q<string, double>?[][,][,,] q, int? x) { }
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "GetS").WithArguments("C.GetS(N.Q<string, double>?[][*,*][*,*,*], int?)").WithLocation(7, 7),
@@ -720,13 +720,8 @@ class C
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "M").WithArguments("M", "int").WithLocation(35, 18),
                 // (36,9): error CS1604: Cannot assign to 'this' because it is read-only
                 //         this = null;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(36, 9),
-                // (6,23): warning CS0414: The field 'C.static_readonly' is assigned but its value is never used
-                //     static readonly S static_readonly;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "static_readonly").WithArguments("C.static_readonly").WithLocation(6, 23),
-                // (8,18): warning CS0414: The field 'C.instance_readonly' is assigned but its value is never used
-                //     readonly int instance_readonly;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "instance_readonly").WithArguments("C.instance_readonly").WithLocation(8, 18));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(36, 9)
+                );
         }
 
         [Fact]
@@ -745,7 +740,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,9): error CS1612: Cannot modify the return value of 'C.Property' because it is not a variable
                 //         Property.Field = 0;
                 Diagnostic(ErrorCode.ERR_ReturnNotLValue, "Property").WithArguments("C.Property").WithLocation(8, 9),
@@ -803,7 +798,7 @@ class C
             }
         }
         ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (27,24): error CS1510: A ref or out argument must be an assignable variable
                 //                 N1(ref 123);
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "123").WithLocation(27, 24),
@@ -844,7 +839,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,17): error CS0120: An object reference is required for the non-static field, method, or property 'C.instanceField'
                 //         int x = instanceField;
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "instanceField").WithArguments("C.instanceField").WithLocation(7, 17),
@@ -879,7 +874,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (12,9): warning CS1717: Assignment made to same variable; did you mean to assign something else?
                 //         x = x;
                 Diagnostic(ErrorCode.WRN_AssignmentToSelf, "x = x"),
@@ -903,12 +898,12 @@ class C
             string source = @"
 class Program
 {
-    void foo(dynamic d)
+    void goo(dynamic d)
     {
         d = (int)d;
     }
 }";
-            CreateCompilationWithMscorlib(source, new[] { SystemCoreRef }).VerifyDiagnostics();
+            CreateStandardCompilation(source, new[] { SystemCoreRef }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -927,7 +922,7 @@ class C
 }
 static class D { }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,17): error CS0128: A local variable named 'i' is already defined in this scope
                 //         long k, i;
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "i").WithArguments("i").WithLocation(9, 17),
@@ -1004,7 +999,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (10,11): error CS1503: Argument 1: cannot convert from 'bool' to 'E'
                 //         M(false); // error
                 Diagnostic(ErrorCode.ERR_BadArgType, "false").WithArguments("1", "bool", "E").WithLocation(10, 11),
@@ -1133,7 +1128,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (11,13): error CS0029: Cannot implicitly convert type 'bool' to 'E'
                 //         e = false; // error
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "false").WithArguments("bool", "E").WithLocation(11, 13),
@@ -1219,7 +1214,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,13): error CS0139: No enclosing loop out of which to break or continue
                 //             break;
                 Diagnostic(ErrorCode.ERR_NoBreakOrCont, "break;").WithLocation(8, 13));
@@ -1239,7 +1234,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,13): warning CS0665: Assignment in conditional expression is always constant; did you mean to use == instead of = ?
                 //         if (b = false)
                 Diagnostic(ErrorCode.WRN_IncorrectBooleanAssg, "b = false"),
@@ -1275,7 +1270,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,38): error CS0847: An array initializer of length '2' is expected
                 //         int[] intArray1 = new int[2] { 1, 2, 3 };               // count mismatch
                 Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "{ 1, 2, 3 }").WithArguments("2").WithLocation(8, 38),

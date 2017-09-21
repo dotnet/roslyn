@@ -573,14 +573,14 @@ BC30177: Only one of 'NotOverridable', 'MustOverride', or 'Overridable' can be s
     <compilation name="DuplicateSpecifier">
         <file name="a.vb"><![CDATA[
         Class test
-            Shared Shared Sub Foo()
+            Shared Shared Sub Goo()
             End Sub
         End Class
                 ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC30178: Specifier is duplicated.
-            Shared Shared Sub Foo()
+            Shared Shared Sub Goo()
                    ~~~~~~
      ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -592,14 +592,14 @@ BC30178: Specifier is duplicated.
     <compilation name="DuplicateSpecifier">
         <file name="a.vb"><![CDATA[
         class test
-            friend shared friend function Foo()
+            friend shared friend function Goo()
             End function
         End class
                 ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC30178: Specifier is duplicated.
-            friend shared friend function Foo()
+            friend shared friend function Goo()
                           ~~~~~~
      ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -824,10 +824,10 @@ BC30179: delegate Class 'D' and delegate Class 'D' conflict in class 'C'.
     <compilation name="DuplicateEnum1">
         <file name="a.vb"><![CDATA[
             Structure S1
-                Enum foo
+                Enum goo
                     bar
                 End Enum
-                Enum foo
+                Enum goo
                     bar
                     another_bar
                 End Enum
@@ -835,11 +835,11 @@ BC30179: delegate Class 'D' and delegate Class 'D' conflict in class 'C'.
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30179: enum 'foo' and enum 'foo' conflict in structure 'S1'.
-                Enum foo
+BC30179: enum 'goo' and enum 'goo' conflict in structure 'S1'.
+                Enum goo
                      ~~~
-BC30179: enum 'foo' and enum 'foo' conflict in structure 'S1'.
-                Enum foo
+BC30179: enum 'goo' and enum 'goo' conflict in structure 'S1'.
+                Enum goo
                      ~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -850,21 +850,21 @@ BC30179: enum 'foo' and enum 'foo' conflict in structure 'S1'.
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="DuplicateEnum2">
         <file name="a.vb"><![CDATA[
-                Enum foo
+                Enum goo
                     bar
                 End Enum
-                Enum foo
+                Enum goo
                     bar
                     another_bar
                 End Enum
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30179: enum 'foo' and enum 'foo' conflict in namespace '<Default>'.
-Enum foo
+BC30179: enum 'goo' and enum 'goo' conflict in namespace '<Default>'.
+Enum goo
      ~~~
-BC30179: enum 'foo' and enum 'foo' conflict in namespace '<Default>'.
-                Enum foo
+BC30179: enum 'goo' and enum 'goo' conflict in namespace '<Default>'.
+                Enum goo
                      ~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -877,7 +877,7 @@ BC30179: enum 'foo' and enum 'foo' conflict in namespace '<Default>'.
         <file name="a.vb"><![CDATA[
         Namespace NS
             Class C1
-                Function FOO() As NS
+                Function GOO() As NS
                 End Function
             End Class
         End Namespace
@@ -886,7 +886,7 @@ BC30179: enum 'foo' and enum 'foo' conflict in namespace '<Default>'.
 
             Dim expectedErrors1 = <errors><![CDATA[
 BC30182: Type expected.
-                Function FOO() As NS
+                Function GOO() As NS
                                   ~~
 ]]></errors>
 
@@ -922,7 +922,7 @@ BC30182: Type expected.
         <file name="a.vb"><![CDATA[
         Option Strict On
         Structure S1
-            Public Function Foo()
+            Public Function Goo()
             End Function
         End Structure
         ]]></file>
@@ -930,7 +930,7 @@ BC30182: Type expected.
 
             Dim expectedErrors1 = <errors><![CDATA[
 BC30210: Option Strict On requires all Function, Property, and Operator declarations to have an 'As' clause.
-            Public Function Foo()
+            Public Function Goo()
                             ~~~
 ]]></errors>
 
@@ -1047,7 +1047,7 @@ BC30210: Option Strict On requires all Function, Property, and Operator declarat
         <file name="a.vb"><![CDATA[
         Option Strict On
         Structure S1
-            Public Function Foo(byval x) as integer
+            Public Function Goo(byval x) as integer
                 return 1
             End Function
         End Structure
@@ -1056,7 +1056,7 @@ BC30210: Option Strict On requires all Function, Property, and Operator declarat
 
             Dim expectedErrors1 = <errors><![CDATA[
 BC30211: Option Strict On requires that all method parameters have an 'As' clause.
-            Public Function Foo(byval x) as integer
+            Public Function Goo(byval x) as integer
                                       ~
 ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -1178,36 +1178,36 @@ imports system
 
 Class C1
     ' BC30233: 'Shared' is not valid on a constant declaration.
-    Public Shared Const b As String = "foo"
-    Public Const Shared c As String = "foo"
+    Public Shared Const b As String = "goo"
+    Public Const Shared c As String = "goo"
 
     ' BC30233: 'ReadOnly' is not valid on a constant declaration.
-    Public ReadOnly Const d As String = "foo"
-    Public Const ReadOnly e As String = "foo"
+    Public ReadOnly Const d As String = "goo"
+    Public Const ReadOnly e As String = "goo"
 
     ' BC30233: 'ReadOnly' is not valid on a constant declaration.
-    Public Shared ReadOnly Const f As String = "foo"
+    Public Shared ReadOnly Const f As String = "goo"
 End Class
 
 Module M1
     ' Roslyn: Only BC30593: Variables in Modules cannot be declared 'Shared'.
     ' Dev10: Additional BC30233: 'Shared' is not valid on a constant declaration.
-    Public Shared Const b As String = "foo"
-    Public Const Shared c As String = "foo"
+    Public Shared Const b As String = "goo"
+    Public Const Shared c As String = "goo"
 
     ' BC30233: 'ReadOnly' is not valid on a constant declaration.    
-    Public ReadOnly Const d As String = "foo"
-    Public Const ReadOnly e As String = "foo"
+    Public ReadOnly Const d As String = "goo"
+    Public Const ReadOnly e As String = "goo"
 End Module
 
 Structure S1
     ' BC30233: 'Shared' is not valid on a constant declaration.
-    Public Shared Const b As String = "foo"
-    Public Const Shared c As String = "foo"
+    Public Shared Const b As String = "goo"
+    Public Const Shared c As String = "goo"
 
     ' BC30233: 'ReadOnly' is not valid on a constant declaration.    
-    Public ReadOnly Const d As String = "foo"
-    Public Const ReadOnly e As String = "foo"
+    Public ReadOnly Const d As String = "goo"
+    Public Const ReadOnly e As String = "goo"
 End Structure
     ]]></file>
 </compilation>
@@ -1217,46 +1217,46 @@ End Structure
             CompilationUtils.AssertTheseDiagnostics(c1,
 <expected><![CDATA[
 BC30233: 'Shared' is not valid on a constant declaration.
-    Public Shared Const b As String = "foo"
+    Public Shared Const b As String = "goo"
            ~~~~~~
 BC30233: 'Shared' is not valid on a constant declaration.
-    Public Const Shared c As String = "foo"
+    Public Const Shared c As String = "goo"
                  ~~~~~~
 BC30233: 'ReadOnly' is not valid on a constant declaration.
-    Public ReadOnly Const d As String = "foo"
+    Public ReadOnly Const d As String = "goo"
            ~~~~~~~~
 BC30233: 'ReadOnly' is not valid on a constant declaration.
-    Public Const ReadOnly e As String = "foo"
+    Public Const ReadOnly e As String = "goo"
                  ~~~~~~~~
 BC30233: 'Shared' is not valid on a constant declaration.
-    Public Shared ReadOnly Const f As String = "foo"
+    Public Shared ReadOnly Const f As String = "goo"
            ~~~~~~
 BC30233: 'ReadOnly' is not valid on a constant declaration.
-    Public Shared ReadOnly Const f As String = "foo"
+    Public Shared ReadOnly Const f As String = "goo"
                   ~~~~~~~~
 BC30593: Variables in Modules cannot be declared 'Shared'.
-    Public Shared Const b As String = "foo"
+    Public Shared Const b As String = "goo"
            ~~~~~~
 BC30593: Variables in Modules cannot be declared 'Shared'.
-    Public Const Shared c As String = "foo"
+    Public Const Shared c As String = "goo"
                  ~~~~~~
 BC30233: 'ReadOnly' is not valid on a constant declaration.
-    Public ReadOnly Const d As String = "foo"
+    Public ReadOnly Const d As String = "goo"
            ~~~~~~~~
 BC30233: 'ReadOnly' is not valid on a constant declaration.
-    Public Const ReadOnly e As String = "foo"
+    Public Const ReadOnly e As String = "goo"
                  ~~~~~~~~
 BC30233: 'Shared' is not valid on a constant declaration.
-    Public Shared Const b As String = "foo"
+    Public Shared Const b As String = "goo"
            ~~~~~~
 BC30233: 'Shared' is not valid on a constant declaration.
-    Public Const Shared c As String = "foo"
+    Public Const Shared c As String = "goo"
                  ~~~~~~
 BC30233: 'ReadOnly' is not valid on a constant declaration.
-    Public ReadOnly Const d As String = "foo"
+    Public ReadOnly Const d As String = "goo"
            ~~~~~~~~
 BC30233: 'ReadOnly' is not valid on a constant declaration.
-    Public Const ReadOnly e As String = "foo"
+    Public Const ReadOnly e As String = "goo"
                  ~~~~~~~~
 ]]></expected>)
         End Sub
@@ -1396,7 +1396,7 @@ Public Class C
     Shared Sub InternalCall(b As Integer, b As Integer)
     End Sub
 
-    <DllImport("foo")>
+    <DllImport("goo")>
     Shared Sub DllImp(c As Integer, c As Integer)
     End Sub
 
@@ -1416,14 +1416,14 @@ End Class
     <compilation name="BadMethodFlags1">
         <file name="a.vb"><![CDATA[
         Structure S1
-            Default function  foo()
+            Default function  goo()
             End function
         End Structure
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC30242: 'Default' is not valid on a method declaration.
-            Default function  foo()
+            Default function  goo()
             ~~~~~~~
      ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -1750,6 +1750,12 @@ BC30260: 'V' is already declared as 'Protected V As Object' in this class.
                 Protected Friend Overridable Function scen4(Of t)(ByVal x As t) As String
                     Return "30266"
                 End Function
+                Private Protected Overridable Function scen5(Of t)(ByVal x As t) As String
+                    Return "30266"
+                End Function
+                Protected Overridable Function scen6(Of t)(ByVal x As t) As String
+                    Return "30266"
+                End Function
             End Class
             Partial Class derived
                 'COMPILEERROR: BC30266, "scen4"
@@ -1771,10 +1777,19 @@ BC30260: 'V' is already declared as 'Protected V As Object' in this class.
                 Protected Overrides Function scen1(Of t)(ByVal x As t) As String
                     Return "30266"
                 End Function
+                'COMPILEERROR: BC30266, "scen5"
+                Protected Overrides Function scen5(Of t)(ByVal x As t) As String
+                    Return "30266"
+                End Function
+                'COMPILEERROR: BC30266, "scen6"
+                Private Protected Overrides Function scen6(Of t)(ByVal x As t) As String
+                    Return "30266"
+                End Function
             End Class
         End Namespace
         ]]></file>
-    </compilation>)
+    </compilation>,
+        parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             Dim expectedErrors1 = <errors><![CDATA[
 BC30266: 'Protected Overrides Function scen4(Of t)(x As t) As String' cannot override 'Protected Friend Overridable Function scen4(Of t)(x As t) As String' because they have different access levels.
                 Protected Overrides Function scen4(Of t)(ByVal x As t) As String
@@ -1788,6 +1803,12 @@ BC30266: 'Public Overrides Function scen3(Of t)(x As t) As String' cannot overri
 BC30266: 'Protected Overrides Function scen1(Of t)(x As t) As String' cannot override 'Public Overridable Function scen1(Of t)(x As t) As String' because they have different access levels.
                 Protected Overrides Function scen1(Of t)(ByVal x As t) As String
                                              ~~~~~
+BC30266: 'Protected Overrides Function scen5(Of t)(x As t) As String' cannot override 'Private Protected Overridable Function scen5(Of t)(x As t) As String' because they have different access levels.
+                Protected Overrides Function scen5(Of t)(ByVal x As t) As String
+                                             ~~~~~
+BC30266: 'Private Protected Overrides Function scen6(Of t)(x As t) As String' cannot override 'Protected Overridable Function scen6(Of t)(x As t) As String' because they have different access levels.
+                Private Protected Overrides Function scen6(Of t)(ByVal x As t) As String
+                                                     ~~~~~
      ]]></errors>
 
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -1801,35 +1822,35 @@ BC30266: 'Protected Overrides Function scen1(Of t)(x As t) As String' cannot ove
         <file name="a.vb"><![CDATA[
         Class c1
             Class c1_0
-                Overridable Sub foo()
+                Overridable Sub goo()
                 End Sub
             End Class
             Class c1_1
                 Inherits c1_0
-                NotOverridable Overrides Sub foo()
+                NotOverridable Overrides Sub goo()
                 End Sub
             End Class
             Class c1_2
                 Inherits c1_1
-                'COMPILEERROR: BC30267, "foo"
-                Overrides Sub foo()
+                'COMPILEERROR: BC30267, "goo"
+                Overrides Sub goo()
                 End Sub
             End Class
         End Class
         Class c1_2
             Inherits c1.c1_1
-            'COMPILEERROR: BC30267, "foo"
-            Overrides Sub foo()
+            'COMPILEERROR: BC30267, "goo"
+            Overrides Sub goo()
             End Sub
         End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30267: 'Public Overrides Sub foo()' cannot override 'Public NotOverridable Overrides Sub foo()' because it is declared 'NotOverridable'.
-                Overrides Sub foo()
+BC30267: 'Public Overrides Sub goo()' cannot override 'Public NotOverridable Overrides Sub goo()' because it is declared 'NotOverridable'.
+                Overrides Sub goo()
                               ~~~
-BC30267: 'Public Overrides Sub foo()' cannot override 'Public NotOverridable Overrides Sub foo()' because it is declared 'NotOverridable'.
-            Overrides Sub foo()
+BC30267: 'Public Overrides Sub goo()' cannot override 'Public NotOverridable Overrides Sub goo()' because it is declared 'NotOverridable'.
+            Overrides Sub goo()
                           ~~~
      ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -1848,26 +1869,26 @@ BC30267: 'Public Overrides Sub foo()' cannot override 'Public NotOverridable Ove
                 Shared Sub New() ' ok :)
                 End Sub
 
-                Public Sub Foo1() ' 1
+                Public Sub Goo1() ' 1
                 End Sub
-                Public Sub Foo1() ' 2
+                Public Sub Goo1() ' 2
                 End Sub
-                Public Sub Foo1() ' 3
-                End Sub
-
-                Public overloads Sub Foo2() ' 1
-                End Sub
-                Public overloads Sub Foo2() ' 2
+                Public Sub Goo1() ' 3
                 End Sub
 
-                Public Sub Foo3(Of T)(X As T) ' 1
+                Public overloads Sub Goo2() ' 1
                 End Sub
-                Public Sub Foo3(Of TT)(X As TT) ' 2
+                Public overloads Sub Goo2() ' 2
                 End Sub
 
-                Public Sub FooOK(x as Integer) ' 1
+                Public Sub Goo3(Of T)(X As T) ' 1
                 End Sub
-                Public Sub FooOK(x as Decimal) ' 2
+                Public Sub Goo3(Of TT)(X As TT) ' 2
+                End Sub
+
+                Public Sub GooOK(x as Integer) ' 1
+                End Sub
+                Public Sub GooOK(x as Decimal) ' 2
                 End Sub
 
                 Public Shared Sub Main()
@@ -1875,31 +1896,31 @@ BC30267: 'Public Overrides Sub foo()' cannot override 'Public NotOverridable Ove
             End Class
 
             Class Base
-               public overridable sub foo4() ' base
+               public overridable sub goo4() ' base
               End sub
             End Class
 
             Class Derived
                 Inherits Base
 
-                public overrides sub foo4() ' derived 1
+                public overrides sub goo4() ' derived 1
                 End sub
-                public overloads sub foo4() ' derived 2
+                public overloads sub goo4() ' derived 2
                 End sub
             End Class
 
             Class PartialClass
-                Public Sub Foo5() ' 1
+                Public Sub Goo5() ' 1
                 End Sub
 
-                Public Sub Foo6(x as integer)
+                Public Sub Goo6(x as integer)
                 End Sub
             End Class
             Partial Class PartialClass
-                Public Sub Foo5() ' 2
+                Public Sub Goo5() ' 2
                 End Sub
 
-                Public Sub Foo6(y as integer)
+                Public Sub Goo6(y as integer)
                 End Sub
             End Class
 
@@ -1909,26 +1930,26 @@ BC30267: 'Public Overrides Sub foo()' cannot override 'Public NotOverridable Ove
 BC30269: 'Public Sub New()' has multiple definitions with identical signatures.
                 Public Sub New() ' 1
                            ~~~
-BC30269: 'Public Sub Foo1()' has multiple definitions with identical signatures.
-                Public Sub Foo1() ' 1
+BC30269: 'Public Sub Goo1()' has multiple definitions with identical signatures.
+                Public Sub Goo1() ' 1
                            ~~~~
-BC30269: 'Public Sub Foo1()' has multiple definitions with identical signatures.
-                Public Sub Foo1() ' 2
+BC30269: 'Public Sub Goo1()' has multiple definitions with identical signatures.
+                Public Sub Goo1() ' 2
                            ~~~~
-BC30269: 'Public Overloads Sub Foo2()' has multiple definitions with identical signatures.
-                Public overloads Sub Foo2() ' 1
+BC30269: 'Public Overloads Sub Goo2()' has multiple definitions with identical signatures.
+                Public overloads Sub Goo2() ' 1
                                      ~~~~
-BC30269: 'Public Sub Foo3(Of T)(X As T)' has multiple definitions with identical signatures.
-                Public Sub Foo3(Of T)(X As T) ' 1
+BC30269: 'Public Sub Goo3(Of T)(X As T)' has multiple definitions with identical signatures.
+                Public Sub Goo3(Of T)(X As T) ' 1
                            ~~~~
-BC30269: 'Public Overrides Sub foo4()' has multiple definitions with identical signatures.
-                public overrides sub foo4() ' derived 1
+BC30269: 'Public Overrides Sub goo4()' has multiple definitions with identical signatures.
+                public overrides sub goo4() ' derived 1
                                      ~~~~
-BC30269: 'Public Sub Foo5()' has multiple definitions with identical signatures.
-                Public Sub Foo5() ' 1
+BC30269: 'Public Sub Goo5()' has multiple definitions with identical signatures.
+                Public Sub Goo5() ' 1
                            ~~~~
-BC30269: 'Public Sub Foo6(x As Integer)' has multiple definitions with identical signatures.
-                Public Sub Foo6(x as integer)
+BC30269: 'Public Sub Goo6(x As Integer)' has multiple definitions with identical signatures.
+                Public Sub Goo6(x as integer)
                            ~~~~
                                   ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -2017,7 +2038,7 @@ BC30269: 'Public Sub New1()' has multiple definitions with identical signatures.
             Partial Function J()
             NotOverridable Function K()
             Overridable Function L()
-            Iterator Function Foo() as IEnumerator
+            Iterator Function Goo() as IEnumerator
         End Interface
         ]]></file>
     </compilation>)
@@ -2056,7 +2077,7 @@ BC30270: 'Overridable' is not valid on an interface method declaration.
             Overridable Function L()
             ~~~~~~~~~~~
 BC30270: 'Iterator' is not valid on an interface method declaration.
-            Iterator Function Foo() as IEnumerator
+            Iterator Function Goo() as IEnumerator
             ~~~~~~~~
      ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -2082,7 +2103,7 @@ BC30270: 'Iterator' is not valid on an interface method declaration.
             ReadOnly Property L ' No error
             WriteOnly Property M ' No error
             Default Property N(o) ' No error
-            Iterator Property Foo() as IEnumerator
+            Iterator Property Goo() as IEnumerator
         End Interface
         ]]></file>
     </compilation>)
@@ -2118,7 +2139,7 @@ BC30273: 'Overridable' is not valid on an interface property declaration.
             Overridable Property K
             ~~~~~~~~~~~
 BC30273: 'Iterator' is not valid on an interface property declaration.
-            Iterator Property Foo() as IEnumerator
+            Iterator Property Goo() as IEnumerator
             ~~~~~~~~
      ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -2131,15 +2152,15 @@ BC30273: 'Iterator' is not valid on an interface property declaration.
         <file name="a.vb"><![CDATA[
         Interface I1
             'COMPILEERROR: BC30275, "friend"
-            Friend Event foo()
+            Friend Event goo()
         End Interface
         Interface I2
             'COMPILEERROR: BC30275, "protected"
-            Protected Event foo()
+            Protected Event goo()
         End Interface
         Interface I3
             'COMPILEERROR: BC30275, "Private"
-            Private Event foo()
+            Private Event goo()
         End Interface
         ]]></file>
     </compilation>).VerifyDiagnostics(Diagnostic(ERRID.ERR_InterfaceCantUseEventSpecifier1, "Friend").WithArguments("Friend"),
@@ -2366,63 +2387,63 @@ BC30299: 'c1_3' cannot inherit from class 'c1_1' because 'c1_1' is declared 'Not
     <compilation name="OverloadWithOptional2">
         <file name="a.vb"><![CDATA[
         Class Cla30300
-            'COMPILEERROR: BC30300, "foo"
-            Public Function foo(ByVal arg As ULong)
+            'COMPILEERROR: BC30300, "goo"
+            Public Function goo(ByVal arg As ULong)
                 Return "BC30300"
             End Function
-            Public Function foo(Optional ByVal arg As ULong = 1)
+            Public Function goo(Optional ByVal arg As ULong = 1)
                 Return "BC30300"
             End Function
-            'COMPILEERROR: BC30300, "foo1"
-            Public Function foo1()
+            'COMPILEERROR: BC30300, "goo1"
+            Public Function goo1()
                 Return "BC30300"
             End Function
-            Public Function foo1(Optional ByVal arg As ULong = 1)
+            Public Function goo1(Optional ByVal arg As ULong = 1)
                 Return "BC30300"
             End Function
-            'COMPILEERROR: BC30300, "foo2"
-            Public Function foo2(ByVal arg As Integer)
+            'COMPILEERROR: BC30300, "goo2"
+            Public Function goo2(ByVal arg As Integer)
                 Return "BC30300"
             End Function
-            Public Function foo2(ByVal arg As Integer, Optional ByVal arg1 As ULong = 1)
+            Public Function goo2(ByVal arg As Integer, Optional ByVal arg1 As ULong = 1)
                 Return "BC30300"
             End Function
-            'COMPILEERROR: BC30300, "foo3"
-            Public Function foo3(ByVal arg As Integer, ByVal arg1 As ULong)
+            'COMPILEERROR: BC30300, "goo3"
+            Public Function goo3(ByVal arg As Integer, ByVal arg1 As ULong)
                 Return "BC30300"
             End Function
-            Public Function foo3(ByVal arg As Integer, Optional ByVal arg1 As ULong = 1)
+            Public Function goo3(ByVal arg As Integer, Optional ByVal arg1 As ULong = 1)
                 Return "BC30300"
             End Function
         End Class
         Interface Scen2_1
-            'COMPILEERROR: BC30300, "foo"
-            Function foo(ByVal arg As ULong)
-            Function foo(Optional ByVal arg As ULong = 1)
-            'COMPILEERROR: BC30300, "foo1"
-            Function foo1()
-            Function foo1(Optional ByVal arg As ULong = 1)
-            'COMPILEERROR: BC30300, "foo2"
-            Function foo2(ByVal arg As Integer)
-            Function foo2(ByVal arg As Integer, Optional ByVal arg1 As ULong = 1)
-            'COMPILEERROR: BC30300, "foo3"
-            Function foo3(ByVal arg As Integer, ByVal arg1 As ULong)
-            Function foo3(ByVal arg As Integer, Optional ByVal arg1 As ULong = 1)
+            'COMPILEERROR: BC30300, "goo"
+            Function goo(ByVal arg As ULong)
+            Function goo(Optional ByVal arg As ULong = 1)
+            'COMPILEERROR: BC30300, "goo1"
+            Function goo1()
+            Function goo1(Optional ByVal arg As ULong = 1)
+            'COMPILEERROR: BC30300, "goo2"
+            Function goo2(ByVal arg As Integer)
+            Function goo2(ByVal arg As Integer, Optional ByVal arg1 As ULong = 1)
+            'COMPILEERROR: BC30300, "goo3"
+            Function goo3(ByVal arg As Integer, ByVal arg1 As ULong)
+            Function goo3(ByVal arg As Integer, Optional ByVal arg1 As ULong = 1)
         End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30300: 'Public Function foo(arg As ULong) As Object' and 'Public Function foo([arg As ULong = 1]) As Object' cannot overload each other because they differ only by optional parameters.
-            Public Function foo(ByVal arg As ULong)
+BC30300: 'Public Function goo(arg As ULong) As Object' and 'Public Function goo([arg As ULong = 1]) As Object' cannot overload each other because they differ only by optional parameters.
+            Public Function goo(ByVal arg As ULong)
                             ~~~
-BC30300: 'Public Function foo3(arg As Integer, arg1 As ULong) As Object' and 'Public Function foo3(arg As Integer, [arg1 As ULong = 1]) As Object' cannot overload each other because they differ only by optional parameters.
-            Public Function foo3(ByVal arg As Integer, ByVal arg1 As ULong)
+BC30300: 'Public Function goo3(arg As Integer, arg1 As ULong) As Object' and 'Public Function goo3(arg As Integer, [arg1 As ULong = 1]) As Object' cannot overload each other because they differ only by optional parameters.
+            Public Function goo3(ByVal arg As Integer, ByVal arg1 As ULong)
                             ~~~~
-BC30300: 'Function foo(arg As ULong) As Object' and 'Function foo([arg As ULong = 1]) As Object' cannot overload each other because they differ only by optional parameters.
-            Function foo(ByVal arg As ULong)
+BC30300: 'Function goo(arg As ULong) As Object' and 'Function goo([arg As ULong = 1]) As Object' cannot overload each other because they differ only by optional parameters.
+            Function goo(ByVal arg As ULong)
                      ~~~
-BC30300: 'Function foo3(arg As Integer, arg1 As ULong) As Object' and 'Function foo3(arg As Integer, [arg1 As ULong = 1]) As Object' cannot overload each other because they differ only by optional parameters.
-            Function foo3(ByVal arg As Integer, ByVal arg1 As ULong)
+BC30300: 'Function goo3(arg As Integer, arg1 As ULong) As Object' and 'Function goo3(arg As Integer, [arg1 As ULong = 1]) As Object' cannot overload each other because they differ only by optional parameters.
+            Function goo3(ByVal arg As Integer, ByVal arg1 As ULong)
                      ~~~~
                                   ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -2440,42 +2461,42 @@ BC30300: 'Function foo3(arg As Integer, arg1 As ULong) As Object' and 'Function 
             End Class
 
             Class C3
-                Public Function Foo1(x as Integer) as Boolean ' 1
+                Public Function Goo1(x as Integer) as Boolean ' 1
                   return true
                 End Function
-                Public Function Foo1(x as Integer) as Boolean ' 2
+                Public Function Goo1(x as Integer) as Boolean ' 2
                   return true
                 End Function
-                Public Function Foo1(x as Integer) as Boolean ' 3
+                Public Function Goo1(x as Integer) as Boolean ' 3
                   return true
                 End Function
-                Public Function Foo1(x as Integer) as Decimal ' 4
+                Public Function Goo1(x as Integer) as Decimal ' 4
                   return 2.2
                 End Function
-                Public Function Foo1(x as Integer) as String  ' 5
+                Public Function Goo1(x as Integer) as String  ' 5
                   return "42"
                 End Function
 
-                Public Function Foo2(Of T as C1)(x as Integer) as T ' 1
+                Public Function Goo2(Of T as C1)(x as Integer) as T ' 1
                   return nothing
                 End Function
-                Public Function Foo2(Of S as C2)(x as Integer) as S  ' 2
+                Public Function Goo2(Of S as C2)(x as Integer) as S  ' 2
                   return nothing
                 End Function
 
-                Public Function Foo3(x as Integer) as Boolean ' 1
+                Public Function Goo3(x as Integer) as Boolean ' 1
                   return true
                 End Function
-                Public Function Foo3(x as Decimal) as Boolean ' 2
+                Public Function Goo3(x as Decimal) as Boolean ' 2
                   return true
                 End Function
-                Public Function Foo3(x as Integer) as Boolean ' 3
+                Public Function Goo3(x as Integer) as Boolean ' 3
                   return true
                 End Function
-                Public Function Foo3(x as Integer) as Boolean ' 4
+                Public Function Goo3(x as Integer) as Boolean ' 4
                   return true
                 End Function
-                Public Function Foo3(x as Integer) as String  ' 5
+                Public Function Goo3(x as Integer) as String  ' 5
                   return true
                 End Function
 
@@ -2485,29 +2506,29 @@ BC30300: 'Function foo3(arg As Integer, arg1 As ULong) As Object' and 'Function 
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30269: 'Public Function Foo1(x As Integer) As Boolean' has multiple definitions with identical signatures.
-                Public Function Foo1(x as Integer) as Boolean ' 1
+BC30269: 'Public Function Goo1(x As Integer) As Boolean' has multiple definitions with identical signatures.
+                Public Function Goo1(x as Integer) as Boolean ' 1
                                 ~~~~
-BC30269: 'Public Function Foo1(x As Integer) As Boolean' has multiple definitions with identical signatures.
-                Public Function Foo1(x as Integer) as Boolean ' 2
+BC30269: 'Public Function Goo1(x As Integer) As Boolean' has multiple definitions with identical signatures.
+                Public Function Goo1(x as Integer) as Boolean ' 2
                                 ~~~~
-BC30301: 'Public Function Foo1(x As Integer) As Boolean' and 'Public Function Foo1(x As Integer) As Decimal' cannot overload each other because they differ only by return types.
-                Public Function Foo1(x as Integer) as Boolean ' 3
+BC30301: 'Public Function Goo1(x As Integer) As Boolean' and 'Public Function Goo1(x As Integer) As Decimal' cannot overload each other because they differ only by return types.
+                Public Function Goo1(x as Integer) as Boolean ' 3
                                 ~~~~
-BC30301: 'Public Function Foo1(x As Integer) As Decimal' and 'Public Function Foo1(x As Integer) As String' cannot overload each other because they differ only by return types.
-                Public Function Foo1(x as Integer) as Decimal ' 4
+BC30301: 'Public Function Goo1(x As Integer) As Decimal' and 'Public Function Goo1(x As Integer) As String' cannot overload each other because they differ only by return types.
+                Public Function Goo1(x as Integer) as Decimal ' 4
                                 ~~~~
-BC30269: 'Public Function Foo2(Of T As C1)(x As Integer) As T' has multiple definitions with identical signatures.
-                Public Function Foo2(Of T as C1)(x as Integer) as T ' 1
+BC30269: 'Public Function Goo2(Of T As C1)(x As Integer) As T' has multiple definitions with identical signatures.
+                Public Function Goo2(Of T as C1)(x as Integer) as T ' 1
                                 ~~~~
-BC30269: 'Public Function Foo3(x As Integer) As Boolean' has multiple definitions with identical signatures.
-                Public Function Foo3(x as Integer) as Boolean ' 1
+BC30269: 'Public Function Goo3(x As Integer) As Boolean' has multiple definitions with identical signatures.
+                Public Function Goo3(x as Integer) as Boolean ' 1
                                 ~~~~
-BC30269: 'Public Function Foo3(x As Integer) As Boolean' has multiple definitions with identical signatures.
-                Public Function Foo3(x as Integer) as Boolean ' 3
+BC30269: 'Public Function Goo3(x As Integer) As Boolean' has multiple definitions with identical signatures.
+                Public Function Goo3(x as Integer) as Boolean ' 3
                                 ~~~~
-BC30301: 'Public Function Foo3(x As Integer) As Boolean' and 'Public Function Foo3(x As Integer) As String' cannot overload each other because they differ only by return types.
-                Public Function Foo3(x as Integer) as Boolean ' 4
+BC30301: 'Public Function Goo3(x As Integer) As Boolean' and 'Public Function Goo3(x As Integer) As String' cannot overload each other because they differ only by return types.
+                Public Function Goo3(x as Integer) as Boolean ' 4
                                 ~~~~
                                   ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -2519,43 +2540,43 @@ BC30301: 'Public Function Foo3(x As Integer) As Boolean' and 'Public Function Fo
     <compilation name="OverloadWithReturnType2">
         <file name="a.vb"><![CDATA[
         Class Cla30301
-            'COMPILEERROR: BC30301, "foo"
-            Public Function foo(ByVal arg As ULong)
+            'COMPILEERROR: BC30301, "goo"
+            Public Function goo(ByVal arg As ULong)
                 Return "BC30301"
             End Function
-            Public Function foo(ByVal arg As ULong) As String
+            Public Function goo(ByVal arg As ULong) As String
                 Return "BC30301"
             End Function
-            'COMPILEERROR: BC30301, "foo1"
-            Public Function foo1()
+            'COMPILEERROR: BC30301, "goo1"
+            Public Function goo1()
                 Return "BC30301"
             End Function
-            Public Function foo1() As String
+            Public Function goo1() As String
                 Return "BC30301"
             End Function
         End Class
         Interface Interface30301
-            'COMPILEERROR: BC30301, "foo"
-            Function foo(ByVal arg As ULong)
-            Function foo(ByVal arg As ULong) As String
-            'COMPILEERROR: BC30301, "foo1"
-            Function foo1()
-            Function foo1() As String
+            'COMPILEERROR: BC30301, "goo"
+            Function goo(ByVal arg As ULong)
+            Function goo(ByVal arg As ULong) As String
+            'COMPILEERROR: BC30301, "goo1"
+            Function goo1()
+            Function goo1() As String
         End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30301: 'Public Function foo(arg As ULong) As Object' and 'Public Function foo(arg As ULong) As String' cannot overload each other because they differ only by return types.
-            Public Function foo(ByVal arg As ULong)
+BC30301: 'Public Function goo(arg As ULong) As Object' and 'Public Function goo(arg As ULong) As String' cannot overload each other because they differ only by return types.
+            Public Function goo(ByVal arg As ULong)
                             ~~~
-BC30301: 'Public Function foo1() As Object' and 'Public Function foo1() As String' cannot overload each other because they differ only by return types.
-            Public Function foo1()
+BC30301: 'Public Function goo1() As Object' and 'Public Function goo1() As String' cannot overload each other because they differ only by return types.
+            Public Function goo1()
                             ~~~~
-BC30301: 'Function foo(arg As ULong) As Object' and 'Function foo(arg As ULong) As String' cannot overload each other because they differ only by return types.
-            Function foo(ByVal arg As ULong)
+BC30301: 'Function goo(arg As ULong) As Object' and 'Function goo(arg As ULong) As String' cannot overload each other because they differ only by return types.
+            Function goo(ByVal arg As ULong)
                      ~~~
-BC30301: 'Function foo1() As Object' and 'Function foo1() As String' cannot overload each other because they differ only by return types.
-            Function foo1()
+BC30301: 'Function goo1() As Object' and 'Function goo1() As String' cannot overload each other because they differ only by return types.
+            Function goo1()
                      ~~~~
      ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -2755,17 +2776,17 @@ BC30303: Type character cannot be used in a 'Sub' declaration because a 'Sub' do
     <compilation name="OverloadWithDefault2">
         <file name="a.vb"><![CDATA[
         Public Class Cls30305
-            'COMPILEERROR: BC30305, "Foo6"
-            Partial Private Sub Foo6(Optional ByVal x As Integer = 1)
+            'COMPILEERROR: BC30305, "Goo6"
+            Partial Private Sub Goo6(Optional ByVal x As Integer = 1)
             End Sub
-            Private Sub Foo6(Optional ByVal x As Integer = 2)
+            Private Sub Goo6(Optional ByVal x As Integer = 2)
             End Sub
         End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC37203: Optional parameter of a method 'Private Sub Foo6([x As Integer = 2])' does not have the same default value as the corresponding parameter of the partial method 'Private Sub Foo6([x As Integer = 1])'.
-            Private Sub Foo6(Optional ByVal x As Integer = 2)
+BC37203: Optional parameter of a method 'Private Sub Goo6([x As Integer = 2])' does not have the same default value as the corresponding parameter of the partial method 'Private Sub Goo6([x As Integer = 1])'.
+            Private Sub Goo6(Optional ByVal x As Integer = 2)
                         ~~~~
                                   ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -2777,20 +2798,20 @@ BC37203: Optional parameter of a method 'Private Sub Foo6([x As Integer = 2])' d
     <compilation name="OverloadWithDefault2">
         <file name="a.vb"><![CDATA[
         Public Class Cls30305
-            'COMPILEERROR: BC30305, "Foo6"
-            Partial Private Sub Foo6(Optional ByVal x As Integer = 1)
+            'COMPILEERROR: BC30305, "Goo6"
+            Partial Private Sub Goo6(Optional ByVal x As Integer = 1)
             End Sub
-            Sub Foo6(Optional ByVal x As Integer = 2)
+            Sub Goo6(Optional ByVal x As Integer = 2)
             End Sub
         End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC31441: Method 'Foo6' must be declared 'Private' in order to implement partial method 'Foo6'.
-            Sub Foo6(Optional ByVal x As Integer = 2)
+BC31441: Method 'Goo6' must be declared 'Private' in order to implement partial method 'Goo6'.
+            Sub Goo6(Optional ByVal x As Integer = 2)
                 ~~~~
-BC37203: Optional parameter of a method 'Public Sub Foo6([x As Integer = 2])' does not have the same default value as the corresponding parameter of the partial method 'Private Sub Foo6([x As Integer = 1])'.
-            Sub Foo6(Optional ByVal x As Integer = 2)
+BC37203: Optional parameter of a method 'Public Sub Goo6([x As Integer = 2])' does not have the same default value as the corresponding parameter of the partial method 'Private Sub Goo6([x As Integer = 1])'.
+            Sub Goo6(Optional ByVal x As Integer = 2)
                 ~~~~
                                   ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -2802,16 +2823,16 @@ BC37203: Optional parameter of a method 'Public Sub Foo6([x As Integer = 2])' do
     <compilation name="OverloadWithDefault2">
         <file name="a.vb"><![CDATA[
         Public Class Cls30305
-            Partial Private Sub Foo6(ParamArray x() As Integer)
+            Partial Private Sub Goo6(ParamArray x() As Integer)
             End Sub
-            Private Sub Foo6(x() As Integer)
+            Private Sub Goo6(x() As Integer)
             End Sub
         End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC37204: Parameter of a method 'Private Sub Foo6(x As Integer())' differs by ParamArray modifier from the corresponding parameter of the partial method 'Private Sub Foo6(ParamArray x As Integer())'.
-            Private Sub Foo6(x() As Integer)
+BC37204: Parameter of a method 'Private Sub Goo6(x As Integer())' differs by ParamArray modifier from the corresponding parameter of the partial method 'Private Sub Goo6(ParamArray x As Integer())'.
+            Private Sub Goo6(x() As Integer)
                         ~~~~
                                   ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -2823,16 +2844,16 @@ BC37204: Parameter of a method 'Private Sub Foo6(x As Integer())' differs by Par
     <compilation name="OverloadWithDefault2">
         <file name="a.vb"><![CDATA[
         Public Class Cls30305
-            Partial Private Sub Foo6(x() As Integer)
+            Partial Private Sub Goo6(x() As Integer)
             End Sub
-            Private Sub Foo6(ParamArray x() As Integer)
+            Private Sub Goo6(ParamArray x() As Integer)
             End Sub
         End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC37204: Parameter of a method 'Private Sub Foo6(ParamArray x As Integer())' differs by ParamArray modifier from the corresponding parameter of the partial method 'Private Sub Foo6(x As Integer())'.
-            Private Sub Foo6(ParamArray x() As Integer)
+BC37204: Parameter of a method 'Private Sub Goo6(ParamArray x As Integer())' differs by ParamArray modifier from the corresponding parameter of the partial method 'Private Sub Goo6(x As Integer())'.
+            Private Sub Goo6(ParamArray x() As Integer)
                         ~~~~
                                   ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -2852,13 +2873,13 @@ BC37204: Parameter of a method 'Private Sub Foo6(ParamArray x As Integer())' dif
     <compilation name="OverloadWithDefault2">
         <file name="a.vb"><![CDATA[
         Public Class Cls30305
-            Partial Private Sub Foo6(<System.ParamArray()> x() As Integer)
+            Partial Private Sub Goo6(<System.ParamArray()> x() As Integer)
             End Sub
-            Private Sub Foo6(x() As Integer)
+            Private Sub Goo6(x() As Integer)
             End Sub
 
             Sub Use()
-                Foo6()
+                Goo6()
             End Sub
         End Class
         ]]></file>
@@ -2867,11 +2888,11 @@ BC37204: Parameter of a method 'Private Sub Foo6(ParamArray x As Integer())' dif
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim Cls30305 = m.GlobalNamespace.GetTypeMember("Cls30305")
-                                                  Dim Foo6 = Cls30305.GetMember(Of MethodSymbol)("Foo6")
-                                                  Dim FooParam = Foo6.Parameters(0)
-                                                  Assert.Equal(0, FooParam.GetAttributes().Length)
-                                                  Assert.True(FooParam.IsParamArray)
-                                                  AssertHasExactlyOneParamArrayAttribute(m, FooParam)
+                                                  Dim Goo6 = Cls30305.GetMember(Of MethodSymbol)("Goo6")
+                                                  Dim GooParam = Goo6.Parameters(0)
+                                                  Assert.Equal(0, GooParam.GetAttributes().Length)
+                                                  Assert.True(GooParam.IsParamArray)
+                                                  AssertHasExactlyOneParamArrayAttribute(m, GooParam)
                                               End Sub)
         End Sub
 
@@ -2881,13 +2902,13 @@ BC37204: Parameter of a method 'Private Sub Foo6(ParamArray x As Integer())' dif
     <compilation name="OverloadWithDefault2">
         <file name="a.vb"><![CDATA[
         Public Class Cls30305
-            Partial Private Sub Foo6(x() As Integer)
+            Partial Private Sub Goo6(x() As Integer)
             End Sub
-            Private Sub Foo6(<System.ParamArray()> x() As Integer)
+            Private Sub Goo6(<System.ParamArray()> x() As Integer)
             End Sub
 
             Sub Use()
-                Foo6()
+                Goo6()
             End Sub
         End Class
         ]]></file>
@@ -2896,11 +2917,11 @@ BC37204: Parameter of a method 'Private Sub Foo6(ParamArray x As Integer())' dif
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim Cls30305 = m.GlobalNamespace.GetTypeMember("Cls30305")
-                                                  Dim Foo6 = Cls30305.GetMember(Of MethodSymbol)("Foo6")
-                                                  Dim FooParam = Foo6.Parameters(0)
-                                                  Assert.Equal(0, FooParam.GetAttributes().Length)
-                                                  Assert.True(FooParam.IsParamArray)
-                                                  AssertHasExactlyOneParamArrayAttribute(m, FooParam)
+                                                  Dim Goo6 = Cls30305.GetMember(Of MethodSymbol)("Goo6")
+                                                  Dim GooParam = Goo6.Parameters(0)
+                                                  Assert.Equal(0, GooParam.GetAttributes().Length)
+                                                  Assert.True(GooParam.IsParamArray)
+                                                  AssertHasExactlyOneParamArrayAttribute(m, GooParam)
                                               End Sub)
         End Sub
 
@@ -2910,13 +2931,13 @@ BC37204: Parameter of a method 'Private Sub Foo6(ParamArray x As Integer())' dif
     <compilation name="OverloadWithDefault2">
         <file name="a.vb"><![CDATA[
         Public Class Cls30305
-            Partial Private Sub Foo6(ParamArray x() As Integer)
+            Partial Private Sub Goo6(ParamArray x() As Integer)
             End Sub
-            Private Sub Foo6(<System.ParamArray()> x() As Integer)
+            Private Sub Goo6(<System.ParamArray()> x() As Integer)
             End Sub
 
             Sub Use()
-                Foo6()
+                Goo6()
             End Sub
         End Class
         ]]></file>
@@ -2925,11 +2946,11 @@ BC37204: Parameter of a method 'Private Sub Foo6(ParamArray x As Integer())' dif
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim Cls30305 = m.GlobalNamespace.GetTypeMember("Cls30305")
-                                                  Dim Foo6 = Cls30305.GetMember(Of MethodSymbol)("Foo6")
-                                                  Dim FooParam = Foo6.Parameters(0)
-                                                  Assert.Equal(0, FooParam.GetAttributes().Length)
-                                                  Assert.True(FooParam.IsParamArray)
-                                                  AssertHasExactlyOneParamArrayAttribute(m, FooParam)
+                                                  Dim Goo6 = Cls30305.GetMember(Of MethodSymbol)("Goo6")
+                                                  Dim GooParam = Goo6.Parameters(0)
+                                                  Assert.Equal(0, GooParam.GetAttributes().Length)
+                                                  Assert.True(GooParam.IsParamArray)
+                                                  AssertHasExactlyOneParamArrayAttribute(m, GooParam)
                                               End Sub)
         End Sub
 
@@ -2939,13 +2960,13 @@ BC37204: Parameter of a method 'Private Sub Foo6(ParamArray x As Integer())' dif
     <compilation name="OverloadWithDefault2">
         <file name="a.vb"><![CDATA[
         Public Class Cls30305
-            Partial Private Sub Foo6(<System.ParamArray()> x() As Integer)
+            Partial Private Sub Goo6(<System.ParamArray()> x() As Integer)
             End Sub
-            Private Sub Foo6(ParamArray x() As Integer)
+            Private Sub Goo6(ParamArray x() As Integer)
             End Sub
 
             Sub Use()
-                Foo6()
+                Goo6()
             End Sub
         End Class
         ]]></file>
@@ -2954,11 +2975,11 @@ BC37204: Parameter of a method 'Private Sub Foo6(ParamArray x As Integer())' dif
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim Cls30305 = m.GlobalNamespace.GetTypeMember("Cls30305")
-                                                  Dim Foo6 = Cls30305.GetMember(Of MethodSymbol)("Foo6")
-                                                  Dim FooParam = Foo6.Parameters(0)
-                                                  Assert.Equal(0, FooParam.GetAttributes().Length)
-                                                  Assert.True(FooParam.IsParamArray)
-                                                  AssertHasExactlyOneParamArrayAttribute(m, FooParam)
+                                                  Dim Goo6 = Cls30305.GetMember(Of MethodSymbol)("Goo6")
+                                                  Dim GooParam = Goo6.Parameters(0)
+                                                  Assert.Equal(0, GooParam.GetAttributes().Length)
+                                                  Assert.True(GooParam.IsParamArray)
+                                                  AssertHasExactlyOneParamArrayAttribute(m, GooParam)
                                               End Sub)
         End Sub
 
@@ -2968,16 +2989,16 @@ BC37204: Parameter of a method 'Private Sub Foo6(ParamArray x As Integer())' dif
     <compilation name="OverloadWithDefault2">
         <file name="a.vb"><![CDATA[
         Public Class Cls30305
-            Partial Private Sub Foo6(<System.ParamArray()> x() As Integer)
+            Partial Private Sub Goo6(<System.ParamArray()> x() As Integer)
             End Sub
-            Private Sub Foo6(<System.ParamArray()> x() As Integer)
+            Private Sub Goo6(<System.ParamArray()> x() As Integer)
             End Sub
         End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC30663: Attribute 'ParamArrayAttribute' cannot be applied multiple times.
-            Private Sub Foo6(<System.ParamArray()> x() As Integer)
+            Private Sub Goo6(<System.ParamArray()> x() As Integer)
                               ~~~~~~~~~~~~~~~~~~~
                                   ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -2989,13 +3010,13 @@ BC30663: Attribute 'ParamArrayAttribute' cannot be applied multiple times.
     <compilation name="OverloadWithDefault2">
         <file name="a.vb"><![CDATA[
         Public Class Cls30305
-            Partial Private Sub Foo6(ParamArray x() As Integer)
+            Partial Private Sub Goo6(ParamArray x() As Integer)
             End Sub
-            Private Sub Foo6(ParamArray x() As Integer)
+            Private Sub Goo6(ParamArray x() As Integer)
             End Sub
 
             Sub Use()
-                Foo6()
+                Goo6()
             End Sub
         End Class
         ]]></file>
@@ -3004,11 +3025,11 @@ BC30663: Attribute 'ParamArrayAttribute' cannot be applied multiple times.
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim Cls30305 = m.GlobalNamespace.GetTypeMember("Cls30305")
-                                                  Dim Foo6 = Cls30305.GetMember(Of MethodSymbol)("Foo6")
-                                                  Dim FooParam = Foo6.Parameters(0)
-                                                  Assert.Equal(0, FooParam.GetAttributes().Length)
-                                                  Assert.True(FooParam.IsParamArray)
-                                                  AssertHasExactlyOneParamArrayAttribute(m, FooParam)
+                                                  Dim Goo6 = Cls30305.GetMember(Of MethodSymbol)("Goo6")
+                                                  Dim GooParam = Goo6.Parameters(0)
+                                                  Assert.Equal(0, GooParam.GetAttributes().Length)
+                                                  Assert.True(GooParam.IsParamArray)
+                                                  AssertHasExactlyOneParamArrayAttribute(m, GooParam)
                                               End Sub)
         End Sub
 
@@ -3018,13 +3039,13 @@ BC30663: Attribute 'ParamArrayAttribute' cannot be applied multiple times.
     <compilation name="OverloadWithDefault2">
         <file name="a.vb"><![CDATA[
         Public Class Cls30305
-            Partial Private Sub Foo6(x() As Integer)
+            Partial Private Sub Goo6(x() As Integer)
             End Sub
-            Private Sub Foo6(x() As Integer)
+            Private Sub Goo6(x() As Integer)
             End Sub
 
             Sub Use()
-                Foo6(Nothing)
+                Goo6(Nothing)
             End Sub
         End Class
         ]]></file>
@@ -3033,10 +3054,10 @@ BC30663: Attribute 'ParamArrayAttribute' cannot be applied multiple times.
             CompileAndVerify(compilation1,
                              symbolValidator:=Sub(m As ModuleSymbol)
                                                   Dim Cls30305 = m.GlobalNamespace.GetTypeMember("Cls30305")
-                                                  Dim Foo6 = Cls30305.GetMember(Of MethodSymbol)("Foo6")
-                                                  Dim FooParam = Foo6.Parameters(0)
-                                                  Assert.Equal(0, FooParam.GetAttributes().Length)
-                                                  Assert.False(FooParam.IsParamArray)
+                                                  Dim Goo6 = Cls30305.GetMember(Of MethodSymbol)("Goo6")
+                                                  Dim GooParam = Goo6.Parameters(0)
+                                                  Assert.Equal(0, GooParam.GetAttributes().Length)
+                                                  Assert.False(GooParam.IsParamArray)
                                               End Sub)
         End Sub
 
@@ -3143,15 +3164,15 @@ BC30308: 'Public Overrides Function Scen4(x As Integer) As Object' cannot overri
     <compilation name="OverloadWithByref2">
         <file name="a.vb"><![CDATA[
         Public Class Cls30345
-            Public overloads Sub Foo1(ByVal x as Integer) ' 1
+            Public overloads Sub Goo1(ByVal x as Integer) ' 1
             End Sub
-            Public overloads Sub Foo1(ByRef x as Integer) ' 2
+            Public overloads Sub Goo1(ByRef x as Integer) ' 2
             End Sub
 
-            Public overloads Function Foo2(ByVal x as Integer) as Integer' 1
+            Public overloads Function Goo2(ByVal x as Integer) as Integer' 1
               return 1
             End Function
-            Public overloads Function Foo2(ByRef x as Integer) as Decimal' 2
+            Public overloads Function Goo2(ByRef x as Integer) as Decimal' 2
               return 2.2
             End Function
 
@@ -3161,14 +3182,14 @@ BC30308: 'Public Overrides Function Scen4(x As Integer) As Object' cannot overri
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30345: 'Public Overloads Sub Foo1(x As Integer)' and 'Public Overloads Sub Foo1(ByRef x As Integer)' cannot overload each other because they differ only by parameters declared 'ByRef' or 'ByVal'.
-            Public overloads Sub Foo1(ByVal x as Integer) ' 1
+BC30345: 'Public Overloads Sub Goo1(x As Integer)' and 'Public Overloads Sub Goo1(ByRef x As Integer)' cannot overload each other because they differ only by parameters declared 'ByRef' or 'ByVal'.
+            Public overloads Sub Goo1(ByVal x as Integer) ' 1
                                  ~~~~
-BC30301: 'Public Overloads Function Foo2(x As Integer) As Integer' and 'Public Overloads Function Foo2(ByRef x As Integer) As Decimal' cannot overload each other because they differ only by return types.
-            Public overloads Function Foo2(ByVal x as Integer) as Integer' 1
+BC30301: 'Public Overloads Function Goo2(x As Integer) As Integer' and 'Public Overloads Function Goo2(ByRef x As Integer) As Decimal' cannot overload each other because they differ only by return types.
+            Public overloads Function Goo2(ByVal x as Integer) as Integer' 1
                                       ~~~~
-BC30345: 'Public Overloads Function Foo2(x As Integer) As Integer' and 'Public Overloads Function Foo2(ByRef x As Integer) As Decimal' cannot overload each other because they differ only by parameters declared 'ByRef' or 'ByVal'.
-            Public overloads Function Foo2(ByVal x as Integer) as Integer' 1
+BC30345: 'Public Overloads Function Goo2(x As Integer) As Integer' and 'Public Overloads Function Goo2(ByRef x As Integer) As Decimal' cannot overload each other because they differ only by parameters declared 'ByRef' or 'ByVal'.
+            Public overloads Function Goo2(ByVal x as Integer) as Integer' 1
                                       ~~~~
      ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -3180,17 +3201,17 @@ BC30345: 'Public Overloads Function Foo2(x As Integer) As Integer' and 'Public O
     <compilation name="OverloadWithByref2">
         <file name="a.vb"><![CDATA[
         Public Class Cls30345
-            'COMPILEERROR: BC30345, "Foo"
-            Partial Private Sub Foo(Optional ByVal x As Integer = 2)
+            'COMPILEERROR: BC30345, "Goo"
+            Partial Private Sub Goo(Optional ByVal x As Integer = 2)
             End Sub
-            Sub Foo(Optional ByRef x As Integer = 2)
+            Sub Goo(Optional ByRef x As Integer = 2)
             End Sub
         End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30345: 'Private Sub Foo([x As Integer = 2])' and 'Public Sub Foo([ByRef x As Integer = 2])' cannot overload each other because they differ only by parameters declared 'ByRef' or 'ByVal'.
-            Partial Private Sub Foo(Optional ByVal x As Integer = 2)
+BC30345: 'Private Sub Goo([x As Integer = 2])' and 'Public Sub Goo([ByRef x As Integer = 2])' cannot overload each other because they differ only by parameters declared 'ByRef' or 'ByVal'.
+            Partial Private Sub Goo(Optional ByVal x As Integer = 2)
                                 ~~~                                      
                                   ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -3675,16 +3696,16 @@ BC30366: 'Public WriteOnly Property P2 As T' and 'Public ReadOnly Property P2 As
     <compilation name="OverloadWithArrayVsParamArray2">
         <file name="a.vb"><![CDATA[
         Class Cls30368_1(Of T)
-            Sub foo(ByVal p() As String)
+            Sub goo(ByVal p() As String)
             End Sub
-            Sub foo(ByVal ParamArray v() As String)
+            Sub goo(ByVal ParamArray v() As String)
             End Sub
         End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30368: 'Public Sub foo(p As String())' and 'Public Sub foo(ParamArray v As String())' cannot overload each other because they differ only by parameters declared 'ParamArray'.
-            Sub foo(ByVal p() As String)
+BC30368: 'Public Sub goo(p As String())' and 'Public Sub goo(ParamArray v As String())' cannot overload each other because they differ only by parameters declared 'ParamArray'.
+            Sub goo(ByVal p() As String)
                 ~~~
      ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -3696,36 +3717,36 @@ BC30368: 'Public Sub foo(p As String())' and 'Public Sub foo(ParamArray v As Str
     <compilation name="OverloadWithArrayVsParamArray2">
         <file name="a.vb"><![CDATA[
         Class Cls30368_1(Of T)
-            Sub foo(ByVal p() As String)
+            Sub goo(ByVal p() As String)
             End Sub
-            Sub foo(ByVal ParamArray v() As String)
+            Sub goo(ByVal ParamArray v() As String)
             End Sub
         End Class
         Class Cls30368(Of T)
-            Overloads Property Foo1(ByVal x()) As String
+            Overloads Property Goo1(ByVal x()) As String
                 Get
-                    Foo1 = "get: VariantArray"
+                    Goo1 = "get: VariantArray"
                 End Get
                 Set(ByVal Value As String)
                 End Set
             End Property
-            Overloads Property Foo1(ByVal ParamArray x()) As String
+            Overloads Property Goo1(ByVal ParamArray x()) As String
                 Get
-                    Foo1 = "get: ParamArray"
+                    Goo1 = "get: ParamArray"
                 End Get
                 Set(ByVal Value As String)
                 End Set
             End Property
-            Overloads Property Foo2(ByVal x()) As String
+            Overloads Property Goo2(ByVal x()) As String
                 Get
-                    Foo2 = "get: FixedArray"
+                    Goo2 = "get: FixedArray"
                 End Get
                 Set(ByVal Value As String)
                 End Set
             End Property
-            Overloads Property Foo2(ByVal ParamArray x()) As String
+            Overloads Property Goo2(ByVal ParamArray x()) As String
                 Get
-                    Foo2 = "get: ParamArray"
+                    Goo2 = "get: ParamArray"
                 End Get
                 Set(ByVal Value As String)
                 End Set
@@ -3734,14 +3755,14 @@ BC30368: 'Public Sub foo(p As String())' and 'Public Sub foo(ParamArray v As Str
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30368: 'Public Sub foo(p As String())' and 'Public Sub foo(ParamArray v As String())' cannot overload each other because they differ only by parameters declared 'ParamArray'.
-            Sub foo(ByVal p() As String)
+BC30368: 'Public Sub goo(p As String())' and 'Public Sub goo(ParamArray v As String())' cannot overload each other because they differ only by parameters declared 'ParamArray'.
+            Sub goo(ByVal p() As String)
                 ~~~
-BC30368: 'Public Overloads Property Foo1(x As Object()) As String' and 'Public Overloads Property Foo1(ParamArray x As Object()) As String' cannot overload each other because they differ only by parameters declared 'ParamArray'.
-            Overloads Property Foo1(ByVal x()) As String
+BC30368: 'Public Overloads Property Goo1(x As Object()) As String' and 'Public Overloads Property Goo1(ParamArray x As Object()) As String' cannot overload each other because they differ only by parameters declared 'ParamArray'.
+            Overloads Property Goo1(ByVal x()) As String
                                ~~~~
-BC30368: 'Public Overloads Property Foo2(x As Object()) As String' and 'Public Overloads Property Foo2(ParamArray x As Object()) As String' cannot overload each other because they differ only by parameters declared 'ParamArray'.
-            Overloads Property Foo2(ByVal x()) As String
+BC30368: 'Public Overloads Property Goo2(x As Object()) As String' and 'Public Overloads Property Goo2(ParamArray x As Object()) As String' cannot overload each other because they differ only by parameters declared 'ParamArray'.
+            Overloads Property Goo2(ByVal x()) As String
                                ~~~~
      ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -3792,7 +3813,7 @@ BC30371: Module 'M3' cannot be used as a type.
         <file name="a.vb"><![CDATA[
             Module M1
                 Class C1
-                    Function foo As M1
+                    Function goo As M1
                         Return Nothing
                     End Function
                 End Class
@@ -3801,7 +3822,7 @@ BC30371: Module 'M3' cannot be used as a type.
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC30371: Module 'M1' cannot be used as a type.
-                    Function foo As M1
+                    Function goo As M1
                                     ~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -4674,7 +4695,7 @@ Option strict on
 imports system
 
 Class C1
-    Sub FOO()
+    Sub GOO()
         'COMPILEERROR: BC30438
         Const l6 As UInt16
         Const l7 as new UInt16
@@ -4854,11 +4875,11 @@ BC30461: Classes cannot be declared 'Narrowing'.
         Imports ns1.Intfc2(Of String)
         Namespace ns1
             Public Interface Intfc1
-                Sub Intfc1foo()
+                Sub Intfc1goo()
             End Interface
             Public Interface Intfc2(Of t)
                 Inherits Intfc1
-                Sub intfc2foo()
+                Sub intfc2goo()
             End Interface
         End Namespace
         ]]></file>
@@ -4907,7 +4928,7 @@ BC30468: Type declaration characters are not valid in this context.
         <file name="a.vb"><![CDATA[
         Public Class Class1
             Class Class2
-                Event Foo()
+                Event Goo()
             End Class
             'COMPILEERROR: BC30591, "h(3)",BC30476, "Class2"
             Dim WithEvents h(3) As Class2
@@ -5227,7 +5248,7 @@ BC30505: Methods or events that implement interface members cannot be declared '
                 Sub scenario1() Handles clsEventError1.Event1
                 End Sub
                 'COMPILEERROR: BC30506, "I1"
-                Sub scenario2() Handles I1.foo
+                Sub scenario2() Handles I1.goo
                 End Sub
                 'COMPILEERROR: BC30506, "button1"
                 Sub scenario3() Handles button1.click
@@ -5240,7 +5261,7 @@ BC30506: Handles clause requires a WithEvents variable defined in the containing
                 Sub scenario1() Handles clsEventError1.Event1
                                         ~~~~~~~~~~~~~~
 BC30506: Handles clause requires a WithEvents variable defined in the containing type or one of its base types.
-                Sub scenario2() Handles I1.foo
+                Sub scenario2() Handles I1.goo
                                         ~~
 BC30506: Handles clause requires a WithEvents variable defined in the containing type or one of its base types.
                 Sub scenario3() Handles button1.click
@@ -5299,19 +5320,19 @@ Class HasWithEventsDerived
 
     Property WE3 As Integer
 
-    Shared Sub foo0() Handles WE0.E1
+    Shared Sub goo0() Handles WE0.E1
         Console.WriteLine("handled2")
     End Sub
 
-    Shared Sub foo1() Handles WE1.E1
+    Shared Sub goo1() Handles WE1.E1
         Console.WriteLine("handled2")
     End Sub
 
-    Shared Sub foo2() Handles WE2.E2
+    Shared Sub goo2() Handles WE2.E2
         Console.WriteLine("handled2")
     End Sub
 
-    Shared Sub foo3() Handles WE3.E3
+    Shared Sub goo3() Handles WE3.E3
         Console.WriteLine("handled2")
     End Sub
 End Class
@@ -5340,16 +5361,16 @@ BC40012: property 'WE3' implicitly declares '_WE3', which conflicts with a membe
     Property WE3 As Integer
              ~~~
 BC30506: Handles clause requires a WithEvents variable defined in the containing type or one of its base types.
-    Shared Sub foo0() Handles WE0.E1
+    Shared Sub goo0() Handles WE0.E1
                               ~~~
 BC30506: Handles clause requires a WithEvents variable defined in the containing type or one of its base types.
-    Shared Sub foo1() Handles WE1.E1
+    Shared Sub goo1() Handles WE1.E1
                               ~~~
 BC30506: Handles clause requires a WithEvents variable defined in the containing type or one of its base types.
-    Shared Sub foo2() Handles WE2.E2
+    Shared Sub goo2() Handles WE2.E2
                               ~~~
 BC30506: Handles clause requires a WithEvents variable defined in the containing type or one of its base types.
-    Shared Sub foo3() Handles WE3.E3
+    Shared Sub goo3() Handles WE3.E3
                               ~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -5438,22 +5459,22 @@ Namespace Project1
     Class Sink
 
         Public WithEvents x As OuterClass
-        Sub foo1() Handles x.SomePropertyWrongValue.MyEvent
+        Sub goo1() Handles x.SomePropertyWrongValue.MyEvent
 
             Console.Write("Handled Event On SubObject!")
         End Sub
 
-        Sub foo2() Handles x.SomePropertyNoAttribute.MyEvent
+        Sub goo2() Handles x.SomePropertyNoAttribute.MyEvent
 
             Console.Write("Handled Event On SubObject!")
         End Sub
 
-        Sub foo3() Handles x.SomePropertyWriteonly.MyEvent
+        Sub goo3() Handles x.SomePropertyWriteonly.MyEvent
 
             Console.Write("Handled Event On SubObject!")
         End Sub
 
-        Sub foo4() Handles x.SomePropertyInBase.MyEvent
+        Sub goo4() Handles x.SomePropertyInBase.MyEvent
 
             Console.Write("Handled Event On SubObject!")
         End Sub
@@ -5471,16 +5492,16 @@ End Namespace
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC31412: 'Handles' in classes must specify a 'WithEvents' variable, 'MyBase', 'MyClass' or 'Me' qualified with a single identifier.
-        Sub foo1() Handles x.SomePropertyWrongValue.MyEvent
+        Sub goo1() Handles x.SomePropertyWrongValue.MyEvent
                            ~~~~~~~~~~~~~~~~~~~~~~~~
 BC31412: 'Handles' in classes must specify a 'WithEvents' variable, 'MyBase', 'MyClass' or 'Me' qualified with a single identifier.
-        Sub foo2() Handles x.SomePropertyNoAttribute.MyEvent
+        Sub goo2() Handles x.SomePropertyNoAttribute.MyEvent
                            ~~~~~~~~~~~~~~~~~~~~~~~~~
 BC31412: 'Handles' in classes must specify a 'WithEvents' variable, 'MyBase', 'MyClass' or 'Me' qualified with a single identifier.
-        Sub foo3() Handles x.SomePropertyWriteonly.MyEvent
+        Sub goo3() Handles x.SomePropertyWriteonly.MyEvent
                            ~~~~~~~~~~~~~~~~~~~~~~~
 BC31412: 'Handles' in classes must specify a 'WithEvents' variable, 'MyBase', 'MyClass' or 'Me' qualified with a single identifier.
-        Sub foo4() Handles x.SomePropertyInBase.MyEvent
+        Sub goo4() Handles x.SomePropertyInBase.MyEvent
                            ~~~~~~~~~~~~~~~~~~~~
 ]]></errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
@@ -5517,19 +5538,19 @@ Class HasWithEventsDerived
     ' no warnings
     Public Shadows WithEvents WE3 As HasEvents
 
-    Shared Sub foo0() Handles WE0.E1
+    Shared Sub goo0() Handles WE0.E1
         Console.WriteLine("handled2")
     End Sub
 
-    Shared Sub foo1() Handles WE1.E1
+    Shared Sub goo1() Handles WE1.E1
         Console.WriteLine("handled2")
     End Sub
 
-    Shared Sub foo2() Handles WE2.E1
+    Shared Sub goo2() Handles WE2.E1
         Console.WriteLine("handled2")
     End Sub
 
-    Shared Sub foo3() Handles WE3.E1
+    Shared Sub goo3() Handles WE3.E1
         Console.WriteLine("handled2")
     End Sub
 End Class
@@ -5850,17 +5871,17 @@ BC30509: 'C5' cannot inherit from class 'Module1.C3.C4' because it expands the a
     <compilation name="ParamTypingInconsistency">
         <file name="a.vb"><![CDATA[
           class M1
-                Sub Foo(ByVal [a], ByRef [continue], ByVal c As Single)
+                Sub Goo(ByVal [a], ByRef [continue], ByVal c As Single)
                 End Sub
             End class  
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC30529: All parameters must be explicitly typed if any of them are explicitly typed.
-                Sub Foo(ByVal [a], ByRef [continue], ByVal c As Single)
+                Sub Goo(ByVal [a], ByRef [continue], ByVal c As Single)
                               ~~~
 BC30529: All parameters must be explicitly typed if any of them are explicitly typed.
-                Sub Foo(ByVal [a], ByRef [continue], ByVal c As Single)
+                Sub Goo(ByVal [a], ByRef [continue], ByVal c As Single)
                                          ~~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -5872,20 +5893,20 @@ BC30529: All parameters must be explicitly typed if any of them are explicitly t
     <compilation>
         <file name="a.vb"><![CDATA[
           class M1
-                Function Foo(Of Foo)(ByVal Foo As Foo)
+                Function Goo(Of Goo)(ByVal Goo As Goo)
                 End Function
           End class  
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC32090: Type parameter cannot have the same name as its defining function.
-                Function Foo(Of Foo)(ByVal Foo As Foo)
+                Function Goo(Of Goo)(ByVal Goo As Goo)
                                 ~~~
 BC30530: Parameter cannot have the same name as its defining function.
-                Function Foo(Of Foo)(ByVal Foo As Foo)
+                Function Goo(Of Goo)(ByVal Goo As Goo)
                                            ~~~
-BC32089: 'Foo' is already declared as a type parameter of this method.
-                Function Foo(Of Foo)(ByVal Foo As Foo)
+BC32089: 'Goo' is already declared as a type parameter of this method.
+                Function Goo(Of Goo)(ByVal Goo As Goo)
                                            ~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -6106,7 +6127,7 @@ BC30573: Error in project-level import '<xmlns="default2">' at '<xmlns="default2
         <file name="a.vb"><![CDATA[
             Namespace NS1
                 Interface i1
-                    Sub foo()
+                    Sub goo()
                 End Interface
                 Interface i2
                     Inherits i1
@@ -6116,20 +6137,20 @@ BC30573: Error in project-level import '<xmlns="default2">' at '<xmlns="default2
                 End Interface
                 Class cls1
                     Implements i2, i3
-                    Sub i2foo() Implements i2.foo
-                        Console.WriteLine("in i1, foo")
+                    Sub i2goo() Implements i2.goo
+                        Console.WriteLine("in i1, goo")
                     End Sub
-                    'COMPILEERROR: BC30583, "i3.foo"
-                    Sub i3foo() Implements i3.foo
-                        Console.WriteLine("in i3, foo")
+                    'COMPILEERROR: BC30583, "i3.goo"
+                    Sub i3goo() Implements i3.goo
+                        Console.WriteLine("in i3, goo")
                     End Sub
                 End Class
             End Namespace
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30583: 'i1.foo' cannot be implemented more than once.
-                    Sub i3foo() Implements i3.foo
+BC30583: 'i1.goo' cannot be implemented more than once.
+                    Sub i3goo() Implements i3.goo
                                            ~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -6346,8 +6367,8 @@ Class Test
     End Class
 
     Partial Class C
-        'COMPILEERROR: BC30927, "foo"
-        MustOverride Function foo() As Integer
+        'COMPILEERROR: BC30927, "goo"
+        MustOverride Function goo() As Integer
     End Class
 
 End Class
@@ -6471,8 +6492,8 @@ BC30607: 'NotInheritable' classes cannot have members declared 'NotOverridable'.
     <compilation name="BaseOnlyClassesMustBeExplicit2">
         <file name="a.vb"><![CDATA[
            MustInherit Class Cls1
-                MustOverride Sub Foo(ByVal Arg As Integer)
-                MustOverride Sub Foo(ByVal Arg As Double)
+                MustOverride Sub Goo(ByVal Arg As Integer)
+                MustOverride Sub Goo(ByVal Arg As Double)
             End Class
             'COMPILEERROR: BC30610, "cls2"
             Class cls2
@@ -6482,8 +6503,8 @@ BC30607: 'NotInheritable' classes cannot have members declared 'NotOverridable'.
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC30610: Class 'cls2' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
-    Cls1: Public MustOverride Sub Foo(Arg As Integer)
-    Cls1: Public MustOverride Sub Foo(Arg As Double).
+    Cls1: Public MustOverride Sub Goo(Arg As Integer)
+    Cls1: Public MustOverride Sub Goo(Arg As Double).
             Class cls2
                   ~~~~
                  ]]></errors>
@@ -6497,8 +6518,8 @@ BC30610: Class 'cls2' must either be declared 'MustInherit' or override the foll
     <compilation name="BaseOnlyClassesMustBeExplicit2">
         <file name="a.vb"><![CDATA[
            MustInherit Class Cls1
-                MustOverride Sub Foo(ByVal Arg As Integer)
-                MustOverride Sub Foo(ByVal Arg As Double)
+                MustOverride Sub Goo(ByVal Arg As Integer)
+                MustOverride Sub Goo(ByVal Arg As Double)
             End Class
             'COMPILEERROR: BC30610, "cls2"
             Class cls2
@@ -6508,8 +6529,8 @@ BC30610: Class 'cls2' must either be declared 'MustInherit' or override the foll
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC30610: Class 'cls2' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
-    Cls1: Public MustOverride Sub Foo(Arg As Integer)
-    Cls1: Public MustOverride Sub Foo(Arg As Double).
+    Cls1: Public MustOverride Sub Goo(Arg As Integer)
+    Cls1: Public MustOverride Sub Goo(Arg As Double).
             Class cls2
                   ~~~~
                  ]]></errors>
@@ -6917,7 +6938,7 @@ Public Class MyAttribute
     End Sub
 End Class
 
-Public Class Foo
+Public Class Goo
     Public Function SSS() As Byte
         <My(12345)> Dim x As Byte = 1
         Return x
@@ -7374,13 +7395,13 @@ BC30683: 'Inherits' statement must precede all declarations in a class.
     <compilation name="InterfaceEventCantUse1">
         <file name="a.vb"><![CDATA[
            Interface I 
-                Event Foo() Implements I.Foo
+                Event Goo() Implements I.Goo
             End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC30688: Events in interfaces cannot be declared 'Implements'.
-                Event Foo() Implements I.Foo
+                Event Goo() Implements I.Goo
                             ~~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -7392,43 +7413,43 @@ BC30688: Events in interfaces cannot be declared 'Implements'.
     <compilation name="MustShadow2">
         <file name="a.vb"><![CDATA[
            Class c1
-                'COMPILEERROR: BC30695, "foo", 
-                Sub foo()
+                'COMPILEERROR: BC30695, "goo", 
+                Sub goo()
                 End Sub
-                Shadows Function foo(ByVal i As Integer) As Integer
+                Shadows Function goo(ByVal i As Integer) As Integer
                 End Function
             End Class
             Class c2_1
-                Public foo As Integer
+                Public goo As Integer
             End Class
             Class c2_2
                 Inherits c2_1
-                Shadows Sub foo()
+                Shadows Sub goo()
                 End Sub
-                'COMPILEERROR: BC30695,"foo"
-                Sub foo(ByVal c As Char)
+                'COMPILEERROR: BC30695,"goo"
+                Sub goo(ByVal c As Char)
                 End Sub
-                'COMPILEERROR: BC30695,"foo"
-                Sub foo(ByVal d As Double)
+                'COMPILEERROR: BC30695,"goo"
+                Sub goo(ByVal d As Double)
                 End Sub
             End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30695: sub 'foo' must be declared 'Shadows' because another member with this name is declared 'Shadows'.
-                Sub foo()
+BC30695: sub 'goo' must be declared 'Shadows' because another member with this name is declared 'Shadows'.
+                Sub goo()
                     ~~~
-BC30695: sub 'foo' must be declared 'Shadows' because another member with this name is declared 'Shadows'.
-                Sub foo(ByVal c As Char)
+BC30695: sub 'goo' must be declared 'Shadows' because another member with this name is declared 'Shadows'.
+                Sub goo(ByVal c As Char)
                     ~~~
-BC40004: sub 'foo' conflicts with variable 'foo' in the base class 'c2_1' and should be declared 'Shadows'.
-                Sub foo(ByVal c As Char)
+BC40004: sub 'goo' conflicts with variable 'goo' in the base class 'c2_1' and should be declared 'Shadows'.
+                Sub goo(ByVal c As Char)
                     ~~~
-BC30695: sub 'foo' must be declared 'Shadows' because another member with this name is declared 'Shadows'.
-                Sub foo(ByVal d As Double)
+BC30695: sub 'goo' must be declared 'Shadows' because another member with this name is declared 'Shadows'.
+                Sub goo(ByVal d As Double)
                     ~~~
-BC40004: sub 'foo' conflicts with variable 'foo' in the base class 'c2_1' and should be declared 'Shadows'.
-                Sub foo(ByVal d As Double)
+BC40004: sub 'goo' conflicts with variable 'goo' in the base class 'c2_1' and should be declared 'Shadows'.
+                Sub goo(ByVal d As Double)
                     ~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -7495,29 +7516,29 @@ BC31086: 'Public Overrides Sub Method(x As Integer)' cannot override 'Public Sub
     <compilation name="OverloadWithOptionalTypes2">
         <file name="a.vb"><![CDATA[
            Class Cla30696
-                'COMPILEERROR: BC30696, "foo"
-                Public Function foo(Optional ByVal arg As ULong = 1)
+                'COMPILEERROR: BC30696, "goo"
+                Public Function goo(Optional ByVal arg As ULong = 1)
                     Return "BC30696"
                 End Function
-                Public Function foo(Optional ByVal arg As Integer = 1)
+                Public Function goo(Optional ByVal arg As Integer = 1)
                     Return "BC30696"
                 End Function
 
-                'COMPILEERROR: BC30696, "foo3"
-                Public Function foo1(ByVal arg As Integer, Optional ByVal arg1 As String = "")
+                'COMPILEERROR: BC30696, "goo3"
+                Public Function goo1(ByVal arg As Integer, Optional ByVal arg1 As String = "")
                     Return "BC30696"
                 End Function
-                Public Function foo1(ByVal arg As Integer, Optional ByVal arg1 As ULong = 1)
+                Public Function goo1(ByVal arg As Integer, Optional ByVal arg1 As ULong = 1)
                     Return "BC30696"
                 End Function
             End Class
             Interface Scen2_1
-                'COMPILEERROR: BC30696, "foo"
-                Function foo(Optional ByVal arg As Object = Nothing)
-                Function foo(Optional ByVal arg As ULong = 1)
-                'COMPILEERROR: BC30696, "foo3"
-                Function foo1(ByVal arg As Integer, Optional ByVal arg1 As Object = Nothing)
-                Function foo1(ByVal arg As Integer, Optional ByVal arg1 As ULong = 1)
+                'COMPILEERROR: BC30696, "goo"
+                Function goo(Optional ByVal arg As Object = Nothing)
+                Function goo(Optional ByVal arg As ULong = 1)
+                'COMPILEERROR: BC30696, "goo3"
+                Function goo1(ByVal arg As Integer, Optional ByVal arg1 As Object = Nothing)
+                Function goo1(ByVal arg As Integer, Optional ByVal arg1 As ULong = 1)
             End Interface
         ]]></file>
     </compilation>)
@@ -7532,19 +7553,19 @@ BC31086: 'Public Overrides Sub Method(x As Integer)' cannot override 'Public Sub
     <compilation name="OverrideWithOptionalTypes2">
         <file name="a.vb"><![CDATA[
             Class Base
-                Public Overridable Sub foo(ByVal x As String, Optional ByVal y As String = "hello")
+                Public Overridable Sub goo(ByVal x As String, Optional ByVal y As String = "hello")
                 End Sub
             End Class
             Class C1
                 Inherits Base
-                Public Overrides Sub foo(ByVal x As String, Optional ByVal y As Integer = 1)
+                Public Overrides Sub goo(ByVal x As String, Optional ByVal y As Integer = 1)
                 End Sub
             End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30697: 'Public Overrides Sub foo(x As String, [y As Integer = 1])' cannot override 'Public Overridable Sub foo(x As String, [y As String = "hello"])' because they differ by the types of optional parameters.
-                Public Overrides Sub foo(ByVal x As String, Optional ByVal y As Integer = 1)
+BC30697: 'Public Overrides Sub goo(x As String, [y As Integer = 1])' cannot override 'Public Overridable Sub goo(x As String, [y As String = "hello"])' because they differ by the types of optional parameters.
+                Public Overrides Sub goo(ByVal x As String, Optional ByVal y As Integer = 1)
                                      ~~~                                      
                                   ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -7557,17 +7578,17 @@ BC30697: 'Public Overrides Sub foo(x As String, [y As Integer = 1])' cannot over
         <file name="a.vb"><![CDATA[
             Public Structure S1
                 Event e()
-                Sub foo() Handles c.e
+                Sub goo() Handles c.e
                 End Sub
             End Structure
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC30728: Methods declared in structures cannot have 'Handles' clauses.
-                Sub foo() Handles c.e
+                Sub goo() Handles c.e
                     ~~~
 BC30506: Handles clause requires a WithEvents variable defined in the containing type or one of its base types.
-                Sub foo() Handles c.e
+                Sub goo() Handles c.e
                                   ~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -7579,19 +7600,19 @@ BC30506: Handles clause requires a WithEvents variable defined in the containing
     <compilation name="OverridesImpliesOverridable">
         <file name="a.vb"><![CDATA[
            Class CBase
-                overridable function foo
+                overridable function goo
                 End function
             End Class
             Class C1
                 Inherits CBase
-                Overrides public Overridable function foo
+                Overrides public Overridable function goo
                 End function
             End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC30730: Methods declared 'Overrides' cannot be declared 'Overridable' because they are implicitly overridable.
-                Overrides public Overridable function foo
+                Overrides public Overridable function goo
                                  ~~~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -7761,7 +7782,7 @@ BC30772: 'NonSerialized' attribute will not have any effect on this member becau
     <compilation name="ModuleCantUseDLLDeclareSpecifier1">
         <file name="a.vb"><![CDATA[
         Module M
-            Protected Declare Sub Foo Lib "My" ()
+            Protected Declare Sub Goo Lib "My" ()
         End Module
         ]]></file>
     </compilation>)
@@ -7775,7 +7796,7 @@ BC30772: 'NonSerialized' attribute will not have any effect on this member becau
     <compilation name="StructCantUseDLLDeclareSpecifier1">
         <file name="a.vb"><![CDATA[
         Structure M
-            Protected Declare Sub Foo Lib "My" ()
+            Protected Declare Sub Goo Lib "My" ()
         End Structure
         ]]></file>
     </compilation>)
@@ -7833,11 +7854,11 @@ BC31049: Initializers on structure members are valid only for 'Shared' members a
     <compilation name="InvalidTypeForAliasesImport2">
         <file name="a.vb"><![CDATA[
 Imports aa = System.Action           'BC30798
-Imports bb = ns1.Intfc2.intfc2foo    'BC40056
+Imports bb = ns1.Intfc2.intfc2goo    'BC40056
 
 Namespace ns1
     Public Class Intfc2
-        Public intfc2foo As Integer
+        Public intfc2goo As Integer
     End Class
 End Namespace
         ]]></file>
@@ -7846,8 +7867,8 @@ End Namespace
 BC30798: 'Action' for the Imports alias to 'Action' does not refer to a Namespace, Class, Structure, Interface, Enum or Module.
 Imports aa = System.Action           'BC30798
         ~~~~~~~~~~~~~~~~~~
-BC40056: Namespace or type specified in the Imports 'ns1.Intfc2.intfc2foo' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
-Imports bb = ns1.Intfc2.intfc2foo    'BC40056
+BC40056: Namespace or type specified in the Imports 'ns1.Intfc2.intfc2goo' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
+Imports bb = ns1.Intfc2.intfc2goo    'BC40056
              ~~~~~~~~~~~~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -7894,7 +7915,7 @@ BC31208: Type or namespace 'unknown' is not defined.
     <compilation name="ObsoleteAsAny">
         <file name="a.vb"><![CDATA[
         Class C1
-            Declare Sub foo Lib "a.dll" (ByRef bit As Any)
+            Declare Sub goo Lib "a.dll" (ByRef bit As Any)
         End Class
         ]]></file>
     </compilation>)
@@ -7908,19 +7929,19 @@ BC31208: Type or namespace 'unknown' is not defined.
     <compilation name="OverrideWithArrayVsParamArray2">
         <file name="a.vb"><![CDATA[
         Class C1
-            Overridable Sub foo(ByVal a As Integer())
+            Overridable Sub goo(ByVal a As Integer())
             End Sub
         End Class
         Class C2
             Inherits C1
-            Overrides Sub foo(ByVal ParamArray a As Integer())
+            Overrides Sub goo(ByVal ParamArray a As Integer())
             End Sub
         End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30906: 'Public Overrides Sub foo(ParamArray a As Integer())' cannot override 'Public Overridable Sub foo(a As Integer())' because they differ by parameters declared 'ParamArray'.
-            Overrides Sub foo(ByVal ParamArray a As Integer())
+BC30906: 'Public Overrides Sub goo(ParamArray a As Integer())' cannot override 'Public Overridable Sub goo(a As Integer())' because they differ by parameters declared 'ParamArray'.
+            Overrides Sub goo(ByVal ParamArray a As Integer())
                           ~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -8291,7 +8312,7 @@ BC30910: 'I2' cannot inherit from interface 'I1' because it expands the access o
             End Property
         End Class
         Class C2
-            Sub foo()
+            Sub goo()
                 Dim s As New C1
                 Dim a = s.p
             End Sub
@@ -8321,7 +8342,7 @@ BC30911: 'Get' accessor of 'Public ReadOnly Property p As String' is obsolete: '
             End Property
         End Class
         Class C2
-            Sub foo()
+            Sub goo()
                 Dim s As New C1
                 Dim a = s.p
             End Sub
@@ -8343,18 +8364,18 @@ BC30912: 'Get' accessor of 'Public ReadOnly Property p As String' is obsolete.
         <file name="a.vb"><![CDATA[
         Public Class C
             Protected Interface i1
-                Event foo()
+                Event goo()
             End Interface
             Friend Class c1
                 Implements i1
-                Public Event foo() Implements i1.foo
+                Public Event goo() Implements i1.goo
             End Class
         End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30914: 'foo' cannot expose the underlying delegate type 'C.i1.fooEventHandler' of the event it is implementing to namespace '<Default>' through class 'c1'.
-                Public Event foo() Implements i1.foo
+BC30914: 'goo' cannot expose the underlying delegate type 'C.i1.gooEventHandler' of the event it is implementing to namespace '<Default>' through class 'c1'.
+                Public Event goo() Implements i1.goo
                              ~~~
 ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -8366,17 +8387,17 @@ BC30914: 'foo' cannot expose the underlying delegate type 'C.i1.fooEventHandler'
     <compilation name="AccessMismatchImplementedEvent4">
         <file name="a.vb"><![CDATA[
         Interface i1
-            Event foo()
+            Event goo()
         End Interface
         Public Class c1
             Implements i1
-            Public Event foo() Implements i1.foo
+            Public Event goo() Implements i1.goo
         End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30915: 'foo' cannot expose the underlying delegate type 'i1.fooEventHandler' of the event it is implementing outside the project through class 'c1'.
-            Public Event foo() Implements i1.foo
+BC30915: 'goo' cannot expose the underlying delegate type 'i1.gooEventHandler' of the event it is implementing outside the project through class 'c1'.
+            Public Event goo() Implements i1.goo
                          ~~~
 ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -8609,7 +8630,7 @@ BC30926: 'MustInherit' cannot be specified for partial type 'C2' because it cann
     <compilation name="MustOverOnNotInheritPartClsMem1">
         <file name="a.vb"><![CDATA[
         Public Class C1
-            MustOverride Sub foo()
+            MustOverride Sub goo()
         End Class
         Partial Public NotInheritable Class C1
         End Class
@@ -8617,7 +8638,7 @@ BC30926: 'MustInherit' cannot be specified for partial type 'C2' because it cann
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC30927: 'MustOverride' cannot be specified on this member because it is in a partial type that is declared 'NotInheritable' in another partial definition.
-            MustOverride Sub foo()
+            MustOverride Sub goo()
             ~~~~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -8944,23 +8965,23 @@ Partial Class B(Of T, U As {T, T})
     <compilation name="AmbiguousOverrides3">
         <file name="a.vb"><![CDATA[
         Public Class baseClass(Of t)
-            Public Overridable Sub foo(ByVal inputValue As String)
+            Public Overridable Sub goo(ByVal inputValue As String)
             End Sub
-            Public Overridable Sub foo(ByVal inputValue As t)
+            Public Overridable Sub goo(ByVal inputValue As t)
             End Sub
         End Class
         Public Class derivedClass
             Inherits baseClass(Of String)
-            Overrides Sub foo(ByVal inputValue As String)
+            Overrides Sub goo(ByVal inputValue As String)
             End Sub
         End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC30935: Member 'Public Overridable Sub foo(inputValue As String)' that matches this signature cannot be overridden because the class 'baseClass' contains multiple members with this same name and signature: 
-   'Public Overridable Sub foo(inputValue As String)'
-   'Public Overridable Sub foo(inputValue As t)'
-            Overrides Sub foo(ByVal inputValue As String)
+BC30935: Member 'Public Overridable Sub goo(inputValue As String)' that matches this signature cannot be overridden because the class 'baseClass' contains multiple members with this same name and signature: 
+   'Public Overridable Sub goo(inputValue As String)'
+   'Public Overridable Sub goo(inputValue As t)'
+            Overrides Sub goo(ByVal inputValue As String)
                           ~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -9005,7 +9026,7 @@ BC30937: Member 'baseInterface(Of String).doSomething' that matches this signatu
         Imports System.Runtime.InteropServices
         <StructLayout(1)>
         Structure C1(Of T)
-            Sub foo(ByVal a As T)
+            Sub goo(ByVal a As T)
             End Sub
         End Structure
         ]]></file>
@@ -10254,16 +10275,16 @@ BC31065: 'Set' parameter cannot be declared 'Optional'.
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC31067: Method in a structure cannot be declared 'Protected' or 'Protected Friend'.
+BC31067: Method in a structure cannot be declared 'Protected', 'Protected Friend', or 'Private Protected'.
             Protected Sub New(o)
             ~~~~~~~~~
-BC31067: Method in a structure cannot be declared 'Protected' or 'Protected Friend'.
+BC31067: Method in a structure cannot be declared 'Protected', 'Protected Friend', or 'Private Protected'.
             Protected Friend Sub New(x, y)
             ~~~~~~~~~~~~~~~~
-BC31067: Method in a structure cannot be declared 'Protected' or 'Protected Friend'.
+BC31067: Method in a structure cannot be declared 'Protected', 'Protected Friend', or 'Private Protected'.
             Protected Sub M()
             ~~~~~~~~~
-BC31067: Method in a structure cannot be declared 'Protected' or 'Protected Friend'.
+BC31067: Method in a structure cannot be declared 'Protected', 'Protected Friend', or 'Private Protected'.
             Protected Friend Function F()
             ~~~~~~~~~~~~~~~~
                  ]]></errors>
@@ -10276,13 +10297,13 @@ BC31067: Method in a structure cannot be declared 'Protected' or 'Protected Frie
     <compilation name="BadInterfaceDelegateSpecifier1">
         <file name="a.vb"><![CDATA[
         Interface i1
-            private Delegate Sub foo
+            private Delegate Sub goo
         End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC31068: Delegate in an interface cannot be declared 'private'.
-            private Delegate Sub foo
+            private Delegate Sub goo
             ~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -10381,17 +10402,17 @@ BC31075: 'I1' is obsolete.
         <file name="a.vb"><![CDATA[
             Module class1
                 Interface I1
-                    Sub foo()
+                    Sub goo()
                 End Interface
                 'COMPILEERROR: BC31083, "Implements"
-                Public Sub foo() Implements I1.foo
+                Public Sub goo() Implements I1.goo
                 End Sub
             End Module
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC31083: Members in a Module cannot implement interface members.
-                Public Sub foo() Implements I1.foo
+                Public Sub goo() Implements I1.goo
                                  ~~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -10579,14 +10600,14 @@ End Class
     <compilation name="CantSpecifyArraysOnBoth">
         <file name="a.vb"><![CDATA[
             Module M
-                Sub Foo(ByVal x() As String())
+                Sub Goo(ByVal x() As String())
                 End Sub
             End Module
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC31087: Array modifiers cannot be specified on both a variable and its type.
-                Sub Foo(ByVal x() As String())
+                Sub Goo(ByVal x() As String())
                                      ~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -10625,7 +10646,7 @@ BC30332: Value of type 'Integer()' cannot be converted to 'Integer()()' because 
     <compilation name="NotOverridableRequiresOverrides">
         <file name="a.vb"><![CDATA[
             Class C1
-                NotOverridable Sub Foo()
+                NotOverridable Sub Goo()
                 End Sub
                 Public NotOverridable Property F As Integer
             End Class
@@ -10633,7 +10654,7 @@ BC30332: Value of type 'Integer()' cannot be converted to 'Integer()()' because 
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC31088: 'NotOverridable' cannot be specified for methods that do not override another method.
-                NotOverridable Sub Foo()
+                NotOverridable Sub Goo()
                                    ~~~
 BC31088: 'NotOverridable' cannot be specified for methods that do not override another method.
                 Public NotOverridable Property F As Integer
@@ -11029,7 +11050,7 @@ BC31101: Access modifier can only be applied to either 'Get' or 'Set', but not b
     <compilation>
         <file name="a.vb"><![CDATA[
             Class C1
-                WriteOnly Property Foo(ByVal x As Integer) As Integer
+                WriteOnly Property Goo(ByVal x As Integer) As Integer
                     Private Set(ByVal value As Integer)
                     End Set
                 End Property
@@ -11050,7 +11071,7 @@ BC31104: 'WriteOnly' properties cannot have an access modifier on 'Set'.
     <compilation>
         <file name="a.vb"><![CDATA[
             Class C1
-                ReadOnly Property Foo(ByVal x As Integer) As Integer
+                ReadOnly Property Goo(ByVal x As Integer) As Integer
                     Protected Get
                         Return 1
                     End Get
@@ -11537,7 +11558,7 @@ BC31142: 'System.ObsoleteAttribute' cannot be applied to the 'AddHandler', 'Remo
     <compilation name="BadStaticLocalInStruct">
         <file name="a.vb"><![CDATA[
             Structure S 
-                Sub Foo()
+                Sub Goo()
                     Static x As Integer = 1
                 End Sub
             End Structure
@@ -11557,7 +11578,7 @@ BC31400: Local variables within methods of structures cannot be declared 'Static
     <compilation name="BadStaticLocalInStruct2">
         <file name="a.vb"><![CDATA[
             Structure S 
-                Sub Foo()
+                Sub Goo()
                     Static Static x As Integer
                 End Sub
             End Structure
@@ -11583,7 +11604,7 @@ BC42024: Unused local variable: 'x'.
     <compilation name="BC31400ERR_BadLocalspecifiers">
         <file name="a.vb"><![CDATA[
             Class S 
-                Sub Foo()
+                Sub Goo()
                     Static Static a As Integer
                     Static Dim Dim b As Integer
                     Static Const Dim c As Integer
@@ -11690,18 +11711,18 @@ Imports System = System
     <compilation name="CantShadowAMustOverride1">
         <file name="a.vb"><![CDATA[
             MustInherit Class A
-                MustOverride Sub Foo(ByVal x As Integer)
+                MustOverride Sub Goo(ByVal x As Integer)
             End Class
             MustInherit Class B
                 Inherits A
-                Shadows Sub Foo()
+                Shadows Sub Goo()
                 End Sub
             End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC31404: 'Public Sub Foo()' cannot shadow a method declared 'MustOverride'.
-                Shadows Sub Foo()
+BC31404: 'Public Sub Goo()' cannot shadow a method declared 'MustOverride'.
+                Shadows Sub Goo()
                             ~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -11880,16 +11901,16 @@ BC31408: 'Private' and 'MustOverride' cannot be combined.
         <file name="a.vb"><![CDATA[
 Option Infer On
 Module M1
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Module
 MustInherit Class C1
-    MustOverride Sub foo()
+    MustOverride Sub goo()
     Dim s = (New C2)
 End Class
 Class C2
     Inherits C1
-    Overrides Shadows Sub foo()
+    Overrides Shadows Sub goo()
     End Sub
 End Class
         ]]></file>
@@ -11897,7 +11918,7 @@ End Class
 
             Dim expectedErrors1 = <errors><![CDATA[
 BC31408: 'Overrides' and 'Shadows' cannot be combined.
-    Overrides Shadows Sub foo()
+    Overrides Shadows Sub goo()
               ~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -12006,16 +12027,16 @@ BC36938: Iterator functions must return either IEnumerable(Of T), or IEnumerator
     <compilation name="MustBeOverloads2">
         <file name="a.vb"><![CDATA[
             Class C1
-                Overloads Sub foo(ByVal i As Integer)
+                Overloads Sub goo(ByVal i As Integer)
                 End Sub
-                Sub foo(ByVal s As String)
+                Sub goo(ByVal s As String)
                 End Sub
             End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC31409: sub 'foo' must be declared 'Overloads' because another 'foo' is declared 'Overloads' or 'Overrides'.
-                Sub foo(ByVal s As String)
+BC31409: sub 'goo' must be declared 'Overloads' because another 'goo' is declared 'Overloads' or 'Overrides'.
+                Sub goo(ByVal s As String)
                     ~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -12094,14 +12115,14 @@ BC31409: sub 'Method' must be declared 'Overloads' because another 'Method' is d
     <compilation name="CantOverloadOnMultipleInheritance">
         <file name="a.vb"><![CDATA[
             Interface IA
-                Overloads Sub Foo(ByVal x As Integer)
+                Overloads Sub Goo(ByVal x As Integer)
             End Interface
             Interface IB
-                Overloads Sub Foo(ByVal x As String)
+                Overloads Sub Goo(ByVal x As String)
             End Interface
             Interface IC
                 Inherits IA, IB
-                Overloads Sub Foo()
+                Overloads Sub Goo()
             End Interface
         ]]></file>
     </compilation>)
@@ -12116,7 +12137,7 @@ BC31409: sub 'Method' must be declared 'Overloads' because another 'Method' is d
     <compilation>
         <file name="a.vb"><![CDATA[
             Public Class C1
-                MustOverride Sub foo()
+                MustOverride Sub goo()
             End Class
         ]]></file>
     </compilation>)
@@ -12177,22 +12198,22 @@ BC31413: 'Public AddHandler Event e(obj As clsTest2.eEventHandler)', implicitly 
     <compilation name="CannotOverrideInAccessibleMember">
         <file name="a.vb"><![CDATA[
             Class Cls1
-                Private Overridable Sub foo()
+                Private Overridable Sub goo()
                 End Sub
             End Class
             Class Cls2
                 Inherits Cls1
-                Private Overrides Sub foo()
+                Private Overrides Sub goo()
                 End Sub
             End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC31408: 'Private' and 'Overridable' cannot be combined.
-                Private Overridable Sub foo()
+                Private Overridable Sub goo()
                         ~~~~~~~~~~~
-BC31417: 'Private Overrides Sub foo()' cannot override 'Private Sub foo()' because it is not accessible in this context.
-                Private Overrides Sub foo()
+BC31417: 'Private Overrides Sub goo()' cannot override 'Private Sub goo()' because it is not accessible in this context.
+                Private Overrides Sub goo()
                                       ~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -12205,15 +12226,15 @@ BC31417: 'Private Overrides Sub foo()' cannot override 'Private Sub foo()' becau
         <file name="a.vb"><![CDATA[
 Option Strict Off
 Module M
-    Sub Bar() Handles Me.Foo
+    Sub Bar() Handles Me.Goo
     End Sub
-    Event Foo()
+    Event Goo()
 End Module
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC31418: 'Handles' in modules must specify a 'WithEvents' variable qualified with a single identifier.
-    Sub Bar() Handles Me.Foo
+    Sub Bar() Handles Me.Goo
                       ~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -12402,14 +12423,14 @@ BC31429: 'a' is ambiguous because multiple kinds of members with this name exist
     <compilation name="OnlyPrivatePartialMethods1">
         <file name="a.vb"><![CDATA[
             Class C1
-                Partial Public Sub foo()
+                Partial Public Sub goo()
                 End Sub
             End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC31431: Partial methods must be declared 'Private' instead of 'Public'.
-                Partial Public Sub foo()
+                Partial Public Sub goo()
                         ~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -12421,7 +12442,7 @@ BC31431: Partial methods must be declared 'Private' instead of 'Public'.
     <compilation name="OnlyPrivatePartialMethods1a">
         <file name="a.vb"><![CDATA[
             Class C1
-                Partial Protected Overridable Sub foo()
+                Partial Protected Overridable Sub goo()
                 End Sub
             End Class
         ]]></file>
@@ -12429,10 +12450,10 @@ BC31431: Partial methods must be declared 'Private' instead of 'Public'.
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1,
 <errors><![CDATA[
 BC31431: Partial methods must be declared 'Private' instead of 'Protected'.
-                Partial Protected Overridable Sub foo()
+                Partial Protected Overridable Sub goo()
                         ~~~~~~~~~
 BC31431: Partial methods must be declared 'Private' instead of 'Overridable'.
-                Partial Protected Overridable Sub foo()
+                Partial Protected Overridable Sub goo()
                                   ~~~~~~~~~~~
 ]]></errors>)
         End Sub
@@ -12495,14 +12516,14 @@ BC31431: Partial methods must be declared 'Private' instead of 'Friend'.
     <compilation name="PartialMethodsMustBePrivate">
         <file name="a.vb"><![CDATA[
             Class C1
-                Partial Sub Foo()
+                Partial Sub Goo()
                 End Sub
             End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC31432: Partial methods must be declared 'Private'.
-                Partial Sub Foo()
+                Partial Sub Goo()
                 ~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -12514,16 +12535,16 @@ BC31432: Partial methods must be declared 'Private'.
     <compilation name="OnlyOnePartialMethodAllowed2">
         <file name="a.vb"><![CDATA[
             Class C1
-                Partial Private Sub Foo()
+                Partial Private Sub Goo()
                 End Sub
-                Partial Private Sub Foo()
+                Partial Private Sub Goo()
                 End Sub
             End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC31433: Method 'Foo' cannot be declared 'Partial' because only one method 'Foo' can be marked 'Partial'.
-                Partial Private Sub Foo()
+BC31433: Method 'Goo' cannot be declared 'Partial' because only one method 'Goo' can be marked 'Partial'.
+                Partial Private Sub Goo()
                                     ~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -12535,17 +12556,17 @@ BC31433: Method 'Foo' cannot be declared 'Partial' because only one method 'Foo'
     <compilation name="OnlyOnePartialMethodAllowed2a">
         <file name="b.vb"><![CDATA[
             Class C1
-                Partial Private Sub Foo()
+                Partial Private Sub Goo()
                 End Sub
-                Partial Private Sub FoO()
+                Partial Private Sub GoO()
                 End Sub
             End Class
         ]]></file>
         <file name="a.vb"><![CDATA[
             Partial Class C1
-                Partial Private Sub foo()
+                Partial Private Sub goo()
                 End Sub
-                Partial Private Sub FOO()
+                Partial Private Sub GOO()
                 End Sub
             End Class
         ]]></file>
@@ -12554,14 +12575,14 @@ BC31433: Method 'Foo' cannot be declared 'Partial' because only one method 'Foo'
             ' note the exact methods errors are reported on
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1,
 <errors><![CDATA[
-BC31433: Method 'foo' cannot be declared 'Partial' because only one method 'foo' can be marked 'Partial'.
-                Partial Private Sub foo()
+BC31433: Method 'goo' cannot be declared 'Partial' because only one method 'goo' can be marked 'Partial'.
+                Partial Private Sub goo()
                                     ~~~
-BC31433: Method 'FOO' cannot be declared 'Partial' because only one method 'FOO' can be marked 'Partial'.
-                Partial Private Sub FOO()
+BC31433: Method 'GOO' cannot be declared 'Partial' because only one method 'GOO' can be marked 'Partial'.
+                Partial Private Sub GOO()
                                     ~~~
-BC31433: Method 'FoO' cannot be declared 'Partial' because only one method 'FoO' can be marked 'Partial'.
-                Partial Private Sub FoO()
+BC31433: Method 'GoO' cannot be declared 'Partial' because only one method 'GoO' can be marked 'Partial'.
+                Partial Private Sub GoO()
                                     ~~~
 ]]></errors>)
         End Sub
@@ -12641,22 +12662,22 @@ BC31434: Method 'pS' cannot implement partial method 'pS' because 'pS' already i
     <compilation name="OnlyOneImplementingMethodAllowed3">
         <file name="a.vb"><![CDATA[
             Public Class C1
-                Partial Private Sub FoO2()
+                Partial Private Sub GoO2()
                 End Sub
             End Class
             Partial Public Class C1
-                Private Sub FOo2()
+                Private Sub GOo2()
                 End Sub
             End Class
             Partial Public Class C1
-                Private Sub Foo2()
+                Private Sub Goo2()
                 End Sub
             End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC31434: Method 'Foo2' cannot implement partial method 'Foo2' because 'Foo2' already implements it. Only one method can implement a partial method.
-                Private Sub Foo2()
+BC31434: Method 'Goo2' cannot implement partial method 'Goo2' because 'Goo2' already implements it. Only one method can implement a partial method.
+                Private Sub Goo2()
                             ~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -12668,38 +12689,38 @@ BC31434: Method 'Foo2' cannot implement partial method 'Foo2' because 'Foo2' alr
     <compilation name="OnlyOneImplementingMethodAllowed3a">
         <file name="b.vb"><![CDATA[
             Public Class C1
-                Partial Private Sub FoO2()
+                Partial Private Sub GoO2()
                 End Sub
             End Class
             Partial Public Class C1
-                Private Sub FOo2()
+                Private Sub GOo2()
                 End Sub
             End Class
             Partial Public Class C1
-                Private Sub Foo2()
+                Private Sub Goo2()
                 End Sub
             End Class
         ]]></file>
         <file name="a.vb"><![CDATA[
             Partial Public Class C1
-                Private Sub FOO2()
+                Private Sub GOO2()
                 End Sub
             End Class
             Partial Public Class C1
-                Private Sub FoO2()
+                Private Sub GoO2()
                 End Sub
             End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC31434: Method 'FOO2' cannot implement partial method 'FOO2' because 'FOO2' already implements it. Only one method can implement a partial method.
-                Private Sub FOO2()
+BC31434: Method 'GOO2' cannot implement partial method 'GOO2' because 'GOO2' already implements it. Only one method can implement a partial method.
+                Private Sub GOO2()
                             ~~~~
-BC31434: Method 'FoO2' cannot implement partial method 'FoO2' because 'FoO2' already implements it. Only one method can implement a partial method.
-                Private Sub FoO2()
+BC31434: Method 'GoO2' cannot implement partial method 'GoO2' because 'GoO2' already implements it. Only one method can implement a partial method.
+                Private Sub GoO2()
                             ~~~~
-BC31434: Method 'Foo2' cannot implement partial method 'Foo2' because 'Foo2' already implements it. Only one method can implement a partial method.
-                Private Sub Foo2()
+BC31434: Method 'Goo2' cannot implement partial method 'Goo2' because 'Goo2' already implements it. Only one method can implement a partial method.
+                Private Sub Goo2()
                             ~~~~
                                   ]]></errors>
 
@@ -12714,7 +12735,7 @@ BC31434: Method 'Foo2' cannot implement partial method 'Foo2' because 'Foo2' alr
     <compilation name="PartialMethodsMustBeSub1">
         <file name="a.vb"><![CDATA[
             Class C1
-                Partial Function Foo() As Boolean
+                Partial Function Goo() As Boolean
                     Return True
                 End Function
             End Class
@@ -12722,8 +12743,8 @@ BC31434: Method 'Foo2' cannot implement partial method 'Foo2' because 'Foo2' alr
     </compilation>)
             Dim expectedErrors1 =
 <errors><![CDATA[
-BC31437: 'Foo' cannot be declared 'Partial' because partial methods must be Subs.
-                Partial Function Foo() As Boolean
+BC31437: 'Goo' cannot be declared 'Partial' because partial methods must be Subs.
+                Partial Function Goo() As Boolean
                                  ~~~
 ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -12735,9 +12756,9 @@ BC31437: 'Foo' cannot be declared 'Partial' because partial methods must be Subs
     <compilation name="PartialMethodsMustBeSub2">
         <file name="a.vb"><![CDATA[
             Class C1
-                Partial Private Sub Foo()
+                Partial Private Sub Goo()
                 End Sub
-                Partial Function Foo() As Boolean
+                Partial Function Goo() As Boolean
                     Return True
                 End Function
             End Class
@@ -12745,11 +12766,11 @@ BC31437: 'Foo' cannot be declared 'Partial' because partial methods must be Subs
     </compilation>)
             Dim expectedErrors1 =
 <errors><![CDATA[
-BC30301: 'Private Sub Foo()' and 'Public Function Foo() As Boolean' cannot overload each other because they differ only by return types.
-                Partial Private Sub Foo()
+BC30301: 'Private Sub Goo()' and 'Public Function Goo() As Boolean' cannot overload each other because they differ only by return types.
+                Partial Private Sub Goo()
                                     ~~~
-BC31437: 'Foo' cannot be declared 'Partial' because partial methods must be Subs.
-                Partial Function Foo() As Boolean
+BC31437: 'Goo' cannot be declared 'Partial' because partial methods must be Subs.
+                Partial Function Goo() As Boolean
                                  ~~~
 ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -12890,16 +12911,16 @@ Class Base(Of T As Class)
     Class Derived
         Inherits Base(Of Base(Of String))
 
-        Partial Private Sub Foo(Of S As {Base(Of String), IComparable})(i As Integer)
+        Partial Private Sub Goo(Of S As {Base(Of String), IComparable})(i As Integer)
         End Sub
 
-        Private Sub FOO(Of S As {IComparable, Base(Of IDisposable)})(i As Integer)
+        Private Sub GOO(Of S As {IComparable, Base(Of IDisposable)})(i As Integer)
         End Sub
 
-        Private Sub FoO(Of s As {IComparable, Base(Of IEnumerable)})(i As Integer)
+        Private Sub GoO(Of s As {IComparable, Base(Of IEnumerable)})(i As Integer)
         End Sub
 
-        Private Sub fOo(Of s As {IComparable, Base(Of IComparable)})(i As Integer)
+        Private Sub gOo(Of s As {IComparable, Base(Of IComparable)})(i As Integer)
         End Sub
     End Class
 End Class
@@ -12907,14 +12928,14 @@ End Class
     </compilation>)
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1,
 <errors><![CDATA[
-BC31438: Method 'FOO' does not have the same generic constraints as the partial method 'Foo'.
-        Private Sub FOO(Of S As {IComparable, Base(Of IDisposable)})(i As Integer)
+BC31438: Method 'GOO' does not have the same generic constraints as the partial method 'Goo'.
+        Private Sub GOO(Of S As {IComparable, Base(Of IDisposable)})(i As Integer)
                     ~~~
-BC31434: Method 'FoO' cannot implement partial method 'FoO' because 'FoO' already implements it. Only one method can implement a partial method.
-        Private Sub FoO(Of s As {IComparable, Base(Of IEnumerable)})(i As Integer)
+BC31434: Method 'GoO' cannot implement partial method 'GoO' because 'GoO' already implements it. Only one method can implement a partial method.
+        Private Sub GoO(Of s As {IComparable, Base(Of IEnumerable)})(i As Integer)
                     ~~~
-BC31434: Method 'fOo' cannot implement partial method 'fOo' because 'fOo' already implements it. Only one method can implement a partial method.
-        Private Sub fOo(Of s As {IComparable, Base(Of IComparable)})(i As Integer)
+BC31434: Method 'gOo' cannot implement partial method 'gOo' because 'gOo' already implements it. Only one method can implement a partial method.
+        Private Sub gOo(Of s As {IComparable, Base(Of IComparable)})(i As Integer)
                     ~~~
 ]]></errors>)
             ' NOTE: Dev10 reports three BC31438 in this case
@@ -12931,9 +12952,9 @@ Public Class Base(Of T As Class)
     Public Class Derived
         Inherits Base(Of Base(Of String))
 
-        Partial Private Sub Foo(Of S As {Base(Of String), IComparable})(i As Integer)
+        Partial Private Sub Goo(Of S As {Base(Of String), IComparable})(i As Integer)
         End Sub
-        Private Sub fOo(Of s As {IComparable, C.I})(i As Integer)
+        Private Sub gOo(Of s As {IComparable, C.I})(i As Integer)
         End Sub
 
         Partial Private Sub Bar(Of S As {C.I})(i As Integer)
@@ -12951,8 +12972,8 @@ End Class
     </compilation>)
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1,
 <errors><![CDATA[
-BC31438: Method 'fOo' does not have the same generic constraints as the partial method 'Foo'.
-        Private Sub fOo(Of s As {IComparable, C.I})(i As Integer)
+BC31438: Method 'gOo' does not have the same generic constraints as the partial method 'Goo'.
+        Private Sub gOo(Of s As {IComparable, C.I})(i As Integer)
                     ~~~
 ]]></errors>)
         End Sub
@@ -13013,19 +13034,19 @@ BC31439: Partial method 'Dispose' cannot use the 'Implements' keyword.
     <compilation name="ImplementationMustBePrivate2">
         <file name="a.vb"><![CDATA[
             Partial Class C1
-                Partial Private Sub FOO()
+                Partial Private Sub GOO()
                 End Sub
             End Class
             Partial Class C1
-                Sub FOO()
+                Sub GOO()
                     'HELLO
                 End Sub
             End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC31441: Method 'FOO' must be declared 'Private' in order to implement partial method 'FOO'.
-                Sub FOO()
+BC31441: Method 'GOO' must be declared 'Private' in order to implement partial method 'GOO'.
+                Sub GOO()
                     ~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -13037,24 +13058,24 @@ BC31441: Method 'FOO' must be declared 'Private' in order to implement partial m
     <compilation name="ImplementationMustBePrivate2a">
         <file name="a.vb"><![CDATA[
             Partial Class C1
-                Partial Private Sub FOO()
+                Partial Private Sub GOO()
                 End Sub
             End Class
             Partial Class C1
-                Sub Foo()
+                Sub Goo()
                 End Sub
-                Private Sub fOO()
+                Private Sub gOO()
                 End Sub
             End Class
         ]]></file>
     </compilation>)
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1,
 <errors><![CDATA[
-BC31441: Method 'Foo' must be declared 'Private' in order to implement partial method 'FOO'.
-                Sub Foo()
+BC31441: Method 'Goo' must be declared 'Private' in order to implement partial method 'GOO'.
+                Sub Goo()
                     ~~~
-BC31434: Method 'fOO' cannot implement partial method 'fOO' because 'fOO' already implements it. Only one method can implement a partial method.
-                Private Sub fOO()
+BC31434: Method 'gOO' cannot implement partial method 'gOO' because 'gOO' already implements it. Only one method can implement a partial method.
+                Private Sub gOO()
                             ~~~
 ]]></errors>)
         End Sub
@@ -13065,16 +13086,16 @@ BC31434: Method 'fOO' cannot implement partial method 'fOO' because 'fOO' alread
     <compilation name="PartialMethodParamNamesMustMatch3">
         <file name="a.vb"><![CDATA[
             Module M 
-                Partial Private Sub Foo(ByVal x As Integer)
+                Partial Private Sub Goo(ByVal x As Integer)
                 End Sub
-                Private Sub Foo(ByVal y As Integer)
+                Private Sub Goo(ByVal y As Integer)
                 End Sub
             End Module
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC31442: Parameter name 'y' does not match the name of the corresponding parameter, 'x', defined on the partial method declaration 'Foo'.
-                Private Sub Foo(ByVal y As Integer)
+BC31442: Parameter name 'y' does not match the name of the corresponding parameter, 'x', defined on the partial method declaration 'Goo'.
+                Private Sub Goo(ByVal y As Integer)
                                       ~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -13086,27 +13107,27 @@ BC31442: Parameter name 'y' does not match the name of the corresponding paramet
     <compilation name="PartialMethodParamNamesMustMatch3a">
         <file name="a.vb"><![CDATA[
             Module M 
-                Partial Private Sub Foo(ByVal x As Integer, a As Integer)
+                Partial Private Sub Goo(ByVal x As Integer, a As Integer)
                 End Sub
-                Private Sub Foo(ByVal x As Integer, b As Integer)
+                Private Sub Goo(ByVal x As Integer, b As Integer)
                 End Sub
-                Private Sub Foo(ByVal y As Integer, b As Integer)
+                Private Sub Goo(ByVal y As Integer, b As Integer)
                 End Sub
-                Private Sub Foo(ByVal y As Integer, b As Integer)
+                Private Sub Goo(ByVal y As Integer, b As Integer)
                 End Sub
             End Module
         ]]></file>
     </compilation>)
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1,
 <errors><![CDATA[
-BC31442: Parameter name 'b' does not match the name of the corresponding parameter, 'a', defined on the partial method declaration 'Foo'.
-                Private Sub Foo(ByVal x As Integer, b As Integer)
+BC31442: Parameter name 'b' does not match the name of the corresponding parameter, 'a', defined on the partial method declaration 'Goo'.
+                Private Sub Goo(ByVal x As Integer, b As Integer)
                                                     ~
-BC31434: Method 'Foo' cannot implement partial method 'Foo' because 'Foo' already implements it. Only one method can implement a partial method.
-                Private Sub Foo(ByVal y As Integer, b As Integer)
+BC31434: Method 'Goo' cannot implement partial method 'Goo' because 'Goo' already implements it. Only one method can implement a partial method.
+                Private Sub Goo(ByVal y As Integer, b As Integer)
                             ~~~
-BC31434: Method 'Foo' cannot implement partial method 'Foo' because 'Foo' already implements it. Only one method can implement a partial method.
-                Private Sub Foo(ByVal y As Integer, b As Integer)
+BC31434: Method 'Goo' cannot implement partial method 'Goo' because 'Goo' already implements it. Only one method can implement a partial method.
+                Private Sub Goo(ByVal y As Integer, b As Integer)
                             ~~~
 ]]></errors>)
         End Sub
@@ -13117,16 +13138,16 @@ BC31434: Method 'Foo' cannot implement partial method 'Foo' because 'Foo' alread
     <compilation name="PartialMethodTypeParamNameMismatch3">
         <file name="a.vb"><![CDATA[
             Module M
-                Partial Private Sub Foo(Of S)()
+                Partial Private Sub Goo(Of S)()
                 End Sub
-                Private Sub Foo(Of T)()
+                Private Sub Goo(Of T)()
                 End Sub
             End Module
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC31443: Name of type parameter 'T' does not match 'S', the corresponding type parameter defined on the partial method declaration 'Foo'.
-                Private Sub Foo(Of T)()
+BC31443: Name of type parameter 'T' does not match 'S', the corresponding type parameter defined on the partial method declaration 'Goo'.
+                Private Sub Goo(Of T)()
                                    ~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -13189,7 +13210,7 @@ Public MustInherit Class MyAttribute
 End Class
 
 <My()>
-Class Foo
+Class Goo
 End Class
     ]]></file>
     </compilation>).VerifyDiagnostics(Diagnostic(ERRID.ERR_AttributeCannotBeAbstract, "My").WithArguments("MyAttribute"))
@@ -13213,7 +13234,7 @@ Public MustInherit Class MyAttribute
 End Class
 
 <My()>
-Class Foo
+Class Goo
 End Class
     ]]></file>
     </compilation>).VerifyDiagnostics(Diagnostic(ERRID.ERR_AttributeCannotBeAbstract, "My").WithArguments("MyAttribute"))
@@ -13229,7 +13250,7 @@ Imports System
 Class C1
     <MTAThread>
     <STAThread>
-    Sub foo()
+    Sub goo()
     End Sub
 End Class
 ]]></file>
@@ -13237,7 +13258,7 @@ End Class
 
             Dim expectedErrors1 = <errors><![CDATA[
 BC31512: 'System.STAThreadAttribute' and 'System.MTAThreadAttribute' cannot both be applied to the same method.
-    Sub foo()
+    Sub goo()
         ~~~
 ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -13258,7 +13279,7 @@ Imports Microsoft.VisualBasic
 
             <ComClass()>
             Class C1(Of T)
-                Sub FOO(ByVal s As T)
+                Sub GOO(ByVal s As T)
                 End Sub
             End Class
         ]]></file>
@@ -13525,16 +13546,16 @@ BC32044: Type argument 'T2' does not inherit from or implement the constraint ty
             Option Strict On
             Public Module M
                 Sub Main()
-                    Foo(Function(x As String) x, Function(x As Object) x)
+                    Goo(Function(x As String) x, Function(x As Object) x)
                 End Sub
-                Sub Foo(Of T, S As T)(ByVal x As T, ByVal y As S)
+                Sub Goo(Of T, S As T)(ByVal x As T, ByVal y As S)
                 End Sub
             End Module
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC32044: Type argument 'Function <generated method>(x As Object) As Object' does not inherit from or implement the constraint type 'Function <generated method>(x As String) As String'.
-                    Foo(Function(x As String) x, Function(x As Object) x)
+                    Goo(Function(x As String) x, Function(x As Object) x)
                     ~~~
 ]]></errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
@@ -13881,7 +13902,7 @@ End Class
     <compilation name="BadStaticLocalInGenericMethod">
         <file name="a.vb"><![CDATA[
             Module M
-                Sub Foo(Of T)()
+                Sub Goo(Of T)()
                     Static x = 1
                 End Sub
             End Module
@@ -14084,11 +14105,11 @@ BC32074: Classes that are generic or contained in a generic type cannot inherit 
     <compilation name="GenericClassCannotInheritAttr">
         <file name="a.vb"><![CDATA[
             Public Class C1(Of t)
-                Declare Sub foo Lib "a.dll" ()
+                Declare Sub goo Lib "a.dll" ()
             End Class
         ]]></file>
     </compilation>)
-            compilation1.VerifyDiagnostics(Diagnostic(ERRID.ERR_DeclaresCantBeInGeneric, "foo"))
+            compilation1.VerifyDiagnostics(Diagnostic(ERRID.ERR_DeclaresCantBeInGeneric, "goo"))
         End Sub
 
         <Fact()>
@@ -14497,17 +14518,17 @@ BC32078: 'Private Sub X(Of T)()' cannot implement 'II.Sub m(Of T As I)()' becaus
         <file name="a.vb"><![CDATA[
             Class A 
                 Event X()
-                Sub Foo(Of T)() Handles Me.X
+                Sub Goo(Of T)() Handles Me.X
                 End Sub
             End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC32080: Generic methods cannot use 'Handles' clause.
-                Sub Foo(Of T)() Handles Me.X
+                Sub Goo(Of T)() Handles Me.X
                     ~~~
-BC31029: Method 'Foo' cannot handle event 'X' because they do not have a compatible signature.
-                Sub Foo(Of T)() Handles Me.X
+BC31029: Method 'Goo' cannot handle event 'X' because they do not have a compatible signature.
+                Sub Goo(Of T)() Handles Me.X
                                            ~
      ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -14820,7 +14841,7 @@ BC32089: 't2' is already declared as a type parameter of this method.
     <compilation name="TypeParamNameFunctionNameCollision">
         <file name="a.vb"><![CDATA[
             Module M
-                Function Foo(Of Foo)()
+                Function Goo(Of Goo)()
                     Return Nothing
                 End Function
 
@@ -14832,7 +14853,7 @@ BC32089: 't2' is already declared as a type parameter of this method.
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC32090: Type parameter cannot have the same name as its defining function.
-                Function Foo(Of Foo)()
+                Function Goo(Of Goo)()
                                 ~~~                                 
      ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -15957,7 +15978,7 @@ BC32120: Cannot inherit interface 'IA(Of T, U)' because it could be identical to
     <compilation name="BaseUnifiesWithInterfaces3">
         <file name="a.vb"><![CDATA[
             Interface I1(Of T)
-                Sub foo(Of G As T)(ByVal x As G)
+                Sub goo(Of G As T)(ByVal x As G)
             End Interface
             Interface I2(Of T)
                 Inherits I1(Of T)
@@ -16167,13 +16188,13 @@ Public Shadows Class C1
     <compilation name="PropertySetParamCollisionWithValue">
         <file name="a.vb"><![CDATA[
             Interface IA
-                ReadOnly Property Foo(ByVal value As String) As String
+                ReadOnly Property Goo(ByVal value As String) As String
             End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC32201: Property parameters cannot have the name 'Value'.
-                ReadOnly Property Foo(ByVal value As String) As String
+                ReadOnly Property Goo(ByVal value As String) As String
                                             ~~~~~
      ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -16280,7 +16301,7 @@ BC37220: Name 'set_<%= witheventname %>' exceeds the maximum length allowed in m
             Imports Microsoft.VisualBasic
             <ComClass("287E43DD-5282-452C-91AF-8F1B34290CA3"), System.Runtime.InteropServices.ComSourceInterfaces(GetType(a), GetType(a))> _
             Public Class c
-                Public Sub FOO()
+                Public Sub GOO()
                 End Sub
             End Class
             Public Interface a
@@ -16394,13 +16415,13 @@ BC40011: 'Microsoft.VisualBasic.ComClassAttribute' is specified for class 'C1' b
     <compilation name="ParamArrayIllegal1">
         <file name="a.vb"><![CDATA[
             Class C1
-                Delegate Sub Foo(ByVal ParamArray args() As String)
+                Delegate Sub Goo(ByVal ParamArray args() As String)
             End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC33009: 'Delegate' parameters cannot be declared 'ParamArray'.
-                Delegate Sub Foo(ByVal ParamArray args() As String)
+                Delegate Sub Goo(ByVal ParamArray args() As String)
                                        ~~~~~~~~~~
      ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -17019,7 +17040,7 @@ BC33101: Type 'T7' must be a value type or a type argument constrained to 'Struc
     <compilation name="CantSpecifyArrayAndNullableOnBoth">
         <file name="a.vb"><![CDATA[
             Class S1
-                Sub foo()
+                Sub goo()
                     Dim numbers? As Integer()
                     Dim values() As Integer?
                 End Sub
@@ -17112,7 +17133,7 @@ BC36629: Nullable type inference is not supported in this context.
                     Public field6?(1)   ' this is ok for Option Infer On
                     Public field7?(1)() ' this is ok for Option Infer On
 
-                Sub foo()
+                Sub goo()
                     Dim local1?()
                     Dim local2?(,)
                     Dim local3?()()
@@ -17330,10 +17351,10 @@ BC36561: Extension method 'M3' has type constraints that can never be satisfied.
                     Dim x As Action(Of Integer?) = Sub(y?) Console.WriteLine()
                 End Sub
 
-                Sub foo(x?)
+                Sub goo(x?)
                 End Sub
 
-                Sub foo2(Of T)(x?)
+                Sub goo2(Of T)(x?)
                 End Sub
             End Module
         ]]></file>
@@ -17346,10 +17367,10 @@ BC36632: Nullable parameters must specify a type.
                     Dim x As Action(Of Integer?) = Sub(y?) Console.WriteLine()
                                                        ~~
 BC36632: Nullable parameters must specify a type.
-                Sub foo(x?)
+                Sub goo(x?)
                         ~~
 BC36632: Nullable parameters must specify a type.
-                Sub foo2(Of T)(x?)
+                Sub goo2(Of T)(x?)
                                ~~
      ]]></errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
@@ -17547,14 +17568,14 @@ BC36723: Enumerations, classes, and structures cannot be declared in an interfac
     <compilation name="VarianceOutParamDisallowed1">
         <file name="a.vb"><![CDATA[
             Interface I(Of Out Tout, In Tin, Out TSout As Structure, In TSin As Structure)
-                Sub FOO(ByVal x As R(Of Tout))
+                Sub GOO(ByVal x As R(Of Tout))
             End Interface
             Interface R(Of Out T) : End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC36724: Type 'Tout' cannot be used in this context because 'Tout' is an 'Out' type parameter.
-                Sub FOO(ByVal x As R(Of Tout))
+                Sub GOO(ByVal x As R(Of Tout))
                                    ~~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -17566,14 +17587,14 @@ BC36724: Type 'Tout' cannot be used in this context because 'Tout' is an 'Out' t
     <compilation name="VarianceInParamDisallowed1">
         <file name="a.vb"><![CDATA[
             Interface I(Of Out Tout, In Tin, Out TSout As Structure, In TSin As Structure)
-                Sub foo(ByVal x As W(Of Tin))
+                Sub goo(ByVal x As W(Of Tin))
             End Interface
             Interface W(Of In T) : End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC36725: Type 'Tin' cannot be used in this context because 'Tin' is an 'In' type parameter.
-                Sub foo(ByVal x As W(Of Tin))
+                Sub goo(ByVal x As W(Of Tin))
                                    ~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -17585,14 +17606,14 @@ BC36725: Type 'Tin' cannot be used in this context because 'Tin' is an 'In' type
     <compilation name="VarianceOutParamDisallowedForGeneric3">
         <file name="a.vb"><![CDATA[
             Interface I(Of Out Tout, In Tin, Out TSout As Structure, In TSin As Structure)
-                Sub foo(ByVal x As RW(Of Tout, Tout))
+                Sub goo(ByVal x As RW(Of Tout, Tout))
             End Interface
             Interface RW(Of Out T1, In T2) : End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC36726: Type 'Tout' cannot be used for the 'T1' in 'RW(Of T1, T2)' in this context because 'Tout' is an 'Out' type parameter.
-                Sub foo(ByVal x As RW(Of Tout, Tout))
+                Sub goo(ByVal x As RW(Of Tout, Tout))
                                    ~~~~~~~~~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -17604,14 +17625,14 @@ BC36726: Type 'Tout' cannot be used for the 'T1' in 'RW(Of T1, T2)' in this cont
     <compilation name="VarianceInParamDisallowedForGeneric3">
         <file name="a.vb"><![CDATA[
             Interface I(Of Out Tout, In Tin, Out TSout As Structure, In TSin As Structure)
-                Sub foo(ByVal x As RW(Of Tin, Tin))
+                Sub goo(ByVal x As RW(Of Tin, Tin))
             End Interface
             Interface RW(Of Out T1, In T2) : End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC36727: Type 'Tin' cannot be used for the 'T2' in 'RW(Of T1, T2)' in this context because 'Tin' is an 'In' type parameter.
-                Sub foo(ByVal x As RW(Of Tin, Tin))
+                Sub goo(ByVal x As RW(Of Tin, Tin))
                                    ~~~~~~~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -17623,14 +17644,14 @@ BC36727: Type 'Tin' cannot be used for the 'T2' in 'RW(Of T1, T2)' in this conte
     <compilation name="VarianceOutParamDisallowedHere2">
         <file name="a.vb"><![CDATA[
             Interface I(Of Out Tout, In Tin, Out TSout As Structure, In TSin As Structure)
-                Sub foo(ByVal x As R(Of R(Of Tout)))
+                Sub goo(ByVal x As R(Of R(Of Tout)))
             End Interface
             Interface R(Of Out T) : End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC36728: Type 'Tout' cannot be used in 'R(Of Tout)' in this context because 'Tout' is an 'Out' type parameter.
-                Sub foo(ByVal x As R(Of R(Of Tout)))
+                Sub goo(ByVal x As R(Of R(Of Tout)))
                                    ~~~~~~~~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -17642,7 +17663,7 @@ BC36728: Type 'Tout' cannot be used in 'R(Of Tout)' in this context because 'Tou
     <compilation name="VarianceInParamDisallowedHere2">
         <file name="a.vb"><![CDATA[
             Interface I(Of Out Tout, In Tin, Out TSout As Structure, In TSin As Structure)
-                Sub foo(ByVal x As W(Of R(Of Tin)))
+                Sub goo(ByVal x As W(Of R(Of Tin)))
             End Interface
             Interface R(Of Out T) : End Interface
             Interface W(Of In T) : End Interface
@@ -17650,7 +17671,7 @@ BC36728: Type 'Tout' cannot be used in 'R(Of Tout)' in this context because 'Tou
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC36729: Type 'Tin' cannot be used in 'R(Of Tin)' in this context because 'Tin' is an 'In' type parameter.
-                Sub foo(ByVal x As W(Of R(Of Tin)))
+                Sub goo(ByVal x As W(Of R(Of Tin)))
                                    ~~~~~~~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -17662,14 +17683,14 @@ BC36729: Type 'Tin' cannot be used in 'R(Of Tin)' in this context because 'Tin' 
     <compilation name="VarianceOutParamDisallowedHereForGeneric4">
         <file name="a.vb"><![CDATA[
             Interface I(Of Out Tout, In Tin, Out TSout As Structure, In TSin As Structure)
-                Sub foo(ByVal x As RW(Of RW(Of Tout, Tout), RW(Of Tout, Tin)))
+                Sub goo(ByVal x As RW(Of RW(Of Tout, Tout), RW(Of Tout, Tin)))
             End Interface
             Interface RW(Of Out T1, In T2) : End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC36730: Type 'Tout' cannot be used for the 'T1' of 'RW(Of T1, T2)' in 'RW(Of Tout, Tout)' in this context because 'Tout' is an 'Out' type parameter.
-                Sub foo(ByVal x As RW(Of RW(Of Tout, Tout), RW(Of Tout, Tin)))
+                Sub goo(ByVal x As RW(Of RW(Of Tout, Tout), RW(Of Tout, Tin)))
                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -17681,14 +17702,14 @@ BC36730: Type 'Tout' cannot be used for the 'T1' of 'RW(Of T1, T2)' in 'RW(Of To
     <compilation name="VarianceInParamDisallowedHereForGeneric4">
         <file name="a.vb"><![CDATA[
             Interface I(Of Out Tout, In Tin, Out TSout As Structure, In TSin As Structure)
-                Sub foo(ByVal x As RW(Of RW(Of Tin, Tin), RW(Of Tout, Tin)))
+                Sub goo(ByVal x As RW(Of RW(Of Tin, Tin), RW(Of Tout, Tin)))
             End Interface
             Interface RW(Of Out T1, In T2) : End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC36731: Type 'Tin' cannot be used for the 'T2' of 'RW(Of T1, T2)' in 'RW(Of Tin, Tin)' in this context because 'Tin' is an 'In' type parameter.
-                Sub foo(ByVal x As RW(Of RW(Of Tin, Tin), RW(Of Tout, Tin)))
+                Sub goo(ByVal x As RW(Of RW(Of Tin, Tin), RW(Of Tout, Tin)))
                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -17701,13 +17722,13 @@ BC36731: Type 'Tin' cannot be used for the 'T2' of 'RW(Of T1, T2)' in 'RW(Of Tin
         <file name="a.vb"><![CDATA[
             Interface I(Of Out Tout, In Tin, Out TSout As Structure, In TSin As Structure)
                 Interface J : End Interface
-                Sub foo(ByVal x As J)
+                Sub goo(ByVal x As J)
             End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC36732: Type 'J' cannot be used in this context because both the context and the definition of 'J' are nested within interface 'I(Of Tout, Tin, TSout, TSin)', and 'I(Of Tout, Tin, TSout, TSin)' has 'In' or 'Out' type parameters. Consider moving the definition of 'J' outside of 'I(Of Tout, Tin, TSout, TSin)'.
-                Sub foo(ByVal x As J)
+                Sub goo(ByVal x As J)
                                    ~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -17720,14 +17741,14 @@ BC36732: Type 'J' cannot be used in this context because both the context and th
         <file name="a.vb"><![CDATA[
             Interface I(Of Out Tout, In Tin, Out TSout As Structure, In TSin As Structure)
                 Interface J : End Interface
-                Sub foo(ByVal x As RW(Of J, Tout))
+                Sub goo(ByVal x As RW(Of J, Tout))
             End Interface
             Interface RW(Of Out T1, In T2) : End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC36733: Type 'J' cannot be used for the 'T1' in 'RW(Of T1, T2)' in this context because both the context and the definition of 'J' are nested within interface 'I(Of Tout, Tin, TSout, TSin)', and 'I(Of Tout, Tin, TSout, TSin)' has 'In' or 'Out' type parameters. Consider moving the definition of 'J' outside of 'I(Of Tout, Tin, TSout, TSin)'.
-                Sub foo(ByVal x As RW(Of J, Tout))
+                Sub goo(ByVal x As RW(Of J, Tout))
                                    ~~~~~~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -17740,14 +17761,14 @@ BC36733: Type 'J' cannot be used for the 'T1' in 'RW(Of T1, T2)' in this context
         <file name="a.vb"><![CDATA[
             Interface I(Of Out Tout, In Tin, Out TSout As Structure, In TSin As Structure)
                 Interface J : End Interface
-                Sub foo(ByVal x As R(Of R(Of J)))
+                Sub goo(ByVal x As R(Of R(Of J)))
             End Interface
             Interface R(Of Out T) : End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC36735: Type 'J' cannot be used in 'R(Of I(Of Tout, Tin, TSout, TSin).J)' in this context because both the context and the definition of 'J' are nested within interface 'I(Of Tout, Tin, TSout, TSin)', and 'I(Of Tout, Tin, TSout, TSin)' has 'In' or 'Out' type parameters. Consider moving the definition of 'J' outside of 'I(Of Tout, Tin, TSout, TSin)'.
-                Sub foo(ByVal x As R(Of R(Of J)))
+                Sub goo(ByVal x As R(Of R(Of J)))
                                    ~~~~~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -17760,14 +17781,14 @@ BC36735: Type 'J' cannot be used in 'R(Of I(Of Tout, Tin, TSout, TSin).J)' in th
         <file name="a.vb"><![CDATA[
             Interface I(Of Out Tout, In Tin, Out TSout As Structure, In TSin As Structure)
                 Interface J : End Interface
-                Sub foo(ByVal x As RW(Of RW(Of J, Tout), RW(Of Tout, Tin)))
+                Sub goo(ByVal x As RW(Of RW(Of J, Tout), RW(Of Tout, Tin)))
             End Interface
             Interface RW(Of Out T1, In T2) : End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC36736: Type 'J' cannot be used for the 'T1' of 'RW(Of T1, T2)' in 'RW(Of I(Of Tout, Tin, TSout, TSin).J, Tout)' in this context because both the context and the definition of 'J' are nested within interface 'I(Of Tout, Tin, TSout, TSin)', and 'I(Of Tout, Tin, TSout, TSin)' has 'In' or 'Out' type parameters. Consider moving the definition of 'J' outside of 'I(Of Tout, Tin, TSout, TSin)'.
-                Sub foo(ByVal x As RW(Of RW(Of J, Tout), RW(Of Tout, Tin)))
+                Sub goo(ByVal x As RW(Of RW(Of J, Tout), RW(Of Tout, Tin)))
                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -17797,13 +17818,13 @@ BC36738: Event definitions with parameters are not allowed in an interface such 
     <compilation name="VarianceOutNullableDisallowed2">
         <file name="a.vb"><![CDATA[
             Interface I(Of Out Tout, In Tin, Out TSout As Structure, In TSin As Structure)
-                Function foo() As TSout?
+                Function goo() As TSout?
             End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC36740: Type 'TSout' cannot be used in 'TSout?' because 'In' and 'Out' type parameters cannot be made nullable, and 'TSout' is an 'Out' type parameter.
-                Function foo() As TSout?
+                Function goo() As TSout?
                                   ~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -17815,13 +17836,13 @@ BC36740: Type 'TSout' cannot be used in 'TSout?' because 'In' and 'Out' type par
     <compilation name="VarianceInNullableDisallowed2">
         <file name="a.vb"><![CDATA[
             Interface I(Of Out Tout, In Tin, Out TSout As Structure, In TSin As Structure)
-                Sub foo(ByVal x As TSin?)
+                Sub goo(ByVal x As TSin?)
             End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC36741: Type 'TSin' cannot be used in 'TSin?' because 'In' and 'Out' type parameters cannot be made nullable, and 'TSin' is an 'In' type parameter.
-                Sub foo(ByVal x As TSin?)
+                Sub goo(ByVal x As TSin?)
                                    ~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -17833,13 +17854,13 @@ BC36741: Type 'TSin' cannot be used in 'TSin?' because 'In' and 'Out' type param
     <compilation name="VarianceOutByValDisallowed1">
         <file name="a.vb"><![CDATA[
             Interface IVariance(Of Out T)
-                Sub Foo(ByVal a As T)
+                Sub Goo(ByVal a As T)
             End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC36742: Type 'T' cannot be used as a ByVal parameter type because 'T' is an 'Out' type parameter.
-                Sub Foo(ByVal a As T)
+                Sub Goo(ByVal a As T)
                                    ~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -17851,13 +17872,13 @@ BC36742: Type 'T' cannot be used as a ByVal parameter type because 'T' is an 'Ou
     <compilation name="VarianceInReturnDisallowed1">
         <file name="a.vb"><![CDATA[
             Interface IVariance(Of In T)
-                Function Foo() As T
+                Function Goo() As T
             End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC36743: Type 'T' cannot be used as a return type because 'T' is an 'In' type parameter.
-                Function Foo() As T
+                Function Goo() As T
                                   ~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -17869,13 +17890,13 @@ BC36743: Type 'T' cannot be used as a return type because 'T' is an 'In' type pa
     <compilation name="VarianceOutConstraintDisallowed1">
         <file name="a.vb"><![CDATA[
             Interface IVariance(Of Out T)
-                Function Foo(Of U As T)() As T
+                Function Goo(Of U As T)() As T
             End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC36744: Type 'T' cannot be used as a generic type constraint because 'T' is an 'Out' type parameter.
-                Function Foo(Of U As T)() As T
+                Function Goo(Of U As T)() As T
                                      ~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -17995,10 +18016,10 @@ BC36750: Type 'Tin' cannot be used in this context because 'In' and 'Out' type p
     <compilation name="OverloadsModifierInModule">
         <file name="a.vb"><![CDATA[
             Module M1
-                Overloads Function foo(x as integer) as double
+                Overloads Function goo(x as integer) as double
                     return nothing
                 End Function
-                Overloads Function foo(ByVal x As Long) As Double
+                Overloads Function goo(ByVal x As Long) As Double
                     Return Nothing
                 End Function
             End Module
@@ -18006,10 +18027,10 @@ BC36750: Type 'Tin' cannot be used in this context because 'In' and 'Out' type p
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
 BC36917: Inappropriate use of 'Overloads' keyword in a module.
-                Overloads Function foo(x as integer) as double
+                Overloads Function goo(x as integer) as double
                 ~~~~~~~~~
 BC36917: Inappropriate use of 'Overloads' keyword in a module.
-                Overloads Function foo(ByVal x As Long) As Double
+                Overloads Function goo(ByVal x As Long) As Double
                 ~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -18124,7 +18145,7 @@ BC40004: variable 'i' conflicts with variable 'i' in the base class 'Base' and s
     <compilation name="MustOverride2">
         <file name="a.vb"><![CDATA[
             Class C1
-                Overridable ReadOnly Property Foo(ByVal x As Integer) As Integer
+                Overridable ReadOnly Property Goo(ByVal x As Integer) As Integer
                     Get
                         Return 1
                     End Get
@@ -18132,7 +18153,7 @@ BC40004: variable 'i' conflicts with variable 'i' in the base class 'Base' and s
             End Class
             Class C2
                 Inherits C1
-                ReadOnly Property Foo(ByVal x As Integer) As Integer
+                ReadOnly Property Goo(ByVal x As Integer) As Integer
                     Get
                         Return 1
                     End Get
@@ -18141,8 +18162,8 @@ BC40004: variable 'i' conflicts with variable 'i' in the base class 'Base' and s
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC40005: property 'Foo' shadows an overridable method in the base class 'C1'. To override the base method, this method must be declared 'Overrides'.
-                ReadOnly Property Foo(ByVal x As Integer) As Integer
+BC40005: property 'Goo' shadows an overridable method in the base class 'C1'. To override the base method, this method must be declared 'Overrides'.
+                ReadOnly Property Goo(ByVal x As Integer) As Integer
                                   ~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -18627,18 +18648,18 @@ BC40012: property 'R4' implicitly declares '_R4', which conflicts with a member 
     <compilation>
         <file name="a.vb"><![CDATA[
 Interface IA
-    Function get_Foo() As String
+    Function get_Goo() As String
 End Interface
 Interface IB
     Inherits IA
-    ReadOnly Property Foo() As Integer
+    ReadOnly Property Goo() As Integer
 End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 =
                 <errors><![CDATA[
-BC40012: property 'Foo' implicitly declares 'get_Foo', which conflicts with a member in the base interface 'IA', and so the property should be declared 'Shadows'.
-    ReadOnly Property Foo() As Integer
+BC40012: property 'Goo' implicitly declares 'get_Goo', which conflicts with a member in the base interface 'IA', and so the property should be declared 'Shadows'.
+    ReadOnly Property Goo() As Integer
                       ~~~
                 ]]></errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
@@ -18752,7 +18773,7 @@ BC40014: function 'set_S' conflicts with a member implicitly declared for proper
                 End Property
             End Class
             Class C2
-                Sub foo()
+                Sub goo()
                     Dim s As C1 = New C1()
                     Dim a = s.p
                 End Sub
@@ -19016,16 +19037,16 @@ BC40034: Non CLS-compliant 'MustOverride' member is not allowed in CLS-compliant
             Imports System
             <CLSCompliant(True)>
             Public MustInherit Class QuiteCompliant
-                Public Sub foo(Of t)(ByVal p1()()() As Integer)
+                Public Sub goo(Of t)(ByVal p1()()() As Integer)
                 End Sub
-                Public Sub foo(Of t)(ByVal p1()()()()() As Integer)
+                Public Sub goo(Of t)(ByVal p1()()()()() As Integer)
                 End Sub
             End Class
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC40035: 'Public Sub foo(Of t)(p1 As Integer()()()()())' is not CLS-compliant because it overloads 'Public Sub foo(Of t)(p1 As Integer()()())' which differs from it only by array of array parameter types or by the rank of the array parameter types.
-                Public Sub foo(Of t)(ByVal p1()()()()() As Integer)
+BC40035: 'Public Sub goo(Of t)(p1 As Integer()()()()())' is not CLS-compliant because it overloads 'Public Sub goo(Of t)(p1 As Integer()()())' which differs from it only by array of array parameter types or by the rank of the array parameter types.
+                Public Sub goo(Of t)(ByVal p1()()()()() As Integer)
                            ~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -19099,14 +19120,14 @@ BC40041: Type 'UInteger' is not CLS-compliant.
             Imports System
             <Assembly: CLSCompliant(True)> 
             Public Module M1
-                Public Sub foo(Of t)(Optional ByVal p1 As Object = 3UI)
+                Public Sub goo(Of t)(Optional ByVal p1 As Object = 3UI)
                 End Sub
             End Module
         ]]></file>
     </compilation>, opt)
             Dim expectedErrors1 = <errors><![CDATA[
 BC40042: Type of optional value for optional parameter 'p1' is not CLS-compliant.
-                Public Sub foo(Of t)(Optional ByVal p1 As Object = 3UI)
+                Public Sub goo(Of t)(Optional ByVal p1 As Object = 3UI)
                                                     ~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -19426,7 +19447,7 @@ BC40055: Casing of namespace name 'consoleapplicationvb' does not match casing o
                             <compilation>
                                 <file name="a.vb"><![CDATA[
                         Namespace Global
-                            Namespace FOO
+                            Namespace GOO
                                 Namespace BAR
                                     Class H
                                     End Class
@@ -19434,7 +19455,7 @@ BC40055: Casing of namespace name 'consoleapplicationvb' does not match casing o
                             End Namespace
                         End Namespace
                                             ]]></file>
-                            </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="FOO.bar"))
+                            </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="GOO.bar"))
             compilation.AssertTheseDiagnostics(
 <expected><![CDATA[
 BC40055: Casing of namespace name 'BAR' does not match casing of namespace name 'bar' in '<project settings>'.
@@ -19446,7 +19467,7 @@ BC40055: Casing of namespace name 'BAR' does not match casing of namespace name 
                             <compilation>
                                 <file name="a.vb"><![CDATA[
                         Namespace Global
-                            Namespace FOO
+                            Namespace GOO
                                 Namespace bar
                                     Class H
                                     End Class
@@ -19454,7 +19475,7 @@ BC40055: Casing of namespace name 'BAR' does not match casing of namespace name 
                             End Namespace
                         End Namespace
                                             ]]></file>
-                            </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="FOO.BAR"))
+                            </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="GOO.BAR"))
             compilation.AssertTheseDiagnostics(
 <expected><![CDATA[
 BC40055: Casing of namespace name 'bar' does not match casing of namespace name 'BAR' in '<project settings>'.
@@ -19467,7 +19488,7 @@ BC40055: Casing of namespace name 'bar' does not match casing of namespace name 
                             <compilation>
                                 <file name="a.vb"><![CDATA[
 Namespace Global
-    Namespace foo
+    Namespace goo
         Namespace BAR
             Class H
             End Class
@@ -19475,11 +19496,11 @@ Namespace Global
     End Namespace
 End Namespace
                     ]]></file>
-                            </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="FOO.BAR"))
+                            </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="GOO.BAR"))
             compilation.AssertTheseDiagnostics(
 <expected><![CDATA[
-BC40055: Casing of namespace name 'foo' does not match casing of namespace name 'FOO' in '<project settings>'.
-    Namespace foo
+BC40055: Casing of namespace name 'goo' does not match casing of namespace name 'GOO' in '<project settings>'.
+    Namespace goo
               ~~~
 ]]></expected>)
 
@@ -19487,7 +19508,7 @@ BC40055: Casing of namespace name 'foo' does not match casing of namespace name 
                             <compilation>
                                 <file name="a.vb"><![CDATA[
 Namespace Global
-    Namespace FOO
+    Namespace GOO
         Namespace BAR
             Class H
             End Class
@@ -19495,11 +19516,11 @@ Namespace Global
     End Namespace
 End Namespace
                     ]]></file>
-                            </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="foo.BAR"))
+                            </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="goo.BAR"))
             compilation.AssertTheseDiagnostics(
 <expected><![CDATA[
-BC40055: Casing of namespace name 'FOO' does not match casing of namespace name 'foo' in '<project settings>'.
-    Namespace FOO
+BC40055: Casing of namespace name 'GOO' does not match casing of namespace name 'goo' in '<project settings>'.
+    Namespace GOO
               ~~~
 ]]></expected>)
 
@@ -19574,18 +19595,18 @@ Imports alias1 = ns1.GenStruct(Of String)
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="UndefinedOrEmptyNamespaceOrClass1">
         <file name="a.vb"><![CDATA[
-            Imports ns1.FOO
+            Imports ns1.GOO
             Namespace ns1
                 Module M1
-                    Sub FOO()
+                    Sub GOO()
                     End Sub
                 End Module
             End Namespace
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC40056: Namespace or type specified in the Imports 'ns1.FOO' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
-Imports ns1.FOO
+BC40056: Namespace or type specified in the Imports 'ns1.GOO' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
+Imports ns1.GOO
         ~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -19653,20 +19674,20 @@ BC42021: Operator without an 'As' clause; type of Object assumed.
     <compilation name="MustShadowOnMultipleInheritance2">
         <file name="a.vb"><![CDATA[
             Interface I1
-                Sub foo(ByVal arg As Integer)
+                Sub goo(ByVal arg As Integer)
             End Interface
             Interface I2
-                Sub foo(ByVal arg As Integer)
+                Sub goo(ByVal arg As Integer)
             End Interface
             Interface I3
                 Inherits I1, I2
-                Sub foo()
+                Sub goo()
             End Interface
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC40003: sub 'foo' shadows an overloadable member declared in the base interface 'I1'.  If you want to overload the base method, this method must be declared 'Overloads'.
-                Sub foo()
+BC40003: sub 'goo' shadows an overloadable member declared in the base interface 'I1'.  If you want to overload the base method, this method must be declared 'Overloads'.
+                Sub goo()
                     ~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -19678,20 +19699,20 @@ BC40003: sub 'foo' shadows an overloadable member declared in the base interface
     <compilation name="IndirectlyImplementedBaseMember5">
         <file name="a.vb"><![CDATA[
             Interface I1
-                Sub foo()
+                Sub goo()
             End Interface
             Interface I2
                 Inherits I1
             End Interface
             Class C1
                 Implements I1
-                Public Sub foo() Implements I1.foo
+                Public Sub goo() Implements I1.goo
                 End Sub
             End Class
             Class C2
                 Inherits C1
                 Implements I2
-                Public Shadows Sub foo() Implements I1.foo
+                Public Shadows Sub goo() Implements I1.goo
                 End Sub
             End Class
         ]]></file>
@@ -19743,7 +19764,7 @@ BC40003: sub 'Dispose1' shadows an overloadable member declared in the base clas
 
                 Public Fld
 
-                Public Function Foo(ByVal x) As Integer
+                Public Function Goo(ByVal x) As Integer
                     Return 1
                 End Function
             End Module
@@ -19758,7 +19779,7 @@ BC42020: Variable declaration without an 'As' clause; type of Object assumed.
                 Public Fld
                        ~~~
 BC42020: Variable declaration without an 'As' clause; type of Object assumed.
-                Public Function Foo(ByVal x) As Integer
+                Public Function Goo(ByVal x) As Integer
                                           ~
                  ]]></errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
@@ -20433,7 +20454,7 @@ BC42333: Interface 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XE
     <compilation name="MissingAsClauseinFunction">
         <file name="a.vb"><![CDATA[
             Module M1
-                Function Foo()
+                Function Goo()
                     Return Nothing
                 End Function
             End Module
@@ -20441,7 +20462,7 @@ BC42333: Interface 'System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XE
     </compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optionStrict:=OptionStrict.Custom))
             Dim expectedErrors1 = <errors><![CDATA[
 BC42021: Function without an 'As' clause; return type of Object assumed.
-                Function Foo()
+                Function Goo()
                          ~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
@@ -21952,7 +21973,7 @@ End Class
 BC30178: Specifier is duplicated.
     Public Public p as Integer
            ~~~~~~
-BC30176: Only one of 'Public', 'Private', 'Protected', 'Friend', or 'Protected Friend' can be specified.
+BC30176: Only one of 'Public', 'Private', 'Protected', 'Friend', 'Protected Friend', or 'Private Protected' can be specified.
     Public Private q as Integer
            ~~~~~~~
 BC30235: 'MustOverride' is not valid on a member variable declaration.
@@ -22010,7 +22031,7 @@ End Class
 </compilation>)
 
             Dim expectedErrors = <errors><![CDATA[
-BC30176: Only one of 'Public', 'Private', 'Protected', 'Friend', or 'Protected Friend' can be specified.
+BC36716: Visual Basic 15.0 does not support Private Protected.
     Protected Private Sub m1()
               ~~~~~~~
 BC30177: Only one of 'NotOverridable', 'MustOverride', or 'Overridable' can be specified.
@@ -23274,14 +23295,14 @@ End Class
  <compilation name="E">
      <file name="a.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
-<Assembly: InternalsVisibleTo("foo")>
+<Assembly: InternalsVisibleTo("goo")>
 Friend Class ImmutableStack(Of T)
 End Class
      ]]></file>
  </compilation>)
 
             Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
- <compilation name="foo">
+ <compilation name="goo">
      <file name="a.vb"><![CDATA[
 Friend Class Scanner
 
@@ -23379,24 +23400,24 @@ BC31035: Interface 'vbGI6504Int2(Of X, X)' is not implemented by this class.
     <compilation>
         <file name="a.vb"><![CDATA[
 Interface I(Of T)
-    Sub Foo(Optional x As Integer = Nothing)
+    Sub Goo(Optional x As Integer = Nothing)
 End Interface
  
 Class C
     Implements I(Of Integer)
  
-    Public Sub Foo(Optional x As Integer = 0) Implements (Of Integer).Foo
+    Public Sub Goo(Optional x As Integer = 0) Implements (Of Integer).Goo
     End Sub
 End Class
         ]]></file>
     </compilation>)
 
             Dim expectedErrors1 = <errors><![CDATA[
-BC30149: Class 'C' must implement 'Sub Foo([x As Integer = 0])' for interface 'I(Of Integer)'.
+BC30149: Class 'C' must implement 'Sub Goo([x As Integer = 0])' for interface 'I(Of Integer)'.
     Implements I(Of Integer)
                ~~~~~~~~~~~~~
 BC30203: Identifier expected.
-    Public Sub Foo(Optional x As Integer = 0) Implements (Of Integer).Foo
+    Public Sub Goo(Optional x As Integer = 0) Implements (Of Integer).Goo
                                                          ~
                                   ]]></errors>
 
@@ -23502,12 +23523,12 @@ BC31421: 'One' is already declared in this enum.
         <file name="a.vb"><![CDATA[
 Interface I1
     Property Bar As Integer
-    Sub Foo()
+    Sub Goo()
 End Interface
 Interface I2
     Inherits I1
     Property Bar As Integer
-    Sub Foo()
+    Sub Goo()
 End Interface
         ]]></file>
     </compilation>)
@@ -23516,8 +23537,8 @@ End Interface
 BC40003: property 'Bar' shadows an overloadable member declared in the base interface 'I1'.  If you want to overload the base method, this method must be declared 'Overloads'.
     Property Bar As Integer
              ~~~
-BC40003: sub 'Foo' shadows an overloadable member declared in the base interface 'I1'.  If you want to overload the base method, this method must be declared 'Overloads'.
-    Sub Foo()
+BC40003: sub 'Goo' shadows an overloadable member declared in the base interface 'I1'.  If you want to overload the base method, this method must be declared 'Overloads'.
+    Sub Goo()
         ~~~
                                   ]]></errors>
 
@@ -23793,7 +23814,7 @@ Friend MustOverride ReadOnly Property P
             IL_0007:  ret
         }
 }"
-            Dim ilReference = CompileIL(forwardingIL, appendDefaultHeader:= False)
+            Dim ilReference = CompileIL(forwardingIL, prependDefaultHeader:= False)
 
             Dim code = 
     <compilation>
@@ -24003,7 +24024,7 @@ End Namespace"
 	.assembly extern D2
 }"
 
-            Dim referenceC2 = CompileIL(codeC2, appendDefaultHeader:= False)
+            Dim referenceC2 = CompileIL(codeC2, prependDefaultHeader:= False)
 
             compilation = CreateCompilationWithMscorlib(
                 source:= codeA,
@@ -24087,7 +24108,7 @@ End Namespace
 	.assembly extern D
 }"
 
-            Dim referenceC2 = CompileIL(codeC2, appendDefaultHeader:=False)
+            Dim referenceC2 = CompileIL(codeC2, prependDefaultHeader:=False)
 
             Dim compilation = CreateCompilationWithMscorlib(codeA, references:={referenceB, referenceC2})
 
@@ -24129,7 +24150,7 @@ End Namespace"
 	.assembly extern D2
 }"
 
-            Dim ilModule = GetILModuleReference(ilSource, appendDefaultHeader:=False)
+            Dim ilModule = GetILModuleReference(ilSource, prependDefaultHeader:=False)
             Dim compilation = CreateCompilationWithMscorlib(
                 source:=String.Empty,
                 references:={ilModule},
@@ -24155,7 +24176,7 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, C
 	.assembly extern D
 }"
 
-            Dim ilModule = GetILModuleReference(ilSource, appendDefaultHeader:=False)
+            Dim ilModule = GetILModuleReference(ilSource, prependDefaultHeader:=False)
             Dim compilation = CreateCompilationWithMscorlib(String.Empty, references:={ilModule}, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[
@@ -24197,7 +24218,7 @@ End Namespace"
 	.assembly extern D2
 }"
 
-            Dim ilModuleReference = GetILModuleReference(ilSource, appendDefaultHeader:=False)
+            Dim ilModuleReference = GetILModuleReference(ilSource, prependDefaultHeader:=False)
             Dim forwarderCompilation = CreateCompilation(
                 source:=String.Empty,
                 references:={ilModuleReference},
@@ -24244,7 +24265,7 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, C
 	.assembly extern D2
 }"
 
-            Dim module1Reference = GetILModuleReference(module1IL, appendDefaultHeader:=False)
+            Dim module1Reference = GetILModuleReference(module1IL, prependDefaultHeader:=False)
 
             Dim module2IL = "
 .module module12L.dll
@@ -24259,7 +24280,7 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, C
 	.assembly extern D4
 }"
 
-            Dim module2Reference = GetILModuleReference(module2IL, appendDefaultHeader:=False)
+            Dim module2Reference = GetILModuleReference(module2IL, prependDefaultHeader:=False)
 
             Dim forwarderCompilation = CreateCompilation(
                 source:=String.Empty,
@@ -24338,7 +24359,7 @@ End Namespace"
 	.assembly extern E
 }"
 
-            Dim referenceC2 = CompileIL(codeC2, appendDefaultHeader:=False)
+            Dim referenceC2 = CompileIL(codeC2, prependDefaultHeader:=False)
 
             Dim codeD = "
 .assembly D { }
@@ -24348,7 +24369,7 @@ End Namespace"
 	.assembly extern E
 }"
 
-            Dim referenceD = CompileIL(codeD, appendDefaultHeader:=False)
+            Dim referenceD = CompileIL(codeD, prependDefaultHeader:=False)
             Dim referenceE = CreateCompilationWithMscorlib(
                 source:=codeC,
                 options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -33,7 +33,7 @@ class Z
 {
     int a;
 
-    public Z(int a)
+    public Z(int a{|Navigation:)|}
     {
         this.a = a;
     }
@@ -56,8 +56,57 @@ class Z
 {
     int a;
 
-    public Z(int a) => this . a = a ; }",
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CodeStyleOptions.TrueWithNoneEnforcement));
+    public Z(int a{|Navigation:)|} => this.a = a;
+}",
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestUseExpressionBodyWhenOnSingleLine_AndIsSingleLine()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Z
+{
+    [|int a;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+
+    public Z(int a{|Navigation:)|} => this.a = a;
+}",
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestUseExpressionBodyWhenOnSingleLine_AndIsNotSingleLine()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Z
+{
+    [|int a;
+    int b;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    int b;
+
+    public Z(int a, int b{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b;
+    }
+}",
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenOnSingleLineWithNoneEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -78,7 +127,7 @@ class Z
     int a;
     string b;
 
-    public Z(int a, string b)
+    public Z(int a, string b{|Navigation:)|}
     {
         this.a = a;
         this.b = b;
@@ -114,7 +163,7 @@ class Z
         this.a = a;
     }
 
-    public Z(string b)
+    public Z(string b{|Navigation:)|}
     {
         this.b = b;
     }
@@ -149,7 +198,7 @@ class Z
         this.a = a;
     }
 
-    public Z(int a, string b)
+    public Z(int a, string b{|Navigation:)|}
     {
         this.a = a;
         this.b = b;
@@ -185,7 +234,7 @@ class Z
         this.a = a;
     }
 
-    public Z(int a, string b)
+    public Z(int a, string b{|Navigation:)|}
     {
         this.a = a;
         this.b = b;
@@ -221,7 +270,7 @@ class Z
         this.a = a;
     }
 
-    public Z(int a, string b) : this(a)
+    public Z(int a, string b{|Navigation:)|} : this(a)
     {
         this.b = b;
     }
@@ -245,7 +294,7 @@ class Z
         this.a = a;
     }
 
-    public Z(int a, string b)
+    public Z(int a, string b{|Navigation:)|}
     {
         this.a = a;
         this.b = b;
@@ -264,7 +313,7 @@ class Z
 }",
 @"class Z
 {
-    public Z(int a, string b)
+    public Z(int a, string b{|Navigation:)|}
     {
         A = a;
         B = b;
@@ -286,7 +335,7 @@ class Z
 }",
 @"class Z
 {
-    public Z(int a, string b)
+    public Z(int a, string b{|Navigation:)|}
     {
         this.A = a;
         this.B = b;
@@ -313,7 +362,7 @@ struct S
 {
     int i;
 
-    public S(int i)
+    public S(int i{|Navigation:)|}
     {
         this.i = i;
     }
@@ -334,7 +383,7 @@ struct S
 
 struct S
 {
-    public S(int i) : this()
+    public S(int i{|Navigation:)|} : this()
     {
         this.i = i;
     }
@@ -363,7 +412,7 @@ struct S
 
     int y;
 
-    public S(int y) : this()
+    public S(int y{|Navigation:)|} : this()
     {
         this.y = y;
     }
@@ -390,7 +439,7 @@ struct S
 
     int y;
 
-    public S(int i) : this()
+    public S(int i{|Navigation:)|} : this()
     {
         this.i = i;
     }
@@ -413,7 +462,7 @@ class Program<T>
 {
     int i;
 
-    public Program(int i)
+    public Program(int i{|Navigation:)|}
     {
         this.i = i;
     }
@@ -485,7 +534,7 @@ index: 1);
 {
     int yield;
 
-    public Program(int yield)
+    public Program(int yield{|Navigation:)|}
     {
         this.yield = yield;
     }
@@ -528,7 +577,7 @@ class Z
 {
     (int, string) a;
 
-    public Z((int, string) a)
+    public Z((int, string) a{|Navigation:)|}
     {
         this.a = a;
     }
@@ -548,7 +597,7 @@ class Z
 {
     int _field;
 
-    public Program(int field)
+    public Program(int field{|Navigation:)|}
     {
         _field = field;
     }
@@ -568,7 +617,7 @@ class Z
 {
     int _field;
 
-    public Program(int field)
+    public Program(int field{|Navigation:)|}
     {
         this._field = field;
     }
@@ -588,7 +637,7 @@ options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSu
 }",
 @"abstract class Contribution
 {
-    public Contribution(string title, int number)
+    protected Contribution(string title, int number{|Navigation:)|}
     {
         Title = title;
         Number = number;
@@ -630,7 +679,7 @@ class Z
 {
     int a;
 
-    public Z(int a)
+    public Z(int a{|Navigation:)|}
     {
         this.a = a;
     }
@@ -654,7 +703,7 @@ class Z
 {
     int a;
 
-    public Z(int a)
+    public Z(int a{|Navigation:)|}
     {
         this.a = a;
     }
@@ -692,7 +741,7 @@ class Z
 {
     int a;
 
-    public Z()
+    public Z({|Navigation:)|}
     {
     }
 }",
@@ -718,7 +767,7 @@ class Z
     int a;
     string b;
 
-    public Z(string b, int a)
+    public Z(string b, int a{|Navigation:)|}
     {
         this.b = b;
         this.a = a;
@@ -750,7 +799,7 @@ class Z
     int a;
     string b;
 
-    public Z(int a, string b)
+    public Z(int a, string b{|Navigation:)|}
     {
         this.a = a;
         this.b = b ?? throw new ArgumentNullException(nameof(b));
@@ -783,7 +832,7 @@ class Z
     int a;
     string b;
 
-    public Z(int a, string b)
+    public Z(int a, string b{|Navigation:)|}
     {
         if (b == null)
         {
@@ -849,6 +898,51 @@ class Z
 
     public void N() { }
 }");
+        }
+
+        [WorkItem(21067, "https://github.com/dotnet/roslyn/pull/21067")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestFinalCaretPosition()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Z
+{
+    [|int a;|]
+}",
+@"using System.Collections.Generic;
+
+class Z
+{
+    int a;
+
+    public Z(int a{|Navigation:)|}
+    {
+        this.a = a;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        [WorkItem(20595, "https://github.com/dotnet/roslyn/issues/20595")]
+        public async Task ProtectedConstructorShouldBeGeneratedForAbstractClass()
+        {
+            await TestInRegularAndScriptAsync(
+@"abstract class C 
+{
+    [|public int Prop { get; set; }|]
+}",
+@"abstract class C 
+{
+    protected C(int prop{|Navigation:)|}
+    {
+        Prop = prop;
+    }
+
+    public int Prop { get; set; }
+}",
+options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.TrueWithSuggestionEnforcement));
         }
     }
 }

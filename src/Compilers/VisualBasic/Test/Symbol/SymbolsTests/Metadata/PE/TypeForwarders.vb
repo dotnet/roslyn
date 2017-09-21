@@ -151,9 +151,9 @@ End Class
         </file>
 </compilation>
 
-            Dim ref1 = CompileIL(il1.Value, appendDefaultHeader:=False)
-            Dim ref2 = CompileIL(il2.Value, appendDefaultHeader:=False)
-            Dim ref3 = CompileIL(il3.Value, appendDefaultHeader:=False)
+            Dim ref1 = CompileIL(il1.Value, prependDefaultHeader:=False)
+            Dim ref2 = CompileIL(il2.Value, prependDefaultHeader:=False)
+            Dim ref3 = CompileIL(il3.Value, prependDefaultHeader:=False)
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(vb, {ref1, ref2, ref3})
 
@@ -217,8 +217,8 @@ End Class
         </file>
 </compilation>
 
-            Dim ref1 = CompileIL(il1.Value, appendDefaultHeader:=False)
-            Dim ref2 = CompileIL(il2.Value, appendDefaultHeader:=False)
+            Dim ref1 = CompileIL(il1.Value, prependDefaultHeader:=False)
+            Dim ref2 = CompileIL(il2.Value, prependDefaultHeader:=False)
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(vb, {ref1, ref2})
 
@@ -287,9 +287,9 @@ End Class
         </file>
 </compilation>
 
-            Dim ref1 = CompileIL(il1.Value, appendDefaultHeader:=False)
-            Dim ref2 = CompileIL(il2.Value, appendDefaultHeader:=False)
-            Dim ref3 = CompileIL(il3.Value, appendDefaultHeader:=False)
+            Dim ref1 = CompileIL(il1.Value, prependDefaultHeader:=False)
+            Dim ref2 = CompileIL(il2.Value, prependDefaultHeader:=False)
+            Dim ref3 = CompileIL(il3.Value, prependDefaultHeader:=False)
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(vb, {ref1, ref2, ref3})
 
@@ -377,10 +377,10 @@ End Class
         </file>
 </compilation>
 
-            Dim ref1 = CompileIL(il1.Value, appendDefaultHeader:=False)
-            Dim ref2 = CompileIL(il2.Value, appendDefaultHeader:=False)
-            Dim ref3 = CompileIL(il3.Value, appendDefaultHeader:=False)
-            Dim ref4 = CompileIL(il4.Value, appendDefaultHeader:=False)
+            Dim ref1 = CompileIL(il1.Value, prependDefaultHeader:=False)
+            Dim ref2 = CompileIL(il2.Value, prependDefaultHeader:=False)
+            Dim ref3 = CompileIL(il3.Value, prependDefaultHeader:=False)
+            Dim ref4 = CompileIL(il4.Value, prependDefaultHeader:=False)
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(vb, {ref1, ref2, ref3, ref4})
 
@@ -453,7 +453,7 @@ End Class
        extends [mscorlib]System.Object
 {
   .method public hidebysig instance class [pe1]Cycle 
-          Foo() cil managed
+          Goo() cil managed
   {
     ldnull
     ret
@@ -477,15 +477,15 @@ Option Strict On
 Class Derived 
     Shared Sub Main()
         Dim us as New UseSite()
-        us.Foo()
+        us.Goo()
     End Sub
 End Class
         </file>
 </compilation>
 
-            Dim ref1 = CompileIL(il1.Value, appendDefaultHeader:=False)
-            Dim ref2 = CompileIL(il2.Value, appendDefaultHeader:=False)
-            Dim ref3 = CompileIL(il3.Value, appendDefaultHeader:=False)
+            Dim ref1 = CompileIL(il1.Value, prependDefaultHeader:=False)
+            Dim ref2 = CompileIL(il2.Value, prependDefaultHeader:=False)
+            Dim ref3 = CompileIL(il3.Value, prependDefaultHeader:=False)
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(vb, {ref1, ref2, ref3})
 
@@ -502,7 +502,7 @@ End Class
             Assert.Equal("pe3", ilAssembly3.Name)
 
             compilation.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_TypeFwdCycle2, "us.Foo()").WithArguments("Cycle", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"))
+                Diagnostic(ERRID.ERR_TypeFwdCycle2, "us.Goo()").WithArguments("Cycle", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"))
         End Sub
 
         ''' <summary>
@@ -545,8 +545,8 @@ End Class
         </file>
 </compilation>
 
-            Dim ref1 = CompileIL(il1.Value, appendDefaultHeader:=False)
-            Dim ref2 = CompileIL(il2.Value, appendDefaultHeader:=False)
+            Dim ref1 = CompileIL(il1.Value, prependDefaultHeader:=False)
+            Dim ref2 = CompileIL(il2.Value, prependDefaultHeader:=False)
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(vb, {ref1, ref2})
 
@@ -609,8 +609,8 @@ End Class
         </file>
 </compilation>
 
-            Dim ref1 = CompileIL(il1.Value, appendDefaultHeader:=False)
-            Dim ref2 = CompileIL(il2.Value, appendDefaultHeader:=False)
+            Dim ref1 = CompileIL(il1.Value, prependDefaultHeader:=False)
+            Dim ref2 = CompileIL(il2.Value, prependDefaultHeader:=False)
 
             CreateCompilationWithMscorlibAndReferences(vb, {ref1, ref2}).VerifyDiagnostics()
         End Sub
@@ -678,8 +678,8 @@ End Class
         </file>
 </compilation>
 
-            Dim ref1 = CompileIL(il1.Value, appendDefaultHeader:=False)
-            Dim ref2 = CompileIL(il2.Value, appendDefaultHeader:=False)
+            Dim ref1 = CompileIL(il1.Value, prependDefaultHeader:=False)
+            Dim ref2 = CompileIL(il2.Value, prependDefaultHeader:=False)
 
             CreateCompilationWithMscorlibAndReferences(vb, {ref1, ref2}).VerifyDiagnostics()
         End Sub
@@ -731,7 +731,7 @@ End Class
         </file>
 </compilation>
 
-            Dim ref1 = CompileIL(il1.Value, appendDefaultHeader:=False)
+            Dim ref1 = CompileIL(il1.Value, prependDefaultHeader:=False)
 
             CreateCompilationWithMscorlibAndReferences(vb, {ref1}).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_ForwardedTypeUnavailable3, "Outer").WithArguments("Outer", "TypeForwarders, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -772,7 +772,7 @@ End Class
         </file>
 </compilation>
 
-            Dim ref1 = CompileIL(il1.Value, appendDefaultHeader:=False)
+            Dim ref1 = CompileIL(il1.Value, prependDefaultHeader:=False)
 
             CreateCompilationWithMscorlibAndReferences(vb, {ref1}).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_ForwardedTypeUnavailable3, "upper").WithArguments("upper", "TypeForwarders, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
@@ -823,7 +823,7 @@ End Class
         </file>
 </compilation>
 
-            Dim ref1 = CompileIL(il1.Value, appendDefaultHeader:=False)
+            Dim ref1 = CompileIL(il1.Value, prependDefaultHeader:=False)
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(vb, {ref1})
 
@@ -885,7 +885,7 @@ End Namespace
         </file>
 </compilation>
 
-            Dim ref1 = CompileIL(il1.Value, appendDefaultHeader:=False)
+            Dim ref1 = CompileIL(il1.Value, prependDefaultHeader:=False)
 
             Dim compilation = CreateCompilationWithMscorlibAndReferences(vb, {ref1})
 
@@ -1024,7 +1024,7 @@ End class
 ]]>
 
             Dim ilBytes As ImmutableArray(Of Byte) = Nothing
-            Using reference = IlasmUtilities.CreateTempAssembly(ilSource1.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(ilSource1.Value, prependDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
@@ -1083,7 +1083,7 @@ End class
          = {type(class 'CF1, ForwarderTargetAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null')}
 ]]>
 
-            Using reference = IlasmUtilities.CreateTempAssembly(ilSource2.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(ilSource2.Value, prependDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
@@ -1194,7 +1194,7 @@ End Class
 ]]>
 
             Dim ilBytes As ImmutableArray(Of Byte) = Nothing
-            Using reference = IlasmUtilities.CreateTempAssembly(ilSource.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(ilSource.Value, prependDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 

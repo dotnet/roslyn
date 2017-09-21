@@ -11,7 +11,8 @@
     <RootNamespace>Roslyn.SyntaxVisualizer.Control</RootNamespace>
     <AssemblyName>Roslyn.SyntaxVisualizer.Control</AssemblyName>
     <UseVSHostingProcess>false</UseVSHostingProcess>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -27,6 +28,24 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers">
+      <Version>$(MicrosoftCodeAnalysisAnalyzersVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common">
+      <Version>$(MicrosoftCodeAnalysisCommonVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp">
+      <Version>$(MicrosoftCodeAnalysisCSharpVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic">
+      <Version>$(MicrosoftCodeAnalysisVisualBasicVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Collections.Immutable">
+      <Version>$(SystemCollectionsImmutableFixedVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Reflection.Metadata">
+      <Version>$(SystemReflectionMetadataFixedVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Page Include="SyntaxVisualizerControl.xaml">
@@ -41,9 +60,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="SyntaxGraph.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

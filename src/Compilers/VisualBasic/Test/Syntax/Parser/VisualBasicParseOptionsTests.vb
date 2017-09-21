@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Globalization
 Imports System.Linq
 Imports Roslyn.Test.Utilities
 
@@ -27,14 +28,12 @@ Public Class VisualBasicParseOptionsTests
         Dim oldOpt1 = VisualBasicParseOptions.Default
         Dim newOpt1 = oldOpt1.WithLanguageVersion(LanguageVersion.Latest)
         Dim newOpt2 = newOpt1.WithLanguageVersion(LanguageVersion.Latest)
-        Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, oldOpt1.LanguageVersion)
         Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, newOpt1.LanguageVersion)
         Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, newOpt2.LanguageVersion)
         newOpt1 = oldOpt1.WithLanguageVersion(LanguageVersion.Default)
         newOpt2 = newOpt1.WithLanguageVersion(LanguageVersion.Default)
-        Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, oldOpt1.LanguageVersion)
-        Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, newOpt1.LanguageVersion)
-        Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion, newOpt2.LanguageVersion)
+        Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion, newOpt1.LanguageVersion)
+        Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion, newOpt2.LanguageVersion)
     End Sub
 
     <Fact>
@@ -63,12 +62,12 @@ Public Class VisualBasicParseOptionsTests
         AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), New KeyValuePair(Of String, Object)("TARGET", "module")}, symbols.AsEnumerable)
 
         symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication,
-                                                   {New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123)})
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
+                                                   {New KeyValuePair(Of String, Object)("VBC_VER", "Goo"), New KeyValuePair(Of String, Object)("TARGET", 123)})
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Goo"), New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
 
         symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication,
-                                                   New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123))
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
+                                                   New KeyValuePair(Of String, Object)("VBC_VER", "Goo"), New KeyValuePair(Of String, Object)("TARGET", 123))
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Goo"), New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
 
         symbols = AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication, empty)
         AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), New KeyValuePair(Of String, Object)("TARGET", "exe")}, symbols.AsEnumerable)
@@ -82,11 +81,26 @@ Public Class VisualBasicParseOptionsTests
         Dim highest = System.Enum.
             GetValues(GetType(LanguageVersion)).
             Cast(Of LanguageVersion).
-            Select(Function(x) CInt(x)).
             Where(Function(x) x <> LanguageVersion.Latest).
-            Max()
+            Max().
+            ToDisplayString()
 
-        Assert.Equal(highest, CInt(PredefinedPreprocessorSymbols.CurrentVersionNumber))
+        Assert.Equal(highest, PredefinedPreprocessorSymbols.CurrentVersionNumber.ToString(CultureInfo.InvariantCulture))
+    End Sub
+
+    <Fact, WorkItem(21094, "https://github.com/dotnet/roslyn/issues/21094")>
+    Public Sub CurrentVersionNumberIsCultureIndependent()
+        Dim currentCulture = CultureInfo.CurrentCulture
+        Try
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture
+            Dim invariantCultureVersion = PredefinedPreprocessorSymbols.CurrentVersionNumber
+            ' cs-CZ uses decimal comma, which can cause issues
+            CultureInfo.CurrentCulture = New CultureInfo("cs-CZ", useUserOverride:=False)
+            Dim czechCultureVersion = PredefinedPreprocessorSymbols.CurrentVersionNumber
+            Assert.Equal(invariantCultureVersion, czechCultureVersion)
+        Finally
+            CultureInfo.CurrentCulture = currentCulture
+        End Try
     End Sub
 
     <Fact>

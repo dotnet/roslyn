@@ -3,71 +3,56 @@
 
         - Our build has no double writes
         - Our project.json files are consistent
-        - our build files are well structured
+        - Our build files are well structured
         - Our solution states are consistent
+        - Our generated files are consistent
 
 #>
 
-Param(
-    [string]$sourcePath = $null,
-    [string]$binariesPath = $null
+[CmdletBinding(PositionalBinding=$false)]
+param(
+    [string]$config = "",
+    [string]$msbuild = ""
 )
-set-strictmode -version 2.0
+
+Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
 
-function Get-PackagesPath {
-    $packagesPath = $env:NUGET_PACKAGES
-    if ($packagesPath -eq $null) {
-        $packagesPath = join-path $env:UserProfile ".nuget\packages\"
-    }
+try {
+    . (Join-Path $PSScriptRoot "build-utils.ps1")
+    Push-Location $repoDir
 
-    return $packagesPath
-}
-
-pushd $sourcePath
-try
-{
     # Need to parse out the current NuGet package version of Structured Logger
-    [xml]$deps = get-content (join-path $sourcePath "build\Targets\Dependencies.props")
-    $structuredLoggerVersion = $deps.Project.PropertyGroup.MicrosoftBuildLoggingStructuredLoggerVersion
-    $packagesPath = Get-PackagesPath
-    $structuredLoggerPath = join-path $packagesPath "Microsoft.Build.Logging.StructuredLogger\$structuredLoggerVersion\lib\net46\StructuredLogger.dll"
-    $logPath = join-path $binariesPath "build.xml"
+    $structuredLoggerPath = Join-Path (Get-PackageDir "Microsoft.Build.Logging.StructuredLogger") "lib\net46\StructuredLogger.dll"
+    $configDir = Join-Path $binariesDir $config
+    $logPath = Join-Path $configDir "roslyn.buildlog"
+    $solution = Join-Path $repoDir "Roslyn.sln"
 
-    write-host "Building Roslyn.sln with logging support"
-    & msbuild /v:m /m /logger:StructuredLogger`,$structuredLoggerPath`;$logPath /nodeReuse:false /p:DeployExtension=false Roslyn.sln
-    if (-not $?) {
-        exit 1
+    if ($msbuild -eq "") {
+        $msbuild = Ensure-MSBuild
     }
-    write-host ""
+
+    Write-Host "Building Roslyn.sln with logging support"
+    Exec-Console $msbuild "/noconlog /v:m /m /p:Configuration=$config /logger:StructuredLogger,$structuredLoggerPath;$logPath /nodeReuse:false /p:DeployExtension=false $solution"
+    Write-Host ""
 
     # Verify the state of our various build artifacts
-    write-host "Running BuildBoss"
-    $buildBossPath = join-path $binariesPath "Exes\BuildBoss\BuildBoss.exe"
-    & $buildBossPath Roslyn.sln Compilers.sln src\Samples\Samples.sln CrossPlatform.sln "build\Targets" $logPath
-    if (-not $?) {
-        write-host "See the README for more details on BuildBoss: $(join-path $sourcePath "src\Tools\BuildBoss\README.md")"
-        exit 1
-    }
-    write-host ""
+    Write-Host "Running BuildBoss"
+    $buildBossPath = Join-Path $configDir "Exes\BuildBoss\BuildBoss.exe"
+    Exec-Console $buildBossPath "Roslyn.sln Compilers.sln src\Samples\Samples.sln CrossPlatform.sln build\Targets $logPath"
+    Write-Host ""
 
-    # Verify the state of our project.jsons
-    write-host "Running RepoUtil"
-    $repoUtilPath = join-path $binariesPath "Exes\RepoUtil\RepoUtil.exe"
-    & $repoUtilPath verify
-    if (-not $?) {
-        exit 1
-    }
-    write-host ""
+    # Verify the state of our generated syntax files
+    Write-Host "Checking generated compiler files"
+    Exec-Block { & (Join-Path $PSScriptRoot "generate-compiler-code.ps1") -test }
 
     exit 0
 }
-catch [exception]
-{
-    write-host $_.Exception
-    exit -1
+catch [exception] {
+    Write-Host $_
+    Write-Host $_.Exception
+    exit 1
 }
-finally
-{
-    popd
+finally {
+    Pop-Location
 }

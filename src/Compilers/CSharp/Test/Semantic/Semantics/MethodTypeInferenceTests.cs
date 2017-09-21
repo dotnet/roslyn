@@ -479,7 +479,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,7): error CS0411: The type arguments for method 'C.Apply<T>(C.F<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //       Apply(delegate { while (true) { } });
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Apply").WithArguments("C.Apply<T>(C.F<T>)").WithLocation(8, 7));
@@ -494,18 +494,18 @@ class C
     static void Main()
     {
         dynamic d = null;
-        Foo(ref d);
+        Goo(ref d);
     }
  
-    static void Foo<T>(ref T[] x)
+    static void Goo<T>(ref T[] x)
     {
     }
 }
 ";
             CreateCompilationWithMscorlibAndSystemCore(source, new[] { CSharpRef }).VerifyEmitDiagnostics(
-                // (7,9): error CS0411: The type arguments for method 'C.Foo<T>(ref T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         Foo(ref d);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Foo").WithArguments("C.Foo<T>(ref T[])"));
+                // (7,9): error CS0411: The type arguments for method 'C.Goo<T>(ref T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Goo(ref d);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Goo").WithArguments("C.Goo<T>(ref T[])"));
         }
 
         [WorkItem(541810, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541810")]
@@ -516,7 +516,7 @@ class C
 using System.Collections.Generic;
 class Test
 {
-    static void Foo<V>(V x)
+    static void Goo<V>(V x)
     {
         I<V> i = null;
         var y = new List<string>();
@@ -524,7 +524,7 @@ class Test
     }
     static void Main()
     {
-        Foo(1);
+        Goo(1);
     }
     interface I<T>
     {
@@ -549,21 +549,21 @@ class Test
     public static void Run<T, U>(T t, U u)
     {
         I<U> i = new Outer<U, T>();
-        i.Foo(u, new List<string>());
+        i.Goo(u, new List<string>());
     }
     interface I<A>
     {
-        void Foo<B>(A a, List<B> y);
+        void Goo<B>(A a, List<B> y);
     }
     class Outer<P, Q> : I<P>
     {
-        void I<P>.Foo<S>(P p, List<S> y)
+        void I<P>.Goo<S>(P p, List<S> y)
         {
         }
     }
 }";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -614,18 +614,18 @@ class Program
 {
     static void Main(string[] args)
     {
-        var s = Foo<>(123, 345);
+        var s = Goo<>(123, 345);
     }
-    public static int Foo<T, U>(T t, U u)
+    public static int Goo<T, U>(T t, U u)
     {
         return 1;
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (6,17): error CS0305: Using the generic method 'Program.Foo<T, U>(T, U)' requires 2 type arguments
-                //         var s = Foo<>(123, 345);
-                Diagnostic(ErrorCode.ERR_BadArity, "Foo<>").WithArguments("Program.Foo<T, U>(T, U)", "method", "2"));
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (6,17): error CS0305: Using the generic method 'Program.Goo<T, U>(T, U)' requires 2 type arguments
+                //         var s = Goo<>(123, 345);
+                Diagnostic(ErrorCode.ERR_BadArity, "Goo<>").WithArguments("Program.Goo<T, U>(T, U)", "method", "2"));
         }
 
         [WorkItem(541887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541887")]
@@ -640,23 +640,23 @@ class Program
 {
     static void Main(string[] args)
     {
-        var s = Foo<int, >(123, 345);
+        var s = Goo<int, >(123, 345);
     }
-    public static int Foo<T, U>(T t, U u)
+    public static int Goo<T, U>(T t, U u)
     {
         return 1;
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,26): error CS1031: Type expected
-                //         var s = Foo<int, >(123, 345);
+                //         var s = Goo<int, >(123, 345);
                 Diagnostic(ErrorCode.ERR_TypeExpected, ">"),
 
                 // CONSIDER: we would prefer not to report this cascading diagnostic.
 
                 // (6,33): error CS1503: Argument 2: cannot convert from 'int' to '?'
-                //         var s = Foo<int, >(123, 345);
+                //         var s = Goo<int, >(123, 345);
                 Diagnostic(ErrorCode.ERR_BadArgType, "345").WithArguments("2", "int", "?"));
         }
 
@@ -674,7 +674,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,11): error CS0103: The name 'E' does not exist in the current context
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "E").WithArguments("E"));
         }
@@ -733,7 +733,7 @@ class Program
 }
 
 ";
-            CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef }).VerifyDiagnostics();
+            CreateStandardCompilation(source, references: new[] { SystemCoreRef }).VerifyDiagnostics();
         }
 
 
@@ -755,7 +755,7 @@ class Program
 }
 
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(649800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649800")]
@@ -776,7 +776,7 @@ public class Test
  
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,9): error CS0411: The type arguments for method 'Test.M<T>(T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(Main());
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Test.M<T>(T)"),
@@ -803,7 +803,7 @@ public class C<T>
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -833,7 +833,7 @@ public class C<T>
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();

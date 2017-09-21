@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -38,14 +40,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             private ArrayBuilder<BoundStatement> _loweredDecisionTree = ArrayBuilder<BoundStatement>.GetInstance();
 
             private PatternSwitchLocalRewriter(LocalRewriter localRewriter, BoundPatternSwitchStatement node)
-                : base(localRewriter._factory.CurrentMethod, localRewriter._factory.Compilation.Conversions)
+                : base(localRewriter._factory.CurrentMethod, (SwitchStatementSyntax)node.Syntax, localRewriter._factory.Compilation.Conversions)
             {
                 this._localRewriter = localRewriter;
                 this._factory = localRewriter._factory;
                 this._factory.Syntax = node.Syntax;
                 foreach (var section in node.SwitchSections)
                 {
-                    _switchSections.Add((SyntaxNode)section.Syntax, ArrayBuilder<BoundStatement>.GetInstance());
+                    _switchSections.Add(section.Syntax, ArrayBuilder<BoundStatement>.GetInstance());
                 }
             }
 
@@ -59,19 +61,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var expression = _localRewriter.VisitExpression(node.Expression);
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
 
-                // if the expression is "too complex", we copy it to a temp.
-                LocalSymbol initialTemp = null;
-                if (expression.ConstantValue == null)
+                // EnC: We need to insert a hidden sequence point to handle function remapping in case
+                // the containing method is edited while methods invoked in the expression are being executed.
+                if (!node.WasCompilerGenerated && _localRewriter.Instrument)
                 {
-                    initialTemp = _factory.SynthesizedLocal(expression.Type, expression.Syntax);
-                    result.Add(_factory.Assignment(_factory.Local(initialTemp), expression));
-                    expression = _factory.Local(initialTemp);
-
-                    // EnC: We need to insert a hidden sequence point to handle function remapping in case 
-                    // the containing method is edited while methods invoked in the expression are being executed.
-                    if (!node.WasCompilerGenerated && _localRewriter.Instrument)
+                    var instrumentedExpression = _localRewriter._instrumenter.InstrumentSwitchStatementExpression(node, expression, _factory);
+                    if (expression.ConstantValue == null)
                     {
-                        expression = _localRewriter._instrumenter.InstrumentSwitchStatementExpression(node, expression, _factory);
+                        expression = instrumentedExpression;
+                    }
+                    else
+                    {
+                        // If the expression is a constant, we leave it alone (the decision tree lowering code needs
+                        // to see that constant). But we add an additional leading statement with the instrumented expression.
+                        result.Add(_factory.ExpressionStatement(instrumentedExpression));
                     }
                 }
 
@@ -85,7 +88,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 // at this point the end of result is unreachable.
 
-                _declaredTemps.AddOptional(initialTemp);
                 _declaredTemps.AddRange(node.InnerLocals);
 
                 // output the sections of code
@@ -148,12 +150,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression loweredExpression,
                 BoundPatternSwitchStatement node)
             {
-                var loweredDecisionTree = DecisionTree.Create(loweredExpression, loweredExpression.Type, _enclosingSymbol);
+                var loweredDecisionTree = CreateEmptyDecisionTree(loweredExpression);
                 BoundPatternSwitchLabel defaultLabel = null;
                 SyntaxNode defaultSection = null;
                 foreach (var section in node.SwitchSections)
                 {
-                    var sectionSyntax = (SyntaxNode)section.Syntax;
+                    var sectionSyntax = section.Syntax;
                     foreach (var label in section.SwitchLabels)
                     {
                         var loweredLabel = LowerSwitchLabel(label);
@@ -171,15 +173,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            Syntax = label.Syntax;
                             AddToDecisionTree(loweredDecisionTree, sectionSyntax, loweredLabel);
                         }
                     }
                 }
 
-                if (defaultLabel != null)
+                if (defaultLabel != null && !loweredDecisionTree.MatchIsComplete)
                 {
-                    Add(loweredDecisionTree, (e, t) => new DecisionTree.Guarded(loweredExpression, loweredExpression.Type, default(ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>>), defaultSection, null, defaultLabel));
+                    Add(loweredDecisionTree, (e, t) => new DecisionTree.Guarded(
+                        expression: loweredExpression,
+                        type: loweredExpression.Type,
+                        bindings: default,
+                        sectionSyntax: defaultSection,
+                        guard: null,
+                        label: defaultLabel));
                 }
 
                 // We discard use-site diagnostics, as they have been reported during initial binding.
@@ -219,17 +226,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Store the input expression into a temp
                     if (decisionTree.Expression != expression)
                     {
-                        _loweredDecisionTree.Add(_factory.Assignment(decisionTree.Expression, expression));
+                        var convertedExpression = _factory.Convert(decisionTree.Expression.Type, expression);
+                        _loweredDecisionTree.Add(_factory.Assignment(decisionTree.Expression, convertedExpression));
                     }
 
+                    // If the temp is not yet in the declared temp set, add it now
                     if (_declaredTempSet.Add(decisionTree.Temp))
                     {
                         _declaredTemps.Add(decisionTree.Temp);
-                    }
-                    else
-                    {
-                        // we should only attempt to declare each temp once.
-                        throw ExceptionUtilities.Unreachable;
                     }
                 }
 
@@ -258,61 +262,67 @@ namespace Microsoft.CodeAnalysis.CSharp
             private void LowerDecisionTree(DecisionTree.ByType byType)
             {
                 var inputConstant = byType.Expression.ConstantValue;
-                if (inputConstant != null)
-                {
-                    if (inputConstant.IsNull)
-                    {
-                        // input is the constant null
-                        LowerDecisionTree(byType.Expression, byType.WhenNull);
-                        if (byType.WhenNull?.MatchIsComplete != true)
-                        {
-                            LowerDecisionTree(byType.Expression, byType.Default);
-                        }
-                    }
-                    else
-                    {
-                        // input is a non-null constant
-                        foreach (var kvp in byType.TypeAndDecision)
-                        {
-                            LowerDecisionTree(byType.Expression, kvp.Value);
-                            if (kvp.Value.MatchIsComplete)
-                            {
-                                return;
-                            }
-                        }
 
-                        LowerDecisionTree(byType.Expression, byType.Default);
+                // three-valued: true if input known null, false if input known non-null, null if not known.
+                bool? inputIsNull = inputConstant?.IsNull;
+
+                var defaultLabel = _factory.GenerateLabel("byTypeDefault");
+
+                if (byType.Type.CanContainNull())
+                {
+                    switch (inputIsNull)
+                    {
+                        case true:
+                            {
+                                // Input is known to be null. Generate code for the null case only.
+                                LowerDecisionTree(byType.Expression, byType.WhenNull);
+                                if (byType.WhenNull?.MatchIsComplete != true)
+                                {
+                                    _loweredDecisionTree.Add(_factory.Goto(defaultLabel));
+                                }
+                                break;
+                            }
+                        case false:
+                            {
+                                // Input is known not to be null. Don't generate any code for the null case.
+                                break;
+                            }
+                        case null:
+                            {
+                                // Unknown if the input is null. First test for null
+                                var notNullLabel = _factory.GenerateLabel("notNull");
+                                var inputExpression = byType.Expression;
+                                var objectType = _factory.SpecialType(SpecialType.System_Object);
+                                var nullValue = _factory.Null(objectType);
+                                BoundExpression notNull =
+                                    byType.Type.IsNullableType()
+                                    ? _localRewriter.RewriteNullableNullEquality(
+                                            _factory.Syntax,
+                                            BinaryOperatorKind.NullableNullNotEqual,
+                                            byType.Expression,
+                                            nullValue,
+                                            _factory.SpecialType(SpecialType.System_Boolean))
+                                    : _factory.ObjectNotEqual(nullValue, _factory.Convert(objectType, byType.Expression));
+                                _loweredDecisionTree.Add(_factory.ConditionalGoto(notNull, notNullLabel, true));
+                                LowerDecisionTree(byType.Expression, byType.WhenNull);
+                                if (byType.WhenNull?.MatchIsComplete != true)
+                                {
+                                    _loweredDecisionTree.Add(_factory.Goto(defaultLabel));
+                                }
+
+                                _loweredDecisionTree.Add(_factory.Label(notNullLabel));
+                                break;
+                            }
                     }
+
                 }
                 else
                 {
-                    var defaultLabel = _factory.GenerateLabel("byTypeDefault");
+                    Debug.Assert(byType.WhenNull == null);
+                }
 
-                    // input is not a constant
-                    if (byType.Type.CanContainNull())
-                    {
-                        // first test for null
-                        var notNullLabel = _factory.GenerateLabel("notNull");
-                        var inputExpression = byType.Expression;
-                        var objectType = _factory.SpecialType(SpecialType.System_Object);
-                        var nullValue = _factory.Null(objectType);
-                        BoundExpression notNull = byType.Type.IsNullableType()
-                            ? _localRewriter.RewriteNullableNullEquality(_factory.Syntax, BinaryOperatorKind.NullableNullNotEqual, byType.Expression, nullValue, _factory.SpecialType(SpecialType.System_Boolean))
-                            : _factory.ObjectNotEqual(nullValue, _factory.Convert(objectType, byType.Expression));
-                        _loweredDecisionTree.Add(_factory.ConditionalGoto(notNull, notNullLabel, true));
-                        LowerDecisionTree(byType.Expression, byType.WhenNull);
-                        if (byType.WhenNull?.MatchIsComplete != true)
-                        {
-                            _loweredDecisionTree.Add(_factory.Goto(defaultLabel));
-                        }
-
-                        _loweredDecisionTree.Add(_factory.Label(notNullLabel));
-                    }
-                    else
-                    {
-                        Debug.Assert(byType.WhenNull == null);
-                    }
-
+                if (inputIsNull != true)
+                {
                     foreach (var td in byType.TypeAndDecision)
                     {
                         // then test for each type, sequentially
@@ -324,11 +334,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         LowerDecisionTree(decision.Expression, decision);
                         _loweredDecisionTree.Add(_factory.Label(failLabel));
                     }
-
-                    // finally, the default for when no type matches
-                    _loweredDecisionTree.Add(_factory.Label(defaultLabel));
-                    LowerDecisionTree(byType.Expression, byType.Default);
                 }
+
+                // finally, the default for when no type matches
+                _loweredDecisionTree.Add(_factory.Label(defaultLabel));
+                LowerDecisionTree(byType.Expression, byType.Default);
             }
 
             private BoundExpression TypeTestAndCopyToTemp(BoundExpression input, BoundExpression temp)
@@ -373,8 +383,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var value = byValue.Expression.ConstantValue.Value;
                 Debug.Assert(value != null);
 
-                // because we are switching on a constant, the decision tree builder does not produce a (nonempty) ByValue
-                Debug.Assert(byValue.ValueAndDecision.Count == 0);
+                // If there is a matching value among the cases, that is the only one lowered.
+                if (byValue.ValueAndDecision.TryGetValue(value, out DecisionTree valueDecision))
+                {
+                    LowerDecisionTree(byValue.Expression, valueDecision);
+                    if (valueDecision.MatchIsComplete)
+                    {
+                        return;
+                    }
+                }
 
                 LowerDecisionTree(byValue.Expression, byValue.Default);
             }
@@ -402,6 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var loweredRight = kv.Key;
                         var loweredLeft = kv.Value;
+                        Debug.Assert(loweredLeft.Type.Equals(loweredRight.Type, TypeCompareKind.AllIgnoreOptions));
                         addBindings.Add(_factory.ExpressionStatement(
                             _localRewriter.MakeStaticAssignmentOperator(
                                 _factory.Syntax, loweredLeft, loweredRight, RefKind.None, loweredLeft.Type, false)));

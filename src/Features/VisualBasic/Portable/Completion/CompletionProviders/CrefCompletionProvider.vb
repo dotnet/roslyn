@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Text
 Imports System.Threading
@@ -116,8 +116,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If token.Parent.IsKind(SyntaxKind.XmlString) AndAlso token.Parent.IsParentKind(SyntaxKind.XmlAttribute) Then
                 Dim xmlAttribute = DirectCast(token.Parent.Parent, XmlAttributeSyntax)
                 Dim xmlName = TryCast(xmlAttribute.Name, XmlNameSyntax)
+                Dim xmlValue = TryCast(xmlAttribute.Value, XmlStringSyntax)
 
-                If xmlName?.LocalName.ValueText = "cref" Then
+                If xmlName?.LocalName.ValueText = "cref" AndAlso xmlValue?.StartQuoteToken = token Then
                     Return True
                 End If
             End If

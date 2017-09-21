@@ -1696,7 +1696,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_RefReturningCallInExpressionTree = 37263
 
-        ERR_SourceLinkRequiresPortablePdb = 37264
+        ERR_SourceLinkRequiresPdb = 37264
         ERR_CannotEmbedWithoutPdb = 37265
 
         ERR_InvalidInstrumentationKind = 37266
@@ -1707,7 +1707,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_ExplicitTupleElementNamesAttribute = 37269
         ERR_TupleLiteralDisallowsTypeChar = 37270
 
-        ' Available 37270
         ERR_DuplicateProcDefWithDifferentTupleNames2 = 37271
         ERR_InterfaceImplementedTwiceWithDifferentTupleNames2 = 37272
         ERR_InterfaceImplementedTwiceWithDifferentTupleNames3 = 37273
@@ -1730,6 +1729,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_BadDocumentationMode = 37286
         ERR_BadLanguageVersion = 37287
         ERR_InvalidPreprocessorConstantType = 37288
+        ERR_TupleInferredNamesNotAvailable = 37289
+        ERR_InvalidDebugInfo = 37290
+
+        ERR_NoRefOutWhenRefOnly = 37300
+        ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 37301
+
+        ERR_BadNonTrailingNamedArgument = 37302
+        ERR_ExpectedNamedArgumentInAttributeList = 37303
+        ERR_NamedArgumentSpecificationBeforeFixedArgumentInLateboundInvocation = 37304
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
@@ -1951,9 +1959,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_UnableToLoadAnalyzer = 42378
 
         WRN_AttributeIgnoredWhenPublicSigning = 42379
+        WRN_Experimental = 42380
 
-        ' // AVAILABLE                             42380 - 49998
-        ERRWRN_Last = WRN_UnableToLoadAnalyzer + 1
+        ' // AVAILABLE                             42381 - 49998
+        ERRWRN_NextAvailable = 42381
 
         '// HIDDENS AND INFOS BEGIN HERE
         HDN_UnusedImportClause = 50000
@@ -1973,7 +1982,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         IDS_LogoLine1 = 56007
         IDS_LogoLine2 = 56008
         IDS_VBCHelp = 56009
-        ' available: 56010
+        IDS_LangVersions = 56010
         IDS_ToolName = 56011
 
         ' Feature codes
@@ -2004,5 +2013,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_BinaryLiterals
         FEATURE_Tuples
         FEATURE_IOperation
+        FEATURE_LeadingDigitSeparator
+        FEATURE_PrivateProtected
     End Enum
 End Namespace

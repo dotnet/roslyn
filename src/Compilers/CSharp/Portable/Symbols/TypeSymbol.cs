@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         // TODO (tomat): Consider changing this to an empty name. This name shouldn't ever leak to the user in error messages.
-        internal static readonly string ImplicitTypeName = "<invalid-global-code>";
+        internal const string ImplicitTypeName = "<invalid-global-code>";
 
         // InterfaceInfo for a common case of a type not implementing anything directly or indirectly.
         private static readonly InterfaceInfo s_noInterfaces = new InterfaceInfo();
@@ -639,6 +640,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract bool IsManagedType { get; }
 
+        /// <summary>
+        /// Returns true if the type may contain embedded references
+        /// </summary>
+        internal abstract bool IsByRefLikeType { get; }
+
+        /// <summary>
+        /// Returns true if the type is a readonly sruct
+        /// </summary>
+        internal abstract bool IsReadOnly { get; }
+
         #region ITypeSymbol Members
 
         INamedTypeSymbol ITypeSymbol.BaseType
@@ -1083,8 +1094,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(implicitImpl, interfaceMember))
+            if (implicitImpl.ContainsTupleNames() && MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(implicitImpl, interfaceMember))
             {
+                // it is ok to implement implicitly with no tuple names, for compatibility with C# 6, but otherwise names should match
                 diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, implicitImpl.Locations[0], implicitImpl, interfaceMember);
             }
 
@@ -1162,11 +1174,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (closestMismatch.Kind)
                 {
                     case SymbolKind.Method:
-                        hasRefReturnMismatch = (((MethodSymbol)closestMismatch).RefKind != RefKind.None) != (interfaceMemberRefKind != RefKind.None);
+                        hasRefReturnMismatch = ((MethodSymbol)closestMismatch).RefKind != interfaceMemberRefKind;
                         break;
 
                     case SymbolKind.Property:
-                        hasRefReturnMismatch = (((PropertySymbol)closestMismatch).RefKind != RefKind.None) != (interfaceMemberRefKind != RefKind.None);
+                        hasRefReturnMismatch = ((PropertySymbol)closestMismatch).RefKind != interfaceMemberRefKind;
                         break;
                 }
 
@@ -1179,7 +1191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (hasRefReturnMismatch)
                 {
-                    diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, interfaceLocation, implementingType, interfaceMember, closestMismatch, interfaceMemberRefKind != RefKind.None ? "reference" : "value");
+                    diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, interfaceLocation, implementingType, interfaceMember, closestMismatch);
                 }
                 else
                 {
@@ -1238,7 +1250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="implicitImpl">A member on currType that could implement the interface, or null.</param>
         /// <param name="closeMismatch">A member on currType that could have been an attempt to implement the interface, or null.</param>
         /// <remarks>
-        /// There is some similarity between this member and MemberSymbol.FindOverriddenOrHiddenMembersInType.
+        /// There is some similarity between this member and OverriddenOrHiddenMembersHelpers.FindOverriddenOrHiddenMembersInType.
         /// When making changes to this member, think about whether or not they should also be applied in MemberSymbol.
         /// One key difference is that custom modifiers are considered when looking up overridden members, but
         /// not when looking up implicit implementations.  We're preserving this behavior from Dev10.

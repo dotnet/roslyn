@@ -239,7 +239,7 @@ class Program { }
 class Program { }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.RegularWithDocumentationComments);
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments);
             compilation.VerifyDiagnostics(
                 // (3,20): warning CS1574: XML comment has cref attribute 'Gibberish' that could not be resolved
                 // /// See <see cref="Gibberish"/>.
@@ -269,7 +269,7 @@ class Program { }
 class Program { }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.RegularWithDocumentationComments);
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments);
             compilation.VerifyDiagnostics(
                 // (4,20): warning CS1584: XML comment has syntactically incorrect cref attribute ':'
                 // /// See <see cref=":"/> - first character is colon.
@@ -1803,7 +1803,7 @@ class C
             Assert.Equal(
                 compilation.GlobalNamespace
                            .GetMember<NamedTypeSymbol>("C")
-                           .GetMember<SourceMemberMethodSymbol>("M"),
+                           .GetMember<SourceOrdinaryMethodSymbol>("M"),
                 actualSymbol);
             Assert.Equal(SymbolKind.Method, actualSymbol.Kind);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
@@ -1836,7 +1836,7 @@ class Outer
             var expectedSymbol = compilation.GlobalNamespace
                                             .GetMember<NamedTypeSymbol>("Outer")
                                             .GetMember<NamedTypeSymbol>("Inner")
-                                            .GetMember<SourceMemberMethodSymbol>("M");
+                                            .GetMember<SourceOrdinaryMethodSymbol>("M");
 
             // Consider inaccessible symbols, as in Dev11
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
@@ -1857,8 +1857,8 @@ class Outer
 class Test { }
 ";
 
-            var lib1Ref = CreateCompilationWithMscorlib(lib1Source, assemblyName: "A").EmitToImageReference();
-            var lib2Ref = CreateCompilationWithMscorlib(lib2Source, assemblyName: "B").EmitToImageReference();
+            var lib1Ref = CreateStandardCompilation(lib1Source, assemblyName: "A").EmitToImageReference();
+            var lib2Ref = CreateStandardCompilation(lib2Source, assemblyName: "B").EmitToImageReference();
 
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source, new[] { lib1Ref, lib2Ref });
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
@@ -1882,14 +1882,14 @@ namespace Test
     using System;
  
     /// <summary>
-    /// <see cref=""ClientUtils.Foo""/>
+    /// <see cref=""ClientUtils.Goo""/>
     /// </summary>
     enum E { }
 }
 
 class ClientUtils
 {
-    public static void Foo() { }
+    public static void Goo() { }
 }
 ";
 
@@ -1897,7 +1897,7 @@ class ClientUtils
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
             // NOTE: Matches dev11 - the accessible symbol is preferred (vs System.ClientUtils).
-            var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("ClientUtils").GetMember<MethodSymbol>("Foo");
+            var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("ClientUtils").GetMember<MethodSymbol>("Goo");
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
             Assert.Equal(expectedSymbol, actualSymbol);
         }
@@ -4369,11 +4369,11 @@ public partial class D { }
 public partial class E { }
 ";
 
-            var tree1 = Parse(source1, options: TestOptions.RegularWithDocumentationComments);
-            var tree2 = Parse(source2, options: TestOptions.Regular);
+            var tree1 = Parse(source1, options: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.Latest));
+            var tree2 = Parse(source2, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
 
             // This scenario does not exist in dev11, but the diagnostics seem reasonable.
-            CreateCompilationWithMscorlib(new[] { tree1, tree2 }).VerifyDiagnostics(
+            CreateStandardCompilation(new[] { tree1, tree2 }).VerifyDiagnostics(
                 // (5,22): warning CS1591: Missing XML comment for publicly visible type or member 'D'
                 // public partial class D { }
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "D").WithArguments("D"),
@@ -5408,11 +5408,11 @@ class C
             var source = @"
 class C<T>
 {
-    public void Foo(T x) { }
+    public void Goo(T x) { }
  
     class D : C<int>
     {
-        /// <see cref=""Foo(T)""/>
+        /// <see cref=""Goo(T)""/>
         void Bar() { }
     }
 }
@@ -5424,7 +5424,7 @@ class C<T>
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var cref = GetCrefSyntaxes(compilation).Single();
 
-            var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("Foo");
+            var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("Goo");
             Assert.Equal(expectedSymbol, model.GetSymbolInfo(cref).Symbol);
         }
 
@@ -5824,8 +5824,11 @@ enum E { }
 ";
 
             // Restore compat: include inaccessible members in cref lookup
-            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
-            compilation.VerifyDiagnostics();
+            var comp = CreateCompilation(
+                new[] { Parse(source, options: TestOptions.RegularWithDocumentationComments) },
+                new[] { MscorlibRef },
+                TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default));
+            comp.VerifyDiagnostics();
         }
 
         [WorkItem(554086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554086")]
@@ -6078,9 +6081,9 @@ class A<T>
     class B : A<B>
     {
         /// <summary>
-        /// <see cref=""Foo(B)""/>
+        /// <see cref=""Goo(B)""/>
         /// </summary>
-        void Foo(B x) { }
+        void Goo(B x) { }
     }
 }
 ";
@@ -6101,7 +6104,7 @@ class A<T>
             var actualParameterTypeSymbol = model.GetSymbolInfo(parameterTypeSyntax).Symbol;
             Assert.Equal(expectedParameterTypeSymbol, actualParameterTypeSymbol);
 
-            var expectedCrefSymbol = classB.GetMember<MethodSymbol>("Foo");
+            var expectedCrefSymbol = classB.GetMember<MethodSymbol>("Goo");
             var actualCrefSymbol = model.GetSymbolInfo(crefSyntax).Symbol;
             Assert.Equal(expectedCrefSymbol, actualCrefSymbol);
         }
@@ -6595,6 +6598,36 @@ class Cat { }
         private static Symbol[] GetCrefOriginalDefinitions(SemanticModel model, IEnumerable<CrefSyntax> crefs)
         {
             return crefs.Select(syntax => model.GetSymbolInfo(syntax).Symbol).Select(symbol => (object)symbol == null ? null : (Symbol)symbol.OriginalDefinition).ToArray();
+        }
+
+        [Fact]
+        [WorkItem(410932, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=410932")]
+        public void LookupOnCrefTypeParameter()
+        {
+            var source = @"
+class Test
+{
+    T F<T>()
+    {
+    }
+
+    /// <summary>
+    /// <see cref=""F{U}()""/>
+    /// </summary>
+    void S()
+    { }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var crefSyntax = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
+
+            var name = ((GenericNameSyntax)crefSyntax.Name).TypeArgumentList.Arguments.Single();
+            Assert.Equal("U", name.ToString());
+            var typeParameter = (TypeParameterSymbol)model.GetSymbolInfo(name).Symbol;
+            Assert.Empty(model.LookupSymbols(name.SpanStart, typeParameter, "GetAwaiter"));
         }
     }
 }

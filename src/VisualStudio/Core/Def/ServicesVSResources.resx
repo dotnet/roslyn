@@ -654,7 +654,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
 2. Open a Visual Studio Developer Command Prompt
 3. Set environment variable “TraceDesignTime” to true (set TraceDesignTime=true)
 4. Delete .vs directory/.suo file
-5. Restart VS from the command prompt you set the environment varaible (devenv)
+5. Restart VS from the command prompt you set the environment variable (devenv)
 6. Open the solution
 7. Check '{0}' and look for the failed tasks (FAILED)</value>
   </data>
@@ -753,26 +753,26 @@ Additional information: {1}</value>
   <data name="Prefer_inlined_variable_declaration" xml:space="preserve">
     <value>Prefer inlined variable declaration</value>
   </data>
-  <data name="For_methods" xml:space="preserve">
-    <value>For methods</value>
+  <data name="Use_expression_body_for_methods" xml:space="preserve">
+    <value>Use expression body for methods</value>
   </data>
   <data name="Code_block_preferences_colon" xml:space="preserve">
     <value>Code block preferences:</value>
   </data>
-  <data name="For_accessors" xml:space="preserve">
-    <value>For accessors</value>
+  <data name="Use_expression_body_for_accessors" xml:space="preserve">
+    <value>Use expression body for accessors</value>
   </data>
-  <data name="For_constructors" xml:space="preserve">
-    <value>For constructors</value>
+  <data name="Use_expression_body_for_constructors" xml:space="preserve">
+    <value>Use expression body for constructors</value>
   </data>
-  <data name="For_indexers" xml:space="preserve">
-    <value>For indexers</value>
+  <data name="Use_expression_body_for_indexers" xml:space="preserve">
+    <value>Use expression body for indexers</value>
   </data>
-  <data name="For_operators" xml:space="preserve">
-    <value>For operators</value>
+  <data name="Use_expression_body_for_operators" xml:space="preserve">
+    <value>Use expression body for operators</value>
   </data>
-  <data name="For_properties" xml:space="preserve">
-    <value>For properties</value>
+  <data name="Use_expression_body_for_properties" xml:space="preserve">
+    <value>Use expression body for properties</value>
   </data>
   <data name="Some_naming_rules_are_incomplete_Please_complete_or_remove_them" xml:space="preserve">
     <value>Some naming rules are incomplete. Please complete or remove them.</value>
@@ -873,7 +873,7 @@ Additional information: {1}</value>
   <data name="Pick_members" xml:space="preserve">
     <value>Pick members</value>
   </data>
-  <data name="Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual Studio" xml:space="preserve">
+  <data name="Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio" xml:space="preserve">
     <value>Unfortunately, a process used by Visual Studio has encountered an unrecoverable error.  We recommend saving your work, and then closing and restarting Visual Studio.</value>
   </data>
   <data name="Add_a_symbol_specification" xml:space="preserve">
@@ -899,5 +899,79 @@ Additional information: {1}</value>
   </data>
   <data name="VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread" xml:space="preserve">
     <value>VisualStudioWorkspace.TryApplyChanges cannot be called from a background thread.</value>
+  </data>
+  <data name="prefer_auto_properties" xml:space="preserve">
+    <value>prefer auto properties</value>
+  </data>
+  <data name="prefer_throwing_properties" xml:space="preserve">
+    <value>prefer throwing properties</value>
+  </data>
+  <data name="When_generating_properties" xml:space="preserve">
+    <value>When generating properties:</value>
+  </data>
+  <data name="Options" xml:space="preserve">
+    <value>Options</value>
+  </data>
+  <data name="Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues" xml:space="preserve">
+    <value>Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues</value>
+  </data>
+  <data name="Never_show_this_again" xml:space="preserve">
+    <value>Never show this again</value>
+  </data>
+  <data name="Prefer_simple_default_expression" xml:space="preserve">
+    <value>Prefer simple 'default' expression</value>
+  </data>
+  <data name="Prefer_inferred_tuple_names" xml:space="preserve">
+    <value>Prefer inferred tuple element names</value>
+  </data>
+  <data name="Prefer_inferred_anonymous_type_member_names" xml:space="preserve">
+    <value>Prefer inferred anonymous type member names</value>
+  </data>
+  <data name="Preview_pane" xml:space="preserve">
+    <value>Preview pane</value>
+  </data>
+  <data name="Analysis" xml:space="preserve">
+    <value>Analysis</value>
+  </data>
+  <data name="Enable_full_solution_analysis" xml:space="preserve">
+    <value>Enable full solution _analysis</value>
+  </data>
+  <data name="Perform_editor_feature_analysis_in_external_process" xml:space="preserve">
+    <value>Perform editor _feature analysis in external process (experimental)</value>
+  </data>
+  <data name="Fade_out_unreachable_code" xml:space="preserve">
+    <value>Fade out unreachable code</value>
+  </data>
+  <data name="Fading" xml:space="preserve">
+    <value>Fading</value>
+  </data>
+  <data name="ChangesNotAllowedIFAssemblyHasNotBeenLoaded" xml:space="preserve">
+    <value>Changes are not allowed if the assembly has not been loaded.</value>
+  </data>
+  <data name="ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted" xml:space="preserve">
+    <value>Changes are not allowed if the project wasn't built when debugging started.</value>
+  </data>
+  <data name="ChangesNotAllowedIfProjectWasntLoadedWhileDebugging" xml:space="preserve">
+    <value>Changes are not allowed if the project wasn't loaded and built when debugging started.
+
+'Lightweight solution load' is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts.</value>
+  </data>
+  <data name="ChangesNotAllowedWhileCodeIsRunning" xml:space="preserve">
+    <value>Changes are not allowed while code is running.</value>
+  </data>
+  <data name="Prefer_local_function_over_anonymous_function" xml:space="preserve">
+    <value>Prefere local function over anonymous function</value>
+  </data>
+  <data name="Prefer_deconstructed_variable_declaration" xml:space="preserve">
+    <value>Prefer deconstructed variable declaration</value>
+  </data>
+  <data name="External_reference_found" xml:space="preserve">
+    <value>External reference found</value>
+  </data>
+  <data name="No_references_found_to_0" xml:space="preserve">
+    <value>No references found to '{0}'</value>
+  </data>
+  <data name="Search_found_no_results" xml:space="preserve">
+    <value>Search found no results</value>
   </data>
 </root>

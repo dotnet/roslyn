@@ -32,9 +32,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             context.RegisterOperationBlockStartAction(
                 (operationBlockContext) =>
                 {
-                    IMethodSymbol containingMethod = operationBlockContext.OwningSymbol as IMethodSymbol;
 
-                    if (containingMethod != null)
+                    if (operationBlockContext.OwningSymbol is IMethodSymbol containingMethod)
                     {
                         HashSet<ILocalSymbol> mightBecomeConstLocals = new HashSet<ILocalSymbol>();
                         HashSet<ILocalSymbol> assignedToLocals = new HashSet<ILocalSymbol>();
@@ -42,10 +41,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         operationBlockContext.RegisterOperationAction(
                            (operationContext) =>
                            {
-                               IAssignmentExpression assignment = (IAssignmentExpression)operationContext.Operation;
-                               AssignTo(assignment.Target, assignedToLocals, mightBecomeConstLocals);
+                               if (operationContext.Operation is IAssignmentExpression assignment)
+                               {
+                                   AssignTo(assignment.Target, assignedToLocals, mightBecomeConstLocals);
+                               }
+                               else if (operationContext.Operation is IIncrementOrDecrementExpression increment)
+                               {
+                                   AssignTo(increment.Target, assignedToLocals, mightBecomeConstLocals);
+                               }
+                               else
+                               {
+                                   throw TestExceptionUtilities.UnexpectedValue(operationContext.Operation);
+                               }
                            },
-                           OperationKind.AssignmentExpression,
+                           OperationKind.SimpleAssignmentExpression,
                            OperationKind.CompoundAssignmentExpression,
                            OperationKind.IncrementExpression);
 
@@ -53,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             (operationContext) =>
                             {
                                 IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;
-                                foreach (IArgument argument in invocation.ArgumentsInParameterOrder)
+                                foreach (IArgument argument in invocation.ArgumentsInEvaluationOrder)
                                 {
                                     if (argument.Parameter.RefKind == RefKind.Out || argument.Parameter.RefKind == RefKind.Ref)
                                     {
@@ -67,17 +76,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             (operationContext) =>
                             {
                                 IVariableDeclarationStatement declaration = (IVariableDeclarationStatement)operationContext.Operation;
-                                foreach (IVariableDeclaration variable in declaration.Variables)
+                                foreach (IVariableDeclaration variable in declaration.Declarations)
                                 {
-                                    ILocalSymbol local = variable.Variable;
-                                    if (!local.IsConst && !assignedToLocals.Contains(local))
+                                    foreach (ILocalSymbol local in variable.Variables)
                                     {
-                                        var localType = local.Type;
-                                        if ((!localType.IsReferenceType || localType.SpecialType == SpecialType.System_String) && localType.SpecialType != SpecialType.None)
+                                        if (!local.IsConst && !assignedToLocals.Contains(local))
                                         {
-                                            if (variable.InitialValue != null && variable.InitialValue.ConstantValue.HasValue)
+                                            var localType = local.Type;
+                                            if ((!localType.IsReferenceType || localType.SpecialType == SpecialType.System_String) && localType.SpecialType != SpecialType.None)
                                             {
-                                                mightBecomeConstLocals.Add(local);
+                                                if (variable.Initializer != null && variable.Initializer.ConstantValue.HasValue)
+                                                {
+                                                    mightBecomeConstLocals.Add(local);
+                                                }
                                             }
                                         }
                                     }

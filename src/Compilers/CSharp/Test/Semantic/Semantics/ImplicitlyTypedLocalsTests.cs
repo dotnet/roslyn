@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ConstVarField1()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class var {}
 
 class C 
@@ -29,7 +29,7 @@ class C
         [Fact]
         public void ConstVarField2()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 using var = System.Int32;
 
 class C 
@@ -62,19 +62,19 @@ class Program
 {
     static void Main(string[] args)
     {
-        var x = y.Foo(x);
-        var y = x.Foo(y);
+        var x = y.Goo(x);
+        var y = x.Goo(y);
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (6,23): error CS0841: Cannot use local variable 'x' before it is declared
-                //         var x = y.Foo(x);
+                //         var x = y.Goo(x);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(6, 23),
                 // (6,17): error CS0841: Cannot use local variable 'y' before it is declared
-                //         var x = y.Foo(x);
+                //         var x = y.Goo(x);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(6, 17),
                 // (7,23): error CS0841: Cannot use local variable 'y' before it is declared
-                //         var y = x.Foo(y);
+                //         var y = x.Goo(y);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(7, 23)
                 );
         }
@@ -98,7 +98,7 @@ class B
 ";
             // If there's no alias to conflict with the type var, then compilation fails
             // because 1 cannot be converted to var.
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (8,17): error CS0029: Cannot implicitly convert type 'int' to 'var'
                 //         var a = 1;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "var"));
@@ -145,8 +145,8 @@ class D
 }
 ";
 
-            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp3)).VerifyDiagnostics();
-            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp2)).VerifyDiagnostics(
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp3)).VerifyDiagnostics();
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp2)).VerifyDiagnostics(
                 // (6,9): error CS8023: Feature 'implicitly typed local variable' is not available in C# 2. Please use language version 3 or greater.
                 //         var v = 1;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "var").WithArguments("implicitly typed local variable", "3"));

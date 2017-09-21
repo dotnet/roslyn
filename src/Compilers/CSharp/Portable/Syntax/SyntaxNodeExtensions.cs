@@ -100,6 +100,73 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal static bool IsVariableDeclarationInitialization(this SyntaxNode node)
+        {
+            Debug.Assert(node != null);
+
+            SyntaxNode equalsValueClause = node.Parent;
+
+            if (!equalsValueClause.IsKind(SyntaxKind.EqualsValueClause))
+            {
+                return false;
+            }
+
+            SyntaxNode variableDeclarator = equalsValueClause.Parent;
+
+            if (!variableDeclarator.IsKind(SyntaxKind.VariableDeclarator))
+            {
+                return false;
+            }
+
+            return variableDeclarator.Parent.IsKind(SyntaxKind.VariableDeclaration);
+        }
+
+        /// <summary>
+        /// Because the instruction cannot have any values on the stack before CLR execution.
+        /// Limit it to assignments and conditional expressions for now.
+        /// https://github.com/dotnet/roslyn/issues/22046
+        /// </summary>
+        internal static bool IsLegalSpanStackAllocPosition(this SyntaxNode node)
+        {
+            Debug.Assert(node != null);
+
+            while (node.Parent.IsKind(SyntaxKind.CastExpression))
+            {
+                node = node.Parent;
+            }
+
+            if (node.Parent.IsKind(SyntaxKind.ConditionalExpression))
+            {
+                node = node.Parent;
+            }
+
+            SyntaxNode parentNode = node.Parent;
+
+            if (parentNode is null)
+            {
+                return false;
+            }
+
+            switch (parentNode.Kind())
+            {
+                // In case of a declaration of a Span<T> variable
+                case SyntaxKind.EqualsValueClause:
+                    {
+                        SyntaxNode variableDeclarator = parentNode.Parent;
+
+                        return variableDeclarator.IsKind(SyntaxKind.VariableDeclarator) &&
+                            variableDeclarator.Parent.IsKind(SyntaxKind.VariableDeclaration);
+                    }
+                // In case of reassignment to a Span<T> variable
+                case SyntaxKind.SimpleAssignmentExpression:
+                    {
+                        return parentNode.Parent.IsKind(SyntaxKind.ExpressionStatement);
+                    }
+            }
+
+            return false;
+        }
+
         internal static CSharpSyntaxNode AnonymousFunctionBody(this SyntaxNode lambda)
         {
             switch (lambda.Kind())
@@ -117,8 +184,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Given an initializer expression infer the name of anonymous property.
-        /// Returns default(SyntaxToken) if unsuccessful
+        /// Given an initializer expression infer the name of anonymous property or tuple element.
+        /// Returns default if unsuccessful
         /// </summary>
         internal static SyntaxToken ExtractAnonymousTypeMemberName(this ExpressionSyntax input)
         {
@@ -148,28 +215,83 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static TypeSyntax SkipRef(this TypeSyntax syntax, out RefKind refKind)
+        internal static RefKind GetRefKind(this TypeSyntax syntax)
         {
-            refKind = RefKind.None;
+            syntax.SkipRef(out var refKind);
+            return refKind;
+        }
+
+        internal static TypeSyntax SkipRef(this TypeSyntax syntax)
+        {
             if (syntax.Kind() == SyntaxKind.RefType)
             {
-                refKind = RefKind.Ref;
                 syntax = ((RefTypeSyntax)syntax).Type;
             }
 
             return syntax;
         }
 
-        internal static ExpressionSyntax SkipRef(this ExpressionSyntax syntax, out RefKind refKind)
+        internal static TypeSyntax SkipRef(this TypeSyntax syntax, out RefKind refKind)
+        {
+            refKind = RefKind.None;
+            if (syntax.Kind() == SyntaxKind.RefType)
+            {
+                var refType = (RefTypeSyntax)syntax;
+                refKind = refType.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword ?
+                    RefKind.RefReadOnly :
+                    RefKind.Ref;
+
+                syntax = refType.Type;
+            }
+
+            return syntax;
+        }
+
+        internal static ExpressionSyntax CheckAndUnwrapRefExpression(
+            this ExpressionSyntax syntax,
+            DiagnosticBag diagnostics,
+            out RefKind refKind)
         {
             refKind = RefKind.None;
             if (syntax?.Kind() == SyntaxKind.RefExpression)
             {
                 refKind = RefKind.Ref;
                 syntax = ((RefExpressionSyntax)syntax).Expression;
+
+                syntax.CheckDeconstructionCompatibleArgument(diagnostics);
             }
 
             return syntax;
+        }
+
+        internal static void CheckDeconstructionCompatibleArgument(this ExpressionSyntax expression, DiagnosticBag diagnostics)
+        {
+            if (IsDeconstructionCompatibleArgument(expression))
+            {
+                diagnostics.Add(ErrorCode.ERR_VarInvocationLvalueReserved, expression.GetLocation());
+            }
+        }
+
+        /// <summary>
+        /// See if the expression is an invocation of a method named 'var',
+        /// I.e. something like "var(x, y)" or "var(x, (y, z))" or "var(1)".
+        /// We report an error when such an invocation is used in a certain syntactic contexts that
+        /// will require an lvalue because we may elect to support deconstruction
+        /// in the future. We need to ensure that we do not successfully interpret this as an invocation of a
+        /// ref-returning method named var.
+        /// </summary>
+        private static bool IsDeconstructionCompatibleArgument(ExpressionSyntax expression)
+        {
+            if (expression.Kind() == SyntaxKind.InvocationExpression)
+            {
+                var invocation = (InvocationExpressionSyntax)expression;
+                var invocationTarget = invocation.Expression;
+
+                return invocationTarget.Kind() == SyntaxKind.IdentifierName &&
+                    ((IdentifierNameSyntax)invocationTarget).IsVar;
+            }
+
+            return false;
         }
     }
 }

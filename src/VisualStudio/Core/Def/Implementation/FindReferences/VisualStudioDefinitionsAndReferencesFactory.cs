@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
@@ -18,6 +19,8 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [ExportWorkspaceService(typeof(IDefinitionsAndReferencesFactory), ServiceLayer.Desktop), Shared]
     internal class VisualStudioDefinitionsAndReferencesFactory
         : DefaultDefinitionsAndReferencesFactory
@@ -31,11 +34,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         }
 
         public override DefinitionItem GetThirdPartyDefinitionItem(
-            Solution solution, ISymbol definition, CancellationToken cancellationToken)
+            Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
             var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
             if (!symbolNavigationService.WouldNavigateToSymbol(
-                    definition, solution, cancellationToken,
+                    definitionItem, solution, cancellationToken,
                     out var filePath, out var lineNumber, out var charOffset))
             {
                 return null;
@@ -43,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 
             var displayParts = GetDisplayParts(filePath, lineNumber, charOffset);
             return new ExternalDefinitionItem(
-                GlyphTags.GetTags(definition.GetGlyph()), displayParts,
+                definitionItem.Tags, displayParts,
                 _serviceProvider, filePath, lineNumber, charOffset);
         }
 
@@ -63,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         private string GetSourceLine(string filePath, int lineNumber)
         {
             using (var invisibleEditor = new InvisibleEditor(
-                _serviceProvider, filePath, needsSave: false, needsUndoDisabled: false))
+                _serviceProvider, filePath, projectOpt: null, needsSave: false, needsUndoDisabled: false))
             {
                 var vsTextLines = invisibleEditor.VsTextLines;
                 if (vsTextLines != null &&
@@ -93,7 +96,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 string filePath,
                 int lineNumber,
                 int charOffset) 
-                : base(tags, displayParts, ImmutableArray<TaggedText>.Empty)
+                : base(tags, displayParts, ImmutableArray<TaggedText>.Empty,
+                       originationParts: default,
+                       sourceSpans: default,
+                       properties: null,
+                       displayIfNoReferences: true)
             {
                 _serviceProvider = serviceProvider;
                 _filePath = filePath;
@@ -101,9 +108,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 _charOffset = charOffset;
             }
 
-            public override bool CanNavigateTo() => true;
+            public override bool CanNavigateTo(Workspace workspace) => true;
 
-            public override bool TryNavigateTo()
+            public override bool TryNavigateTo(Workspace workspace, bool isPreview)
             {
                 return TryOpenFile() && TryNavigateToPosition();
             }

@@ -2,21 +2,27 @@
 
 using System.Collections;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
-    internal struct ObjectCreationExpressionAnalyzer<
+    internal class ObjectCreationExpressionAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
         TObjectCreationExpressionSyntax,
         TMemberAccessExpressionSyntax,
         TInvocationExpressionSyntax,
         TExpressionStatementSyntax,
-        TVariableDeclaratorSyntax>
+        TVariableDeclaratorSyntax> : AbstractObjectCreationExpressionAnalyzer<
+            TExpressionSyntax,
+            TStatementSyntax,
+            TObjectCreationExpressionSyntax,
+            TVariableDeclaratorSyntax, 
+            TExpressionStatementSyntax>
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TObjectCreationExpressionSyntax : TExpressionSyntax
@@ -25,53 +31,34 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TExpressionStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
     {
-        private readonly SemanticModel _semanticModel;
-        private readonly ISyntaxFactsService _syntaxFacts;
-        private readonly TObjectCreationExpressionSyntax _objectCreationExpression;
-        private readonly CancellationToken _cancellationToken;
+        private static readonly ObjectPool<ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>> s_pool
+            = new ObjectPool<ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>>(
+                () => new ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>());
 
-        private TStatementSyntax _containingStatement;
-        private SyntaxNodeOrToken _valuePattern;
-        private ISymbol _variableSymbol;
+        private ObjectCreationExpressionAnalyzer()
+        {
+        }
 
-        public ObjectCreationExpressionAnalyzer(
+        public static ImmutableArray<TExpressionStatementSyntax>? Analyze(
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
             TObjectCreationExpressionSyntax objectCreationExpression,
-            CancellationToken cancellationToken) : this()
+            CancellationToken cancellationToken)
         {
-            _semanticModel = semanticModel;
-            _syntaxFacts = syntaxFacts;
-            _objectCreationExpression = objectCreationExpression;
-            _cancellationToken = cancellationToken;
+            var analyzer = s_pool.Allocate();
+            analyzer.Initialize(semanticModel, syntaxFacts, objectCreationExpression, cancellationToken);
+            try
+            {
+                return analyzer.AnalyzeWorker();
+            }
+            finally
+            {
+                analyzer.Clear();
+                s_pool.Free(analyzer);
+            }
         }
 
-        internal ImmutableArray<TExpressionStatementSyntax>? Analyze()
-        {
-            if (_syntaxFacts.GetObjectCreationInitializer(_objectCreationExpression) != null)
-            {
-                // Don't bother if this already has an initializer.
-                return null;
-            }
-
-            _containingStatement = _objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
-            if (_containingStatement == null)
-            {
-                return null;
-            }
-
-            if (!TryInitializeVariableDeclarationCase() &&
-                !TryInitializeAssignmentCase())
-            {
-                return null;
-            }
-
-            var matches = ArrayBuilder<TExpressionStatementSyntax>.GetInstance();
-            AddMatches(matches);
-            return matches.ToImmutableAndFree();
-        }
-
-        private void AddMatches(ArrayBuilder<TExpressionStatementSyntax> matches)
+        protected override void AddMatches(ArrayBuilder<TExpressionStatementSyntax> matches)
         {
             var containingBlock = _containingStatement.Parent;
             var foundStatement = false;
@@ -159,16 +146,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             // If we're initializing a variable, then we can't reference that variable on the right 
             // side of the initialization.  Rewriting this into a collection initializer would lead
             // to a definite-assignment error.
-            if (_variableSymbol != null)
+            if (ExpressionContainsValuePatternOrReferencesInitializedSymbol(right))
             {
-                foreach (var child in right.DescendantNodesAndSelf().OfType<TExpressionSyntax>())
-                {
-                    if (ValuePatternMatches(child) &&
-                        _variableSymbol.Equals(_semanticModel.GetSymbolInfo(child, _cancellationToken).GetAnySymbol()))
-                    {
-                        return false;
-                    }
-                }
+                return false;
             }
 
             instance = _syntaxFacts.GetExpressionOfElementAccessExpression(left);
@@ -198,6 +178,12 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 {
                     return false;
                 }
+
+                var argumentExpression = _syntaxFacts.GetExpressionOfArgument(argument);
+                if (ExpressionContainsValuePatternOrReferencesInitializedSymbol(argumentExpression))
+                {
+                    return false;
+                }
             }
 
             var memberAccess = _syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression) as TMemberAccessExpressionSyntax;
@@ -220,80 +206,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
 
             instance = localInstance;
-            return true;
-        }
-
-        private bool ValuePatternMatches(TExpressionSyntax expression)
-        {
-            if (_valuePattern.IsToken)
-            {
-                return _syntaxFacts.IsIdentifierName(expression) &&
-                    _syntaxFacts.AreEquivalent(
-                        _valuePattern.AsToken(),
-                        _syntaxFacts.GetIdentifierOfSimpleName(expression));
-            }
-            else
-            {
-                return _syntaxFacts.AreEquivalent(
-                    _valuePattern.AsNode(), expression);
-            }
-        }
-
-        private bool TryInitializeAssignmentCase()
-        {
-            if (!_syntaxFacts.IsSimpleAssignmentStatement(_containingStatement))
-            {
-                return false;
-            }
-
-            _syntaxFacts.GetPartsOfAssignmentStatement(_containingStatement,
-                out var left, out var right);
-            if (right != _objectCreationExpression)
-            {
-                return false;
-            }
-
-            var typeInfo = _semanticModel.GetTypeInfo(left, _cancellationToken);
-            if (typeInfo.Type is IDynamicTypeSymbol || typeInfo.ConvertedType is IDynamicTypeSymbol)
-            {
-                // Not supported if we're initializing something dynamic.  The object we're instantiating
-                // may not have the members that we're trying to access on the dynamic object.
-                return false;
-            }
-
-            _valuePattern = left;
-            return true;
-        }
-
-        private bool TryInitializeVariableDeclarationCase()
-        {
-            if (!_syntaxFacts.IsLocalDeclarationStatement(_containingStatement))
-            {
-                return false;
-            }
-
-            var containingDeclarator = _objectCreationExpression.Parent.Parent as TVariableDeclaratorSyntax;
-            if (containingDeclarator == null)
-            {
-                return false;
-            }
-
-            var symbol = _semanticModel.GetDeclaredSymbol(containingDeclarator, _cancellationToken);
-            if (symbol is ILocalSymbol local &&
-                local.Type is IDynamicTypeSymbol)
-            {
-                // Not supported if we're creating a dynamic local.  The object we're instantiating
-                // may not have the members that we're trying to access on the dynamic object.
-                return false;
-            }
-
-            if (!_syntaxFacts.IsDeclaratorOfLocalDeclarationStatement(containingDeclarator, _containingStatement))
-            {
-                return false;
-            }
-
-            _valuePattern = _syntaxFacts.GetIdentifierOfVariableDeclarator(containingDeclarator);
-            _variableSymbol = _semanticModel.GetDeclaredSymbol(containingDeclarator);
             return true;
         }
     }

@@ -1,98 +1,218 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PatternMatching;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal abstract partial class AbstractNavigateToSearchService
     {
+        private static ConditionalWeakTable<Project, Tuple<string, ImmutableArray<SearchResult>>> s_lastProjectSearchCache =
+            new ConditionalWeakTable<Project, Tuple<string, ImmutableArray<SearchResult>>>();
+
         public static Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInCurrentProcessAsync(
             Project project, string searchPattern, CancellationToken cancellationToken)
         {
-            return FindNavigableDeclaredSymbolInfosAsync(
+            return FindSearchResultsAsync(
                 project, searchDocument: null, pattern: searchPattern, cancellationToken: cancellationToken);
         }
 
         public static Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentInCurrentProcessAsync(
             Document document, string searchPattern, CancellationToken cancellationToken)
         {
-            return FindNavigableDeclaredSymbolInfosAsync(
+            return FindSearchResultsAsync(
                 document.Project, document, searchPattern, cancellationToken);
         }
 
-        private static async Task<ImmutableArray<INavigateToSearchResult>> FindNavigableDeclaredSymbolInfosAsync(
+        private static async Task<ImmutableArray<INavigateToSearchResult>> FindSearchResultsAsync(
             Project project, Document searchDocument, string pattern, CancellationToken cancellationToken)
         {
-            var containsDots = pattern.IndexOf('.') >= 0;
-            using (var patternMatcher = new PatternMatcher(pattern, allowFuzzyMatching: true))
+            // If the user created a dotted pattern then we'll grab the last part of the name
+            var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
+            var nameMatcher = PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, allowFuzzyMatching: true);
+
+            var containerMatcherOpt = patternContainerOpt != null
+                ? PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainerOpt)
+                : null;
+
+            using (nameMatcher)
+            using (containerMatcherOpt)
             {
-                var result = ArrayBuilder<INavigateToSearchResult>.GetInstance();
-                foreach (var document in project.Documents)
+                var nameMatches = ArrayBuilder<PatternMatch>.GetInstance();
+                var containerMatches = ArrayBuilder<PatternMatch>.GetInstance();
+
+                try
                 {
-                    if (searchDocument != null && document != searchDocument)
-                    {
-                        continue;
-                    }
+                    // If we're searching a single document, then just do a full search of 
+                    // that document (we're fast enough to not need to optimize that case).
+                    //
+                    // If, however, we are searching a project, then see if we could potentially
+                    // use the last computed results we have for that project.  If so, it can
+                    // be much faster to reuse and filter that result than to compute it from
+                    // scratch.
+#if true
+                    var task = searchDocument != null
+                        ? ComputeSearchResultsAsync(project, searchDocument, nameMatcher, containerMatcherOpt, nameMatches, containerMatches, cancellationToken)
+                        : TryFilterPreviousSearchResultsAsync(project, searchDocument, pattern, nameMatcher, containerMatcherOpt, nameMatches, containerMatches, cancellationToken);
+#else
+                    var task = ComputeSearchResultsAsync(project, searchDocument, nameMatcher, containerMatcherOpt, nameMatches, containerMatches, cancellationToken);
+#endif
 
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
-
-                    foreach (var declaredSymbolInfo in declarationInfo.DeclaredSymbolInfos)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        var patternMatches = patternMatcher.GetMatches(
-                            GetSearchName(declaredSymbolInfo),
-                            declaredSymbolInfo.FullyQualifiedContainerName,
-                            includeMatchSpans: true);
-
-                        if (!patternMatches.IsEmpty)
-                        {
-                            result.Add(ConvertResult(containsDots, declaredSymbolInfo, document, patternMatches));
-                        }
-                    }
+                    var searchResults = await task.ConfigureAwait(false);
+                    return ImmutableArray<INavigateToSearchResult>.CastUp(searchResults);
                 }
-
-                return result.ToImmutableAndFree();
+                finally
+                {
+                    nameMatches.Free();
+                    containerMatches.Free();
+                }
             }
         }
 
-        private static string GetSearchName(DeclaredSymbolInfo declaredSymbolInfo)
+        private static async Task<ImmutableArray<SearchResult>> TryFilterPreviousSearchResultsAsync(
+            Project project, Document searchDocument, string pattern,
+            PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
+            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
+            CancellationToken cancellationToken)
         {
-            if (declaredSymbolInfo.Kind == DeclaredSymbolInfoKind.Indexer && declaredSymbolInfo.Name == WellKnownMemberNames.Indexer)
+            // Searching an entire project.  See if we already performed that same
+            // search with a substring of the current pattern.  if so, we can use
+            // the previous result and just filter that down.  This is useful for
+            // the common case where a user types some pattern, then keeps adding
+            // to it.
+            ImmutableArray<SearchResult> searchResults;
+            if (s_lastProjectSearchCache.TryGetValue(project, out var previousResult) &&
+                pattern.StartsWith(previousResult.Item1))
             {
-                return "this";
+                // We can reuse the previous results and just filter them. 
+                searchResults = FilterPreviousResults(
+                    previousResult.Item2,
+                    nameMatcher, containerMatcherOpt,
+                    nameMatches, containerMatches, cancellationToken);
             }
             else
             {
-                return declaredSymbolInfo.Name;
+                // Didn't have previous results.  Or it was a very different pattern.
+                // Can't reuse.
+                searchResults = await ComputeSearchResultsAsync(
+                    project, searchDocument,
+                    nameMatcher, containerMatcherOpt,
+                    nameMatches, containerMatches, cancellationToken).ConfigureAwait(false);
+            }
+
+            // Would like to use CWT.AddOrUpdate. But that is not available on the 
+            // version of .Net that we're using.  So we need to take lock as we're
+            // making multiple mutations.
+            lock (s_lastProjectSearchCache)
+            {
+                s_lastProjectSearchCache.Remove(project);
+                s_lastProjectSearchCache.Add(project, Tuple.Create(pattern, searchResults));
+            }
+
+            return searchResults;
+        }
+
+        private static ImmutableArray<SearchResult> FilterPreviousResults(
+            ImmutableArray<SearchResult> previousResults,
+            PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
+            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
+            CancellationToken cancellationToken)
+        {
+            var result = ArrayBuilder<SearchResult>.GetInstance();
+
+            foreach (var previousResult in previousResults)
+            {
+                var document = previousResult.Document;
+                var info = previousResult.DeclaredSymbolInfo;
+
+                AddResultIfMatch(
+                    document, info, nameMatcher, containerMatcherOpt, 
+                    nameMatches, containerMatches, result, cancellationToken);
+            }
+
+            return result.ToImmutableAndFree();
+        }
+
+        private static async Task<ImmutableArray<SearchResult>> ComputeSearchResultsAsync(
+            Project project, Document searchDocument,
+            PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
+            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
+            CancellationToken cancellationToken)
+        {
+            var result = ArrayBuilder<SearchResult>.GetInstance();
+            foreach (var document in project.Documents)
+            {
+                if (searchDocument != null && document != searchDocument)
+                {
+                    continue;
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+                var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
+
+                foreach (var declaredSymbolInfo in declarationInfo.DeclaredSymbolInfos)
+                {
+                    AddResultIfMatch(
+                        document, declaredSymbolInfo,
+                        nameMatcher, containerMatcherOpt, 
+                        nameMatches, containerMatches, 
+                        result, cancellationToken);
+                }
+            }
+
+            return result.ToImmutableAndFree();
+        }
+
+        private static void AddResultIfMatch(
+            Document document, DeclaredSymbolInfo declaredSymbolInfo,
+            PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
+            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches, 
+            ArrayBuilder<SearchResult> result, CancellationToken cancellationToken)
+        {
+            nameMatches.Clear();
+            containerMatches.Clear();
+
+            cancellationToken.ThrowIfCancellationRequested();
+            if (nameMatcher.AddMatches(declaredSymbolInfo.Name, nameMatches) &&
+                containerMatcherOpt?.AddMatches(declaredSymbolInfo.FullyQualifiedContainerName, containerMatches) != false)
+            {
+                result.Add(ConvertResult(
+                    declaredSymbolInfo, document, nameMatches, containerMatches));
             }
         }
 
-        private static INavigateToSearchResult ConvertResult(
-            bool containsDots, DeclaredSymbolInfo declaredSymbolInfo, 
-            Document document, PatternMatches matches)
+        private static SearchResult ConvertResult(
+            DeclaredSymbolInfo declaredSymbolInfo, Document document,
+            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches)
         {
-            var matchKind = GetNavigateToMatchKind(containsDots, matches);
+            var matchKind = GetNavigateToMatchKind(nameMatches);
 
             // A match is considered to be case sensitive if all its constituent pattern matches are
             // case sensitive. 
-            var isCaseSensitive = matches.All(m => m.IsCaseSensitive);
+            var isCaseSensitive = nameMatches.All(m => m.IsCaseSensitive) && containerMatches.All(m => m.IsCaseSensitive);
             var kind = GetItemKind(declaredSymbolInfo);
             var navigableItem = NavigableItemFactory.GetItemFromDeclaredSymbolInfo(declaredSymbolInfo, document);
 
+            var matchedSpans = ArrayBuilder<TextSpan>.GetInstance();
+            foreach (var match in nameMatches)
+            {
+                matchedSpans.AddRange(match.MatchedSpans);
+            }
+
             return new SearchResult(
-                document, declaredSymbolInfo, kind, matchKind, 
-                isCaseSensitive, navigableItem, matches.CandidateMatches.SelectMany(m => m.MatchedSpans).ToImmutableArray());
+                document, declaredSymbolInfo, kind, matchKind, isCaseSensitive, navigableItem,
+                matchedSpans.ToImmutableAndFree());
         }
 
         private static string GetItemKind(DeclaredSymbolInfo declaredSymbolInfo)
@@ -116,6 +236,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 case DeclaredSymbolInfoKind.Interface:
                     return NavigateToItemKind.Interface;
                 case DeclaredSymbolInfoKind.Constructor:
+                case DeclaredSymbolInfoKind.ExtensionMethod:
                 case DeclaredSymbolInfoKind.Method:
                     return NavigateToItemKind.Method;
                 case DeclaredSymbolInfoKind.Module:
@@ -130,61 +251,21 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
         }
 
-        private static NavigateToMatchKind GetNavigateToMatchKind(
-            bool containsDots, PatternMatches matchResult)
+        private static NavigateToMatchKind GetNavigateToMatchKind(ArrayBuilder<PatternMatch> nameMatches)
         {
-            // NOTE(cyrusn): Unfortunately, the editor owns how sorting of NavigateToItems works,
-            // and they only provide four buckets for sorting items before they sort by the name
-            // of the items.  Because of this, we only have coarse granularity for bucketing things.
-            //
-            // So the question becomes: what do we do if we have multiple match results, and we
-            // need to map to a single MatchKind.
-            //
-            // First, consider a main reason we have multiple match results.  And this happened
-            // when the user types a dotted name (like "Microsoft.CodeAnalysis.ISymbol").  Such
-            // a name would match actual entities: Microsoft.CodeAnalysis.ISymbol *and* 
-            // Microsoft.CodeAnalysis.IAliasSymbol.  The first will be an [Exact, Exact, Exact] 
-            // match, and the second will be an [Exact, Exact, CamelCase] match.  In this
-            // case our belief is that the names will go from least specific to most specific. 
-            // So, the left items may match lots of stuff, while the rightmost items will match
-            // a smaller set of items.  As such, we use the last pattern match to try to decide
-            // what type of editor MatchKind to map to.
-            if (containsDots)
+            if (nameMatches.Any(r => r.Kind == PatternMatchKind.Exact))
             {
-                var lastResult = matchResult.CandidateMatches.LastOrNullable();
-                if (lastResult.HasValue)
-                {
-                    switch (lastResult.Value.Kind)
-                    {
-                        case PatternMatchKind.Exact:
-                            return NavigateToMatchKind.Exact;
-                        case PatternMatchKind.Prefix:
-                            return NavigateToMatchKind.Prefix;
-                        case PatternMatchKind.Substring:
-                            return NavigateToMatchKind.Substring;
-                    }
-                }
+                return NavigateToMatchKind.Exact;
             }
-            else
+
+            if (nameMatches.Any(r => r.Kind == PatternMatchKind.Prefix))
             {
-                // If it wasn't a dotted name, and we have multiple results, that's because they
-                // had a something like a space separated pattern.  In that case, there's no
-                // clear indication as to what is the most important part of the pattern.  So 
-                // we make the result as good as any constituent part.
-                if (matchResult.Any(r => r.Kind == PatternMatchKind.Exact))
-                {
-                    return NavigateToMatchKind.Exact;
-                }
+                return NavigateToMatchKind.Prefix;
+            }
 
-                if (matchResult.Any(r => r.Kind == PatternMatchKind.Prefix))
-                {
-                    return NavigateToMatchKind.Prefix;
-                }
-
-                if (matchResult.Any(r => r.Kind == PatternMatchKind.Substring))
-                {
-                    return NavigateToMatchKind.Substring;
-                }
+            if (nameMatches.Any(r => r.Kind == PatternMatchKind.Substring))
+            {
+                return NavigateToMatchKind.Substring;
             }
 
             return NavigateToMatchKind.Regular;

@@ -5,7 +5,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -13,23 +15,26 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal struct TokenSemanticInfo
     {
         public static readonly TokenSemanticInfo Empty = new TokenSemanticInfo(
-            null, null, ImmutableArray<ISymbol>.Empty, null);
+            null, null, ImmutableArray<ISymbol>.Empty, null, default(TextSpan));
 
         public readonly ISymbol DeclaredSymbol;
         public readonly IAliasSymbol AliasSymbol;
         public readonly ImmutableArray<ISymbol> ReferencedSymbols;
         public readonly ITypeSymbol Type;
+        public readonly TextSpan Span;
 
         public TokenSemanticInfo(
             ISymbol declaredSymbol, 
             IAliasSymbol aliasSymbol,
             ImmutableArray<ISymbol> referencedSymbols,
-            ITypeSymbol type)
+            ITypeSymbol type,
+            TextSpan span)
         {
             DeclaredSymbol = declaredSymbol;
             AliasSymbol = aliasSymbol;
             ReferencedSymbols = referencedSymbols;
             Type = type;
+            Span = span;
         }
 
         public ImmutableArray<ISymbol> GetSymbols(bool includeType)
@@ -86,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return default(TSymbol);
+            return default;
         }
 
         public static ISymbol GetEnclosingNamedTypeOrAssembly(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -186,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // information for VB event handlers.  Namely, if you have:
             //
             // Event X]()
-            // Sub Foo()
+            // Sub Goo()
             //      Dim y = New $$XEventHandler(AddressOf bar)
             // End Sub
             //
@@ -206,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return new TokenSemanticInfo(declaredSymbol, aliasSymbol, allSymbols, type);
+            return new TokenSemanticInfo(declaredSymbol, aliasSymbol, allSymbols, type, token.Span);
         }
 
         public static SemanticModel GetOriginalSemanticModel(this SemanticModel semanticModel)
@@ -220,6 +225,38 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Contract.ThrowIfTrue(semanticModel.ParentModel.IsSpeculativeSemanticModel);
             Contract.ThrowIfTrue(semanticModel.ParentModel.ParentModel != null);
             return semanticModel.ParentModel;
+        }
+
+        public static HashSet<ISymbol> GetAllDeclaredSymbols(
+            this SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
+        {
+            var symbols = new HashSet<ISymbol>();
+            if (container != null)
+            {
+                GetAllDeclaredSymbols(semanticModel, container, symbols, cancellationToken);
+            }
+
+            return symbols;
+        }
+
+        private static void GetAllDeclaredSymbols(
+            SemanticModel semanticModel, SyntaxNode node,
+            HashSet<ISymbol> symbols, CancellationToken cancellationToken)
+        {
+            var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
+
+            if (symbol != null)
+            {
+                symbols.Add(symbol);
+            }
+
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                if (child.IsNode)
+                {
+                    GetAllDeclaredSymbols(semanticModel, child.AsNode(), symbols, cancellationToken);
+                }
+            }
         }
     }
 }

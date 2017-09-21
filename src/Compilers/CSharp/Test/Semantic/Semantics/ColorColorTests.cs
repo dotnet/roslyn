@@ -157,7 +157,7 @@ class Color
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
 
             comp.VerifyDiagnostics(
                     // Dev10 does not give a warning about unused variable. Should we?
@@ -581,7 +581,7 @@ class F
             // Can't use CheckExpressionAndParent because we're using alias.
 
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            var comp = CreateStandardCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
             var model = comp.GetSemanticModel(tree);
 
             var expr = (IdentifierNameSyntax)GetExprSyntaxForBinding(GetExprSyntaxList(tree));
@@ -621,7 +621,7 @@ class C
 ";
             var tree = Parse(text);
 
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics(
                 // (13,44): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         System.Console.WriteLine(/*<bind>*/Color/*</bind>*/.M is object);
@@ -968,7 +968,7 @@ class Program
         var xs = var<int>.field;
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (9,13): warning CS0219: The variable 'var' is assigned but its value is never used
                 //         var var = "A";
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "var").WithArguments("var"),
@@ -998,7 +998,7 @@ class C
         }
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateStandardCompilation(text).VerifyDiagnostics();
         }
 
         [WorkItem(531386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531386")]
@@ -1024,7 +1024,7 @@ public class Program
         }
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateStandardCompilation(text).VerifyDiagnostics();
         }
 
         #region Error cases
@@ -1051,7 +1051,7 @@ class F
 ";
             var tree = Parse(text);
 
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics(
             // (14,32): error CS1061: 'E' does not contain a definition for 'Q' and no extension method 'Q' accepting a first argument of type 'E' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Q").WithArguments("E", "Q"));
@@ -1096,7 +1096,7 @@ class F
 ";
             var tree = Parse(text);
 
-            var comp = CreateCompilationWithMscorlib(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            var comp = CreateStandardCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
             comp.VerifyDiagnostics(
             // (14,32): error CS1061: 'E' does not contain a definition for 'Q' and no extension method 'Q' accepting a first argument of type 'E' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Q").WithArguments("E", "Q"));
@@ -1141,7 +1141,7 @@ class F
 ";
             var tree = Parse(text);
 
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics(
             // (14,34): error CS1503: Argument 1: cannot convert from 'string' to 'int'
                 Diagnostic(ErrorCode.ERR_BadArgType, @"""Hello""").WithArguments("1", "string", "int"));
@@ -1186,7 +1186,7 @@ class F
 ";
             var tree = Parse(text);
 
-            var comp = CreateCompilationWithMscorlib(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            var comp = CreateStandardCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
             comp.VerifyDiagnostics(
             // (14,58): error CS0123: No overload for 'M' matches delegate 'System.Action<string>'
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action<string>"));
@@ -1227,7 +1227,7 @@ class F
 ";
             var tree = Parse(text);
 
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics(
             // (10,19): error CS0079: The event 'F.E' can only appear on the left hand side of += or -=
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "E").WithArguments("F.E"));
@@ -1264,7 +1264,7 @@ enum Color
 ";
             var tree = Parse(text);
 
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.VerifyDiagnostics(
             // (6,18): error CS1061: 'int' does not contain a definition for 'Blue' and no extension method 'Blue' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Blue").WithArguments("int", "Blue"));
@@ -1440,20 +1440,20 @@ class F
 @"class A
 {
     delegate void D();
-    static void Foo() { }
+    static void Goo() { }
     class B
     {
-        const int Foo = 123;
+        const int Goo = 123;
         static void Main()
         {
-            Foo();
-            Bar(Foo);
+            Goo();
+            Bar(Goo);
         }
         static void Bar(int x) { }
         static void Bar(D x) { }
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateStandardCompilation(text).VerifyDiagnostics();
         }
 
         [WorkItem(542039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
@@ -1463,21 +1463,21 @@ class F
             var text =
 @"class A
 {
-    static void Foo(object x) { }
+    static void Goo(object x) { }
     class B
     {
-        class Foo
+        class Goo
         {
             public const int N = 3;
         }
         static void Main()
         {
-            Foo(Foo.N);
+            Goo(Goo.N);
         }
         static void Bar(int x) { }
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateStandardCompilation(text).VerifyDiagnostics();
         }
 
         #endregion Error cases
@@ -1548,13 +1548,13 @@ static class Test
         public void ShadowedTypeReceiver_1()
         {
             const string source1 = @"
-namespace Foo
+namespace Goo
 {
     public class A { public static int I { get { return -42; } } }
 }";
 
             const string source2 = @"
-namespace Foo
+namespace Goo
 {
     public class A { public static int I { get { return 42; } } }
 
@@ -1569,19 +1569,19 @@ namespace Foo
     }
 }";
 
-            var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
+            var comp1 = CreateStandardCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
             var ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
             var refIdentity = ((AssemblyMetadata)ref1.GetMetadataNoCopy()).GetAssembly().Identity.ToString();
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
                 // (8,16): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in '04f2260a-2ee6-4e74-938a-c47b6dc61d9c, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         static A A { get { return null; } }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(8, 16),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(8, 16),
                 // (8,39): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in '59c700fa-e88d-45e4-acec-fd0bae894f9d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         static A A { get { return new A(); } }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(8, 39),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(8, 39),
                 // (12,38): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in '04f2260a-2ee6-4e74-938a-c47b6dc61d9c, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //             System.Console.WriteLine(A.I);
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(12, 38));
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(12, 38));
         }
 
         [WorkItem(938389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938389")]
@@ -1589,13 +1589,13 @@ namespace Foo
         public void ShadowedTypeReceiver_2()
         {
             const string source1 = @"
-namespace Foo
+namespace Goo
 {
     public class A { public int I { get { return -42; } } }
 }";
 
             const string source2 = @"
-namespace Foo
+namespace Goo
 {
     public class A { public int I { get { return 42; } } }
 
@@ -1610,16 +1610,16 @@ namespace Foo
     }
 }";
 
-            var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
+            var comp1 = CreateStandardCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
             var ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
             var refIdentity = ((AssemblyMetadata)ref1.GetMetadataNoCopy()).GetAssembly().Identity.ToString();
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
                 // (8,16): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in '59c700fa-e88d-45e4-acec-fd0bae894f9d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         static A A { get { return new A(); } }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(8, 16),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(8, 16),
                 // (8,39): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in '59c700fa-e88d-45e4-acec-fd0bae894f9d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         static A A { get { return new A(); } }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(8, 39));
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(8, 39));
         }
 
         [WorkItem(938389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938389")]
@@ -1627,13 +1627,13 @@ namespace Foo
         public void ShadowedTypeReceiver_3()
         {
             const string source1 = @"
-namespace Foo
+namespace Goo
 {
     public class A { public int I { get { return -42; } } }
 }";
 
             const string source2 = @"
-namespace Foo
+namespace Goo
 {
     public class A { public static int I { get { return 42; } } }
 
@@ -1648,19 +1648,19 @@ namespace Foo
     }
 }";
 
-            var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
+            var comp1 = CreateStandardCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
             var ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
             var refIdentity = ((AssemblyMetadata)ref1.GetMetadataNoCopy()).GetAssembly().Identity.ToString();
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
                 // (8,16): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in '499975c2-0b0d-4d9b-8f1f-4d91133627db, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         static A A { get { return null; } }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(8, 16),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(8, 16),
                 // (8,39): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in '59c700fa-e88d-45e4-acec-fd0bae894f9d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         static A A { get { return new A(); } }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(8, 39),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(8, 39),
                 // (12,38): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in '499975c2-0b0d-4d9b-8f1f-4d91133627db, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //             System.Console.WriteLine(A.I);
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(12, 38));
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(12, 38));
         }
 
         [WorkItem(938389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938389")]
@@ -1668,13 +1668,13 @@ namespace Foo
         public void ShadowedTypeReceiver_4()
         {
             const string source1 = @"
-namespace Foo
+namespace Goo
 {
     public class A { public static int I { get { return -42; } } }
 }";
 
             const string source2 = @"
-namespace Foo
+namespace Goo
 {
     public class A { public int I { get { return 42; } } }
 
@@ -1689,16 +1689,16 @@ namespace Foo
     }
 }";
 
-            var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
+            var comp1 = CreateStandardCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
             var ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
             var refIdentity = ((AssemblyMetadata)ref1.GetMetadataNoCopy()).GetAssembly().Identity.ToString();
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
                 // (8,16): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in 'cb07e894-1bb8-4db2-93ba-747f45e89f22, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         static A A { get { return new A(); } }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(8, 16),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(8, 16),
                 // (8,39): warning CS0436: The type 'A' in '' conflicts with the imported type 'A' in 'cb07e894-1bb8-4db2-93ba-747f45e89f22, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         static A A { get { return new A(); } }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(8, 39));
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Goo.A", refIdentity, "Goo.A").WithLocation(8, 39));
         }
 
         [WorkItem(1095020, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095020")]
@@ -1829,7 +1829,7 @@ public class Example
         {
             var tree = Parse(text);
 
-            var comp = CreateCompilationWithMscorlib(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            var comp = CreateStandardCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             var model = comp.GetSemanticModel(tree);
@@ -1868,7 +1868,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees[0];
             var model1 = compilation.GetSemanticModel(tree);
@@ -1925,7 +1925,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees[0];
             var model1 = compilation.GetSemanticModel(tree);
@@ -1982,7 +1982,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees[0];
             var model1 = compilation.GetSemanticModel(tree);
@@ -2032,7 +2032,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
 
             var tree = compilation.SyntaxTrees[0];
             var model1 = compilation.GetSemanticModel(tree);
@@ -2062,6 +2062,81 @@ class C
                 //         var E = E.A;
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "E").WithArguments("E").WithLocation(11, 17)
                 );
+        }
+
+        [WorkItem(19458, "https://github.com/dotnet/roslyn/issues/19458")]
+        [Fact]
+        public void VersionUnificationConstColorColorEnum()
+        {
+            string sourceRefLib = @"
+public enum Color { Red }
+";
+
+            var refLib = CreateCompilation(
+                sourceRefLib,
+                assemblyName: "RefLib",
+                references: new[] { TestReferences.NetFx.v2_0_50727.mscorlib });
+
+            refLib.VerifyEmitDiagnostics();
+
+            string sourceMain = @"
+class M
+{
+    void F()
+    {
+        const Color Color = Color.Red;
+        _ = Color; // to avoid unused local warning
+    }
+}
+";
+
+            var main = CreateCompilation(
+                sourceMain,
+                assemblyName: "Main",
+                references: new MetadataReference[]
+                {
+                    new CSharpCompilationReference(refLib),
+                    TestReferences.NetFx.v4_0_30319.mscorlib
+                });
+
+            var unifyReferenceWarning =
+                // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'RefLib' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments(
+                    "mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                    "RefLib",
+                    "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                    "mscorlib");
+
+            main.VerifyEmitDiagnostics(unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning);
+        }
+
+        [WorkItem(19458, "https://github.com/dotnet/roslyn/issues/19458")]
+        [Fact]
+        public void ObsoleteConstColorColorEnum()
+        {
+            string source = @"
+enum Color
+{
+    [System.Obsolete] Red
+}
+
+class M
+{
+    void F()
+    {
+        const Color Color = Color.Red;
+        _ = Color; // to avoid unused local warning
+    }
+}
+";
+
+            var compilation = CreateStandardCompilation(source, assemblyName: "Main");
+
+            DiagnosticDescription obsoleteWarning =
+                // warning CS0612: 'Color.Red' is obsolete
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Color.Red").WithArguments("Color.Red").WithLocation(11, 29);
+
+            compilation.VerifyEmitDiagnostics(obsoleteWarning, obsoleteWarning);
         }
     }
 }

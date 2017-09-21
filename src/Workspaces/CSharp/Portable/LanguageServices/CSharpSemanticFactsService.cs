@@ -108,10 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (expression as ExpressionSyntax).CanReplaceWithRValue(semanticModel, cancellationToken);
         }
 
-        public string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize = false)
-        {
-            return semanticModel.GenerateNameForExpression((ExpressionSyntax)expression, capitalize);
-        }
+        public string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken)
+            => semanticModel.GenerateNameForExpression((ExpressionSyntax)expression, capitalize, cancellationToken);
 
         public ISymbol GetDeclaredSymbol(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
         {
@@ -222,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return default(ForEachSymbols);
+                return default;
             }
         }
 

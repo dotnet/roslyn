@@ -6,6 +6,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -23,14 +24,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public SymbolSpecification(
             Guid? id, string symbolSpecName,
             ImmutableArray<SymbolKindOrTypeKind> symbolKindList,
-            ImmutableArray<Accessibility> accessibilityList,
-            ImmutableArray<ModifierKind> modifiers)
+            ImmutableArray<Accessibility> accessibilityList = default,
+            ImmutableArray<ModifierKind> modifiers = default)
         {
             ID = id ?? Guid.NewGuid();
             Name = symbolSpecName;
-            ApplicableAccessibilityList = accessibilityList;
-            RequiredModifierList = modifiers;
             ApplicableSymbolKindList = symbolKindList;
+            ApplicableAccessibilityList = accessibilityList.NullToEmpty();
+            RequiredModifierList = modifiers.NullToEmpty();
         }
 
         public static SymbolSpecification CreateDefaultSymbolSpecification()
@@ -74,6 +75,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                    AnyMatches(this.ApplicableAccessibilityList, symbol);
         }
 
+        internal bool AppliesTo(SymbolKind symbolKind, Accessibility accessibility)
+            => this.AppliesTo(new SymbolKindOrTypeKind(symbolKind), new DeclarationModifiers(), accessibility);
+
         internal bool AppliesTo(SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility accessibility)
         {
             if (ApplicableSymbolKindList.Any() && !ApplicableSymbolKindList.Any(k => k.Equals(kind)))
@@ -87,7 +91,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return false;
             }
 
-            if (ApplicableAccessibilityList.Any() && accessibility != Accessibility.NotApplicable && !ApplicableAccessibilityList.Any(k => k == accessibility))
+            if (ApplicableAccessibilityList.Any() &&
+                accessibility != Accessibility.NotApplicable &&
+                !ApplicableAccessibilityList.Any(k => k == accessibility))
             {
                 return false;
             }
@@ -97,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private DeclarationModifiers CollapseModifiers(ImmutableArray<ModifierKind> requiredModifierList)
         {
-            if (requiredModifierList == default(ImmutableArray<ModifierKind>))
+            if (requiredModifierList == default)
             {
                 return new DeclarationModifiers();
             }

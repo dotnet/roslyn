@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 syntaxFacts.GetPartsOfConditionalExpression(
                     conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
 
+                var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationConstants.WhenPartIsNullable);
                 editor.ReplaceNode(conditionalExpression,
                     (c, g) => {
                         syntaxFacts.GetPartsOfConditionalExpression(
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         }
 
                         var newNode = CreateConditionalAccessExpression(
-                            syntaxFacts, g, currentWhenPartToCheck, match, c);
+                            syntaxFacts, g, whenPartIsNullable, currentWhenPartToCheck, match, c);
 
                         newNode = newNode.WithTriviaFrom(c);
                         return newNode;
@@ -93,11 +94,40 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         }
 
         private SyntaxNode CreateConditionalAccessExpression(
-            ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, 
+            ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, bool whenPartIsNullable,
             SyntaxNode whenPart, SyntaxNode match, SyntaxNode currentConditional)
         {
-            var memberAccess = match.Parent as TMemberAccessExpression;
-            if (memberAccess != null)
+            if (whenPartIsNullable)
+            {
+                if (match.Parent is TMemberAccessExpression memberAccess)
+                {
+                    var nameNode = syntaxFacts.GetNameOfMemberAccessExpression(memberAccess);
+                    syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out var arity);
+                    var comparer = syntaxFacts.StringComparer;
+
+                    if (arity == 0 && comparer.Equals(name, nameof(Nullable<int>.Value)))
+                    {
+                        // They're calling ".Value" off of a nullable.  Because we're moving to ?.
+                        // we want to remove the .Value as well.  i.e. we should generate:
+                        //
+                        //      goo?.Bar()  not   goo?.Value.Bar();
+                        return CreateConditionalAccessExpression(
+                            syntaxFacts, generator, whenPart, match,
+                            memberAccess.Parent, currentConditional);
+                    }
+                }
+            }
+
+            return CreateConditionalAccessExpression(
+                syntaxFacts, generator, whenPart, match,
+                match.Parent, currentConditional);
+        }
+
+        private SyntaxNode CreateConditionalAccessExpression(
+            ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, 
+            SyntaxNode whenPart, SyntaxNode match, SyntaxNode matchParent, SyntaxNode currentConditional)
+        {
+            if (matchParent is TMemberAccessExpression memberAccess)
             {
                 return whenPart.ReplaceNode(memberAccess,
                     generator.ConditionalAccessExpression(
@@ -106,8 +136,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                             syntaxFacts.GetNameOfMemberAccessExpression(memberAccess))));
             }
 
-            var elementAccess = match.Parent as TElementAccessExpression;
-            if (elementAccess != null)
+            if (matchParent is TElementAccessExpression elementAccess)
             {
                 return whenPart.ReplaceNode(elementAccess,
                     generator.ConditionalAccessExpression(

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel;
@@ -18,6 +18,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Export(typeof(VisualStudioDiagnosticListTable))]
     internal partial class VisualStudioDiagnosticListTable : VisualStudioBaseDiagnosticListTable
     {
@@ -67,6 +69,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             this(null, workspace, diagnosticService, null, provider)
         {
             AddInitialTableSource(workspace.CurrentSolution, _liveTableSource);
+        }
+
+        /// this is for test only
+        internal VisualStudioDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ExternalErrorDiagnosticUpdateSource errorSource, ITableManagerProvider provider) :
+            this(null, workspace, diagnosticService, errorSource, provider)
+        {
+            AddInitialTableSource(workspace.CurrentSolution, _buildTableSource);
         }
 
         private VisualStudioDiagnosticListTable(

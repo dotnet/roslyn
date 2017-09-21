@@ -1,18 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\..\build\Targets\Settings.props" />
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{6FC8E6F5-659C-424D-AEB5-331B95883E29}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
@@ -36,36 +34,11 @@
     <Compile Include="..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKindFacts.cs">
       <Link>CSharp\Compiler\SyntaxKindFacts.cs</Link>
     </Compile>
-    <Compile Include="..\ExpressionCompiler\MetadataUtilities_Exceptions.cs">
-      <Link>ExpressionCompiler\MetadataUtilities_Exceptions.cs</Link>
+    <Compile Include="..\ExpressionCompiler\DkmExceptionUtilities.cs">
+      <Link>ExpressionCompiler\DkmExceptionUtilities.cs</Link>
     </Compile>
-    <Compile Include="CSharp\CSharpFunctionResolver.cs" />
-    <Compile Include="CSharp\GreenNode.cs" />
-    <Compile Include="CSharp\MemberSignatureParser.cs" />
-    <Compile Include="CSharp\Scanner.cs" />
-    <Compile Include="FunctionResolver.cs" />
-    <Compile Include="FunctionResolverBase.cs" />
-    <Compile Include="MetadataDecoder.cs" />
-    <Compile Include="MetadataResolver.cs" />
-    <Compile Include="Name.cs" />
-    <Compile Include="ParameterSignature.cs" />
-    <Compile Include="RequestSignature.cs" />
-    <Compile Include="SpecialTypeExtensions.cs" />
-    <Compile Include="TypeSignature.cs" />
-    <Compile Include="VisualBasic\Keywords.cs" />
-    <Compile Include="VisualBasic\MemberSignatureParser.cs" />
-    <Compile Include="VisualBasic\Scanner.cs" />
-    <Compile Include="VisualBasic\SyntaxKind.cs" />
-    <Compile Include="VisualBasic\VisualBasicFunctionResolver.cs" />
     <VsdConfigXml Include="CSharp\FunctionResolver.vsdconfigxml" />
     <VsdConfigXml Include="VisualBasic\FunctionResolver.vsdconfigxml" />
-  </ItemGroup>
-  <ItemGroup Label="Project References">
-    <ProjectReference Include="..\Concord\Concord.csproj">
-      <Project>{5002636a-fe8d-40bf-8818-ab513a2194fa}</Project>
-      <Name>Concord</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -73,7 +46,13 @@
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.FunctionResolver.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine" Version="$(MicrosoftVisualStudioDebuggerEngineVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata">
+      <Version>$(MicrosoftVisualStudioDebuggerMetadataVersion)</Version>
+      <ExcludeAssets>compile</ExcludeAssets>
+    </PackageReference>
   </ItemGroup>
   <Import Project="..\..\..\..\..\build\Targets\Vsdconfig.targets" />
   <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />

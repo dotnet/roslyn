@@ -37,6 +37,8 @@ Public MustInherit Class BasicTestBase
     Friend Shadows Function CompileAndVerify(
         source As XElement,
         expectedOutput As XCData,
+        Optional expectedReturnCode As Integer? = Nothing,
+        Optional args As String() = Nothing,
         Optional additionalRefs As MetadataReference() = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
@@ -52,6 +54,8 @@ Public MustInherit Class BasicTestBase
         Return CompileAndVerify(
             source,
             XCDataToString(expectedOutput),
+            expectedReturnCode,
+            args,
             additionalRefs,
             dependencies,
             sourceSymbolValidator,
@@ -73,6 +77,8 @@ Public MustInherit Class BasicTestBase
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional expectedOutput As String = Nothing,
+        Optional expectedReturnCode As Integer? = Nothing,
+        Optional args As String() = Nothing,
         Optional emitOptions As EmitOptions = Nothing,
         Optional verify As Boolean = True) As CompilationVerifier
 
@@ -85,6 +91,8 @@ Public MustInherit Class BasicTestBase
             Translate(symbolValidator),
             expectedSignatures,
             expectedOutput,
+            expectedReturnCode,
+            args,
             emitOptions,
             verify)
     End Function
@@ -92,6 +100,7 @@ Public MustInherit Class BasicTestBase
     Friend Shadows Function CompileAndVerify(
         compilation As Compilation,
         expectedOutput As XCData,
+        Optional args As String() = Nothing,
         Optional manifestResources As IEnumerable(Of ResourceDescription) = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
@@ -110,6 +119,8 @@ Public MustInherit Class BasicTestBase
             symbolValidator,
             expectedSignatures,
             XCDataToString(expectedOutput),
+            Nothing,
+            args,
             emitOptions,
             verify)
     End Function
@@ -117,6 +128,8 @@ Public MustInherit Class BasicTestBase
     Friend Shadows Function CompileAndVerify(
         source As XElement,
         Optional expectedOutput As String = Nothing,
+        Optional expectedReturnCode As Integer? = Nothing,
+        Optional args As String() = Nothing,
         Optional additionalRefs As MetadataReference() = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
@@ -136,6 +149,8 @@ Public MustInherit Class BasicTestBase
         Return Me.CompileAndVerify(source,
                                    allReferences,
                                    expectedOutput,
+                                   expectedReturnCode,
+                                   args,
                                    dependencies,
                                    sourceSymbolValidator,
                                    validator,
@@ -152,6 +167,8 @@ Public MustInherit Class BasicTestBase
         source As XElement,
         allReferences As IEnumerable(Of MetadataReference),
         Optional expectedOutput As String = Nothing,
+        Optional expectedReturnCode As Integer? = Nothing,
+        Optional args As String() = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional validator As Action(Of PEAssembly) = Nothing,
@@ -180,6 +197,8 @@ Public MustInherit Class BasicTestBase
             Translate(symbolValidator),
             expectedSignatures,
             expectedOutput,
+            expectedReturnCode,
+            args,
             emitOptions,
             verify)
     End Function
@@ -188,6 +207,8 @@ Public MustInherit Class BasicTestBase
         source As String,
         allReferences As IEnumerable(Of MetadataReference),
         Optional expectedOutput As String = Nothing,
+        Optional expectedReturnCode As Integer? = Nothing,
+        Optional args As String() = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional validator As Action(Of PEAssembly) = Nothing,
@@ -215,6 +236,8 @@ Public MustInherit Class BasicTestBase
             Translate(symbolValidator),
             expectedSignatures,
             expectedOutput,
+            expectedReturnCode,
+            args,
             emitOptions,
             verify)
     End Function
@@ -223,6 +246,8 @@ Public MustInherit Class BasicTestBase
         source As XElement,
         allReferences As IEnumerable(Of MetadataReference),
         Optional expectedOutput As String = Nothing,
+        Optional expectedReturnCode As Integer? = Nothing,
+        Optional args As String() = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional validator As Action(Of PEAssembly) = Nothing,
@@ -236,6 +261,8 @@ Public MustInherit Class BasicTestBase
             source,
             allReferences,
             If(OSVersion.IsWin8, expectedOutput, Nothing),
+            If(OSVersion.IsWin8, expectedReturnCode, Nothing),
+            args,
             dependencies,
             sourceSymbolValidator,
             validator,
@@ -249,6 +276,8 @@ Public MustInherit Class BasicTestBase
     Friend Shadows Function CompileAndVerifyOnWin8Only(
         source As XElement,
         expectedOutput As XCData,
+        Optional expectedReturnCode As Integer? = Nothing,
+        Optional args As String() = Nothing,
         Optional allReferences() As MetadataReference = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
@@ -263,6 +292,8 @@ Public MustInherit Class BasicTestBase
             source,
             allReferences,
             XCDataToString(expectedOutput),
+            expectedReturnCode,
+            args,
             dependencies,
             sourceSymbolValidator,
             validator,
@@ -305,7 +336,7 @@ Public MustInherit Class BasicTestBase
     ''' <summary>
     ''' Compile sources and adds a custom reference using a custom IL
     ''' </summary>
-    ''' <param name="sources">The sources compile according to the following schema        
+    ''' <param name="sources">The sources compile according to the following schema
     ''' &lt;compilation name="assemblyname[optional]"&gt;
     ''' &lt;file name="file1.vb[optional]"&gt;
     ''' source
@@ -319,7 +350,7 @@ Public MustInherit Class BasicTestBase
     ''' <summary>
     ''' Compile sources and adds a custom reference using a custom IL
     ''' </summary>
-    ''' <param name="sources">The sources compile according to the following schema        
+    ''' <param name="sources">The sources compile according to the following schema
     ''' &lt;compilation name="assemblyname[optional]"&gt;
     ''' &lt;file name="file1.vb[optional]"&gt;
     ''' source
@@ -382,20 +413,6 @@ End Class
 
 Public MustInherit Class BasicTestBaseBase
     Inherits CommonTestBase
-
-    Friend Overrides Function ReferencesToModuleSymbols(references As IEnumerable(Of MetadataReference), Optional importOptions As MetadataImportOptions = MetadataImportOptions.Public) As IEnumerable(Of IModuleSymbol)
-        Dim options = DirectCast(CompilationOptionsReleaseDll, VisualBasicCompilationOptions).WithMetadataImportOptions(importOptions)
-        Dim tc1 = VisualBasicCompilation.Create("Dummy", references:=references, options:=options)
-        Return references.Select(
-            Function(r)
-                If r.Properties.Kind = MetadataImageKind.Assembly Then
-                    Dim assemblySymbol = tc1.GetReferencedAssemblySymbol(r)
-                    Return If(assemblySymbol Is Nothing, Nothing, assemblySymbol.Modules(0))
-                Else
-                    Return tc1.GetReferencedModuleSymbol(r)
-                End If
-            End Function)
-    End Function
 
     Protected Overrides ReadOnly Property CompilationOptionsReleaseDll As CompilationOptions
         Get
@@ -474,7 +491,7 @@ Public MustInherit Class BasicTestBaseBase
 .class public auto ansi beforefieldinit B
        extends [mscorlib]System.Object
 {
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance int32  get_P_rw_r_w() cil managed
   {
     // Code size       2 (0x2)
@@ -483,7 +500,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0001:  ret
   } // end of method B::get_P_rw_r_w
 
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance void  set_P_rw_r_w(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -491,7 +508,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0000:  ret
   } // end of method B::set_P_rw_r_w
 
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance int32  get_P_rw_rw_w() cil managed
   {
     // Code size       2 (0x2)
@@ -500,7 +517,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0001:  ret
   } // end of method B::get_P_rw_rw_w
 
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance void  set_P_rw_rw_w(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -508,7 +525,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0000:  ret
   } // end of method B::set_P_rw_rw_w
 
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance int32  get_P_rw_rw_r() cil managed
   {
     // Code size       2 (0x2)
@@ -517,7 +534,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0001:  ret
   } // end of method B::get_P_rw_rw_r
 
-  .method public hidebysig newslot specialname virtual 
+  .method public hidebysig newslot specialname virtual
           instance void  set_P_rw_rw_r(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -525,7 +542,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0000:  ret
   } // end of method B::set_P_rw_rw_r
 
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
           instance void  .ctor() cil managed
   {
     // Code size       7 (0x7)
@@ -555,7 +572,7 @@ Public MustInherit Class BasicTestBaseBase
 .class public auto ansi beforefieldinit D1
        extends B
 {
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance int32  get_P_rw_r_w() cil managed
   {
     // Code size       2 (0x2)
@@ -564,7 +581,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0001:  ret
   } // end of method D1::get_P_rw_r_w
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance int32  get_P_rw_rw_w() cil managed
   {
     // Code size       2 (0x2)
@@ -573,7 +590,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0001:  ret
   } // end of method D1::get_P_rw_rw_w
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance void  set_P_rw_rw_w(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -581,7 +598,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0000:  ret
   } // end of method D1::set_P_rw_rw_w
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance int32  get_P_rw_rw_r() cil managed
   {
     // Code size       2 (0x2)
@@ -590,7 +607,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0001:  ret
   } // end of method D1::get_P_rw_rw_r
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance void  set_P_rw_rw_r(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -598,7 +615,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0000:  ret
   } // end of method D1::set_P_rw_rw_r
 
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
           instance void  .ctor() cil managed
   {
     // Code size       7 (0x7)
@@ -627,7 +644,7 @@ Public MustInherit Class BasicTestBaseBase
 .class public auto ansi beforefieldinit D2
        extends D1
 {
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance void  set_P_rw_r_w(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -635,7 +652,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0000:  ret
   } // end of method D2::set_P_rw_r_w
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance void  set_P_rw_rw_w(int32 'value') cil managed
   {
     // Code size       1 (0x1)
@@ -643,7 +660,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0000:  ret
   } // end of method D2::set_P_rw_rw_w
 
-  .method public hidebysig specialname virtual 
+  .method public hidebysig specialname virtual
           instance int32  get_P_rw_rw_r() cil managed
   {
     // Code size       2 (0x2)
@@ -652,7 +669,7 @@ Public MustInherit Class BasicTestBaseBase
     IL_0001:  ret
   } // end of method D2::get_P_rw_rw_r
 
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
           instance void  .ctor() cil managed
   {
     // Code size       7 (0x7)
@@ -770,5 +787,83 @@ Public MustInherit Class BasicTestBaseBase
             Return x.Arity - y.Arity
         End Function
     End Class
+
+#Region "IOperation tree validation"
+
+    Friend Shared Function GetOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, fileName As String, Optional which As Integer = 0) As (tree As String, syntax As SyntaxNode, operation As IOperation)
+        Dim node As SyntaxNode = CompilationUtils.FindBindingText(Of TSyntaxNode)(compilation, fileName, which, prefixMatch:=True)
+        If node Is Nothing Then
+            Return Nothing
+        End If
+
+        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
+        Dim semanticModel = compilation.GetSemanticModel(tree)
+        Dim operation = semanticModel.GetOperationInternal(node)
+        If operation IsNot Nothing Then
+            Return (OperationTreeVerifier.GetOperationTree(compilation, operation), node, operation)
+        Else
+            Return (Nothing, Nothing, Nothing)
+        End If
+    End Function
+
+    Friend Shared Function GetOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, Optional compilationOptions As VisualBasicCompilationOptions = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0) As (tree As String, syntax As SyntaxNode, operation As IOperation, compilation As Compilation)
+        Dim fileName = "a.vb"
+        Dim syntaxTree = Parse(testSrc, fileName, parseOptions)
+        Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=DefaultVbReferences.Append({ValueTupleRef, SystemRuntimeFacadeRef}), options:=If(compilationOptions, TestOptions.ReleaseDll))
+        Dim operationTree = GetOperationTreeForTest(Of TSyntaxNode)(compilation, fileName, which)
+        Return (operationTree.tree, operationTree.syntax, operationTree.operation, compilation)
+    End Function
+
+    Friend Shared Sub VerifyOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, fileName As String, expectedOperationTree As String, Optional which As Integer = 0, Optional additionalOperationTreeVerifier As Action(Of IOperation, Compilation, SyntaxNode) = Nothing)
+        Dim operationTree = GetOperationTreeForTest(Of TSyntaxNode)(compilation, fileName, which)
+        OperationTreeVerifier.Verify(expectedOperationTree, operationTree.tree)
+        If additionalOperationTreeVerifier IsNot Nothing Then
+            additionalOperationTreeVerifier(operationTree.operation, compilation, operationTree.syntax)
+        End If
+    End Sub
+
+    Friend Shared Sub VerifyOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, expectedOperationTree As String, Optional compilationOptions As VisualBasicCompilationOptions = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0, Optional additionalOperationTreeVerifier As Action(Of IOperation, Compilation, SyntaxNode) = Nothing)
+        Dim operationTree = GetOperationTreeForTest(Of TSyntaxNode)(testSrc, compilationOptions, parseOptions, which)
+        OperationTreeVerifier.Verify(expectedOperationTree, operationTree.tree)
+        If additionalOperationTreeVerifier IsNot Nothing Then
+            additionalOperationTreeVerifier(operationTree.operation, operationTree.compilation, operationTree.syntax)
+        End If
+    End Sub
+
+    Friend Shared Sub VerifyNoOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, Optional compilationOptions As VisualBasicCompilationOptions = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0)
+        Dim operationTree = GetOperationTreeForTest(Of TSyntaxNode)(testSrc, compilationOptions, parseOptions, which)
+        Assert.Null(operationTree.tree)
+    End Sub
+
+    Friend Shared Sub VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, fileName As String, expectedOperationTree As String, expectedDiagnostics As String, Optional which As Integer = 0, Optional additionalOperationTreeVerifier As Action(Of IOperation, Compilation, SyntaxNode) = Nothing)
+        compilation.AssertTheseDiagnostics(FilterString(expectedDiagnostics))
+        VerifyOperationTreeForTest(Of TSyntaxNode)(compilation, fileName, expectedOperationTree, which, additionalOperationTreeVerifier)
+    End Sub
+
+    Friend Shared Sub VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, expectedOperationTree As String, expectedDiagnostics As String, Optional compilationOptions As VisualBasicCompilationOptions = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0, Optional additionalReferences As IEnumerable(Of MetadataReference) = Nothing, Optional additionalOperationTreeVerifier As Action(Of IOperation, Compilation, SyntaxNode) = Nothing)
+        Dim fileName = "a.vb"
+        Dim syntaxTree = Parse(testSrc, fileName, parseOptions)
+        Dim references = DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef})
+        references = If(additionalReferences IsNot Nothing, references.Concat(additionalReferences), references)
+        Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=references, options:=If(compilationOptions, TestOptions.ReleaseDll))
+        VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode)(compilation, fileName, expectedOperationTree, expectedDiagnostics, which, additionalOperationTreeVerifier)
+    End Sub
+
+    Public Shared Function GetAssertTheseDiagnosticsString(allDiagnostics As ImmutableArray(Of Diagnostic), suppressInfos As Boolean) As String
+        Return DumpAllDiagnostics(allDiagnostics, suppressInfos)
+    End Function
+
+    Friend Shared Function GetOperationAndSyntaxForTest(Of TSyntaxNode As SyntaxNode)(compilation As Compilation, fileName As String, Optional which As integer  = 0) As (operation as IOperation, synxtaxNode As SyntaxNode)
+        Dim node As SyntaxNode = CompilationUtils.FindBindingText(Of TSyntaxNode)(compilation, fileName, which, prefixMatch:=True)
+        If node Is Nothing Then
+            Return (Nothing, Nothing)
+        End If
+        
+        Dim semanticModel = compilation.GetSemanticModel(node.SyntaxTree)
+        Dim operation = semanticModel.GetOperationInternal(node)
+        Return (operation, node)
+    End Function
+
+#End Region
 
 End Class

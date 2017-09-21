@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
@@ -250,8 +251,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' e.g. SyntaxKind.MidExpression is handled elsewhere
                     ' NOTE: There were too many "else" cases to justify listing them explicitly and throwing on
                     ' anything unexpected.
-                    Debug.Assert(node.ContainsDiagnostics, String.Format("Unexpected {0} syntax does not have diagnostics", node.Kind))
-                    Return BadExpression(node, ImmutableArray(Of BoundNode).Empty, ErrorTypeSymbol.UnknownResultType)
+                    Debug.Assert(IsSemanticModelBinder OrElse node.ContainsDiagnostics, String.Format("Unexpected {0} syntax does not have diagnostics", node.Kind))
+                    Return BadExpression(node, ImmutableArray(Of BoundExpression).Empty, ErrorTypeSymbol.UnknownResultType)
 
             End Select
         End Function
@@ -260,30 +261,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Create a BoundBadExpression node for the given syntax node. No symbols or bound nodes are associated with it.
         ''' </summary>
         Protected Shared Function BadExpression(node As SyntaxNode, resultType As TypeSymbol) As BoundBadExpression
-            Return New BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray(Of Symbol).Empty, ImmutableArray(Of BoundNode).Empty, resultType, hasErrors:=True)
+            Return New BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray(Of Symbol).Empty, ImmutableArray(Of BoundExpression).Empty, resultType, hasErrors:=True)
         End Function
 
         ''' <summary>
         ''' Create a BoundBadExpression node for the given child-expression, which is preserved as a sub-expression. 
         ''' No ResultKind is associated
         ''' </summary>
-        Private Shared Function BadExpression(node As SyntaxNode, expr As BoundNode, resultType As TypeSymbol) As BoundBadExpression
-            Return New BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr), resultType, hasErrors:=True)
+        Private Shared Function BadExpression(node As SyntaxNode, expr As BoundExpression, resultType As TypeSymbol) As BoundBadExpression
+            Return New BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr), resultType, hasErrors:=True)
         End Function
 
         ''' <summary>
         ''' Create a BoundBadExpression node for the given child-expression, which is preserved as a sub-expression. 
         ''' A ResultKind explains why the node is bad.
         ''' </summary>
-        Private Shared Function BadExpression(node As SyntaxNode, expr As BoundNode, resultKind As LookupResultKind, resultType As TypeSymbol) As BoundBadExpression
-            Return New BoundBadExpression(node, resultKind, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(expr), resultType, hasErrors:=True)
+        Private Shared Function BadExpression(node As SyntaxNode, expr As BoundExpression, resultKind As LookupResultKind, resultType As TypeSymbol) As BoundBadExpression
+            Return New BoundBadExpression(node, resultKind, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(expr), resultType, hasErrors:=True)
         End Function
 
         ''' <summary>
         ''' Create a BoundBadExpression node for the given child expression, which is preserved as a sub-expression. Symbols
         ''' associated with the child node are not given a result kind.
         ''' </summary>
-        Private Shared Function BadExpression(node As SyntaxNode, exprs As ImmutableArray(Of BoundNode), resultType As TypeSymbol) As BoundBadExpression
+        Private Shared Function BadExpression(node As SyntaxNode, exprs As ImmutableArray(Of BoundExpression), resultType As TypeSymbol) As BoundBadExpression
             Return New BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray(Of Symbol).Empty, exprs, resultType, hasErrors:=True)
         End Function
 
@@ -297,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If wrappedBadExpression IsNot Nothing Then
                 Return New BoundBadExpression(wrappedBadExpression.Syntax, resultKind, wrappedBadExpression.Symbols, wrappedBadExpression.ChildBoundNodes, wrappedBadExpression.Type, hasErrors:=True)
             Else
-                Return New BoundBadExpression(wrappedExpression.Syntax, resultKind, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(wrappedExpression), wrappedExpression.Type, hasErrors:=True)
+                Return New BoundBadExpression(wrappedExpression.Syntax, resultKind, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(wrappedExpression), wrappedExpression.Type, hasErrors:=True)
             End If
         End Function
 
@@ -308,39 +309,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If numElements < 2 Then
                 ' this should be a parse error already.
                 Dim args = If(numElements = 1,
-                    ImmutableArray.Create(Of BoundNode)(BindRValue(arguments(0).Expression, diagnostics)),
-                    ImmutableArray(Of BoundNode).Empty)
+                    ImmutableArray.Create(BindRValue(arguments(0).Expression, diagnostics)),
+                    ImmutableArray(Of BoundExpression).Empty)
 
                 Return BadExpression(node, args, ErrorTypeSymbol.UnknownResultType)
             End If
 
-            Dim hasErrors = False
             Dim hasNaturalType = True
             Dim hasInferredType = True
-
-            ' set of names already used
-            Dim uniqueFieldNames = New HashSet(Of String)(IdentifierComparison.Comparer)
 
             Dim boundArguments = ArrayBuilder(Of BoundExpression).GetInstance(arguments.Count)
             Dim elementTypes = ArrayBuilder(Of TypeSymbol).GetInstance(arguments.Count)
             Dim elementLocations = ArrayBuilder(Of Location).GetInstance(arguments.Count)
 
-            Dim elementNames As ArrayBuilder(Of String) = Nothing
+            ' prepare names
+            Dim names = ExtractTupleElementNames(arguments, diagnostics)
+            Dim elementNames = names.elementNames
+            Dim inferredPositions = names.inferredPositions
+            Dim hasErrors = names.hasErrors
 
-            ' prepare and check element names and types
+            ' prepare types and locations
             For i As Integer = 0 To numElements - 1
                 Dim argumentSyntax As SimpleArgumentSyntax = arguments(i)
-                Dim name As String = Nothing
-
                 Dim nameSyntax As IdentifierNameSyntax = argumentSyntax.NameColonEquals?.Name
 
                 If nameSyntax IsNot Nothing Then
-                    name = nameSyntax.Identifier.ValueText
                     elementLocations.Add(nameSyntax.GetLocation)
-
-                    If Not CheckTupleMemberName(name, i, argumentSyntax.NameColonEquals.Name, diagnostics, uniqueFieldNames) Then
-                        hasErrors = True
-                    End If
 
                     '  check type character
                     Dim typeChar As TypeCharacter = nameSyntax.Identifier.GetTypeCharacter()
@@ -350,8 +344,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Else
                     elementLocations.Add(argumentSyntax.GetLocation)
                 End If
-
-                CollectTupleFieldMemberNames(name, i + 1, numElements, elementNames)
 
                 Dim boundArgument As BoundExpression = BindValue(argumentSyntax.Expression, diagnostics)
                 Dim elementType = GetTupleFieldType(boundArgument, argumentSyntax, diagnostics, hasNaturalType)
@@ -368,23 +360,131 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 elementTypes.Add(elementType)
             Next
 
-            Dim elementNamesArray = If(elementNames Is Nothing, Nothing, elementNames.ToImmutableAndFree())
-
-            Dim tupleTypeOpt As NamedTypeSymbol = Nothing
             Dim elements = elementTypes.ToImmutableAndFree()
             Dim locations = elementLocations.ToImmutableAndFree()
 
             Dim inferredType As TupleTypeSymbol = Nothing
-
             If hasInferredType Then
-                inferredType = TupleTypeSymbol.Create(node.GetLocation, elements, locations, elementNamesArray, Me.Compilation, shouldCheckConstraints:=True, syntax:=node, diagnostics:=diagnostics)
+                Dim disallowInferredNames = Me.Compilation.LanguageVersion.DisallowInferredTupleElementNames()
+
+                inferredType = TupleTypeSymbol.Create(node.GetLocation, elements, locations, elementNames, Me.Compilation,
+                                                      shouldCheckConstraints:=True,
+                                                      errorPositions:=If(disallowInferredNames, inferredPositions, Nothing),
+                                                      syntax:=node, diagnostics:=diagnostics)
             End If
 
-            If hasNaturalType Then
-                tupleTypeOpt = inferredType
+            Dim tupleTypeOpt As NamedTypeSymbol = If(hasNaturalType, inferredType, Nothing)
+
+            '' Always track the inferred positions in the bound node, so that conversions don't produce a warning
+            '' for "dropped names" when the name was inferred.
+            Return New BoundTupleLiteral(node, inferredType, elementNames, inferredPositions, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors)
+        End Function
+
+        Private Shared Function ExtractTupleElementNames(arguments As SeparatedSyntaxList(Of SimpleArgumentSyntax), diagnostics As DiagnosticBag) _
+            As (elementNames As ImmutableArray(Of String), inferredPositions As ImmutableArray(Of Boolean), hasErrors As Boolean)
+
+            Dim hasErrors = False
+
+            ' set of names already used
+            Dim uniqueFieldNames = New HashSet(Of String)(IdentifierComparison.Comparer)
+
+            Dim elementNames As ArrayBuilder(Of String) = Nothing
+            Dim inferredElementNames As ArrayBuilder(Of String) = Nothing
+
+            ' prepare and check element names and types
+            Dim numElements As Integer = arguments.Count
+            For i As Integer = 0 To numElements - 1
+                Dim argumentSyntax As SimpleArgumentSyntax = arguments(i)
+                Dim name As String = Nothing
+                Dim inferredName As String = Nothing
+
+                Dim nameSyntax As IdentifierNameSyntax = argumentSyntax.NameColonEquals?.Name
+
+                If nameSyntax IsNot Nothing Then
+                    name = nameSyntax.Identifier.ValueText
+
+                    If Not CheckTupleMemberName(name, i, argumentSyntax.NameColonEquals.Name, diagnostics, uniqueFieldNames) Then
+                        hasErrors = True
+                    End If
+                Else
+                    inferredName = InferTupleElementName(argumentSyntax.Expression)
+                End If
+
+                CollectTupleFieldMemberName(name, i, numElements, elementNames)
+                CollectTupleFieldMemberName(inferredName, i, numElements, inferredElementNames)
+            Next
+
+            RemoveDuplicateInferredTupleNames(inferredElementNames, uniqueFieldNames)
+
+            Dim result = MergeTupleElementNames(elementNames, inferredElementNames)
+            elementNames?.Free()
+            inferredElementNames?.Free()
+            Return (result.names, result.inferred, hasErrors)
+        End Function
+
+        Private Shared Function MergeTupleElementNames(elementNames As ArrayBuilder(Of String),
+                                                       inferredElementNames As ArrayBuilder(Of String)) As (names As ImmutableArray(Of String),
+                                                       inferred As ImmutableArray(Of Boolean))
+            If elementNames Is Nothing Then
+                If inferredElementNames Is Nothing Then
+                    Return (Nothing, Nothing)
+                Else
+                    Dim finalNames = inferredElementNames.ToImmutable()
+                    Return (finalNames, finalNames.SelectAsArray(Function(n) n IsNot Nothing))
+                End If
             End If
 
-            Return New BoundTupleLiteral(node, inferredType, elementNamesArray, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors)
+            If inferredElementNames Is Nothing Then
+                Return (elementNames.ToImmutable(), Nothing)
+            End If
+
+            Debug.Assert(elementNames.Count = inferredElementNames.Count)
+            Dim builder = ArrayBuilder(Of Boolean).GetInstance(elementNames.Count)
+            For i = 0 To elementNames.Count - 1
+
+                Dim inferredName As String = inferredElementNames(i)
+                If elementNames(i) Is Nothing AndAlso inferredName IsNot Nothing Then
+                    elementNames(i) = inferredName
+                    builder.Add(True)
+                Else
+                    builder.Add(False)
+                End If
+            Next
+            Return (elementNames.ToImmutable(), builder.ToImmutableAndFree())
+        End Function
+
+        Private Shared Sub RemoveDuplicateInferredTupleNames(inferredElementNames As ArrayBuilder(Of String), uniqueFieldNames As HashSet(Of String))
+            If inferredElementNames Is Nothing Then
+                Return
+            End If
+
+            ' Inferred names that duplicate an explicit name or a previous inferred name are tagged for removal
+            Dim toRemove = New HashSet(Of String)(IdentifierComparison.Comparer)
+            For Each name In inferredElementNames
+                If name IsNot Nothing AndAlso Not uniqueFieldNames.Add(name) Then
+                    toRemove.Add(name)
+                End If
+            Next
+
+            For index = 0 To inferredElementNames.Count - 1
+                Dim inferredName As String = inferredElementNames(index)
+                If inferredName IsNot Nothing AndAlso toRemove.Contains(inferredName) Then
+                    inferredElementNames(index) = Nothing
+                End If
+            Next
+        End Sub
+
+        Private Shared Function InferTupleElementName(element As ExpressionSyntax) As String
+            Dim ignore As XmlNameSyntax = Nothing
+            Dim nameToken As SyntaxToken = element.ExtractAnonymousTypeMemberName(ignore)
+            If nameToken.Kind() = SyntaxKind.IdentifierToken Then
+                Dim name As String = nameToken.ValueText
+                ' Reserved names are never candidates to be inferred names, at any position
+                If TupleTypeSymbol.IsElementNameReserved(name) = -1 Then
+                    Return name
+                End If
+            End If
+            Return Nothing
         End Function
 
         ''' <summary>
@@ -424,8 +524,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return expressionType
         End Function
- 
-        Private Shared Sub CollectTupleFieldMemberNames(name As String, position As Integer, tupleSize As Integer, ByRef elementNames As ArrayBuilder(Of String))
+
+        Private Shared Sub CollectTupleFieldMemberName(name As String, elementIndex As Integer, tupleSize As Integer, ByRef elementNames As ArrayBuilder(Of String))
             ' add the name to the list
             ' names would typically all be there or none at all
             ' but in case we need to handle this in error cases
@@ -434,7 +534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 If name IsNot Nothing Then
                     elementNames = ArrayBuilder(Of String).GetInstance(tupleSize)
-                    For j As Integer = 1 To position - 1
+                    For j As Integer = 1 To elementIndex
                         elementNames.Add(Nothing)
                     Next
                     elementNames.Add(name)
@@ -1720,7 +1820,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Dev10 comment:
                 ' Note that this is needed so that we can determine whether the structure
-                ' is not an LValue (eg: RField.m_x = 20 where foo is a readonly field of a
+                ' is not an LValue (eg: RField.m_x = 20 where goo is a readonly field of a
                 ' structure type). In such cases, the structure's field m_x cannot be modified.
                 '
                 ' This does not apply to type params because for type params we do want to
@@ -2991,7 +3091,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return New BoundBadExpression(node,
                                               lookupResult.Kind,
                                               symbols,
-                                              If(receiver IsNot Nothing, ImmutableArray.Create(Of BoundNode)(receiver), ImmutableArray(Of BoundNode).Empty),
+                                              If(receiver IsNot Nothing, ImmutableArray.Create(receiver), ImmutableArray(Of BoundExpression).Empty),
                                               GetCommonExpressionType(node, symbols, ConstantFieldsInProgress), hasErrors:=True)
             End If
 
@@ -3452,7 +3552,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return New BoundBadExpression(node,
                                               LookupResultKind.Empty,
                                               ImmutableArray(Of Symbol).Empty,
-                                              ImmutableArray(Of BoundNode).Empty,
+                                              ImmutableArray(Of BoundExpression).Empty,
                                               Nothing,
                                               hasErrors:=True)
             Else
@@ -3472,7 +3572,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim arguments = typeArgumentsOpt.Arguments
 
             'TODO: What should we do if count is 0? Can we get in a situation like this?
-            '      Perhaps for a missing type argument case [Foo(Of )].
+            '      Perhaps for a missing type argument case [Goo(Of )].
 
             Dim boundArguments(arguments.Count - 1) As TypeSymbol
 
@@ -3594,7 +3694,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Return BadExpression(
                         node,
-                        ImmutableArray.Create(Of BoundNode)(
+                        ImmutableArray.Create(
                             ReportDiagnosticAndProduceBadExpression(diagnostics, node, ERRID.ERR_BadWithRef),
                             New BoundLiteral(
                                 node.Name,
@@ -3675,7 +3775,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return BadExpression(
                 node,
-                ImmutableArray.Create(Of BoundNode)(
+                ImmutableArray.Create(
                     left,
                     New BoundLiteral(
                         node.Name,
@@ -3715,7 +3815,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Shared Function GenerateBadExpression(node As InvocationExpressionSyntax, target As BoundExpression, boundArguments As ImmutableArray(Of BoundExpression)) As BoundExpression
-            Dim children = ArrayBuilder(Of BoundNode).GetInstance()
+            Dim children = ArrayBuilder(Of BoundExpression).GetInstance()
             children.Add(target)
             children.AddRange(boundArguments)
             Return BadExpression(node, children.ToImmutableAndFree(), ErrorTypeSymbol.UnknownResultType)
@@ -4399,7 +4499,9 @@ lElseClause:
 
                 ElseIf expressionKind = BoundKind.TupleLiteral Then
                     expressionType = DirectCast(expression, BoundTupleLiteral).InferredType
-                    typeList.AddType(expressionType, RequiredConversion.Any, expression)
+                    If expressionType IsNot Nothing Then
+                        typeList.AddType(expressionType, RequiredConversion.Any, expression)
+                    End If
 
                 ElseIf expressionKind = BoundKind.ArrayLiteral Then
                     Dim arrayLiteral = DirectCast(expression, BoundArrayLiteral)
@@ -4432,8 +4534,7 @@ lElseClause:
                         allConvertibleToObject = False
                     End If
 
-                    ' this will pick up lambdas which couldn't be inferred, and array literals which lacked a dominant type,
-                    ' and AddressOf expressions.
+                    ' this will pick up AddressOf expressions.
                 End If
             Next
 

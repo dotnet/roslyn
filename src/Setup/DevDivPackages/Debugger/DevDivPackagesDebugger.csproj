@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <PropertyGroup>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ProjectGuid>{18BDB5D5-340B-4834-B4FC-0327729A4A26}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>DevDivPackagesDebugger</RootNamespace>
+    <AssemblyName>DevDivPackagesDebugger_DoNotUse</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win;win7</RuntimeIdentifiers>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.DiaSymReader.PortablePdb">
+      <Version>$(MicrosoftDiaSymReaderPortablePdbVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Diagnostics.Process">
+      <Version>$(SystemDiagnosticsProcessVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.IO.FileSystem">
+      <Version>$(SystemIOFileSystemVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.IO.FileSystem.Primitives">
+      <Version>$(SystemIOFileSystemPrimitivesVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Net.Security">
+      <Version>$(SystemNetSecurityVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Net.Sockets">
+      <Version>$(SystemNetSocketsVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Reflection.TypeExtensions">
+      <Version>$(SystemReflectionTypeExtensionsVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation">
+      <Version>$(SystemRuntimeInteropServicesRuntimeInformationVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Runtime.Serialization.Primitives">
+      <Version>$(SystemRuntimeSerializationPrimitivesVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Security.Cryptography.X509Certificates">
+      <Version>$(SystemSecurityCryptographyX509CertificatesVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Threading.Thread">
+      <Version>$(SystemThreadingThreadVersion)</Version>
+    </PackageReference>
+  </ItemGroup>
+  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
+</Project>

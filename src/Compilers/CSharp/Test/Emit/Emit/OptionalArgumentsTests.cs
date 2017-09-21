@@ -136,7 +136,7 @@ public class C
 }
 public delegate object D([DecimalConstant(0, 0, 0, 0, 3)]decimal o = 3);
 ";
-            var comp1 = CreateCompilationWithMscorlib(source1, references: new[] { SystemRef }, options: TestOptions.DebugDll);
+            var comp1 = CreateStandardCompilation(source1, references: new[] { SystemRef }, options: TestOptions.DebugDll);
             comp1.VerifyDiagnostics();
             CompileAndVerify(comp1, sourceSymbolValidator: module =>
                 {
@@ -165,7 +165,7 @@ public delegate object D([DecimalConstant(0, 0, 0, 0, 3)]decimal o = 3);
         System.Console.WriteLine(o);   
     }
 }";
-            var comp2a = CreateCompilationWithMscorlib(
+            var comp2a = CreateStandardCompilation(
                 source2,
                 references: new[] { SystemRef, new CSharpCompilationReference(comp1) },
                 options: TestOptions.DebugExe);
@@ -174,7 +174,7 @@ public delegate object D([DecimalConstant(0, 0, 0, 0, 3)]decimal o = 3);
 @"1
 2
 3");
-            var comp2b = CreateCompilationWithMscorlib(
+            var comp2b = CreateStandardCompilation(
                 source2,
                 references: new[] { SystemRef, MetadataReference.CreateFromStream(comp1.EmitToStream()) },
                 options: TestOptions.DebugExe);
@@ -199,7 +199,7 @@ partial class C
 {
     static partial void F([DecimalConstant(0, 0, 0, 0, 2)]decimal o) { }
 }";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { SystemRef });
+            var comp = CreateStandardCompilation(source, references: new[] { SystemRef });
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, sourceSymbolValidator: module =>
                 {
@@ -210,7 +210,7 @@ partial class C
 
         private static void VerifyDefaultValueAttribute(ParameterSymbol parameter, string expectedAttributeName, object expectedDefault, bool hasDefault)
         {
-            var attributes = parameter.GetCustomAttributesToEmit(new ModuleCompilationState()).ToArray();
+            var attributes = parameter.GetCustomAttributesToEmit(GetDefaultPEBuilder(parameter.DeclaringCompilation)).ToArray();
             if (expectedAttributeName == null)
             {
                 Assert.Equal(attributes.Length, 0);
@@ -249,7 +249,7 @@ interface I
 }
 delegate void D([DecimalConstant(0, 0, 0, 0, 3)]decimal b = 4);
 ";
-            CreateCompilationWithMscorlib(source, references: new[] { SystemRef }).VerifyDiagnostics(
+            CreateStandardCompilation(source, references: new[] { SystemRef }).VerifyDiagnostics(
                 // (5,14): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
                 //     void F1([DefaultParameterValue(1)]int o = 2);
                 Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "DefaultParameterValue").WithLocation(5, 14),
@@ -318,7 +318,7 @@ partial class C
     partial void F1(int o = 2);
     partial void F9([DecimalConstant(0, 0, 0, 0, 0), DateTimeConstant(0)]int o) {}
 }";
-            CreateCompilationWithMscorlib(source, references: new[] { SystemRef }).VerifyDiagnostics(
+            CreateStandardCompilation(source, references: new[] { SystemRef }).VerifyDiagnostics(
                 // (8,22): error CS8017: The parameter has multiple distinct default values.
                 //     partial void F9([DefaultParameterValue(0)]int o);
                 Diagnostic(ErrorCode.ERR_ParamDefaultValueDiffersFromAttribute, "DefaultParameterValue(0)"),
@@ -346,7 +346,7 @@ interface I
     void M2([DefaultParameterValue(0), DecimalConstantAttribute(0, 0, 0, 0, typeof(C))] decimal o);
     void M3([DefaultParameterValue(0), DecimalConstantAttribute(0, 0, 0, 0, 0)] decimal o);
 }";
-            CreateCompilationWithMscorlib(source, references: new[] { SystemRef }).VerifyDiagnostics(
+            CreateStandardCompilation(source, references: new[] { SystemRef }).VerifyDiagnostics(
                 // (7,40): error CS8017: The parameter has multiple distinct default values.
                 //     void M3([DefaultParameterValue(0), DecimalConstantAttribute(0, 0, 0, 0, 0)] decimal o);
                 Diagnostic(ErrorCode.ERR_ParamDefaultValueDiffersFromAttribute, "DecimalConstantAttribute(0, 0, 0, 0, 0)").WithLocation(7, 40),
@@ -401,7 +401,7 @@ class C
 
     [DecimalConstantAttribute(0, 128, 0, 0, 7)] public const decimal F15 = -7;
 }";
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { SystemRef });
+            var comp = CreateStandardCompilation(source, references: new[] { SystemRef });
 
             comp.VerifyDiagnostics(
 // (11,38): error CS0579: Duplicate 'DecimalConstant' attribute
@@ -440,7 +440,7 @@ Diagnostic(ErrorCode.ERR_FieldHasMultipleDistinctConstantValues, "DecimalConstan
                 );
 
             var c = comp.GetTypeByMetadataName("C");
-            Assert.Equal(1, c.GetMember("F15").GetCustomAttributesToEmit(new ModuleCompilationState()).Count());
+            Assert.Equal(1, c.GetMember("F15").GetCustomAttributesToEmit(GetDefaultPEBuilder(comp)).Count());
         }
     }
 }

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
@@ -73,7 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
             => ImmutableArray.Create<AbstractReducer>(
                 new CSharpNameReducer(),
                 new CSharpEscapingReducer(),
-                new CSharpParenthesesReducer());
+                new CSharpParenthesesReducer(),
+                new CSharpDefaultExpressionReducer());
 
         private class FormattingRule : AbstractFormattingRule
         {
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
 
             private IEnumerable<SyntaxTrivia> ConvertDocCommentToRegularComment(DocumentationCommentTriviaSyntax structuredTrivia)
             {
-                var xmlFragment = DocumentationCommentUtilities.ExtractXMLFragment(structuredTrivia.ToFullString());
+                var xmlFragment = DocumentationCommentUtilities.ExtractXMLFragment(structuredTrivia.ToFullString(), "///");
 
                 var docComment = DocumentationComment.FromXmlFragment(xmlFragment);
 

@@ -1,4 +1,4 @@
-#r "System.Xml.XDocument.dll"
+﻿#r "System.Xml.XDocument.dll"
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,11 +7,12 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
-string usage = @"usage: BuildNuGets.csx <binaries-dir> <build-version> <output-directory>";
+string usage = @"usage: BuildNuGets.csx <binaries-dir> <build-version> <output-directory> <git sha> [<filter>]";
 
-if (Args.Count() != 3)
+if (Args.Count < 4 || Args.Count > 5)
 {
     Console.WriteLine(usage);
     Environment.Exit(1);
@@ -33,19 +34,34 @@ var BuildingReleaseNugets = IsReleaseVersion(BuildVersion);
 var NuspecDirPath = Path.Combine(SolutionRoot, "src/NuGet");
 var OutDir = Path.GetFullPath(Args[2]).TrimEnd('\\');
 
+var CommitSha = Args[3];
+var CommitIsDeveloperBuild = CommitSha == "<developer build>";
+if (!CommitIsDeveloperBuild && !Regex.IsMatch(CommitSha, "[A-Fa-f0-9]+"))
+{
+    Console.WriteLine("Invalid Git sha value: expected <developer build> or a valid sha");
+    Environment.Exit(1);
+}
+var CommitPathMessage = CommitIsDeveloperBuild
+    ? "This an unofficial build from a developer's machine"
+    : $"This package was built from the source at https://github.com/dotnet/roslyn/commit/{CommitSha}";
+
+var NuspecNameFilter = Args.Count > 4 ? Args[4] : null;
+
 var LicenseUrlRedist = @"http://go.microsoft.com/fwlink/?LinkId=529443";
 var LicenseUrlNonRedist = @"http://go.microsoft.com/fwlink/?LinkId=529444";
 var LicenseUrlTest = @"http://go.microsoft.com/fwlink/?LinkId=529445";
+var LicenseUrlSource = @"https://github.com/dotnet/roslyn/blob/master/License.txt";
 
 var Authors = @"Microsoft";
 var ProjectURL = @"http://msdn.com/roslyn";
 var Tags = @"Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics";
 
 // Read preceding variables from MSBuild file
-var doc = XDocument.Load(Path.Combine(SolutionRoot, "build/Targets/Dependencies.props"));
+var packagesDoc = XDocument.Load(Path.Combine(SolutionRoot, "build/Targets/Packages.props"));
+var fixedPackagesDoc = XDocument.Load(Path.Combine(SolutionRoot, "build/Targets/FixedPackages.props"));
 XNamespace ns = @"http://schemas.microsoft.com/developer/msbuild/2003";
 
-var dependencyVersions = from e in doc.Root.Descendants()
+var dependencyVersions = from e in packagesDoc.Root.Descendants().Concat(fixedPackagesDoc.Root.Descendants())
                          where e.Name.LocalName.EndsWith("Version")
                          select new { VariableName = e.Name.LocalName, Value=e.Value };
 
@@ -75,8 +91,7 @@ var IsCoreBuild = File.Exists(Path.Combine(ToolsetPath, "corerun"));
 #endregion
 
 var NuGetAdditionalFilesPath = Path.Combine(SolutionRoot, "build/NuGetAdditionalFiles");
-var ThirdPartyNoticesPath = Path.Combine(NuGetAdditionalFilesPath, "ThirdPartyNotices.rtf");
-var NetCompilersPropsPath = Path.Combine(NuGetAdditionalFilesPath, "Microsoft.Net.Compilers.props");
+var SrcDirPath = Path.Combine(SolutionRoot, "src");
 
 string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis",
@@ -85,6 +100,7 @@ string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis.Compilers",
     "Microsoft.CodeAnalysis.CSharp.Features",
     "Microsoft.CodeAnalysis.CSharp",
+    "Microsoft.CodeAnalysis.CSharp.CodeStyle",
     "Microsoft.CodeAnalysis.CSharp.Scripting",
     "Microsoft.CodeAnalysis.CSharp.Workspaces",
     "Microsoft.CodeAnalysis.EditorFeatures",
@@ -96,11 +112,16 @@ string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis.Scripting",
     "Microsoft.CodeAnalysis.VisualBasic.Features",
     "Microsoft.CodeAnalysis.VisualBasic",
+    "Microsoft.CodeAnalysis.VisualBasic.CodeStyle",
     "Microsoft.CodeAnalysis.VisualBasic.Scripting",
     "Microsoft.CodeAnalysis.VisualBasic.Workspaces",
     "Microsoft.CodeAnalysis.Workspaces.Common",
     "Microsoft.VisualStudio.LanguageServices",
-    "Microsoft.VisualStudio.LanguageServices.Next",
+};
+
+string[] SourcePackageNames = {
+    "Microsoft.CodeAnalysis.PooledObjects",
+    "Microsoft.CodeAnalysis.Debugging",
 };
 
 string[] NonRedistPackageNames = {
@@ -108,6 +129,7 @@ string[] NonRedistPackageNames = {
     "Microsoft.Net.Compilers",
     "Microsoft.Net.Compilers.netcore",
     "Microsoft.Net.CSharp.Interactive.netcore",
+    "Microsoft.NETCore.Compilers",
     "Microsoft.VisualStudio.IntegrationTest.Utilities",
     "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
 };
@@ -125,13 +147,15 @@ var PreReleaseOnlyPackages = new HashSet<string>
     "Microsoft.CodeAnalysis.VisualBasic.Scripting",
     "Microsoft.Net.Compilers.netcore",
     "Microsoft.Net.CSharp.Interactive.netcore",
+    "Microsoft.NETCore.Compilers",
     "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.Workspaces",
     "Microsoft.CodeAnalysis.Test.Resources.Proprietary",
     "Microsoft.VisualStudio.IntegrationTest.Utilities",
-    "Microsoft.VisualStudio.LanguageServices.Next",
     "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
+    "Microsoft.CodeAnalysis.PooledObjects",
+    "Microsoft.CodeAnalysis.Debugging",
 };
 
 // The assets for these packages are not produced when building on Unix
@@ -150,7 +174,6 @@ var PackagesNotBuiltOnCore = new HashSet<string>
      "Microsoft.Net.Compilers",
      "Microsoft.VisualStudio.IntegrationTest.Utilities",
      "Microsoft.VisualStudio.LanguageServices",
-     "Microsoft.VisualStudio.LanguageServices.Next",
      "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
      "Roslyn.VisualStudio.Test.Utilities",
 };
@@ -165,7 +188,11 @@ var errors = new List<string>();
 void ReportError(string message)
 {
     errors.Add(message);
+    PrintError(message);
+}
 
+void PrintError(string message)
+{
     var color = Console.ForegroundColor;
     Console.ForegroundColor = ConsoleColor.Red;
     Console.Error.WriteLine(message);
@@ -201,9 +228,10 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
         { "authors", Authors },
         { "projectURL", ProjectURL },
         { "tags", Tags },
-        { "thirdPartyNoticesPath", ThirdPartyNoticesPath },
-        { "netCompilersPropsPath", NetCompilersPropsPath },
         { "emptyDirPath", emptyDir },
+        { "additionalFilesPath", NuGetAdditionalFilesPath },
+        { "commitPathMessage", CommitPathMessage },
+        { "srcDirPath", SrcDirPath }
     };
 
     foreach (var dependencyVersion in dependencyVersions)
@@ -215,8 +243,12 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
 
     if (!IsCoreBuild)
     {
+        // The -NoPackageAnalysis argument is to work around the following issue.  The warning output of 
+        // NuGet gets promoted to an error by MSBuild /warnaserror
+        // https://github.com/dotnet/roslyn/issues/18152
         commonArgs = $"-BasePath \"{BinDir}\" " +
         $"-OutputDirectory \"{OutDir}\" " +
+        $"-NoPackageAnalysis " +
         string.Join(" ", commonProperties.Select(p => $"-prop {p.Key}=\"{p.Value}\""));
     }
     else
@@ -229,13 +261,18 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
     int exit = 0;
     foreach (var file in nuspecFiles)
     {
+        if (NuspecNameFilter != null && !file.Contains(NuspecNameFilter))
+        {
+            continue;
+        }
+
         var p = new Process();
 
         if (!IsCoreBuild)
         {
             string packageArgs = commonArgs.Replace($"-prop version=\"{BuildVersion}\"", $"-prop version=\"{GetPackageVersion(Path.GetFileNameWithoutExtension(file))}\"");
 
-            p.StartInfo.FileName = Path.GetFullPath(Path.Combine(SolutionRoot, "nuget.exe"));
+            p.StartInfo.FileName = Path.GetFullPath(Path.Combine(SolutionRoot, @"Binaries\Tools\nuget.exe"));
             p.StartInfo.Arguments = $@"pack {file} {packageArgs}";
         }
         else
@@ -245,9 +282,8 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
         }
 
         p.StartInfo.UseShellExecute = false;
-        p.StartInfo.RedirectStandardError = true;
 
-        Console.WriteLine($"{Environment.NewLine}Running: nuget pack {file} {commonArgs}");
+        Console.WriteLine($"Packing {file}");
 
         p.Start();
         p.WaitForExit();
@@ -255,23 +291,8 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
         var currentExit = p.ExitCode;
         if (currentExit != 0)
         {
-            var stdErr = p.StandardError.ReadToEnd();
-            string message;
-            if (BuildingReleaseNugets && stdErr.Contains("A stable release of a package should not have a prerelease dependency."))
-            {
-                // If we are building release nugets and if any packages have dependencies on prerelease packages
-                // then we want to ignore the error and allow the build to succeed.
-                currentExit = 0;
-                message = $"{file}: {stdErr}";
-                Console.WriteLine(message);
-            }
-            else
-            {
-                message = $"{file}: error: {stdErr}";
-                ReportError(message);
-            }
-
-            File.AppendAllText(ErrorLogFile, Environment.NewLine + message);
+            Console.WriteLine($"nuget pack {p.StartInfo.Arguments}");
+            ReportError($"Pack operation failed with {currentExit}");
         }
 
         // We want to try and generate all nugets and log any errors encountered along the way.
@@ -355,8 +376,9 @@ catch
 int exit = DoWork(RedistPackageNames, LicenseUrlRedist);
 exit |= DoWork(NonRedistPackageNames, LicenseUrlNonRedist);
 exit |= DoWork(TestPackageNames, LicenseUrlTest);
+exit |= DoWork(SourcePackageNames, LicenseUrlSource);
 
-var allPackageNames = RedistPackageNames.Concat(NonRedistPackageNames).Concat(TestPackageNames).ToArray();
+var allPackageNames = RedistPackageNames.Concat(NonRedistPackageNames).Concat(TestPackageNames).Concat(SourcePackageNames).ToArray();
 var roslynPackageNames = GetRoslynPackageNames(allPackageNames);
 GeneratePublishingConfig(roslynPackageNames);
 
@@ -371,7 +393,7 @@ catch
 
 foreach (var error in errors)
 {
-    ReportError(error);
+    PrintError(error);
 }
 
 Environment.Exit(exit);

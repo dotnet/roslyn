@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -743,7 +743,7 @@ public partial class C { }
             var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
 
             // Files passed in order.
-            var compA = CreateCompilationWithMscorlib(new[] { tree1, tree2 }, assemblyName: "Test");
+            var compA = CreateStandardCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
             var actualA = GetDocumentationCommentText(compA);
             var expectedA = @"
 <?xml version=""1.0""?>
@@ -762,7 +762,7 @@ public partial class C { }
             Assert.Equal(expectedA, actualA);
 
             // Files passed in reverse order.
-            var compB = CreateCompilationWithMscorlib(new[] { tree2, tree1 }, assemblyName: "Test");
+            var compB = CreateStandardCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
             var actualB = GetDocumentationCommentText(compB);
             var expectedB = @"
 <?xml version=""1.0""?>
@@ -871,7 +871,7 @@ partial class C
             var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
 
             // Files passed in order.
-            var compA = CreateCompilationWithMscorlib(new[] { tree1, tree2 }, assemblyName: "Test");
+            var compA = CreateStandardCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
             var actualA = GetDocumentationCommentText(compA);
             var expectedA = @"
 <?xml version=""1.0""?>
@@ -889,7 +889,7 @@ partial class C
             Assert.Equal(expectedA, actualA);
 
             // Files passed in reverse order.
-            var compB = CreateCompilationWithMscorlib(new[] { tree2, tree1 }, assemblyName: "Test");
+            var compB = CreateStandardCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
             var actualB = GetDocumentationCommentText(compB);
             var expectedB = @"
 <?xml version=""1.0""?>
@@ -1889,7 +1889,7 @@ partial class C
             var tree1 = Parse(source1, options: TestOptions.RegularWithDocumentationComments);
             var tree2 = Parse(source2, options: TestOptions.RegularWithDocumentationComments);
 
-            var comp = CreateCompilationWithMscorlib(new[] { tree1, tree2 });
+            var comp = CreateStandardCompilation(new[] { tree1, tree2 });
             comp.GetSemanticModel(tree1).GetDiagnostics().Verify(
                 // (4,5): warning CS1587: XML comment is not placed on a valid language element
                 //     /// Unprocessed 1
@@ -1909,7 +1909,7 @@ partial class C
     /// Unprocessed 1
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(547139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547139")]
@@ -2068,8 +2068,9 @@ partial class C
             Assert.Equal(expected, actual);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         [WorkItem(637435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637435")]
+        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void NonXmlWhitespace()
         {
             var ch = '\u1680';
@@ -2107,8 +2108,9 @@ class C {{ }}
             Assert.Equal(expected, actual);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         [WorkItem(637435, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637435")]
+        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void Repro637435()
         {
             var sourceTemplate = @"
@@ -2338,7 +2340,8 @@ class C {{ }}
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void IncludeFileResolution()
         {
             var xml1 = @"
@@ -2727,7 +2730,8 @@ class C {{ }}
             Assert.Equal(string.Format(expectedTemplate, TestHelpers.AsXmlCommentText(xmlFilePath)), actual);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void WRN_XMLParseIncludeError_Xml()
         {
             var xmlFile1 = Temp.CreateFile(extension: ".xml").WriteAllText("<OpenWithoutClose>");
@@ -3241,7 +3245,7 @@ class C { }
 
             // This is mode typically used by the IDE.
             var tree = Parse(source, options: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse));
-            var compilation = CreateCompilationWithMscorlib(tree);
+            var compilation = CreateStandardCompilation(tree);
             compilation.VerifyDiagnostics();
         }
 
@@ -3881,7 +3885,7 @@ partial class C
             var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
 
             // Files passed in order.
-            var comp = CreateCompilationWithMscorlib(new[] { tree1, tree2 }, assemblyName: "Test");
+            var comp = CreateStandardCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
 
             var actual1 = GetDocumentationCommentText(comp, null, filterTree: tree1, expectedDiagnostics: new[] {
                 // (4,20): warning CS1574: XML comment has cref attribute 'Bogus1' that could not be resolved
@@ -4319,7 +4323,7 @@ public class C { }
 ";
             var tree = Parse(source, options: TestOptions.RegularWithDocumentationComments);
             var warnDict = new Dictionary<string, ReportDiagnostic> { { MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_MissingXMLComment), ReportDiagnostic.Suppress } };
-            var comp = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(warnDict), assemblyName: "Test");
+            var comp = CreateStandardCompilation(tree, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(warnDict), assemblyName: "Test");
             comp.VerifyDiagnostics(); //NOTE: no WRN_MissingXMLComment
 
             var actual = GetDocumentationCommentText(comp,
@@ -4930,7 +4934,8 @@ class A { }
         }
 
         [WorkItem(547311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547311")]
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void UndeclaredXmlNamespace()
         {
             var source = @"
@@ -5675,13 +5680,14 @@ public class C {} // CS1587
 
             var tree = Parse(source, options: TestOptions.RegularWithDocumentationComments);
             var compOptions = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
-            CreateCompilationWithMscorlib(tree, options: compOptions).VerifyDiagnostics(
+            CreateStandardCompilation(tree, options: compOptions).VerifyDiagnostics(
                 // (2,14): error CS1591: Warning as Error: Missing XML comment for publicly visible type or member 'C'
                 // public class C {} // CS1587
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "C").WithArguments("C").WithWarningAsError(true));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void Dev11_303769()
         {
             // XML processing instructions
@@ -5852,7 +5858,8 @@ namespace Demo
             Assert.Equal(expected, actual);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void Dev11_142553()
         {
             // Need to cache XML files.
@@ -5911,7 +5918,7 @@ class C { }
 class C { }
 ";
 
-            var comp = CreateCompilationWithMscorlib(
+            var comp = CreateStandardCompilation(
                 Parse(source, options: TestOptions.RegularWithDocumentationComments, filename: sourcePath),
                 options: TestOptions.ReleaseDll.WithSourceReferenceResolver(SourceFileResolver.Default).WithXmlReferenceResolver(XmlFileResolver.Default),
                 assemblyName: "Test");
@@ -5933,7 +5940,8 @@ class C { }
             Assert.Equal(expected, actual);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void DtdDenialOfService()
         {
             var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText(
@@ -6150,7 +6158,8 @@ class Module1
         /// "--" is not valid within an XML comment.
         /// </summary>
         [WorkItem(8807, "https://github.com/dotnet/roslyn/issues/8807")]
-        [ClrOnlyFact(ClrOnlyReason.DocumentationComment)]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(18610, "https://github.com/dotnet/roslyn/issues/18610")]
         public void IncludeErrorDashDashInName()
         {
             var dir = Temp.CreateDirectory();

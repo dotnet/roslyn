@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -53,7 +53,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 case Glyph.EnumInternal:
                     return StandardGlyphGroup.GlyphGroupEnum;
 
-                case Glyph.EnumMember:
+                case Glyph.EnumMemberPublic:
+                case Glyph.EnumMemberProtected:
+                case Glyph.EnumMemberPrivate:
+                case Glyph.EnumMemberInternal:
                     return StandardGlyphGroup.GlyphGroupEnumMember;
 
                 case Glyph.Error:
@@ -221,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             switch (glyph)
             {
                 case Glyph.None:
-                    return default(ImageMoniker);
+                    return default;
 
                 case Glyph.Assembly:
                     return KnownMonikers.Assembly;
@@ -272,7 +275,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 case Glyph.EnumInternal:
                     return KnownMonikers.EnumerationInternal;
 
-                case Glyph.EnumMember:
+                case Glyph.EnumMemberPublic:
+                case Glyph.EnumMemberProtected:
+                case Glyph.EnumMemberPrivate:
+                case Glyph.EnumMemberInternal:
                     return KnownMonikers.EnumerationItemPublic;
 
                 case Glyph.Error:
@@ -472,14 +478,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                         switch (GetAccessibility(tags))
                         {
                             case Accessibility.Protected:
-                                return Glyph.EnumMember;
+                                return Glyph.EnumMemberProtected;
                             case Accessibility.Private:
-                                return Glyph.EnumMember;
+                                return Glyph.EnumMemberPrivate;
                             case Accessibility.Internal:
-                                return Glyph.EnumMember;
+                                return Glyph.EnumMemberInternal;
                             case Accessibility.Public:
                             default:
-                                return Glyph.EnumMember;
+                                return Glyph.EnumMemberPublic;
                         }
 
                     case WellKnownTags.Error:

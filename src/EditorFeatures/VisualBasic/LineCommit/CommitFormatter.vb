@@ -1,5 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -63,7 +64,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                 dirtyRegion, document.GetSyntaxTreeSynchronously(cancellationToken),
                                                 cancellationToken)
 
-                Dim codeCleanups = CodeCleaner.GetDefaultProviders(document).Where(s_codeCleanupPredicate).Concat(commitFormattingCleanup)
+                Dim codeCleanups = CodeCleaner.GetDefaultProviders(document).
+                                               WhereAsArray(s_codeCleanupPredicate).
+                                               Concat(commitFormattingCleanup)
 
                 Dim finalDocument As Document
                 If useSemantics OrElse isExplicitFormat Then
@@ -128,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                  Function(r, spans, w, c) Format(r, spans, w, document.GetOptionsAsync(c).WaitAndGetResult(c), rules, c))
         End Function
 
-        Private Async Function FormatAsync(document As Document, spans As IEnumerable(Of TextSpan), rules As IEnumerable(Of IFormattingRule), cancellationToken As CancellationToken) As Task(Of Document)
+        Private Async Function FormatAsync(document As Document, spans As ImmutableArray(Of TextSpan), rules As IEnumerable(Of IFormattingRule), cancellationToken As CancellationToken) As Task(Of Document)
             ' if old text already exist, use fast path for formatting
             Dim oldText As SourceText = Nothing
 
@@ -143,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Return Await Formatter.FormatAsync(document, spans, documentOptions, rules, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Private Function Format(root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, options As OptionSet, rules As IEnumerable(Of IFormattingRule), cancellationToken As CancellationToken) As SyntaxNode
+        Private Function Format(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, options As OptionSet, rules As IEnumerable(Of IFormattingRule), cancellationToken As CancellationToken) As SyntaxNode
             ' if old text already exist, use fast path for formatting
             Dim oldText As SourceText = Nothing
 

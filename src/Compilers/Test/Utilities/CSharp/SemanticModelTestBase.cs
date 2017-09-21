@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -13,27 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public abstract class SemanticModelTestBase : CSharpTestBase
     {
-        protected List<SyntaxNode> GetSyntaxNodeList(SyntaxTree syntaxTree)
-        {
-            return GetSyntaxNodeList(syntaxTree.GetRoot(), null);
-        }
-
-        protected List<SyntaxNode> GetSyntaxNodeList(SyntaxNode node, List<SyntaxNode> synList)
-        {
-            if (synList == null)
-                synList = new List<SyntaxNode>();
-
-            synList.Add(node);
-
-            foreach (var child in node.ChildNodesAndTokens())
-            {
-                if (child.IsNode)
-                    synList = GetSyntaxNodeList(child.AsNode(), synList);
-            }
-
-            return synList;
-        }
-
         protected int GetPositionForBinding(SyntaxTree tree)
         {
             return GetSyntaxNodeForBinding(GetSyntaxNodeList(tree)).SpanStart;
@@ -44,47 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             const string tag = "/*pos*/";
 
             return code.IndexOf(tag, StringComparison.Ordinal) + tag.Length;
-        }
-
-        protected SyntaxNode GetSyntaxNodeForBinding(List<SyntaxNode> synList)
-        {
-            return GetSyntaxNodeOfTypeForBinding<SyntaxNode>(synList);
-        }
-
-        protected readonly string startString = "/*<bind>*/";
-        protected readonly string endString = "/*</bind>*/";
-
-        protected TNode GetSyntaxNodeOfTypeForBinding<TNode>(List<SyntaxNode> synList) where TNode : SyntaxNode
-        {
-            foreach (var node in synList.OfType<TNode>())
-            {
-                string exprFullText = node.ToFullString();
-                exprFullText = exprFullText.Trim();
-
-                if (exprFullText.StartsWith(startString, StringComparison.Ordinal))
-                {
-                    if (exprFullText.Contains(endString))
-                        if (exprFullText.EndsWith(endString, StringComparison.Ordinal))
-                            return node;
-                        else
-                            continue;
-                    else
-                        return node;
-                }
-
-                if (exprFullText.EndsWith(endString, StringComparison.Ordinal))
-                {
-                    if (exprFullText.Contains(startString))
-                        if (exprFullText.StartsWith(startString, StringComparison.Ordinal))
-                            return node;
-                        else
-                            continue;
-                    else
-                        return node;
-                }
-            }
-
-            return null;
         }
 
         protected List<ExpressionSyntax> GetExprSyntaxList(SyntaxTree syntaxTree)
@@ -150,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static SymbolInfo BindFirstConstructorInitializer(string source)
         {
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var constructorInitializer = GetFirstConstructorInitializer(tree.GetCompilationUnitRoot());
@@ -170,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected CompilationUtils.SemanticInfoSummary GetSemanticInfoForTest<TNode>(string testSrc, CSharpParseOptions parseOptions = null) where TNode : SyntaxNode
         {
-            var compilation = CreateCompilationWithMscorlib(testSrc, new[] { SystemCoreRef }, parseOptions: parseOptions);
+            var compilation = CreateStandardCompilation(testSrc, new[] { SystemCoreRef }, parseOptions: parseOptions);
             return GetSemanticInfoForTest<TNode>(compilation);
         }
 
@@ -191,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal PreprocessingSymbolInfo GetPreprocessingSymbolInfoForTest(string testSrc, string subStrForPreprocessNameIndex)
         {
-            var compilation = CreateCompilationWithMscorlib(testSrc, new[] { SystemCoreRef });
+            var compilation = CreateStandardCompilation(testSrc, new[] { SystemCoreRef });
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var position = testSrc.IndexOf(subStrForPreprocessNameIndex, StringComparison.Ordinal);
@@ -202,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal AliasSymbol GetAliasInfoForTest(string testSrc)
         {
-            var compilation = CreateCompilationWithMscorlib(testSrc, new[] { SystemCoreRef });
+            var compilation = CreateStandardCompilation(testSrc, new[] { SystemCoreRef });
             return GetAliasInfoForTest(compilation);
         }
 
@@ -218,42 +157,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         protected CompilationUtils.SemanticInfoSummary GetSemanticInfoForTest(string testSrc)
         {
             return GetSemanticInfoForTest<ExpressionSyntax>(testSrc);
-        }
-
-        protected string GetOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation)
-            where TSyntaxNode: SyntaxNode
-        {
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            SyntaxNode syntaxNode = GetSyntaxNodeOfTypeForBinding<TSyntaxNode>(GetSyntaxNodeList(tree));
-            if (syntaxNode == null)
-            {
-                return null;
-            }
-
-            var operation = model.GetOperationInternal(syntaxNode);
-            return operation != null ? OperationTreeVerifier.GetOperationTree(operation) : null;
-        }
-
-        protected string GetOperationTreeForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, CSharpParseOptions parseOptions = null)
-            where TSyntaxNode : SyntaxNode
-        {
-            var compilation = CreateCompilationWithMscorlib(testSrc, new[] { SystemCoreRef }, parseOptions: parseOptions);
-            return GetOperationTreeForTest<TSyntaxNode>(compilation);
-        }
-
-        protected void VerifyOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree)
-            where TSyntaxNode : SyntaxNode
-        {
-            var actualOperationTree = GetOperationTreeForTest<TSyntaxNode>(compilation);
-            OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
-        }
-
-        protected void VerifyOperationTreeForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, CSharpParseOptions parseOptions = null)
-            where TSyntaxNode : SyntaxNode
-        {
-            var actualOperationTree = GetOperationTreeForTest<TSyntaxNode>(testSrc, expectedOperationTree, parseOptions);
-            OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
         }
     }
 }

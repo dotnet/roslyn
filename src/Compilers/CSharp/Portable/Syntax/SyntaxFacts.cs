@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxKind;
@@ -329,9 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case Accessibility.Private:
                     return SyntaxFacts.GetText(PrivateKeyword);
                 case Accessibility.ProtectedAndInternal:
-                    // TODO: C# doesn't have a representation for this.
-                    // For now, use Reflector's representation.
-                    return SyntaxFacts.GetText(InternalKeyword) + " " + SyntaxFacts.GetText(ProtectedKeyword);
+                    return SyntaxFacts.GetText(PrivateKeyword) + " " + SyntaxFacts.GetText(ProtectedKeyword);
                 case Accessibility.Internal:
                     return SyntaxFacts.GetText(InternalKeyword);
                 case Accessibility.Protected:
@@ -394,11 +393,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case IdentifierName:
                     return syntax.IsMissing;
 
-                // TODO: The native implementation also disallows delegate
-                // creation expressions with the ERR_IllegalStatement error, 
-                // so that needs to go into the semantic analysis somewhere
-                // if we intend to carry it forward.
-
                 default:
                     return false;
             }
@@ -424,6 +418,60 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             parent = node.Parent as DeclarationExpressionSyntax;
             return node == parent?.Type;
+        }
+
+        /// <summary>
+        /// Given an initializer expression infer the name of anonymous property or tuple element.
+        /// Returns null if unsuccessful
+        /// </summary>
+        public static string TryGetInferredMemberName(this SyntaxNode syntax)
+        {
+            SyntaxToken nameToken;
+            switch (syntax.Kind())
+            {
+                case SyntaxKind.SingleVariableDesignation:
+                    nameToken = ((SingleVariableDesignationSyntax)syntax).Identifier;
+                    break;
+
+                case SyntaxKind.DeclarationExpression:
+                    var declaration = (DeclarationExpressionSyntax)syntax;
+                    var designationKind = declaration.Designation.Kind();
+                    if (designationKind == SyntaxKind.ParenthesizedVariableDesignation ||
+                        designationKind == SyntaxKind.DiscardDesignation)
+                    {
+                        return null;
+                    }
+
+                    nameToken = ((SingleVariableDesignationSyntax)declaration.Designation).Identifier;
+                    break;
+
+                case SyntaxKind.ParenthesizedVariableDesignation:
+                case SyntaxKind.DiscardDesignation:
+                    return null;
+
+                default:
+                    if (syntax is ExpressionSyntax expr)
+                    {
+                        nameToken = expr.ExtractAnonymousTypeMemberName();
+                        break;
+                    }
+                    return null;
+            }
+
+            return nameToken.ValueText;
+        }
+
+        /// <summary>
+        /// Checks whether the element name is reserved.
+        ///
+        /// For example:
+        /// "Item3" is reserved (at certain positions).
+        /// "Rest", "ToString" and other members of System.ValueTuple are reserved (in any position).
+        /// Names that are not reserved return false.
+        /// </summary>
+        public static bool IsReservedTupleElementName(string elementName)
+        {
+            return TupleTypeSymbol.IsElementNameReserved(elementName) != -1;
         }
     }
 }

@@ -51,9 +51,7 @@ namespace RepoUtil
 
         private static bool Run(string[] args)
         {
-            ParsedArgs parsedArgs;
-            CreateCommand func;
-            if (!TryParseCommandLine(args, out parsedArgs, out func))
+            if (!TryParseCommandLine(args, out var parsedArgs, out var func))
             {
                 Usage();
                 return false;
@@ -187,9 +185,6 @@ namespace RepoUtil
             var name = args[index];
             switch (name)
             {
-                case "verify":
-                    func = (c, s, g) => new VerifyCommand(c, s,g );
-                    break;
                 case "view":
                     func = (c, s, g) => new ViewCommand(c, s);
                     break;

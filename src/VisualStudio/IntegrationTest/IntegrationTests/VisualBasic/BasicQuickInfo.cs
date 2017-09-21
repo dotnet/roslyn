@@ -1,7 +1,7 @@
-﻿using Microsoft.CodeAnalysis;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -17,7 +17,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void QuickInfo1()
         {
             SetUpEditor(@"
@@ -26,12 +26,11 @@ Class Program
     Sub Main(ByVal args As String$$())
     End Sub
 End Class");
-            InvokeQuickInfo();
-            Assert.Equal("Class\u200e System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.",
-                Editor.GetQuickInfo());
+            VisualStudio.Editor.InvokeQuickInfo();
+            Assert.Equal("Class\u200e System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.", VisualStudio.Editor.GetQuickInfo());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void International()
         {
             SetUpEditor(@"
@@ -39,13 +38,13 @@ End Class");
 ''' This is an XML doc comment defined in code.
 ''' </summary>
 Class العربية123
-    Shared Sub Foo()
-         Dim foo as العربية123$$
+    Shared Sub Goo()
+         Dim goo as العربية123$$
     End Sub
 End Class");
-            InvokeQuickInfo();
+            VisualStudio.Editor.InvokeQuickInfo();
             Assert.Equal(@"Class" + '\u200e' + @" TestProj.العربية123
-This is an XML doc comment defined in code.", Editor.GetQuickInfo());
+This is an XML doc comment defined in code.", VisualStudio.Editor.GetQuickInfo());
         }
     }
 }

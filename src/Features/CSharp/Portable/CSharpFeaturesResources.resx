@@ -132,12 +132,6 @@
   <data name="Simplify_all_occurrences" xml:space="preserve">
     <value>Simplify all occurrences</value>
   </data>
-  <data name="Move_declaration_near_reference" xml:space="preserve">
-    <value>Move declaration near reference</value>
-  </data>
-  <data name="Warning_colon_Declaration_changes_scope_and_may_change_meaning" xml:space="preserve">
-    <value>Warning: Declaration changes scope and may change meaning.</value>
-  </data>
   <data name="Remove_Unnecessary_Usings" xml:space="preserve">
     <value>Remove Unnecessary Usings</value>
   </data>
@@ -517,5 +511,17 @@
   </data>
   <data name="Name" xml:space="preserve">
     <value>&lt;Name&gt;</value>
+  </data>
+  <data name="Autoselect_disabled_due_to_member_declaration" xml:space="preserve">
+    <value>Autoselect disabled due to member declaration</value>
+  </data>
+  <data name="Suggested_name" xml:space="preserve">
+    <value>(Suggested name)</value>
+  </data>
+  <data name="Remove_unused_function" xml:space="preserve">
+    <value>Remove unused function</value>
+  </data>
+  <data name="Use_is_null_check" xml:space="preserve">
+    <value>Use 'is null' check</value>
   </data>
 </root>

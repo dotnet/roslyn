@@ -70,10 +70,13 @@ namespace Microsoft.CodeAnalysis.Tags
         internal static readonly ImmutableArray<string> DelegatePrivate = ImmutableArray.Create(WellKnownTags.Delegate, WellKnownTags.Private);
         internal static readonly ImmutableArray<string> DelegateInternal = ImmutableArray.Create(WellKnownTags.Delegate, WellKnownTags.Internal);
         internal static readonly ImmutableArray<string> EnumPublic = ImmutableArray.Create(WellKnownTags.Enum, WellKnownTags.Public);
-        internal static readonly ImmutableArray<string> EnumProtected = ImmutableArray.Create(WellKnownTags.Enum, WellKnownTags.Public);
+        internal static readonly ImmutableArray<string> EnumProtected = ImmutableArray.Create(WellKnownTags.Enum, WellKnownTags.Protected);
         internal static readonly ImmutableArray<string> EnumPrivate = ImmutableArray.Create(WellKnownTags.Enum, WellKnownTags.Private);
         internal static readonly ImmutableArray<string> EnumInternal = ImmutableArray.Create(WellKnownTags.Enum, WellKnownTags.Internal);
-        internal static readonly ImmutableArray<string> EnumMember = ImmutableArray.Create(WellKnownTags.EnumMember);
+        internal static readonly ImmutableArray<string> EnumMemberPublic = ImmutableArray.Create(WellKnownTags.EnumMember, WellKnownTags.Public);
+        internal static readonly ImmutableArray<string> EnumMemberProtected = ImmutableArray.Create(WellKnownTags.EnumMember, WellKnownTags.Protected);
+        internal static readonly ImmutableArray<string> EnumMemberPrivate = ImmutableArray.Create(WellKnownTags.EnumMember, WellKnownTags.Private);
+        internal static readonly ImmutableArray<string> EnumMemberInternal = ImmutableArray.Create(WellKnownTags.EnumMember, WellKnownTags.Internal);
         internal static readonly ImmutableArray<string> EventPublic = ImmutableArray.Create(WellKnownTags.Event, WellKnownTags.Public);
         internal static readonly ImmutableArray<string> EventProtected = ImmutableArray.Create(WellKnownTags.Event, WellKnownTags.Protected);
         internal static readonly ImmutableArray<string> EventPrivate = ImmutableArray.Create(WellKnownTags.Event, WellKnownTags.Private);

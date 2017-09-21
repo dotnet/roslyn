@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 class Helper
 {
 	int x;
-	public void foo(int y){}
+	public void goo(int y){}
 	public Helper(){}
 	public Helper(int x){}
 }
@@ -32,7 +32,7 @@ class Test
   {
 		dynamic d1 = new Helper();
 		dynamic d2 = new Point(); 
-		D d4 = new D(d1.foo); 
+		D d4 = new D(d1.goo); 
 		Helper d5 = new Helper(d1); 
 		
   }
@@ -40,44 +40,47 @@ class Test
             var c = CreateCompilationWithMscorlibAndSystemCore(source, references: new[] { CSharpRef }, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
-    <method containingType=""Helper"" name=""foo"" parameterNames=""y"">
+    <method containingType=""Helper"" name=""goo"" parameterNames=""y"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""24"" endLine=""5"" endColumn=""25"" />
-        <entry offset=""0x1"" startLine=""5"" startColumn=""25"" endLine=""5"" endColumn=""26"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""24"" endLine=""5"" endColumn=""25"" document=""1"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""25"" endLine=""5"" endColumn=""26"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""Helper"" name="".ctor"">
       <customDebugInfo>
-        <forward declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
+        <forward declaringType=""Helper"" methodName=""goo"" parameterNames=""y"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""2"" endLine=""6"" endColumn=""17"" />
-        <entry offset=""0x7"" startLine=""6"" startColumn=""17"" endLine=""6"" endColumn=""18"" />
-        <entry offset=""0x8"" startLine=""6"" startColumn=""18"" endLine=""6"" endColumn=""19"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""2"" endLine=""6"" endColumn=""17"" document=""1"" />
+        <entry offset=""0x7"" startLine=""6"" startColumn=""17"" endLine=""6"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x8"" startLine=""6"" startColumn=""18"" endLine=""6"" endColumn=""19"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""Helper"" name="".ctor"" parameterNames=""x"">
       <customDebugInfo>
-        <forward declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
+        <forward declaringType=""Helper"" methodName=""goo"" parameterNames=""y"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""2"" endLine=""7"" endColumn=""22"" />
-        <entry offset=""0x7"" startLine=""7"" startColumn=""22"" endLine=""7"" endColumn=""23"" />
-        <entry offset=""0x8"" startLine=""7"" startColumn=""23"" endLine=""7"" endColumn=""24"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""2"" endLine=""7"" endColumn=""22"" document=""1"" />
+        <entry offset=""0x7"" startLine=""7"" startColumn=""22"" endLine=""7"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x8"" startLine=""7"" startColumn=""23"" endLine=""7"" endColumn=""24"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
-        <forward declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
+        <forward declaringType=""Helper"" methodName=""goo"" parameterNames=""y"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d1"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""d2"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d1"" />
+          <bucket flags=""1"" slotId=""1"" localName=""d2"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""13"" />
@@ -88,12 +91,12 @@ class Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""18"" startColumn=""3"" endLine=""18"" endColumn=""4"" />
-        <entry offset=""0x1"" startLine=""19"" startColumn=""3"" endLine=""19"" endColumn=""29"" />
-        <entry offset=""0x7"" startLine=""20"" startColumn=""3"" endLine=""20"" endColumn=""28"" />
-        <entry offset=""0x17"" startLine=""21"" startColumn=""3"" endLine=""21"" endColumn=""24"" />
-        <entry offset=""0xb1"" startLine=""22"" startColumn=""3"" endLine=""22"" endColumn=""30"" />
-        <entry offset=""0x10f"" startLine=""24"" startColumn=""3"" endLine=""24"" endColumn=""4"" />
+        <entry offset=""0x0"" startLine=""18"" startColumn=""3"" endLine=""18"" endColumn=""4"" document=""1"" />
+        <entry offset=""0x1"" startLine=""19"" startColumn=""3"" endLine=""19"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x7"" startLine=""20"" startColumn=""3"" endLine=""20"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x17"" startLine=""21"" startColumn=""3"" endLine=""21"" endColumn=""24"" document=""1"" />
+        <entry offset=""0xb1"" startLine=""22"" startColumn=""3"" endLine=""22"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x10f"" startLine=""24"" startColumn=""3"" endLine=""24"" endColumn=""4"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x110"">
         <local name=""d1"" il_index=""0"" il_start=""0x0"" il_end=""0x110"" attributes=""0"" />
@@ -125,6 +128,9 @@ class Test
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -132,8 +138,8 @@ class Test
           <namespace usingCount=""1"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""2"" flags=""01"" slotId=""0"" localName=""arrDynamic"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""3"" localName=""d"" />
+          <bucket flags=""01"" slotId=""0"" localName=""arrDynamic"" />
+          <bucket flags=""1"" slotId=""3"" localName=""d"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""15"" />
@@ -143,17 +149,17 @@ class Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""7"" startColumn=""3"" endLine=""7"" endColumn=""46"" />
-        <entry offset=""0x10"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""16"" />
-        <entry offset=""0x11"" startLine=""8"" startColumn=""31"" endLine=""8"" endColumn=""41"" />
-        <entry offset=""0x15"" hidden=""true"" />
-        <entry offset=""0x17"" startLine=""8"" startColumn=""18"" endLine=""8"" endColumn=""27"" />
-        <entry offset=""0x1b"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0x1c"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
-        <entry offset=""0x1d"" hidden=""true"" />
-        <entry offset=""0x21"" startLine=""8"" startColumn=""28"" endLine=""8"" endColumn=""30"" />
-        <entry offset=""0x27"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""3"" endLine=""7"" endColumn=""46"" document=""1"" />
+        <entry offset=""0x10"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""16"" document=""1"" />
+        <entry offset=""0x11"" startLine=""8"" startColumn=""31"" endLine=""8"" endColumn=""41"" document=""1"" />
+        <entry offset=""0x15"" hidden=""true"" document=""1"" />
+        <entry offset=""0x17"" startLine=""8"" startColumn=""18"" endLine=""8"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x1b"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1d"" hidden=""true"" document=""1"" />
+        <entry offset=""0x21"" startLine=""8"" startColumn=""28"" endLine=""8"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x27"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x28"">
         <namespace name=""System"" />
@@ -188,6 +194,9 @@ class Test
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(
 @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -195,18 +204,18 @@ class Test
           <namespace usingCount=""0"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""c"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d"" />
+          <bucket flags=""1"" slotId=""0"" localName=""c"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""2"" endLine=""5"" endColumn=""3"" />
-        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""10"" />
-        <entry offset=""0x2"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0x3"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
-        <entry offset=""0x4"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
-        <entry offset=""0x5"" startLine=""14"" startColumn=""2"" endLine=""14"" endColumn=""3"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""2"" endLine=""5"" endColumn=""3"" document=""1"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x3"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x4"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x5"" startLine=""14"" startColumn=""2"" endLine=""14"" endColumn=""3"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x6"">
         <scope startOffset=""0x1"" endOffset=""0x3"">
@@ -244,6 +253,9 @@ class Test
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(
 @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -251,9 +263,9 @@ class Test
           <namespace usingCount=""0"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""a"" />
-          <bucket flagCount=""2"" flags=""01"" slotId=""2"" localName=""a"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""3"" localName=""b"" />
+          <bucket flags=""1"" slotId=""0"" localName=""a"" />
+          <bucket flags=""01"" slotId=""2"" localName=""a"" />
+          <bucket flags=""1"" slotId=""3"" localName=""b"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""34"" />
@@ -263,16 +275,16 @@ class Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""2"" endLine=""5"" endColumn=""3"" />
-        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""10"" />
-        <entry offset=""0x2"" startLine=""7"" startColumn=""13"" endLine=""7"" endColumn=""30"" />
-        <entry offset=""0x4"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""29"" />
-        <entry offset=""0x6"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
-        <entry offset=""0x7"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
-        <entry offset=""0x8"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""32"" />
-        <entry offset=""0xa"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""30"" />
-        <entry offset=""0xc"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
-        <entry offset=""0xd"" startLine=""14"" startColumn=""2"" endLine=""14"" endColumn=""3"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""2"" endLine=""5"" endColumn=""3"" document=""1"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2"" startLine=""7"" startColumn=""13"" endLine=""7"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x4"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x6"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x7"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x8"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""32"" document=""1"" />
+        <entry offset=""0xa"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""30"" document=""1"" />
+        <entry offset=""0xc"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xd"" startLine=""14"" startColumn=""2"" endLine=""14"" endColumn=""3"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xe"">
         <scope startOffset=""0x1"" endOffset=""0x7"">
@@ -306,6 +318,9 @@ class Test
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(
 @"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -313,8 +328,8 @@ class Test
           <namespace usingCount=""0"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""d12345678901234567890123456789012345678901234567890123456789012"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""b12345678901234567890123456789012345678901234567890123456789012"" />
+          <bucket flags=""1"" slotId=""1"" localName=""d12345678901234567890123456789012345678901234567890123456789012"" />
+          <bucket flags=""1"" slotId=""0"" localName=""b12345678901234567890123456789012345678901234567890123456789012"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""234"" />
@@ -322,10 +337,10 @@ class Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""2"" endLine=""5"" endColumn=""3"" />
-        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""89"" />
-        <entry offset=""0x3"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""88"" />
-        <entry offset=""0x5"" startLine=""10"" startColumn=""2"" endLine=""10"" endColumn=""3"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""2"" endLine=""5"" endColumn=""3"" document=""1"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""89"" document=""1"" />
+        <entry offset=""0x3"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""88"" document=""1"" />
+        <entry offset=""0x5"" startLine=""10"" startColumn=""2"" endLine=""10"" endColumn=""3"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x6"">
         <local name=""c123456789012345678901234567890123456789012345678901234567890123"" il_index=""0"" il_start=""0x0"" il_end=""0x6"" attributes=""0"" />
@@ -359,6 +374,9 @@ class Test
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -366,9 +384,9 @@ class Test
           <namespace usingCount=""0"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""2"" flags=""01"" slotId=""0"" localName=""arr"" />
-          <bucket flagCount=""2"" flags=""01"" slotId=""1"" localName=""arrdim"" />
-          <bucket flagCount=""2"" flags=""01"" slotId=""2"" localName=""arrobj"" />
+          <bucket flags=""01"" slotId=""0"" localName=""arr"" />
+          <bucket flags=""01"" slotId=""1"" localName=""arrdim"" />
+          <bucket flags=""01"" slotId=""2"" localName=""arrobj"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""15"" />
@@ -377,11 +395,11 @@ class Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""3"" endLine=""9"" endColumn=""4"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""3"" endLine=""10"" endColumn=""35"" />
-        <entry offset=""0x9"" startLine=""11"" startColumn=""3"" endLine=""11"" endColumn=""39"" />
-        <entry offset=""0x11"" startLine=""12"" startColumn=""3"" endLine=""12"" endColumn=""39"" />
-        <entry offset=""0x18"" startLine=""13"" startColumn=""3"" endLine=""13"" endColumn=""4"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""3"" endLine=""9"" endColumn=""4"" document=""1"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""3"" endLine=""10"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x9"" startLine=""11"" startColumn=""3"" endLine=""11"" endColumn=""39"" document=""1"" />
+        <entry offset=""0x11"" startLine=""12"" startColumn=""3"" endLine=""12"" endColumn=""39"" document=""1"" />
+        <entry offset=""0x18"" startLine=""13"" startColumn=""3"" endLine=""13"" endColumn=""4"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x19"">
         <local name=""arr"" il_index=""0"" il_start=""0x0"" il_end=""0x19"" attributes=""0"" />
@@ -412,6 +430,9 @@ class Test
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -419,11 +440,11 @@ class Test
           <namespace usingCount=""1"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""l1"" />
-          <bucket flagCount=""2"" flags=""01"" slotId=""1"" localName=""l2"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""2"" localName=""l3"" />
-          <bucket flagCount=""3"" flags=""011"" slotId=""3"" localName=""d1"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""4"" localName=""d2"" />
+          <bucket flags=""1"" slotId=""0"" localName=""l1"" />
+          <bucket flags=""01"" slotId=""1"" localName=""l2"" />
+          <bucket flags=""1"" slotId=""2"" localName=""l3"" />
+          <bucket flags=""011"" slotId=""3"" localName=""d1"" />
+          <bucket flags=""1"" slotId=""4"" localName=""d2"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""13"" />
@@ -434,13 +455,13 @@ class Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""3"" endLine=""6"" endColumn=""4"" />
-        <entry offset=""0x1"" startLine=""7"" startColumn=""3"" endLine=""7"" endColumn=""32"" />
-        <entry offset=""0x7"" startLine=""8"" startColumn=""3"" endLine=""8"" endColumn=""42"" />
-        <entry offset=""0xd"" startLine=""9"" startColumn=""3"" endLine=""9"" endColumn=""36"" />
-        <entry offset=""0x13"" startLine=""10"" startColumn=""3"" endLine=""10"" endColumn=""70"" />
-        <entry offset=""0x19"" startLine=""11"" startColumn=""3"" endLine=""11"" endColumn=""42"" />
-        <entry offset=""0x20"" startLine=""12"" startColumn=""3"" endLine=""12"" endColumn=""4"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""3"" endLine=""6"" endColumn=""4"" document=""1"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""3"" endLine=""7"" endColumn=""32"" document=""1"" />
+        <entry offset=""0x7"" startLine=""8"" startColumn=""3"" endLine=""8"" endColumn=""42"" document=""1"" />
+        <entry offset=""0xd"" startLine=""9"" startColumn=""3"" endLine=""9"" endColumn=""36"" document=""1"" />
+        <entry offset=""0x13"" startLine=""10"" startColumn=""3"" endLine=""10"" endColumn=""70"" document=""1"" />
+        <entry offset=""0x19"" startLine=""11"" startColumn=""3"" endLine=""11"" endColumn=""42"" document=""1"" />
+        <entry offset=""0x20"" startLine=""12"" startColumn=""3"" endLine=""12"" endColumn=""4"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x21"">
         <namespace name=""System.Collections.Generic"" />
@@ -463,7 +484,7 @@ class Test
 class Helper
 {
 	int x;
-	public void foo(int y){}
+	public void goo(int y){}
 	public Helper(){}
 	public Helper(int x){}
 }
@@ -479,50 +500,53 @@ class Test
   {
 		Helper staticObj = new Helper();
 		dynamic d1 = new Helper();
-		dynamic d3 = new D(staticObj.foo);
+		dynamic d3 = new D(staticObj.goo);
   }
 }";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
-    <method containingType=""Helper"" name=""foo"" parameterNames=""y"">
+    <method containingType=""Helper"" name=""goo"" parameterNames=""y"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""24"" endLine=""5"" endColumn=""25"" />
-        <entry offset=""0x1"" startLine=""5"" startColumn=""25"" endLine=""5"" endColumn=""26"" />
+        <entry offset=""0x0"" startLine=""5"" startColumn=""24"" endLine=""5"" endColumn=""25"" document=""1"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""25"" endLine=""5"" endColumn=""26"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""Helper"" name="".ctor"">
       <customDebugInfo>
-        <forward declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
+        <forward declaringType=""Helper"" methodName=""goo"" parameterNames=""y"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""2"" endLine=""6"" endColumn=""17"" />
-        <entry offset=""0x7"" startLine=""6"" startColumn=""17"" endLine=""6"" endColumn=""18"" />
-        <entry offset=""0x8"" startLine=""6"" startColumn=""18"" endLine=""6"" endColumn=""19"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""2"" endLine=""6"" endColumn=""17"" document=""1"" />
+        <entry offset=""0x7"" startLine=""6"" startColumn=""17"" endLine=""6"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x8"" startLine=""6"" startColumn=""18"" endLine=""6"" endColumn=""19"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""Helper"" name="".ctor"" parameterNames=""x"">
       <customDebugInfo>
-        <forward declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
+        <forward declaringType=""Helper"" methodName=""goo"" parameterNames=""y"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""2"" endLine=""7"" endColumn=""22"" />
-        <entry offset=""0x7"" startLine=""7"" startColumn=""22"" endLine=""7"" endColumn=""23"" />
-        <entry offset=""0x8"" startLine=""7"" startColumn=""23"" endLine=""7"" endColumn=""24"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""2"" endLine=""7"" endColumn=""22"" document=""1"" />
+        <entry offset=""0x7"" startLine=""7"" startColumn=""22"" endLine=""7"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x8"" startLine=""7"" startColumn=""23"" endLine=""7"" endColumn=""24"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
-        <forward declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
+        <forward declaringType=""Helper"" methodName=""goo"" parameterNames=""y"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""d1"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""2"" localName=""d3"" />
+          <bucket flags=""1"" slotId=""1"" localName=""d1"" />
+          <bucket flags=""1"" slotId=""2"" localName=""d3"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""12"" />
@@ -531,11 +555,11 @@ class Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""18"" startColumn=""3"" endLine=""18"" endColumn=""4"" />
-        <entry offset=""0x1"" startLine=""19"" startColumn=""3"" endLine=""19"" endColumn=""35"" />
-        <entry offset=""0x7"" startLine=""20"" startColumn=""3"" endLine=""20"" endColumn=""29"" />
-        <entry offset=""0xd"" startLine=""21"" startColumn=""3"" endLine=""21"" endColumn=""37"" />
-        <entry offset=""0x1a"" startLine=""22"" startColumn=""3"" endLine=""22"" endColumn=""4"" />
+        <entry offset=""0x0"" startLine=""18"" startColumn=""3"" endLine=""18"" endColumn=""4"" document=""1"" />
+        <entry offset=""0x1"" startLine=""19"" startColumn=""3"" endLine=""19"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x7"" startLine=""20"" startColumn=""3"" endLine=""20"" endColumn=""29"" document=""1"" />
+        <entry offset=""0xd"" startLine=""21"" startColumn=""3"" endLine=""21"" endColumn=""37"" document=""1"" />
+        <entry offset=""0x1a"" startLine=""22"" startColumn=""3"" endLine=""22"" endColumn=""4"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x1b"">
         <local name=""staticObj"" il_index=""0"" il_start=""0x0"" il_end=""0x1b"" attributes=""0"" />
@@ -564,6 +588,9 @@ class Test
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Test"" name="".ctor"">
       <customDebugInfo>
@@ -571,16 +598,16 @@ class Test
           <namespace usingCount=""0"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""13"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""2"" endLine=""4"" endColumn=""15"" />
-        <entry offset=""0x7"" startLine=""5"" startColumn=""2"" endLine=""5"" endColumn=""3"" />
-        <entry offset=""0x8"" startLine=""7"" startColumn=""2"" endLine=""7"" endColumn=""3"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""2"" endLine=""4"" endColumn=""15"" document=""1"" />
+        <entry offset=""0x7"" startLine=""5"" startColumn=""2"" endLine=""5"" endColumn=""3"" document=""1"" />
+        <entry offset=""0x8"" startLine=""7"" startColumn=""2"" endLine=""7"" endColumn=""3"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x9"">
         <scope startOffset=""0x7"" endOffset=""0x9"">
@@ -593,8 +620,8 @@ class Test
         <forward declaringType=""Test"" methodName="".ctor"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""2"" endLine=""9"" endColumn=""3"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""2"" endLine=""10"" endColumn=""3"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""2"" endLine=""9"" endColumn=""3"" document=""1"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""2"" endLine=""10"" endColumn=""3"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -628,6 +655,9 @@ class Test
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Test"" name=""get_Field"">
       <customDebugInfo>
@@ -635,7 +665,7 @@ class Test
           <namespace usingCount=""0"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""23"" />
@@ -643,10 +673,10 @@ class Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""10"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""39"" />
-        <entry offset=""0x13"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""22"" />
-        <entry offset=""0x17"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
+        <entry offset=""0x0"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""39"" document=""1"" />
+        <entry offset=""0x13"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""22"" document=""1"" />
+        <entry offset=""0x17"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x19"">
         <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x19"" attributes=""0"" />
@@ -656,16 +686,16 @@ class Test
       <customDebugInfo>
         <forward declaringType=""Test"" methodName=""get_Field"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""23"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
-        <entry offset=""0x1"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""30"" />
-        <entry offset=""0x3"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" />
+        <entry offset=""0x0"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x3"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x4"">
         <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x4"" attributes=""0"" />
@@ -676,8 +706,8 @@ class Test
         <forward declaringType=""Test"" methodName=""get_Field"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""20"" startColumn=""5"" endLine=""20"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""20"" startColumn=""5"" endLine=""20"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -713,6 +743,9 @@ class Test
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Complex"" name="".ctor"" parameterNames=""real, imaginary"">
       <customDebugInfo>
@@ -721,18 +754,18 @@ class Test
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""44"" />
-        <entry offset=""0x7"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x8"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""26"" />
-        <entry offset=""0xf"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""36"" />
-        <entry offset=""0x16"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""44"" document=""1"" />
+        <entry offset=""0x7"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x8"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""26"" document=""1"" />
+        <entry offset=""0xf"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""36"" document=""1"" />
+        <entry offset=""0x16"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""Complex"" name=""op_Addition"" parameterNames=""c1, c2"">
       <customDebugInfo>
         <forward declaringType=""Complex"" methodName="".ctor"" parameterNames=""real, imaginary"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
@@ -740,10 +773,10 @@ class Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""81"" />
-        <entry offset=""0x21"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""18"" />
-        <entry offset=""0x25"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""81"" document=""1"" />
+        <entry offset=""0x21"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x25"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x27"">
         <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
@@ -754,8 +787,8 @@ class Test
         <forward declaringType=""Complex"" methodName="".ctor"" parameterNames=""real, imaginary"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""22"" startColumn=""5"" endLine=""22"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""22"" startColumn=""5"" endLine=""22"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -790,6 +823,9 @@ class Test
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Test"" name=""get_Item"" parameterNames=""i"">
       <customDebugInfo>
@@ -797,7 +833,7 @@ class Test
           <namespace usingCount=""0"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""23"" />
@@ -805,10 +841,10 @@ class Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""10"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""32"" />
-        <entry offset=""0xa"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""22"" />
-        <entry offset=""0xe"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
+        <entry offset=""0x0"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""32"" document=""1"" />
+        <entry offset=""0xa"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""22"" document=""1"" />
+        <entry offset=""0xe"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x10"">
         <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x10"" attributes=""0"" />
@@ -818,17 +854,17 @@ class Test
       <customDebugInfo>
         <forward declaringType=""Test"" methodName=""get_Item"" parameterNames=""i"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""23"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
-        <entry offset=""0x1"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""41"" />
-        <entry offset=""0x3"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""24"" />
-        <entry offset=""0xc"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" />
+        <entry offset=""0x0"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""41"" document=""1"" />
+        <entry offset=""0x3"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""24"" document=""1"" />
+        <entry offset=""0xc"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xd"">
         <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0xd"" attributes=""0"" />
@@ -839,8 +875,8 @@ class Test
         <forward declaringType=""Test"" methodName=""get_Item"" parameterNames=""i"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""20"" startColumn=""5"" endLine=""20"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""20"" startColumn=""5"" endLine=""20"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -869,6 +905,9 @@ class Sample
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Sample"" name=""Main"">
       <customDebugInfo>
@@ -880,10 +919,10 @@ class Sample
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""25"" />
-        <entry offset=""0x7"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""76"" />
-        <entry offset=""0x19"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""25"" document=""1"" />
+        <entry offset=""0x7"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""76"" document=""1"" />
+        <entry offset=""0x19"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x1a"">
         <namespace name=""System"" />
@@ -894,15 +933,15 @@ class Sample
       <customDebugInfo>
         <forward declaringType=""Sample"" methodName=""Main"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
@@ -952,6 +991,9 @@ struct Test
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Test"" name="".ctor"" parameterNames=""d"">
       <customDebugInfo>
@@ -959,16 +1001,16 @@ struct Test
           <namespace usingCount=""1"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d1"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d1"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""20"" />
-        <entry offset=""0x8"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x8"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x9"">
         <namespace name=""System"" />
@@ -979,7 +1021,7 @@ struct Test
       <customDebugInfo>
         <forward declaringType=""Test"" methodName="".ctor"" parameterNames=""d"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d2"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d2"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""23"" />
@@ -987,9 +1029,9 @@ struct Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" />
-        <entry offset=""0x1"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""22"" />
-        <entry offset=""0xa"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" />
+        <entry offset=""0x0"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""22"" document=""1"" />
+        <entry offset=""0xa"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xc"">
         <local name=""d2"" il_index=""0"" il_start=""0x0"" il_end=""0xc"" attributes=""0"" />
@@ -999,16 +1041,16 @@ struct Test
       <customDebugInfo>
         <forward declaringType=""Test"" methodName="".ctor"" parameterNames=""d"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d3"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d3"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""23"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""10"" />
-        <entry offset=""0x1"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""23"" />
-        <entry offset=""0x8"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" />
+        <entry offset=""0x0"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x8"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x9"">
         <local name=""d3"" il_index=""0"" il_start=""0x0"" il_end=""0x9"" attributes=""0"" />
@@ -1018,7 +1060,7 @@ struct Test
       <customDebugInfo>
         <forward declaringType=""Test"" methodName="".ctor"" parameterNames=""d"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d4"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d4"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
@@ -1026,9 +1068,9 @@ struct Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""26"" startColumn=""5"" endLine=""26"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""38"" />
-        <entry offset=""0x16"" startLine=""29"" startColumn=""5"" endLine=""29"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""26"" startColumn=""5"" endLine=""26"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x16"" startLine=""29"" startColumn=""5"" endLine=""29"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x18"">
         <local name=""d4"" il_index=""0"" il_start=""0x0"" il_end=""0x18"" attributes=""0"" />
@@ -1038,15 +1080,15 @@ struct Test
       <customDebugInfo>
         <forward declaringType=""Test"" methodName="".ctor"" parameterNames=""d"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d5"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d5"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""33"" startColumn=""5"" endLine=""33"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""33"" startColumn=""5"" endLine=""33"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <local name=""d5"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
@@ -1075,6 +1117,9 @@ class Test
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -1094,11 +1139,11 @@ class Test
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""28"" />
-        <entry offset=""0x21"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""58"" />
-        <entry offset=""0x41"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""50"" />
-        <entry offset=""0x61"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x21"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""58"" document=""1"" />
+        <entry offset=""0x41"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""50"" document=""1"" />
+        <entry offset=""0x61"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x62"">
         <namespace name=""System"" />
@@ -1112,23 +1157,23 @@ class Test
         <forward declaringType=""Test"" methodName=""Main"" parameterNames=""args"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""27"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""27"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""Test+&lt;&gt;c"" name=""&lt;Main&gt;b__2_1"" parameterNames=""d4"">
       <customDebugInfo>
         <forward declaringType=""Test"" methodName=""Main"" parameterNames=""args"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d5"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d5"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""73"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""10"" startColumn=""32"" endLine=""10"" endColumn=""33"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""46"" endLine=""10"" endColumn=""54"" />
-        <entry offset=""0x3"" startLine=""10"" startColumn=""55"" endLine=""10"" endColumn=""56"" />
+        <entry offset=""0x0"" startLine=""10"" startColumn=""32"" endLine=""10"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""46"" endLine=""10"" endColumn=""54"" document=""1"" />
+        <entry offset=""0x3"" startLine=""10"" startColumn=""55"" endLine=""10"" endColumn=""56"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x4"">
         <local name=""d5"" il_index=""0"" il_start=""0x0"" il_end=""0x4"" attributes=""0"" />
@@ -1142,9 +1187,9 @@ class Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""11"" startColumn=""35"" endLine=""11"" endColumn=""36"" />
-        <entry offset=""0x1"" startLine=""11"" startColumn=""37"" endLine=""11"" endColumn=""47"" />
-        <entry offset=""0x5"" startLine=""11"" startColumn=""48"" endLine=""11"" endColumn=""49"" />
+        <entry offset=""0x0"" startLine=""11"" startColumn=""35"" endLine=""11"" endColumn=""36"" document=""1"" />
+        <entry offset=""0x1"" startLine=""11"" startColumn=""37"" endLine=""11"" endColumn=""47"" document=""1"" />
+        <entry offset=""0x5"" startLine=""11"" startColumn=""48"" endLine=""11"" endColumn=""49"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -1184,7 +1229,7 @@ class Test
         {
             dynamic dInFor;
         }
-        for (dynamic d = ""1""; ;)
+        for (dynamic d = ""1""; d1 < 0;)
         {
             //do nothing
         }
@@ -1219,6 +1264,9 @@ class Test
 }";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -1226,28 +1274,28 @@ class Test
           <namespace usingCount=""3"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""2"" flags=""01"" slotId=""2"" localName=""scores"" />
-          <bucket flagCount=""2"" flags=""01"" slotId=""3"" localName=""arrDynamic"" />
-          <bucket flagCount=""2"" flags=""01"" slotId=""4"" localName=""scoreQuery1"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""5"" localName=""scoreQuery2"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""6"" localName=""dInWhile"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""8"" localName=""dInDoWhile"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""13"" localName=""dInForEach"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""15"" localName=""dInFor"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""17"" localName=""d"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""19"" localName=""dInIf"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""20"" localName=""dInElse"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""21"" localName=""dInTry"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""22"" localName=""dInCatch"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""23"" localName=""dInFinally"" />
+          <bucket flags=""01"" slotId=""2"" localName=""scores"" />
+          <bucket flags=""01"" slotId=""3"" localName=""arrDynamic"" />
+          <bucket flags=""01"" slotId=""4"" localName=""scoreQuery1"" />
+          <bucket flags=""1"" slotId=""5"" localName=""scoreQuery2"" />
+          <bucket flags=""1"" slotId=""6"" localName=""dInWhile"" />
+          <bucket flags=""1"" slotId=""8"" localName=""dInDoWhile"" />
+          <bucket flags=""1"" slotId=""13"" localName=""dInForEach"" />
+          <bucket flags=""1"" slotId=""15"" localName=""dInFor"" />
+          <bucket flags=""1"" slotId=""17"" localName=""d"" />
+          <bucket flags=""1"" slotId=""20"" localName=""dInIf"" />
+          <bucket flags=""1"" slotId=""21"" localName=""dInElse"" />
+          <bucket flags=""1"" slotId=""22"" localName=""dInTry"" />
+          <bucket flags=""1"" slotId=""23"" localName=""dInCatch"" />
+          <bucket flags=""1"" slotId=""24"" localName=""dInFinally"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""15"" />
           <slot kind=""0"" offset=""38"" />
           <slot kind=""0"" offset=""89"" />
           <slot kind=""0"" offset=""159"" />
-          <slot kind=""0"" offset=""1071"" />
-          <slot kind=""0"" offset=""1163"" />
+          <slot kind=""0"" offset=""1077"" />
+          <slot kind=""0"" offset=""1169"" />
           <slot kind=""0"" offset=""261"" />
           <slot kind=""1"" offset=""214"" />
           <slot kind=""0"" offset=""345"" />
@@ -1260,67 +1308,87 @@ class Test
           <slot kind=""0"" offset=""562"" />
           <slot kind=""1"" offset=""502"" />
           <slot kind=""0"" offset=""603"" />
-          <slot kind=""1"" offset=""672"" />
-          <slot kind=""0"" offset=""717"" />
-          <slot kind=""0"" offset=""781"" />
-          <slot kind=""0"" offset=""846"" />
-          <slot kind=""0"" offset=""948"" />
-          <slot kind=""0"" offset=""1018"" />
+          <slot kind=""1"" offset=""590"" />
+          <slot kind=""1"" offset=""678"" />
+          <slot kind=""0"" offset=""723"" />
+          <slot kind=""0"" offset=""787"" />
+          <slot kind=""0"" offset=""852"" />
+          <slot kind=""0"" offset=""954"" />
+          <slot kind=""0"" offset=""1024"" />
         </encLocalSlotMap>
         <encLambdaMap>
           <methodOrdinal>0</methodOrdinal>
-          <lambda offset=""1139"" />
-          <lambda offset=""1231"" />
+          <lambda offset=""1145"" />
+          <lambda offset=""1237"" />
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""20"" />
-        <entry offset=""0x3"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""46"" />
-        <entry offset=""0x15"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""69"" />
-        <entry offset=""0x3c"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""64"" />
-        <entry offset=""0x5b"" hidden=""true"" />
-        <entry offset=""0x5d"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" />
-        <entry offset=""0x5e"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""18"" />
-        <entry offset=""0x62"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" />
-        <entry offset=""0x63"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""23"" />
-        <entry offset=""0x69"" hidden=""true"" />
-        <entry offset=""0x6d"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""10"" />
-        <entry offset=""0x6e"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""18"" />
-        <entry offset=""0x72"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" />
-        <entry offset=""0x73"" startLine=""22"" startColumn=""11"" endLine=""22"" endColumn=""26"" />
-        <entry offset=""0x79"" hidden=""true"" />
-        <entry offset=""0x7d"" startLine=""23"" startColumn=""9"" endLine=""23"" endColumn=""16"" />
-        <entry offset=""0x7e"" startLine=""23"" startColumn=""27"" endLine=""23"" endColumn=""33"" />
-        <entry offset=""0x84"" hidden=""true"" />
-        <entry offset=""0x86"" startLine=""23"" startColumn=""18"" endLine=""23"" endColumn=""23"" />
-        <entry offset=""0x8d"" startLine=""24"" startColumn=""9"" endLine=""24"" endColumn=""10"" />
-        <entry offset=""0x8e"" startLine=""26"" startColumn=""9"" endLine=""26"" endColumn=""10"" />
-        <entry offset=""0x8f"" hidden=""true"" />
-        <entry offset=""0x95"" startLine=""23"" startColumn=""24"" endLine=""23"" endColumn=""26"" />
-        <entry offset=""0x9d"" startLine=""27"" startColumn=""14"" endLine=""27"" endColumn=""23"" />
-        <entry offset=""0xa0"" hidden=""true"" />
-        <entry offset=""0xa2"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" />
-        <entry offset=""0xa3"" startLine=""30"" startColumn=""9"" endLine=""30"" endColumn=""10"" />
-        <entry offset=""0xa4"" startLine=""27"" startColumn=""32"" endLine=""27"" endColumn=""35"" />
-        <entry offset=""0xaa"" startLine=""27"" startColumn=""25"" endLine=""27"" endColumn=""30"" />
-        <entry offset=""0xb1"" hidden=""true"" />
-        <entry offset=""0xb5"" startLine=""31"" startColumn=""14"" endLine=""31"" endColumn=""29"" />
-        <entry offset=""0xbc"" hidden=""true"" />
-        <entry offset=""0xbe"" startLine=""32"" startColumn=""9"" endLine=""32"" endColumn=""10"" />
-        <entry offset=""0xbf"" startLine=""34"" startColumn=""9"" endLine=""34"" endColumn=""10"" />
-        <entry offset=""0xc0"" hidden=""true"" />
+        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x3"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""46"" document=""1"" />
+        <entry offset=""0x15"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""69"" document=""1"" />
+        <entry offset=""0x3c"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""64"" document=""1"" />
+        <entry offset=""0x5b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x5d"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x5e"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x62"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x63"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x69"" hidden=""true"" document=""1"" />
+        <entry offset=""0x6d"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x6e"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x72"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x73"" startLine=""22"" startColumn=""11"" endLine=""22"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x79"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7d"" startLine=""23"" startColumn=""9"" endLine=""23"" endColumn=""16"" document=""1"" />
+        <entry offset=""0x7e"" startLine=""23"" startColumn=""27"" endLine=""23"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x84"" hidden=""true"" document=""1"" />
+        <entry offset=""0x86"" startLine=""23"" startColumn=""18"" endLine=""23"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x8d"" startLine=""24"" startColumn=""9"" endLine=""24"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x8e"" startLine=""26"" startColumn=""9"" endLine=""26"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x8f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x95"" startLine=""23"" startColumn=""24"" endLine=""23"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x9d"" startLine=""27"" startColumn=""14"" endLine=""27"" endColumn=""23"" document=""1"" />
+        <entry offset=""0xa0"" hidden=""true"" document=""1"" />
+        <entry offset=""0xa2"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xa3"" startLine=""30"" startColumn=""9"" endLine=""30"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xa4"" startLine=""27"" startColumn=""32"" endLine=""27"" endColumn=""35"" document=""1"" />
+        <entry offset=""0xaa"" startLine=""27"" startColumn=""25"" endLine=""27"" endColumn=""30"" document=""1"" />
+        <entry offset=""0xb1"" hidden=""true"" document=""1"" />
+        <entry offset=""0xb5"" startLine=""31"" startColumn=""14"" endLine=""31"" endColumn=""29"" document=""1"" />
+        <entry offset=""0xbc"" hidden=""true"" document=""1"" />
+        <entry offset=""0xbe"" startLine=""32"" startColumn=""9"" endLine=""32"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xbf"" startLine=""34"" startColumn=""9"" endLine=""34"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xc0"" startLine=""31"" startColumn=""31"" endLine=""31"" endColumn=""37"" document=""1"" />
+        <entry offset=""0xc6"" hidden=""true"" document=""1"" />
+        <entry offset=""0xca"" startLine=""35"" startColumn=""9"" endLine=""35"" endColumn=""21"" document=""1"" />
+        <entry offset=""0xd0"" hidden=""true"" document=""1"" />
+        <entry offset=""0xd4"" startLine=""36"" startColumn=""9"" endLine=""36"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xd5"" startLine=""38"" startColumn=""9"" endLine=""38"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xd8"" startLine=""40"" startColumn=""9"" endLine=""40"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xd9"" startLine=""42"" startColumn=""9"" endLine=""42"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xda"" hidden=""true"" document=""1"" />
+        <entry offset=""0xdb"" startLine=""44"" startColumn=""9"" endLine=""44"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xdc"" startLine=""46"" startColumn=""13"" endLine=""46"" endColumn=""35"" document=""1"" />
+        <entry offset=""0xe2"" startLine=""48"" startColumn=""9"" endLine=""48"" endColumn=""14"" document=""1"" />
+        <entry offset=""0xe3"" startLine=""49"" startColumn=""9"" endLine=""49"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xe4"" startLine=""51"" startColumn=""9"" endLine=""51"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xe7"" hidden=""true"" document=""1"" />
+        <entry offset=""0xe9"" startLine=""53"" startColumn=""9"" endLine=""53"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xea"" startLine=""55"" startColumn=""9"" endLine=""55"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xec"" startLine=""56"" startColumn=""9"" endLine=""58"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x113"" startLine=""59"" startColumn=""9"" endLine=""61"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x13a"" startLine=""62"" startColumn=""5"" endLine=""62"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xc2"">
+      <scope startOffset=""0x0"" endOffset=""0x13b"">
         <namespace name=""System"" />
         <namespace name=""System.Collections.Generic"" />
         <namespace name=""System.Linq"" />
-        <local name=""d1"" il_index=""0"" il_start=""0x0"" il_end=""0xc2"" attributes=""0"" />
-        <local name=""arrInt"" il_index=""1"" il_start=""0x0"" il_end=""0xc2"" attributes=""0"" />
-        <local name=""scores"" il_index=""2"" il_start=""0x0"" il_end=""0xc2"" attributes=""0"" />
-        <local name=""arrDynamic"" il_index=""3"" il_start=""0x0"" il_end=""0xc2"" attributes=""0"" />
-        <local name=""scoreQuery1"" il_index=""4"" il_start=""0x0"" il_end=""0xc2"" attributes=""0"" />
-        <local name=""scoreQuery2"" il_index=""5"" il_start=""0x0"" il_end=""0xc2"" attributes=""0"" />
+        <local name=""d1"" il_index=""0"" il_start=""0x0"" il_end=""0x13b"" attributes=""0"" />
+        <local name=""arrInt"" il_index=""1"" il_start=""0x0"" il_end=""0x13b"" attributes=""0"" />
+        <local name=""scores"" il_index=""2"" il_start=""0x0"" il_end=""0x13b"" attributes=""0"" />
+        <local name=""arrDynamic"" il_index=""3"" il_start=""0x0"" il_end=""0x13b"" attributes=""0"" />
+        <local name=""scoreQuery1"" il_index=""4"" il_start=""0x0"" il_end=""0x13b"" attributes=""0"" />
+        <local name=""scoreQuery2"" il_index=""5"" il_start=""0x0"" il_end=""0x13b"" attributes=""0"" />
         <scope startOffset=""0x5d"" endOffset=""0x63"">
           <local name=""dInWhile"" il_index=""6"" il_start=""0x5d"" il_end=""0x63"" attributes=""0"" />
         </scope>
@@ -1339,8 +1407,23 @@ class Test
             <local name=""dInFor"" il_index=""15"" il_start=""0xa2"" il_end=""0xa4"" attributes=""0"" />
           </scope>
         </scope>
-        <scope startOffset=""0xb5"" endOffset=""0xc2"">
-          <local name=""d"" il_index=""17"" il_start=""0xb5"" il_end=""0xc2"" attributes=""0"" />
+        <scope startOffset=""0xb5"" endOffset=""0xca"">
+          <local name=""d"" il_index=""17"" il_start=""0xb5"" il_end=""0xca"" attributes=""0"" />
+        </scope>
+        <scope startOffset=""0xd4"" endOffset=""0xd6"">
+          <local name=""dInIf"" il_index=""20"" il_start=""0xd4"" il_end=""0xd6"" attributes=""0"" />
+        </scope>
+        <scope startOffset=""0xd8"" endOffset=""0xda"">
+          <local name=""dInElse"" il_index=""21"" il_start=""0xd8"" il_end=""0xda"" attributes=""0"" />
+        </scope>
+        <scope startOffset=""0xdb"" endOffset=""0xe2"">
+          <local name=""dInTry"" il_index=""22"" il_start=""0xdb"" il_end=""0xe2"" attributes=""0"" />
+        </scope>
+        <scope startOffset=""0xe3"" endOffset=""0xe5"">
+          <local name=""dInCatch"" il_index=""23"" il_start=""0xe3"" il_end=""0xe5"" attributes=""0"" />
+        </scope>
+        <scope startOffset=""0xe9"" endOffset=""0xeb"">
+          <local name=""dInFinally"" il_index=""24"" il_start=""0xe9"" il_end=""0xeb"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -1349,7 +1432,7 @@ class Test
         <forward declaringType=""Test"" methodName=""Main"" parameterNames=""args"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""58"" startColumn=""20"" endLine=""58"" endColumn=""25"" />
+        <entry offset=""0x0"" startLine=""58"" startColumn=""20"" endLine=""58"" endColumn=""25"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""Test+&lt;&gt;c"" name=""&lt;Main&gt;b__0_1"" parameterNames=""score"">
@@ -1357,14 +1440,14 @@ class Test
         <forward declaringType=""Test"" methodName=""Main"" parameterNames=""args"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""61"" startColumn=""20"" endLine=""61"" endColumn=""25"" />
+        <entry offset=""0x0"" startLine=""61"" startColumn=""20"" endLine=""61"" endColumn=""25"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
 </symbols>");
         }
 
-        [Fact, WorkItem(17947, "https://github.com/dotnet/roslyn/issues/17947")]
+        [Fact]
         public void EmitPDBLangConstructsLocalConstants()
         {
             string source = @"
@@ -1397,7 +1480,7 @@ class Test
         {
             const dynamic dInFor = null;
         }
-        for (dynamic d = ""1""; ;)
+        for (dynamic d = ""1""; d1 < 0;)
         {
             //do nothing
         }
@@ -1427,11 +1510,12 @@ class Test
     }
 }";
 
-            // BUG: note that dInIf, dInElse, dInTry, dInCatch, dInFinally, scoreQuery1, scoreQuery2 are missing from <dynamicLocals>
-
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -1439,15 +1523,20 @@ class Test
           <namespace usingCount=""3"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""9"" localName=""d"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""scores"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""arrDynamic"" />
-          <bucket flagCount=""2"" flags=""01"" slotId=""0"" localName=""scoreQuery1"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""scoreQuery2"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""dInWhile"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""dInDoWhile"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""dInForEach"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""dInFor"" />
+          <bucket flags=""1"" slotId=""0"" localName=""scores"" />
+          <bucket flags=""1"" slotId=""0"" localName=""arrDynamic"" />
+          <bucket flags=""01"" slotId=""0"" localName=""scoreQuery1"" />
+          <bucket flags=""1"" slotId=""0"" localName=""scoreQuery2"" />
+          <bucket flags=""1"" slotId=""0"" localName=""dInWhile"" />
+          <bucket flags=""1"" slotId=""0"" localName=""dInDoWhile"" />
+          <bucket flags=""1"" slotId=""0"" localName=""dInForEach"" />
+          <bucket flags=""1"" slotId=""0"" localName=""dInFor"" />
+          <bucket flags=""1"" slotId=""9"" localName=""d"" />
+          <bucket flags=""1"" slotId=""0"" localName=""dInIf"" />
+          <bucket flags=""1"" slotId=""0"" localName=""dInElse"" />
+          <bucket flags=""1"" slotId=""0"" localName=""dInTry"" />
+          <bucket flags=""1"" slotId=""0"" localName=""dInCatch"" />
+          <bucket flags=""1"" slotId=""0"" localName=""dInFinally"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""15"" />
@@ -1460,51 +1549,69 @@ class Test
           <slot kind=""0"" offset=""495"" />
           <slot kind=""1"" offset=""486"" />
           <slot kind=""0"" offset=""600"" />
-          <slot kind=""1"" offset=""669"" />
+          <slot kind=""1"" offset=""587"" />
+          <slot kind=""1"" offset=""675"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""20"" />
-        <entry offset=""0x3"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""46"" />
-        <entry offset=""0x15"" hidden=""true"" />
-        <entry offset=""0x17"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" />
-        <entry offset=""0x18"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""18"" />
-        <entry offset=""0x1c"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" />
-        <entry offset=""0x1d"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""23"" />
-        <entry offset=""0x22"" hidden=""true"" />
-        <entry offset=""0x25"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""10"" />
-        <entry offset=""0x26"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""18"" />
-        <entry offset=""0x2a"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" />
-        <entry offset=""0x2b"" startLine=""22"" startColumn=""11"" endLine=""22"" endColumn=""26"" />
-        <entry offset=""0x30"" hidden=""true"" />
-        <entry offset=""0x33"" startLine=""23"" startColumn=""9"" endLine=""23"" endColumn=""16"" />
-        <entry offset=""0x34"" startLine=""23"" startColumn=""27"" endLine=""23"" endColumn=""33"" />
-        <entry offset=""0x3a"" hidden=""true"" />
-        <entry offset=""0x3c"" startLine=""23"" startColumn=""18"" endLine=""23"" endColumn=""23"" />
-        <entry offset=""0x43"" startLine=""24"" startColumn=""9"" endLine=""24"" endColumn=""10"" />
-        <entry offset=""0x44"" startLine=""26"" startColumn=""9"" endLine=""26"" endColumn=""10"" />
-        <entry offset=""0x45"" hidden=""true"" />
-        <entry offset=""0x4b"" startLine=""23"" startColumn=""24"" endLine=""23"" endColumn=""26"" />
-        <entry offset=""0x53"" startLine=""27"" startColumn=""14"" endLine=""27"" endColumn=""23"" />
-        <entry offset=""0x56"" hidden=""true"" />
-        <entry offset=""0x58"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" />
-        <entry offset=""0x59"" startLine=""30"" startColumn=""9"" endLine=""30"" endColumn=""10"" />
-        <entry offset=""0x5a"" startLine=""27"" startColumn=""32"" endLine=""27"" endColumn=""35"" />
-        <entry offset=""0x60"" startLine=""27"" startColumn=""25"" endLine=""27"" endColumn=""30"" />
-        <entry offset=""0x67"" hidden=""true"" />
-        <entry offset=""0x6b"" startLine=""31"" startColumn=""14"" endLine=""31"" endColumn=""29"" />
-        <entry offset=""0x72"" hidden=""true"" />
-        <entry offset=""0x74"" startLine=""32"" startColumn=""9"" endLine=""32"" endColumn=""10"" />
-        <entry offset=""0x75"" startLine=""34"" startColumn=""9"" endLine=""34"" endColumn=""10"" />
-        <entry offset=""0x76"" hidden=""true"" />
+        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x3"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""46"" document=""1"" />
+        <entry offset=""0x15"" hidden=""true"" document=""1"" />
+        <entry offset=""0x17"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x18"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1d"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x22"" hidden=""true"" document=""1"" />
+        <entry offset=""0x25"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x26"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x2a"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2b"" startLine=""22"" startColumn=""11"" endLine=""22"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x30"" hidden=""true"" document=""1"" />
+        <entry offset=""0x33"" startLine=""23"" startColumn=""9"" endLine=""23"" endColumn=""16"" document=""1"" />
+        <entry offset=""0x34"" startLine=""23"" startColumn=""27"" endLine=""23"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x3a"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3c"" startLine=""23"" startColumn=""18"" endLine=""23"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x43"" startLine=""24"" startColumn=""9"" endLine=""24"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x44"" startLine=""26"" startColumn=""9"" endLine=""26"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x45"" hidden=""true"" document=""1"" />
+        <entry offset=""0x4b"" startLine=""23"" startColumn=""24"" endLine=""23"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x53"" startLine=""27"" startColumn=""14"" endLine=""27"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x56"" hidden=""true"" document=""1"" />
+        <entry offset=""0x58"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x59"" startLine=""30"" startColumn=""9"" endLine=""30"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x5a"" startLine=""27"" startColumn=""32"" endLine=""27"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x60"" startLine=""27"" startColumn=""25"" endLine=""27"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x67"" hidden=""true"" document=""1"" />
+        <entry offset=""0x6b"" startLine=""31"" startColumn=""14"" endLine=""31"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x72"" hidden=""true"" document=""1"" />
+        <entry offset=""0x74"" startLine=""32"" startColumn=""9"" endLine=""32"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x75"" startLine=""34"" startColumn=""9"" endLine=""34"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x76"" startLine=""31"" startColumn=""31"" endLine=""31"" endColumn=""37"" document=""1"" />
+        <entry offset=""0x7c"" hidden=""true"" document=""1"" />
+        <entry offset=""0x80"" startLine=""35"" startColumn=""9"" endLine=""35"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x86"" hidden=""true"" document=""1"" />
+        <entry offset=""0x8a"" startLine=""36"" startColumn=""9"" endLine=""36"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x8b"" startLine=""38"" startColumn=""9"" endLine=""38"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x8e"" startLine=""40"" startColumn=""9"" endLine=""40"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x8f"" startLine=""42"" startColumn=""9"" endLine=""42"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x90"" hidden=""true"" document=""1"" />
+        <entry offset=""0x91"" startLine=""44"" startColumn=""9"" endLine=""44"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x92"" startLine=""46"" startColumn=""13"" endLine=""46"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x98"" startLine=""48"" startColumn=""9"" endLine=""48"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x99"" startLine=""49"" startColumn=""9"" endLine=""49"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x9a"" startLine=""51"" startColumn=""9"" endLine=""51"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x9d"" hidden=""true"" document=""1"" />
+        <entry offset=""0x9f"" startLine=""53"" startColumn=""9"" endLine=""53"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xa0"" startLine=""55"" startColumn=""9"" endLine=""55"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xa2"" startLine=""58"" startColumn=""5"" endLine=""58"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x78"">
+      <scope startOffset=""0x0"" endOffset=""0xa3"">
         <namespace name=""System"" />
         <namespace name=""System.Collections.Generic"" />
         <namespace name=""System.Linq"" />
-        <local name=""d1"" il_index=""0"" il_start=""0x0"" il_end=""0x78"" attributes=""0"" />
-        <local name=""arrInt"" il_index=""1"" il_start=""0x0"" il_end=""0x78"" attributes=""0"" />
+        <local name=""d1"" il_index=""0"" il_start=""0x0"" il_end=""0xa3"" attributes=""0"" />
+        <local name=""arrInt"" il_index=""1"" il_start=""0x0"" il_end=""0xa3"" attributes=""0"" />
         <constant name=""scores"" value=""null"" type=""Object"" />
         <constant name=""arrDynamic"" value=""null"" type=""Object"" />
         <constant name=""scoreQuery1"" value=""null"" signature=""System.Collections.Generic.IEnumerable`1{Object}"" />
@@ -1527,15 +1634,110 @@ class Test
             <constant name=""dInFor"" value=""null"" type=""Object"" />
           </scope>
         </scope>
-        <scope startOffset=""0x6b"" endOffset=""0x78"">
-          <local name=""d"" il_index=""9"" il_start=""0x6b"" il_end=""0x78"" attributes=""0"" />
+        <scope startOffset=""0x6b"" endOffset=""0x80"">
+          <local name=""d"" il_index=""9"" il_start=""0x6b"" il_end=""0x80"" attributes=""0"" />
+        </scope>
+        <scope startOffset=""0x8a"" endOffset=""0x8c"">
+          <constant name=""dInIf"" value=""null"" type=""Object"" />
+        </scope>
+        <scope startOffset=""0x8e"" endOffset=""0x90"">
+          <constant name=""dInElse"" value=""null"" type=""Object"" />
+        </scope>
+        <scope startOffset=""0x91"" endOffset=""0x98"">
+          <constant name=""dInTry"" value=""null"" type=""Object"" />
+        </scope>
+        <scope startOffset=""0x99"" endOffset=""0x9b"">
+          <constant name=""dInCatch"" value=""null"" type=""Object"" />
+        </scope>
+        <scope startOffset=""0x9f"" endOffset=""0xa1"">
+          <constant name=""dInFinally"" value=""null"" type=""Object"" />
         </scope>
       </scope>
     </method>
   </methods>
 </symbols>");
         }
-        
+
+        [Fact, WorkItem(17947, "https://github.com/dotnet/roslyn/issues/17947")]
+        public void VariablesAndConstantsInUnreachableCode()
+        {
+            string source = @"
+class C
+{
+    void F()
+    {
+        dynamic v1 = 1;
+        const dynamic c1 = null;
+
+        throw null;
+
+        dynamic v2 = 1; 
+        const dynamic c2 = null;
+
+        { 
+            dynamic v3 = 1; 
+            const dynamic c3 = null;
+        }
+    }
+}
+";
+            var c = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+            v.VerifyIL("C.F", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (object V_0, //v1
+                object V_1, //v2
+                object V_2) //v3
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  box        ""int""
+  IL_0007:  stloc.0
+  IL_0008:  ldnull
+  IL_0009:  throw
+}");
+
+            c.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <dynamicLocals>
+          <bucket flags=""1"" slotId=""0"" localName=""v1"" />
+          <bucket flags=""1"" slotId=""1"" localName=""v2"" />
+          <bucket flags=""1"" slotId=""0"" localName=""c1"" />
+          <bucket flags=""1"" slotId=""0"" localName=""c2"" />
+        </dynamicLocals>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""19"" />
+          <slot kind=""0"" offset=""103"" />
+          <slot kind=""0"" offset=""181"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x8"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""20"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xa"">
+        <local name=""v1"" il_index=""0"" il_start=""0x0"" il_end=""0xa"" attributes=""0"" />
+        <local name=""v2"" il_index=""1"" il_start=""0x0"" il_end=""0xa"" attributes=""0"" />
+        <constant name=""c1"" value=""null"" type=""Object"" />
+        <constant name=""c2"" value=""null"" type=""Object"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
         [Fact]
         public void EmitPDBVarVariableLocal()
         {
@@ -1552,6 +1754,9 @@ class Test
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -1559,8 +1764,8 @@ class Test
           <namespace usingCount=""1"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""v"" />
+          <bucket flags=""1"" slotId=""0"" localName=""d"" />
+          <bucket flags=""1"" slotId=""1"" localName=""v"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""13"" />
@@ -1568,10 +1773,10 @@ class Test
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""2"" endLine=""6"" endColumn=""3"" />
-        <entry offset=""0x1"" startLine=""7"" startColumn=""3"" endLine=""7"" endColumn=""19"" />
-        <entry offset=""0x7"" startLine=""8"" startColumn=""3"" endLine=""8"" endColumn=""13"" />
-        <entry offset=""0x9"" startLine=""9"" startColumn=""2"" endLine=""9"" endColumn=""3"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""2"" endLine=""6"" endColumn=""3"" document=""1"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""3"" endLine=""7"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x7"" startLine=""8"" startColumn=""3"" endLine=""8"" endColumn=""13"" document=""1"" />
+        <entry offset=""0x9"" startLine=""9"" startColumn=""2"" endLine=""9"" endColumn=""3"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xa"">
         <namespace name=""System"" />
@@ -1603,6 +1808,9 @@ class Test
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -1610,17 +1818,17 @@ class Test
           <namespace usingCount=""1"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""2"" flags=""01"" slotId=""0"" localName=""obj"" />
+          <bucket flags=""01"" slotId=""0"" localName=""obj"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""22"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""10"" startColumn=""2"" endLine=""10"" endColumn=""3"" />
-        <entry offset=""0x1"" startLine=""11"" startColumn=""3"" endLine=""11"" endColumn=""49"" />
-        <entry offset=""0x7"" startLine=""12"" startColumn=""3"" endLine=""12"" endColumn=""19"" />
-        <entry offset=""0x12"" startLine=""13"" startColumn=""2"" endLine=""13"" endColumn=""3"" />
+        <entry offset=""0x0"" startLine=""10"" startColumn=""2"" endLine=""10"" endColumn=""3"" document=""1"" />
+        <entry offset=""0x1"" startLine=""11"" startColumn=""3"" endLine=""11"" endColumn=""49"" document=""1"" />
+        <entry offset=""0x7"" startLine=""12"" startColumn=""3"" endLine=""12"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x12"" startLine=""13"" startColumn=""2"" endLine=""13"" endColumn=""3"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x13"">
         <namespace name=""System"" />
@@ -1650,6 +1858,9 @@ class Program
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -1657,8 +1868,8 @@ class Program
           <namespace usingCount=""2"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""yyy"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""zzz"" />
+          <bucket flags=""1"" slotId=""0"" localName=""yyy"" />
+          <bucket flags=""1"" slotId=""1"" localName=""zzz"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
@@ -1666,8 +1877,8 @@ class Program
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
@@ -1693,11 +1904,11 @@ class Program
     static void Main(string[] args)
     {
         dynamic yyy;
-        Foo<dynamic> zzz;
+        Goo<dynamic> zzz;
     }
 }
 
-class Foo<T>
+class Goo<T>
 {
 
 }
@@ -1705,6 +1916,9 @@ class Foo<T>
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -1712,8 +1926,8 @@ class Foo<T>
           <namespace usingCount=""2"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""yyy"" />
-          <bucket flagCount=""2"" flags=""01"" slotId=""1"" localName=""zzz"" />
+          <bucket flags=""1"" slotId=""0"" localName=""yyy"" />
+          <bucket flags=""01"" slotId=""1"" localName=""zzz"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
@@ -1721,8 +1935,8 @@ class Foo<T>
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
@@ -1748,11 +1962,11 @@ class Program
     static void Main(string[] args)
     {
         dynamic yyy;
-        Foo<dynamic, Foo<dynamic,dynamic>> zzz;
+        Goo<dynamic, Goo<dynamic,dynamic>> zzz;
     }
 }
 
-class Foo<T,V>
+class Goo<T,V>
 {
 
 }
@@ -1760,6 +1974,9 @@ class Foo<T,V>
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -1767,8 +1984,8 @@ class Foo<T,V>
           <namespace usingCount=""2"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""yyy"" />
-          <bucket flagCount=""5"" flags=""01011"" slotId=""1"" localName=""zzz"" />
+          <bucket flags=""1"" slotId=""0"" localName=""yyy"" />
+          <bucket flags=""01011"" slotId=""1"" localName=""zzz"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
@@ -1776,8 +1993,8 @@ class Foo<T,V>
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
@@ -1804,11 +2021,11 @@ class Program
     {
         dynamic yyy;
         int dummy = 0;
-        Foo<dynamic, Foo<dynamic,dynamic>> zzz;
+        Goo<dynamic, Goo<dynamic,dynamic>> zzz;
     }
 }
 
-class Foo<T,V>
+class Goo<T,V>
 {
 
 }
@@ -1816,6 +2033,9 @@ class Foo<T,V>
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -1823,8 +2043,8 @@ class Foo<T,V>
           <namespace usingCount=""2"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""yyy"" />
-          <bucket flagCount=""5"" flags=""01011"" slotId=""2"" localName=""zzz"" />
+          <bucket flags=""1"" slotId=""0"" localName=""yyy"" />
+          <bucket flags=""01011"" slotId=""2"" localName=""zzz"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
@@ -1833,9 +2053,9 @@ class Foo<T,V>
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""23"" />
-        <entry offset=""0x3"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x3"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x4"">
         <namespace name=""System"" />
@@ -1873,6 +2093,9 @@ class F<T,V>
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -1880,15 +2103,15 @@ class F<T,V>
           <namespace usingCount=""2"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""63"" flags=""010101010101010101010101010101010101010101010101010101010101011"" slotId=""0"" localName=""zzz"" />
+          <bucket flags=""010101010101010101010101010101010101010101010101010101010101011"" slotId=""0"" localName=""zzz"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""361"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
@@ -1924,6 +2147,9 @@ class F<T,V>
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -1935,8 +2161,8 @@ class F<T,V>
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
@@ -1976,6 +2202,9 @@ class F<T,V>
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -1991,10 +2220,10 @@ class F<T,V>
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""24"" />
-        <entry offset=""0x3"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""24"" />
-        <entry offset=""0x6"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x3"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x6"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x7"">
         <namespace name=""System"" />
@@ -2037,6 +2266,9 @@ class F<T,V>
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -2044,8 +2276,8 @@ class F<T,V>
           <namespace usingCount=""2"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""www"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""2"" localName=""length63length63length63length63length63length63length63length6"" />
+          <bucket flags=""1"" slotId=""1"" localName=""www"" />
+          <bucket flags=""1"" slotId=""2"" localName=""length63length63length63length63length63length63length63length6"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""372"" />
@@ -2055,8 +2287,8 @@ class F<T,V>
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
@@ -2096,6 +2328,9 @@ class F<T>
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -2103,8 +2338,8 @@ class F<T>
           <namespace usingCount=""2"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""64"" flags=""0000000000000000000000000000000000000000000000000000000000000001"" slotId=""0"" localName=""yes"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""2"" localName=""www"" />
+          <bucket flags=""0000000000000000000000000000000000000000000000000000000000000001"" slotId=""0"" localName=""yes"" />
+          <bucket flags=""1"" slotId=""2"" localName=""www"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""208"" />
@@ -2113,8 +2348,8 @@ class F<T>
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
@@ -2152,6 +2387,9 @@ class Program
 ";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
@@ -2159,8 +2397,8 @@ class Program
           <namespace usingCount=""2"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""simple"" />
-          <bucket flagCount=""1"" flags=""1"" slotId=""2"" localName=""inner"" />
+          <bucket flags=""1"" slotId=""0"" localName=""simple"" />
+          <bucket flags=""1"" slotId=""2"" localName=""inner"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
@@ -2170,15 +2408,15 @@ class Program
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""21"" />
-        <entry offset=""0x3"" hidden=""true"" />
-        <entry offset=""0x5"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
-        <entry offset=""0x6"" startLine=""10"" startColumn=""26"" endLine=""10"" endColumn=""27"" />
-        <entry offset=""0x7"" startLine=""9"" startColumn=""33"" endLine=""9"" endColumn=""36"" />
-        <entry offset=""0xb"" startLine=""9"" startColumn=""24"" endLine=""9"" endColumn=""30"" />
-        <entry offset=""0x11"" hidden=""true"" />
-        <entry offset=""0x14"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x3"" hidden=""true"" document=""1"" />
+        <entry offset=""0x5"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x6"" startLine=""10"" startColumn=""26"" endLine=""10"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x7"" startLine=""9"" startColumn=""33"" endLine=""9"" endColumn=""36"" document=""1"" />
+        <entry offset=""0xb"" startLine=""9"" startColumn=""24"" endLine=""9"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x11"" hidden=""true"" document=""1"" />
+        <entry offset=""0x14"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x15"">
         <namespace name=""System"" />
@@ -2196,15 +2434,15 @@ class Program
       <customDebugInfo>
         <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""localInner"" />
+          <bucket flags=""1"" slotId=""0"" localName=""localInner"" />
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <local name=""localInner"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
@@ -2235,6 +2473,9 @@ class C
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
             c.VerifyPdb(@"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method containingType=""C"" name=""Main"">
       <customDebugInfo>
@@ -2243,8 +2484,8 @@ class C
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""34"" />
-        <entry offset=""0x6"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x6"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""C"" name=""GetDynamic"">
@@ -2252,7 +2493,7 @@ class C
         <forward declaringType=""C"" methodName=""Main"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""20"" />
+        <entry offset=""0x0"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""20"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>

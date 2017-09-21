@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     void M()
     {
         [|int|] i;
-        if (Foo(int.TryParse(v, out i)))
+        if (Goo(int.TryParse(v, out i)))
         {
         }
     }
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 {
     void M()
     {
-        if (Foo(int.TryParse(v, out int i)))
+        if (Goo(int.TryParse(v, out int i)))
         {
         }
     }
@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -820,7 +820,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -850,7 +850,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(15994, "https://github.com/dotnet/roslyn/issues/15994")]
@@ -929,7 +929,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(""Foo"");
+        Console.WriteLine(""Goo"");
 
         int [|result|];
         if (int.TryParse(""12"", out result))
@@ -944,14 +944,14 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(""Foo"");
+        Console.WriteLine(""Goo"");
 
         if (int.TryParse(""12"", out int result))
         {
 
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(15994, "https://github.com/dotnet/roslyn/issues/15994")]
@@ -965,13 +965,13 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(""Foo"");
+        Console.WriteLine(""Goo"");
 
 
 
 
 
-        // Foo
+        // Goo
 
 
 
@@ -988,13 +988,13 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(""Foo"");
+        Console.WriteLine(""Goo"");
 
 
 
 
 
-        // Foo
+        // Goo
 
 
 
@@ -1003,7 +1003,7 @@ class Program
 
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(15336, "https://github.com/dotnet/roslyn/issues/15336")]
@@ -1075,7 +1075,7 @@ using System;
 
 class C
 {
-    void Foo(string x)
+    void Goo(string x)
     {
         object [|s|] = null; 
         if (x != null || TryBaz(out s))
@@ -1101,7 +1101,7 @@ using System;
 
 class C
 {
-    void Foo(string x)
+    void Goo(string x)
     {
         object [|s|] = null; 
         if (x != null && TryBaz(out s))
@@ -1120,11 +1120,11 @@ using System;
 
 class C
 {
-    void Foo(string x)
+    void Goo(string x)
     {
         if (x != null && TryBaz(out object s))
         {
-            Console.WriteLine(s); 
+            Console.WriteLine(s);
         }
     }
 
@@ -1309,6 +1309,138 @@ class C
 }");
         }
 
+        [WorkItem(18076, "https://github.com/dotnet/roslyn/issues/18076")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestNotInUsing()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        using (GetDisposableAndValue(out token))
+        {
+        }
+
+        Console.WriteLine(token);
+    }
+
+    private static IDisposable GetDisposableAndValue(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(18076, "https://github.com/dotnet/roslyn/issues/18076")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestNotInExceptionFilter()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        try
+        {
+        }
+        catch when (GetValue(out token))
+        {
+        }
+
+        Console.WriteLine(token);
+    }
+
+    private static bool GetValue(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(18076, "https://github.com/dotnet/roslyn/issues/18076")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestNotInShortCircuitExpression1()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|] = null;
+        bool condition = false && GetValue(out token);
+        Console.WriteLine(token);
+    }
+
+    private static bool GetValue(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(18076, "https://github.com/dotnet/roslyn/issues/18076")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestNotInShortCircuitExpression2()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        bool condition = false && GetValue(out token);
+        Console.WriteLine(token);
+    }
+
+    private static bool GetValue(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(18076, "https://github.com/dotnet/roslyn/issues/18076")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestNotInFixed()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class C
+{
+    static unsafe void Main(string[] args)
+    {
+        string [|token|];
+        fixed (int* p = GetValue(out token))
+        {
+        }
+
+        Console.WriteLine(token);
+    }
+
+    private static int[] GetValue(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
         [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task TestInLoops1()
@@ -1396,8 +1528,7 @@ class C
         }
 
         [WorkItem(17624, "https://github.com/dotnet/roslyn/issues/17624")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17635"),
-         Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task TestInLoops3()
         {
             await TestInRegularAndScript1Async(
@@ -1472,12 +1603,220 @@ class C
 {
     static void Main(string[] args)
     {
-        for ( ; TryExtractTokenFromEmail(out string token); )
+        for (; TryExtractTokenFromEmail(out string token);)
         {
         }
     }
 
     private static bool TryExtractTokenFromEmail(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(18076, "https://github.com/dotnet/roslyn/issues/18076")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestInUsing()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        using (GetDisposableAndValue(out token))
+        {
+        }
+    }
+
+    private static IDisposable GetDisposableAndValue(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        using (GetDisposableAndValue(out string token))
+        {
+        }
+    }
+
+    private static IDisposable GetDisposableAndValue(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(18076, "https://github.com/dotnet/roslyn/issues/18076")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestInExceptionFilter()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        try
+        {
+        }
+        catch when (GetValue(out token))
+        {
+        }
+    }
+
+    private static bool GetValue(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        try
+        {
+        }
+        catch when (GetValue(out string token))
+        {
+        }
+    }
+
+    private static bool GetValue(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(18076, "https://github.com/dotnet/roslyn/issues/18076")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestInShortCircuitExpression1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|] = null;
+        bool condition = false && GetValue(out token);
+    }
+
+    private static bool GetValue(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        bool condition = false && GetValue(out string token);
+    }
+
+    private static bool GetValue(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(18076, "https://github.com/dotnet/roslyn/issues/18076")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestInShortCircuitExpression2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        bool condition = false && GetValue(out token);
+    }
+
+    private static bool GetValue(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        bool condition = false && GetValue(out string token);
+    }
+
+    private static bool GetValue(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(18076, "https://github.com/dotnet/roslyn/issues/18076")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestInFixed()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        string [|token|];
+        fixed (int* p = GetValue(out token))
+        {
+        }
+    }
+
+    private static int[] GetValue(out string token)
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        fixed (int* p = GetValue(out string token))
+        {
+        }
+    }
+
+    private static int[] GetValue(out string token)
     {
         throw new NotImplementedException();
     }
@@ -1542,7 +1881,7 @@ class Demo
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string a; string [|b|];
         Method(out a, out b);
@@ -1551,12 +1890,12 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string a; 
         Method(out a, out string b);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(16676, "https://github.com/dotnet/roslyn/issues/16676")]
@@ -1567,7 +1906,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string a; /*leading*/ string [|b|]; // trailing
         Method(out a, out b);
@@ -1576,12 +1915,12 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string a; /*leading*/  // trailing
         Method(out a, out string b);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(16676, "https://github.com/dotnet/roslyn/issues/16676")]
@@ -1592,7 +1931,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string a;
         /*leading*/ string [|b|]; // trailing
@@ -1602,13 +1941,71 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string a;
         /*leading*/ // trailing
         Method(out a, out string b);
     }
-}", ignoreTrivia: false);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestMissingOnUnderscore()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        [|int|] _;
+        if (N(out _)
+        {
+            Console.WriteLine(_);
+        }
+    }
+}");
+        }
+
+        [WorkItem(18668, "https://github.com/dotnet/roslyn/issues/18668")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestDefiniteAssignmentIssueWithVar()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    static void M(bool condition)
+    {
+        [|var|] x = 1;
+        var result = condition && int.TryParse(""2"", out x);
+        Console.WriteLine(x);
+    }
+}");
+        }
+
+        [WorkItem(18668, "https://github.com/dotnet/roslyn/issues/18668")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task TestDefiniteAssignmentIssueWithNonVar()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    static void M(bool condition)
+    {
+        [|int|] x = 1;
+        var result = condition && int.TryParse(""2"", out x);
+        Console.WriteLine(x);
+    }
+}");
         }
     }
 }

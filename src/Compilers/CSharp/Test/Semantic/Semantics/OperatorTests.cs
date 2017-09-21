@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using static Microsoft.CodeAnalysis.Test.Extensions.SymbolExtensions;
 using Xunit;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -30,12 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         AllProperties = FilePath | Visibility
     }
     class C {
-         public void Foo(){
+         public void Goo(){
             var x = TestEnum.FilePath | TestEnum.Visibility;
         }
     }
 ";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -54,6 +55,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "System.Int32 System.Int32.op_BitwiseOr(System.Int32 left, System.Int32 right)");
             Assert.Equal(insideMethodBody.Symbol.ToTestDisplayString(), 
                 "TestEnum TestEnum.op_BitwiseOr(TestEnum left, TestEnum right)");
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void EnumBinaryOps_IOperation()
+        {
+            string source = @"
+using System;
+
+[Flags]
+internal enum TestEnum
+{
+    None,
+    Tags,
+    FilePath,
+    Capabilities,
+    Visibility,
+    AllProperties = FilePath | Visibility
+}
+class C
+{
+    public void Goo()
+    {
+        var x = /*<bind>*/TestEnum.FilePath | TestEnum.Visibility/*</bind>*/;
+        Console.Write(x);
+    }
+}
+";
+            string expectedOperationTree = @"
+IBinaryOperatorExpression (BinaryOperatorKind.Or) (OperationKind.BinaryOperatorExpression, Type: TestEnum, Constant: 6) (Syntax: 'TestEnum.Fi ... .Visibility')
+  Left: IFieldReferenceExpression: TestEnum.FilePath (Static) (OperationKind.FieldReferenceExpression, Type: TestEnum, Constant: 2) (Syntax: 'TestEnum.FilePath')
+      Instance Receiver: null
+  Right: IFieldReferenceExpression: TestEnum.Visibility (Static) (OperationKind.FieldReferenceExpression, Type: TestEnum, Constant: 4) (Syntax: 'TestEnum.Visibility')
+      Instance Receiver: null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(543895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543895")]
@@ -468,6 +507,72 @@ class C
             CompileAndVerify(source: source, expectedOutput: output);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestOperatorTrue_IOperation()
+        {
+            string source = @"
+using System;
+struct S
+{
+    private int x;
+    public S(int x) { this.x = x; }
+    public static bool operator true(S s) { return s.x != 0; }
+    public static bool operator false(S s) { return s.x == 0; }
+}
+
+class C
+{
+    static void Main(S zero, S one)
+    /*<bind>*/{
+        if (zero)
+            Console.Write('a');
+        else
+            Console.Write('b');
+
+        Console.Write(one ? 'g' : 'h');
+    }/*</bind>*/
+}
+";
+            string expectedOperationTree = @"
+IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+  IIfStatement (OperationKind.IfStatement) (Syntax: 'if (zero) ... Write('b');')
+    Condition: IUnaryOperatorExpression (UnaryOperatorKind.True) (OperatorMethod: System.Boolean S.op_True(S s)) (OperationKind.UnaryOperatorExpression, Type: System.Boolean) (Syntax: 'zero')
+        Operand: IParameterReferenceExpression: zero (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'zero')
+    IfTrue: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write('a');')
+        Expression: IInvocationExpression (void System.Console.Write(System.Char value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write('a')')
+            Instance Receiver: null
+            Arguments(1):
+                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: ''a'')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Char, Constant: a) (Syntax: ''a'')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    IfFalse: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write('b');')
+        Expression: IInvocationExpression (void System.Console.Write(System.Char value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write('b')')
+            Instance Receiver: null
+            Arguments(1):
+                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: ''b'')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Char, Constant: b) (Syntax: ''b'')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... 'g' : 'h');')
+    Expression: IInvocationExpression (void System.Console.Write(System.Char value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ...  'g' : 'h')')
+        Instance Receiver: null
+        Arguments(1):
+            IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'one ? 'g' : 'h'')
+              IConditionalExpression (OperationKind.ConditionalExpression, Type: System.Char) (Syntax: 'one ? 'g' : 'h'')
+                Condition: IUnaryOperatorExpression (UnaryOperatorKind.True) (OperatorMethod: System.Boolean S.op_True(S s)) (OperationKind.UnaryOperatorExpression, Type: System.Boolean) (Syntax: 'one')
+                    Operand: IParameterReferenceExpression: one (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'one')
+                WhenTrue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Char, Constant: g) (Syntax: ''g'')
+                WhenFalse: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Char, Constant: h) (Syntax: ''h'')
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
         [Fact]
         public void TestUnaryOperatorOverloading()
         {
@@ -514,6 +619,400 @@ class C
             string output = "(+(~(!(-a))))aa(a+1)b(b+1)(b+1)cc(c-1)d(d-1)(d-1)";
 
             CompileAndVerify(source: source, expectedOutput: output);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestUnaryOperatorOverloading_IOperation()
+        {
+            string source = @"
+using System;
+struct S
+{
+    private string str;
+    public S(char chr) { this.str = chr.ToString(); }
+    public S(string str) { this.str = str; }
+    public static S operator +(S x) { return new S('(' + ('+' + x.str) + ')'); }
+    public static S operator -(S x) { return new S('(' + ('-' + x.str) + ')'); }
+    public static S operator ~(S x) { return new S('(' + ('~' + x.str) + ')'); }
+    public static S operator !(S x) { return new S('(' + ('!' + x.str) + ')'); }
+    public static S operator ++(S x) { return new S('(' + x.str + '+' + '1' + ')'); }
+    public static S operator --(S x) { return new S('(' + x.str + '-' + '1' + ')'); }
+    public override string ToString() { return this.str; }
+}
+
+class C
+{
+    static void Method(S a)
+    /*<bind>*/{
+        Console.Write(+a);
+        Console.Write(-a);
+        Console.Write(~a);
+        Console.Write(!a);
+        Console.Write(+~!-a);
+    }/*</bind>*/
+}
+";
+            string expectedOperationTree = @"
+IBlockStatement (5 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(+a);')
+    Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(+a)')
+        Instance Receiver: null
+        Arguments(1):
+            IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '+a')
+              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '+a')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperatorMethod: S S.op_UnaryPlus(S x)) (OperationKind.UnaryOperatorExpression, Type: S) (Syntax: '+a')
+                    Operand: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(-a);')
+    Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(-a)')
+        Instance Receiver: null
+        Arguments(1):
+            IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '-a')
+              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '-a')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperatorMethod: S S.op_UnaryNegation(S x)) (OperationKind.UnaryOperatorExpression, Type: S) (Syntax: '-a')
+                    Operand: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(~a);')
+    Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(~a)')
+        Instance Receiver: null
+        Arguments(1):
+            IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '~a')
+              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '~a')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperatorMethod: S S.op_OnesComplement(S x)) (OperationKind.UnaryOperatorExpression, Type: S) (Syntax: '~a')
+                    Operand: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(!a);')
+    Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(!a)')
+        Instance Receiver: null
+        Arguments(1):
+            IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '!a')
+              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '!a')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: IUnaryOperatorExpression (UnaryOperatorKind.Not) (OperatorMethod: S S.op_LogicalNot(S x)) (OperationKind.UnaryOperatorExpression, Type: S) (Syntax: '!a')
+                    Operand: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(+~!-a);')
+    Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(+~!-a)')
+        Instance Receiver: null
+        Arguments(1):
+            IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '+~!-a')
+              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '+~!-a')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperatorMethod: S S.op_UnaryPlus(S x)) (OperationKind.UnaryOperatorExpression, Type: S) (Syntax: '+~!-a')
+                    Operand: IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperatorMethod: S S.op_OnesComplement(S x)) (OperationKind.UnaryOperatorExpression, Type: S) (Syntax: '~!-a')
+                        Operand: IUnaryOperatorExpression (UnaryOperatorKind.Not) (OperatorMethod: S S.op_LogicalNot(S x)) (OperationKind.UnaryOperatorExpression, Type: S) (Syntax: '!-a')
+                            Operand: IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperatorMethod: S S.op_UnaryNegation(S x)) (OperationKind.UnaryOperatorExpression, Type: S) (Syntax: '-a')
+                                Operand: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIncrementOperatorOverloading_IOperation()
+        {
+            string source = @"
+using System;
+struct S
+{
+    private string str;
+    public S(char chr) { this.str = chr.ToString(); }
+    public S(string str) { this.str = str; }
+    public static S operator +(S x) { return new S('(' + ('+' + x.str) + ')'); }
+    public static S operator -(S x) { return new S('(' + ('-' + x.str) + ')'); }
+    public static S operator ~(S x) { return new S('(' + ('~' + x.str) + ')'); }
+    public static S operator !(S x) { return new S('(' + ('!' + x.str) + ')'); }
+    public static S operator ++(S x) { return new S('(' + x.str + '+' + '1' + ')'); }
+    public static S operator --(S x) { return new S('(' + x.str + '-' + '1' + ')'); }
+    public override string ToString() { return this.str; }
+}
+
+class C
+{
+    static void Method(S a)
+    /*<bind>*/{
+        Console.Write(++a);
+        Console.Write(a++);
+        Console.Write(--a);
+        Console.Write(a--);
+    }/*</bind>*/
+}
+";
+            string expectedOperationTree = @"
+IBlockStatement (4 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(++a);')
+    Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(++a)')
+        Instance Receiver: null
+        Arguments(1):
+            IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '++a')
+              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '++a')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: IIncrementOrDecrementExpression (Prefix) (OperatorMethod: S S.op_Increment(S x)) (OperationKind.IncrementExpression, Type: S) (Syntax: '++a')
+                    Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(a++);')
+    Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(a++)')
+        Instance Receiver: null
+        Arguments(1):
+            IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'a++')
+              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'a++')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: IIncrementOrDecrementExpression (Postfix) (OperatorMethod: S S.op_Increment(S x)) (OperationKind.IncrementExpression, Type: S) (Syntax: 'a++')
+                    Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(--a);')
+    Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(--a)')
+        Instance Receiver: null
+        Arguments(1):
+            IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '--a')
+              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '--a')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: IIncrementOrDecrementExpression (Prefix) (OperatorMethod: S S.op_Decrement(S x)) (OperationKind.DecrementExpression, Type: S) (Syntax: '--a')
+                    Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(a--);')
+    Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(a--)')
+        Instance Receiver: null
+        Arguments(1):
+            IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'a--')
+              IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'a--')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: IIncrementOrDecrementExpression (Postfix) (OperatorMethod: S S.op_Decrement(S x)) (OperationKind.DecrementExpression, Type: S) (Syntax: 'a--')
+                    Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIncrementOperatorOverloading_Checked_IOperation()
+        {
+            string source = @"
+using System;
+struct S
+{
+    private string str;
+    public S(char chr) { this.str = chr.ToString(); }
+    public S(string str) { this.str = str; }
+    public static S operator +(S x) { return new S('(' + ('+' + x.str) + ')'); }
+    public static S operator -(S x) { return new S('(' + ('-' + x.str) + ')'); }
+    public static S operator ~(S x) { return new S('(' + ('~' + x.str) + ')'); }
+    public static S operator !(S x) { return new S('(' + ('!' + x.str) + ')'); }
+    public static S operator ++(S x) { return new S('(' + x.str + '+' + '1' + ')'); }
+    public static S operator --(S x) { return new S('(' + x.str + '-' + '1' + ')'); }
+    public override string ToString() { return this.str; }
+}
+
+class C
+{
+    static void Method(S a)
+    /*<bind>*/{
+        checked
+        {
+            Console.Write(++a);
+            Console.Write(a++);
+            Console.Write(--a);
+            Console.Write(a--);
+        }
+    }/*</bind>*/
+}
+";
+            string expectedOperationTree = @"
+IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+  IBlockStatement (4 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(++a);')
+      Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(++a)')
+          Instance Receiver: null
+          Arguments(1):
+              IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '++a')
+                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '++a')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand: IIncrementOrDecrementExpression (Prefix) (OperatorMethod: S S.op_Increment(S x)) (OperationKind.IncrementExpression, Type: S) (Syntax: '++a')
+                      Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(a++);')
+      Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(a++)')
+          Instance Receiver: null
+          Arguments(1):
+              IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'a++')
+                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'a++')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand: IIncrementOrDecrementExpression (Postfix) (OperatorMethod: S S.op_Increment(S x)) (OperationKind.IncrementExpression, Type: S) (Syntax: 'a++')
+                      Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(--a);')
+      Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(--a)')
+          Instance Receiver: null
+          Arguments(1):
+              IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '--a')
+                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '--a')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand: IIncrementOrDecrementExpression (Prefix) (OperatorMethod: S S.op_Decrement(S x)) (OperationKind.DecrementExpression, Type: S) (Syntax: '--a')
+                      Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(a--);')
+      Expression: IInvocationExpression (void System.Console.Write(System.Object value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(a--)')
+          Instance Receiver: null
+          Arguments(1):
+              IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'a--')
+                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'a--')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand: IIncrementOrDecrementExpression (Postfix) (OperatorMethod: S S.op_Decrement(S x)) (OperationKind.DecrementExpression, Type: S) (Syntax: 'a--')
+                      Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIncrementOperator_IOperation()
+        {
+            string source = @"
+using System;
+class C
+{
+    static void Method(int a)
+    /*<bind>*/{
+        Console.Write(++a);
+        Console.Write(a++);
+        Console.Write(--a);
+        Console.Write(a--);
+    }/*</bind>*/
+}
+";
+            string expectedOperationTree = @"
+IBlockStatement (4 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(++a);')
+    Expression: IInvocationExpression (void System.Console.Write(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(++a)')
+        Instance Receiver: null
+        Arguments(1):
+            IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '++a')
+              IIncrementOrDecrementExpression (Prefix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++a')
+                Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(a++);')
+    Expression: IInvocationExpression (void System.Console.Write(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(a++)')
+        Instance Receiver: null
+        Arguments(1):
+            IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'a++')
+              IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'a++')
+                Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(--a);')
+    Expression: IInvocationExpression (void System.Console.Write(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(--a)')
+        Instance Receiver: null
+        Arguments(1):
+            IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '--a')
+              IIncrementOrDecrementExpression (Prefix) (OperationKind.DecrementExpression, Type: System.Int32) (Syntax: '--a')
+                Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(a--);')
+    Expression: IInvocationExpression (void System.Console.Write(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(a--)')
+        Instance Receiver: null
+        Arguments(1):
+            IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'a--')
+              IIncrementOrDecrementExpression (Postfix) (OperationKind.DecrementExpression, Type: System.Int32) (Syntax: 'a--')
+                Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestIncrementOperator_Checked_IOperation()
+        {
+            string source = @"
+using System;
+class C
+{
+    static void Method(int a)
+    /*<bind>*/{
+        checked
+        {
+            Console.Write(++a);
+            Console.Write(a++);
+            Console.Write(--a);
+            Console.Write(a--);
+        }
+    }/*</bind>*/
+}
+";
+            string expectedOperationTree = @"
+IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+  IBlockStatement (4 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(++a);')
+      Expression: IInvocationExpression (void System.Console.Write(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(++a)')
+          Instance Receiver: null
+          Arguments(1):
+              IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '++a')
+                IIncrementOrDecrementExpression (Prefix, Checked) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++a')
+                  Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(a++);')
+      Expression: IInvocationExpression (void System.Console.Write(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(a++)')
+          Instance Receiver: null
+          Arguments(1):
+              IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'a++')
+                IIncrementOrDecrementExpression (Postfix, Checked) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'a++')
+                  Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(--a);')
+      Expression: IInvocationExpression (void System.Console.Write(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(--a)')
+          Instance Receiver: null
+          Arguments(1):
+              IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '--a')
+                IIncrementOrDecrementExpression (Prefix, Checked) (OperationKind.DecrementExpression, Type: System.Int32) (Syntax: '--a')
+                  Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Write(a--);')
+      Expression: IInvocationExpression (void System.Console.Write(System.Int32 value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Write(a--)')
+          Instance Receiver: null
+          Arguments(1):
+              IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'a--')
+                IIncrementOrDecrementExpression (Postfix, Checked) (OperationKind.DecrementExpression, Type: System.Int32) (Syntax: 'a--')
+                  Target: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -576,31 +1075,148 @@ class C
             CompileAndVerify(source: source, expectedOutput: output);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestBinaryOperatorOverloading_IOperation()
+        {
+            string source = @"
+using System;
+struct S
+{
+    private string str;
+    public S(char chr) { this.str = chr.ToString(); }
+    public S(string str) { this.str = str; }
+    public static S operator +(S x, S y) { return new S('(' + x.str + '+' + y.str + ')'); }
+    public static S operator -(S x, S y) { return new S('(' + x.str + '-' + y.str + ')'); }
+    public static S operator %(S x, S y) { return new S('(' + x.str + '%' + y.str + ')'); }
+    public static S operator /(S x, S y) { return new S('(' + x.str + '/' + y.str + ')'); }
+    public static S operator *(S x, S y) { return new S('(' + x.str + '*' + y.str + ')'); }
+    public static S operator &(S x, S y) { return new S('(' + x.str + '&' + y.str + ')'); }
+    public static S operator |(S x, S y) { return new S('(' + x.str + '|' + y.str + ')'); }
+    public static S operator ^(S x, S y) { return new S('(' + x.str + '^' + y.str + ')'); }
+    public static S operator <<(S x, int y) { return new S('(' + x.str + '<' + '<' + y.ToString() + ')'); }
+    public static S operator >>(S x, int y) { return new S('(' + x.str + '>' + '>' + y.ToString() + ')'); }
+    public static S operator ==(S x, S y) { return new S('(' + x.str + '=' + '=' + y.str + ')'); }
+    public static S operator !=(S x, S y) { return new S('(' + x.str + '!' + '=' + y.str + ')'); }
+    public static S operator >=(S x, S y) { return new S('(' + x.str + '>' + '=' + y.str + ')'); }
+    public static S operator <=(S x, S y) { return new S('(' + x.str + '<' + '=' + y.str + ')'); }
+    public static S operator >(S x, S y) { return new S('(' + x.str + '>' + y.str + ')'); }
+    public static S operator <(S x, S y) { return new S('(' + x.str + '<' + y.str + ')'); }
+    public override string ToString() { return this.str; }
+}
+
+class C
+{
+    static void Main()
+    {
+        S a = new S('a');
+        S b = new S('b');
+        S c = new S('c');
+        S d = new S('d');
+        S e = new S('e');
+        S f = new S('f');
+        S g = new S('g');
+        S h = new S('h');
+        S i = new S('i');
+        S j = new S('j');
+        S k = new S('k');
+        S l = new S('l');
+        S m = new S('m');
+        S n = new S('n');
+        S o = new S('o');
+        S p = new S('p');
+
+        Console.WriteLine(
+            /*<bind>*/(a >> 10) + (b << 20) - c * d / e % f & g |
+            h ^ i == j != k < l > m <= o >= p/*</bind>*/);
+    }
+}
+";
+            string expectedOperationTree = @"
+IBinaryOperatorExpression (BinaryOperatorKind.Or) (OperatorMethod: S S.op_BitwiseOr(S x, S y)) (OperationKind.BinaryOperatorExpression, Type: S) (Syntax: '(a >> 10) + ... m <= o >= p')
+  Left: IBinaryOperatorExpression (BinaryOperatorKind.And) (OperatorMethod: S S.op_BitwiseAnd(S x, S y)) (OperationKind.BinaryOperatorExpression, Type: S) (Syntax: '(a >> 10) + ... / e % f & g')
+      Left: IBinaryOperatorExpression (BinaryOperatorKind.Subtract) (OperatorMethod: S S.op_Subtraction(S x, S y)) (OperationKind.BinaryOperatorExpression, Type: S) (Syntax: '(a >> 10) + ... * d / e % f')
+          Left: IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperatorMethod: S S.op_Addition(S x, S y)) (OperationKind.BinaryOperatorExpression, Type: S) (Syntax: '(a >> 10) + (b << 20)')
+              Left: IBinaryOperatorExpression (BinaryOperatorKind.RightShift) (OperatorMethod: S S.op_RightShift(S x, System.Int32 y)) (OperationKind.BinaryOperatorExpression, Type: S) (Syntax: 'a >> 10')
+                  Left: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: S) (Syntax: 'a')
+                  Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+              Right: IBinaryOperatorExpression (BinaryOperatorKind.LeftShift) (OperatorMethod: S S.op_LeftShift(S x, System.Int32 y)) (OperationKind.BinaryOperatorExpression, Type: S) (Syntax: 'b << 20')
+                  Left: ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: S) (Syntax: 'b')
+                  Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+          Right: IBinaryOperatorExpression (BinaryOperatorKind.Remainder) (OperatorMethod: S S.op_Modulus(S x, S y)) (OperationKind.BinaryOperatorExpression, Type: S) (Syntax: 'c * d / e % f')
+              Left: IBinaryOperatorExpression (BinaryOperatorKind.Divide) (OperatorMethod: S S.op_Division(S x, S y)) (OperationKind.BinaryOperatorExpression, Type: S) (Syntax: 'c * d / e')
+                  Left: IBinaryOperatorExpression (BinaryOperatorKind.Multiply) (OperatorMethod: S S.op_Multiply(S x, S y)) (OperationKind.BinaryOperatorExpression, Type: S) (Syntax: 'c * d')
+                      Left: ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: S) (Syntax: 'c')
+                      Right: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: S) (Syntax: 'd')
+                  Right: ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: S) (Syntax: 'e')
+              Right: ILocalReferenceExpression: f (OperationKind.LocalReferenceExpression, Type: S) (Syntax: 'f')
+      Right: ILocalReferenceExpression: g (OperationKind.LocalReferenceExpression, Type: S) (Syntax: 'g')
+  Right: IBinaryOperatorExpression (BinaryOperatorKind.ExclusiveOr) (OperatorMethod: S S.op_ExclusiveOr(S x, S y)) (OperationKind.BinaryOperatorExpression, Type: S) (Syntax: 'h ^ i == j  ... m <= o >= p')
+      Left: ILocalReferenceExpression: h (OperationKind.LocalReferenceExpression, Type: S) (Syntax: 'h')
+      Right: IBinaryOperatorExpression (BinaryOperatorKind.NotEquals) (OperatorMethod: S S.op_Inequality(S x, S y)) (OperationKind.BinaryOperatorExpression, Type: S) (Syntax: 'i == j != k ... m <= o >= p')
+          Left: IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperatorMethod: S S.op_Equality(S x, S y)) (OperationKind.BinaryOperatorExpression, Type: S) (Syntax: 'i == j')
+              Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: S) (Syntax: 'i')
+              Right: ILocalReferenceExpression: j (OperationKind.LocalReferenceExpression, Type: S) (Syntax: 'j')
+          Right: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThanOrEqual) (OperatorMethod: S S.op_GreaterThanOrEqual(S x, S y)) (OperationKind.BinaryOperatorExpression, Type: S) (Syntax: 'k < l > m <= o >= p')
+              Left: IBinaryOperatorExpression (BinaryOperatorKind.LessThanOrEqual) (OperatorMethod: S S.op_LessThanOrEqual(S x, S y)) (OperationKind.BinaryOperatorExpression, Type: S) (Syntax: 'k < l > m <= o')
+                  Left: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperatorMethod: S S.op_GreaterThan(S x, S y)) (OperationKind.BinaryOperatorExpression, Type: S) (Syntax: 'k < l > m')
+                      Left: IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperatorMethod: S S.op_LessThan(S x, S y)) (OperationKind.BinaryOperatorExpression, Type: S) (Syntax: 'k < l')
+                          Left: ILocalReferenceExpression: k (OperationKind.LocalReferenceExpression, Type: S) (Syntax: 'k')
+                          Right: ILocalReferenceExpression: l (OperationKind.LocalReferenceExpression, Type: S) (Syntax: 'l')
+                      Right: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: S) (Syntax: 'm')
+                  Right: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: S) (Syntax: 'o')
+              Right: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: S) (Syntax: 'p')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0660: 'S' defines operator == or operator != but does not override Object.Equals(object o)
+                // struct S
+                Diagnostic(ErrorCode.WRN_EqualityOpWithoutEquals, "S").WithArguments("S").WithLocation(3, 8),
+                // CS0661: 'S' defines operator == or operator != but does not override Object.GetHashCode()
+                // struct S
+                Diagnostic(ErrorCode.WRN_EqualityOpWithoutGetHashCode, "S").WithArguments("S").WithLocation(3, 8)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
         [Fact, WorkItem(657084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/657084")]
         public void DuplicateOperatorInSubclass()
         {
             string source = @"
-public class B 
+class B
 {
     public static B operator +(C c, B b) { return null; }
 }
- 
-public class C : B 
+
+class C : B
 {
     public static B operator +(C c, B b) { return null; }
 }
- 
-public class Test 
+
+class Test
 {
-    public static void Main() 
+    public static void Main()
     {
-        B b = new C() + new B(); 
+        B b = /*<bind>*/new C() + new B()/*</bind>*/;
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (16,15): error CS0034: Operator '+' is ambiguous on operands of type 'C' and 'B'
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C() + new B()").WithArguments("+", "C", "B"));
+            string expectedOperationTree = @"
+IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'new C() + new B()')
+  Left: IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C()')
+      Arguments(0)
+      Initializer: null
+  Right: IObjectCreationExpression (Constructor: B..ctor()) (OperationKind.ObjectCreationExpression, Type: B, IsInvalid) (Syntax: 'new B()')
+      Arguments(0)
+      Initializer: null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0034: Operator '+' is ambiguous on operands of type 'C' and 'B'
+                //         B b = /*<bind>*/new C() + new B()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C() + new B()").WithArguments("+", "C", "B").WithLocation(16, 25)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(624274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624274")]
@@ -728,52 +1344,72 @@ class C<T>
         public void TestBinaryOperatorOverloading_UserDefined_Dynamic_Unambiguous()
         {
             string source = @"
-public class D<T>
+class D<T>
 {
-	public class C
-	{
-		public static int operator +(C x, C y) { return 1; }
-	}
+    public class C
+    {
+        public static int operator +(C x, C y) { return 1; }
+    }
 }
 
 class X
 {
-	static void Main()
-	{
-		var x = new D<object>.C();
-		var y = new D<dynamic>.C();
-		var z = x + y;
-	}
-}";
+    static void Main()
+    {
+        var x = new D<object>.C();
+        var y = new D<dynamic>.C();
+        var z = /*<bind>*/x + y/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 D<System.Object>.C.op_Addition(D<System.Object>.C x, D<System.Object>.C y)) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y')
+  Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: D<System.Object>.C) (Syntax: 'x')
+  Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: D<System.Object>.C) (Syntax: 'y')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: D<dynamic>.C) (Syntax: 'y')
+";
             // Dev11 reports error CS0121: The call is ambiguous between the following methods or properties: 
             // 'D<object>.C.operator+(D<object>.C, D<object>.C)' and 'D<dynamic>.C.operator +(D<dynamic>.C, D<dynamic>.C)'
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
         public void TestBinaryOperatorOverloading_UserDefined_Dynamic_Ambiguous()
         {
             string source = @"
-public class D<T>
+class D<T>
 {
-	public class C
-	{
-		public static C operator +(C x, C y) { return null; }
-	}
+    public class C
+    {
+        public static C operator +(C x, C y) { return null; }
+    }
 }
 
 class X
 {
-	static void Main()
-	{
-		var x = new D<object>.C();
-		var y = new D<dynamic>.C();
-		var z = x + y;
-	}
-}";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
-                // (16,11): error CS0034: Operator '+' is ambiguous on operands of type 'D<object>.C' and 'D<dynamic>.C'
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x + y").WithArguments("+", "D<object>.C", "D<dynamic>.C"));
+    static void Main()
+    {
+        var x = new D<object>.C();
+        var y = new D<dynamic>.C();
+        var z = /*<bind>*/x + y/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'x + y')
+  Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: D<System.Object>.C, IsInvalid) (Syntax: 'x')
+  Right: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: D<dynamic>.C, IsInvalid) (Syntax: 'y')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0034: Operator '+' is ambiguous on operands of type 'D<object>.C' and 'D<dynamic>.C'
+                //         var z = /*<bind>*/x + y/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x + y").WithArguments("+", "D<object>.C", "D<dynamic>.C").WithLocation(16, 27)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -838,18 +1474,18 @@ class Program
     static void Main()
     {
         Action<object> a = null;
-        Foo(c => c == a);
+        Goo(c => c == a);
     }
  
-    static void Foo(Func<Action<object>, IComparable> x) { }
-    static void Foo(Func<Action<dynamic>, IConvertible> x) { }
+    static void Goo(Func<Action<object>, IComparable> x) { }
+    static void Goo(Func<Action<dynamic>, IConvertible> x) { }
 }
 ";
-            // Dev11 considers Action<object> == Action<dynamic> ambiguous and thus chooses Foo(Func<Action<object>, IComparable>) overload.
+            // Dev11 considers Action<object> == Action<dynamic> ambiguous and thus chooses Goo(Func<Action<object>, IComparable>) overload.
 
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
-                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Foo(System.Func<System.Action<object>, System.IComparable>)' and 'Program.Foo(System.Func<System.Action<dynamic>, System.IConvertible>)'
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("Program.Foo(System.Func<System.Action<object>, System.IComparable>)", "Program.Foo(System.Func<System.Action<dynamic>, System.IConvertible>)"));
+                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Goo(System.Func<System.Action<object>, System.IComparable>)' and 'Program.Goo(System.Func<System.Action<dynamic>, System.IConvertible>)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("Program.Goo(System.Func<System.Action<object>, System.IComparable>)", "Program.Goo(System.Func<System.Action<dynamic>, System.IConvertible>)"));
         }
 
         [Fact]
@@ -976,6 +1612,150 @@ class C
             TestOperatorKinds(source);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestOverloadResolutionTiebreakers_IOperation()
+        {
+            string source = @"
+using System;
+struct S
+{
+    public static bool operator ==(S x, S y) { return true; }
+    public static bool operator !=(S x, S y) { return false; }
+    public static bool operator ==(S? x, S? y) { return true; }
+    public static bool operator !=(S? x, S? y) { return false; }
+    public override bool Equals(object s) { return true; }
+    public override int GetHashCode() { return 0; }
+    public override string ToString() { return this.str; }
+}
+
+class X<T>
+{
+    public static int operator +(X<T> x, int y) { return 0; }
+    public static int operator +(X<T> x, T y) { return 0; }
+}
+
+struct Q<U> where U : struct
+{
+    public static int operator +(Q<U> x, int y) { return 0; }
+    public static int? operator +(Q<U>? x, U? y) { return 1; }
+}
+
+
+class C
+{
+    static void M(S s1, S s2, S? s3, S? s4, X<int> xint)
+    /*<bind>*/{
+        int x = xint + 123; //-UserDefinedAddition
+
+        // In this case the native compiler and the spec disagree. Roslyn implements the spec.
+        // The tiebreaker is supposed to check for *specificity* first, and then *liftedness*.
+        // The native compiler eliminates the lifted operator even if it is more specific:
+
+        int? q = new Q<int>?() + new int?(); //-LiftedUserDefinedAddition
+
+        // All of these go to a user-defined equality operator;
+        // the lifted form is always worse than the unlifted form,
+        // and the user-defined form is always better than turning
+        // '== null' into a call to HasValue().
+        bool[] b =
+        {
+            s1 == s2,      //-UserDefinedEqual
+            s1 == s3,      //-UserDefinedEqual
+            s1 == null,    //-UserDefinedEqual
+            s3 == s1,      //-UserDefinedEqual
+            s3 == s4,      //-UserDefinedEqual
+            s3 == null,    //-UserDefinedEqual
+            null == s1,    //-UserDefinedEqual
+            null == s3     //-UserDefinedEqual
+        };
+
+
+    }/*</bind>*/
+}
+";
+            string expectedOperationTree = @"
+IBlockStatement (3 statements, 3 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+  Locals: Local_1: System.Int32 x
+    Local_2: System.Int32? q
+    Local_3: System.Boolean[] b
+  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int x = xint + 123;')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x = xint + 123')
+      Variables: Local_1: System.Int32 x
+      Initializer: IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 X<System.Int32>.op_Addition(X<System.Int32> x, System.Int32 y)) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'xint + 123')
+          Left: IParameterReferenceExpression: xint (OperationKind.ParameterReferenceExpression, Type: X<System.Int32>) (Syntax: 'xint')
+          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 123) (Syntax: '123')
+  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int? q = ne ... new int?();')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'q = new Q<i ...  new int?()')
+      Variables: Local_1: System.Int32? q
+      Initializer: IBinaryOperatorExpression (BinaryOperatorKind.Add, IsLifted) (OperatorMethod: System.Int32 Q<System.Int32>.op_Addition(Q<System.Int32> x, System.Int32 y)) (OperationKind.BinaryOperatorExpression, Type: System.Int32?) (Syntax: 'new Q<int>? ...  new int?()')
+          Left: IObjectCreationExpression (Constructor: Q<System.Int32>?..ctor()) (OperationKind.ObjectCreationExpression, Type: Q<System.Int32>?) (Syntax: 'new Q<int>?()')
+              Arguments(0)
+              Initializer: null
+          Right: IObjectCreationExpression (Constructor: System.Int32?..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32?) (Syntax: 'new int?()')
+              Arguments(0)
+              Initializer: null
+  IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'bool[] b = ... };')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b = ... }')
+      Variables: Local_1: System.Boolean[] b
+      Initializer: IArrayCreationExpression (Element Type: System.Boolean) (OperationKind.ArrayCreationExpression, Type: System.Boolean[]) (Syntax: '{ ... }')
+          Dimension Sizes(1):
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 8) (Syntax: '{ ... }')
+          Initializer: IArrayInitializer (8 elements) (OperationKind.ArrayInitializer) (Syntax: '{ ... }')
+              Element Values(8):
+                  IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S x, S y)) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's1 == s2')
+                    Left: IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 's1')
+                    Right: IParameterReferenceExpression: s2 (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 's2')
+                  IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's1 == s3')
+                    Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: S?) (Syntax: 's1')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand: IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 's1')
+                    Right: IParameterReferenceExpression: s3 (OperationKind.ParameterReferenceExpression, Type: S?) (Syntax: 's3')
+                  IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's1 == null')
+                    Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: S?) (Syntax: 's1')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand: IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 's1')
+                    Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: S?, Constant: null) (Syntax: 'null')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+                  IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's3 == s1')
+                    Left: IParameterReferenceExpression: s3 (OperationKind.ParameterReferenceExpression, Type: S?) (Syntax: 's3')
+                    Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: S?) (Syntax: 's1')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand: IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 's1')
+                  IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's3 == s4')
+                    Left: IParameterReferenceExpression: s3 (OperationKind.ParameterReferenceExpression, Type: S?) (Syntax: 's3')
+                    Right: IParameterReferenceExpression: s4 (OperationKind.ParameterReferenceExpression, Type: S?) (Syntax: 's4')
+                  IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's3 == null')
+                    Left: IParameterReferenceExpression: s3 (OperationKind.ParameterReferenceExpression, Type: S?) (Syntax: 's3')
+                    Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: S?, Constant: null) (Syntax: 'null')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+                  IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'null == s1')
+                    Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: S?, Constant: null) (Syntax: 'null')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+                    Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: S?) (Syntax: 's1')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand: IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 's1')
+                  IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperatorMethod: System.Boolean S.op_Equality(S? x, S? y)) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'null == s3')
+                    Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: S?, Constant: null) (Syntax: 'null')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+                    Right: IParameterReferenceExpression: s3 (OperationKind.ParameterReferenceExpression, Type: S?) (Syntax: 's3')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0458: The result of the expression is always 'null' of type 'int?'
+                //         int? q = new Q<int>?() + new int?(); //-LiftedUserDefinedAddition
+                Diagnostic(ErrorCode.WRN_AlwaysNull, "new Q<int>?() + new int?()").WithArguments("int?").WithLocation(37, 18),
+                // CS1061: 'S' does not contain a definition for 'str' and no extension method 'str' accepting a first argument of type 'S' could be found (are you missing a using directive or an assembly reference?)
+                //     public override string ToString() { return this.str; }
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "str").WithArguments("S", "str").WithLocation(11, 53)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
         [Fact]
         public void TestUserDefinedCompoundAssignment()
         {
@@ -1028,6 +1808,328 @@ class C
             string output = @"((((((((((a+b)-c)*d)/e)%f)<<10)>>20)&g)|h)^i)";
 
             CompileAndVerify(source: source, expectedOutput: output);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestUserDefinedCompoundAssignment_IOperation()
+        {
+            string source = @"
+using System;
+struct S
+{
+    private string str;
+    public S(char chr) { this.str = chr.ToString(); }
+    public S(string str) { this.str = str; }
+    public static S operator +(S x, S y) { return new S('(' + x.str + '+' + y.str + ')'); }
+    public static S operator -(S x, S y) { return new S('(' + x.str + '-' + y.str + ')'); }
+    public static S operator %(S x, S y) { return new S('(' + x.str + '%' + y.str + ')'); }
+    public static S operator /(S x, S y) { return new S('(' + x.str + '/' + y.str + ')'); }
+    public static S operator *(S x, S y) { return new S('(' + x.str + '*' + y.str + ')'); }
+    public static S operator &(S x, S y) { return new S('(' + x.str + '&' + y.str + ')'); }
+    public static S operator |(S x, S y) { return new S('(' + x.str + '|' + y.str + ')'); }
+    public static S operator ^(S x, S y) { return new S('(' + x.str + '^' + y.str + ')'); }
+    public static S operator <<(S x, int y) { return new S('(' + x.str + '<' + '<' + y.ToString() + ')'); }
+    public static S operator >>(S x, int y) { return new S('(' + x.str + '>' + '>' + y.ToString() + ')'); }
+    public override string ToString() { return this.str; }
+}
+
+class C
+{
+    static void Main(S a, S b, S c, S d, S e, S f, S g, S h, S i)
+    /*<bind>*/{
+        a += b;
+        a -= c;
+        a *= d;
+        a /= e;
+        a %= f;
+        a <<= 10;
+        a >>= 20;
+        a &= g;
+        a |= h;
+        a ^= i;
+    }/*</bind>*/
+}
+";
+            string expectedOperationTree = @"
+IBlockStatement (10 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a += b;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Add) (OperatorMethod: S S.op_Addition(S x, S y)) (OperationKind.CompoundAssignmentExpression, Type: S) (Syntax: 'a += b')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+        Right: IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'b')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a -= c;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Subtract) (OperatorMethod: S S.op_Subtraction(S x, S y)) (OperationKind.CompoundAssignmentExpression, Type: S) (Syntax: 'a -= c')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+        Right: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'c')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a *= d;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Multiply) (OperatorMethod: S S.op_Multiply(S x, S y)) (OperationKind.CompoundAssignmentExpression, Type: S) (Syntax: 'a *= d')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+        Right: IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'd')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a /= e;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Divide) (OperatorMethod: S S.op_Division(S x, S y)) (OperationKind.CompoundAssignmentExpression, Type: S) (Syntax: 'a /= e')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+        Right: IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'e')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a %= f;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Remainder) (OperatorMethod: S S.op_Modulus(S x, S y)) (OperationKind.CompoundAssignmentExpression, Type: S) (Syntax: 'a %= f')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+        Right: IParameterReferenceExpression: f (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'f')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a <<= 10;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.LeftShift) (OperatorMethod: S S.op_LeftShift(S x, System.Int32 y)) (OperationKind.CompoundAssignmentExpression, Type: S) (Syntax: 'a <<= 10')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a >>= 20;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.RightShift) (OperatorMethod: S S.op_RightShift(S x, System.Int32 y)) (OperationKind.CompoundAssignmentExpression, Type: S) (Syntax: 'a >>= 20')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a &= g;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.And) (OperatorMethod: S S.op_BitwiseAnd(S x, S y)) (OperationKind.CompoundAssignmentExpression, Type: S) (Syntax: 'a &= g')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+        Right: IParameterReferenceExpression: g (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'g')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a |= h;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Or) (OperatorMethod: S S.op_BitwiseOr(S x, S y)) (OperationKind.CompoundAssignmentExpression, Type: S) (Syntax: 'a |= h')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+        Right: IParameterReferenceExpression: h (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'h')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a ^= i;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.ExclusiveOr) (OperatorMethod: S S.op_ExclusiveOr(S x, S y)) (OperationKind.CompoundAssignmentExpression, Type: S) (Syntax: 'a ^= i')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+        Right: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'i')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestUserDefinedCompoundAssignment_Checked_IOperation()
+        {
+            string source = @"
+using System;
+struct S
+{
+    private string str;
+    public S(char chr) { this.str = chr.ToString(); }
+    public S(string str) { this.str = str; }
+    public static S operator +(S x, S y) { return new S('(' + x.str + '+' + y.str + ')'); }
+    public static S operator -(S x, S y) { return new S('(' + x.str + '-' + y.str + ')'); }
+    public static S operator %(S x, S y) { return new S('(' + x.str + '%' + y.str + ')'); }
+    public static S operator /(S x, S y) { return new S('(' + x.str + '/' + y.str + ')'); }
+    public static S operator *(S x, S y) { return new S('(' + x.str + '*' + y.str + ')'); }
+    public static S operator &(S x, S y) { return new S('(' + x.str + '&' + y.str + ')'); }
+    public static S operator |(S x, S y) { return new S('(' + x.str + '|' + y.str + ')'); }
+    public static S operator ^(S x, S y) { return new S('(' + x.str + '^' + y.str + ')'); }
+    public static S operator <<(S x, int y) { return new S('(' + x.str + '<' + '<' + y.ToString() + ')'); }
+    public static S operator >>(S x, int y) { return new S('(' + x.str + '>' + '>' + y.ToString() + ')'); }
+    public override string ToString() { return this.str; }
+}
+
+class C
+{
+    static void Main(S a, S b, S c, S d, S e, S f, S g, S h, S i)
+    /*<bind>*/{
+        a += b;
+        a -= c;
+        a *= d;
+        a /= e;
+        a %= f;
+        a <<= 10;
+        a >>= 20;
+        a &= g;
+        a |= h;
+        a ^= i;
+    }/*</bind>*/
+}
+";
+            string expectedOperationTree = @"
+IBlockStatement (10 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a += b;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Add) (OperatorMethod: S S.op_Addition(S x, S y)) (OperationKind.CompoundAssignmentExpression, Type: S) (Syntax: 'a += b')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+        Right: IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'b')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a -= c;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Subtract) (OperatorMethod: S S.op_Subtraction(S x, S y)) (OperationKind.CompoundAssignmentExpression, Type: S) (Syntax: 'a -= c')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+        Right: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'c')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a *= d;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Multiply) (OperatorMethod: S S.op_Multiply(S x, S y)) (OperationKind.CompoundAssignmentExpression, Type: S) (Syntax: 'a *= d')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+        Right: IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'd')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a /= e;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Divide) (OperatorMethod: S S.op_Division(S x, S y)) (OperationKind.CompoundAssignmentExpression, Type: S) (Syntax: 'a /= e')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+        Right: IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'e')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a %= f;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Remainder) (OperatorMethod: S S.op_Modulus(S x, S y)) (OperationKind.CompoundAssignmentExpression, Type: S) (Syntax: 'a %= f')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+        Right: IParameterReferenceExpression: f (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'f')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a <<= 10;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.LeftShift) (OperatorMethod: S S.op_LeftShift(S x, System.Int32 y)) (OperationKind.CompoundAssignmentExpression, Type: S) (Syntax: 'a <<= 10')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a >>= 20;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.RightShift) (OperatorMethod: S S.op_RightShift(S x, System.Int32 y)) (OperationKind.CompoundAssignmentExpression, Type: S) (Syntax: 'a >>= 20')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a &= g;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.And) (OperatorMethod: S S.op_BitwiseAnd(S x, S y)) (OperationKind.CompoundAssignmentExpression, Type: S) (Syntax: 'a &= g')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+        Right: IParameterReferenceExpression: g (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'g')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a |= h;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Or) (OperatorMethod: S S.op_BitwiseOr(S x, S y)) (OperationKind.CompoundAssignmentExpression, Type: S) (Syntax: 'a |= h')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+        Right: IParameterReferenceExpression: h (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'h')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a ^= i;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.ExclusiveOr) (OperatorMethod: S S.op_ExclusiveOr(S x, S y)) (OperationKind.CompoundAssignmentExpression, Type: S) (Syntax: 'a ^= i')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'a')
+        Right: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 'i')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestCompoundAssignment_IOperation()
+        {
+            string source = @"
+class C
+{
+    static void M(int a, int b, int c, int d, int e, int f, int g, int h, int i)
+    /*<bind>*/{
+        a += b;
+        a -= c;
+        a *= d;
+        a /= e;
+        a %= f;
+        a <<= 10;
+        a >>= 20;
+        a &= g;
+        a |= h;
+        a ^= i;
+    }/*</bind>*/
+}
+";
+            string expectedOperationTree = @"
+IBlockStatement (10 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a += b;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Add) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'a += b')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+        Right: IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a -= c;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Subtract) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'a -= c')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+        Right: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'c')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a *= d;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Multiply) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'a *= d')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+        Right: IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'd')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a /= e;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Divide) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'a /= e')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+        Right: IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'e')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a %= f;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Remainder) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'a %= f')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+        Right: IParameterReferenceExpression: f (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'f')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a <<= 10;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.LeftShift) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'a <<= 10')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a >>= 20;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.RightShift) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'a >>= 20')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a &= g;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.And) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'a &= g')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+        Right: IParameterReferenceExpression: g (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'g')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a |= h;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Or) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'a |= h')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+        Right: IParameterReferenceExpression: h (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'h')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a ^= i;')
+    Expression: ICompoundAssignmentExpression (BinaryOperatorKind.ExclusiveOr) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'a ^= i')
+        Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+        Right: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestCompoundAssignment_Checked_IOperation()
+        {
+            string source = @"
+class C
+{
+    static void M(int a, int b, int c, int d, int e, int f, int g, int h, int i)
+    /*<bind>*/{
+        checked
+        {
+            a += b;
+            a -= c;
+            a *= d;
+            a /= e;
+            a %= f;
+            a <<= 10;
+            a >>= 20;
+            a &= g;
+            a |= h;
+            a ^= i;
+        }
+    }/*</bind>*/
+}
+";
+            string expectedOperationTree = @"
+IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+  IBlockStatement (10 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a += b;')
+      Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'a += b')
+          Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+          Right: IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'b')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a -= c;')
+      Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Subtract, Checked) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'a -= c')
+          Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+          Right: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'c')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a *= d;')
+      Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Multiply, Checked) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'a *= d')
+          Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+          Right: IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'd')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a /= e;')
+      Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Divide, Checked) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'a /= e')
+          Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+          Right: IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'e')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a %= f;')
+      Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Remainder) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'a %= f')
+          Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+          Right: IParameterReferenceExpression: f (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'f')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a <<= 10;')
+      Expression: ICompoundAssignmentExpression (BinaryOperatorKind.LeftShift) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'a <<= 10')
+          Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a >>= 20;')
+      Expression: ICompoundAssignmentExpression (BinaryOperatorKind.RightShift) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'a >>= 20')
+          Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a &= g;')
+      Expression: ICompoundAssignmentExpression (BinaryOperatorKind.And) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'a &= g')
+          Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+          Right: IParameterReferenceExpression: g (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'g')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a |= h;')
+      Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Or) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'a |= h')
+          Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+          Right: IParameterReferenceExpression: h (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'h')
+    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a ^= i;')
+      Expression: ICompoundAssignmentExpression (BinaryOperatorKind.ExclusiveOr) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'a ^= i')
+          Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'a')
+          Right: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -1143,6 +2245,123 @@ class C
 }");
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestUserDefinedUnaryOperatorOverloadResolution_IOperation()
+        {
+            string source = @"
+using System;
+struct S
+{
+    public static int operator +(S s) { return 1; }
+    public static int operator -(S? s) { return 2; }
+    public static int operator !(S s) { return 3; }
+    public static int operator ~(S s) { return 4; }
+    public static S operator ++(S s) { return s; }
+    public static S operator --(S? s) { return (S)s; }
+}
+
+class C
+{
+    static void M(S s1, S? s2, int i1, int? i2)
+    /*<bind>*/{
+        i1 = +s1; //-UserDefinedUnaryPlus
+        i2 = +s2; //-LiftedUserDefinedUnaryPlus
+
+        // No lifted form.
+        i1 = -s1; //-UserDefinedUnaryMinus
+        i1 = -s2; //-UserDefinedUnaryMinus   
+
+        i1 = !s1; //-UserDefinedLogicalNegation
+        i2 = !s2; //-LiftedUserDefinedLogicalNegation
+
+        i1 = ~s1; //-UserDefinedBitwiseComplement
+        i2 = ~s2; //-LiftedUserDefinedBitwiseComplement
+
+        s1++; //-UserDefinedPostfixIncrement
+        s2++; //-LiftedUserDefinedPostfixIncrement
+
+        ++s1; //-UserDefinedPrefixIncrement
+        ++s2; //-LiftedUserDefinedPrefixIncrement
+
+        // No lifted form
+        s1--; //-UserDefinedPostfixDecrement
+        s2--; //-UserDefinedPostfixDecrement
+    }/*</bind>*/
+}
+";
+            string expectedOperationTree = @"
+IBlockStatement (14 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i1 = +s1;')
+    Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i1 = +s1')
+        Left: IParameterReferenceExpression: i1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i1')
+        Right: IUnaryOperatorExpression (UnaryOperatorKind.Plus) (OperatorMethod: System.Int32 S.op_UnaryPlus(S s)) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '+s1')
+            Operand: IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 's1')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i2 = +s2;')
+    Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32?) (Syntax: 'i2 = +s2')
+        Left: IParameterReferenceExpression: i2 (OperationKind.ParameterReferenceExpression, Type: System.Int32?) (Syntax: 'i2')
+        Right: IUnaryOperatorExpression (UnaryOperatorKind.Plus, IsLifted) (OperatorMethod: System.Int32 S.op_UnaryPlus(S s)) (OperationKind.UnaryOperatorExpression, Type: System.Int32?) (Syntax: '+s2')
+            Operand: IParameterReferenceExpression: s2 (OperationKind.ParameterReferenceExpression, Type: S?) (Syntax: 's2')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i1 = -s1;')
+    Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i1 = -s1')
+        Left: IParameterReferenceExpression: i1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i1')
+        Right: IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperatorMethod: System.Int32 S.op_UnaryNegation(S? s)) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '-s1')
+            Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: S?) (Syntax: 's1')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 's1')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i1 = -s2;')
+    Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i1 = -s2')
+        Left: IParameterReferenceExpression: i1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i1')
+        Right: IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperatorMethod: System.Int32 S.op_UnaryNegation(S? s)) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '-s2')
+            Operand: IParameterReferenceExpression: s2 (OperationKind.ParameterReferenceExpression, Type: S?) (Syntax: 's2')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i1 = !s1;')
+    Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i1 = !s1')
+        Left: IParameterReferenceExpression: i1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i1')
+        Right: IUnaryOperatorExpression (UnaryOperatorKind.Not) (OperatorMethod: System.Int32 S.op_LogicalNot(S s)) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '!s1')
+            Operand: IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 's1')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i2 = !s2;')
+    Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32?) (Syntax: 'i2 = !s2')
+        Left: IParameterReferenceExpression: i2 (OperationKind.ParameterReferenceExpression, Type: System.Int32?) (Syntax: 'i2')
+        Right: IUnaryOperatorExpression (UnaryOperatorKind.Not, IsLifted) (OperatorMethod: System.Int32 S.op_LogicalNot(S s)) (OperationKind.UnaryOperatorExpression, Type: System.Int32?) (Syntax: '!s2')
+            Operand: IParameterReferenceExpression: s2 (OperationKind.ParameterReferenceExpression, Type: S?) (Syntax: 's2')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i1 = ~s1;')
+    Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i1 = ~s1')
+        Left: IParameterReferenceExpression: i1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i1')
+        Right: IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation) (OperatorMethod: System.Int32 S.op_OnesComplement(S s)) (OperationKind.UnaryOperatorExpression, Type: System.Int32) (Syntax: '~s1')
+            Operand: IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 's1')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i2 = ~s2;')
+    Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32?) (Syntax: 'i2 = ~s2')
+        Left: IParameterReferenceExpression: i2 (OperationKind.ParameterReferenceExpression, Type: System.Int32?) (Syntax: 'i2')
+        Right: IUnaryOperatorExpression (UnaryOperatorKind.BitwiseNegation, IsLifted) (OperatorMethod: System.Int32 S.op_OnesComplement(S s)) (OperationKind.UnaryOperatorExpression, Type: System.Int32?) (Syntax: '~s2')
+            Operand: IParameterReferenceExpression: s2 (OperationKind.ParameterReferenceExpression, Type: S?) (Syntax: 's2')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 's1++;')
+    Expression: IIncrementOrDecrementExpression (Postfix) (OperatorMethod: S S.op_Increment(S s)) (OperationKind.IncrementExpression, Type: S) (Syntax: 's1++')
+        Target: IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 's1')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 's2++;')
+    Expression: IIncrementOrDecrementExpression (Postfix, IsLifted) (OperatorMethod: S S.op_Increment(S s)) (OperationKind.IncrementExpression, Type: S?) (Syntax: 's2++')
+        Target: IParameterReferenceExpression: s2 (OperationKind.ParameterReferenceExpression, Type: S?) (Syntax: 's2')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '++s1;')
+    Expression: IIncrementOrDecrementExpression (Prefix) (OperatorMethod: S S.op_Increment(S s)) (OperationKind.IncrementExpression, Type: S) (Syntax: '++s1')
+        Target: IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 's1')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '++s2;')
+    Expression: IIncrementOrDecrementExpression (Prefix, IsLifted) (OperatorMethod: S S.op_Increment(S s)) (OperationKind.IncrementExpression, Type: S?) (Syntax: '++s2')
+        Target: IParameterReferenceExpression: s2 (OperationKind.ParameterReferenceExpression, Type: S?) (Syntax: 's2')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 's1--;')
+    Expression: IIncrementOrDecrementExpression (Postfix) (OperatorMethod: S S.op_Decrement(S? s)) (OperationKind.DecrementExpression, Type: S) (Syntax: 's1--')
+        Target: IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: S) (Syntax: 's1')
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 's2--;')
+    Expression: IIncrementOrDecrementExpression (Postfix) (OperatorMethod: S S.op_Decrement(S? s)) (OperationKind.DecrementExpression, Type: S?) (Syntax: 's2--')
+        Target: IParameterReferenceExpression: s2 (OperationKind.ParameterReferenceExpression, Type: S?) (Syntax: 's2')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0448: The return type for ++ or -- operator must match the parameter type or be derived from the parameter type
+                //     public static S operator --(S? s) { return (S)s; }
+                Diagnostic(ErrorCode.ERR_BadIncDecRetType, "--").WithLocation(10, 30)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
         [Fact]
         public void TestUnaryOperatorOverloadingErrors()
         {
@@ -1156,7 +2375,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,12): error CS0023: Operator '!' cannot be applied to operand of type 'int'
                 //         if(!1) {}
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "!1").WithArguments("!", "int").WithLocation(7, 12));
@@ -1196,7 +2415,7 @@ class C
         bool b3 = (object)s1 == ex1; // legal!
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
 // (11,21): error CS0034: Operator '+' is ambiguous on operands of type 'long' and 'ulong'
 //         object o1 = i64 + ui64; // CS0034
 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "i64 + ui64").WithArguments("+", "long", "ulong"),
@@ -1254,7 +2473,7 @@ class C
 
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (17,9): error CS0200: Property or indexer 'C.ReadOnly' cannot be assigned to -- it is read only
                 //         c.ReadOnly += 1;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "c.ReadOnly").WithArguments("C.ReadOnly").WithLocation(17, 9),
@@ -1358,8 +2577,8 @@ class C
             // from it the nodes that describe the operators. We then compare the description of
             // the operators given to the comment that follows the use of the operator.
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
-            var method = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
             var diagnostics = new DiagnosticBag();
             var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
             var tree = BoundTreeDumperNodeProducer.MakeTree(block);
@@ -2897,7 +4116,7 @@ OPERATOR ndec   //-LiftedDecimalKIND" + Postfix;
         [Fact, WorkItem(527598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527598")]
         public void UserDefinedOperatorOnPointerType()
         {
-            CreateCompilationWithMscorlib(@"
+            CreateStandardCompilation(@"
 unsafe struct A
 {
     public static implicit operator int*(A x) { return null; }
@@ -2970,7 +4189,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            var compilation = CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(541147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541147")]
@@ -2988,7 +4207,7 @@ static class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "Main ?? Main").WithArguments("??", "method group", "method group"));
         }
 
@@ -3008,7 +4227,7 @@ static class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "a ?? (() => { })").WithArguments("??", "System.Action<int>", "lambda expression"));
         }
 
@@ -3064,7 +4283,7 @@ class A
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,22): error CS0457: Ambiguous user defined conversions 'B.implicit operator A(B)' and 'A.implicit operator A(B)' when converting from 'B' to 'A'
                 //         var c = a ?? b;
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "b").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
@@ -3101,7 +4320,7 @@ struct A
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,22): error CS0457: Ambiguous user defined conversions 'B.implicit operator A(B)' and 'A.implicit operator A(B)' when converting from 'B' to 'A'
                 //         var c = a ?? b;
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "b").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
@@ -3135,7 +4354,7 @@ struct A
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,18): error CS0457: Ambiguous user defined conversions 'B.implicit operator A(B)' and 'A.implicit operator A(B)' when converting from 'B' to 'A'
                 //         var c2 = b2 ?? a2;
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "b2").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
@@ -3191,7 +4410,7 @@ namespace N2
         public static void Main()
         {
         }
-        public static DateTime Foo()
+        public static DateTime Goo()
         {
             return default(DateTime);
         }
@@ -3392,7 +4611,7 @@ class Program
         System.Console.WriteLine(c2 ? 7 : 8);
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -3419,7 +4638,7 @@ class Program
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (14,13): error CS0029: Cannot implicitly convert type 'Program.C?' to 'bool'
                 //         if (c) 
@@ -3452,16 +4671,16 @@ class Program
 {
     static void Main()
     {
-        Foo<Action>();
+        Goo<Action>();
     }
 
-    static void Foo<T>() where T : class
+    static void Goo<T>() where T : class
     {
         object o = Main() as T;
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (13,20): error CS0039: Cannot convert type 'void' to 'T' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
                 //         object o = Main() as T;
@@ -3479,10 +4698,10 @@ class Program
 {
     static void Main()
     {
-        Foo<Action>();
+        Goo<Action>();
     }
 
-    static void Foo<T>() where T : class
+    static void Goo<T>() where T : class
     {
         bool b = Main() is T;
     }
@@ -3495,7 +4714,7 @@ class Program
             // NOTE:    We follow the specification and generate WRN_IsAlwaysFalse
             // NOTE:    instead of an error.
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (13,18): warning CS0184: The given expression is never of the provided ('T') type
                 //         bool b = Main() is T;
@@ -3509,7 +4728,7 @@ class Program
             var source = @"
 class Program
 {
-    static void Foo<T>(
+    static void Goo<T>(
         Outer<T>.C c1, Outer<int>.C c2,
         Outer<T>.S s1, Outer<int>.S s2,
         Outer<T>.E e1, Outer<int>.E e2)
@@ -3548,7 +4767,7 @@ class Outer<T>
     public enum E { }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (16,13): warning CS0184: The given expression is never of the provided ('Outer<long>.C') type
                 //         b = c2 is Outer<long>.C;    // Always false.
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "c2 is Outer<long>.C").WithArguments("Outer<long>.C").WithLocation(16, 13),
@@ -3579,7 +4798,7 @@ class Outer<T>
             var source = @"
 class Program
 {
-    static void Foo<T>(Outer<T>.S s1, Outer<T[]>.S s2)
+    static void Goo<T>(Outer<T>.S s1, Outer<T[]>.S s2)
     {
         bool b;
         b = s1 is Outer<int[]>.S;   // T -> int[]
@@ -3596,7 +4815,7 @@ class Outer<T>
     public struct S { }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (11,13): warning CS0183: The given expression is always of the provided ('Outer<T[]>.S') type
                 //         b = s2 is Outer<T[]>.S;     // Always true.
                 Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "s2 is Outer<T[]>.S").WithArguments("Outer<T[]>.S").WithLocation(11, 13));
@@ -3611,7 +4830,7 @@ using System;
 
 class Program
 {
-    static void Foo<T, TClass, TStruct>(Outer<T>.E e1, Outer<int>.E e2, int i, T t, TClass tc, TStruct ts)
+    static void Goo<T, TClass, TStruct>(Outer<T>.E e1, Outer<int>.E e2, int i, T t, TClass tc, TStruct ts)
         where TClass : class
         where TStruct : struct
     {
@@ -3647,7 +4866,7 @@ class Outer<T>
     public enum E { }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (11,13): warning CS0183: The given expression is always of the provided ('System.Enum') type
                 //         b = e1 is Enum; // Always true.
                 Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "e1 is Enum").WithArguments("System.Enum").WithLocation(11, 13),
@@ -3718,10 +4937,10 @@ class Program
 {
     static void Main()
     {
-        Foo<Action, Action>(null);
+        Goo<Action, Action>(null);
     }
 
-    static U Foo<T, U>(T t)
+    static U Goo<T, U>(T t)
         where T : U
         where U : class
     {
@@ -3774,9 +4993,9 @@ False");
             var source = @"
 // conversion.cs
 
-class Foo { public Foo(Bar b){} }
+class Goo { public Goo(Bar b){} }
 
-class Foo2 { public Foo2(Bar b){} }
+class Goo2 { public Goo2(Bar b){} }
 
 struct Bar
 {
@@ -3786,16 +5005,16 @@ struct Bar
        return new Bar();
     }
     
-    // Declare an explicit conversion from a Bar to Foo
-    static public explicit operator Foo(Bar value)
+    // Declare an explicit conversion from a Bar to Goo
+    static public explicit operator Goo(Bar value)
     {
-       return new Foo(value);
+       return new Goo(value);
     }
 
-    // Declare an implicit conversion from a Bar to Foo2
-    static public implicit operator Foo2(Bar value)
+    // Declare an implicit conversion from a Bar to Goo2
+    static public implicit operator Goo2(Bar value)
     {
-       return new Foo2(value);
+       return new Goo2(value);
     }
 }
 
@@ -3807,36 +5026,36 @@ class Test
 
         numeral = 10;
 
-        object a1 = numeral as Foo;
+        object a1 = numeral as Goo;
         object a2 = 1 as Bar;
-        object a3 = numeral as Foo2;
+        object a3 = numeral as Goo2;
 
-        bool b1 = numeral is Foo;
+        bool b1 = numeral is Goo;
         bool b2 = 1 is Bar;
-        bool b3 = numeral is Foo2;
+        bool b3 = numeral is Goo2;
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
-                // (37,21): error CS0039: Cannot convert type 'Bar' to 'Foo' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
-                //         object a1 = numeral as Foo;
-                Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, "numeral as Foo").WithArguments("Bar", "Foo"),
+                // (37,21): error CS0039: Cannot convert type 'Bar' to 'Goo' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
+                //         object a1 = numeral as Goo;
+                Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, "numeral as Goo").WithArguments("Bar", "Goo"),
                 // (38,21): error CS0077: The as operator must be used with a reference type or nullable type ('Bar' is a non-nullable value type)
                 //         object a2 = 1 as Bar;
                 Diagnostic(ErrorCode.ERR_AsMustHaveReferenceType, "1 as Bar").WithArguments("Bar"),
-                // (39,21): error CS0039: Cannot convert type 'Bar' to 'Foo2' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
-                //         object a3 = numeral as Foo2;
-                Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, "numeral as Foo2").WithArguments("Bar", "Foo2"),
-                // (41,19): warning CS0184: The given expression is never of the provided ('Foo') type
-                //         bool b1 = numeral is Foo;
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "numeral is Foo").WithArguments("Foo"),
+                // (39,21): error CS0039: Cannot convert type 'Bar' to 'Goo2' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
+                //         object a3 = numeral as Goo2;
+                Diagnostic(ErrorCode.ERR_NoExplicitBuiltinConv, "numeral as Goo2").WithArguments("Bar", "Goo2"),
+                // (41,19): warning CS0184: The given expression is never of the provided ('Goo') type
+                //         bool b1 = numeral is Goo;
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "numeral is Goo").WithArguments("Goo"),
                 // (42,19): warning CS0184: The given expression is never of the provided ('Bar') type
                 //         bool b2 = 1 is Bar;
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "1 is Bar").WithArguments("Bar"),
-                // (43,19): warning CS0184: The given expression is never of the provided ('Foo2') type
-                //         bool b3 = numeral is Foo2;
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "numeral is Foo2").WithArguments("Foo2"));
+                // (43,19): warning CS0184: The given expression is never of the provided ('Goo2') type
+                //         bool b3 = numeral is Goo2;
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "numeral is Goo2").WithArguments("Goo2"));
         }
 
         [WorkItem(543455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543455")]
@@ -3865,7 +5084,7 @@ public class C
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "t is C").WithArguments("C"));
         }
 
@@ -3890,7 +5109,7 @@ public class Base
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (12,27): warning CS0184: The given expression is never of the provided ('System.IntPtr') type
                 //         Console.WriteLine(e is IntPtr);
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "e is IntPtr").WithArguments("System.IntPtr"),
@@ -3916,7 +5135,7 @@ public class Base
         return false;
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (3,39): error CS1670: params is not valid in this context public static bool operator >(X a, params int[] b)
                 Diagnostic(ErrorCode.ERR_IllegalParams, "params"),
                 // (8,40): error CS1670: params is not valid in this context
@@ -3997,13 +5216,13 @@ class C<T>
 public struct NonGenericStruct { }
 public struct GenericStruct<T> { }
 
-public class Foo
+public class Goo
 {
     public NonGenericStruct? ngsq;
     public GenericStruct<int>? gsiq;
 }
 
-public class GenFoo<T>
+public class GenGoo<T>
 {
     public GenericStruct<T>? gstq;
 }
@@ -4012,11 +5231,11 @@ public class Test
 {
     public static bool Run()
     {
-        Foo f = new Foo();
+        Goo f = new Goo();
         f.ngsq = new NonGenericStruct();
         f.gsiq = new GenericStruct<int>();
 
-        GenFoo<int> gf = new GenFoo<int>();
+        GenGoo<int> gf = new GenGoo<int>();
         gf.gstq = new GenericStruct<int>();
 
         return (f.ngsq != null) && (f.gsiq != null) && (gf.gstq != null);
@@ -4048,7 +5267,7 @@ struct S
 
 ";
             CompileAndVerify(source1, expectedOutput: "1");
-            CreateCompilationWithMscorlib(source2).VerifyDiagnostics(
+            CreateStandardCompilation(source2).VerifyDiagnostics(
 // (16,9): error CS0034: Operator '==' is ambiguous on operands of type 'S?' and '<null>'
 //     if (s == null) s = default(S);
 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "s == null").WithArguments("==", "S?", "<null>"));
@@ -4074,7 +5293,7 @@ class B : A
     }
 }
 class D {}";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            CreateStandardCompilation(text).VerifyDiagnostics();
         }
 
         [Fact(), WorkItem(543433, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543433")]
@@ -4098,7 +5317,7 @@ class B : A
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b++").WithArguments("A", "B"));
+            CreateStandardCompilation(text).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b++").WithArguments("A", "B"));
         }
 
         [WorkItem(543431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543431")]
@@ -4167,7 +5386,7 @@ class D
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (21,27): error CS0019: Operator '==' cannot be applied to operands of type 'System.Func<int>' and 'D'
                 //         Console.WriteLine((Func<int>)(C)null == (D)null);
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "(Func<int>)(C)null == (D)null").WithArguments("==", "System.Func<int>", "D"),
@@ -4212,7 +5431,7 @@ class D
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (26,27): error CS0019: Operator '==' cannot be applied to operands of type 'C' and 'D'
                 //         Console.WriteLine((C)null == (D)null);
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "(C)null == (D)null").WithArguments("==", "C", "D"),
@@ -4268,13 +5487,13 @@ False";
 @"
 public class Test
 {
-    public static bool Foo(decimal? deq)
+    public static bool Goo(decimal? deq)
     {
         return deq == null;
     }
     public static void Main()
     {
-        Foo(null);
+        Goo(null);
     }
 }
 ";
@@ -4311,7 +5530,7 @@ public class ConstrainedTestContext<T,U> where T : Gen<U>
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(544490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544490")]
@@ -4368,7 +5587,7 @@ class Derived1 : Base1
     public static Base1 operator +(Base1 b, Derived1 d) { return b; }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4385,7 +5604,7 @@ class Derived2 : Base2
     public static Base2 operator +(Base2 b, Derived2 d) { return b; }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4402,7 +5621,7 @@ class Derived3 : Base3
     public static Base3 op_Addition(Base3 b, Derived3 d) { return b; }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4419,7 +5638,7 @@ class Derived4 : Base4
     public static Base4 op_Addition(Base4 b, Derived4 d) { return b; }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,25): warning CS0108: 'Derived4.op_Addition(Base4, Derived4)' hides inherited member 'Base4.op_Addition(Base4, Derived4)'. Use the new keyword if hiding was intended.
                 //     public static Base4 op_Addition(Base4 b, Derived4 d) { return b; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "op_Addition").WithArguments("Derived4.op_Addition(Base4, Derived4)", "Base4.op_Addition(Base4, Derived4)"));
@@ -4439,7 +5658,7 @@ class Derived1 : Base1
     public static implicit operator string(Base1 b) { return null; } // CS0556, but not CS0108
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,37): error CS0556: User-defined conversion must convert to or from the enclosing type
                 //     public static implicit operator string(Base1 b) { return null; }
                 Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "string"));
@@ -4459,7 +5678,7 @@ class Derived2 : Base2
     public static implicit operator string(Derived2 d) { return null; }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4476,7 +5695,7 @@ class Derived3 : Base3
     public static string op_Explicit(Base3 b) { return null; }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4493,7 +5712,7 @@ class Derived4 : Base4
     public static string op_Explicit(Base4 b) { return null; }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (9,26): warning CS0108: 'Derived4.op_Explicit(Base4)' hides inherited member 'Base4.op_Explicit(Base4)'. Use the new keyword if hiding was intended.
                 //     public static string op_Explicit(Base4 b) { return null; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "op_Explicit").WithArguments("Derived4.op_Explicit(Base4)", "Base4.op_Explicit(Base4)"));
@@ -4568,7 +5787,7 @@ class op_UnsignedRightShift
 		
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,38): error CS0542: 'op_Increment': member names cannot be the same as their enclosing type
                 // 	public static op_Increment operator ++ (op_Increment c) { return null; }
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "++").WithArguments("op_Increment"),
@@ -4630,7 +5849,7 @@ class op_Implicit
     public static implicit operator op_Implicit(int x) { return null; }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,37): error CS0542: 'op_Explicit': member names cannot be the same as their enclosing type
                 //     public static explicit operator op_Explicit(int x) { return null; }
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "op_Explicit").WithArguments("op_Explicit"),
@@ -4731,7 +5950,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var expectedOperator = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S1").GetMembers(WellKnownMemberNames.EqualityOperatorName).
@@ -4781,7 +6000,7 @@ class Program
 }
 ";
             // CONSIDER: This is a little silly, since that method will never be called.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (27,16): warning CS0618: 'S1.operator ==(S1, S1)' is obsolete: 'A'
                 //         return s1 == null;
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "s1 == null").WithArguments("S1.operator ==(S1, S1)", "A"));
@@ -4816,7 +6035,7 @@ class Program
 }
 ";
             // CONSIDER: There is no reason not to allow this, but dev11 doesn't.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (21,16): error CS0019: Operator '==' cannot be applied to operands of type 'S1?' and 'S2?'
                 //         return s1 == s2;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 == s2").WithArguments("==", "S1?", "S2?"));
@@ -4851,7 +6070,7 @@ class Program
 }
 ";
             // SPEC VIOLATION: According to the spec, this is ambiguous.  However, we will match the dev11 behavior.
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -4893,7 +6112,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (21,18): error CS0034: Operator '|' is ambiguous on operands of type 'InputParameter' and 'InputParameter'
                 //         bool b = i1 | i2;
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "i1 | i2").WithArguments("|", "InputParameter", "InputParameter"));
@@ -4931,7 +6150,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"A
 A");
         }
@@ -4978,7 +6197,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
             CompileAndVerifyException<Microsoft.CSharp.RuntimeBinder.RuntimeBinderException>(comp,
                 "Operator '|' is ambiguous on operands of type 'InputParameter' and 'InputParameter'");
         }
@@ -5006,7 +6225,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -5043,7 +6262,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (16,18): error CS0019: Operator '||' cannot be applied to operands of type 'InputParameter' and 'InputParameter'
                 //         bool b = i1 || i2;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "i1 || i2").WithArguments("||", "InputParameter", "InputParameter"));
@@ -5076,7 +6295,7 @@ public class RubyTime
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact()]
@@ -5168,7 +6387,7 @@ public class RubyTime
 
             var source = builder.ToString();
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -5384,7 +6603,7 @@ class Module1
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -5535,7 +6754,7 @@ class Module1
 
             var source = builder.ToString();
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -5692,7 +6911,7 @@ class Module1
 
             var source = builder.ToString();
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -6228,7 +7447,7 @@ class Module1
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -6263,7 +7482,7 @@ class Module1
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -6307,7 +7526,7 @@ class Module1
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -6372,7 +7591,7 @@ struct TestStr
 {}
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
 
             compilation.VerifyDiagnostics(
     // (17,20): error CS0019: Operator '==' cannot be applied to operands of type 'TestStr?' and 'TestStr?'
@@ -6437,7 +7656,7 @@ struct TestStr
         return i += 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees[0];
@@ -6476,9 +7695,9 @@ public static class Program
         M(1 - Color.Red);
     }
 }";
-            CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateStandardCompilation(source1, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 );
-            CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
+            CreateStandardCompilation(source1, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
                 // (7,11): error CS0019: Operator '-' cannot be applied to operands of type 'int' and 'Color'
                 //         M(1 - Color.Red);
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 - Color.Red").WithArguments("-", "int", "Color").WithLocation(7, 11)
@@ -6591,7 +7810,7 @@ class P
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (18,13): error CS0218: In order for 'B.operator &(B, B)' to be applicable as a short circuit operator, its declaring type 'B' must define operator true and operator false
                 //         if (x && y)
@@ -7345,7 +8564,7 @@ class Program
     }
 }";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
     // (26,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum' and 'int'
     //         Print(x - c);
     Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - c").WithArguments("-", "TestEnum", "int").WithLocation(26, 15),
@@ -7852,7 +9071,7 @@ class Program
     }
 }";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
     // (24,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum' and 'long'
     //         Print(x - d);
     Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - d").WithArguments("-", "TestEnum", "long").WithLocation(24, 15),
@@ -8848,7 +10067,7 @@ class MainClass
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
 
             compilation.VerifyDiagnostics();
         }
@@ -8862,7 +10081,7 @@ class EnumRepro
 {
     public static void Main()
     {
-        EnumWrapper<FlagsEnum> wrappedEnum = FlagsEnum.Foo;
+        EnumWrapper<FlagsEnum> wrappedEnum = FlagsEnum.Goo;
         wrappedEnum |= FlagsEnum.Bar;
         System.Console.Write(wrappedEnum.Enum);
     }
@@ -8888,12 +10107,62 @@ public struct EnumWrapper<T>
 public enum FlagsEnum
 {
     None = 0,
-    Foo = 1,
+    Goo = 1,
     Bar = 2,
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: "Foo, Bar");
+            var verifier = CompileAndVerify(source, expectedOutput: "Goo, Bar");
             verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void IsWarningWithNonNullConstant()
+        {
+            var source =
+@"class Program
+{
+    public static void Main(string[] args)
+    {
+        const string d = ""goo"";
+        var x = d is string;
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source)
+                .VerifyDiagnostics(
+                // (6,17): warning CS0183: The given expression is always of the provided ('string') type
+                //         var x = d is string;
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "d is string").WithArguments("string").WithLocation(6, 17)
+                );
+        }
+
+        [Fact, WorkItem(19310, "https://github.com/dotnet/roslyn/issues/19310")]
+        public void IsWarningWithTupleConversion()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        var t = (x: 1, y: 2);
+        if (t is ValueTuple<long, int>) { }   // too big
+        if (t is ValueTuple<short, int>) { }  // too small
+        if (t is ValueTuple<int, int>) { }    // goldilocks
+    }
+}";
+            var compilation = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef })
+                .VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('(long, int)') type
+                //         if (t is ValueTuple<long, int>) { }   // too big
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "t is ValueTuple<long, int>").WithArguments("(long, int)").WithLocation(7, 13),
+                // (8,13): warning CS0184: The given expression is never of the provided ('(short, int)') type
+                //         if (t is ValueTuple<short, int>) { }  // too small
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "t is ValueTuple<short, int>").WithArguments("(short, int)").WithLocation(8, 13),
+                // (9,13): warning CS0183: The given expression is always of the provided ('(int, int)') type
+                //         if (t is ValueTuple<int, int>) { }    // goldilocks
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "t is ValueTuple<int, int>").WithArguments("(int, int)").WithLocation(9, 13)
+                );
         }
     }
 }

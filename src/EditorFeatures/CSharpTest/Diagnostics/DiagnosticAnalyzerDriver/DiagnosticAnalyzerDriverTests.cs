@@ -1,9 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -29,14 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.NamedType);
 
-            var syntaxKindsMissing = new HashSet<SyntaxKind>();
-
-            // AllInOneCSharpCode has no deconstruction or declaration expression
-            syntaxKindsMissing.Add(SyntaxKind.SingleVariableDesignation);
-            syntaxKindsMissing.Add(SyntaxKind.ParenthesizedVariableDesignation);
-            syntaxKindsMissing.Add(SyntaxKind.ForEachVariableStatement);
-            syntaxKindsMissing.Add(SyntaxKind.DeclarationExpression);
-            syntaxKindsMissing.Add(SyntaxKind.DiscardDesignation);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             using (var workspace = TestWorkspace.CreateCSharp(source, TestOptions.Regular))
@@ -46,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
                 await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, new Text.TextSpan(0, document.GetTextAsync().Result.Length));
                 analyzer.VerifyAllAnalyzerMembersWereCalled();
                 analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
-                analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(syntaxKindsMissing);
+                analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(new HashSet<SyntaxKind>());
                 analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks, true);
             }
         }
@@ -311,6 +304,35 @@ class C
                     context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Node.GetLocation()));
                 }
             }
+        }
+
+        [Fact]
+        public async Task TestDiagnosticSpan()
+        {
+            var source = @"// empty code";
+
+            var analyzer = new InvalidSpanAnalyzer();
+            using (var compilerEngineWorkspace = TestWorkspace.CreateCSharp(source))
+            {
+                var compilerEngineCompilation = (CSharpCompilation)(await compilerEngineWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync());
+
+                var diagnostics = compilerEngineCompilation.GetAnalyzerDiagnostics(new[] { analyzer });
+                AssertEx.Any(diagnostics, d => d.Id == AnalyzerHelper.AnalyzerExceptionDiagnosticId);
+            }
+        }
+
+        private class InvalidSpanAnalyzer : DiagnosticAnalyzer
+        {
+            public static DiagnosticDescriptor Descriptor = DescriptorFactory.CreateSimpleDescriptor("DummyDiagnostic");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+                => context.RegisterSyntaxTreeAction(Analyze);
+
+            private void Analyze(SyntaxTreeAnalysisContext context)
+                => context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.Create(context.Tree, TextSpan.FromBounds(1000, 2000))));
         }
     }
 }

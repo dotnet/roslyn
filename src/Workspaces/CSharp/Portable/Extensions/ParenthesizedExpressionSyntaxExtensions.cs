@@ -2,6 +2,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 
@@ -24,6 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // (x); -> x;
             if (node.IsParentKind(SyntaxKind.ExpressionStatement))
+            {
+                return true;
+            }
+
+            // int Prop => (x); -> int Prop => x;
+            if (node.Parent is ArrowExpressionClauseSyntax arrowExpressionClause && arrowExpressionClause.Expression == node)
             {
                 return true;
             }
@@ -108,6 +115,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 // Assignment expressions are not allowed in initializers
                 if (expression.IsAnyAssignExpression())
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            // Cases:
+            //   new {(x)} -> {x}
+            //   new { a = (x)} -> { a = x }
+            //   new { a = (x = c)} -> { a = x = c }
+            if (node.Parent is AnonymousObjectMemberDeclaratorSyntax anonymousDeclarator)
+            {
+                // Assignment expressions are not allowed unless member is named
+                if (anonymousDeclarator.NameEquals == null && expression.IsAnyAssignExpression())
                 {
                     return false;
                 }

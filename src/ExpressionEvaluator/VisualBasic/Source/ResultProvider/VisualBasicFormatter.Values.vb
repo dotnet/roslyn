@@ -2,8 +2,8 @@
 
 Imports System.Collections.ObjectModel
 Imports System.Text
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.VisualStudio.Debugger.Clr
 Imports Roslyn.Utilities
 Imports Type = Microsoft.VisualStudio.Debugger.Metadata.Type

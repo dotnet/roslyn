@@ -1,13 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
-using System.Threading.Tasks;
-using System.Windows.Automation;
 using EnvDTE;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
@@ -23,23 +25,39 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private readonly IpcClientChannel _integrationServiceChannel;
         private readonly VisualStudio_InProc _inProc;
 
-        public SendKeys SendKeys { get; }
-
         public ChangeSignatureDialog_OutOfProc ChangeSignatureDialog { get; }
 
-        public CSharpInteractiveWindow_OutOfProc CSharpInteractiveWindow { get; }
+        public CSharpInteractiveWindow_OutOfProc InteractiveWindow { get; }
+
+        public Debugger_OutOfProc Debugger { get; }
+
+        public Dialog_OutOfProc Dialog { get; }
 
         public Editor_OutOfProc Editor { get; }
+
+        public EncapsulateField_OutOfProc EncapsulateField { get; }
+
+        public ErrorList_OutOfProc ErrorList { get; }
+
+        public ExtractInterfaceDialog_OutOfProc ExtractInterfaceDialog { get; }
 
         public FindReferencesWindow_OutOfProc FindReferencesWindow { get; }
 
         public GenerateTypeDialog_OutOfProc GenerateTypeDialog { get; }
 
+        public InlineRenameDialog_OutOfProc InlineRenameDialog { get; set; }
+
+        public LocalsWindow_OutOfProc LocalsWindow { get; set; }
+
+        public PreviewChangesDialog_OutOfProc PreviewChangesDialog { get; }
+
+        public SendKeys SendKeys { get; }
+
         public Shell_OutOfProc Shell { get; }
 
         public SolutionExplorer_OutOfProc SolutionExplorer { get; }
 
-        public VisualStudioWorkspace_OutOfProc VisualStudioWorkspace { get; }
+        public VisualStudioWorkspace_OutOfProc Workspace { get; }
 
         internal DTE Dte { get; }
 
@@ -82,13 +100,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             _inProc.WaitForSystemIdle();
 
             ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
-            CSharpInteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
+            InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
+            Debugger = new Debugger_OutOfProc(this);
+            Dialog = new Dialog_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
+            EncapsulateField = new EncapsulateField_OutOfProc(this);
+            ErrorList = new ErrorList_OutOfProc(this);
+            ExtractInterfaceDialog = new ExtractInterfaceDialog_OutOfProc(this);
             FindReferencesWindow = new FindReferencesWindow_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
+            InlineRenameDialog = new InlineRenameDialog_OutOfProc(this);
+            LocalsWindow = new LocalsWindow_OutOfProc(this);
+            PreviewChangesDialog = new PreviewChangesDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
-            VisualStudioWorkspace = new VisualStudioWorkspace_OutOfProc(this);
+            Workspace = new VisualStudioWorkspace_OutOfProc(this);
 
             SendKeys = new SendKeys(this);
 
@@ -112,8 +138,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return (T)Activator.GetObject(typeof(T), $"{_integrationService.BaseUri}/{objectUri}");
         }
 
-        public void ActivateMainWindow()
-            => _inProc.ActivateMainWindow();
+        public void ActivateMainWindow(bool skipAttachingThreads = false)
+            => _inProc.ActivateMainWindow(skipAttachingThreads);
 
         public void WaitForApplicationIdle()
             => _inProc.WaitForApplicationIdle();
@@ -121,51 +147,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public void ExecuteCommand(string commandName, string argument = "")
             => _inProc.ExecuteCommand(commandName, argument);
 
+        public bool IsCommandAvailable(string commandName)
+            => _inProc.IsCommandAvailable(commandName);
+
+        public string[] GetAvailableCommands()
+            => _inProc.GetAvailableCommands();
+
+        public int ErrorListErrorCount
+            => _inProc.GetErrorListErrorCount();
+
+        public void WaitForNoErrorsInErrorList()
+            => _inProc.WaitForNoErrorsInErrorList();
+
         public bool IsRunning => !HostProcess.HasExited;
-
-        public async Task ClickAutomationElementAsync(string elementName, bool recursive = false)
-        {
-            var element = await FindAutomationElementAsync(elementName, recursive).ConfigureAwait(false);
-
-            if (element != null)
-            {
-                var tcs = new TaskCompletionSource<object>();
-
-                Automation.AddAutomationEventHandler(InvokePattern.InvokedEvent, element, TreeScope.Element, (src, e) => {
-                    tcs.SetResult(null);
-                });
-
-                if (element.TryGetCurrentPattern(InvokePattern.Pattern, out var invokePatternObj))
-                {
-                    var invokePattern = (InvokePattern)invokePatternObj;
-                    invokePattern.Invoke();
-                }
-
-                await tcs.Task;
-            }
-        }
-
-        private async Task<AutomationElement> FindAutomationElementAsync(string elementName, bool recursive = false)
-        {
-            AutomationElement element = null;
-            var scope = recursive ? TreeScope.Descendants : TreeScope.Children;
-            var condition = new PropertyCondition(AutomationElement.NameProperty, elementName);
-
-            // TODO(Dustin): This is code is a bit terrifying. If anything goes wrong and the automation
-            // element can't be found, it'll continue to spin until the heat death of the universe.
-            await IntegrationHelper.WaitForResultAsync(
-                () => (element = AutomationElement.RootElement.FindFirst(scope, condition)) != null, expectedResult: true
-            ).ConfigureAwait(false);
-
-            return element;
-        }
 
         public void CleanUp()
         {
-            VisualStudioWorkspace.CleanUpWaitingService();
-            VisualStudioWorkspace.CleanUpWorkspace();
+            Workspace.CleanUpWaitingService();
+            Workspace.CleanUpWorkspace();
             SolutionExplorer.CleanUpOpenSolution();
-            CSharpInteractiveWindow.CloseInteractiveWindow();
+            InteractiveWindow.CloseInteractiveWindow();
         }
 
         public void Close(bool exitHostProcess = true)
@@ -246,11 +247,46 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             var result = default(T);
 
-            RetryRpcCall(() => {
+            RetryRpcCall(() =>
+            {
                 result = action();
             });
 
             return result;
+        }
+
+        public TelemetryVerifier EnableTestTelemetryChannel()
+        {
+            _inProc.EnableTestTelemetryChannel();
+            return new TelemetryVerifier(this);
+        }
+
+        private void DisableTestTelemetryChannel()
+            => _inProc.DisableTestTelemetryChannel();
+
+        private void WaitForTelemetryEvents(string[] names)
+            => _inProc.WaitForTelemetryEvents(names);
+
+        public class TelemetryVerifier : IDisposable
+        {
+            internal VisualStudioInstance _instance;
+
+            public TelemetryVerifier(VisualStudioInstance instance)
+            {
+                _instance = instance;
+            }
+
+            public void Dispose() => _instance.DisableTestTelemetryChannel();
+
+            /// <summary>
+            /// Asserts that a telemetry event of the given name was fired. Does not
+            /// do any additional validation (of performance numbers, etc).
+            /// </summary>
+            /// <param name="expectedEventNames"></param>
+            public void VerifyFired(params string[] expectedEventNames)
+            {
+                _instance.WaitForTelemetryEvents(expectedEventNames);
+            }
         }
     }
 }

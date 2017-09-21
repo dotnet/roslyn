@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -21,19 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
         protected override bool IsSimpleNameGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            return node is SimpleNameSyntax;
-        }
+            => node is SimpleNameSyntax;
 
         protected override bool IsConstructorInitializerGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            return node is ConstructorInitializerSyntax;
-        }
-
-        protected override bool IsClassDeclarationGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            return node is ClassDeclarationSyntax;
-        }
+            => node is ConstructorInitializerSyntax;
 
         protected override bool TryInitializeConstructorInitializerGeneration(
             SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken,
@@ -54,39 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                 return typeToGenerateIn != null;
             }
 
-            token = default(SyntaxToken);
-            arguments = default(ImmutableArray<ArgumentSyntax>);
+            token = default;
+            arguments = default;
             typeToGenerateIn = null;
             return false;
-        }
-
-        protected override bool TryInitializeClassDeclarationGenerationState(
-            SemanticDocument document,
-            SyntaxNode node,
-            CancellationToken cancellationToken,
-            out SyntaxToken token,
-            out IMethodSymbol delegatedConstructor,
-            out INamedTypeSymbol typeToGenerateIn)
-        {
-            token = default(SyntaxToken);
-            typeToGenerateIn = null;
-            delegatedConstructor = null;
-
-            var semanticModel = document.SemanticModel;
-            var classDeclaration = (ClassDeclarationSyntax)node;
-            var classSymbol = semanticModel.GetDeclaredSymbol(classDeclaration, cancellationToken);
-
-            var baseType = classSymbol.BaseType;
-            var constructor = baseType.Constructors.FirstOrDefault(c => IsSymbolAccessible(c, document));
-            if (constructor == null)
-            {
-                return false;
-            }
-
-            typeToGenerateIn = classSymbol;
-            delegatedConstructor = constructor;
-            token = classDeclaration.Identifier;
-            return true;
         }
 
         protected override bool TryInitializeSimpleNameGenerationState(
@@ -116,8 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                 }
             }
 
-            token = default(SyntaxToken);
-            arguments = default(ImmutableArray<ArgumentSyntax>);
+            token = default;
+            arguments = default;
             typeToGenerateIn = null;
             return false;
         }
@@ -150,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                         arguments = attributeArguments.Select(
                             x => SyntaxFactory.Argument(
                                 x.NameColon ?? (x.NameEquals != null ? SyntaxFactory.NameColon(x.NameEquals.Name) : null),
-                                default(SyntaxToken), x.Expression)).ToImmutableArray();
+                                default, x.Expression)).ToImmutableArray();
 
                         typeToGenerateIn = symbolInfo.CandidateSymbols.FirstOrDefault().ContainingSymbol as INamedTypeSymbol;
                         return typeToGenerateIn != null;
@@ -158,38 +120,29 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                 }
             }
 
-            token = default(SyntaxToken);
-            arguments = default(ImmutableArray<ArgumentSyntax>);
-            attributeArguments = default(ImmutableArray<AttributeArgumentSyntax>);
+            token = default;
+            arguments = default;
+            attributeArguments = default;
             typeToGenerateIn = null;
             return false;
         }
 
         protected override ImmutableArray<ParameterName> GenerateParameterNames(
-            SemanticModel semanticModel, IEnumerable<ArgumentSyntax> arguments, IList<string> reservedNames)
-            => semanticModel.GenerateParameterNames(arguments, reservedNames);
+            SemanticModel semanticModel, IEnumerable<ArgumentSyntax> arguments, IList<string> reservedNames, CancellationToken cancellationToken)
+            => semanticModel.GenerateParameterNames(arguments, reservedNames, cancellationToken);
 
         protected override ImmutableArray<ParameterName> GenerateParameterNames(
-            SemanticModel semanticModel, IEnumerable<AttributeArgumentSyntax> arguments, IList<string> reservedNames)
-            => semanticModel.GenerateParameterNames(arguments, reservedNames).ToImmutableArray();
+            SemanticModel semanticModel, IEnumerable<AttributeArgumentSyntax> arguments, IList<string> reservedNames, CancellationToken cancellationToken)
+            => semanticModel.GenerateParameterNames(arguments, reservedNames, cancellationToken).ToImmutableArray();
 
-        protected override string GenerateNameForArgument(
-            SemanticModel semanticModel, ArgumentSyntax argument)
-        {
-            return semanticModel.GenerateNameForArgument(argument);
-        }
+        protected override string GenerateNameForArgument(SemanticModel semanticModel, ArgumentSyntax argument, CancellationToken cancellationToken)
+            => semanticModel.GenerateNameForArgument(argument, cancellationToken);
 
-        protected override string GenerateNameForArgument(
-            SemanticModel semanticModel, AttributeArgumentSyntax argument)
-        {
-            return semanticModel.GenerateNameForArgument(argument);
-        }
+        protected override string GenerateNameForArgument(SemanticModel semanticModel, AttributeArgumentSyntax argument, CancellationToken cancellationToken)
+            => semanticModel.GenerateNameForArgument(argument, cancellationToken);
 
         protected override RefKind GetRefKind(ArgumentSyntax argument)
-        {
-            return argument.RefOrOutKeyword.Kind() == SyntaxKind.RefKeyword ? RefKind.Ref :
-                   argument.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword ? RefKind.Out : RefKind.None;
-        }
+            => argument.GetRefKind();
 
         protected override bool IsNamedArgument(ArgumentSyntax argument)
         {

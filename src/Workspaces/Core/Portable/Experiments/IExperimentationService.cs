@@ -16,4 +16,10 @@ namespace Microsoft.CodeAnalysis.Experiments
     {
         public bool IsExperimentEnabled(string experimentName) => false;
     }
+
+    internal static class WellKnownExperimentNames
+    {
+        public const string RoslynFeatureOOP = nameof(RoslynFeatureOOP);
+        public const string RoslynOOP64bit = nameof(RoslynOOP64bit);
+    }
 }

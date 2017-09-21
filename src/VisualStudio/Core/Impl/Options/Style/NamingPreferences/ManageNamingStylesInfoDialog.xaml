@@ -121,7 +121,7 @@
                     Width="3*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding ItemName}" Margin="5" />
+                            <TextBlock Text="{Binding ItemName}" Margin="5" Focusable="True"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

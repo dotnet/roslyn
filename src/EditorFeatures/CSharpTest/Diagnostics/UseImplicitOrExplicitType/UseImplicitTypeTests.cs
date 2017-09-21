@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -817,8 +817,8 @@ class C
     {
         var customers = new List<Customer>();
         var expr = from c in customers
-                   where c.City == ""London""
-                   select c;
+                                     where c.City == ""London""
+                                     select c;
     }
 
     private class Customer
@@ -1487,9 +1487,8 @@ class C
         [|int|] s = 5;
     }
 }";
-            await TestDiagnosticSeverityAndCountAsync(source,
+            await TestDiagnosticInfoAsync(source,
                 options: ImplicitTypeEnforcements(),
-                diagnosticCount: 1,
                 diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Info);
         }
@@ -1506,9 +1505,8 @@ class C
         [|int[]|] n1 = new[] {2, 4, 6, 8};
     }
 }";
-            await TestDiagnosticSeverityAndCountAsync(source,
+            await TestDiagnosticInfoAsync(source,
                 options: ImplicitTypeEnforcements(),
-                diagnosticCount: 1,
                 diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning);
         }
@@ -1525,9 +1523,8 @@ class C
         [|C|] n1 = new C();
     }
 }";
-            await TestDiagnosticSeverityAndCountAsync(source,
+            await TestDiagnosticInfoAsync(source,
                 options: ImplicitTypeEnforcements(),
-                diagnosticCount: 1,
                 diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Error);
         }
@@ -1562,7 +1559,8 @@ namespace System
             await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent()));
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/11154"), Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(11154, "https://github.com/dotnet/roslyn/issues/11154")]
         public async Task ValueTupleCreate()
         {
             await TestInRegularAndScriptAsync(
@@ -1573,6 +1571,32 @@ class C
     static void M()
     {
         [|ValueTuple<int, int>|] s = ValueTuple.Create(1, 1);
+    }
+}" + trivial2uple,
+@"using System;
+
+class C
+{
+    static void M()
+    {
+        var s = ValueTuple.Create(1, 1);
+    }
+}" + trivial2uple,
+options: ImplicitTypeWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(11095, "https://github.com/dotnet/roslyn/issues/11095")]
+        public async Task ValueTupleCreate_2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    static void M()
+    {
+        [|(int, int)|] s = ValueTuple.Create(1, 1);
     }
 }" + trivial2uple,
 @"using System;
@@ -1698,6 +1722,32 @@ class Program
         }
     }
 }", options: ImplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(20437, "https://github.com/dotnet/roslyn/issues/20437")]
+        public async Task SuggestVarOnDeclarationExpressionSyntax()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    static void M()
+    {
+        DateTime.TryParse(string.Empty, [|out DateTime|] date);
+    }
+}",
+@"using System;
+
+class C
+{
+    static void M()
+    {
+        DateTime.TryParse(string.Empty, out var date);
+    }
+}",
+options: ImplicitTypeEverywhere());
         }
     }
 }

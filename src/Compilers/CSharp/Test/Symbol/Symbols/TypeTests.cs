@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 
             string code = "class C {  int " + brackets + @" x; }";
 
-            var compilation = CreateCompilationWithMscorlib(code);
+            var compilation = CreateStandardCompilation(code);
             var c = compilation.GlobalNamespace.GetTypeMembers("C")[0];
             var x = c.GetMembers("x").Single() as FieldSymbol;
             var arr = x.Type;
@@ -49,7 +49,7 @@ class A<T> {
   }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(code);
+            var compilation = CreateStandardCompilation(code);
             var aint1 = compilation.GlobalNamespace.GetTypeMembers("A1")[0].BaseType;  // A<int>
             var aint2 = compilation.GlobalNamespace.GetTypeMembers("A2")[0].BaseType;  // A<int>
             var b1 = aint1.GetTypeMembers("B", 1).Single();                            // A<int>.B<U>
@@ -73,7 +73,7 @@ struct S {
 interface B {
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var b = global.GetTypeMembers("B", 0).Single();
@@ -87,21 +87,21 @@ interface B {
         public void InheritedTypesCrossTrees()
         {
             var text = @"namespace MT {
-    public interface IFoo { void Foo(); }
-    public interface IFoo<T, R> { R Foo(T t); }
+    public interface IGoo { void Goo(); }
+    public interface IGoo<T, R> { R Goo(T t); }
 }
 ";
             var text1 = @"namespace MT {
-    public interface IBar<T> : IFoo { void Bar(T t); }
+    public interface IBar<T> : IGoo { void Bar(T t); }
 }
 ";
             var text2 = @"namespace NS {
     using System;
     using MT;
-    public class A<T> : IFoo<T, string>, IBar<string> {
-        void IFoo.Foo() { }
+    public class A<T> : IGoo<T, string>, IBar<string> {
+        void IGoo.Goo() { }
         void IBar<string>.Bar(string s) { }
-        public string Foo(T t) { return null; }
+        public string Goo(T t) { return null; }
     }
 
     public class B : A<int> {}
@@ -112,7 +112,7 @@ interface B {
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(new[] { text, text1, text2, text3 });
+            var comp = CreateStandardCompilation(new[] { text, text1, text2, text3 });
             var global = comp.GlobalNamespace;
             var ns = global.GetMembers("NS").Single() as NamespaceSymbol;
 
@@ -127,9 +127,9 @@ interface B {
             var i3 = sorted[2] as NamedTypeSymbol;
             Assert.Equal("MT.IBar<System.String>", i1.ToTestDisplayString());
             Assert.Equal(1, i1.Arity);
-            Assert.Equal("MT.IFoo<System.Int32, System.String>", i2.ToTestDisplayString());
+            Assert.Equal("MT.IGoo<System.Int32, System.String>", i2.ToTestDisplayString());
             Assert.Equal(2, i2.Arity);
-            Assert.Equal("MT.IFoo", i3.ToTestDisplayString());
+            Assert.Equal("MT.IGoo", i3.ToTestDisplayString());
             Assert.Equal(0, i3.Arity);
 
             Assert.Equal("B", type1.BaseType.Name);
@@ -154,20 +154,20 @@ interface B {
         public void InheritedTypesCrossComps()
         {
             var text = @"namespace MT {
-    public interface IFoo { void Foo(); }
-    public interface IFoo<T, R> { R Foo(T t); }
+    public interface IGoo { void Goo(); }
+    public interface IGoo<T, R> { R Goo(T t); }
     public interface IEmpty { }
 }
 ";
             var text1 = @"namespace MT {
-    public interface IBar<T> : IFoo, IEmpty { void Bar(T t); }
+    public interface IBar<T> : IGoo, IEmpty { void Bar(T t); }
 }
 ";
             var text2 = @"namespace NS {
     using MT;
-    public class A<T> : IFoo<T, string>, IBar<T>, IFoo {
-        void IFoo.Foo() { }
-        public string Foo(T t) { return null; }
+    public class A<T> : IGoo<T, string>, IBar<T>, IGoo {
+        void IGoo.Goo() { }
+        public string Goo(T t) { return null; }
         void IBar<T>.Bar(T t) { }
     }
 
@@ -178,14 +178,14 @@ interface B {
     public class C : B {}
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(text);
+            var comp1 = CreateStandardCompilation(text);
             var compRef1 = new CSharpCompilationReference(comp1);
 
-            var comp2 = CreateCompilationWithMscorlib(new string[] { text1, text2 }, assemblyName: "Test1",
+            var comp2 = CreateStandardCompilation(new string[] { text1, text2 }, assemblyName: "Test1",
                             references: new List<MetadataReference> { compRef1 });
             var compRef2 = new CSharpCompilationReference(comp2);
 
-            var comp = CreateCompilationWithMscorlib(text3, assemblyName: "Test2",
+            var comp = CreateStandardCompilation(text3, assemblyName: "Test2",
                             references: new List<MetadataReference> { compRef2, compRef1 });
 
             Assert.Equal(0, comp1.GetDiagnostics().Count());
@@ -210,9 +210,9 @@ interface B {
             Assert.Equal(1, i1.Arity);
             Assert.Equal("MT.IEmpty", i2.ToTestDisplayString());
             Assert.Equal(0, i2.Arity);
-            Assert.Equal("MT.IFoo<System.UInt64, System.String>", i3.ToTestDisplayString());
+            Assert.Equal("MT.IGoo<System.UInt64, System.String>", i3.ToTestDisplayString());
             Assert.Equal(2, i3.Arity);
-            Assert.Equal("MT.IFoo", i4.ToTestDisplayString());
+            Assert.Equal("MT.IGoo", i4.ToTestDisplayString());
             Assert.Equal(0, i4.Arity);
 
             Assert.Equal("B", type1.BaseType.Name);
@@ -244,7 +244,7 @@ interface B {
     {
         private void M() {}
         internal class NestedClass {
-            internal protected interface INestedFoo {}
+            internal protected interface INestedGoo {}
         }
         struct NestedStruct {}
     }
@@ -255,11 +255,11 @@ interface B {
         public struct NestedS<V, V1> {
             class NestedC<R> {}
         }
-        interface INestedFoo<T1, T2, T3> {}
+        interface INestedGoo<T1, T2, T3> {}
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var ns = global.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetTypeMembers("Test", 0).SingleOrDefault() as NamedTypeSymbol;
@@ -284,7 +284,7 @@ interface B {
             Assert.Equal(2, type1.GetTypeMembers().Length);
 
             type2 = type1.GetTypeMembers("NestedS", 2).Single() as NamedTypeSymbol;
-            type3 = type1.GetTypeMembers("INestedFoo", 3).SingleOrDefault() as NamedTypeSymbol;
+            type3 = type1.GetTypeMembers("INestedGoo", 3).SingleOrDefault() as NamedTypeSymbol;
 
             Assert.Equal(type1, type2.ContainingSymbol);
             Assert.Equal(Accessibility.Public, type2.DeclaredAccessibility);
@@ -305,36 +305,36 @@ interface B {
             var text = @"
 namespace MT {
     using System.Collections.Generic;
-    public partial interface IFoo<T> { void Foo(); }
+    public partial interface IGoo<T> { void Goo(); }
 }
 ";
             var text1 = @"
 namespace MT {
     using System.Collections.Generic;
-    public partial interface IFoo<T> { T Foo(T t); }
+    public partial interface IGoo<T> { T Goo(T t); }
 }
 
 namespace NS {
     using System;
     using MT;
 
-    public partial class A<T> : IFoo<T>
+    public partial class A<T> : IGoo<T>
     {
-        void IFoo<T>.Foo() { }
+        void IGoo<T>.Goo() { }
     }
 }
 ";
             var text2 = @"
 namespace NS {
     using MT;
-    public partial class A<T> : IFoo<T>
+    public partial class A<T> : IGoo<T>
     {
-        public T Foo(T t) { return default(T); }
+        public T Goo(T t) { return default(T); }
     }
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(new[] { text, text1, text2 });
+            var comp = CreateStandardCompilation(new[] { text, text1, text2 });
             var global = comp.GlobalNamespace;
             var ns = global.GetMembers("NS").Single() as NamespaceSymbol;
 
@@ -345,7 +345,7 @@ namespace NS {
             Assert.Equal(2, type1.Locations.Length);
 
             var i1 = type1.Interfaces[0] as NamedTypeSymbol;
-            Assert.Equal("MT.IFoo<T>", i1.ToTestDisplayString());
+            Assert.Equal("MT.IGoo<T>", i1.ToTestDisplayString());
             Assert.Equal(2, i1.GetMembers().Length);
             Assert.Equal(2, i1.Locations.Length);
         }
@@ -356,38 +356,38 @@ namespace NS {
         {
             #region "Interface Impl"
             var text = @"
-    public interface IFoo  {
+    public interface IGoo  {
         void M0();
     }
 ";
 
             var text1 = @"
-    public class Foo : IFoo  {
+    public class Goo : IGoo  {
         public void M0() {}
     }
 ";
-            var comp1 = CreateCompilationWithMscorlib(text);
+            var comp1 = CreateStandardCompilation(text);
             var compRef1 = new CSharpCompilationReference(comp1);
-            var comp = CreateCompilationWithMscorlib(text1, references: new List<MetadataReference> { compRef1 }, assemblyName: "Comp2");
+            var comp = CreateStandardCompilation(text1, references: new List<MetadataReference> { compRef1 }, assemblyName: "Comp2");
 
             Assert.Equal(0, comp.GetDiagnostics().Count());
             #endregion
 
             #region "Interface Inherit"
             text = @"
-    public interface IFoo  {
+    public interface IGoo  {
         void M0();
     }
 ";
 
             text1 = @"
-    public interface IBar : IFoo  {
+    public interface IBar : IGoo  {
         void M1();
     }
 ";
-            comp1 = CreateCompilationWithMscorlib(text);
+            comp1 = CreateStandardCompilation(text);
             compRef1 = new CSharpCompilationReference(comp1);
-            comp = CreateCompilationWithMscorlib(text1, references: new List<MetadataReference> { compRef1 }, assemblyName: "Comp2");
+            comp = CreateStandardCompilation(text1, references: new List<MetadataReference> { compRef1 }, assemblyName: "Comp2");
 
             Assert.Equal(0, comp.GetDiagnostics().Count());
             #endregion
@@ -404,9 +404,9 @@ public class B : A {
     void M1() {}
 }
 ";
-            comp1 = CreateCompilationWithMscorlib(text);
+            comp1 = CreateStandardCompilation(text);
             compRef1 = new CSharpCompilationReference(comp1);
-            comp = CreateCompilationWithMscorlib(text1, references: new List<MetadataReference> { compRef1 }, assemblyName: "Comp2");
+            comp = CreateStandardCompilation(text1, references: new List<MetadataReference> { compRef1 }, assemblyName: "Comp2");
 
             Assert.Equal(0, comp.GetDiagnostics().Count());
             #endregion
@@ -427,9 +427,9 @@ public partial interface IBar {
 
 public partial class A { }
 ";
-            comp1 = CreateCompilationWithMscorlib(text);
+            comp1 = CreateStandardCompilation(text);
             compRef1 = new CSharpCompilationReference(comp1);
-            comp = CreateCompilationWithMscorlib(text1, references: new List<MetadataReference> { compRef1 }, assemblyName: "Comp2");
+            comp = CreateStandardCompilation(text1, references: new List<MetadataReference> { compRef1 }, assemblyName: "Comp2");
 
             Assert.Equal(0, comp.GetDiagnostics().Count());
             #endregion
@@ -453,7 +453,7 @@ public partial class A { }
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var classTest = comp.GlobalNamespace.GetTypeMembers("Test", 0).Single();
 
             var field1 = classTest.GetMembers("intAryField").Single();
@@ -525,7 +525,7 @@ public class A {
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateCompilation(text, new[] { MscorlibRef });
             int[] ary = new int[2];
 
             var globalNS = compilation.SourceModule.GlobalNamespace;
@@ -574,7 +574,7 @@ public class A {
     private sbyte[,,] AryField3;
     A(){}
 ";
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateStandardCompilation(text);
 
             var globalNS = compilation.SourceModule.GlobalNamespace;
             var classTest = globalNS.GetTypeMembers("A").Single() as NamedTypeSymbol;
@@ -608,7 +608,7 @@ public class A {
     dynamic field2;
 }";
 
-            var global = CreateCompilationWithMscorlib(text).GlobalNamespace;
+            var global = CreateStandardCompilation(text).GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             foreach (var m in a.GetMembers())
             {
@@ -656,7 +656,7 @@ public class A {
     Three,
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var v = comp.GlobalNamespace.GetTypeMembers("MyEnum", 0).Single();
             Assert.NotEqual(null, v);
             Assert.Equal(Accessibility.Public, v.DeclaredAccessibility);
@@ -695,11 +695,11 @@ namespace System
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateStandardCompilation(text);
             compilation.VerifyDiagnostics(
                 // (10,13): warning CS0436: The type 'System.Void' in '' conflicts with the imported type 'void' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //             System.Void.Equals(1, 1);
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "System.Void").WithArguments("", "System.Void", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "void"),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "System.Void").WithArguments("", "System.Void", RuntimeCorLibName.FullName, "void"),
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
@@ -731,8 +731,8 @@ namespace N
 }
 ";
 
-            var refAsm = CreateCompilationWithMscorlib(refSource, assemblyName: "RefAsm").ToMetadataReference();
-            var compilation = CreateCompilationWithMscorlib(csharp, references: new[] { refAsm });
+            var refAsm = CreateStandardCompilation(refSource, assemblyName: "RefAsm").ToMetadataReference();
+            var compilation = CreateStandardCompilation(csharp, references: new[] { refAsm });
             compilation.VerifyDiagnostics(
                 // (10,13): warning CS0436: The type 'N.C' in '' conflicts with the imported type 'N.C' in 'RefAsm, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //             N.C.Equals(1, 1);
@@ -752,10 +752,10 @@ namespace N
     public class C { }
 }
 ";
-            var compilation1 = CreateCompilationWithMscorlib(referenceText, assemblyName: "A");
+            var compilation1 = CreateStandardCompilation(referenceText, assemblyName: "A");
             compilation1.VerifyDiagnostics();
 
-            var compilation2 = CreateCompilationWithMscorlib(referenceText, assemblyName: "B");
+            var compilation2 = CreateStandardCompilation(referenceText, assemblyName: "B");
             compilation2.VerifyDiagnostics();
 
             var testText = @"
@@ -770,7 +770,7 @@ namespace M
     }
 }";
 
-            var compilation3 = CreateCompilationWithMscorlib(testText, new[] { new CSharpCompilationReference(compilation1), new CSharpCompilationReference(compilation2) });
+            var compilation3 = CreateStandardCompilation(testText, new[] { new CSharpCompilationReference(compilation1), new CSharpCompilationReference(compilation2) });
             compilation3.VerifyDiagnostics(
                 // (8,13): error CS0433: The type 'N.C' exists in both 'A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //             N.C.ToString();
@@ -788,7 +788,7 @@ namespace System
 {
     public static class Console 
     {
-        public static void Foo() {} 
+        public static void Goo() {} 
     }
 }
 ";
@@ -799,8 +799,8 @@ namespace System
                 assemblyName: "System.Console").EmitToImageReference();
 
             var mainSrc = @"
-System.Console.Foo(); 
-Foo();
+System.Console.Goo(); 
+Goo();
 ";
 
             var main1 = CreateCompilation(
@@ -813,8 +813,8 @@ Foo();
                 Diagnostic(ErrorCode.ERR_SameFullNameAggAgg).WithArguments("System.Console, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Console", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
                 // (1,9): error CS0433: The type 'Console' exists in both 'System.Console, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' and 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
                 Diagnostic(ErrorCode.ERR_SameFullNameAggAgg, "System.Console").WithArguments("System.Console, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Console", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
-                // (2,9): error CS0103: The name 'Foo' does not exist in the current context
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo"));
+                // (2,9): error CS0103: The name 'Goo' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo").WithArguments("Goo"));
 
             var main2 = CreateCompilation(
                 new[] { Parse(mainSrc, options: TestOptions.Script) },
@@ -830,29 +830,29 @@ Foo();
             var text =
 @"namespace NS
 {
-    public interface IFoo<T> {}
+    public interface IGoo<T> {}
 
     internal class A<V, U> {}
 
     public struct S<X, Y, Z> {}
 }";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var namespaceNS = comp.GlobalNamespace.GetMembers("NS").First() as NamespaceOrTypeSymbol;
             Assert.Equal(3, namespaceNS.GetMembers().Length);
 
-            var ifoo = namespaceNS.GetTypeMembers("IFoo").First();
-            Assert.Equal(namespaceNS, ifoo.ContainingSymbol);
-            Assert.Equal(SymbolKind.NamedType, ifoo.Kind);
-            Assert.Equal(TypeKind.Interface, ifoo.TypeKind);
-            Assert.Equal(Accessibility.Public, ifoo.DeclaredAccessibility);
-            Assert.Equal(1, ifoo.TypeParameters.Length);
-            Assert.Equal("T", ifoo.TypeParameters[0].Name);
-            Assert.Equal(1, ifoo.TypeArguments.Length);
+            var igoo = namespaceNS.GetTypeMembers("IGoo").First();
+            Assert.Equal(namespaceNS, igoo.ContainingSymbol);
+            Assert.Equal(SymbolKind.NamedType, igoo.Kind);
+            Assert.Equal(TypeKind.Interface, igoo.TypeKind);
+            Assert.Equal(Accessibility.Public, igoo.DeclaredAccessibility);
+            Assert.Equal(1, igoo.TypeParameters.Length);
+            Assert.Equal("T", igoo.TypeParameters[0].Name);
+            Assert.Equal(1, igoo.TypeArguments.Length);
 
             // Bug#932083 - Not impl
-            // Assert.False(ifoo.TypeParameters[0].IsReferenceType);
-            // Assert.False(ifoo.TypeParameters[0].IsValueType);
+            // Assert.False(igoo.TypeParameters[0].IsReferenceType);
+            // Assert.False(igoo.TypeParameters[0].IsValueType);
 
             var classA = namespaceNS.GetTypeMembers("A").First();
             Assert.Equal(namespaceNS, classA.ContainingSymbol);
@@ -890,7 +890,7 @@ Foo();
 }";
 
             var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var comp = CreateCompilationWithMscorlib(text, references: new[] { module1Ref });
+            var comp = CreateStandardCompilation(text, references: new[] { module1Ref });
 
             var globalNS = comp.SourceModule.GlobalNamespace;
             var classTest = globalNS.GetTypeMembers("Test").First();
@@ -954,7 +954,7 @@ static class @main
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var typeSym = comp.Assembly.GlobalNamespace.GetTypeMembers("MyClass").First();
             var actual = string.Join(", ", typeSym.GetMembers().Select(symbol => symbol.ToTestDisplayString()).OrderBy(name => name));
             Assert.Equal("MyClass..ctor(), MyClass..ctor(System.Int32 DummyInt)", actual);
@@ -1004,7 +1004,7 @@ public class SubGenericClass<T> : BaseT<T>
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var typeSym = comp.Assembly.GlobalNamespace.GetTypeMembers("SubGenericClass").First();
             var actualSymbols = typeSym.GetMembers();
             var actual = string.Join(", ", actualSymbols.Select(symbol => symbol.ToTestDisplayString()).OrderBy(name => name));
@@ -1023,7 +1023,7 @@ interface I3 : I1, I2 {}
 interface I4 : I2, I3 {}
 interface I5 : I3, I4 {}
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var interfaces = global.GetTypeMembers("I5", 0).Single().AllInterfaces;
             Assert.Equal(4, interfaces.Length);
@@ -1048,7 +1048,7 @@ namespace Convert
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var ns = global.GetMembers("Convert").Single() as NamespaceSymbol;
             var type1 = ns.GetTypeMembers("Test").Single() as NamedTypeSymbol;
@@ -1066,7 +1066,7 @@ namespace NS1.NS2
     internal proteced class B<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10, T11, T12> {}
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var ns1 = global.GetMembers("NS1").Single() as NamespaceSymbol;
             var ns2 = ns1.GetMembers("NS2").Single() as NamespaceSymbol;
@@ -1088,7 +1088,7 @@ namespace Collections {
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var ns = global.GetMembers("Collections").Single() as NamespaceSymbol;
             var type1 = ns.GetTypeMembers("Test", 1).Single() as NamedTypeSymbol;
@@ -1106,7 +1106,7 @@ namespace NS
   class B : A[] {}
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var ns1 = global.GetMembers("NS").Single() as NamespaceSymbol;
             var syma = ns1.GetMembers("A").Single() as NamedTypeSymbol;
@@ -1127,7 +1127,7 @@ class A
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
         }
 
@@ -1141,7 +1141,7 @@ partial class C2 : C1 {}
 partial class C2 : C1 {}
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
         }
 
@@ -1166,7 +1166,7 @@ class D : C
     A.X x;
 }";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count(diag => !ErrorFacts.IsWarning((ErrorCode)diag.Code)));
             var global = comp.GlobalNamespace;
             var d = global.GetMembers("D").Single() as NamedTypeSymbol;
@@ -1185,7 +1185,7 @@ namespace System
     public class MyString : String { }
 }";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count(e => e.Severity >= DiagnosticSeverity.Error));
             var global = comp.GlobalNamespace;
             var system = global.GetMembers("System").Single() as NamespaceSymbol;
@@ -1202,13 +1202,13 @@ namespace System
             var text = @"
 namespace N
 {
-    public interface IFoo<T, V, U> {}
+    public interface IGoo<T, V, U> {}
     public interface IBar<T> {}
 
     public class A : NotExist<int, int>
     {
         public class BB {}
-        public class B : BB, IFoo<string, byte>
+        public class B : BB, IGoo<string, byte>
         {
         }
     }
@@ -1216,14 +1216,14 @@ namespace N
     public class C : IBar<char, string>
     {
         // NotExist is binding error, Not error symbol
-        public class D : IFoo<char, ulong, NotExist>
+        public class D : IGoo<char, ulong, NotExist>
         {
         }
     }
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             Assert.Equal(4, comp.GetDiagnostics().Count());
 
             var global = comp.SourceModule.GlobalNamespace;
@@ -1237,7 +1237,7 @@ namespace N
             var typeB = typeA.GetMember<NamedTypeSymbol>("B");
             Assert.Equal("BB", typeB.BaseType.Name);
             var typeBi = typeB.Interfaces.Single();
-            Assert.Equal("IFoo", typeBi.Name);
+            Assert.Equal("IGoo", typeBi.Name);
             Assert.Equal(SymbolKind.ErrorType, typeBi.Kind);
             Assert.Equal(2, typeBi.Arity); //matches arity in source, not arity of desired symbol
 
@@ -1250,7 +1250,7 @@ namespace N
 
             var typeD = typeC.GetMember<NamedTypeSymbol>("D");
             var typeDi = typeD.Interfaces.Single();
-            Assert.Equal("IFoo", typeDi.Name);
+            Assert.Equal("IGoo", typeDi.Name);
             Assert.Equal(3, typeDi.TypeParameters.Length);
             Assert.Equal(SymbolKind.ErrorType, typeDi.TypeArguments[2].Kind);
         }
@@ -1292,7 +1292,7 @@ partial class Derived6 : Interface2<int, int> { }
 partial class Derived6 : Base<int, int>, Interface1<int, int> { }
 ";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.SourceModule.GlobalNamespace;
 
             var baseType = global.GetMember<NamedTypeSymbol>("Base");
@@ -1365,20 +1365,20 @@ partial class Derived6 : Base<int, int>, Interface1<int, int> { }
         public void CircularNestedInterfaceDeclaration()
         {
             var text = @"
-class Bar : Bar.IFoo
+class Bar : Bar.IGoo
 {
-    public interface IFoo { Foo GetFoo(); }
+    public interface IGoo { Goo GetGoo(); }
 
-    public class Foo { }
+    public class Goo { }
 
-    public Foo GetFoo() { return null; }
+    public Goo GetGoo() { return null; }
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             Assert.Empty(comp.GetDiagnostics());
             var bar = comp.GetTypeByMetadataName("Bar");
-            var iFooGetFoo = comp.GetTypeByMetadataName("Bar+IFoo").GetMembers("GetFoo").Single();
-            MethodSymbol getFoo = (MethodSymbol)bar.FindImplementationForInterfaceMember(iFooGetFoo);
-            Assert.Equal("Bar.GetFoo()", getFoo.ToString());
+            var iGooGetGoo = comp.GetTypeByMetadataName("Bar+IGoo").GetMembers("GetGoo").Single();
+            MethodSymbol getGoo = (MethodSymbol)bar.FindImplementationForInterfaceMember(iGooGetGoo);
+            Assert.Equal("Bar.GetGoo()", getGoo.ToString());
         }
 
         [WorkItem(3684, "DevDiv_Projects/Roslyn")]
@@ -1388,20 +1388,20 @@ class Bar : Bar.IFoo
             var text = @"
 public interface I<Q>
 {
-    void Foo();
+    void Goo();
 }
 public class Test1<Q> : I<Q>
 {
-    void I<Q>.Foo() {}
+    void I<Q>.Goo() {}
 }";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             Assert.Empty(comp.GetDiagnostics());
         }
 
         [Fact]
         public void MetadataNameOfGenericTypes()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class Gen1<T,U,V>
 {}
 class NonGen
@@ -1441,7 +1441,7 @@ class Program
         [Fact, WorkItem(530171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530171")]
         public void ErrorTypeTest01()
         {
-            var comp = CreateCompilationWithMscorlib(@"public void TopLevelMethod() {}");
+            var comp = CreateStandardCompilation(@"public void TopLevelMethod() {}");
 
             var errSymbol = comp.SourceModule.GlobalNamespace.GetMembers().FirstOrDefault() as NamedTypeSymbol;
             Assert.NotNull(errSymbol);
@@ -1464,7 +1464,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var namespaceNS = comp.GlobalNamespace.GetMembers("NS").First() as NamespaceOrTypeSymbol;
             var classA = namespaceNS.GetTypeMembers("A").First();
             var varX = classA.GetMembers("x").First() as FieldSymbol;
@@ -1491,7 +1491,7 @@ public class NullableTest
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var topType = comp.SourceModule.GlobalNamespace.GetTypeMembers("NullableTest").FirstOrDefault();
             // ------------------------------
             var mem = topType.GetMembers("field01").Single();
@@ -1596,7 +1596,7 @@ public struct S
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var topType = comp.SourceModule.GlobalNamespace.GetTypeMembers("S").FirstOrDefault();
             var nestedType = topType.GetTypeMembers("Nested").Single();
             var enumType = comp.SourceModule.GlobalNamespace.GetTypeMembers("E").Single();
@@ -1662,7 +1662,7 @@ class A
 ";
 
             var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var mnode = (MethodDeclarationSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.MethodDeclaration);
@@ -1723,21 +1723,21 @@ using System.Collections.Generic;
 
 namespace NS
 {
-    interface IFoo<T, R> where T : struct where R: struct
+    interface IGoo<T, R> where T : struct where R: struct
     {
         R? M<V>(ref T? p1, V? p2) where V: struct;
     }
 
-    struct SFoo<T> : IFoo<T, PlatformID> where T : struct
+    struct SGoo<T> : IGoo<T, PlatformID> where T : struct
     {
-        PlatformID? IFoo<T, PlatformID>.M<V>(ref T? p1, V? p2) { return null; }
+        PlatformID? IGoo<T, PlatformID>.M<V>(ref T? p1, V? p2) { return null; }
     }
 
-    class CFoo
+    class CGoo
     {
         static void Main() 
         {
-            IFoo<float, PlatformID> obj = new SFoo<float>();
+            IGoo<float, PlatformID> obj = new SGoo<float>();
             float? f = null;
             var ret = /*<bind0>*/obj/*</bind0>*/.M<decimal>(ref /*<bind1>*/f/*</bind1>*/, /*<bind2>*/null/*</bind2>*/);
         }
@@ -1746,7 +1746,7 @@ namespace NS
 ";
 
             var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var node1 = (LocalDeclarationStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.LocalDeclarationStatement, 3);
@@ -1760,10 +1760,10 @@ namespace NS
 
             var nodes = GetBindingNodes<SyntaxNode>(comp).ToList();
             var tinfo = model.GetTypeInfo(nodes[0] as IdentifierNameSyntax);
-            // obj: IFoo<float, PlatformID>
+            // obj: IGoo<float, PlatformID>
             Assert.NotNull(tinfo.Type);
             Assert.True(((TypeSymbol)tinfo.Type).IsInterfaceType());
-            Assert.Equal("NS.IFoo<float, System.PlatformID>", tinfo.Type.ToDisplayString());
+            Assert.Equal("NS.IGoo<float, System.PlatformID>", tinfo.Type.ToDisplayString());
             // f: T? -> float?
             tinfo = model.GetTypeInfo(nodes[1] as IdentifierNameSyntax);
             Assert.True(((TypeSymbol)tinfo.Type).IsNullableType());
@@ -1782,19 +1782,19 @@ namespace NS
         {
             var code = @"
 using System;
-class Foo {
+class Goo {
     dynamic X;
     object Y;
     Func<dynamic> Z;
     Func<object> W;
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(code);
-            var Foo = compilation.GlobalNamespace.GetTypeMembers("Foo")[0];
-            var Dynamic = (Foo.GetMembers("X")[0] as FieldSymbol).Type;
-            var Object = (Foo.GetMembers("Y")[0] as FieldSymbol).Type;
-            var Func_Dynamic = (Foo.GetMembers("Z")[0] as FieldSymbol).Type;
-            var Func_Object = (Foo.GetMembers("W")[0] as FieldSymbol).Type;
+            var compilation = CreateStandardCompilation(code);
+            var Goo = compilation.GlobalNamespace.GetTypeMembers("Goo")[0];
+            var Dynamic = (Goo.GetMembers("X")[0] as FieldSymbol).Type;
+            var Object = (Goo.GetMembers("Y")[0] as FieldSymbol).Type;
+            var Func_Dynamic = (Goo.GetMembers("Z")[0] as FieldSymbol).Type;
+            var Func_Object = (Goo.GetMembers("W")[0] as FieldSymbol).Type;
 
             var comparator = TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer;
             Assert.NotEqual(Object, Dynamic);
@@ -1816,7 +1816,7 @@ class C<T>
 {
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(code);
+            var compilation = CreateStandardCompilation(code);
             var originalDefinition = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
             var unboundGeneric1 = originalDefinition.AsUnboundGenericType();
@@ -1836,7 +1836,7 @@ class C<T>
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(code);
+            var compilation = CreateStandardCompilation(code);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 

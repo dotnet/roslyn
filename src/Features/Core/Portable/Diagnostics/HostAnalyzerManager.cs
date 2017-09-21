@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var projectId = project.Id;
 
             // Skip telemetry logging for supported diagnostics, as that can cause an infinite loop.
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, a, diagnostic) =>
+            void onAnalyzerException(Exception ex, DiagnosticAnalyzer a, Diagnostic diagnostic) =>
                     AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(ex, a, diagnostic, _hostDiagnosticUpdateSource, projectId);
 
             return CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, options, onAnalyzerException);
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var analyzer in analyzers)
             {
-                ImmutableInterlocked.GetOrAdd(ref _hostDiagnosticAnalyzerPackageNameMap, analyzer, _ => name);
+                ImmutableInterlocked.GetOrAdd(ref _hostDiagnosticAnalyzerPackageNameMap, analyzer, name);
             }
         }
 
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (analyzer.IsCompilerAnalyzer())
                 {
                     ImmutableInterlocked.GetOrAdd(ref _compilerDiagnosticAnalyzerDescriptorMap, analyzer, a => new HashSet<string>(GetDiagnosticDescriptors(a).Select(d => d.Id)));
-                    ImmutableInterlocked.GetOrAdd(ref _compilerDiagnosticAnalyzerMap, language, _ => analyzer);
+                    ImmutableInterlocked.GetOrAdd(ref _compilerDiagnosticAnalyzerMap, language, analyzer);
                     return;
                 }
             }

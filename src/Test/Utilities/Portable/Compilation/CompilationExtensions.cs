@@ -13,7 +13,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Extensions;
-using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -47,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var emitResult = compilation.Emit(
                 peStream: peStream,
+                metadataPEStream: null,
                 pdbStream: pdbStream,
                 xmlDocumentationStream: null,
                 win32Resources: null,
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         actualTextBuilder.Append(Environment.NewLine);
                         AppendOperationTree(model, executableCodeBlock, actualTextBuilder, initialIndent: 2);
                     }
-                }               
+                }
 
                 actualTextBuilder.Append(Environment.NewLine);
             }
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IOperation operation = model.GetOperationInternal(node);
             if (operation != null)
             {
-                string operationTree = OperationTreeVerifier.GetOperationTree(operation, initialIndent);
+                string operationTree = OperationTreeVerifier.GetOperationTree(model.Compilation, operation, initialIndent);
                 actualTextBuilder.Append(operationTree);
             }
             else

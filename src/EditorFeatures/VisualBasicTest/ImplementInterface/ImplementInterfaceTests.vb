@@ -1,8 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.ImplementType
 Imports Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
@@ -28,6 +29,7 @@ End Class",
 End Interface
 Class C
     Implements I
+
     Public Sub M() Implements I.M
         Throw New System.NotImplementedException()
     End Sub
@@ -38,20 +40,21 @@ End Class")
         Public Async Function TestInterfaceWithTuple() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
-Class Foo
-    Implements [|IFoo|]
+Class Goo
+    Implements [|IGoo|]
 End Class
-Interface IFoo
+Interface IGoo
     Function Method(x As (Alice As Integer, Bob As Integer)) As (String, String)
 End Interface",
 "Imports System
-Class Foo
-    Implements IFoo
-    Public Function Method(x As (Alice As Integer, Bob As Integer)) As (String, String) Implements IFoo.Method
+Class Goo
+    Implements IGoo
+
+    Public Function Method(x As (Alice As Integer, Bob As Integer)) As (String, String) Implements IGoo.Method
         Throw New NotImplementedException()
     End Function
 End Class
-Interface IFoo
+Interface IGoo
     Function Method(x As (Alice As Integer, Bob As Integer)) As (String, String)
 End Interface")
         End Function
@@ -72,9 +75,11 @@ End Class",
 End Interface
 Class C
     Implements I
+
     Private Sub I_M() Implements I.M
         Throw New System.NotImplementedException()
     End Sub
+
     Function M() As Integer
     End Function
 End Class")
@@ -83,22 +88,23 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestMethodConflict2() As Task
             Await TestInRegularAndScriptAsync(
-"Interface IFoo
+"Interface IGoo
     Sub Bar()
 End Interface
 Class C
-    Implements [|IFoo|]
+    Implements [|IGoo|]
     Public Sub Bar()
     End Sub
 End Class",
-"Interface IFoo
+"Interface IGoo
     Sub Bar()
 End Interface
 Class C
-    Implements IFoo
+    Implements IGoo
     Public Sub Bar()
     End Sub
-    Private Sub IFoo_Bar() Implements IFoo.Bar
+
+    Private Sub IGoo_Bar() Implements IGoo.Bar
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -121,6 +127,7 @@ End Interface
 Class C
     Implements I
     Private m As Integer
+
     Private Sub I_M() Implements I.M
         Throw New System.NotImplementedException()
     End Sub
@@ -144,6 +151,7 @@ End Interface
 Class C
     Implements I
     Public Property M As Integer
+
     Private Property I_M As Integer Implements I.M
         Get
             Throw New System.NotImplementedException()
@@ -177,7 +185,6 @@ End Class",
 End Interface
 Class C
     Implements I
-
     Private Property M As Integer
         Get
             Return 5
@@ -222,6 +229,7 @@ End Class
 Class C
     Inherits B
     Implements I
+
     Private Sub I_M() Implements I.M
         Throw New System.NotImplementedException()
     End Sub
@@ -251,6 +259,7 @@ End Class
 Class C
     Inherits B
     Implements I
+
     Private Sub I_M() Implements I.M
         Throw New System.NotImplementedException()
     End Sub
@@ -280,6 +289,7 @@ End Class
 Class C
     Inherits B
     Implements I
+
     Private Sub I_M() Implements I.M
         Throw New System.NotImplementedException()
     End Sub
@@ -300,6 +310,7 @@ End Class",
 End Interface
 MustInherit Class C
     Implements I
+
     Public MustOverride Sub M() Implements I.M
 End Class",
 index:=1)
@@ -319,6 +330,7 @@ End Class",
 End Interface
 Class [Class]
     Implements IInterface1(Of Integer)
+
     Public Sub Method1(t As Integer) Implements IInterface1(Of Integer).Method1
         Throw New System.NotImplementedException()
     End Sub
@@ -339,6 +351,7 @@ End Class",
 End Interface
 Class [Class]
     Implements IInterface1(Of Integer)
+
     Public Sub Method1(Of U)(arg As Integer, arg1 As U) Implements IInterface1(Of Integer).Method1
         Throw New System.NotImplementedException()
     End Sub
@@ -361,6 +374,7 @@ Interface IInterface1(Of T)
 End Interface
 Class [Class]
     Implements IInterface1(Of Integer)
+
     Public Sub Method1(Of U As IList(Of Integer))(arg As Integer, arg1 As U) Implements IInterface1(Of Integer).Method1
         Throw New System.NotImplementedException()
     End Sub
@@ -381,6 +395,7 @@ End Class",
 End Interface
 Class [Class]
     Implements IInterface1(Of Integer)
+
     Public Sub Method1(Of U As Integer)(arg As Integer, arg1 As U) Implements IInterface1(Of Integer).Method1
         Throw New System.NotImplementedException()
     End Sub
@@ -403,6 +418,7 @@ End Interface
 Class C
     Implements I
     Private x As I
+
     Public Sub M() Implements I.M
         Throw New System.NotImplementedException()
     End Sub
@@ -425,6 +441,7 @@ End Interface
 Class C
     Implements I
     Private x As I
+
     Public Sub M() Implements I.M
         x.M()
     End Sub
@@ -478,28 +495,28 @@ index:=1)
         Public Async Function TestImplementThroughFieldMemberInterfaceWithNonStandardProperties() As Task
             Dim source =
 <File>
-Interface IFoo
+Interface IGoo
     Property Blah(x As Integer) As Integer
     Default Property Blah1(x As Integer) As Integer
 End Interface
 
 Class C
-    Implements [|IFoo|]
-    Dim i1 As IFoo
+    Implements [|IGoo|]
+    Dim i1 As IGoo
 End Class
 </File>
             Dim expected =
 <File>
-Interface IFoo
+Interface IGoo
     Property Blah(x As Integer) As Integer
     Default Property Blah1(x As Integer) As Integer
 End Interface
 
 Class C
-    Implements IFoo
-    Dim i1 As IFoo
+    Implements IGoo
+    Dim i1 As IGoo
 
-    Public Property Blah(x As Integer) As Integer Implements IFoo.Blah
+    Public Property Blah(x As Integer) As Integer Implements IGoo.Blah
         Get
             Return i1.Blah(x)
         End Get
@@ -508,7 +525,7 @@ Class C
         End Set
     End Property
 
-    Default Public Property Blah1(x As Integer) As Integer Implements IFoo.Blah1
+    Default Public Property Blah1(x As Integer) As Integer Implements IGoo.Blah1
         Get
             Return i1(x)
         End Get
@@ -528,11 +545,11 @@ End Class
         Public Async Function TestMissingOnImplementationWithDifferentName() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Interface I1(Of T)
-    Function Foo() As Double
+    Function Goo() As Double
 End Interface
 Class M
     Implements [|I1(Of Double)|]
-    Public Function I_Foo() As Double Implements I1(Of Double).Foo
+    Public Function I_Goo() As Double Implements I1(Of Double).Goo
         Return 2
     End Function
 End Class")
@@ -548,10 +565,12 @@ Class M
 "Imports System
 Class M
     Implements IServiceProvider
+
     Public Function GetService(serviceType As Type) As Object Implements IServiceProvider.GetService
         Throw New NotImplementedException()
     End Function
-End Class")
+End Class
+")
         End Function
 
         <WorkItem(540367, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540367")>
@@ -559,17 +578,18 @@ End Class")
         Public Async Function TestSimpleProperty() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I1
-    Property Foo() As Integer
+    Property Goo() As Integer
 End Interface
 Class M
     Implements [|I1|]
 End Class",
 "Interface I1
-    Property Foo() As Integer
+    Property Goo() As Integer
 End Interface
 Class M
     Implements I1
-    Public Property Foo As Integer Implements I1.Foo
+
+    Public Property Goo As Integer Implements I1.Goo
         Get
             Throw New System.NotImplementedException()
         End Get
@@ -594,6 +614,7 @@ End Class",
 End Interface
 Class C
     Implements I
+
     Public Function M() As String() Implements I.M
         Throw New System.NotImplementedException()
     End Function
@@ -605,7 +626,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Implements [|I|]
-    Private foo As I
+    Private goo As I
 End Class
 Interface I
     Sub Method1(ByRef x As Integer, ByRef y As Integer, z As Integer)
@@ -613,10 +634,12 @@ Interface I
 End Interface",
 "Class C
     Implements I
-    Private foo As I
+    Private goo As I
+
     Public Sub Method1(ByRef x As Integer, ByRef y As Integer, z As Integer) Implements I.Method1
         Throw New System.NotImplementedException()
     End Sub
+
     Public Function Method2() As Integer Implements I.Method2
         Throw New System.NotImplementedException()
     End Function
@@ -641,6 +664,7 @@ End Class",
 End Interface
 Class C
     Implements I1
+
     Public Function Method1() As String Implements I1.Method1
         Throw New System.NotImplementedException()
     End Function
@@ -661,6 +685,7 @@ End Class",
 End Interface
 Class C
     Implements I1
+
     Public Sub Method1(ByRef arg As Double) Implements I1.Method1
         Throw New System.NotImplementedException()
     End Sub
@@ -685,7 +710,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Implements [|I|]
-    Private foo As I
+    Private goo As I
 End Class
 Interface I
     Sub Method1(ByRef x As Integer, ByRef y As Integer, z As Integer)
@@ -693,10 +718,12 @@ Interface I
 End Interface",
 "Class C
     Implements I
-    Private foo As I
+    Private goo As I
+
     Public Sub Method1(ByRef x As Integer, ByRef y As Integer, z As Integer) Implements I.Method1
         Throw New System.NotImplementedException()
     End Sub
+
     Public Function Method2() As Integer Implements I.Method2
         Throw New System.NotImplementedException()
     End Function
@@ -712,17 +739,18 @@ End Interface")
         Public Async Function TestDefaultProperty1() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I1
-    Default Property Foo(ByVal arg As Integer)
+    Default Property Goo(ByVal arg As Integer)
 End Interface
 Class C
     Implements [|I1|]
 End Class",
 "Interface I1
-    Default Property Foo(ByVal arg As Integer)
+    Default Property Goo(ByVal arg As Integer)
 End Interface
 Class C
     Implements I1
-    Default Public Property Foo(arg As Integer) As Object Implements I1.Foo
+
+    Default Public Property Goo(arg As Integer) As Object Implements I1.Goo
         Get
             Throw New System.NotImplementedException()
         End Get
@@ -737,25 +765,26 @@ End Class")
         Public Async Function TestImplementNestedInterface() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I1
-    Sub Foo()
+    Sub Goo()
     Delegate Sub Del(ByVal arg As Integer)
     Interface I2
-        Sub Foo(ByVal arg As Del)
+        Sub Goo(ByVal arg As Del)
     End Interface
 End Interface
 Class C
     Implements [|I1.I2|]
 End Class",
 "Interface I1
-    Sub Foo()
+    Sub Goo()
     Delegate Sub Del(ByVal arg As Integer)
     Interface I2
-        Sub Foo(ByVal arg As Del)
+        Sub Goo(ByVal arg As Del)
     End Interface
 End Interface
 Class C
     Implements I1.I2
-    Public Sub Foo(arg As I1.Del) Implements I1.I2.Foo
+
+    Public Sub Goo(arg As I1.Del) Implements I1.I2.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -776,6 +805,7 @@ End Class",
 End Interface
 Class C
     Implements I1
+
     Public Sub Method1(arg() As Integer) Implements I1.Method1
         Throw New System.NotImplementedException()
     End Sub
@@ -800,6 +830,7 @@ End Namespace",
     End Interface
     Class C
         Implements I1
+
         Public Sub Method1() Implements I1.Method1
             Throw New System.NotImplementedException()
         End Sub
@@ -823,6 +854,7 @@ End Class",
 End Interface
 Class A
     Implements I2
+
     Public Function G(ParamArray args() As Double) As Integer Implements I2.G
         Throw New System.NotImplementedException()
     End Function
@@ -834,17 +866,18 @@ End Class")
         Public Async Function TestShowForNonImplementedPrivateInterfaceMethod() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I1
-    Private Sub Foo()
+    Private Sub Goo()
 End Interface
 Class A
     Implements [|I1|]
 End Class",
 "Interface I1
-    Private Sub Foo()
+    Private Sub Goo()
 End Interface
 Class A
     Implements I1
-    Public Sub Foo() Implements I1.Foo
+
+    Public Sub Goo() Implements I1.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -855,11 +888,11 @@ End Class")
         Public Async Function TestDoNotShowForImplementedPrivateInterfaceMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Interface I1
-    Private Sub Foo()
+    Private Sub Goo()
 End Interface
 Class A
     Implements [|I1|]
-    Public Sub Foo() Implements I1.Foo
+    Public Sub Goo() Implements I1.Goo
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -892,6 +925,7 @@ End Interface
 Class C
     Implements I
     Public Property X As I
+
     Public Sub M() Implements I.M
         Throw New System.NotImplementedException()
     End Sub
@@ -911,6 +945,7 @@ End Interface
 Class C
     Implements I
     Public Property X As I
+
     Public Sub M() Implements I.M
         X.M()
     End Sub
@@ -1024,6 +1059,7 @@ End Class
 Class B
     Implements I
     Dim x As A
+
     Public Sub M() Implements I.M
         DirectCast(x, I).M()
     End Sub
@@ -1108,6 +1144,7 @@ Class B
     Implements I
     Implements I2
     Dim x As A
+
     Public Sub M() Implements I.M
         DirectCast(x, I).M()
     End Sub
@@ -1148,6 +1185,7 @@ Class B
     Implements I
     Implements I2
     Dim x As A
+
     Public Sub M2() Implements I2.M2
         DirectCast(x, I2).M2()
     End Sub
@@ -1204,6 +1242,7 @@ Class B
     Implements I
     Dim x As A
     Dim y As A
+
     Public Sub M() Implements I.M
         DirectCast(x, I).M()
     End Sub
@@ -1238,6 +1277,7 @@ Class B
     Implements I
     Dim x As A
     Dim y As A
+
     Public Sub M() Implements I.M
         DirectCast(y, I).M()
     End Sub
@@ -1350,6 +1390,7 @@ Class C
     Implements I2
     Dim x As A
     Dim y as B
+
     Public Sub M() Implements I.M
         DirectCast(x, I).M()
     End Sub
@@ -1404,6 +1445,7 @@ Class C
     Implements I2
     Dim x As A
     Dim y as B
+
     Public Sub M2() Implements I2.M2
         DirectCast(y, I2).M2()
     End Sub
@@ -1487,24 +1529,23 @@ count:=1)
         Public Async Function TestInsertBlankLineAfterImplementsAndInherits() As Task
             Await TestInRegularAndScriptAsync(
 <Text>Interface I1
-    Function Foo()
+    Function Goo()
 End Interface
 
 Class M
     Implements [|I1|]
 End Class</Text>.Value.Replace(vbLf, vbCrLf),
 <Text>Interface I1
-    Function Foo()
+    Function Goo()
 End Interface
 
 Class M
     Implements I1
 
-    Public Function Foo() As Object Implements I1.Foo
+    Public Function Goo() As Object Implements I1.Goo
         Throw New System.NotImplementedException()
     End Function
-End Class</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(542290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542290")>
@@ -1532,6 +1573,7 @@ End Class
 Class C
     Inherits B
     Implements I
+
     Private Sub I_M() Implements I.M
         Throw New System.NotImplementedException()
     End Sub
@@ -1553,6 +1595,7 @@ End Class",
 End Interface
 Class C
     Implements I ' Implement interface 
+
     Public Sub [Rem]() Implements I.[Rem]
         Throw New System.NotImplementedException()
     End Sub
@@ -1581,6 +1624,7 @@ End Class",
 "Imports System.ComponentModel
 Class C
     Implements INotifyPropertyChanged
+
     Public Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
 End Class")
         End Function
@@ -1614,19 +1658,16 @@ Class Boss
 
 	Private worker As Worker
 
-	Public Custom Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
-
-		AddHandler(value As PropertyChangedEventHandler)
-			AddHandler DirectCast(worker, INotifyPropertyChanged).PropertyChanged, value
-		End AddHandler
-
-		RemoveHandler(value As PropertyChangedEventHandler)
-			RemoveHandler DirectCast(worker, INotifyPropertyChanged).PropertyChanged, value
-		End RemoveHandler
-
-		RaiseEvent(sender As Object, e As PropertyChangedEventArgs)
-		End RaiseEvent
-	End Event
+    Public Custom Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
+        AddHandler(value As PropertyChangedEventHandler)
+            AddHandler DirectCast(worker, INotifyPropertyChanged).PropertyChanged, value
+        End AddHandler
+        RemoveHandler(value As PropertyChangedEventHandler)
+            RemoveHandler DirectCast(worker, INotifyPropertyChanged).PropertyChanged, value
+        End RemoveHandler
+        RaiseEvent(sender As Object, e As PropertyChangedEventArgs)
+        End RaiseEvent
+    End Event
 End Class", index:=1)
         End Function
 
@@ -1635,17 +1676,18 @@ End Class", index:=1)
         Public Async Function TestNameSimplifyGenericType() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I(Of In T, Out R)
-    Sub Foo()
+    Sub Goo()
 End Interface
 Class C(Of T, R)
     Implements [|I(Of T, R)|]
 End Class",
 "Interface I(Of In T, Out R)
-    Sub Foo()
+    Sub Goo()
 End Interface
 Class C(Of T, R)
     Implements I(Of T, R)
-    Public Sub Foo() Implements I(Of T, R).Foo
+
+    Public Sub Goo() Implements I(Of T, R).Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -1674,6 +1716,7 @@ Interface I2
 End Interface
 Class C
     Implements I2
+
     Public Property Bar As Integer Implements I2.Bar
         Get
             Throw New System.NotImplementedException()
@@ -1682,6 +1725,7 @@ Class C
             Throw New System.NotImplementedException()
         End Set
     End Property
+
     Private Property I1_Bar As Integer Implements I1.Bar
         Get
             Throw New System.NotImplementedException()
@@ -1711,7 +1755,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Interface I1
     Property Bar As Integer
-    Sub Foo()
+    Sub Goo()
 End Interface
 Class B
     Public Property Bar As Integer
@@ -1722,7 +1766,7 @@ Class C
 End Class",
 "Interface I1
     Property Bar As Integer
-    Sub Foo()
+    Sub Goo()
 End Interface
 Class B
     Public Property Bar As Integer
@@ -1730,6 +1774,7 @@ End Class
 Class C
     Inherits B
     Implements I1
+
     Private Property I1_Bar As Integer Implements I1.Bar
         Get
             Throw New System.NotImplementedException()
@@ -1738,7 +1783,8 @@ Class C
             Throw New System.NotImplementedException()
         End Set
     End Property
-    Public Sub Foo() Implements I1.Foo
+
+    Public Sub Goo() Implements I1.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -1759,6 +1805,7 @@ End Class",
 End Interface
 Class C
     Implements I1
+
     Public Event E(x As String) Implements I1.E
 End Class")
         End Function
@@ -1766,18 +1813,19 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestStringLiteral() As Task
             Await TestInRegularAndScriptAsync(
-"Interface IFoo
-    Sub Foo(Optional s As String = """""""")
+"Interface IGoo
+    Sub Goo(Optional s As String = """""""")
 End Interface
 Class Bar
-    Implements [|IFoo|]
+    Implements [|IGoo|]
 End Class",
-"Interface IFoo
-    Sub Foo(Optional s As String = """""""")
+"Interface IGoo
+    Sub Goo(Optional s As String = """""""")
 End Interface
 Class Bar
-    Implements IFoo
-    Public Sub Foo(Optional s As String = """""""") Implements IFoo.Foo
+    Implements IGoo
+
+    Public Sub Goo(Optional s As String = """""""") Implements IGoo.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -1802,6 +1850,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub VBNullChar(Optional x As String = Constants.vbNullChar) Implements I.VBNullChar
         Throw New System.NotImplementedException()
     End Sub
@@ -1831,6 +1880,7 @@ End Interface
 Namespace N
     Class Microsoft
         Implements I
+
         Public Sub VBNullChar(Optional x As String = Constants.vbNullChar) Implements I.VBNullChar
             Throw New NotImplementedException()
         End Sub
@@ -1860,6 +1910,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub ChrW(Optional x As String = Strings.ChrW(1)) Implements I.ChrW
         Throw New NotImplementedException()
     End Sub
@@ -1871,17 +1922,18 @@ End Class")
         Public Async Function TestDateTimeLiteral1() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
-    Sub Foo(Optional x As Date = #6/29/2012#)
+    Sub Goo(Optional x As Date = #6/29/2012#)
 End Interface
 Class C
     Implements [|I|]
 End Class",
 "Interface I
-    Sub Foo(Optional x As Date = #6/29/2012#)
+    Sub Goo(Optional x As Date = #6/29/2012#)
 End Interface
 Class C
     Implements I
-    Public Sub Foo(Optional x As Date = #6/29/2012 12:00:00 AM#) Implements I.Foo
+
+    Public Sub Goo(Optional x As Date = #6/29/2012 12:00:00 AM#) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -1894,7 +1946,7 @@ End Class")
 "Option Strict On
 Imports System
 Interface I
-    Sub Foo(Optional x As DayOfWeek = DayOfWeek.Friday)
+    Sub Goo(Optional x As DayOfWeek = DayOfWeek.Friday)
 End Interface
 
 Class C
@@ -1903,12 +1955,13 @@ End Class",
 "Option Strict On
 Imports System
 Interface I
-    Sub Foo(Optional x As DayOfWeek = DayOfWeek.Friday)
+    Sub Goo(Optional x As DayOfWeek = DayOfWeek.Friday)
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As DayOfWeek = DayOfWeek.Friday) Implements I.Foo
+
+    Public Sub Goo(Optional x As DayOfWeek = DayOfWeek.Friday) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -1919,19 +1972,20 @@ End Class")
         Public Async Function TestMultiDimensionalArray1() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
-    Sub Foo(x As Integer()())
+    Sub Goo(x As Integer()())
 End Interface
 
 Class C
     Implements [|I|]
 End Class",
 "Interface I
-    Sub Foo(x As Integer()())
+    Sub Goo(x As Integer()())
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(x As Integer()()) Implements I.Foo
+
+    Public Sub Goo(x As Integer()()) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -1944,7 +1998,7 @@ End Class")
 "Imports System
 Imports Microsoft.VisualBasic
 Interface I
-    Sub Foo(Optional x As String = ChrW(8220))
+    Sub Goo(Optional x As String = ChrW(8220))
 End Interface
 
 Class C
@@ -1953,12 +2007,13 @@ End Class",
 "Imports System
 Imports Microsoft.VisualBasic
 Interface I
-    Sub Foo(Optional x As String = ChrW(8220))
+    Sub Goo(Optional x As String = ChrW(8220))
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As String = ChrW(8220)) Implements I.Foo
+
+    Public Sub Goo(Optional x As String = ChrW(8220)) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -1969,19 +2024,20 @@ End Class")
         Public Async Function TestLongMinValue() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
-    Sub Foo(Optional x As Long = Long.MinValue)
+    Sub Goo(Optional x As Long = Long.MinValue)
 End Interface
 
 Class C
     Implements [|I|]
 End Class",
 "Interface I
-    Sub Foo(Optional x As Long = Long.MinValue)
+    Sub Goo(Optional x As Long = Long.MinValue)
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As Long = Long.MinValue) Implements I.Foo
+
+    Public Sub Goo(Optional x As Long = Long.MinValue) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -2073,8 +2129,7 @@ Class C
     Public Sub M12(Optional x As ULong = ULong.MaxValue) Implements I.M12
         Throw New System.NotImplementedException()
     End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
@@ -2163,8 +2218,7 @@ Class C
     Public Sub S6(Optional x As Single = Single.PositiveInfinity) Implements I.S6
         Throw New System.NotImplementedException()
     End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
@@ -2220,8 +2274,7 @@ Class C
     Public Sub M2(Optional e As FlagE = FlagE.A Or FlagE.B) Implements I.M2
         Throw New NotImplementedException()
     End Sub
-End Class]]></Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Class]]></Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")>
@@ -2281,8 +2334,7 @@ Class C
     Public Sub M2(Optional e As FlagE = FlagE.A Or FlagE.B) Implements I.M2
         Throw New NotImplementedException()
     End Sub
-End Class]]></Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Class]]></Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(545691, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545691")>
@@ -2290,19 +2342,20 @@ ignoreTrivia:=False)
         Public Async Function TestMultiDimArray1() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
-    Sub Foo(x As Integer(,))
+    Sub Goo(x As Integer(,))
 End Interface
 
 Class C
     Implements [|I|]
 End Class",
 "Interface I
-    Sub Foo(x As Integer(,))
+    Sub Goo(x As Integer(,))
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(x(,) As Integer) Implements I.Foo
+
+    Public Sub Goo(x(,) As Integer) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -2315,7 +2368,7 @@ End Class")
 "Imports System
 Imports Microsoft.VisualBasic
 Interface I
-    Sub Foo(Optional x As Char = ChrW(8220))
+    Sub Goo(Optional x As Char = ChrW(8220))
 End Interface
 Class C
     Implements [|I|]
@@ -2323,11 +2376,12 @@ End Class",
 "Imports System
 Imports Microsoft.VisualBasic
 Interface I
-    Sub Foo(Optional x As Char = ChrW(8220))
+    Sub Goo(Optional x As Char = ChrW(8220))
 End Interface
 Class C
     Implements I
-    Public Sub Foo(Optional x As Char = ChrW(8220)) Implements I.Foo
+
+    Public Sub Goo(Optional x As Char = ChrW(8220)) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -2338,19 +2392,20 @@ End Class")
         Public Async Function TestQuoteEscaping2() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
-    Sub Foo(Optional x As Object = ""‟"")
+    Sub Goo(Optional x As Object = ""‟"")
 End Interface
 
 Class C
     Implements [|I|]
 End Class",
 "Interface I
-    Sub Foo(Optional x As Object = ""‟"")
+    Sub Goo(Optional x As Object = ""‟"")
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As Object = ""‟"") Implements I.Foo
+
+    Public Sub Goo(Optional x As Object = ""‟"") Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -2363,7 +2418,7 @@ End Class")
 "Option Strict On
 Imports System
 Interface I
-    Sub Foo(Optional x As Decimal = Decimal.MaxValue)
+    Sub Goo(Optional x As Decimal = Decimal.MaxValue)
 End Interface
 
 Class C
@@ -2372,12 +2427,13 @@ End Class",
 "Option Strict On
 Imports System
 Interface I
-    Sub Foo(Optional x As Decimal = Decimal.MaxValue)
+    Sub Goo(Optional x As Decimal = Decimal.MaxValue)
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As Decimal = Decimal.MaxValue) Implements I.Foo
+
+    Public Sub Goo(Optional x As Decimal = Decimal.MaxValue) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -2390,7 +2446,7 @@ End Class")
 "Option Strict On
 Imports System
 Interface I
-    Sub Foo(Optional x As DayOfWeek = DayOfWeek.Monday)
+    Sub Goo(Optional x As DayOfWeek = DayOfWeek.Monday)
 End Interface
 
 Class C
@@ -2401,14 +2457,15 @@ End Class",
 "Option Strict On
 Imports System
 Interface I
-    Sub Foo(Optional x As DayOfWeek = DayOfWeek.Monday)
+    Sub Goo(Optional x As DayOfWeek = DayOfWeek.Monday)
 End Interface
 
 Class C
     Implements I
 
     Property DayOfWeek As DayOfWeek
-    Public Sub Foo(Optional x As DayOfWeek = DayOfWeek.Monday) Implements I.Foo
+
+    Public Sub Goo(Optional x As DayOfWeek = DayOfWeek.Monday) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -2421,7 +2478,7 @@ End Class")
 "Option Strict On
 Imports System
 Interface I
-    Sub Foo(Optional x As DayOfWeek? = DayOfWeek.Friday)
+    Sub Goo(Optional x As DayOfWeek? = DayOfWeek.Friday)
 End Interface
 
 Class C
@@ -2430,12 +2487,13 @@ End Class",
 "Option Strict On
 Imports System
 Interface I
-    Sub Foo(Optional x As DayOfWeek? = DayOfWeek.Friday)
+    Sub Goo(Optional x As DayOfWeek? = DayOfWeek.Friday)
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As DayOfWeek? = DayOfWeek.Friday) Implements I.Foo
+
+    Public Sub Goo(Optional x As DayOfWeek? = DayOfWeek.Friday) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -2447,7 +2505,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Imports System
 Interface I
-    Sub Foo(Optional x As Double = 2.8025969286496341E-45)
+    Sub Goo(Optional x As Double = 2.8025969286496341E-45)
 End Interface
 
 Class C
@@ -2455,12 +2513,13 @@ Class C
 End Class",
 "Imports System
 Interface I
-    Sub Foo(Optional x As Double = 2.8025969286496341E-45)
+    Sub Goo(Optional x As Double = 2.8025969286496341E-45)
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As Double = 2.8025969286496341E-45) Implements I.Foo
+
+    Public Sub Goo(Optional x As Double = 2.8025969286496341E-45) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -2473,7 +2532,7 @@ End Class")
 "Imports System
 Imports Microsoft.VisualBasic
 Interface I
-    Sub Foo(Optional x As Char = ChrW(55401))
+    Sub Goo(Optional x As Char = ChrW(55401))
 End Interface
 
 Class C
@@ -2482,12 +2541,13 @@ End Class",
 "Imports System
 Imports Microsoft.VisualBasic
 Interface I
-    Sub Foo(Optional x As Char = ChrW(55401))
+    Sub Goo(Optional x As Char = ChrW(55401))
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As Char = ChrW(55401)) Implements I.Foo
+
+    Public Sub Goo(Optional x As Char = ChrW(55401)) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -2501,7 +2561,7 @@ End Class")
 Imports System
 Imports Microsoft.VisualBasic
 Interface I
-    Sub Foo(Optional x As Char = Chr(13))
+    Sub Goo(Optional x As Char = Chr(13))
 End Interface
 
 Class C
@@ -2511,12 +2571,13 @@ End Class",
 Imports System
 Imports Microsoft.VisualBasic
 Interface I
-    Sub Foo(Optional x As Char = Chr(13))
+    Sub Goo(Optional x As Char = Chr(13))
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As Char = ChrW(13)) Implements I.Foo
+
+    Public Sub Goo(Optional x As Char = ChrW(13)) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -2529,7 +2590,7 @@ End Class")
 "Option Strict On
 Imports System
 Interface I
-    Sub Foo(Optional x As ConsoleColor = CType(-1, ConsoleColor))
+    Sub Goo(Optional x As ConsoleColor = CType(-1, ConsoleColor))
 End Interface
 
 Class C
@@ -2538,12 +2599,13 @@ End Class",
 "Option Strict On
 Imports System
 Interface I
-    Sub Foo(Optional x As ConsoleColor = CType(-1, ConsoleColor))
+    Sub Goo(Optional x As ConsoleColor = CType(-1, ConsoleColor))
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As ConsoleColor = CType(-1, ConsoleColor)) Implements I.Foo
+
+    Public Sub Goo(Optional x As ConsoleColor = CType(-1, ConsoleColor)) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -2554,19 +2616,20 @@ End Class")
         Public Async Function TestArrayOfNullables() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
-    Sub Foo(x As Integer?())
+    Sub Goo(x As Integer?())
 End Interface
 
 Class C
     Implements [|I|]
 End Class",
 "Interface I
-    Sub Foo(x As Integer?())
+    Sub Goo(x As Integer?())
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(x As Integer?()) Implements I.Foo
+
+    Public Sub Goo(x As Integer?()) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -2577,19 +2640,20 @@ End Class")
         Public Async Function TestOptionalArrayParameterWithDefault() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
-    Sub Foo(Optional x As Integer() = Nothing)
+    Sub Goo(Optional x As Integer() = Nothing)
 End Interface
 
 Class C
     Implements [|I|]
 End Class",
 "Interface I
-    Sub Foo(Optional x As Integer() = Nothing)
+    Sub Goo(Optional x As Integer() = Nothing)
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x() As Integer = Nothing) Implements I.Foo
+
+    Public Sub Goo(Optional x() As Integer = Nothing) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -2606,7 +2670,7 @@ Enum E
 End Enum
 
 Interface I
-    Sub Foo(Optional x As E = E.[Rem])
+    Sub Goo(Optional x As E = E.[Rem])
 End Interface
 
 Class C
@@ -2619,12 +2683,13 @@ Enum E
 End Enum
 
 Interface I
-    Sub Foo(Optional x As E = E.[Rem])
+    Sub Goo(Optional x As E = E.[Rem])
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As E = E.[Rem]) Implements I.Foo
+
+    Public Sub Goo(Optional x As E = E.[Rem]) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -2635,19 +2700,20 @@ End Class")
         Public Async Function TestByteParameter() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
-    Sub Foo(Optional x As Byte = 1)
+    Sub Goo(Optional x As Byte = 1)
 End Interface
 
 Class C
     Implements [|I|]
 End Class",
 "Interface I
-    Sub Foo(Optional x As Byte = 1)
+    Sub Goo(Optional x As Byte = 1)
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As Byte = 1) Implements I.Foo
+
+    Public Sub Goo(Optional x As Byte = 1) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -2658,19 +2724,20 @@ End Class")
         Public Async Function TestDefaultParameterSuffix1() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
-    Sub Foo(Optional x As Object = 1L)
+    Sub Goo(Optional x As Object = 1L)
 End Interface
 
 Class C
     Implements [|I|]
 End Class",
 "Interface I
-    Sub Foo(Optional x As Object = 1L)
+    Sub Goo(Optional x As Object = 1L)
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As Object = 1L) Implements I.Foo
+
+    Public Sub Goo(Optional x As Object = 1L) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -2685,7 +2752,7 @@ End Class")
 End Enum
 
 Interface I
-    Sub Foo(Optional x As E = 0)
+    Sub Goo(Optional x As E = 0)
 End Interface
 
 Class C
@@ -2696,12 +2763,13 @@ End Class",
 End Enum
 
 Interface I
-    Sub Foo(Optional x As E = 0)
+    Sub Goo(Optional x As E = 0)
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As E = 0) Implements I.Foo
+
+    Public Sub Goo(Optional x As E = 0) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -2712,19 +2780,20 @@ End Class")
         Public Async Function TestByteCast() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
-    Sub Foo(Optional x As Object = CByte(1))
+    Sub Goo(Optional x As Object = CByte(1))
 End Interface
 
 Class C
     Implements [|I|]
 End Class",
 "Interface I
-    Sub Foo(Optional x As Object = CByte(1))
+    Sub Goo(Optional x As Object = CByte(1))
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As Object = CByte(1)) Implements I.Foo
+
+    Public Sub Goo(Optional x As Object = CByte(1)) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -2750,6 +2819,7 @@ Class C
 End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
 <Text>Option Strict On
+
 Interface I
     Sub M1(Optional x As Decimal = 2D)
     Sub M2(Optional x As Decimal = 2.0D)
@@ -2796,20 +2866,22 @@ End Class
 "Option Strict On
 
 Interface I
-    Sub Foo(Optional x As Decimal = Long.MinValue)
+    Sub Goo(Optional x As Decimal = Long.MinValue)
 End Interface
 
 Class C
     Implements [|I|]
 End Class",
 "Option Strict On
+
 Interface I
-    Sub Foo(Optional x As Decimal = Long.MinValue)
+    Sub Goo(Optional x As Decimal = Long.MinValue)
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As Decimal = -9223372036854775808D) Implements I.Foo
+
+    Public Sub Goo(Optional x As Decimal = -9223372036854775808D) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -2838,6 +2910,7 @@ Interface IB
 End Interface
 Class C
     Implements IB
+
     Public Event E As Action Implements IB.E
     Private Event IA_E As EventHandler Implements IA.E
 End Class")
@@ -2850,7 +2923,7 @@ End Class")
 "Option Strict On
 Imports System
 Interface I
-    Sub Foo(Optional x As Object = 1D)
+    Sub Goo(Optional x As Object = 1D)
 End Interface
 
 Class C
@@ -2859,12 +2932,13 @@ End Class",
 "Option Strict On
 Imports System
 Interface I
-    Sub Foo(Optional x As Object = 1D)
+    Sub Goo(Optional x As Object = 1D)
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As Object = 1D) Implements I.Foo
+
+    Public Sub Goo(Optional x As Object = 1D) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -2877,7 +2951,7 @@ End Class")
 "Option Strict On
 Imports System
 Interface I
-    Sub Foo(Optional x As Object = 1.0)
+    Sub Goo(Optional x As Object = 1.0)
 End Interface
 
 Class C
@@ -2886,12 +2960,13 @@ End Class",
 "Option Strict On
 Imports System
 Interface I
-    Sub Foo(Optional x As Object = 1.0)
+    Sub Goo(Optional x As Object = 1.0)
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As Object = 1R) Implements I.Foo
+
+    Public Sub Goo(Optional x As Object = 1R) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -2904,7 +2979,7 @@ End Class")
 "Option Strict On
 Imports System
 Interface I
-    Sub Foo(Optional x As Decimal = 10000000000000000000D)
+    Sub Goo(Optional x As Decimal = 10000000000000000000D)
 End Interface
 
 Class C
@@ -2913,12 +2988,13 @@ End Class",
 "Option Strict On
 Imports System
 Interface I
-    Sub Foo(Optional x As Decimal = 10000000000000000000D)
+    Sub Goo(Optional x As Decimal = 10000000000000000000D)
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As Decimal = 10000000000000000000D) Implements I.Foo
+
+    Public Sub Goo(Optional x As Decimal = 10000000000000000000D) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -2929,17 +3005,18 @@ End Class")
         Public Async Function TestSurrogatePair1() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
-    Sub Foo(Optional x As String = ""𪛖"")
+    Sub Goo(Optional x As String = ""𪛖"")
 End Interface
 Class C
     Implements [|I|]
 End Class",
 "Interface I
-    Sub Foo(Optional x As String = ""𪛖"")
+    Sub Goo(Optional x As String = ""𪛖"")
 End Interface
 Class C
     Implements I
-    Public Sub Foo(Optional x As String = ""𪛖"") Implements I.Foo
+
+    Public Sub Goo(Optional x As String = ""𪛖"") Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -2952,7 +3029,7 @@ End Class")
 "Imports System
 Imports Microsoft.VisualBasic
 Interface I
-    Sub Foo(Optional x As String = vbTab)
+    Sub Goo(Optional x As String = vbTab)
 End Interface
 
 Class C
@@ -2961,12 +3038,13 @@ End Class",
 "Imports System
 Imports Microsoft.VisualBasic
 Interface I
-    Sub Foo(Optional x As String = vbTab)
+    Sub Goo(Optional x As String = vbTab)
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As String = vbTab) Implements I.Foo
+
+    Public Sub Goo(Optional x As String = vbTab) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -2977,19 +3055,20 @@ End Class")
         Public Async Function TestEscapeTypeParameter() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
-    Sub Foo(Of [TO], TP, TQ)()
+    Sub Goo(Of [TO], TP, TQ)()
 End Interface
 
 Class C
     Implements [|I|]
 End Class",
 "Interface I
-    Sub Foo(Of [TO], TP, TQ)()
+    Sub Goo(Of [TO], TP, TQ)()
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Of [TO], TP, TQ)() Implements I.Foo
+
+    Public Sub Goo(Of [TO], TP, TQ)() Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -3002,7 +3081,7 @@ End Class")
 "Option Strict On
 Imports System
 Interface I
-    Sub Foo(Optional x As ULong = 10000000000000000000UL)
+    Sub Goo(Optional x As ULong = 10000000000000000000UL)
 End Interface
 
 Class C
@@ -3011,12 +3090,13 @@ End Class",
 "Option Strict On
 Imports System
 Interface I
-    Sub Foo(Optional x As ULong = 10000000000000000000UL)
+    Sub Goo(Optional x As ULong = 10000000000000000000UL)
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As ULong = 10000000000000000000UL) Implements I.Foo
+
+    Public Sub Goo(Optional x As ULong = 10000000000000000000UL) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -3180,6 +3260,7 @@ End Class
 Class C : Implements [|IServiceProvider|] : End Class",
 "Imports System
 Class C : Implements IServiceProvider
+
     Public Function GetService(serviceType As Type) As Object Implements IServiceProvider.GetService
         Throw New NotImplementedException()
     End Function
@@ -3192,14 +3273,15 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Imports System
 MustInherit Class D
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 Class C : Inherits D : Implements [|IServiceProvider|] : End Class",
 "Imports System
 MustInherit Class D
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 Class C : Inherits D : Implements IServiceProvider
+
     Public Function GetService(serviceType As Type) As Object Implements IServiceProvider.GetService
         Throw New NotImplementedException()
     End Function
@@ -3213,7 +3295,7 @@ End Class")
 "Imports System
 Imports Microsoft.VisualBasic
 Interface I
-    Sub Foo(Optional x As Object = CStr(Chr(1)))
+    Sub Goo(Optional x As Object = CStr(Chr(1)))
 End Interface
 
 Class C
@@ -3222,12 +3304,13 @@ End Class",
 "Imports System
 Imports Microsoft.VisualBasic
 Interface I
-    Sub Foo(Optional x As Object = CStr(Chr(1)))
+    Sub Goo(Optional x As Object = CStr(Chr(1)))
 End Interface
 
 Class C
     Implements I ' Implement 
-    Public Sub Foo(Optional x As Object = CStr(ChrW(1))) Implements I.Foo
+
+    Public Sub Goo(Optional x As Object = CStr(ChrW(1))) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -3240,7 +3323,7 @@ End Class")
 "Imports System
 Imports Microsoft.VisualBasic
 Interface I
-    Sub Foo(Optional x As String = ChrW(1))
+    Sub Goo(Optional x As String = ChrW(1))
 End Interface
 
 Class C
@@ -3249,12 +3332,13 @@ End Class",
 "Imports System
 Imports Microsoft.VisualBasic
 Interface I
-    Sub Foo(Optional x As String = ChrW(1))
+    Sub Goo(Optional x As String = ChrW(1))
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As String = ChrW(1)) Implements I.Foo
+
+    Public Sub Goo(Optional x As String = ChrW(1)) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -3267,7 +3351,7 @@ End Class")
 "Imports System
 Imports Microsoft.VisualBasic
 Interface I
-    Sub Foo(Optional x As String = ChrW(1))
+    Sub Goo(Optional x As String = ChrW(1))
 End Interface
 
 Class C
@@ -3278,14 +3362,15 @@ End Class",
 "Imports System
 Imports Microsoft.VisualBasic
 Interface I
-    Sub Foo(Optional x As String = ChrW(1))
+    Sub Goo(Optional x As String = ChrW(1))
 End Interface
 
 Class C
     Implements I
     Public Sub ChrW(x As Integer)
     End Sub
-    Public Sub Foo(Optional x As String = Strings.ChrW(1)) Implements I.Foo
+
+    Public Sub Goo(Optional x As String = Strings.ChrW(1)) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -3308,6 +3393,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Sub [ＲＥＭ]() Implements I.[ＲＥＭ]
         Throw New System.NotImplementedException()
     End Sub
@@ -3319,18 +3405,18 @@ End Class")
         Public Async Function TestDoubleWideREM2() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
-    Sub Foo(Of ［ＲＥＭ］)()
+    Sub Goo(Of ［ＲＥＭ］)()
 End Interface
 Class C
     Implements [|I|]
 End Class",
 "Interface I
-    Sub Foo(Of ［ＲＥＭ］)()
+    Sub Goo(Of ［ＲＥＭ］)()
 End Interface
 Class C
     Implements I
 
-    Public Sub Foo(Of [ＲＥＭ])() Implements I.Foo
+    Public Sub Goo(Of [ＲＥＭ])() Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -3347,7 +3433,7 @@ Class C(Of T)
     End Enum
 End Class
 Interface I
-    Sub Foo(Of M)(Optional x As C(Of M()).E = C(Of M()).E.X)
+    Sub Goo(Of M)(Optional x As C(Of M()).E = C(Of M()).E.X)
 End Interface
 Class C
     Implements [|I|] ' Implement 
@@ -3359,11 +3445,12 @@ Class C(Of T)
     End Enum
 End Class
 Interface I
-    Sub Foo(Of M)(Optional x As C(Of M()).E = C(Of M()).E.X)
+    Sub Goo(Of M)(Optional x As C(Of M()).E = C(Of M()).E.X)
 End Interface
 Class C
     Implements I ' Implement 
-    Public Sub Foo(Of M)(Optional x As C(Of M()).E = C(Of M()).E.X) Implements I.Foo
+
+    Public Sub Goo(Of M)(Optional x As C(Of M()).E = C(Of M()).E.X) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -3380,7 +3467,7 @@ Class C(Of T)
     End Enum
 End Class
 Interface I
-    Sub Foo(Of T)(Optional x As C(Of T()).E = C(Of T()).E.X)
+    Sub Goo(Of T)(Optional x As C(Of T()).E = C(Of T()).E.X)
 End Interface
 Class C
     Implements [|I|]
@@ -3392,11 +3479,12 @@ Class C(Of T)
     End Enum
 End Class
 Interface I
-    Sub Foo(Of T)(Optional x As C(Of T()).E = C(Of T()).E.X)
+    Sub Goo(Of T)(Optional x As C(Of T()).E = C(Of T()).E.X)
 End Interface
 Class C
     Implements I
-    Public Sub Foo(Of T)(Optional x As C(Of T()).E = C(Of T()).E.X) Implements I.Foo
+
+    Public Sub Goo(Of T)(Optional x As C(Of T()).E = C(Of T()).E.X) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -3408,7 +3496,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Imports System
 Interface I
-    Sub Foo(Optional x As Object = """"""""c)
+    Sub Goo(Optional x As Object = """"""""c)
 End Interface
 
 Class C
@@ -3416,12 +3504,13 @@ Class C
 End Class",
 "Imports System
 Interface I
-    Sub Foo(Optional x As Object = """"""""c)
+    Sub Goo(Optional x As Object = """"""""c)
 End Interface
 
 Class C
     Implements I
-    Public Sub Foo(Optional x As Object = """"""""c) Implements I.Foo
+
+    Public Sub Goo(Optional x As Object = """"""""c) Implements I.Goo
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -3456,6 +3545,7 @@ End Class
 
 Partial Class C
     Implements I
+
     Public Sub M() Implements I.M
         Throw New System.NotImplementedException()
     End Sub
@@ -3469,7 +3559,7 @@ End Class")
 "Imports System.Runtime.InteropServices
 
 Interface I
-    Function Foo(<MarshalAs(UnmanagedType.U1)> x As Boolean) As <MarshalAs(UnmanagedType.U1)> Boolean
+    Function Goo(<MarshalAs(UnmanagedType.U1)> x As Boolean) As <MarshalAs(UnmanagedType.U1)> Boolean
 End Interface
 
 Class C
@@ -3478,14 +3568,13 @@ End Class",
 "Imports System.Runtime.InteropServices
 
 Interface I
-    Function Foo(<MarshalAs(UnmanagedType.U1)> x As Boolean) As <MarshalAs(UnmanagedType.U1)> Boolean
+    Function Goo(<MarshalAs(UnmanagedType.U1)> x As Boolean) As <MarshalAs(UnmanagedType.U1)> Boolean
 End Interface
 
 Class C
     Implements I
-    Public Function Foo(<MarshalAs(UnmanagedType.U1)>
-    x As Boolean) As <MarshalAs(UnmanagedType.U1)>
-    Boolean Implements I.Foo
+
+    Public Function Goo(<MarshalAs(UnmanagedType.U1)> x As Boolean) As <MarshalAs(UnmanagedType.U1)> Boolean Implements I.Goo
         Throw New System.NotImplementedException()
     End Function
 End Class")
@@ -3497,18 +3586,19 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Option Strict On
 Interface I
-    Sub Foo(Optional x As Decimal = 1000000000000000000D)
+    Sub Goo(Optional x As Decimal = 1000000000000000000D)
 End Interface
 Class C
     Implements [|I|] ' Implement 
 End Class",
 "Option Strict On
 Interface I
-    Sub Foo(Optional x As Decimal = 1000000000000000000D)
+    Sub Goo(Optional x As Decimal = 1000000000000000000D)
 End Interface
 Class C
     Implements I ' Implement 
-    Public Sub Foo(Optional x As Decimal = 1000000000000000000) Implements I.Foo
+
+    Public Sub Goo(Optional x As Decimal = 1000000000000000000) Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -3519,19 +3609,20 @@ End Class")
         Public Async Function TestImplementAbstractly2() As Task
             Await TestInRegularAndScriptAsync(
 "Interface I
-    Property Foo() As Integer
+    Property Goo() As Integer
 End Interface
 
 MustInherit Class C
     Implements [|I|] ' Implement interface abstractly 
 End Class",
 "Interface I
-    Property Foo() As Integer
+    Property Goo() As Integer
 End Interface
 
 MustInherit Class C
     Implements I ' Implement interface abstractly 
-    Public Property Foo As Integer Implements I.Foo
+
+    Public Property Goo As Integer Implements I.Goo
         Get
             Throw New System.NotImplementedException()
         End Get
@@ -3559,6 +3650,7 @@ End Structure",
 End Interface
 Class c
     Implements I
+
     Public ReadOnly Property g(Optional x As S? = Nothing) As Object Implements I.g
         Get
             Throw New System.NotImplementedException()
@@ -3584,6 +3676,7 @@ End Class",
 End Interface
 Class c
     Implements I
+
     Public ReadOnly Property g(Optional x As Long? = Nothing, Optional y As Long? = 5) As Object Implements I.g
         Get
             Throw New System.NotImplementedException()
@@ -3599,7 +3692,7 @@ End Class")
 <Text>Imports System.Runtime.InteropServices
 
 Interface I
-    Function Foo(&lt;MarshalAs(UnmanagedType.U1)&gt; x As Boolean) As &lt;MarshalAs(UnmanagedType.U1)&gt; Boolean
+    Function Goo(&lt;MarshalAs(UnmanagedType.U1)&gt; x As Boolean) As &lt;MarshalAs(UnmanagedType.U1)&gt; Boolean
 End Interface
 
 Class C
@@ -3609,18 +3702,17 @@ End Class
 <Text>Imports System.Runtime.InteropServices
 
 Interface I
-    Function Foo(&lt;MarshalAs(UnmanagedType.U1)&gt; x As Boolean) As &lt;MarshalAs(UnmanagedType.U1)&gt; Boolean
+    Function Goo(&lt;MarshalAs(UnmanagedType.U1)&gt; x As Boolean) As &lt;MarshalAs(UnmanagedType.U1)&gt; Boolean
 End Interface
 
 Class C
     Implements I ' Implement
 
-    Public Function Foo(&lt;MarshalAs(UnmanagedType.U1)&gt; x As Boolean) As &lt;MarshalAs(UnmanagedType.U1)&gt; Boolean Implements I.Foo
+    Public Function Goo(&lt;MarshalAs(UnmanagedType.U1)&gt; x As Boolean) As &lt;MarshalAs(UnmanagedType.U1)&gt; Boolean Implements I.Goo
         Throw New System.NotImplementedException()
     End Function
 End Class
-</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(546779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546779")>
@@ -3644,6 +3736,7 @@ End Interface
 
 Class C
     Implements I
+
     Public Property P(<MarshalAs(UnmanagedType.I4)> x As Integer) As <MarshalAs(UnmanagedType.I4)> Integer Implements I.P
         Get
             Throw New System.NotImplementedException()
@@ -3660,7 +3753,7 @@ End Class")
         Public Async Function TestImplementInterfaceForPartialType() As Task
             Await TestInRegularAndScriptAsync(
 "Public Interface I
-    Sub Foo()
+    Sub Goo()
 End Interface
 Partial Class C
 End Class
@@ -3668,13 +3761,14 @@ Partial Class C
     Implements [|I|]
 End Class",
 "Public Interface I
-    Sub Foo()
+    Sub Goo()
 End Interface
 Partial Class C
 End Class
 Partial Class C
     Implements I
-    Public Sub Foo() Implements I.Foo
+
+    Public Sub Goo() Implements I.Goo
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -3713,8 +3807,7 @@ End Interface
         End Interface
     End Interface
 End Interface
-</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
@@ -3733,8 +3826,7 @@ Class Program
 
 End Class
 ",
-index:=1,
-ignoreTrivia:=False)
+index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
@@ -3758,8 +3850,7 @@ Class Program
         Throw New NotImplementedException()
     End Sub
 End Class
-</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
@@ -3801,8 +3892,7 @@ Public NotInheritable Class Program
 
 End Class
 ",
-index:=1,
-ignoreTrivia:=False)
+index:=1)
         End Function
 
         <WorkItem(939123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939123")>
@@ -3884,15 +3974,12 @@ Class C
     Implements I
 
     Default Public Property Prop(p As Long) As Integer Implements I.Prop
-
         Get
             Throw New System.NotImplementedException()
         End Get
-
         Set(value As Integer)
             Throw New System.NotImplementedException()
         End Set
-
     End Property
 End Class")
         End Function
@@ -3913,7 +4000,7 @@ Class C
         Throw New NotImplementedException()
     End Function
 End Class
-#Disable Warning", ignoreTrivia:=False)
+#Disable Warning")
         End Function
 
         <WorkItem(529947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529947")>
@@ -3931,7 +4018,7 @@ Class C
         Throw New NotImplementedException()
     End Function
 End Class
-", ignoreTrivia:=False)
+")
         End Function
 
         <WorkItem(529947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529947")>
@@ -3950,7 +4037,7 @@ Class C
         Throw New NotImplementedException()
     End Function
 End Class
-REM Comment", ignoreTrivia:=False)
+REM Comment")
         End Function
 
         <WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")>
@@ -3967,7 +4054,7 @@ Class C : Implements IDisposable
         Throw New NotImplementedException()
     End Sub
 End Class
-", ignoreTrivia:=False)
+")
         End Function
 
         <WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")>
@@ -3981,7 +4068,7 @@ $"Imports System
 Class C : Implements IDisposable
 {DisposePattern("Overridable ")}
 End Class
-", index:=1, ignoreTrivia:=False)
+", index:=1)
         End Function
 
         <WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")>
@@ -3996,7 +4083,7 @@ MustInherit Class C : Implements IDisposable
 
     Public MustOverride Sub Dispose() Implements IDisposable.Dispose
 End Class
-", index:=2, ignoreTrivia:=False)
+", index:=2)
         End Function
 
         <WorkItem(994456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")>
@@ -4006,16 +4093,16 @@ End Class
             Await TestInRegularAndScriptAsync(
 "Imports System
 Class C : Implements [|IDisposable|]
-    Dim foo As IDisposable
+    Dim goo As IDisposable
 End Class",
 "Imports System
 Class C : Implements IDisposable
-    Dim foo As IDisposable
+    Dim goo As IDisposable
 
     Public Sub Dispose() Implements IDisposable.Dispose
-        foo.Dispose()
+        goo.Dispose()
     End Sub
-End Class", index:=2, ignoreTrivia:=False)
+End Class", index:=2)
         End Function
 
         <WorkItem(941469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")>
@@ -4032,7 +4119,7 @@ Class C : Implements System.IDisposable
     Class IDisposable
     End Class
 {DisposePattern("Overridable ", simplifySystem:=False)}
-End Class", index:=1, ignoreTrivia:=False)
+End Class", index:=1)
         End Function
 
         <WorkItem(958699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")>
@@ -4044,7 +4131,7 @@ End Class", index:=1, ignoreTrivia:=False)
 $"Class C : Implements System.IDisposable
 {DisposePattern("Overridable ", simplifySystem:=False)}
 End Class
-", index:=1, ignoreTrivia:=False)
+", index:=1)
         End Function
 
         <WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")>
@@ -4093,7 +4180,7 @@ Class C : Implements I
         Throw New NotImplementedException()
     End Sub
 {DisposePattern("Overridable ")}
-End Class", index:=1, ignoreTrivia:=False)
+End Class", index:=1)
         End Function
 
         <WorkItem(951968, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")>
@@ -4118,7 +4205,7 @@ End Namespace",
             Throw New NotImplementedException()
         End Sub
     End Class
-End Namespace", ignoreTrivia:=False)
+End Namespace")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
@@ -4133,7 +4220,7 @@ Structure S : Implements IDisposable
         Throw New NotImplementedException()
     End Sub
 End Structure
-", ignoreTrivia:=False)
+")
         End Function
 
         <WorkItem(994328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")>
@@ -4213,7 +4300,7 @@ End Class
 Partial Class C
     Implements IDisposable
 End Class",
- index:=1, ignoreTrivia:=False)
+ index:=1)
         End Function
 
         <WorkItem(994328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")>
@@ -4342,7 +4429,7 @@ End Interface",
             Await TestInRegularAndScriptAsync(
 "Imports System
 
-Public Class Foo
+Public Class Goo
     Implements [|Holder.SomeInterface|]
 End Class
 
@@ -4357,7 +4444,7 @@ Public Class Holder
 End Class",
 "Imports System
 
-Public Class Foo
+Public Class Goo
     Implements Holder.SomeInterface
 
     Public Sub Something(helloWorld As String) Implements Holder.SomeInterface.Something
@@ -4373,7 +4460,7 @@ Public Class Holder
 	Private Class SomeAttribute
 		Inherits Attribute
 	End Class
-End Class", ignoreTrivia:=False)
+End Class")
         End Function
 
 
@@ -4506,10 +4593,10 @@ Imports System
 interface I
     Function F() As ValueTuple(Of Object)
 end interface
-class C 
+class C
     Implements I
 
-Public Function F() As ValueTuple(Of Object) Implements I.F
+    Public Function F() As ValueTuple(Of Object) Implements I.F
         Throw New NotImplementedException()
     End Function
 end class
@@ -4517,6 +4604,42 @@ Namespace System
     Structure ValueTuple(Of T1)
     End Structure
 End Namespace")
+        End Function
+
+        <WorkItem(13932, "https://github.com/dotnet/roslyn/issues/13932")>
+        <WorkItem(5898, "https://github.com/dotnet/roslyn/issues/5898")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        Public Async Function TestAutoProperties() As Task
+            Await TestInRegularAndScript1Async(
+"interface IInterface
+    readonly property ReadOnlyProp as integer
+    property ReadWriteProp as integer
+    writeonly property WriteOnlyProp as integer
+end interface
+
+class Class
+    implements [|IInterface|]
+end class",
+"interface IInterface
+    readonly property ReadOnlyProp as integer
+    property ReadWriteProp as integer
+    writeonly property WriteOnlyProp as integer
+end interface
+
+class Class
+    implements IInterface
+
+    Public ReadOnly Property ReadOnlyProp As Integer Implements IInterface.ReadOnlyProp
+    Public Property ReadWriteProp As Integer Implements IInterface.ReadWriteProp
+
+    Public WriteOnly Property WriteOnlyProp As Integer Implements IInterface.WriteOnlyProp
+        Set(value As Integer)
+            Throw New System.NotImplementedException()
+        End Set
+    End Property
+end class", parameters:=New TestParameters(options:=[Option](
+    ImplementTypeOptions.PropertyGenerationBehavior,
+    ImplementTypePropertyGenerationBehavior.PreferAutoProperties)))
         End Function
     End Class
 End Namespace

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -123,13 +123,13 @@
 #pragma warning disable 414, 3021
 #pragma warning restore 3021
 #pragma checksum "file.txt" "{00000000-0000-0000-0000-000000000000}" "2453"
-#define foo
-#if foo
+#define goo
+#if goo
 #else
 #endif
-#undef foo
+#undef goo
 
-extern alias Foo;
+extern alias Goo;
 
 using System;
 using System.Collections.Generic;
@@ -140,7 +140,7 @@ using M = System.Math;
 
 #if DEBUG || TRACE
 using System.Diagnostics;
-#elif SILVERLIGHT &amp;&amp; WINDOWS_PHONE || DEBUG || foo == true || foo != false
+#elif SILVERLIGHT &amp;&amp; WINDOWS_PHONE || DEBUG || goo == true || goo != false
 using System.Diagnostics;
 #else
 using System.Diagnostics;
@@ -181,11 +181,12 @@ namespace My
         private const int global = int.MinValue - 1;
 
         static A() 
-        { 
+        {
+            int x = default;
         }
 
         [method: Obsolete]
-        public A([param: Obsolete] int foo) :
+        public A([param: Obsolete] int goo) :
             base(1)
         {
         L:
@@ -299,6 +300,7 @@ namespace My
                 0f,
                 1.1f
             };
+            var (tuple, _) = (named: 1, 2);
             int[, ,] cube = { { { 111, 112, }, { 121, 122 } }, { { 211, 212 }, { 221, 222 } } };
             int[][] jagged = { { 111 }, { 121, 122 } };
             int[][,] arr = new int[5][,]; // as opposed to new int[][5,5]
@@ -359,6 +361,9 @@ namespace My
                     return;
                 else
                     continue;
+            }
+            foreach (var (_, _) in new (int, int)[]{ (1, 2) })
+            {
             }
             checked
             {
@@ -431,7 +436,7 @@ namespace My
         private readonly int f1;
         [Obsolete]
         [NonExisting]
-        [Foo::NonExisting(var, 5)]
+        [Goo::NonExisting(var, 5)]
         [CLSCompliant(false)]
         [Obsolete, System.NonSerialized, NonSerialized, CLSCompliant(true || false &amp; true)]
         private volatile int f2;
@@ -615,7 +620,7 @@ namespace ConsoleApplication1
         public class Bar&lt;T&gt; where T : IComparable
         {
             public T f;
-            public class Foo&lt;U&gt; : IEnumerable&lt;T&gt;
+            public class Goo&lt;U&gt; : IEnumerable&lt;T&gt;
             {
                 public void Method&lt;K, V&gt;(K k, T t, U u)
                     where K : IList&lt;V&gt;, IList&lt;T&gt;, IList&lt;U&gt;
@@ -632,7 +637,7 @@ namespace ConsoleApplication1
     {
         void Bar3()
         {
-            var x = new Boo.Bar&lt;int&gt;.Foo&lt;object&gt;();
+            var x = new Boo.Bar&lt;int&gt;.Goo&lt;object&gt;();
             x.Method&lt;string, string&gt;(" ", 5, new object());
 
             var q = from i in new int[] { 1, 2, 3, 4 }
@@ -649,11 +654,11 @@ namespace ConsoleApplication1
             return new Test();
         }
 
-        public int foo = 5;
+        public int goo = 5;
         void Bar2()
         {
-            foo = 6;
-            this.Foo = 5.GetType(); Test t = "sss";
+            goo = 6;
+            this.Goo = 5.GetType(); Test t = "sss";
         }
 
         public event EventHandler MyEvent = delegate { };
@@ -679,7 +684,7 @@ namespace ConsoleApplication1
         delegate Recursive Recursive(Recursive r);
         delegate Recursive Recursive&lt;A,R&gt;(Recursive&lt;A,R&gt; r);
 
-        public Type Foo
+        public Type Goo
         {
             [Obsolete("Name", error = false)]
             get
@@ -754,7 +759,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
 
     class yield
     {
-        void Foo&lt;U&gt;(__arglist)
+        void Goo&lt;U&gt;(__arglist)
         {
             C&lt;U&gt; c = null;
             c.M&lt;int&gt;(5, default(U));
@@ -776,7 +781,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
             int?[] a = new int?[5];/*[] bug*/ // YES []
             int[] var = { 1, 2, 3, 4, 5 };/*,;*/
             int i = a[i];/*[]*/
-            Foo&lt;T&gt; f = new Foo&lt;int&gt;();/*&lt;&gt; ()*/
+            Goo&lt;T&gt; f = new Goo&lt;int&gt;();/*&lt;&gt; ()*/
             f.method();/*().*/
             i = i + i - i * i / i % i &amp; i | i ^ i;/*+ - * / % &amp; | ^*/
             bool b = true &amp; false | true ^ false;/*&amp; | ^*/
@@ -831,19 +836,19 @@ Imports System.Linq.Expressions
 Imports System.Text
 Imports M = System.Math
 Imports System.Collections
-Imports &lt;xmlns:ns="foo"&gt;
-Imports &lt;xmlns="foo"&gt;
+Imports &lt;xmlns:ns="goo"&gt;
+Imports &lt;xmlns="goo"&gt;
 #Const line = 6
-#Const foo = True
-#If foo Then
+#Const goo = True
+#If goo Then
 #Else
 #End If
 ' There is no equivalent to #undef in VB.NET:
-'#undef foo
-'#warning foo
-'#error foo
+'#undef goo
+'#warning goo
+'#error goo
 ' There is no equivalent to 'extern alias' in VB:
-'extern alias Foo;
+'extern alias Goo;
 #If DEBUG OrElse TRACE Then
 Imports System.Diagnostics
 #ElseIf SILVERLIGHT Then
@@ -882,7 +887,7 @@ Namespace My
         End Sub
 
         &lt;Obsolete()&gt;
-        Public Sub New(&lt;Obsolete()&gt; ByVal foo As Integer)
+        Public Sub New(&lt;Obsolete()&gt; ByVal goo As Integer)
             MyBase.New(1)
 L:
             Dim i As Integer = Len(New Integer)
@@ -956,6 +961,7 @@ L:
             Dim o4 = New MyObject(dynamic) With {.A = 0, .B = 0, .C = 0}
             Dim o5 = New With {Key .A = 0}
             Dim a() As Integer = {0, 1, 2, 3, 4, 5}
+            Dim a As(named As Integer, Integer) =(named:=1, 2)
             Select Case i
                 Case 1
                     GoTo CaseLabel1
@@ -1045,7 +1051,7 @@ CaseLabel2:
         Private ReadOnly f1 As Integer
 
         ' There is no VB.NET equivalent to 'volatile':
-        &lt;Obsolete(), NonExisting(), Foo.NonExisting(var, 5), Obsolete(), NonSerialized(), CLSCompliant(True OrElse False And True)&gt;
+        &lt;Obsolete(), NonExisting(), Goo.NonExisting(var, 5), Obsolete(), NonSerialized(), CLSCompliant(True OrElse False And True)&gt;
         Private f2 As Integer
 
         &lt;Obsolete()&gt;
@@ -1272,7 +1278,7 @@ Namespace Boo
 
         Public f As T
 
-        Public Class Foo(Of U)
+        Public Class Goo(Of U)
             Implements IEnumerator(Of T)
 
             Public Sub Method(Of K As {IList(Of V), IList(Of T), IList(Of U)}, V As IList(Of K))(ByVal k1 As K, ByVal t1 As T, ByVal u1 As U)
@@ -1320,7 +1326,7 @@ End Namespace
 Friend Class Test2
 
     Private Sub Bar3()
-        Dim x = New Boo.Bar(Of Integer).Foo(Of Object)()
+        Dim x = New Boo.Bar(Of Integer).Goo(Of Object)()
         x.Method(Of String, String)(" ", 5, New Object())
         Dim q = From i In New Integer() {1, 2, 3, 4} Where i &gt; 5 Select i
     End Sub
@@ -1333,11 +1339,11 @@ Friend Class Test2
         Return New Test2()
     End Operator
 
-    Public foo As Integer = 5
+    Public goo As Integer = 5
 
     Private Sub Bar2()
-        foo = 6
-        Me.foo = 5.GetType()
+        goo = 6
+        Me.goo = 5.GetType()
         Dim t As Test2 = "sss"
     End Sub
 
@@ -1347,7 +1353,7 @@ Friend Class Test2
         Dim e As Expression(Of Func(Of Integer)) = Function() i
     End Sub
 
-    Public Property FFoo() As Type
+    Public Property FGoo() As Type
         Get
             Return GetType(System.Int32)
         End Get
@@ -1409,7 +1415,7 @@ End Class
 Friend Class yield
 
     ''INSTANT VB TODO TASK: There is no equivalent to the undocumented C# '__arglist' keyword in VB:
-    'Private Sub Foo(Of U)(ByVal __arglist)
+    'Private Sub Goo(Of U)(ByVal __arglist)
     '    Dim c1 As C(Of U) = Nothing
     '    c1.M(Of Integer)(5, Nothing)
     '    Dim tr As TypedReference = __makeref(c1)
@@ -1431,7 +1437,7 @@ Friend Class yield
         ' YES []
         Dim var() As Integer = {1, 2, 3, 4, 5} ',;
         Dim i As Integer = a(i) '[]
-        Dim f As New Foo(Of T)() '&lt;&gt; ()
+        Dim f As New Goo(Of T)() '&lt;&gt; ()
         f.method()
         i = i + i - i * i \ i Mod i And i Or i Xor i '+ - * / % &amp; | ^
         Dim b As Boolean = True And False Or True Xor False '&amp; | ^
@@ -1483,17 +1489,17 @@ End Class
 Module Module1
 
     &lt;Runtime.CompilerServices.Extension()&gt;
-    Function FooExtension(ByVal x As String) As String
+    Function GooExtension(ByVal x As String) As String
         Return x &amp; "test"
     End Function
 
     &lt;Runtime.CompilerServices.Extension()&gt;
-    Function FooExtension(ByVal x As String, ByVal y As Integer) As String
+    Function GooExtension(ByVal x As String, ByVal y As Integer) As String
         'With Implicit Line Continuation
         Return x &amp; "test2"
     End Function
 
-    Sub Foo()
+    Sub Goo()
         'Collections
         Dim i As New List(Of String) From {"test", "item"}
         Dim i1 As New Dictionary(Of Integer, String) From {{1, "test"}, {2, "item"}}
@@ -1616,7 +1622,7 @@ End Class
 
 Public Interface IVariance(Of In T)
 
-    Sub Foo(ByVal a As T)
+    Sub Goo(ByVal a As T)
 
     Property InterProperty() As IVariance(Of Cheetah)
 
@@ -1630,7 +1636,7 @@ Public Delegate Function Func2(Of Out T)() As T
 
 Public Interface IVariance2(Of Out T)
 
-    Function Foo() As T
+    Function Goo() As T
 
 End Interface
 
@@ -1638,11 +1644,11 @@ Public Class Variance2(Of T As New) : Implements IVariance2(Of T)
 
     Dim type As IVariance2(Of Animals)
 
-    Private Function Foo() As T Implements IVariance2(Of T).Foo
+    Private Function Goo() As T Implements IVariance2(Of T).Goo
         Return New T
     End Function
 
-    Function Foo(ByVal arg As IVariance2(Of T)) As String
+    Function Goo(ByVal arg As IVariance2(Of T)) As String
         Return arg.GetType.ToString
     End Function
 
@@ -1670,7 +1676,7 @@ Module Mod1Orcas
 
     Delegate Sub delfoo1(ByVal sender As Object, ByVal e As System.EventArgs)
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 
     Sub Method1(ByVal sender As Object, ByVal e As System.EventArgs)
@@ -1680,7 +1686,7 @@ Module Mod1Orcas
     End Sub
 
     Sub AssignDelegate()
-        Dim d As delfoo = AddressOf Foo
+        Dim d As delfoo = AddressOf Goo
         d.Invoke()
         Dim d1_1 As delfoo1 = AddressOf Method1
         Dim d1_1a As delfoo1 = AddressOf Method1a 'Relaxed Delegate
@@ -1719,7 +1725,7 @@ Class Customer
     Public Property age2 As Integer
 End Class
 
-Class Foo
+Class Goo
 
     Structure Bar
 
@@ -1750,7 +1756,7 @@ Class Foo
     End Structure
 End Class
 
-Class FooGen(Of t)
+Class GooGen(Of t)
 
     Structure BarGen(Of u)
 
@@ -1807,18 +1813,18 @@ End Class
 
 Public Class ClsPPMTest003
 
-    Partial Private Sub Foo3()
+    Partial Private Sub Goo3()
     End Sub
 End Class
 
 Partial Public Class ClsPPMTest003
 
-    Private Sub Foo3()
+    Private Sub Goo3()
     End Sub
 
-    Public Sub CallFooFromClass()
-        Me.Foo3()
-        Dim x1 As New Foo
+    Public Sub CallGooFromClass()
+        Me.Goo3()
+        Dim x1 As New Goo
         Dim y1 As New Bar
         If x1 Is y1 Then
         Else
@@ -1848,20 +1854,20 @@ Imports System.Linq.Expressions
 Imports System.Text
 Imports M = System.Math
 Imports System.Collections
-Imports &lt;xmlns:ns="foo"&gt;
-Imports &lt;xmlns="foo"&gt;
+Imports &lt;xmlns:ns="goo"&gt;
+Imports &lt;xmlns="goo"&gt;
 
 #Const line = 6
-#Const foo = True
-#If foo Then
+#Const goo = True
+#If goo Then
 #Else
 #End If
 ' There is no equivalent to #undef in VB.NET:
-'#undef foo
-'#warning foo
-'#error foo
+'#undef goo
+'#warning goo
+'#error goo
 ' There is no equivalent to 'extern alias' in VB:
-'extern alias Foo;
+'extern alias Goo;
 
 #If DEBUG OrElse TRACE Then
 Imports System.Diagnostics
@@ -1901,7 +1907,7 @@ Namespace My
         End Sub
       
         &lt;Obsolete()&gt;
-        Public Sub New(&lt;Obsolete()&gt; ByVal foo As Integer)
+        Public Sub New(&lt;Obsolete()&gt; ByVal goo As Integer)
             MyBase.New(1)
 L:
             Dim i As Integer = Len(New Integer)
@@ -1986,6 +1992,7 @@ L:
             Dim o4 = New MyObject(dynamic) With {.A = 0, .B = 0, .C = 0}
             Dim o5 = New With {Key .A = 0}
             Dim a() As Integer = {0, 1, 2, 3, 4, 5}
+            Dim a As(named As Integer, Integer) =(named:=1, 2)
             Select Case i
                 Case 1
                     GoTo CaseLabel1
@@ -2092,7 +2099,7 @@ CaseLabel2:
         Private ReadOnly f1 As Integer
         ' There is no VB.NET equivalent to 'volatile':
 
-        &lt;Obsolete(), NonExisting(), Foo.NonExisting(var, 5), Obsolete(), NonSerialized(), CLSCompliant(True OrElse False And True)&gt;
+        &lt;Obsolete(), NonExisting(), Goo.NonExisting(var, 5), Obsolete(), NonSerialized(), CLSCompliant(True OrElse False And True)&gt;
         Private f2 As Integer
 
         &lt;Obsolete()&gt;
@@ -2305,7 +2312,7 @@ Namespace Boo
     Public Class Bar(Of T As IComparable)
         Public f As T
 
-        Public Class Foo(Of U)
+        Public Class Goo(Of U)
             Implements IEnumerator(Of T)
 
             Public Sub Method(Of K As {IList(Of V), IList(Of T), IList(Of U)}, V As IList(Of K))(ByVal k1 As K, ByVal t1 As T, ByVal u1 As U)
@@ -2359,7 +2366,7 @@ End Namespace
 
 Friend Class Test2
     Private Sub Bar3()
-        Dim x = New Boo.Bar(Of Integer).Foo(Of Object)()
+        Dim x = New Boo.Bar(Of Integer).Goo(Of Object)()
         x.Method(Of String, String)(" ", 5, New Object())
 
         Dim q = From i In New Integer() {1, 2, 3, 4}
@@ -2375,10 +2382,10 @@ Friend Class Test2
         Return New Test2()
     End Operator
 
-    Public foo As Integer = 5
+    Public goo As Integer = 5
     Private Sub Bar2()
-        foo = 6
-        Me.foo = 5.GetType()
+        goo = 6
+        Me.goo = 5.GetType()
         Dim t As Test2 = "sss"
     End Sub
     Private Sub Blah()
@@ -2388,7 +2395,7 @@ Friend Class Test2
         Dim e As Expression(Of Func(Of Integer)) = Function() i
     End Sub
 
-    Public Property FFoo() As Type
+    Public Property FGoo() As Type
         Get
             Return GetType(System.Int32)
         End Get
@@ -2444,7 +2451,7 @@ End Class
 
 Friend Class yield
     ''INSTANT VB TODO TASK: There is no equivalent to the undocumented C# '__arglist' keyword in VB:
-    'Private Sub Foo(Of U)(ByVal __arglist)
+    'Private Sub Goo(Of U)(ByVal __arglist)
     '    Dim c1 As C(Of U) = Nothing
     '    c1.M(Of Integer)(5, Nothing)
     '    Dim tr As TypedReference = __makeref(c1)
@@ -2468,7 +2475,7 @@ Friend Class yield
         ' YES []
         Dim var() As Integer = {1, 2, 3, 4, 5} ',;
         Dim i As Integer = a(i) '[]
-        Dim f As New Foo(Of T)() '&lt;&gt; ()
+        Dim f As New Goo(Of T)() '&lt;&gt; ()
         f.method()
         i = i + i - i * i \ i Mod i And i Or i Xor i '+ - * / % &amp; | ^
 
@@ -2524,17 +2531,17 @@ End Class
 
 'Extension Method
 Module Module1
-    &lt;Runtime.CompilerServices.Extension()&gt; Function FooExtension(ByVal x As String) As String
+    &lt;Runtime.CompilerServices.Extension()&gt; Function GooExtension(ByVal x As String) As String
         Return x &amp; "test"
     End Function
 
-    &lt;Runtime.CompilerServices.Extension()&gt; Function FooExtension(ByVal x As String,
+    &lt;Runtime.CompilerServices.Extension()&gt; Function GooExtension(ByVal x As String,
                                                                  ByVal y As Integer) As String
         'With Implicit Line Continuation
         Return x &amp; "test2"
     End Function
 
-    Sub Foo()
+    Sub Goo()
         'Collections
         Dim i As New List(Of String) From {"test", "item"}
         Dim i1 As New Dictionary(Of Integer, String) From {{1, "test"}, {2, "item"}}
@@ -2678,7 +2685,7 @@ Public Class Animals
 
 End Class
 Public Interface IVariance(Of In T)
-    Sub Foo(ByVal a As T)
+    Sub Goo(ByVal a As T)
     Property InterProperty() As IVariance(Of Cheetah)
     Property InterProperty2() As IVariance(Of Animals)
 End Interface
@@ -2688,18 +2695,18 @@ Delegate Sub Func(Of In T)(ByVal a As T)
 
 Public Delegate Function Func2(Of Out T)() As T
 Public Interface IVariance2(Of Out T)
-    Function Foo() As T
+    Function Goo() As T
 End Interface
 
 Public Class Variance2(Of T As New) : Implements IVariance2(Of T)
 
     Dim type As IVariance2(Of Animals)
 
-    Private Function Foo() As T Implements IVariance2(Of T).Foo
+    Private Function Goo() As T Implements IVariance2(Of T).Goo
         Return New T
     End Function
 
-    Function Foo(ByVal arg As IVariance2(Of T)) As String
+    Function Goo(ByVal arg As IVariance2(Of T)) As String
         Return arg.GetType.ToString
     End Function
 
@@ -2721,7 +2728,7 @@ Module Mod1Orcas
     Delegate Sub delfoo()
     Delegate Sub delfoo1(ByVal sender As Object, ByVal e As System.EventArgs)
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 
     Sub Method1(ByVal sender As Object, ByVal e As System.EventArgs)
@@ -2730,7 +2737,7 @@ Module Mod1Orcas
     End Sub
 
     Sub AssignDelegate()
-        Dim d As delfoo = AddressOf Foo
+        Dim d As delfoo = AddressOf Goo
         d.Invoke()
 
 
@@ -2812,7 +2819,7 @@ Class Customer
     Public Property age2 As Integer
 End Class
 
-Class Foo
+Class Goo
     Structure Bar
         Dim x As Integer
 
@@ -2841,7 +2848,7 @@ Class Foo
     End Structure
 End Class
 
-Class FooGen(Of t)
+Class GooGen(Of t)
     Structure BarGen(Of u)
         Dim x As t
         Dim z As u
@@ -2919,17 +2926,17 @@ Public Class Bar
 End Class
 
 Public Class ClsPPMTest003
-    Partial Private Sub Foo3()
+    Partial Private Sub Goo3()
     End Sub
 End Class
 
 Partial Public Class ClsPPMTest003
-    Private Sub Foo3()
+    Private Sub Goo3()
     End Sub
 
-    Public Sub CallFooFromClass()
-        Me.Foo3()
-        Dim x1 As New Foo
+    Public Sub CallGooFromClass()
+        Me.Goo3()
+        Dim x1 As New Goo
         Dim y1 As New Bar
 
         If x1 Is y1 Then

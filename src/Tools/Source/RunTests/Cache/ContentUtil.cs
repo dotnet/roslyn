@@ -5,9 +5,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace RunTests.Cache
 {
@@ -15,7 +16,15 @@ namespace RunTests.Cache
     {
         private readonly TestExecutionOptions _options;
         private readonly MD5 _hash = MD5.Create();
-        private readonly Dictionary<string, string> _fileToChecksumMap = new Dictionary<string, string>();
+
+        /// <summary>
+        /// Building up checksums for assembly values represents a significant amount of time when calculating
+        /// the content for a given test.  As such we aggressively cache these results.
+        /// 
+        /// The cache is done by the MVID of the assembly.  This is guaranteed to be different for different
+        /// content and it's efficient to read.  Hence it's an excellent key.
+        /// </summary>
+        private readonly Dictionary<Guid, string> _assemblyChecksumCacheMap = new Dictionary<Guid, string>();
 
         /// <summary>
         /// Stores a map between a unit test assembly and the reference section of the content file.  For 
@@ -124,8 +133,7 @@ namespace RunTests.Cache
                     continue;
                 }
 
-                string currentPath;
-                if (assemblyUtil.TryGetAssemblyPath(current, out currentPath))
+                if (assemblyUtil.TryGetAssemblyPath(current, out var currentPath))
                 {
                     enqueueReferences(currentPath);
                     var currentHash = GetFileChecksum(currentPath);
@@ -145,16 +153,16 @@ namespace RunTests.Cache
             {
                 var builder = new StringBuilder();
                 builder.AppendLine("References:");
-                references.Sort((x, y) => x.Item1.CompareTo(y.Item1));
+                references.Sort((x, y) => x.assemblyName.CompareTo(y.assemblyName));
                 foreach (var pair in references)
                 {
-                    builder.AppendLine($"\t{pair.Item1} {pair.Item2}");
+                    builder.AppendLine($"\t{pair.assemblyName} {pair.assemblyHash}");
                 }
 
                 return (builder.ToString(), isError: false);
             }
             else
-            { 
+            {
                 // Error if there are any referenced assemblies that we were unable to resolve.
                 var errorBuilder = new StringBuilder();
                 errorBuilder.AppendLine($"Unable to resolve {missingSet.Count} referenced assemblies");
@@ -206,15 +214,32 @@ namespace RunTests.Cache
 
         private string GetFileChecksum(string filePath)
         {
-            string checksum;
-            if (_fileToChecksumMap.TryGetValue(filePath, out checksum))
+            var ext = Path.GetExtension(filePath).ToLower();
+            return (ext == ".dll" || ext == ".exe") 
+                ? GetAssemblyChecksum(filePath)
+                : GetFileChecksumCore(filePath);
+        }
+
+        private string GetAssemblyChecksum(string filePath)
+        {
+            var mvid = GetAssemblyMvid(filePath);
+            if (!_assemblyChecksumCacheMap.TryGetValue(mvid, out var checksum))
             {
-                return checksum;
+                checksum = GetFileChecksumCore(filePath);
+                _assemblyChecksumCacheMap[mvid] = checksum;
             }
 
-            checksum = GetFileChecksumCore(filePath);
-            _fileToChecksumMap.Add(filePath, checksum);
             return checksum;
+        }
+
+        private Guid GetAssemblyMvid(string filePath)
+        {
+            using (var source = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var reader = new PEReader(source))
+            {
+                var metadataReader = reader.GetMetadataReader();
+                return metadataReader.GetGuid(metadataReader.GetModuleDefinition().Mvid);
+            }
         }
 
         private string GetFileChecksumCore(string filePath)

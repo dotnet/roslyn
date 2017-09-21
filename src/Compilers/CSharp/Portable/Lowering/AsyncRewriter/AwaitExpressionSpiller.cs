@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
 
@@ -54,18 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return _locals != null;
                 }
-            }
-
-            protected override OperationKind ExpressionKind => OperationKind.None;
-
-            public override void Accept(OperationVisitor visitor)
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-
-            public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-            {
-                throw ExceptionUtilities.Unreachable;
             }
 
             public ImmutableArray<LocalSymbol> GetLocals()
@@ -137,23 +126,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (local.Type.IsRestrictedType())
                 {
-                    diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.Locations[0], local.Type.ToDisplayString());
+                    diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.Locations[0], local.Type);
                 }
 
                 _locals.Add(local);
-            }
-
-            internal void AddLocals(ImmutableArray<LocalSymbol> locals)
-            {
-                if (_locals == null)
-                {
-                    _locals = ArrayBuilder<LocalSymbol>.GetInstance();
-                }
-
-                foreach (var local in locals)
-                {
-                    _locals.Add(local);
-                }
             }
 
             public void AddStatement(BoundStatement statement)
@@ -347,14 +323,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
 
                     case BoundKind.Sequence:
-                        // We don't need promote short-lived variables defined by the sequence to long-lived,
-                        // since neither the side-effects nor the value of the sequence contains await 
+                        // neither the side-effects nor the value of the sequence contains await 
                         // (otherwise it would be converted to a SpillSequenceBuilder).
-                        var sequence = (BoundSequence)expression;
-                        builder.AddLocals(sequence.Locals);
-                        builder.AddExpressions(sequence.SideEffects);
-                        expression = sequence.Value;
-                        continue;
+                        if (refKind != RefKind.None)
+                        {
+                            return expression;
+                        }
+
+                        goto default;
 
                     case BoundKind.ThisReference:
                     case BoundKind.BaseReference:
@@ -384,24 +360,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.FieldAccess:
                         var field = (BoundFieldAccess)expression;
-                        if (field.FieldSymbol.IsReadOnly)
+                        var fieldSymbol = field.FieldSymbol;
+                        if (fieldSymbol.IsStatic)
                         {
-                            if (field.FieldSymbol.IsStatic) return field;
-                            if (field.FieldSymbol.ContainingType.IsValueType) goto default;
-                            // save the receiver; can get the field later.
-                            var receiver = Spill(builder, field.ReceiverOpt, (refKind != RefKind.None && field.FieldSymbol.Type.IsReferenceType) ? refKind : RefKind.None, sideEffectsOnly);
-                            return field.Update(receiver, field.FieldSymbol, field.ConstantValueOpt, field.ResultKind, field.Type);
+                            // no need to spill static fields if used as locations or if readonly
+                            if (refKind != RefKind.None || fieldSymbol.IsReadOnly)
+                            {
+                                return field;
+                            }
+                            goto default;
                         }
-                        goto default;
+
+                        if (refKind == RefKind.None) goto default;
+
+                        var receiver = Spill(builder, field.ReceiverOpt, fieldSymbol.ContainingType.IsValueType ? refKind : RefKind.None);
+                        return field.Update(receiver, fieldSymbol, field.ConstantValueOpt, field.ResultKind, field.Type);
 
                     case BoundKind.Call:
                         var call = (BoundCall)expression;
-                        if (refKind != RefKind.None)
+                        if (refKind != RefKind.None && refKind != RefKind.RefReadOnly)
                         {
                             Debug.Assert(call.Method.RefKind != RefKind.None);
                             _F.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, _F.Syntax.Location, call.Method);
-                            refKind = RefKind.None; // Switch the RefKind to avoid asserting later in the pipeline
                         }
+                        // method call is not referentially transparent, we can only spill the result value. 
+                        refKind = RefKind.None; 
+                        goto default;
+
+                    case BoundKind.ConditionalOperator:
+                        var conditional = (BoundConditionalOperator)expression;
+                        if (refKind != RefKind.None && refKind != RefKind.RefReadOnly)
+                        {
+                            Debug.Assert(conditional.IsByRef);
+                            _F.Diagnostics.Add(ErrorCode.ERR_RefConditionalAndAwait, _F.Syntax.Location);
+                        }
+                        refKind = RefKind.None;
+                        // conditional expr is not referentially transparent, we can only spill the result value. 
                         goto default;
 
                     case BoundKind.Literal:
@@ -446,6 +440,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool forceSpill = false,
             bool sideEffectsOnly = false)
         {
+            Debug.Assert(refKinds.IsDefault || refKinds.Length == args.Length);
+
             var newList = VisitList(args);
             Debug.Assert(newList.Length == args.Length);
 
@@ -480,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = ArrayBuilder<BoundExpression>.GetInstance();
             for (int i = 0; i <= lastSpill; i++)
             {
-                var refKind = (!refKinds.IsDefaultOrEmpty && refKinds.Length > i && refKinds[i] != RefKind.None) ? RefKind.Ref : RefKind.None;
+                var refKind = refKinds.IsDefault ? RefKind.None : refKinds[i];
                 var replacement = Spill(builder, newList[i], refKind, sideEffectsOnly);
 
                 Debug.Assert(sideEffectsOnly || replacement != null);
@@ -590,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var expr = VisitExpression(ref builder, node.Operand);
-            return UpdateExpression(builder, node.Update(expr, node.IsFixedStatementAddressOf, node.Type));
+            return UpdateExpression(builder, node.Update(expr, node.Type));
         }
 
         public override BoundNode VisitArgListOperator(BoundArgListOperator node)
@@ -675,19 +671,56 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var right = VisitExpression(ref builder, node.Right);
-            BoundExpression left;
-            if (builder == null || node.Left.Kind == BoundKind.Local)
+
+            BoundExpression left = node.Left;
+            if (builder == null)
             {
-                left = VisitExpression(ref builder, node.Left);
+                left = VisitExpression(ref builder, left);
             }
             else
             {
                 // if the right-hand-side has await, spill the left
                 var leftBuilder = new BoundSpillSequenceBuilder();
-                left = VisitExpression(ref leftBuilder, node.Left);
-                if (left.Kind != BoundKind.Local)
+
+                switch (left.Kind)
                 {
-                    left = Spill(leftBuilder, left, RefKind.Ref);
+                    case BoundKind.Local:
+                    case BoundKind.Parameter:
+                        // locals and parameters are directly assignable, LHS is not on the stack so nothing to spill
+                        break;
+
+                    case BoundKind.FieldAccess:
+                        var field = (BoundFieldAccess)left;
+                        // static fields are directly assignable, LHS is not on the stack, nothing to spill
+                        if (field.FieldSymbol.IsStatic) break;
+
+                        // instance fields are directly assignable, but receiver is pushed, so need to spill that.
+                        var receiver = VisitExpression(ref leftBuilder, field.ReceiverOpt);
+                        receiver = Spill(builder, receiver, field.FieldSymbol.ContainingType.IsValueType ? RefKind.Ref : RefKind.None);
+                        left = field.Update(receiver, field.FieldSymbol, field.ConstantValueOpt, field.ResultKind, field.Type);
+                        break;
+
+                    case BoundKind.ArrayAccess:
+                        var arrayAccess = (BoundArrayAccess)left;
+                        // array and indices are pushed on stack so need to spill that
+                        var expression = VisitExpression(ref leftBuilder, arrayAccess.Expression);
+                        expression = Spill(builder, expression, RefKind.None);
+                        var indices = this.VisitExpressionList(ref builder, arrayAccess.Indices, forceSpill: true);
+                        left = arrayAccess.Update(expression, indices, arrayAccess.Type);
+                        break;
+
+                    default:
+                        // must be something indirectly assignable, just visit and spill as an ordinary Ref  (not a RefReadOnly!!)
+                        //
+                        // NOTE: in some cases this will result in spiller producing an error.
+                        //       For example if the LHS is a ref-returning method like
+                        //
+                        //       obj.RefReturning(a, b, c) = await Something();
+                        //
+                        //       the spiller would eventually have to spill the evaluation result of "refReturning" call as an ordinary Ref, 
+                        //       which it can't.
+                        left = Spill(leftBuilder, VisitExpression(ref leftBuilder, left), RefKind.Ref);
+                        break;
                 }
 
                 leftBuilder.Include(builder);
@@ -760,7 +793,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var receiverBuilder = new BoundSpillSequenceBuilder();
 
                 receiver = node.ReceiverOpt;
-                var refKind = ReceiverSpillRefKind(receiver);
+                var refKind = node.Method.ContainingType.IsReadOnly?
+                                                    RefKind.RefReadOnly:
+                                                    ReceiverSpillRefKind(receiver);
 
                 receiver = Spill(receiverBuilder, VisitExpression(ref receiverBuilder, receiver), refKind: refKind);
                 receiverBuilder.Include(builder);
@@ -772,26 +807,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static RefKind ReceiverSpillRefKind(BoundExpression receiver)
         {
-            if (!receiver.Type.IsReferenceType)
-            {
-                switch (receiver.Kind)
-                {
-                    case BoundKind.Parameter:
-                    case BoundKind.Local:
-                    case BoundKind.ArrayAccess:
-                    case BoundKind.ThisReference:
-                    case BoundKind.BaseReference:
-                    case BoundKind.PointerIndirectionOperator:
-                    case BoundKind.RefValueOperator:
-                    case BoundKind.FieldAccess:
-                        return RefKind.Ref;
-
-                    case BoundKind.Call:
-                        return ((BoundCall)receiver).Method.RefKind;
-                }
-            }
-
-            return RefKind.None;
+            return LocalRewriter.WouldBeAssignableIfUsedAsMethodReceiver(receiver) ?
+                RefKind.Ref :
+                RefKind.None;
         }
 
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
@@ -807,7 +825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (consequenceBuilder == null && alternativeBuilder == null)
             {
-                return UpdateExpression(conditionBuilder, node.Update(condition, consequence, alternative, node.ConstantValueOpt, node.Type));
+                return UpdateExpression(conditionBuilder, node.Update(node.IsByRef, condition, consequence, alternative, node.ConstantValueOpt, node.Type));
             }
 
             if (conditionBuilder == null) conditionBuilder = new BoundSpillSequenceBuilder();
@@ -1058,7 +1076,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.InitializerExpressionOpt == null);
             BoundSpillSequenceBuilder builder = null;
             var arguments = this.VisitExpressionList(ref builder, node.Arguments, node.ArgumentRefKindsOpt);
-            return UpdateExpression(builder, node.Update(node.Constructor, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, node.InitializerExpressionOpt, node.Type));
+            return UpdateExpression(builder, node.Update(node.Constructor, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, node.InitializerExpressionOpt, node.BinderOpt, node.Type));
         }
 
         public override BoundNode VisitPointerElementAccess(BoundPointerElementAccess node)

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading.Tasks;
@@ -40,7 +40,8 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && a == program.a;
+        return program != null &&
+               a == program.a;
     }
 }");
         }
@@ -72,7 +73,8 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && EqualityComparer<S>.Default.Equals(a, program.a);
+        return program != null &&
+               EqualityComparer<S>.Default.Equals(a, program.a);
     }
 }");
         }
@@ -104,7 +106,8 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && a.Equals(program.a);
+        return program != null &&
+               a.Equals(program.a);
     }
 }");
         }
@@ -128,7 +131,8 @@ class ReallyLongName
     public override bool Equals(object obj)
     {
         var name = obj as ReallyLongName;
-        return name != null && a == name.a;
+        return name != null &&
+               a == name.a;
     }
 }");
         }
@@ -152,7 +156,8 @@ class ReallyLongLong
     public override bool Equals(object obj)
     {
         var @long = obj as ReallyLongLong;
-        return @long != null && a == @long.a;
+        return @long != null &&
+               a == @long.a;
     }
 }");
         }
@@ -180,7 +185,9 @@ class ReallyLongName
     public override bool Equals(object obj)
     {
         var name = obj as ReallyLongName;
-        return name != null && a == name.a && B == name.B;
+        return name != null &&
+               a == name.a &&
+               B == name.B;
     }
 }");
         }
@@ -208,7 +215,8 @@ class Program : Base
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && i == program.i;
+        return program != null &&
+               i == program.i;
     }
 }");
         }
@@ -256,7 +264,7 @@ class Program : Base
                S == program.S;
     }
 }",
-index: 0, ignoreTrivia: false);
+index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -304,8 +312,10 @@ class Program : Middle
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null && base.Equals(obj) &&
-               i == program.i && S == program.S;
+        return program != null &&
+               base.Equals(obj) &&
+               i == program.i &&
+               S == program.S;
     }
 }");
         }
@@ -338,7 +348,8 @@ struct ReallyLongName
         }
 
         var name = (ReallyLongName)obj;
-        return i == name.i && S == name.S;
+        return i == name.i &&
+               S == name.S;
     }
 }");
         }
@@ -369,7 +380,7 @@ class Program<T>
 }
 ";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -542,7 +553,7 @@ class Program
     public override int GetHashCode() => 165851236 + i.GetHashCode();
 }",
 index: 1,
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -871,8 +882,7 @@ class Program
                b == program.b;
     }
 }",
-chosenSymbols: new[] { "a", "b" },
-ignoreTrivia: false);
+chosenSymbols: new[] { "a", "b" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -904,8 +914,7 @@ class Program
                b == program.b;
     }
 }",
-chosenSymbols: new[] { "c", "b" },
-ignoreTrivia: false);
+chosenSymbols: new[] { "c", "b" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -935,8 +944,7 @@ class Program
         return program != null;
     }
 }",
-chosenSymbols: new string[] { },
-ignoreTrivia: false);
+chosenSymbols: new string[] { });
         }
 
         [WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")]
@@ -962,8 +970,7 @@ class Program
                F == program.F;
     }
 }",
-chosenSymbols: null,
-ignoreTrivia: false);
+chosenSymbols: null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1003,8 +1010,7 @@ class Program
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => EnableOption(options, GenerateOperatorsId),
-ignoreTrivia: false);
+optionsCallback: options => EnableOption(options, GenerateOperatorsId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1033,16 +1039,13 @@ class Program
                s == program.s;
     }
 
-    public static bool operator ==(Program program1, Program program2)
-        => EqualityComparer<Program>.Default.Equals(program1, program2);
-
-    public static bool operator !=(Program program1, Program program2)
-        => !(program1 == program2);
+    public static bool operator ==(Program program1, Program program2) => EqualityComparer<Program>.Default.Equals(program1, program2);
+    public static bool operator !=(Program program1, Program program2) => !(program1 == program2);
 }",
 chosenSymbols: null,
 optionsCallback: options => EnableOption(options, GenerateOperatorsId),
 parameters: new TestParameters(
-    options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CodeStyleOptions.TrueWithNoneEnforcement)));
+    options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1076,8 +1079,7 @@ class Program
     public static bool operator ==(Program program1, Program program2) => true;
 }",
 chosenSymbols: null,
-optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == GenerateOperatorsId)),
-ignoreTrivia: false);
+optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == GenerateOperatorsId)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1121,8 +1123,7 @@ struct Program
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => EnableOption(options, GenerateOperatorsId),
-ignoreTrivia: false);
+optionsCallback: options => EnableOption(options, GenerateOperatorsId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1156,8 +1157,7 @@ struct Program : IEquatable<Program>
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => EnableOption(options, ImplementIEquatableId),
-ignoreTrivia: false);
+optionsCallback: options => EnableOption(options, ImplementIEquatableId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1192,8 +1192,7 @@ class Program : IEquatable<Program>
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => EnableOption(options, ImplementIEquatableId),
-ignoreTrivia: false);
+optionsCallback: options => EnableOption(options, ImplementIEquatableId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1223,8 +1222,52 @@ class Program : System.IEquatable<Program>
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == ImplementIEquatableId)),
-ignoreTrivia: false);
+optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == ImplementIEquatableId)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestMissingReferences()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+<Workspace>
+    <Project Language='C#' AssemblyName='CSharpAssembly1' CommonReferences='false'>
+        <Document FilePath='Test1.cs'>
+public class Class1
+{
+    int i;
+    [||]
+
+    public void F()
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+public class Class1
+{
+    int i;
+
+    public override global::System.Boolean Equals(global::System.Object obj)
+    {
+        var @class = obj as Class1;
+        return @class != null;
+    }
+
+    public void F()
+    {
+    }
+
+    public override global::System.Int32 GetHashCode()
+    {
+        return 0;
+    }
+}
+        ",
+chosenSymbols: new string[] { },
+index: 1);
         }
     }
 }

@@ -33,7 +33,7 @@ End Module
     </file>
 </compilation>)
 
-            Dim emitResult As emitResult
+            Dim emitResult As EmitResult
 
             Using output = New MemoryStream()
                 emitResult = compilation.Emit(output, Nothing, Nothing, Nothing)
@@ -89,7 +89,7 @@ End Module
 <compilation>
     <file name="a.vb">
 Class C1
-    Public Sub Foo1(x as Blech) 
+    Public Sub Goo1(x as Blech) 
     End Sub
     Public Sub Bar1()
         NoSuchMethod("from C1")
@@ -104,12 +104,12 @@ End Class
     </file>
     <file name="b.vb">
 Partial Class C2
-    Public Sub Foo2(x as Blech) 
+    Public Sub Goo2(x as Blech) 
     End Sub
 End Class
 
 Class C3
-    Public Sub Foo3(x as Blech) 
+    Public Sub Goo3(x as Blech) 
     End Sub
     Public Sub Bar3()
         NoSuchMethod("from C3")
@@ -121,30 +121,30 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation.GetDeclarationDiagnostics(),
 <expected>
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo1(x as Blech) 
+    Public Sub Goo1(x as Blech) 
                          ~~~~~
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo2(x as Blech) 
+    Public Sub Goo2(x as Blech) 
                          ~~~~~
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo3(x as Blech) 
+    Public Sub Goo3(x as Blech) 
                          ~~~~~
 </expected>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation.GetSemanticModel(CompilationUtils.GetTree(compilation, "a.vb")).GetDeclarationDiagnostics(),
 <expected>
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo1(x as Blech) 
+    Public Sub Goo1(x as Blech) 
                          ~~~~~
 </expected>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation.GetSemanticModel(CompilationUtils.GetTree(compilation, "b.vb")).GetDeclarationDiagnostics(),
 <expected>
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo2(x as Blech) 
+    Public Sub Goo2(x as Blech) 
                          ~~~~~
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo3(x as Blech) 
+    Public Sub Goo3(x as Blech) 
                          ~~~~~
 </expected>)
         End Sub
@@ -156,7 +156,7 @@ BC30002: Type 'Blech' is not defined.
 <compilation>
     <file name="a.vb">
 Class C1
-    Public Sub Foo1(x as Blech) 
+    Public Sub Goo1(x as Blech) 
     End Sub
     Public Sub Bar1()
         NoSuchMethod("from C1")
@@ -171,12 +171,12 @@ End Class
     </file>
     <file name="b.vb">
 Partial Class C2
-    Public Sub Foo2(x as Blech) 
+    Public Sub Goo2(x as Blech) 
     End Sub
 End Class
 
 Class C3
-    Public Sub Foo3(x as Blech) 
+    Public Sub Goo3(x as Blech) 
     End Sub
     Public Sub Bar3()
         NoSuchMethod("from C3")
@@ -188,7 +188,7 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(compilation.GetDiagnostics(),
 <expected>
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo1(x as Blech) 
+    Public Sub Goo1(x as Blech) 
                          ~~~~~
 BC30451: 'NoSuchMethod' is not declared. It may be inaccessible due to its protection level.
         NoSuchMethod("from C1")
@@ -197,10 +197,10 @@ BC30451: 'NoSuchMethod' is not declared. It may be inaccessible due to its prote
         NoSuchMethod("from C2")
         ~~~~~~~~~~~~
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo2(x as Blech) 
+    Public Sub Goo2(x as Blech) 
                          ~~~~~
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo3(x as Blech) 
+    Public Sub Goo3(x as Blech) 
                          ~~~~~
 BC30451: 'NoSuchMethod' is not declared. It may be inaccessible due to its protection level.
         NoSuchMethod("from C3")
@@ -210,7 +210,7 @@ BC30451: 'NoSuchMethod' is not declared. It may be inaccessible due to its prote
             CompilationUtils.AssertTheseDiagnostics(compilation.GetSemanticModel(CompilationUtils.GetTree(compilation, "a.vb")).GetDiagnostics(),
 <expected>
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo1(x as Blech) 
+    Public Sub Goo1(x as Blech) 
                          ~~~~~
 BC30451: 'NoSuchMethod' is not declared. It may be inaccessible due to its protection level.
         NoSuchMethod("from C1")
@@ -223,10 +223,10 @@ BC30451: 'NoSuchMethod' is not declared. It may be inaccessible due to its prote
             CompilationUtils.AssertTheseDiagnostics(compilation.GetSemanticModel(CompilationUtils.GetTree(compilation, "b.vb")).GetDiagnostics(),
 <expected>
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo2(x as Blech) 
+    Public Sub Goo2(x as Blech) 
                          ~~~~~
 BC30002: Type 'Blech' is not defined.
-    Public Sub Foo3(x as Blech) 
+    Public Sub Goo3(x as Blech) 
                          ~~~~~
 BC30451: 'NoSuchMethod' is not declared. It may be inaccessible due to its protection level.
         NoSuchMethod("from C3")
@@ -242,7 +242,7 @@ BC30451: 'NoSuchMethod' is not declared. It may be inaccessible due to its prote
     <file name="a.vb">
 Imports System        
 
-Namespace Foo.Bar
+Namespace Goo.Bar
     Public Class X
         Public x As Integer
         Private y As String
@@ -252,7 +252,7 @@ Namespace Foo.Bar
         Public Sub New()
             x = 7
         End Sub
-        Friend Function foo(arg as String) as Integer
+        Friend Function goo(arg as String) as Integer
             Return x
         End Function
     End Class
@@ -260,7 +260,7 @@ End Namespace
     </file>
 </compilation>)
 
-            Dim emitResult As emitResult
+            Dim emitResult As EmitResult
             Dim mdOnlyImage As Byte()
 
             Using output = New MemoryStream()
@@ -276,7 +276,7 @@ End Namespace
 <compilation>
     <file name="a.vb">
 Imports System
-Imports Foo.Bar        
+Imports Goo.Bar        
 Class M1
     Sub Main()
         X.SayHello()
@@ -295,6 +295,1071 @@ End Class
                 CompilationUtils.AssertNoErrors(emitResult.Diagnostics)
                 Assert.True(output.ToArray().Length > 0, "no metadata emitted")
             End Using
+        End Sub
+
+        <Fact>
+        Private Sub EmitRefAssembly_PrivatePropertyGetter()
+            Dim source As String = "
+Public Class C
+    Property P As Integer
+        Private Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+End Class"
+
+            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Using output As New MemoryStream()
+                Using metadataOutput As New MemoryStream()
+                    Dim emitResult = comp.Emit(output, metadataPEStream:=metadataOutput,
+                                               options:=EmitOptions.Default.WithIncludePrivateMembers(False))
+                    Assert.True(emitResult.Success)
+                    emitResult.Diagnostics.Verify()
+
+                    VerifyMethod(output, {"Sub C..ctor()", "Function C.get_P() As System.Int32", "Sub C.set_P(Value As System.Int32)", "Property C.P As System.Int32"})
+                    VerifyMethod(metadataOutput, {"Sub C..ctor()", "Sub C.set_P(Value As System.Int32)", "WriteOnly Property C.P As System.Int32"})
+                End Using
+            End Using
+        End Sub
+
+        <Fact>
+        Private Sub EmitRefAssembly_PrivatePropertySetter()
+            Dim source As String = "
+Public Class C
+    Property P As Integer
+        Get
+            Return 0
+        End Get
+        Private Set
+        End Set
+    End Property
+End Class"
+
+            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Using output As New MemoryStream()
+                Using metadataOutput As New MemoryStream()
+                    Dim emitResult = comp.Emit(output, metadataPEStream:=metadataOutput,
+                                               options:=EmitOptions.Default.WithIncludePrivateMembers(False))
+                    Assert.True(emitResult.Success)
+                    emitResult.Diagnostics.Verify()
+
+                    VerifyMethod(output, {"Sub C..ctor()", "Function C.get_P() As System.Int32", "Sub C.set_P(Value As System.Int32)", "Property C.P As System.Int32"})
+                    VerifyMethod(metadataOutput, {"Sub C..ctor()", "Function C.get_P() As System.Int32", "ReadOnly Property C.P As System.Int32"})
+                End Using
+            End Using
+        End Sub
+
+        Private Shared Sub VerifyMethod(stream As MemoryStream, expectedMethods As String())
+            stream.Position = 0
+            Dim metadataRef = AssemblyMetadata.CreateFromImage(stream.ToArray()).GetReference()
+
+            Dim compWithMetadata = CreateCompilation("", references:={MscorlibRef, metadataRef},
+                                                     options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+
+            AssertEx.Equal(expectedMethods,
+                           compWithMetadata.GetMember(Of NamedTypeSymbol)("C").GetMembers().Select(Function(m) m.ToTestDisplayString()))
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_HasReferenceAssemblyAttribute()
+            Dim emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+
+            Dim assemblyValidator As Action(Of PEAssembly) =
+                Sub(assembly)
+                    Dim reader = assembly.GetMetadataReader()
+                    Dim attributes = reader.GetAssemblyDefinition().GetCustomAttributes()
+                    AssertEx.Equal(
+                        {"MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute.ctor(Int32)",
+                            "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute.ctor()",
+                            "MemberReference:Void System.Diagnostics.DebuggableAttribute.ctor(DebuggingModes)",
+                            "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute.ctor()"
+                        },
+                        attributes.Select(Function(a) MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)))
+                End Sub
+
+            Dim source = <compilation>
+                             <file name="a.vb"></file>
+                         </compilation>
+            CompileAndVerify(source, emitOptions:=emitRefAssembly, verify:=True, validator:=assemblyValidator)
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_HandlesMissingReferenceAssemblyAttribute()
+            Dim emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+
+            Dim assemblyValidator As Action(Of PEAssembly) =
+                Sub(assembly)
+                    Dim reader = assembly.GetMetadataReader()
+                    Dim attributes = reader.GetAssemblyDefinition().GetCustomAttributes()
+                    AssertEx.Empty(attributes.Select(Function(a) MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)))
+                End Sub
+
+            Dim comp = CreateCompilation({Parse("")})
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor)
+            CompileAndVerify(comp, emitOptions:=emitRefAssembly, verify:=True, validator:=assemblyValidator)
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_ReferenceAssemblyAttributeAlsoInSource()
+            Dim emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+
+            Dim assemblyValidator As Action(Of PEAssembly) =
+                Sub(assembly)
+                    Dim reader = assembly.GetMetadataReader()
+                    Dim attributes = reader.GetAssemblyDefinition().GetCustomAttributes()
+                    AssertEx.Equal(
+                        {"MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute.ctor(Int32)",
+                            "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute.ctor()",
+                            "MemberReference:Void System.Diagnostics.DebuggableAttribute.ctor(DebuggingModes)",
+                            "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute.ctor()"
+                        },
+                        attributes.Select(Function(a) MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)))
+                End Sub
+
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+<assembly:System.Runtime.CompilerServices.ReferenceAssembly()>
+                         ]]></file>
+                         </compilation>
+            CompileAndVerify(source, emitOptions:=emitRefAssembly, verify:=True, validator:=assemblyValidator)
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_InvariantToSomeChanges()
+            Dim sourceTemplate As String = "
+Public Class C
+    CHANGE
+End Class"
+
+            CompareAssemblies(sourceTemplate,
+"Public Function M() As Integer
+    Return 1
+End Function",
+"Public Function M() As Integer
+    Return 2
+End Function", Match.BothMetadataAndRefOut)
+
+            CompareAssemblies(sourceTemplate,
+"Public Function M() As Integer
+    Return 1
+End Function",
+"Public Function M() As Integer
+    Return Bad()
+End Function", Match.BothMetadataAndRefOut)
+
+            CompareAssemblies(sourceTemplate,
+"Private Sub M()
+End Sub",
+"", Match.RefOut)
+
+            CompareAssemblies(sourceTemplate,
+"Friend Sub M()
+End Sub",
+"", Match.RefOut)
+
+            CompareAssemblies(sourceTemplate,
+"Private Protected Sub M()
+End Sub",
+"", Match.RefOut)
+
+            CompareAssemblies(sourceTemplate,
+"Private Sub M()
+Dim product = New With {Key .Id = 1}
+End Sub",
+"", Match.RefOut)
+
+            CompareAssemblies(sourceTemplate,
+"Private Property P As Integer
+    Get
+        Bad()
+    End Get
+    Set
+        Bad()
+    End Set
+End Property",
+"", Match.RefOut) ' Errors in method bodies don't matter
+
+            CompareAssemblies(sourceTemplate,
+"Public Property P As Integer",
+"", Match.Different)
+
+            CompareAssemblies(sourceTemplate,
+"Protected Property P As Integer",
+"", Match.Different)
+
+            CompareAssemblies(sourceTemplate,
+"Private Property P As Integer",
+"", Match.RefOut) ' Private auto-property and underlying field are removed
+
+            CompareAssemblies(sourceTemplate,
+"Friend Property P As Integer",
+"", Match.RefOut)
+
+            CompareAssemblies(sourceTemplate,
+"Private Event DoSomething()",
+"", Match.Different) ' VB events add nested types (C.DoSomethingEventHandler in this case)
+
+            CompareAssemblies(sourceTemplate,
+"Friend Event DoSomething()",
+"", Match.Different)
+
+            CompareAssemblies(sourceTemplate,
+"Private Class C2
+End Class",
+"", Match.Different) ' All types are included
+
+            CompareAssemblies(sourceTemplate,
+"Private Structure S
+End Structure",
+"", Match.Different)
+
+            CompareAssemblies(sourceTemplate,
+"Public Structure S
+    Private Dim i As Integer
+End Structure",
+"Public Structure S
+End Structure", Match.Different)
+
+            CompareAssemblies(sourceTemplate,
+"Private Dim i As Integer",
+"", Match.RefOut)
+
+            CompareAssemblies(sourceTemplate,
+"Public Sub New()
+End Sub",
+"", Match.BothMetadataAndRefOut)
+
+            CompareAssemblies(sourceTemplate,
+"Public Function NoBody() As Integer
+End Function",
+"Public Function NoBody() As Integer
+    Return 1
+End Function", Match.BothMetadataAndRefOut)
+
+        End Sub
+
+        <Fact()>
+        Public Sub RefAssemblyNoPia()
+            Dim piaSource = <compilation name="Pia"><file name="a.vb"><![CDATA[
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
+
+<Assembly: Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58257")>
+<Assembly: ImportedFromTypeLib("Pia1.dll")>
+
+Public Structure S
+    Public Dim field As Integer
+End Structure
+<ComImport()>
+<Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58280")>
+Public Interface ITest1
+    Function M() As S
+End Interface
+]]></file></compilation>
+            Dim pia = CreateCompilationWithMscorlib(piaSource)
+            CompileAndVerify(pia)
+            Dim source = <compilation name="LocalTypes2"><file name="a.vb"><![CDATA[
+Public Class D
+    Implements ITest1
+
+    Function M() As S Implements ITest1.M
+        Throw New System.Exception()
+    End Function
+End Class
+]]></file></compilation>
+
+            Dim piaImageReference = pia.EmitToImageReference(embedInteropTypes:=True)
+            RefAssemblyNoPia_VerifyRefOnly(source, piaImageReference)
+            RefAssemblyNoPia_VerifyRefOut(source, piaImageReference)
+
+            Dim piaMetadataReference = pia.ToMetadataReference(embedInteropTypes:=True)
+            RefAssemblyNoPia_VerifyRefOnly(source, piaMetadataReference)
+            RefAssemblyNoPia_VerifyRefOut(source, piaMetadataReference)
+        End Sub
+
+        Private Sub RefAssemblyNoPia_VerifyRefOnly(source As Xml.Linq.XElement, reference As MetadataReference)
+            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll, references:={reference})
+            Dim refOnlyImage = EmitRefOnly(comp)
+            RefAssemblyNoPia_VerifyNoPia(refOnlyImage)
+        End Sub
+
+        Private Sub RefAssemblyNoPia_VerifyRefOut(source As Xml.Linq.XElement, reference As MetadataReference)
+            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll, references:={reference})
+            Dim pair = EmitRefOut(comp)
+            RefAssemblyNoPia_VerifyNoPia(pair.image)
+            RefAssemblyNoPia_VerifyNoPia(pair.refImage)
+        End Sub
+
+        Private Sub RefAssemblyNoPia_VerifyNoPia(image As ImmutableArray(Of Byte))
+            Dim reference = CompilationVerifier.LoadTestEmittedExecutableForSymbolValidation(image, OutputKind.DynamicallyLinkedLibrary)
+            Dim comp = CreateCompilationWithMscorlib("", references:={reference})
+            Dim referencedAssembly = comp.GetReferencedAssemblySymbol(reference)
+            Dim [module] = DirectCast(referencedAssembly.Modules(0), PEModuleSymbol)
+
+            Dim itest1 = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("ITest1")
+            Assert.NotNull(itest1.GetAttributes().Where(Function(a) a.IsTargetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute")).Single())
+
+            Dim method = DirectCast(itest1.GetMember("M"), PEMethodSymbol)
+            Assert.Equal("Function ITest1.M() As S", method.ToTestDisplayString())
+
+            Dim s = DirectCast(method.ReturnType, NamedTypeSymbol)
+            Assert.Equal("S", s.ToTestDisplayString())
+            Assert.NotNull(s.GetAttributes().Where(Function(a) a.IsTargetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute")).Single())
+
+            Dim field = s.GetMember("field")
+            Assert.Equal("S.field As System.Int32", field.ToTestDisplayString())
+        End Sub
+
+        <Fact()>
+        Public Sub RefAssemblyNoPiaReferenceFromMethodBody()
+
+            Dim piaSource = <compilation name="Pia"><file name="a.vb"><![CDATA[
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
+
+<Assembly: Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58257")>
+<Assembly: ImportedFromTypeLib("Pia1.dll")>
+
+Public Structure S
+    Public Dim field As Integer
+End Structure
+<ComImport()>
+<Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58280")>
+Public Interface ITest1
+    Function M() As S
+End Interface
+]]></file></compilation>
+            Dim pia = CreateCompilationWithMscorlib(piaSource)
+            CompileAndVerify(pia)
+            Dim source = <compilation name="LocalTypes2"><file name="a.vb"><![CDATA[
+Public Class D
+    Sub M2()
+        Dim x As ITest1 = Nothing
+        Dim s As S = x.M()
+    End Sub
+End Class
+]]></file></compilation>
+
+            Dim piaImageReference = pia.EmitToImageReference(embedInteropTypes:=True)
+            RefAssemblyNoPiaReferenceFromMethodBody_VerifyRefOnly(source, piaImageReference)
+            RefAssemblyNoPiaReferenceFromMethodBody_VerifyRefOut(source, piaImageReference)
+
+            Dim piaMetadataReference = pia.ToMetadataReference(embedInteropTypes:=True)
+            RefAssemblyNoPiaReferenceFromMethodBody_VerifyRefOnly(source, piaMetadataReference)
+            RefAssemblyNoPiaReferenceFromMethodBody_VerifyRefOut(source, piaMetadataReference)
+        End Sub
+
+        Private Sub RefAssemblyNoPiaReferenceFromMethodBody_VerifyRefOnly(source As Xml.Linq.XElement, reference As MetadataReference)
+            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll, references:={reference})
+            Dim refOnlyImage = EmitRefOnly(comp)
+            RefAssemblyNoPiaReferenceFromMethodBody_VerifyNoPia(refOnlyImage, expectMissing:=True)
+        End Sub
+
+        Private Sub RefAssemblyNoPiaReferenceFromMethodBody_VerifyRefOut(source As Xml.Linq.XElement, reference As MetadataReference)
+            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll, references:={reference})
+            Dim pair = EmitRefOut(comp)
+            RefAssemblyNoPiaReferenceFromMethodBody_VerifyNoPia(pair.image, expectMissing:=False)
+            RefAssemblyNoPiaReferenceFromMethodBody_VerifyNoPia(pair.refImage, expectMissing:=False)
+        End Sub
+
+        ' The ref assembly produced by refout has more types than that produced by refonly,
+        ' because refout will bind the method bodies (and therefore populate more referenced types).
+        ' This will be refined in the future. Follow-up issue: https://github.com/dotnet/roslyn/issues/19403
+        Private Sub RefAssemblyNoPiaReferenceFromMethodBody_VerifyNoPia(image As ImmutableArray(Of Byte), expectMissing As Boolean)
+            Dim reference = CompilationVerifier.LoadTestEmittedExecutableForSymbolValidation(image, OutputKind.DynamicallyLinkedLibrary)
+            Dim comp = CreateCompilationWithMscorlib("", references:={reference})
+            Dim referencedAssembly = comp.GetReferencedAssemblySymbol(reference)
+            Dim [module] = DirectCast(referencedAssembly.Modules(0), PEModuleSymbol)
+
+            Dim itest1Array = [module].GlobalNamespace.GetMembers("ITest1")
+            If expectMissing Then
+                Assert.Empty(itest1Array)
+                Assert.Empty([module].GlobalNamespace.GetMembers("S"))
+                Return
+            End If
+
+            Dim itest1 = DirectCast(itest1Array.Single(), PENamedTypeSymbol)
+            Assert.NotNull(itest1.GetAttributes().Where(Function(a) a.IsTargetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute")).Single())
+
+            Dim method = DirectCast(itest1.GetMembers("M").Single(), PEMethodSymbol)
+            Assert.Equal("Function ITest1.M() As S", method.ToTestDisplayString())
+
+            Dim s = DirectCast(method.ReturnType, NamedTypeSymbol)
+            Assert.Equal("S", s.ToTestDisplayString())
+            Assert.NotNull(s.GetAttributes().Where(Function(a) a.IsTargetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute")).Single())
+
+            Dim field = s.GetMember("field")
+            Assert.Equal("S.field As System.Int32", field.ToTestDisplayString())
+        End Sub
+
+        Private Shared Function EmitRefOut(comp As VisualBasicCompilation) As (image As ImmutableArray(Of Byte), refImage As ImmutableArray(Of Byte))
+            Using output = New MemoryStream()
+                Using metadataOutput = New MemoryStream()
+                    Dim options = EmitOptions.Default.WithIncludePrivateMembers(False)
+                    comp.VerifyEmitDiagnostics()
+                    Dim result = comp.Emit(output, metadataPEStream:=metadataOutput, options:=options)
+                    Return (output.ToImmutable(), metadataOutput.ToImmutable())
+                End Using
+            End Using
+        End Function
+
+        Private Shared Function EmitRefOnly(comp As VisualBasicCompilation) As ImmutableArray(Of Byte)
+            Using output = New MemoryStream()
+                Dim options = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+                comp.VerifyEmitDiagnostics()
+                Dim result = comp.Emit(output, options:=options)
+                Return output.ToImmutable()
+            End Using
+        End Function
+
+        <Fact>
+        Public Sub RefAssembly_InvariantToSomeChangesWithInternalsVisibleTo_01()
+            Dim sourceTemplate As String = "
+Imports System.Runtime.CompilerServices
+<assembly:InternalsVisibleToAttribute(""Friend"")>
+Public Class C
+    CHANGE
+End Class"
+
+            CompareAssemblies(sourceTemplate,
+"Friend Function M() As Integer
+End Function",
+"", Match.Different)
+
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_InvariantToSomeChangesWithInternalsVisibleTo_02()
+            Dim sourceTemplate As String = "
+Imports System.Runtime.CompilerServices
+<assembly:InternalsVisibleToAttribute(""Friend"")>
+Public Class C
+    CHANGE
+End Class"
+
+            CompareAssemblies(sourceTemplate,
+"Private Protected Function M() As Integer
+End Function",
+"", Match.Different)
+
+        End Sub
+
+        Private Sub CompareAssemblies(sourceTemplate As String, left As String, right As String, expectedMatch As Match)
+            CompareAssemblies(sourceTemplate, left, right, expectedMatch, includePrivateMembers:=True)
+            CompareAssemblies(sourceTemplate, left, right, expectedMatch, includePrivateMembers:=False)
+        End Sub
+
+        Public Enum Match
+            BothMetadataAndRefOut
+            RefOut
+            Different
+        End Enum
+
+        Private Sub CompareAssemblies(sourceTemplate As String, change1 As String, change2 As String, expectedMatch As Match, includePrivateMembers As Boolean)
+            Dim expectMatch = If(includePrivateMembers,
+                expectedMatch = Match.BothMetadataAndRefOut,
+                expectedMatch = Match.BothMetadataAndRefOut OrElse expectedMatch = Match.RefOut)
+
+            Dim name As String = GetUniqueName()
+            Dim source1 As String = sourceTemplate.Replace("CHANGE", change1)
+            Dim comp1 = CreateCompilationWithMscorlib(source1,
+                options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
+            Dim image1 As ImmutableArray(Of Byte) = comp1.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(includePrivateMembers))
+
+            Dim source2 = sourceTemplate.Replace("CHANGE", change2)
+            Dim comp2 = CreateCompilationWithMscorlib(source2,
+                            options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
+            Dim image2 As ImmutableArray(Of Byte) = comp2.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(includePrivateMembers))
+
+            If expectMatch Then
+                AssertEx.Equal(image1, image2)
+            Else
+                AssertEx.NotEqual(image1, image2)
+            End If
+        End Sub
+
+        <Fact>
+        Public Sub RefAssemblyClient_EmitAllNestedTypes()
+            VerifyRefAssemblyClient("
+Public Interface I1(Of T)
+End Interface
+Public Interface I2
+End Interface
+Public Class A
+    Implements I1(Of A.X)
+
+    Private Class X
+        Implements I2
+
+    End Class
+End Class
+", "
+Public Class C
+    Public Function M(a As A) As I1(Of I2)
+        Return DirectCast(a, I1(Of I2))
+    End Function
+End Class
+",
+Sub(comp) comp.AssertNoDiagnostics())
+        End Sub
+
+        <Fact>
+        Public Sub RefAssemblyClient_ExplicitPropertyImplementation()
+            VerifyRefAssemblyClient("
+Public Interface I
+    Property P As Integer
+End Interface
+Public Class C
+    Implements I
+
+    Private Property P As Integer Implements I.P
+        Get
+            Throw New System.Exception()
+        End Get
+        Set
+            Throw New System.Exception()
+        End Set
+    End Property
+End Class
+", "
+Public Class D
+    Inherits C
+    Implements I
+End Class
+",
+Sub(comp) comp.AssertNoDiagnostics())
+        End Sub
+
+        <Fact>
+        Public Sub RefAssemblyClient_EmitAllTypes()
+            VerifyRefAssemblyClient("
+Public Interface I1(Of T)
+End Interface
+Public Interface I2
+End Interface
+Public Class A
+    Implements I1(Of X)
+End Class
+Friend Class X
+    Implements I2
+End Class
+", "
+Public Class C
+    Public Function M(a As A) As I1(Of I2)
+        Return DirectCast(a, I1(Of I2))
+    End Function
+End Class
+",
+Sub(comp) comp.AssertNoDiagnostics())
+        End Sub
+
+        <Fact>
+        Public Sub RefAssemblyClient_StructWithPrivateGenericField()
+            VerifyRefAssemblyClient("
+Public Structure Container(Of T)
+    Private Dim contained As T
+End Structure
+", "
+Public Structure Usage
+    Public Dim x As Container(Of Usage)
+End Structure
+",
+Sub(comp)
+    comp.AssertTheseDiagnostics(<errors>
+BC30294: Structure 'Usage' cannot contain an instance of itself: 
+    'Usage' contains 'Container(Of Usage)' (variable 'x').
+    'Container(Of Usage)' contains 'Usage' (variable 'contained').
+    Public Dim x As Container(Of Usage)
+               ~
+                                </errors>)
+End Sub)
+        End Sub
+
+        <Fact>
+        Public Sub RefAssemblyClient_EmitAllVirtualMethods()
+            Dim comp1 = CreateVisualBasicCompilation("
+<assembly:System.Runtime.CompilerServices.InternalsVisibleTo(""VB2"")>
+<assembly:System.Runtime.CompilerServices.InternalsVisibleTo(""VB3"")>
+Public MustInherit Class C1
+    Friend Sub M()
+    End Sub
+End Class
+", assemblyName:="VB1", referencedAssemblies:={MscorlibRef})
+            comp1.AssertTheseDiagnostics()
+            Dim image1 = comp1.EmitToImageReference(EmitOptions.Default)
+
+            Dim comp2 = CreateVisualBasicCompilation("
+Public MustInherit Class C2
+    Inherits C1
+
+    Friend Overloads Sub M()
+    End Sub
+End Class
+", assemblyName:="VB2", referencedAssemblies:={MscorlibRef, image1})
+            comp2.AssertTheseDiagnostics()
+            Dim image2 = comp2.EmitToImageReference(EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False))
+
+            ' If internal virtual methods were not included in ref assemblies, then C3 could not be concrete
+
+            Dim comp3 = CreateVisualBasicCompilation("
+Public Class C3
+    Inherits C2
+End Class
+", assemblyName:="VB3", referencedAssemblies:={MscorlibRef, image1, image2})
+            comp3.AssertTheseDiagnostics()
+
+        End Sub
+
+        <Fact>
+        Public Sub RefAssemblyClient_StructWithPrivateIntField()
+            VerifyRefAssemblyClient("
+Public Structure S
+    Private Dim i As Integer
+End Structure
+", "
+Public Class C
+    Public Function M() As String
+        Dim s As S
+        Return s.ToString()
+    End Function
+End Class
+",
+Sub(comp) comp.AssertTheseDiagnostics())
+        End Sub
+
+        Private Sub VerifyRefAssemblyClient(lib_vb As String, client_vb As String, validator As Action(Of VisualBasicCompilation), Optional debugFlag As Integer = -1)
+            ' Whether the library is compiled in full, as metadata-only, or as a ref assembly should be transparent
+            ' to the client and the validator should be able to verify the same expectations.
+
+            If debugFlag = -1 OrElse debugFlag = 0 Then
+                VerifyRefAssemblyClient(lib_vb, client_vb, validator,
+                                        EmitOptions.Default.WithEmitMetadataOnly(False))
+            End If
+            If debugFlag = -1 OrElse debugFlag = 1 Then
+                VerifyRefAssemblyClient(lib_vb, client_vb, validator,
+                                        EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(True))
+            End If
+            If debugFlag = -1 OrElse debugFlag = 2 Then
+                VerifyRefAssemblyClient(lib_vb, client_vb, validator,
+                                        EmitOptions.Default.WithEmitMetadataOnly(False).WithIncludePrivateMembers(False))
+            End If
+        End Sub
+
+        Private Sub VerifyRefAssemblyClient(lib_vb As String, source As String, validator As Action(Of VisualBasicCompilation), emitOptions As EmitOptions)
+            Dim name = GetUniqueName()
+            Dim libComp = CreateCompilationWithMscorlib({Parse(lib_vb)},
+                options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name)
+            Dim libImage = libComp.EmitToImageReference(emitOptions)
+
+            Dim comp = CreateCompilationWithMscorlib(source, references:={libImage}, options:=TestOptions.DebugDll)
+            validator(comp)
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_IgnoresSomeDiagnostics()
+
+            RefAssembly_IgnoresSomeDiagnostics(
+"Public Function M() As Integer
+End Function", True)
+
+            RefAssembly_IgnoresSomeDiagnostics(
+"Public Function M() As Integer
+    Error(
+End Function", False) ' Should be true. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
+
+            RefAssembly_IgnoresSomeDiagnostics(
+"Public Function M() As Error
+End Function", False) ' This may get relaxed. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
+        End Sub
+
+        Private Sub RefAssembly_IgnoresSomeDiagnostics(change As String, expectSuccess As Boolean)
+            Dim sourceTemplate As String = "
+Public Class C
+    CHANGE
+End Class"
+
+            Dim name As String = GetUniqueName()
+            Dim source As String = sourceTemplate.Replace("CHANGE", change)
+            Dim comp = CreateCompilationWithMscorlib(source,
+                options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name)
+
+            Using output As New MemoryStream()
+                Dim EmitResult = comp.Emit(output, options:=EmitOptions.Default.WithEmitMetadataOnly(True))
+                Assert.Equal(expectSuccess, EmitResult.Success)
+                Assert.Equal(Not expectSuccess, EmitResult.Diagnostics.Any())
+            End Using
+
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_VerifyTypesAndMembers()
+            Dim source = "
+Public MustInherit Class PublicClass
+    Public Sub PublicMethod()
+        System.Console.Write(""Hello"")
+    End Sub
+    Private Sub PrivateMethod()
+        System.Console.Write(""Hello"")
+    End Sub
+    Protected Sub ProtectedMethod()
+        System.Console.Write(""Hello"")
+    End Sub
+    Friend Sub InternalMethod()
+        System.Console.Write(""Hello"")
+    End Sub
+    Protected Friend Sub ProtectedFriendMethod()
+        System.Console.Write(""Hello"")
+    End Sub
+    Private Protected Sub PrivateProtectedMethod()
+        System.Console.Write(""Hello"")
+    End Sub
+    Public MustOverride Sub AbstractMethod()
+    Public Event PublicEvent As System.Action
+    Friend Event InternalEvent As System.Action
+End Class"
+            Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
+                            parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5),
+                            options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=True)
+
+            ' verify metadata (types, members, attributes) of the regular assembly
+            Dim realImage = comp.EmitToImageReference(EmitOptions.Default)
+            Dim compWithReal = CreateCompilation("", references:={MscorlibRef, realImage},
+                            options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim realAssembly = compWithReal.SourceModule.GetReferencedAssemblySymbols().Last()
+            AssertEx.SetEqual(
+                {"<Module>", "PublicClass"},
+                realAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
+
+            AssertEx.Equal(
+                {"PublicClass.PublicEventEvent As System.Action", "PublicClass.InternalEventEvent As System.Action",
+                    "Sub PublicClass..ctor()", "Sub PublicClass.PublicMethod()",
+                    "Sub PublicClass.PrivateMethod()", "Sub PublicClass.ProtectedMethod()",
+                    "Sub PublicClass.InternalMethod()",
+                    "Sub PublicClass.ProtectedFriendMethod()",
+                    "Sub PublicClass.PrivateProtectedMethod()",
+                    "Sub PublicClass.AbstractMethod()",
+                    "Sub PublicClass.add_PublicEvent(obj As System.Action)", "Sub PublicClass.remove_PublicEvent(obj As System.Action)",
+                    "Sub PublicClass.add_InternalEvent(obj As System.Action)", "Sub PublicClass.remove_InternalEvent(obj As System.Action)",
+                    "Event PublicClass.PublicEvent As System.Action", "Event PublicClass.InternalEvent As System.Action"},
+                compWithReal.GetMember(Of NamedTypeSymbol)("PublicClass").GetMembers().
+                    Select(Function(m) m.ToTestDisplayString()))
+
+            AssertEx.SetEqual(
+                {"System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
+                    "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
+                    "System.Diagnostics.DebuggableAttribute"},
+                realAssembly.GetAttributes().Select(Function(a) a.AttributeClass.ToTestDisplayString()))
+
+            ' verify metadata (types, members, attributes) of the metadata-only assembly
+            Dim emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(True)
+            CompileAndVerify(comp, emitOptions:=emitMetadataOnly, verify:=True)
+
+            Dim metadataImage = comp.EmitToImageReference(emitMetadataOnly)
+            Dim compWithMetadata = CreateCompilation("", references:={MscorlibRef, metadataImage},
+                            options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim metadataAssembly As AssemblySymbol = compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last()
+            AssertEx.SetEqual(
+                {"<Module>", "PublicClass"},
+                metadataAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
+
+            AssertEx.Equal(
+                {"PublicClass.PublicEventEvent As System.Action", "PublicClass.InternalEventEvent As System.Action",
+                    "Sub PublicClass..ctor()", "Sub PublicClass.PublicMethod()",
+                    "Sub PublicClass.PrivateMethod()", "Sub PublicClass.ProtectedMethod()",
+                    "Sub PublicClass.InternalMethod()",
+                    "Sub PublicClass.ProtectedFriendMethod()",
+                    "Sub PublicClass.PrivateProtectedMethod()",
+                    "Sub PublicClass.AbstractMethod()",
+                    "Sub PublicClass.add_PublicEvent(obj As System.Action)", "Sub PublicClass.remove_PublicEvent(obj As System.Action)",
+                    "Sub PublicClass.add_InternalEvent(obj As System.Action)", "Sub PublicClass.remove_InternalEvent(obj As System.Action)",
+                    "Event PublicClass.PublicEvent As System.Action", "Event PublicClass.InternalEvent As System.Action"},
+                compWithMetadata.GetMember(Of NamedTypeSymbol)("PublicClass").GetMembers().
+                    Select(Function(m) m.ToTestDisplayString()))
+
+            AssertEx.SetEqual(
+                {"System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
+                    "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
+                    "System.Diagnostics.DebuggableAttribute"},
+                metadataAssembly.GetAttributes().Select(Function(a) a.AttributeClass.ToTestDisplayString()))
+
+            MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitMetadataOnly))
+
+            ' verify metadata (types, members, attributes) of the ref assembly
+            Dim emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=True)
+
+            Dim refImage = comp.EmitToImageReference(emitRefOnly)
+            Dim compWithRef = CreateCompilation("", references:={MscorlibRef, refImage},
+                            options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim refAssembly As AssemblySymbol = compWithRef.SourceModule.GetReferencedAssemblySymbols().Last()
+            AssertEx.SetEqual(
+                {"<Module>", "PublicClass"},
+                refAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
+
+            AssertEx.SetEqual(
+                {"Sub PublicClass..ctor()", "Sub PublicClass.PublicMethod()",
+                    "Sub PublicClass.ProtectedMethod()",
+                    "Sub PublicClass.ProtectedFriendMethod()",
+                    "Sub PublicClass.AbstractMethod()",
+                    "Sub PublicClass.add_PublicEvent(obj As System.Action)", "Sub PublicClass.remove_PublicEvent(obj As System.Action)",
+                    "Event PublicClass.PublicEvent As System.Action"},
+                compWithRef.GetMember(Of NamedTypeSymbol)("PublicClass").GetMembers().
+                    Select(Function(m) m.ToTestDisplayString()))
+
+            AssertEx.SetEqual(
+                {"System.Runtime.CompilerServices.CompilationRelaxationsAttribute",
+                    "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute",
+                    "System.Diagnostics.DebuggableAttribute",
+                    "System.Runtime.CompilerServices.ReferenceAssemblyAttribute"},
+                refAssembly.GetAttributes().Select(Function(a) a.AttributeClass.ToTestDisplayString()))
+
+            MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitRefOnly))
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_VerifyTypesAndMembersOnImplementedProperty()
+            Dim source = "
+Public Interface I
+    Property P As Integer
+End Interface
+Public Class C
+    Implements I
+    Private Property P As Integer Implements I.P
+        Get
+            Throw New System.Exception()
+        End Get
+        Set
+            Throw New System.Exception()
+        End Set
+    End Property
+End Class"
+            Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
+                            options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=True)
+
+            ' verify metadata (types, members, attributes) of the regular assembly
+            Dim realImage = comp.EmitToImageReference(EmitOptions.Default)
+            Dim compWithReal = CreateCompilation("", references:={MscorlibRef, realImage},
+                            options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim realAssembly = compWithReal.SourceModule.GetReferencedAssemblySymbols().Last()
+            AssertEx.SetEqual(
+                {"<Module>", "I", "C"},
+                realAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
+
+            AssertEx.Equal(
+                {"Sub C..ctor()", "Function C.get_P() As System.Int32", "Sub C.set_P(Value As System.Int32)", "Property C.P As System.Int32"},
+                compWithReal.GetMember(Of NamedTypeSymbol)("C").GetMembers().
+                    Select(Function(m) m.ToTestDisplayString()))
+
+            ' verify metadata (types, members, attributes) of the metadata-only assembly
+            Dim emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(True)
+            CompileAndVerify(comp, emitOptions:=emitMetadataOnly, verify:=True)
+
+            Dim metadataImage = comp.EmitToImageReference(emitMetadataOnly)
+            Dim compWithMetadata = CreateCompilation("", references:={MscorlibRef, metadataImage},
+                            options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim metadataAssembly As AssemblySymbol = compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last()
+            AssertEx.SetEqual(
+                {"<Module>", "I", "C"},
+                metadataAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
+
+            AssertEx.Equal(
+                {"Sub C..ctor()", "Function C.get_P() As System.Int32", "Sub C.set_P(Value As System.Int32)", "Property C.P As System.Int32"},
+                compWithMetadata.GetMember(Of NamedTypeSymbol)("C").GetMembers().
+                    Select(Function(m) m.ToTestDisplayString()))
+
+            MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitMetadataOnly))
+
+            ' verify metadata (types, members, attributes) of the ref assembly
+            Dim emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=True)
+
+            Dim refImage = comp.EmitToImageReference(emitRefOnly)
+            Dim compWithRef = CreateCompilation("", references:={MscorlibRef, refImage},
+                            options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim refAssembly As AssemblySymbol = compWithRef.SourceModule.GetReferencedAssemblySymbols().Last()
+            AssertEx.SetEqual(
+                {"<Module>", "I", "C"},
+                refAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
+
+            AssertEx.SetEqual(
+                {"Sub C..ctor()", "Function C.get_P() As System.Int32", "Sub C.set_P(Value As System.Int32)", "Property C.P As System.Int32"},
+                compWithRef.GetMember(Of NamedTypeSymbol)("C").GetMembers().
+                    Select(Function(m) m.ToTestDisplayString()))
+
+            MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitRefOnly))
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_VerifyTypesAndMembersOnImplementedEvent()
+            Dim source = "
+Public Interface I
+    Event E As System.Action
+End Interface
+Public Class C
+    Implements I
+    Private Custom Event E As System.Action Implements I.E
+        AddHandler(Value As System.Action)
+            Throw New System.Exception()
+        End AddHandler
+        RemoveHandler(Value as System.Action)
+            Throw New System.Exception()
+        End RemoveHandler
+        RaiseEvent()
+            Throw New System.Exception()
+        End RaiseEvent
+    End Event
+End Class"
+            Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
+                            options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=True)
+
+            ' verify metadata (types, members, attributes) of the regular assembly
+            Dim realImage = comp.EmitToImageReference(EmitOptions.Default)
+            Dim compWithReal = CreateCompilation("", references:={MscorlibRef, realImage},
+                            options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim realAssembly = compWithReal.SourceModule.GetReferencedAssemblySymbols().Last()
+            AssertEx.SetEqual(
+                {"<Module>", "I", "C"},
+                realAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
+
+            AssertEx.Equal(
+                {"Sub C..ctor()", "Sub C.add_E(Value As System.Action)", "Sub C.remove_E(Value As System.Action)",
+                    "Sub C.raise_E()", "Event C.E As System.Action"},
+                compWithReal.GetMember(Of NamedTypeSymbol)("C").GetMembers().
+                    Select(Function(m) m.ToTestDisplayString()))
+
+            ' verify metadata (types, members, attributes) of the metadata-only assembly
+            Dim emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(True)
+            CompileAndVerify(comp, emitOptions:=emitMetadataOnly, verify:=True)
+
+            Dim metadataImage = comp.EmitToImageReference(emitMetadataOnly)
+            Dim compWithMetadata = CreateCompilation("", references:={MscorlibRef, metadataImage},
+                            options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim metadataAssembly As AssemblySymbol = compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last()
+            AssertEx.SetEqual(
+                {"<Module>", "I", "C"},
+                metadataAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
+
+            AssertEx.Equal(
+                {"Sub C..ctor()", "Sub C.add_E(Value As System.Action)", "Sub C.remove_E(Value As System.Action)",
+                    "Sub C.raise_E()", "Event C.E As System.Action"},
+                compWithMetadata.GetMember(Of NamedTypeSymbol)("C").GetMembers().
+                    Select(Function(m) m.ToTestDisplayString()))
+
+            MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitMetadataOnly))
+
+            ' verify metadata (types, members, attributes) of the ref assembly
+            Dim emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=True)
+
+            Dim refImage = comp.EmitToImageReference(emitRefOnly)
+            Dim compWithRef = CreateCompilation("", references:={MscorlibRef, refImage},
+                            options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim refAssembly As AssemblySymbol = compWithRef.SourceModule.GetReferencedAssemblySymbols().Last()
+            AssertEx.SetEqual(
+                {"<Module>", "I", "C"},
+                refAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
+
+            AssertEx.SetEqual(
+                {"Sub C..ctor()", "Sub C.add_E(Value As System.Action)", "Sub C.remove_E(Value As System.Action)",
+                    "Sub C.raise_E()", "Event C.E As System.Action"},
+                compWithRef.GetMember(Of NamedTypeSymbol)("C").GetMembers().
+                    Select(Function(m) m.ToTestDisplayString()))
+
+            MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitRefOnly))
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_VerifyTypesAndMembersOnStruct()
+            Dim source = "
+Friend Structure InternalStruct
+    Friend Property P As Integer
+End Structure"
+            Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
+                            options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=True)
+
+            ' verify metadata (types, members, attributes) of the ref assembly
+            Dim emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=True)
+
+            Dim refImage = comp.EmitToImageReference(emitRefOnly)
+            Dim compWithRef = CreateCompilation("", references:={MscorlibRef, refImage},
+                            options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim refAssembly As AssemblySymbol = compWithRef.SourceModule.GetReferencedAssemblySymbols().Last()
+            AssertEx.SetEqual(
+                {"<Module>", "InternalStruct"},
+                refAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
+
+            AssertEx.SetEqual(
+                {"Sub InternalStruct..ctor()", "InternalStruct._P As System.Int32"},
+                compWithRef.GetMember(Of NamedTypeSymbol)("InternalStruct").GetMembers().
+                    Select(Function(m) m.ToTestDisplayString()))
+        End Sub
+
+        <Fact>
+        Public Sub EmitMetadataOnly_DisallowPdbs()
+            Dim comp = CreateCompilation("", references:={MscorlibRef},
+                            options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Using output As New MemoryStream()
+                Using pdbOutput = New MemoryStream()
+                    Assert.Throws(Of ArgumentException)(Function() comp.Emit(output, pdbOutput,
+                                        options:=EmitOptions.Default.WithEmitMetadataOnly(True)))
+                End Using
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub EmitMetadataOnly_DisallowMetadataPeStream()
+            Dim comp = CreateCompilation("", references:={MscorlibRef},
+                            options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Using output As New MemoryStream()
+                Using metadataPeOutput As New MemoryStream()
+                    Assert.Throws(Of ArgumentException)(Function() comp.Emit(output, metadataPEStream:=metadataPeOutput,
+                                        options:=EmitOptions.Default.WithEmitMetadataOnly(True)))
+                End Using
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub EmitMetadata()
+            Dim source =
+"Public MustInherit Class PublicClass
+    Public Sub PublicMethod
+        System.Console.Write(""Hello"")
+    End Sub
+End Class "
+            Dim comp = CreateCompilation(source, references:={MscorlibRef},
+                            options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Using output As New MemoryStream()
+                Using pdbOutput As New MemoryStream()
+                    Using metadataOutput As New MemoryStream()
+                        Dim result = comp.Emit(output, pdbOutput, metadataPEStream:=metadataOutput)
+                        Assert.True(result.Success)
+                        Assert.NotEqual(0, output.Position)
+                        Assert.NotEqual(0, pdbOutput.Position)
+                        Assert.NotEqual(0, metadataOutput.Position)
+                        MetadataReaderUtils.AssertNotThrowNull(ImmutableArray.CreateRange(output.GetBuffer()))
+                        MetadataReaderUtils.AssertEmptyOrThrowNull(ImmutableArray.CreateRange(metadataOutput.GetBuffer()))
+                    End Using
+                End Using
+            End Using
+
+            Dim peImage = comp.EmitToArray()
+            MetadataReaderUtils.AssertNotThrowNull(peImage)
         End Sub
 
         <WorkItem(4344, "DevDiv_Projects/Roslyn")>
@@ -326,19 +1391,19 @@ End Module
 Imports System
 
 MustInherit Class Base
-    Public MustOverride Sub Foo()
+    Public MustOverride Sub Goo()
 End Class
 
 Class Derived
     Inherits Base
     
-    Public Overrides Sub foO()
+    Public Overrides Sub goO()
         Console.WriteLine("Keep calm and carry on.")
     End Sub
 
     Shared Sub Main()
         Dim d as New Derived()
-        d.foo()
+        d.goo()
     End Sub
 End Class
 
@@ -355,25 +1420,25 @@ Keep calm and carry on.]]>)
 Imports System
 
     MustInherit Class Base
-        Public MustOverride Sub Foo()
+        Public MustOverride Sub Goo()
     End Class
 
     Class Derived
         Inherits Base
-        Public overrides Sub FOo()
+        Public overrides Sub GOo()
         End Sub
     End Class
     
     Class DerivedDerived
         Inherits Derived
 
-        Public Overrides Sub FOO()
+        Public Overrides Sub GOO()
             Console.WriteLine("Keep calm and carry on.")
         End Sub
 
         Shared Sub Main()
             Dim d As New DerivedDerived()
-            d.foo()
+            d.goo()
         End Sub
     End Class
 
@@ -397,42 +1462,42 @@ Keep calm and carry on.]]>)
 Imports System
 
     MustInherit Class Base
-        Public MustOverride Sub Foo()
-        Public MustOverride Sub foO(x as integer)
+        Public MustOverride Sub Goo()
+        Public MustOverride Sub goO(x as integer)
     End Class
 
     MustInherit Class Derived
         Inherits Base
-        Public Overrides Sub FOo()
+        Public Overrides Sub GOo()
         End Sub
-        Public Overloads MustOverride Sub FoO(z As String)
+        Public Overloads MustOverride Sub GoO(z As String)
     End Class
     
     Class DerivedDerived
         Inherits Derived
 
-        Public Overrides Sub FOO()
+        Public Overrides Sub GOO()
             Console.WriteLine("ABC.")
         End Sub
 
-        Public Overrides Sub fOO(x as Integer)
+        Public Overrides Sub gOO(x as Integer)
             Console.WriteLine("Life is {0}.", x)
         End Sub
  
-        Public Overrides Sub fOo(y as String)
+        Public Overrides Sub gOo(y as String)
             Console.WriteLine("This is a {0}.", y)
         End Sub
 
-        Public Overloads Sub foo(x as integer, y as String)
+        Public Overloads Sub goo(x as integer, y as String)
             Console.WriteLine("All done.")
         End Sub
 
         Shared Sub Main()
             Dim d As Base = New DerivedDerived()
-            d.Foo()
-            d.foO(42)
-            DirectCast(d, Derived).FoO("elderberries")
-            DirectCast(d, DerivedDerived).foo(42, "elderberries")
+            d.Goo()
+            d.goO(42)
+            DirectCast(d, Derived).GoO("elderberries")
+            DirectCast(d, DerivedDerived).goo(42, "elderberries")
         End Sub
     End Class
 
@@ -573,21 +1638,21 @@ End Module
             </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(source, options:=Nothing)
-            Dim peHeaders = New peHeaders(compilation.EmitToStream())
+            Dim peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.Equal(CorFlags.ILOnly, peHeaders.CorHeader.Flags)
 
             compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.X86))
-            peHeaders = New peHeaders(compilation.EmitToStream())
+            peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.Equal(CorFlags.ILOnly Or CorFlags.Requires32Bit, peHeaders.CorHeader.Flags)
 
             compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.X64))
-            peHeaders = New peHeaders(compilation.EmitToStream())
+            peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.Equal(CorFlags.ILOnly, peHeaders.CorHeader.Flags)
             Assert.True(peHeaders.Requires64Bits)
             Assert.True(peHeaders.RequiresAmdInstructionSet)
 
             compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.AnyCpu32BitPreferred))
-            peHeaders = New peHeaders(compilation.EmitToStream())
+            peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.False(peHeaders.Requires64Bits)
             Assert.False(peHeaders.RequiresAmdInstructionSet)
             Assert.Equal(CorFlags.ILOnly Or CorFlags.Requires32Bit Or CorFlags.Prefers32Bit, peHeaders.CorHeader.Flags)
@@ -606,7 +1671,7 @@ End Module
             </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.AnyCpu))
-            Dim peHeaders = New peHeaders(compilation.EmitToStream())
+            Dim peHeaders = New PEHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
             Assert.False(peHeaders.Requires64Bits)
@@ -631,7 +1696,7 @@ End Module
 
             ' test an exe as well:
             compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.AnyCpu))
-            peHeaders = New peHeaders(compilation.EmitToStream())
+            peHeaders = New PEHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
             Assert.False(peHeaders.Requires64Bits)
@@ -667,7 +1732,7 @@ End Module
             </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.Arm))
-            Dim peHeaders = New peHeaders(compilation.EmitToStream())
+            Dim peHeaders = New PEHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
             Assert.False(peHeaders.Requires64Bits)
@@ -692,7 +1757,7 @@ End Module
 
             ' test an exe as well:
             compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.AnyCpu))
-            peHeaders = New peHeaders(compilation.EmitToStream())
+            peHeaders = New PEHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
             Assert.False(peHeaders.Requires64Bits)
@@ -728,7 +1793,7 @@ End Module
             </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.X64))
-            Dim peHeaders = New peHeaders(compilation.EmitToStream())
+            Dim peHeaders = New PEHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
             Assert.True(peHeaders.Requires64Bits)
@@ -748,7 +1813,7 @@ End Module
 
             ' test an exe as well:
             compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithPlatform(Platform.X64))
-            peHeaders = New peHeaders(compilation.EmitToStream())
+            peHeaders = New PEHeaders(compilation.EmitToStream())
 
             'interesting COFF bits
             Assert.True(peHeaders.Requires64Bits)
@@ -804,7 +1869,7 @@ End Module
             </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib(source, options:=New VisualBasicCompilationOptions(OutputKind.WindowsRuntimeApplication))
-            Dim peHeaders = New peHeaders(compilation.EmitToStream())
+            Dim peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.Equal(CType(&H9540, UShort), peHeaders.PEHeader.DllCharacteristics)  'DYNAMIC_BASE | NX_COMPAT | NO_SEH | TERMINAL_SERVER_AWARE | HIGH_ENTROPY_VA (0x20)
         End Sub
 
@@ -837,15 +1902,15 @@ End Module
 
             ' default for 32 bit
             compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe.WithPlatform(Platform.X86))
-            peHeaders = New peHeaders(compilation.EmitToStream())
+            peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.Equal(&H400000UL, peHeaders.PEHeader.ImageBase)
 
             compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe.WithPlatform(Platform.X64))
-            peHeaders = New peHeaders(compilation.EmitToStream())
+            peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.Equal(&H140000000UL, peHeaders.PEHeader.ImageBase)
 
             compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithPlatform(Platform.X64))
-            peHeaders = New peHeaders(compilation.EmitToStream())
+            peHeaders = New PEHeaders(compilation.EmitToStream())
             Assert.Equal(&H180000000UL, peHeaders.PEHeader.ImageBase)
 
         End Sub
@@ -867,7 +1932,7 @@ End Module
             Assert.Equal(1024, peHeaders.PEHeader.FileAlignment)
 
             compilation = CreateCompilationWithMscorlib(source)
-            peHeaders = New peHeaders(compilation.EmitToStream(options:=New EmitOptions(fileAlignment:=4096)))
+            peHeaders = New PEHeaders(compilation.EmitToStream(options:=New EmitOptions(fileAlignment:=4096)))
             Assert.Equal(4096, peHeaders.PEHeader.FileAlignment)
         End Sub
 
@@ -1196,7 +2261,7 @@ Imports System.Security.Permissions
     
 public class C
     &lt;PrincipalPermission(SecurityAction.Demand, Role:="User1")&gt;
-    public sub foo()
+    public sub goo()
     end sub
 end class
 
@@ -1214,7 +2279,7 @@ End Module
                                  New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.Demand,
                                     .ParentKind = SymbolKind.Method,
-                                    .ParentNameOpt = "foo",
+                                    .ParentNameOpt = "goo",
                                     .PermissionSet =
                                         "." &
                                         ChrW(1) &
@@ -1297,7 +2362,7 @@ Imports System.Security.Permissions
 public class C
     &lt;PrincipalPermission(SecurityAction.Demand, Role:="User1")&gt;
     &lt;PrincipalPermission(SecurityAction.Demand, Role:="User1")&gt;
-    public sub foo()
+    public sub goo()
     end sub
 end class
 
@@ -1315,7 +2380,7 @@ End Module
                                  New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.Demand,
                                     .ParentKind = SymbolKind.Method,
-                                    .ParentNameOpt = "foo",
+                                    .ParentNameOpt = "goo",
                                     .PermissionSet =
                                         "." &
                                         ChrW(2) &
@@ -1416,7 +2481,7 @@ Imports System.Security.Permissions
 public class C
     &lt;PrincipalPermission(SecurityAction.Demand, Role:="User1")&gt;
     &lt;PrincipalPermission(SecurityAction.Assert, Role:="User2")&gt;
-    public sub foo()
+    public sub goo()
     end sub
 end class
 
@@ -1434,7 +2499,7 @@ End Module
                                  New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.Demand,
                                     .ParentKind = SymbolKind.Method,
-                                    .ParentNameOpt = "foo",
+                                    .ParentNameOpt = "goo",
                                     .PermissionSet =
                                         "." &
                                         ChrW(1) &
@@ -1452,7 +2517,7 @@ End Module
                                 New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.Assert,
                                     .ParentKind = SymbolKind.Method,
-                                    .ParentNameOpt = "foo",
+                                    .ParentNameOpt = "goo",
                                     .PermissionSet =
                                         "." &
                                         ChrW(1) &
@@ -1478,14 +2543,14 @@ Imports System.Security.Permissions
     
 public class C1
     &lt;PrincipalPermission(SecurityAction.Demand, Role:="User1")&gt;
-    public sub foo1()
+    public sub goo1()
     end sub
 end class
 
     
 public class C2
     &lt;PrincipalPermission(SecurityAction.Demand, Role:="User1")&gt;
-    public sub foo2()
+    public sub goo2()
     end sub
 end class
 
@@ -1503,7 +2568,7 @@ End Module
                                  New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.Demand,
                                     .ParentKind = SymbolKind.Method,
-                                    .ParentNameOpt = "foo1",
+                                    .ParentNameOpt = "goo1",
                                     .PermissionSet =
                                         "." &
                                         ChrW(1) &
@@ -1521,7 +2586,7 @@ End Module
                                 New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.Demand,
                                     .ParentKind = SymbolKind.Method,
-                                    .ParentNameOpt = "foo2",
+                                    .ParentNameOpt = "goo2",
                                     .PermissionSet =
                                         "." &
                                         ChrW(1) &
@@ -1615,7 +2680,7 @@ Imports System.Security.Permissions
 &lt;PrincipalPermission(SecurityAction.Demand, Role:="User1")&gt;        
 public class C1
     &lt;PrincipalPermission(SecurityAction.Assert, Role:="User2")&gt;
-    public sub foo1()
+    public sub goo1()
     end sub
 end class
 
@@ -1685,7 +2750,7 @@ End Module
                                 New DeclSecurityEntry() With {
                                     .ActionFlags = DeclarativeSecurityAction.Assert,
                                     .ParentKind = SymbolKind.Method,
-                                    .ParentNameOpt = "foo1",
+                                    .ParentNameOpt = "goo1",
                                     .PermissionSet =
                                         "." &
                                         ChrW(1) &
@@ -1720,7 +2785,7 @@ namespace n
 	public class C1
         &lt;PrincipalPermission(SecurityAction.Demand, Role:="User3")&gt;
         &lt;PrincipalPermission(SecurityAction.Assert, Role:="User4")&gt;
-        public sub foo1()
+        public sub goo1()
         end sub
 	end class
 
@@ -1738,12 +2803,12 @@ end namespace
                     Dim ns = DirectCast([module].GlobalNamespace.GetMembers("N").Single, NamespaceSymbol)
                     Dim namedType = DirectCast(ns.GetMembers("C1").Single, NamedTypeSymbol)
                     Dim type = DirectCast(namedType, Microsoft.Cci.ITypeDefinition)
-                    Dim method = DirectCast(namedType.GetMembers("foo1").Single, Microsoft.Cci.IMethodDefinition)
+                    Dim method = DirectCast(namedType.GetMembers("goo1").Single, Microsoft.Cci.IMethodDefinition)
 
                     Dim sourceAssembly = DirectCast(assembly, SourceAssemblySymbol)
                     Dim compilation = sourceAssembly.DeclaringCompilation
 
-                    Dim emitOptions = New emitOptions(outputNameOverride:=sourceAssembly.Name)
+                    Dim emitOptions = New EmitOptions(outputNameOverride:=sourceAssembly.Name)
 
                     Dim assemblyBuilder = New PEAssemblyBuilder(sourceAssembly, emitOptions, OutputKind.DynamicallyLinkedLibrary, GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable(Of ResourceDescription), Nothing)
                     Dim assemblySecurityAttributes As IEnumerable(Of Cci.SecurityAttribute) = assemblyBuilder.GetSourceAssemblySecurityAttributes()

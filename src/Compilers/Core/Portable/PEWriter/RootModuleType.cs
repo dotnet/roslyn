@@ -49,9 +49,9 @@ namespace Microsoft.Cci
             return null;
         }
 
-        public IEnumerable<IEventDefinition> Events
+        public IEnumerable<IEventDefinition> GetEvents(EmitContext context)
         {
-            get { return SpecializedCollections.EmptyEnumerable<IEventDefinition>(); }
+            return SpecializedCollections.EmptyEnumerable<IEventDefinition>();
         }
 
         public IEnumerable<MethodImplementation> GetExplicitImplementationOverrides(EmitContext context)

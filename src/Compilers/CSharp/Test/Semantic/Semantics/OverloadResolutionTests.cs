@@ -29,10 +29,10 @@ class Program
 {
     static void Main()
     {
-        Foo(delegate { }); // No error; chooses the non-expression version.
+        Goo(delegate { }); // No error; chooses the non-expression version.
     }
-    static void Foo(Action a) { }
-    static void Foo(Expression<Action> a) { }
+    static void Goo(Action a) { }
+    static void Goo(Expression<Action> a) { }
 }";
             var comp = CreateCompilationWithMscorlibAndSystemCore(source);
             comp.VerifyDiagnostics();
@@ -149,7 +149,7 @@ class P
   }
 }";
 
-            CreateCompilationWithMscorlib(source2).VerifyDiagnostics(
+            CreateStandardCompilation(source2).VerifyDiagnostics(
 // (18,5): error CS0121: The call is ambiguous between the following methods or properties: 'P.M(string, System.Action<string>)' and 'P.M(object, System.Action<object>)'
 //     M((string)null, null);
 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("P.M(string, System.Action<string>)", "P.M(object, System.Action<object>)"),
@@ -297,7 +297,7 @@ class P
   }
 }";
 
-            CreateCompilationWithMscorlib(source2).VerifyDiagnostics(
+            CreateStandardCompilation(source2).VerifyDiagnostics(
 // (16,8): error CS1503: Argument 1: cannot convert from 'int?' to 'int'
 //     M1(ni);
 Diagnostic(ErrorCode.ERR_BadArgType, "ni").WithArguments("1", "int?", "int"),
@@ -331,7 +331,7 @@ class P
   }
 }";
 
-            CreateCompilationWithMscorlib(source2).VerifyDiagnostics(
+            CreateStandardCompilation(source2).VerifyDiagnostics(
 // (14,5): error CS0121: The call is ambiguous between the following methods or properties: 'P.M1(P.DA)' and 'P.M1(P.DB)'
 //     M1(() => x);
 Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(P.DA)", "P.M1(P.DB)")
@@ -424,7 +424,7 @@ class P
   }
 }";
 
-            CreateCompilationWithMscorlib(source1).VerifyDiagnostics(
+            CreateStandardCompilation(source1).VerifyDiagnostics(
 // (36,5): error CS0121: The call is ambiguous between the following methods or properties: 'P.M1(CA)' and 'P.M1(CB)'
 //     M1(i);
 Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(CA)", "P.M1(CB)")
@@ -464,7 +464,7 @@ class P
   }
 }";
 
-            CreateCompilationWithMscorlib(source2).VerifyDiagnostics(
+            CreateStandardCompilation(source2).VerifyDiagnostics(
 // (11,5): error CS0121: The call is ambiguous between the following methods or properties: 'P.M1(System.Threading.Tasks.Task<int>, uint)' and 'P.M1(System.Threading.Tasks.Task<uint>, int)'
 //     M1(null,0);
 Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(System.Threading.Tasks.Task<int>, uint)", "P.M1(System.Threading.Tasks.Task<uint>, int)")
@@ -1065,7 +1065,7 @@ class P
   }
 }";
 
-            CreateCompilationWithMscorlib(source2).VerifyDiagnostics(
+            CreateStandardCompilation(source2).VerifyDiagnostics(
 // (13,5): error CS0121: The call is ambiguous between the following methods or properties: 'P.M1(System.Func<int>, uint)' and 'P.M1(System.Func<uint>, int)'
 //     M1(null,0);
 Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(System.Func<int>, uint)", "P.M1(System.Func<uint>, int)"),
@@ -1146,7 +1146,7 @@ class C
         J(123.0, 456.0m);
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (8,9): error CS0411: The type arguments for method 'C.J<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         J(123.0, 456.0m);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "J").WithArguments("C.J<T>(T, T)").WithLocation(8, 9));
@@ -1203,7 +1203,7 @@ class C
         K(z=>{ Console.WriteLine(z == string.Empty, z - 4.5); });
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (26,36): error CS1061: 'string' does not contain a definition for 'ToStrign' and no extension method 'ToStrign' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         J(x=>{ Console.WriteLine(x.ToStrign(), x.Length, x * 2); });
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToStrign").WithArguments("string", "ToStrign").WithLocation(26, 36),
@@ -1229,30 +1229,30 @@ using System;
 using System.Linq.Expressions;
 class p
 {
-    static void Foo<T>(ref Func<T, T> a) { }
+    static void Goo<T>(ref Func<T, T> a) { }
     static void Bar<T>(out Func<T, T> a) { a = null; }
 
-    static void Foo2<T>(ref Expression<Func<T, T>> a) { }
+    static void Goo2<T>(ref Expression<Func<T, T>> a) { }
     static void Bar2<T>(out Expression<Func<T, T>> a) { a = null; }
 
     static void Main()
     {
-        Foo<string>(x => x);
+        Goo<string>(x => x);
         Bar<string>(x => x);
-        Foo2<string>(x => x);
+        Goo2<string>(x => x);
         Bar2<string>(x => x);
     }
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
                 // (14,21): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'ref Func<string, string>'
-                //         Foo<string>(x => x);
+                //         Goo<string>(x => x);
                 Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "ref System.Func<string, string>").WithLocation(14, 21),
                 // (15,21): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'out Func<string, string>'
                 //         Bar<string>(x => x);
                 Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "out System.Func<string, string>").WithLocation(15, 21),
                 // (16,22): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'ref Expression<Func<string, string>>'
-                //         Foo2<string>(x => x);
+                //         Goo2<string>(x => x);
                 Diagnostic(ErrorCode.ERR_BadArgType, "x => x").WithArguments("1", "lambda expression", "ref System.Linq.Expressions.Expression<System.Func<string, string>>").WithLocation(16, 22),
                 // (17,22): error CS1503: Argument 1: cannot convert from 'lambda expression' to 'out Expression<Func<string, string>>'
                 //         Bar2<string>(x => x);
@@ -1275,7 +1275,7 @@ class C
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
 
             compilation.VerifyDiagnostics(
     // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.X(params string[])' and 'C.X<T>(T)'
@@ -1367,7 +1367,7 @@ class C
     static void Test5<Y>(Y y, N<Y> ny) { }
     static void Test6<Z>(N<Z> nz) where Z : struct {}
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (67,36): error CS0453: The type 'Y' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.N<T>'
                 //     static void Test5<Y>(Y y, N<Y> ny) { }
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "ny").WithArguments("C.N<T>", "T", "Y").WithLocation(67, 36),
@@ -1400,14 +1400,14 @@ class C
 {
     public static void M()
     {
-        Foo();
+        Goo();
     }
-    static void Foo<T>(params T[] x) { }
+    static void Goo<T>(params T[] x) { }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (6,9): error CS0411: The type arguments for method 'C.Foo<T>(params T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         Foo();
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Foo").WithArguments("C.Foo<T>(params T[])").WithLocation(6, 9));
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (6,9): error CS0411: The type arguments for method 'C.Goo<T>(params T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Goo();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Goo").WithArguments("C.Goo<T>(params T[])").WithLocation(6, 9));
         }
 
         [Fact]
@@ -1423,7 +1423,7 @@ class C
         System.Console.WriteLine(VoidReturning());
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,22): error CS1729: 'byte' does not contain a constructor that takes 1 arguments
                 //         byte b = new byte(1);
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "byte").WithArguments("byte", "1").WithLocation(7, 22),
@@ -1666,7 +1666,7 @@ class Test2
         d.Method2(d, d, d, d, d); // Should report error - No overload for Method2 takes 5 arguments
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Method2").WithArguments("Method2", "5"),
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Method2").WithArguments("Method2", "5"));
         }
@@ -1700,7 +1700,7 @@ class Test2
         d.Method2(d, d, d, d, d); // Fine
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Method1").WithArguments("Method1", "5"),
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Method2").WithArguments("Method2", "5"));
         }
@@ -1732,7 +1732,7 @@ class Test2
         b.Method2(d, d, d, d, d); // Should report error - No overload for Method2 takes 5 arguments
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (10,15): error CS0466: 'Derived.Base.Method2(Derived, Derived, params Derived[])' should not have a params parameter since 'Base.Method2(Derived, Derived, Derived[])' does not
                 Diagnostic(ErrorCode.ERR_ExplicitImplParams, "Method2").WithArguments("Derived.Base.Method2(Derived, Derived, params Derived[])", "Base.Method2(Derived, Derived, Derived[])"),
                 // (19,9): error CS1501: No overload for method 'Method2' takes 5 arguments
@@ -1883,7 +1883,7 @@ class Base4<U, V> : Base3<U, V>
     }
 }";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method(a, b)").WithArguments("Base<A, B>.Method(A, B)"),
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method(x, y)").WithArguments("Base3<U, V>.Method(U, V)"),
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Property").WithArguments("Base3<U, V>.Property"));
@@ -1912,7 +1912,7 @@ class Base2<A, B> : Base<A, B>
     }
 }";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method").WithArguments("Base<A, B>.Method(A, B)"));
         }
 
@@ -1957,7 +1957,7 @@ namespace B
 }
 ";
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method(x)").WithArguments("A.Base2<long>.Method(long)"));
         }
 
@@ -1975,20 +1975,20 @@ public class A
  
     public A(long x) { Console.WriteLine(""long""); }
  
-    public void Foo() { A a = new A(C); }
+    public void Goo() { A a = new A(C); }
     
     static void Main()
     {
         A a = new A(C);
-        a.Foo();
-        B.Foo();
+        a.Goo();
+        B.Goo();
     }
 }
 
 public class B
 {
     const int C = 1;
-    public static void Foo() { A a = new A(C);}
+    public static void Goo() { A a = new A(C);}
 }
 ";
 
@@ -2012,20 +2012,20 @@ public class A
  
     public A(long x) { Console.WriteLine(""long""); }
  
-    public void Foo() { A a = new A(C); }
+    public void Goo() { A a = new A(C); }
     
     static void Main()
     {
         A a = new A(C);
-        a.Foo();
-        B.Foo();
+        a.Goo();
+        B.Goo();
     }
 }
 
 public class B
 {
     const int C = 1;
-    public static void Foo() { A a = new A(C);}
+    public static void Goo() { A a = new A(C);}
 }
 ";
 
@@ -2096,7 +2096,7 @@ class Test
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (17,21): error CS0122: 'Base.Base()' is inaccessible due to its protection level
                 //         var a = new Base();
                 Diagnostic(ErrorCode.ERR_BadAccess, "Base").WithArguments("Base.Base()"));
@@ -2116,20 +2116,20 @@ public class A
  
     public void AA(long x) { Console.Write(""long""); }
  
-    public void Foo() { A a = new A(); a.AA(C); }
+    public void Goo() { A a = new A(); a.AA(C); }
 
     static void Main()
     {
         A a = new A();
-        a.Foo();
-        B.Foo();
+        a.Goo();
+        B.Goo();
     }
 }
 
 public class B
 {
     const int C = 1;
-    public static void Foo() { A a = new A(); a.AA(C);}
+    public static void Goo() { A a = new A(); a.AA(C);}
 }
 
 ";
@@ -2155,10 +2155,10 @@ class C
     static void M()
     {
         DynamicWrapper[] array = null;
-        Foo(array, x => x.Value, (x, y) => string.Empty); //-C.Foo(System.Collections.Generic.IEnumerable<C.DynamicWrapper>, System.Func<C.DynamicWrapper, System.Collections.Generic.IEnumerable<dynamic>>, System.Func<C.DynamicWrapper, dynamic, string>)
+        Goo(array, x => x.Value, (x, y) => string.Empty); //-C.Goo(System.Collections.Generic.IEnumerable<C.DynamicWrapper>, System.Func<C.DynamicWrapper, System.Collections.Generic.IEnumerable<dynamic>>, System.Func<C.DynamicWrapper, dynamic, string>)
     }
 
-    static IEnumerable<dynamic> Foo(
+    static IEnumerable<dynamic> Goo(
         object source,
         Func<dynamic, IEnumerable<dynamic>> collectionSelector,
         Func<dynamic, dynamic, dynamic> resultSelector)
@@ -2166,7 +2166,7 @@ class C
         return null;
     }
 
-    static IEnumerable<string> Foo(
+    static IEnumerable<string> Goo(
         IEnumerable<DynamicWrapper> source,
         Func<DynamicWrapper, IEnumerable<dynamic>> collectionSelector,
         Func<DynamicWrapper, dynamic, string> resultSelector)
@@ -2179,18 +2179,18 @@ class C
         [Fact]
         public void MissingBaseTypeAndParamsCtor()
         {
-            var cCommon = CreateCompilationWithMscorlib(@"
+            var cCommon = CreateStandardCompilation(@"
 public class TCommon {}
 ", assemblyName: "cCommon");
             Assert.Empty(cCommon.GetDiagnostics());
 
-            var cCS = CreateCompilationWithMscorlib(@"
+            var cCS = CreateStandardCompilation(@"
 public class MProvider : TCommon {}
 ", new MetadataReference[] { new CSharpCompilationReference(cCommon) }, assemblyName: "cCS");
 
             Assert.Empty(cCS.GetDiagnostics());
 
-            var cFinal = CreateCompilationWithMscorlib(@"
+            var cFinal = CreateStandardCompilation(@"
 public class T : MProvider {}
 
 class PArray
@@ -2200,7 +2200,7 @@ class PArray
   }
 }
 
-class Foo
+class Goo
 {
   void M()
   {
@@ -2443,7 +2443,7 @@ public class Ref1Impl : IRef1
 
 class Test
 {
-    public static int Foo(ref int x)
+    public static int Goo(ref int x)
     {
         Console.WriteLine(x);
         x++;
@@ -2455,17 +2455,17 @@ class Test
         IRef1 ref1 = new Ref1Impl();
         int a = 10;
         int ret = ref1.M(
-            z: Foo(ref a),                          // Print 10
+            z: Goo(ref a),                          // Print 10
             y: ref1.M(z: ref a, y: a, x: ref a),
-            x: Foo(ref a));                         // Print -3
+            x: Goo(ref a));                         // Print -3
         Console.WriteLine(a);                       // Print -2
         Console.WriteLine(ret);                     // Print 42
 
         int b = 1, c = 2;
         ret = ref1.M(
-            z: Foo(ref c),                          // Print 2
+            z: Goo(ref c),                          // Print 2
             y: ref1.M(z: ref b, y: b + c, x: b),
-            x: Foo(ref b));                         // Print -3
+            x: Goo(ref b));                         // Print -3
         Console.WriteLine(b);                       // Print -2
         Console.WriteLine(c);                       // Print 3
         Console.WriteLine(ret);                     // Print 7
@@ -2510,7 +2510,7 @@ public class Ref1Impl : IRef1
 
 class Test
 {
-    public static int Foo(ref int x)
+    public static int Goo(ref int x)
     {
         Console.WriteLine(x);
         x++;
@@ -2555,7 +2555,7 @@ class Test
    }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(530747, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530747")]
@@ -2659,7 +2659,7 @@ class Test
    }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (13,16): error CS0423: Since 'Ref1Impl' has the ComImport attribute, 'Ref1Impl.M(ref int, int)' must be extern or abstract
                 //     public int M(ref int x, int y) { return x + y; }
                 Diagnostic(ErrorCode.ERR_ComImportWithImpl, "M").WithArguments("Ref1Impl.M(ref int, int)", "Ref1Impl").WithLocation(13, 16));
@@ -2695,7 +2695,7 @@ class Test
    }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (21,25): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //        int ret = ref1.M(10, 10);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "10").WithArguments("1", "ref").WithLocation(21, 25));
@@ -2731,7 +2731,7 @@ class Test
        return ret;
    }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (22,25): error CS1620: Argument 1 must be passed with the 'out' keyword
                 //        int ret = ref1.M(x, 10);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "out").WithLocation(22, 25),
@@ -2763,15 +2763,15 @@ class Attr2: Attribute
 
 [ComImport]
 [Guid(""A88A175D-2448-447A-B786-64682CBEF156"")]
-[Attr(new Foo().M1(1, 1))]
-[Attr(Foo.M2(1, 1))]
+[Attr(new Goo().M1(1, 1))]
+[Attr(Goo.M2(1, 1))]
 [Attr2(1)]
-public class Foo
+public class Goo
 {
     public extern int M1(ref int x, int y);
     public static extern int M2(ref int x, int y);
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (13,7): error CS0424: 'Attr2': a class with the ComImport attribute cannot specify a base class
                 // class Attr2: Attribute
                 Diagnostic(ErrorCode.ERR_ComImportWithBase, "Attr2").WithArguments("Attr2").WithLocation(13, 7),
@@ -2779,10 +2779,10 @@ public class Foo
                 //     public Attr2(ref int x) {}
                 Diagnostic(ErrorCode.ERR_ComImportWithUserCtor, "Attr2").WithLocation(15, 12),
                 // (20,20): error CS1620: Argument 1 must be passed with the 'ref' keyword
-                // [Attr(new Foo().M1(1, 1))]
+                // [Attr(new Goo().M1(1, 1))]
                 Diagnostic(ErrorCode.ERR_BadArgRef, "1").WithArguments("1", "ref").WithLocation(20, 20),
                 // (21,14): error CS1620: Argument 1 must be passed with the 'ref' keyword
-                // [Attr(Foo.M2(1, 1))]
+                // [Attr(Goo.M2(1, 1))]
                 Diagnostic(ErrorCode.ERR_BadArgRef, "1").WithArguments("1", "ref").WithLocation(21, 14),
                 // (22,8): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 // [Attr2(1)]
@@ -2840,7 +2840,7 @@ abstract class C
 }
 class D : C
 {
-    public static void Foo()
+    public static void Goo()
     {
         short x = 123;
         sbyte s = 123;
@@ -2854,7 +2854,7 @@ class D : C
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (18,19): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         new D().M(x);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref"));
@@ -2874,10 +2874,10 @@ abstract class E
 }
 class F : E
 {
-    [DllImport(""foo"")]
+    [DllImport(""goo"")]
     extern public void M(sbyte p);
 
-    public static void Foo()
+    public static void Goo()
     {
         short x = 123;
         sbyte s = 123;
@@ -2900,7 +2900,7 @@ class H : G
 {
     extern public void M(ref short p);
 
-    public static void Foo()
+    public static void Goo()
     {
         short x = 123;
         sbyte s = 123;
@@ -2923,7 +2923,7 @@ class J : I
     extern public void M(sbyte p);
     extern public void M(ref short p);
 
-    public static void Foo()
+    public static void Goo()
     {
         short x = 123;
         sbyte s = 123;
@@ -2937,9 +2937,9 @@ class J : I
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (12,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
-                //     [DllImport("foo")]
+                //     [DllImport("goo")]
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport"),
                 // (20,19): error CS1503: Argument 1: cannot convert from 'short' to 'sbyte'
                 //         new F().M(x);
@@ -2990,7 +2990,7 @@ class C: B
     public void M(ref short p) {}
     public void M(sbyte p) {}
 
-    public static void Foo()
+    public static void Goo()
     {
         short x = 123;
         sbyte s = 123;
@@ -3009,7 +3009,7 @@ class C: B
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (30,13): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         a.M(x);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref"),
@@ -3034,7 +3034,7 @@ class K
 
 class H<T> where T: K, new()
 {
-    public static void Foo()
+    public static void Goo()
     {
         short x = 123;
         T t = new T();
@@ -3042,7 +3042,7 @@ class H<T> where T: K, new()
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (18,13): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         t.M(x);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref"));
@@ -3064,7 +3064,7 @@ static class E
 
 class Y
 {
-    public static void Foo()
+    public static void Goo()
     {
         short x = 123;
         E.M(x); // Dev11 reports CS1620 (missing 'ref')
@@ -3077,7 +3077,7 @@ class Y
             // MITIGATION: Candidates with 'ref' omitted lose tie-breakers, so
             // it should not be possible for this to cause overload resolution
             // to succeed in a different way.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(546122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546122")]
@@ -3113,7 +3113,7 @@ class Y
             // BREAK: Dev11 produces an error.  It doesn't make sense that the introduction
             // of a color-color local would eliminate an error, since it does not affect the
             // outcome of overload resolution.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (22,11): warning CS0219: The variable 'E' is assigned but its value is never used
                 //         E E = null;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "E").WithArguments("E").WithLocation(22, 11));
@@ -3142,7 +3142,7 @@ static class CExtensions
 
 class X
 {
-    public static void Foo()
+    public static void Goo()
     {
         short x = 123;
         C c = new C();
@@ -3592,7 +3592,7 @@ class Test
    }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (79,16): error CS1503: Argument 1: cannot convert from 'long' to 'int'
                 //        ref1.M1(10L);      // CS1503
                 Diagnostic(ErrorCode.ERR_BadArgType, "10L").WithArguments("1", "long", "int"),
@@ -5786,7 +5786,7 @@ class Test
    }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (80,16): error CS1503: Argument 1: cannot convert from 'long' to 'int'
                 //        ref1.M1(l, i);      // CS1503
                 Diagnostic(ErrorCode.ERR_BadArgType, "l").WithArguments("1", "long", "int"),
@@ -6162,7 +6162,7 @@ class C
     static void M3<T>(params T[] a) { }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,15): error CS1503: Argument 2: cannot convert from '<null>' to 'int'
                 //         M1(1, null);
                 Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("2", "<null>", "int"),
@@ -6252,7 +6252,7 @@ public class AggTest {
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (43,13): error CS0411: The type arguments for method 'AggTest.B1.M3<S, T>(G1<G2<S, T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //             M3(null); // Can't infer
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M3").WithArguments("AggTest.B1.M3<S, T>(G1<G2<S, T>>)"),
@@ -6308,7 +6308,7 @@ public class D
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,9): error CS0122: 'D.M(int, int, string)' is inaccessible due to its protection level
                 //         d.M(4, 5, "b");
                 Diagnostic(ErrorCode.ERR_BadAccess, "d.M"));
@@ -6329,20 +6329,20 @@ class Ambig
 
     // causes ambiguity because first and third method, but depending on the order, the compiler
     // reports them incorrectly.  VSWhidbey:133503
-    static void overload1(byte b, foo f) { }
+    static void overload1(byte b, goo f) { }
     static void overload1(sbyte b, bar f) { }
     static void overload1(int b, baz f) { }
 
     static void overload2(int b, baz f) { }
     static void overload2(sbyte b, bar f) { }
-    static void overload2(byte b, foo f) { }
+    static void overload2(byte b, goo f) { }
 }
 
-class foo
+class goo
 {
-    public static implicit operator foo(int i)
+    public static implicit operator goo(int i)
     {
-        return new foo();
+        return new goo();
     }
 }
 
@@ -6360,19 +6360,19 @@ class baz
     {
         return new baz();
     }
-    public static implicit operator baz(foo f)
+    public static implicit operator baz(goo f)
     {
         return new baz();
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-    // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Ambig.overload1(byte, foo)' and 'Ambig.overload1(int, baz)'
+            CreateStandardCompilation(source).VerifyDiagnostics(
+    // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Ambig.overload1(byte, goo)' and 'Ambig.overload1(int, baz)'
     //         overload1(1, 1);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "overload1").WithArguments("Ambig.overload1(byte, foo)", "Ambig.overload1(int, baz)").WithLocation(6, 9),
-    // (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'Ambig.overload2(int, baz)' and 'Ambig.overload2(byte, foo)'
+    Diagnostic(ErrorCode.ERR_AmbigCall, "overload1").WithArguments("Ambig.overload1(byte, goo)", "Ambig.overload1(int, baz)").WithLocation(6, 9),
+    // (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'Ambig.overload2(int, baz)' and 'Ambig.overload2(byte, goo)'
     //         overload2(1, 1);
-    Diagnostic(ErrorCode.ERR_AmbigCall, "overload2").WithArguments("Ambig.overload2(int, baz)", "Ambig.overload2(byte, foo)").WithLocation(7, 9)
+    Diagnostic(ErrorCode.ERR_AmbigCall, "overload2").WithArguments("Ambig.overload2(int, baz)", "Ambig.overload2(byte, goo)").WithLocation(7, 9)
                 );
         }
 
@@ -6444,7 +6444,7 @@ public class Q
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Ambig.F(P1)' and 'Ambig.F(P2)'
                 //         F(new Q());
                 Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Ambig.F(P1)", "Ambig.F(P2)"));
@@ -6763,7 +6763,7 @@ public class C
 	}
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,20): error CS0115: 'C.Override<T>(T)': no suitable method found to override
                 //     public override T Override<T>(T t) 
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Override").WithArguments("C.Override<T>(T)"));
@@ -6794,7 +6794,7 @@ class C : A
     // Not finished typing yet.
 ";
             // Doesn't assert.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (18,41): error CS1514: { expected
                 //     public override int this[string arg]
                 Diagnostic(ErrorCode.ERR_LbraceExpected, ""),
@@ -6892,16 +6892,16 @@ class D<T>
 using System;
 class C
 {
-    public static int Foo(int x, string y = null) { return 1; }
-    public static int Foo<T>(T x) { return 0; }
+    public static int Goo(int x, string y = null) { return 1; }
+    public static int Goo<T>(T x) { return 0; }
 
     public static void Main()
     {
-        System.Console.WriteLine(Foo(0));
+        System.Console.WriteLine(Goo(0));
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput: "0");
         }
@@ -6913,17 +6913,17 @@ class C
             string source = @"
 interface IA
 {
-    int Foo(int x = 0);
+    int Goo(int x = 0);
 }
 class C : IA
 {
-    public int Foo(int x)
+    public int Goo(int x)
     {
         return x;
     }
     static int M<T>(T x) where T : A, IA
     {
-        return x.Foo(); //-IA.Foo(int)
+        return x.Goo(); //-IA.Goo(int)
     }
 }
 ";
@@ -6940,11 +6940,11 @@ public class Test
 {
     public delegate dynamic nongenerics(dynamic id);
     public delegate T generics< T>(dynamic id);
-    public dynamic Foo(nongenerics Meth, dynamic id)
+    public dynamic Goo(nongenerics Meth, dynamic id)
     {
         return null;
     }
-    public T Foo<T>(generics<T> Meth, dynamic id)
+    public T Goo<T>(generics<T> Meth, dynamic id)
     {
         return default(T);
     }
@@ -6952,9 +6952,9 @@ public class Test
     {
         return System.String.Empty;
     }
-    public dynamic testFoo(dynamic id)
+    public dynamic testGoo(dynamic id)
     {
-        return Foo(method, ""abc"");
+        return Goo(method, ""abc"");
     }
     static void Main(string[] args)
     {
@@ -6962,9 +6962,9 @@ public class Test
 }";
             // Doesn't assert.
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
-                // (20,16): error CS0121: The call is ambiguous between the following methods or properties: 'Test.Foo(Test.nongenerics, dynamic)' and 'Test.Foo<T>(Test.generics<T>, dynamic)'
-                //         return Foo(method, "abc");
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("Test.Foo(Test.nongenerics, dynamic)", "Test.Foo<T>(Test.generics<T>, dynamic)")
+                // (20,16): error CS0121: The call is ambiguous between the following methods or properties: 'Test.Goo(Test.nongenerics, dynamic)' and 'Test.Goo<T>(Test.generics<T>, dynamic)'
+                //         return Goo(method, "abc");
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("Test.Goo(Test.nongenerics, dynamic)", "Test.Goo<T>(Test.generics<T>, dynamic)")
                 );
         }
 
@@ -6976,7 +6976,7 @@ public class Test
 using System;
 public delegate void D002<T1, T2>(T1 t1, T2 t2);
 public delegate void D003(dynamic t1, object t2);
-public class Foo
+public class Goo
 {
     static internal void M11<T1, T2>(T1 t1, T2 t2)
     {
@@ -6989,13 +6989,13 @@ public struct start
     {
         dynamic d1 = null;
         object o1 = null;
-        Foo.M11<dynamic, object>(d1, o1);
-        Foo.M11(d1, o1);
-        D002<dynamic, object> dd02 = new D002<dynamic, object>(Foo.M11);
-        D002<dynamic, object> dd03 = Foo.M11;
-        D002<dynamic, object> dd04 = (D002<dynamic, object>)Foo.M11;
-        D003 dd05 = Foo.M11;
-        M(Foo.M11);
+        Goo.M11<dynamic, object>(d1, o1);
+        Goo.M11(d1, o1);
+        D002<dynamic, object> dd02 = new D002<dynamic, object>(Goo.M11);
+        D002<dynamic, object> dd03 = Goo.M11;
+        D002<dynamic, object> dd04 = (D002<dynamic, object>)Goo.M11;
+        D003 dd05 = Goo.M11;
+        M(Goo.M11);
         Console.WriteLine(dd02);
     }
 }";
@@ -7023,7 +7023,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -7133,7 +7133,7 @@ public class Derived : Base
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -7154,7 +7154,7 @@ using System.Threading.Tasks;
 using System;
 class Test
 {
-    public virtual async Task<int> Foo<U>(Func<Task<U>> f)
+    public virtual async Task<int> Goo<U>(Func<Task<U>> f)
     {
         await Task.Delay(10);
         return 1;
@@ -7162,19 +7162,19 @@ class Test
 }
 class TestCase : Test
 {
-    public override async Task<int> Foo<T>(Func<Task<T>> f)
+    public override async Task<int> Goo<T>(Func<Task<T>> f)
     {
         await Task.Delay(10);
         return 3;
     }
-    public async Task<int> Foo(Func<Task<long>> f)
+    public async Task<int> Goo(Func<Task<long>> f)
     {
         await Task.Delay(10);
         return 2;
     }
     public async void Run()
     {
-        var xxx = await Foo(async () => { // Roslyn error here
+        var xxx = await Goo(async () => { // Roslyn error here
             await Task.Delay(10);
             return 5m; });
         Console.WriteLine(xxx); // 3;
@@ -7191,20 +7191,20 @@ class TestCase : Test
 using System;
 class Test
 {
-    public virtual int Foo<U>(Func<U> f)
+    public virtual int Goo<U>(Func<U> f)
     {
         return 1;
     }
 }
 class TestCase : Test
 {
-    public override int Foo<T>(Func<T> f)
+    public override int Goo<T>(Func<T> f)
     {
         return 3;
     }
     public void Run()
     {
-        var xxx = Foo(() => { // Roslyn error here
+        var xxx = Goo(() => { // Roslyn error here
             return 5m; });
         Console.WriteLine(xxx); // 3;
     }
@@ -7255,20 +7255,20 @@ static class Extensions
             string source = @"using System;
 using System.Runtime.InteropServices;
 [ComImport, Guid(""cb4ac859-0589-483e-934d-b27845d5fe74"")]
-interface IFoo
+interface IGoo
 {
 }
 static class Program
 {
-    public static void Bar(this IFoo self, ref Guid id)
+    public static void Bar(this IGoo self, ref Guid id)
     {
         id = Guid.NewGuid();
     }
     static void Main()
     {
-        Foo(null);
+        Goo(null);
     }
-    static void Foo(IFoo o)
+    static void Goo(IGoo o)
     {
         Guid g = Guid.NewGuid();
         Console.WriteLine(g);
@@ -7307,7 +7307,7 @@ public class Test
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -7348,7 +7348,7 @@ public class Test
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -7400,18 +7400,18 @@ class Program
 delegate byte DL();
 class Test
 {
-    void foo()
+    void goo()
     {
         EventHandler y = null;
-        y += foo;
+        y += goo;
         y += x => 2;
     }
 }";
             var comp = CreateCompilationWithMscorlibAndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (9,14): error CS0123: No overload for 'foo' matches delegate 'System.EventHandler'
-                //         y += foo;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "foo").WithArguments("foo", "System.EventHandler"),
+                // (9,14): error CS0123: No overload for 'goo' matches delegate 'System.EventHandler'
+                //         y += goo;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "goo").WithArguments("goo", "System.EventHandler"),
                 // (10,14): error CS1593: Delegate 'System.EventHandler' does not take 1 arguments
                 //         y += x => 2;
                 Diagnostic(ErrorCode.ERR_BadDelArgCount, "x => 2").WithArguments("System.EventHandler", "1")
@@ -7433,7 +7433,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
     // (8,46): error CS1503: Argument 1: cannot convert from 'string' to 'int'
     //         var d = new Dictionary<int, int>() {["aaa"] = 3};
@@ -7456,7 +7456,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
     // (8,28): error CS1513: } expected
     //         var d = new int[] {[1] = 3 };
@@ -7517,11 +7517,11 @@ class C
 {
     static void Main()
     {
-        Foo(() => { return () => 0; ; });
-        Foo(() => { return () => 0; });
+        Goo(() => { return () => 0; ; });
+        Goo(() => { return () => 0; });
     }
-    static void Foo(Func<Func<short>> x) { Console.WriteLine(1); }
-    static void Foo(Func<Func<int>> x) { Console.WriteLine(2); }
+    static void Goo(Func<Func<short>> x) { Console.WriteLine(1); }
+    static void Goo(Func<Func<int>> x) { Console.WriteLine(2); }
 }
 ";
 
@@ -7543,11 +7543,11 @@ class C
 
     static void Test(bool val)
     {
-        Foo(() => { if (val) return () => 0; else return () => (short)0; });
-        Foo(() => { if (val) return () => (short)0; else return () => 0; });
+        Goo(() => { if (val) return () => 0; else return () => (short)0; });
+        Goo(() => { if (val) return () => (short)0; else return () => 0; });
     }
-    static void Foo(Func<Func<short>> x) { Console.WriteLine(1); }
-    static void Foo(Func<Func<int>> x) { Console.WriteLine(2); }
+    static void Goo(Func<Func<short>> x) { Console.WriteLine(1); }
+    static void Goo(Func<Func<int>> x) { Console.WriteLine(2); }
 }
 ";
 
@@ -7569,10 +7569,10 @@ class C
 
     static void Test(bool val)
     {
-        Foo(() => { if (val) return () => 0; else return () => 0; });
+        Goo(() => { if (val) return () => 0; else return () => 0; });
     }
-    static void Foo(Func<Func<short>> x) { Console.WriteLine(1); }
-    static void Foo(Func<Func<int>> x) { Console.WriteLine(2); }
+    static void Goo(Func<Func<short>> x) { Console.WriteLine(1); }
+    static void Goo(Func<Func<int>> x) { Console.WriteLine(2); }
 }
 ";
 
@@ -7591,17 +7591,17 @@ class C
     static void Main()
     {
 #pragma warning disable 1998
-        Foo(async () => { return 0; ; });
-        Foo(async () => { return 0; });
-        Foo(async () => 0);
+        Goo(async () => { return 0; ; });
+        Goo(async () => { return 0; });
+        Goo(async () => 0);
 
-        Foo(async () => { return (short)0; ; });
-        Foo(async () => { return (short)0; });
-        Foo(async () => (short)0);
+        Goo(async () => { return (short)0; ; });
+        Goo(async () => { return (short)0; });
+        Goo(async () => (short)0);
     }
 
-    static void Foo(Func<Task<short>> x) { Console.WriteLine(1); }
-    static void Foo(Func<Task<int>> x) { Console.WriteLine(2); }
+    static void Goo(Func<Task<short>> x) { Console.WriteLine(1); }
+    static void Goo(Func<Task<int>> x) { Console.WriteLine(2); }
 }
 ";
 
@@ -7626,15 +7626,15 @@ class C
     static void Main()
     {
 #pragma warning disable 1998
-        Foo(() => async () => { return 0; ; });
-        Foo(() => async () => { return 0; });
-        Foo(() => async () => 0);
-        Foo(() => { return async () => 0; ; });
-        Foo(() => { return async () => 0; });
+        Goo(() => async () => { return 0; ; });
+        Goo(() => async () => { return 0; });
+        Goo(() => async () => 0);
+        Goo(() => { return async () => 0; ; });
+        Goo(() => { return async () => 0; });
     }
 
-    static void Foo(Func<Func<Task<short>>> x) { Console.WriteLine(1); }
-    static void Foo(Func<Func<Task<int>>> x) { Console.WriteLine(2); }
+    static void Goo(Func<Func<Task<short>>> x) { Console.WriteLine(1); }
+    static void Goo(Func<Func<Task<int>>> x) { Console.WriteLine(2); }
 }
 ";
 
@@ -7658,11 +7658,11 @@ class C
     static void Main()
     {
 #pragma warning disable 1998
-        Foo(async () => { return () => 0; });
-        Foo(async () => { return () => (short)0; });
+        Goo(async () => { return () => 0; });
+        Goo(async () => { return () => (short)0; });
     }
-    static void Foo(Func<Task<Func<short>>> x) { Console.WriteLine(1); }
-    static void Foo(Func<Task<Func<int>>> x) { Console.WriteLine(2); }
+    static void Goo(Func<Task<Func<short>>> x) { Console.WriteLine(1); }
+    static void Goo(Func<Task<Func<int>>> x) { Console.WriteLine(2); }
 }
 ";
 
@@ -7733,8 +7733,8 @@ namespace ConsoleApplication2
 {
     class Program
     {
-        public class Foo {
-            public static bool IsThing(Foo t) { return false; }
+        public class Goo {
+            public static bool IsThing(Goo t) { return false; }
         }
         public class Bar<T, V> where T : class
         {
@@ -7751,13 +7751,13 @@ namespace ConsoleApplication2
         }
         static void Main(string[] args)
         {
-            var x = Bar<Foo, double>.Create(Foo.IsThing);
+            var x = Bar<Goo, double>.Create(Goo.IsThing);
         }
     }
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source1, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput: @"Create(Func<T, bool> filter)");
         }
@@ -7771,8 +7771,8 @@ namespace ConsoleApplication2
 {
     class Program
     {
-        public class Foo {
-            public static bool IsThing(Foo t) { return false; }
+        public class Goo {
+            public static bool IsThing(Goo t) { return false; }
         }
         public class Bar<T, V> where T : class
         {
@@ -7789,17 +7789,17 @@ namespace ConsoleApplication2
         }
         static void Main(string[] args)
         {
-            var x = Bar<Foo, double>.Create(Foo.IsThing);
+            var x = Bar<Goo, double>.Create(Goo.IsThing);
         }
     }
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source1, options: TestOptions.DebugExe);
 
             compilation.VerifyDiagnostics(
     // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, bool>)' and 'Program.Bar<T, V>.Create(Func<T, V>, params Func<T, bool>[])'
-    //             var x = Bar<Foo, double>.Create(Foo.IsThing);
+    //             var x = Bar<Goo, double>.Create(Goo.IsThing);
     Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>)", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>, params System.Func<T, bool>[])").WithLocation(25, 38)
                 );
         }
@@ -7813,8 +7813,8 @@ namespace ConsoleApplication2
 {
     class Program
     {
-        public class Foo {
-            public static double IsThing(Foo t) { return 0; }
+        public class Goo {
+            public static double IsThing(Goo t) { return 0; }
         }
         public class Bar<T, V> where T : class
         {
@@ -7831,13 +7831,13 @@ namespace ConsoleApplication2
         }
         static void Main(string[] args)
         {
-            var x = Bar<Foo, double>.Create(Foo.IsThing);
+            var x = Bar<Goo, double>.Create(Goo.IsThing);
         }
     }
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source1, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput: @"Create(Func<T, V> propertyPrev, Func<T, bool> filter = null)");
         }
@@ -7851,8 +7851,8 @@ namespace ConsoleApplication2
 {
     class Program
     {
-        public class Foo {
-            public static double IsThing(Foo t) { return 0; }
+        public class Goo {
+            public static double IsThing(Goo t) { return 0; }
         }
         public class Bar<T, V> where T : class
         {
@@ -7869,17 +7869,17 @@ namespace ConsoleApplication2
         }
         static void Main(string[] args)
         {
-            var x = Bar<Foo, double>.Create(Foo.IsThing);
+            var x = Bar<Goo, double>.Create(Goo.IsThing);
         }
     }
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source1, options: TestOptions.DebugExe);
 
             compilation.VerifyDiagnostics(
     // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, bool>, params int[])' and 'Program.Bar<T, V>.Create(Func<T, V>)'
-    //             var x = Bar<Foo, double>.Create(Foo.IsThing);
+    //             var x = Bar<Goo, double>.Create(Goo.IsThing);
     Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>, params int[])", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>)").WithLocation(25, 38)
                 );
         }
@@ -7893,8 +7893,8 @@ namespace ConsoleApplication2
 {
     class Program
     {
-        public class Foo {
-            public static double IsThing(Foo t) { return 0; }
+        public class Goo {
+            public static double IsThing(Goo t) { return 0; }
         }
         public class Bar<T, V> where T : class
         {
@@ -7911,17 +7911,17 @@ namespace ConsoleApplication2
         }
         static void Main(string[] args)
         {
-            var x = Bar<Foo, double>.Create(Foo.IsThing);
+            var x = Bar<Goo, double>.Create(Goo.IsThing);
         }
     }
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source1, options: TestOptions.DebugExe);
 
             compilation.VerifyDiagnostics(
     // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, V>)' and 'Program.Bar<T, V>.Create(Func<T, bool>, params int[])'
-    //             var x = Bar<Foo, double>.Create(Foo.IsThing);
+    //             var x = Bar<Goo, double>.Create(Goo.IsThing);
     Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>)", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>, params int[])").WithLocation(25, 38)
                 );
         }
@@ -7935,8 +7935,8 @@ namespace ConsoleApplication2
 {
     class Program
     {
-        public class Foo {
-            public static bool IsThing(Foo t) { return false; }
+        public class Goo {
+            public static bool IsThing(Goo t) { return false; }
         }
         public class Bar<T, V> where T : class
         {
@@ -7953,17 +7953,17 @@ namespace ConsoleApplication2
         }
         static void Main(string[] args)
         {
-            var x = Bar<Foo, double>.Create(Foo.IsThing);
+            var x = Bar<Goo, double>.Create(Goo.IsThing);
         }
     }
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source1, options: TestOptions.DebugExe);
 
             compilation.VerifyDiagnostics(
     // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, V>, params Func<T, bool>[])' and 'Program.Bar<T, V>.Create(Func<T, bool>)'
-    //             var x = Bar<Foo, double>.Create(Foo.IsThing);
+    //             var x = Bar<Goo, double>.Create(Goo.IsThing);
     Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>, params System.Func<T, bool>[])", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>)").WithLocation(25, 38)
                 );
         }
@@ -7977,8 +7977,8 @@ namespace ConsoleApplication2
 {
     class Program
     {
-        public class Foo {
-            public static bool IsThing(Foo t) { return false; }
+        public class Goo {
+            public static bool IsThing(Goo t) { return false; }
         }
         public class Bar<T, V> where T : class
         {
@@ -7993,17 +7993,17 @@ namespace ConsoleApplication2
         }
         static void Main(string[] args)
         {
-            var x = Bar<Foo, double>.Create(Foo.IsThing);
+            var x = Bar<Goo, double>.Create(Goo.IsThing);
         }
     }
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source1, options: TestOptions.DebugExe);
 
             compilation.VerifyDiagnostics(
     // (23,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, bool>, params int[])' and 'Program.Bar<T, V>.Create(Func<T, V>, params int[])'
-    //             var x = Bar<Foo, double>.Create(Foo.IsThing);
+    //             var x = Bar<Goo, double>.Create(Goo.IsThing);
     Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>, params int[])", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>, params int[])").WithLocation(23, 38)
                 );
         }
@@ -8015,7 +8015,7 @@ namespace ConsoleApplication2
 using System;
 namespace ConsoleApplication2
 {
-    public static class Foo
+    public static class Goo
     {
         public static U IfNotNull<T, U>(this T value, Func<T, U> selector, U defaultValue = default(U))
         {
@@ -8034,13 +8034,13 @@ namespace ConsoleApplication2
         {
             double? val = null;
             var d1 = val.IfNotNull(v => v / 100);
-            var d2 = Foo.IfNotNull(val, v => v / 100);
+            var d2 = Goo.IfNotNull(val, v => v / 100);
         }
     }
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"IfNotNull<T, U>(this T? source, Func<T, U> selector)
@@ -8054,7 +8054,7 @@ IfNotNull<T, U>(this T? source, Func<T, U> selector)");
 using System;
 namespace ConsoleApplication2
 {
-    public static class Foo
+    public static class Goo
     {
         public static U IfNotNull<T, U>(this T value, Func<T, U> selector, params U[] defaultValue)
         {
@@ -8073,13 +8073,13 @@ namespace ConsoleApplication2
         {
             double? val = null;
             var d1 = val.IfNotNull(v => v / 100);
-            var d2 = Foo.IfNotNull(val, v => v / 100);
+            var d2 = Goo.IfNotNull(val, v => v / 100);
         }
     }
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -8090,7 +8090,7 @@ namespace ConsoleApplication2
 using System;
 namespace ConsoleApplication2
 {
-    public static class Foo
+    public static class Goo
     {
         public static U IfNotNull<T, U>(this T? source, Func<T, U> selector) where T : struct
         {
@@ -8109,13 +8109,13 @@ namespace ConsoleApplication2
         {
             double? val = null;
             var d1 = val.IfNotNull(v => v / 100);
-            var d2 = Foo.IfNotNull(val, v => v / 100);
+            var d2 = Goo.IfNotNull(val, v => v / 100);
         }
     }
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -8148,7 +8148,7 @@ class CTest
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source1, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput: @"M1(int x)");
         }
@@ -8194,7 +8194,7 @@ public class C : CodeAccessSecurityAttribute
 
 
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (16,35): error CS1001: Identifier expected
                 //     public A(params SecurityAction)
@@ -8237,6 +8237,35 @@ public class C : CodeAccessSecurityAttribute
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("action", "System.Security.Permissions.CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(System.Security.Permissions.SecurityAction)").WithLocation(30, 12));
         }
 
+        [WorkItem(18875, "https://github.com/dotnet/roslyn/issues/18875")]
+        [Fact]
+        public void InvalidParamsPositionCSharp()
+        {
+            const string source = @"
+public class A
+{
+    public static void Goo(params int[] vals, bool truth)
+    {
+    
+    }
+    
+    public static void Bar()
+    {
+        // 1 shouldn't show CS1503 Argument 1: cannot convert from 'int' to 'int'
+        Goo(1, true);
+    }
+}
+";
+            var comp = CreateStandardCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,28): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                //     public static void Goo(params int[] vals, bool truth)
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] vals"),
+                // (12,13): error CS1503: Argument 1: cannot convert from 'int' to 'params int[]'
+                //         Goo(1, true);
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params int[]").WithLocation(12, 13));
+        }
+
         [WorkItem(2249, "https://github.com/dotnet/roslyn/issues/2249")]
         [Fact]
         public void TestRefMethodGroup()
@@ -8261,7 +8290,7 @@ class Program
 }";
             CompileAndVerify(source, expectedOutput: @"pass
 pass").VerifyDiagnostics();
-            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
+            CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
     // (12,36): error CS1657: Cannot use 'M' as a ref or out value because it is a 'method group'
     //         Action a1 = new Action(ref M);
     Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "M").WithArguments("M", "method group").WithLocation(12, 36),
@@ -8347,7 +8376,7 @@ namespace VS2015CompilerBug
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"int Properties(this IFirstInterface source, params int[] x)
@@ -8395,7 +8424,7 @@ namespace VS2015CompilerBug
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"void Test2(int x, params int[] y)
@@ -8442,7 +8471,7 @@ namespace VS2015CompilerBug
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"void Test2(int x = 0, int y = 0)
@@ -8481,7 +8510,7 @@ namespace VS2015CompilerBug
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
 
             compilation.VerifyDiagnostics(
     // (9,39): error CS0121: The call is ambiguous between the following methods or properties: 'VS2015CompilerBug.Test2(int, int)' and 'VS2015CompilerBug.Test2(int, int, int)'
@@ -8516,7 +8545,7 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source1, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput: @"void M1(string s, object o1, object o2)");
         }
@@ -8542,7 +8571,7 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source1, options: TestOptions.DebugExe);
 
             compilation.VerifyDiagnostics(
     // (14,9): error CS0121: The call is ambiguous between the following methods or properties: 'Test.M1(object, object, string)' and 'Test.M1(string, object, object)'
@@ -8572,7 +8601,7 @@ class Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source1, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput: @"2");
         }
@@ -8692,7 +8721,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source1);
+            var compilation = CreateStandardCompilation(source1);
 
             compilation.VerifyDiagnostics(
     // (12,24): error CS1739: The best overload for 'F1' does not have a parameter named 'z'
@@ -8777,7 +8806,7 @@ class C
         M(x: 1, y: 2, z: 3);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source);
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics();
         }
 
@@ -8814,7 +8843,7 @@ namespace ClassLibraryOverloadResolution
 {    
     public class Class1
     {
-        void foo()
+        void goo()
         {
             Dictionary<String, String> dict = null;
             dict.Should();
@@ -8914,7 +8943,7 @@ class D
     private void M(double d) { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
 
             compilation.VerifyDiagnostics(
     // (6,11): error CS0122: 'D.M(int)' is inaccessible due to its protection level
@@ -8953,7 +8982,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(Del1)' and 'Program.Method(Del2)'
                 //         Method(() => null);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(Del1)", "Program.Method(Del2)").WithLocation(11, 9)
@@ -8977,7 +9006,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(Del1)' and 'Program.Method(Del2)'
                 //         Method(() => null);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(Del1)", "Program.Method(Del2)").WithLocation(11, 9)
@@ -9001,7 +9030,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Method(Del1<string>)' and 'Program.Method(Del2<string>)'
                 //         Method(() => null);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Program.Method(Del1<string>)", "Program.Method(Del2<string>)").WithLocation(11, 9)
@@ -9227,6 +9256,248 @@ static class E
                 // (9,9): error CS1929: 'A' does not contain a definition for 'F' and the best extension method overload 'E.F(B, Action<object>, A)' requires a receiver of type 'B'
                 //         a.F(o => {}, a);
                 Diagnostic(ErrorCode.ERR_BadInstanceArgType, "a").WithArguments("A", "F", "E.F(B, System.Action<object>, A)", "B").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void CircularImplicitConversions()
+        {
+            string source =
+@"
+class A 
+{ 
+    public static implicit operator B(A a) => null;
+}
+class B 
+{ 
+    public static implicit operator C(B b) => null;
+}
+class C 
+{ 
+    public static implicit operator A(C c) => null;
+}
+class D 
+{
+    public static implicit operator A(D d) => null;
+    public static implicit operator B(D d) => null;
+    public static implicit operator C(D d) => null;
+}
+class E
+{
+    public static void F(A a) {}
+    public static void F(B b) {}
+    public static void F(C c) {}
+}
+public class Program
+{
+    public static void Main() => E.F(new D());
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics(
+                // (28,36): error CS0121: The call is ambiguous between the following methods or properties: 'E.F(A)' and 'E.F(B)'
+                //     public static void Main() => E.F(new D());
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("E.F(A)", "E.F(B)").WithLocation(28, 36)
+            );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var callSyntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            var symbolInfo = model.GetSymbolInfo(callSyntax);
+
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            var candidates = symbolInfo.CandidateSymbols;
+            Assert.Equal(3, candidates.Length);
+            Assert.Equal("void E.F(A a)", candidates[0].ToTestDisplayString());
+            Assert.Equal("void E.F(B b)", candidates[1].ToTestDisplayString());
+            Assert.Equal("void E.F(C c)", candidates[2].ToTestDisplayString());
+        }
+
+        [Fact]
+        public void PassingArgumentsToRefReadOnlyParameters_RefKind_None()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(ref readonly int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        int x = 5;
+        Method(x);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void PassingArgumentsToRefReadOnlyParameters_RefKind_Ref()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(ref readonly int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        int x = 5;
+        Method(ref x);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (11,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                //         Method(ref x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "ref").WithLocation(11, 20));
+        }
+
+        [WorkItem(20799, "https://github.com/dotnet/roslyn/issues/20799")]
+        [Fact]
+        public void PassingArgumentsToRefReadOnlyParameters_RefKind_None_WrongType()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(ref readonly int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        System.Exception x = null;
+        Method(x);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (11,16): error CS1503: Argument 1: cannot convert from 'System.Exception' to 'ref readonly int'
+                //         Method(x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Exception", "ref readonly int").WithLocation(11, 16)
+            );
+        }
+
+        [WorkItem(20799, "https://github.com/dotnet/roslyn/issues/20799")]
+        [Fact]
+        public void PassingArgumentsToRefParameters_RefKind_None_WrongType()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(ref int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        System.Exception x = null;
+        Method(x);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (11,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         Method(x);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref").WithLocation(11, 16)
+            );
+        }
+
+        [Fact]
+        public void PassingArgumentsToRefReadOnlyParameters_RefKind_RefReadOnly()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(ref readonly int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        int x = 5;
+        Method(ref readonly x);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (11,20): error CS1525: Invalid expression term 'readonly'
+                //         Method(ref readonly x);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(11, 20),
+                // (11,20): error CS1026: ) expected
+                //         Method(ref readonly x);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(11, 20),
+                // (11,20): error CS1002: ; expected
+                //         Method(ref readonly x);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(11, 20),
+                // (11,20): error CS0106: The modifier 'readonly' is not valid for this item
+                //         Method(ref readonly x);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(11, 20),
+                // (11,30): error CS1001: Identifier expected
+                //         Method(ref readonly x);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(11, 30),
+                // (11,30): error CS1002: ; expected
+                //         Method(ref readonly x);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(11, 30),
+                // (11,30): error CS1513: } expected
+                //         Method(ref readonly x);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(11, 30),
+                // (11,29): error CS0118: 'x' is a variable but is used like a type
+                //         Method(ref readonly x);
+                Diagnostic(ErrorCode.ERR_BadSKknown, "x").WithArguments("x", "variable", "type").WithLocation(11, 29),
+                // (10,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         int x = 5;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(10, 13));
+        }
+
+        [Fact]
+        public void PassingArgumentsToRefReadOnlyParameters_RefKind_In()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(ref readonly int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        int x = 5;
+        Method(in x);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (11,16): error CS1041: Identifier expected; 'in' is a keyword
+                //         Method(in x);
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "in").WithArguments("", "in").WithLocation(11, 16));
+        }
+
+        [Fact]
+        public void PassingArgumentsToRefReadOnlyParameters_RefKind_Out()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(ref readonly int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        int x = 5;
+        Method(out x);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (11,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //         Method(out x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "out").WithLocation(11, 20));
         }
     }
 }

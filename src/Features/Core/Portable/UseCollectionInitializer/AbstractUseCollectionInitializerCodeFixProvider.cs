@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         }
 
         protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             // Fix-All for this feature is somewhat complicated.  As Collection-Initializers 
@@ -85,9 +85,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 var originalObjectCreation = originalObjectCreationNodes.Pop();
                 var objectCreation = currentRoot.GetCurrentNodes(originalObjectCreation).Single();
 
-                var analyzer = new ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>(
+                var matches = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
                     semanticModel, syntaxFacts, objectCreation, cancellationToken);
-                var matches = analyzer.Analyze();
+
                 if (matches == null || matches.Value.Length == 0)
                 {
                     continue;
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 subEditor.ReplaceNode(statement, newStatement);
                 foreach (var match in matches)
                 {
-                    subEditor.RemoveNode(match);
+                    subEditor.RemoveNode(match, SyntaxRemoveOptions.KeepUnbalancedDirectives);
                 }
 
                 document = document.WithSyntaxRoot(subEditor.GetChangedRoot());

@@ -3,11 +3,11 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 using Roslyn.Utilities;
 
@@ -180,15 +180,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             // like compound assignment does (extra flag only passed when it is an expression
             // statement means that this constraint is not violated).
             // Dynamic type will be erased in emit phase. It is considered equivalent to Object in lowered bound trees.
+            // Unused deconstructions are lowered to produce a return value that isn't a tuple type.
             Debug.Assert(visited == null || visited.HasErrors || ReferenceEquals(visited.Type, node.Type) ||
-                    visited.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames));
+                    visited.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames) ||
+                    IsUnusedDeconstruction(node));
 
             return visited;
+        }
+
+        private static bool IsUnusedDeconstruction(BoundExpression node)
+        {
+            return node.Kind == BoundKind.DeconstructionAssignmentOperator && !((BoundDeconstructionAssignmentOperator)node).IsUsed;
         }
 
         public override BoundNode VisitLambda(BoundLambda node)
         {
             _sawLambdas = true;
+            CheckRefReadOnlySymbols(node.Symbol);
+
             var oldContainingSymbol = _factory.CurrentMethod;
             try
             {
@@ -204,6 +213,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             _sawLocalFunctions = true;
+            CheckRefReadOnlySymbols(node.Symbol);
+
             var oldContainingSymbol = _factory.CurrentMethod;
             try
             {
@@ -287,29 +298,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node;
         }
 
-        private static BoundStatement BadStatement(BoundNode node)
-        {
-            return (node == null)
-                ? new BoundBadStatement(null, default(ImmutableArray<BoundNode>), true)
-                : new BoundBadStatement(node.Syntax, ImmutableArray.Create<BoundNode>(node), true);
-        }
-
         private static BoundExpression BadExpression(BoundExpression node)
         {
-            return BadExpression(node.Syntax, node.Type, ImmutableArray.Create<BoundNode>(node));
+            return BadExpression(node.Syntax, node.Type, ImmutableArray.Create(node));
         }
 
-        private static BoundExpression BadExpression(SyntaxNode syntax, TypeSymbol resultType, BoundNode child)
+        private static BoundExpression BadExpression(SyntaxNode syntax, TypeSymbol resultType, BoundExpression child)
         {
-            return BadExpression(syntax, resultType, ImmutableArray.Create<BoundNode>(child));
+            return BadExpression(syntax, resultType, ImmutableArray.Create(child));
         }
 
-        private static BoundExpression BadExpression(SyntaxNode syntax, TypeSymbol resultType, BoundNode child1, BoundNode child2)
+        private static BoundExpression BadExpression(SyntaxNode syntax, TypeSymbol resultType, BoundExpression child1, BoundExpression child2)
         {
-            return BadExpression(syntax, resultType, ImmutableArray.Create<BoundNode>(child1, child2));
+            return BadExpression(syntax, resultType, ImmutableArray.Create(child1, child2));
         }
 
-        private static BoundExpression BadExpression(SyntaxNode syntax, TypeSymbol resultType, ImmutableArray<BoundNode> children)
+        private static BoundExpression BadExpression(SyntaxNode syntax, TypeSymbol resultType, ImmutableArray<BoundExpression> children)
         {
             return new BoundBadExpression(syntax, LookupResultKind.NotReferencable, ImmutableArray<Symbol>.Empty, children, resultType);
         }
@@ -322,13 +326,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// This function provides a false sense of security, it is likely going to surprise you when the requested member is missing.
-        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod"/> instead! 
+        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, out MethodSymbol)"/> instead! 
         /// If used, a unit-test with a missing member is absolutely a must have.
         /// </summary>
         private MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember)
         {
+            return UnsafeGetSpecialTypeMethod(syntax, specialMember, _compilation, _diagnostics);
+        }
+
+        /// <summary>
+        /// This function provides a false sense of security, it is likely going to surprise you when the requested member is missing.
+        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, CSharpCompilation, DiagnosticBag, out MethodSymbol)"/> instead! 
+        /// If used, a unit-test with a missing member is absolutely a must have.
+        /// </summary>
+        private static MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        {
             MethodSymbol method;
-            if (TryGetSpecialTypeMethod(syntax, specialMember, out method))
+            if (TryGetSpecialTypeMethod(syntax, specialMember, compilation, diagnostics, out method))
             {
                 return method;
             }
@@ -336,15 +350,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MemberDescriptor descriptor = SpecialMembers.GetDescriptor(specialMember);
                 SpecialType type = (SpecialType)descriptor.DeclaringTypeId;
-                TypeSymbol container = _compilation.Assembly.GetSpecialType(type);
-                TypeSymbol returnType = new ExtendedErrorTypeSymbol(compilation: _compilation, name: descriptor.Name, errorInfo: null, arity: descriptor.Arity);
+                TypeSymbol container = compilation.Assembly.GetSpecialType(type);
+                TypeSymbol returnType = new ExtendedErrorTypeSymbol(compilation: compilation, name: descriptor.Name, errorInfo: null, arity: descriptor.Arity);
                 return new ErrorMethodSymbol(container, returnType, "Missing");
             }
         }
 
         private bool TryGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, out MethodSymbol method)
         {
-            return Binder.TryGetSpecialTypeMember(_compilation, specialMember, syntax, _diagnostics, out method);
+            return TryGetSpecialTypeMethod(syntax, specialMember, _compilation, _diagnostics, out method);
+        }
+
+        private static bool TryGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, DiagnosticBag diagnostics, out MethodSymbol method)
+        {
+            return Binder.TryGetSpecialTypeMember(compilation, specialMember, syntax, diagnostics, out method);
         }
 
         public override BoundNode VisitTypeOfOperator(BoundTypeOfOperator node)
@@ -497,6 +516,96 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression rhs = assignment.Right;
             return rhs.IsDefaultValue();
+        }
+
+        /// <summary>
+        /// Receivers of struct methods are required to be at least RValues but can be assignable variables.
+        /// Whether the mutations from the method are propagated back to the 
+        /// receiver instance is conditional on whether the receiver is a variable that can be assigned. 
+        /// If not, then the invocation is performed on a copy.
+        /// 
+        /// An inconvenient situation may arise when the receiver is an RValue expression (like a ternary operator),
+        /// which is trivially reduced during lowering to one of its operands and 
+        /// such operand happens to be an assignable variable (like a local). That operation alone would 
+        /// expose the operand to mutations while it would not be exposed otherwise.
+        /// I.E. the transformation becomes semantically observable.
+        /// 
+        /// To prevent such situations, we will wrap the operand into a node whose only 
+        /// purpose is to never be an assignable expression.
+        /// </summary>
+        private static BoundExpression EnsureNotAssignableIfUsedAsMethodReceiver(BoundExpression expr)
+        {
+            // Leave as-is where receiver mutations cannot happen.
+            if (!WouldBeAssignableIfUsedAsMethodReceiver(expr))
+            {
+                return expr;
+            }
+
+            return new BoundConversion(
+                expr.Syntax,
+                expr,
+                Conversion.IdentityValue,
+                @checked: false,
+                explicitCastInCode: true,
+                constantValueOpt: null,
+                type: expr.Type)
+            { WasCompilerGenerated = true };
+        }
+
+        internal static bool WouldBeAssignableIfUsedAsMethodReceiver(BoundExpression receiver)
+        {
+            // - reference type receivers are byval
+            // - special value types (int32, Nullable<T>, . .) do not have mutating members
+            if (receiver.Type.IsReferenceType ||
+                receiver.Type.OriginalDefinition.SpecialType != SpecialType.None)
+            {
+                return false;
+            }
+
+            switch (receiver.Kind)
+            {
+                case BoundKind.Parameter:
+                case BoundKind.Local:
+                case BoundKind.ArrayAccess:
+                case BoundKind.ThisReference:
+                case BoundKind.BaseReference:
+                case BoundKind.PointerIndirectionOperator:
+                case BoundKind.RefValueOperator:
+                case BoundKind.PseudoVariable:
+                case BoundKind.FieldAccess:
+                    return true;
+
+                case BoundKind.Call:
+                    return ((BoundCall)receiver).Method.RefKind == RefKind.Ref;
+            }
+
+            return false;
+        }
+
+        private void CheckRefReadOnlySymbols(MethodSymbol symbol)
+        {
+            var foundRefReadOnly = false;
+
+            if (symbol.ReturnsByRefReadonly)
+            {
+                foundRefReadOnly = true;
+            }
+            else
+            {
+                foreach (var parameter in symbol.Parameters)
+                {
+                    if (parameter.RefKind == RefKind.RefReadOnly)
+                    {
+                        foundRefReadOnly = true;
+                        break;
+                    }
+                }
+            }
+
+            if (foundRefReadOnly)
+            {
+                _factory.CompilationState.ModuleBuilderOpt?.EnsureIsReadOnlyAttributeExists();
+            }
         }
     }
 }

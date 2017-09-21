@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // label:
             //   |
 
-            // if (foo)
+            // if (goo)
             //   |
 
             // while (true)
@@ -99,91 +99,75 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // lock (expr)
             //   |
 
-            // for ( ; ; Foo(), |
+            // for ( ; ; Goo(), |
 
-            if (token.Kind() == SyntaxKind.OpenBraceToken &&
-                token.Parent.IsKind(SyntaxKind.Block))
+            switch (token.Kind())
             {
-                return true;
-            }
-
-            if (token.Kind() == SyntaxKind.SemicolonToken)
-            {
-                var statement = token.GetAncestor<StatementSyntax>();
-                if (statement != null && !statement.IsParentKind(SyntaxKind.GlobalStatement) &&
-                    statement.GetLastToken(includeZeroWidth: true) == token)
-                {
+                case SyntaxKind.OpenBraceToken when token.Parent.IsKind(SyntaxKind.Block):
                     return true;
-                }
-            }
 
-            if (token.Kind() == SyntaxKind.CloseBraceToken &&
-                token.Parent.IsKind(SyntaxKind.Block))
-            {
-                if (token.Parent.Parent is StatementSyntax)
-                {
-                    // Most blocks that are the child of statement are places
-                    // that we can follow with another statement.  i.e.:
-                    // if { }
-                    // while () { }
-                    // There are two exceptions.
-                    // try {}
-                    // do {}
-                    if (!token.Parent.IsParentKind(SyntaxKind.TryStatement) &&
-                        !token.Parent.IsParentKind(SyntaxKind.DoStatement))
+                case SyntaxKind.SemicolonToken:
+                    var statement = token.GetAncestor<StatementSyntax>();
+                    return statement != null && !statement.IsParentKind(SyntaxKind.GlobalStatement) &&
+                           statement.GetLastToken(includeZeroWidth: true) == token;
+
+                case SyntaxKind.CloseBraceToken:
+                    if (token.Parent.IsKind(SyntaxKind.Block))
+                    {
+                        if (token.Parent.Parent is StatementSyntax)
+                        {
+                            // Most blocks that are the child of statement are places
+                            // that we can follow with another statement.  i.e.:
+                            // if { }
+                            // while () { }
+                            // There are two exceptions.
+                            // try {}
+                            // do {}
+                            if (!token.Parent.IsParentKind(SyntaxKind.TryStatement) &&
+                                !token.Parent.IsParentKind(SyntaxKind.DoStatement))
+                            {
+                                return true;
+                            }
+                        }
+                        else if (
+                            token.Parent.IsParentKind(SyntaxKind.ElseClause) ||
+                            token.Parent.IsParentKind(SyntaxKind.FinallyClause) ||
+                            token.Parent.IsParentKind(SyntaxKind.CatchClause) ||
+                            token.Parent.IsParentKind(SyntaxKind.SwitchSection))
+                        {
+                            return true;
+                        }
+                    }
+
+                    if (token.Parent.IsKind(SyntaxKind.SwitchStatement))
                     {
                         return true;
                     }
-                }
-                else if (
-                    token.Parent.IsParentKind(SyntaxKind.ElseClause) ||
-                    token.Parent.IsParentKind(SyntaxKind.FinallyClause) ||
-                    token.Parent.IsParentKind(SyntaxKind.CatchClause) ||
-                    token.Parent.IsParentKind(SyntaxKind.SwitchSection))
-                {
+
+                    return false;
+
+                case SyntaxKind.ColonToken:
+                    return token.Parent.IsKind(SyntaxKind.CaseSwitchLabel,
+                                               SyntaxKind.DefaultSwitchLabel,
+                                               SyntaxKind.CasePatternSwitchLabel,
+                                               SyntaxKind.LabeledStatement);
+
+                case SyntaxKind.DoKeyword when token.Parent.IsKind(SyntaxKind.DoStatement):
                     return true;
-                }
-            }
 
-            if (token.Kind() == SyntaxKind.CloseBraceToken &&
-                token.Parent.IsKind(SyntaxKind.SwitchStatement))
-            {
-                return true;
-            }
+                case SyntaxKind.CloseParenToken:
+                    var parent = token.Parent;
+                    return parent.IsKind(SyntaxKind.ForStatement) ||
+                           parent.IsKind(SyntaxKind.ForEachStatement) ||
+                           parent.IsKind(SyntaxKind.ForEachVariableStatement) ||
+                           parent.IsKind(SyntaxKind.WhileStatement) ||
+                           parent.IsKind(SyntaxKind.IfStatement) ||
+                           parent.IsKind(SyntaxKind.LockStatement) ||
+                           parent.IsKind(SyntaxKind.UsingStatement) ||
+                           parent.IsKind(SyntaxKind.FixedStatement);
 
-            if (token.Kind() == SyntaxKind.ColonToken)
-            {
-                if (token.Parent.IsKind(SyntaxKind.CaseSwitchLabel, SyntaxKind.DefaultSwitchLabel, SyntaxKind.LabeledStatement))
-                {
+                case SyntaxKind.ElseKeyword:
                     return true;
-                }
-            }
-
-            if (token.Kind() == SyntaxKind.DoKeyword &&
-                token.Parent.IsKind(SyntaxKind.DoStatement))
-            {
-                return true;
-            }
-
-            if (token.Kind() == SyntaxKind.CloseParenToken)
-            {
-                var parent = token.Parent;
-                if (parent.IsKind(SyntaxKind.ForStatement) ||
-                    parent.IsKind(SyntaxKind.ForEachStatement) ||
-                    parent.IsKind(SyntaxKind.ForEachVariableStatement) ||
-                    parent.IsKind(SyntaxKind.WhileStatement) ||
-                    parent.IsKind(SyntaxKind.IfStatement) ||
-                    parent.IsKind(SyntaxKind.LockStatement) ||
-                    parent.IsKind(SyntaxKind.UsingStatement) ||
-                    parent.IsKind(SyntaxKind.FixedStatement))
-                {
-                    return true;
-                }
-            }
-
-            if (token.Kind() == SyntaxKind.ElseKeyword)
-            {
-                return true;
             }
 
             return false;
@@ -198,11 +182,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // ...;
             // |
 
-            // extern alias Foo;
+            // extern alias Goo;
             // using System;
             // |
 
-            // [assembly: Foo]
+            // [assembly: Goo]
             // |
 
             if (token.Kind() == SyntaxKind.CloseBraceToken)
@@ -311,8 +295,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             // cases:
             //   #if |
-            //   #if foo || |
-            //   #if foo && |
+            //   #if goo || |
+            //   #if goo && |
             //   #if ( |
             //   #if ! |
             // Same for elif
@@ -403,7 +387,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             if (targetToken.Kind() == SyntaxKind.ColonToken)
             {
-                if (targetToken.Parent.IsKind(SyntaxKind.CaseSwitchLabel, SyntaxKind.DefaultSwitchLabel))
+                if (targetToken.Parent.IsKind(
+                        SyntaxKind.CaseSwitchLabel, SyntaxKind.DefaultSwitchLabel, SyntaxKind.CasePatternSwitchLabel))
                 {
                     return true;
                 }
@@ -437,18 +422,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static bool IsConstructorOrMethodParameterArgumentContext(this SyntaxToken targetToken)
         {
             // cases:
-            //   Foo( |
-            //   Foo(expr, |
-            //   Foo(bar: |
-            //   new Foo( |
-            //   new Foo(expr, |
-            //   new Foo(bar: |
-            //   Foo : base( |
-            //   Foo : base(bar: |
-            //   Foo : this( |
-            //   Foo : this(bar: |
+            //   Goo( |
+            //   Goo(expr, |
+            //   Goo(bar: |
+            //   new Goo( |
+            //   new Goo(expr, |
+            //   new Goo(bar: |
+            //   Goo : base( |
+            //   Goo : base(bar: |
+            //   Goo : this( |
+            //   Goo : this(bar: |
 
-            // Foo(bar: |
+            // Goo(bar: |
             if (targetToken.Kind() == SyntaxKind.ColonToken &&
                 targetToken.Parent.IsKind(SyntaxKind.NameColon) &&
                 targetToken.Parent.IsParentKind(SyntaxKind.Argument) &&
@@ -559,11 +544,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         private static bool IsAccessorDeclarationContextWorker(ref SyntaxToken targetToken)
         {
             // cases:
-            //   int Foo { |
-            //   int Foo { private |
-            //   int Foo { set { } |
-            //   int Foo { set; |
-            //   int Foo { [Bar]|
+            //   int Goo { |
+            //   int Goo { private |
+            //   int Goo { set { } |
+            //   int Goo { set; |
+            //   int Goo { [Bar]|
 
             // Consume all preceding access modifiers
             while (targetToken.Kind() == SyntaxKind.InternalKeyword ||
@@ -574,16 +559,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 targetToken = targetToken.GetPreviousToken(includeSkipped: true);
             }
 
-            // int Foo { |
-            // int Foo { private |
+            // int Goo { |
+            // int Goo { private |
             if (targetToken.Kind() == SyntaxKind.OpenBraceToken &&
                 targetToken.Parent.IsKind(SyntaxKind.AccessorList))
             {
                 return true;
             }
 
-            // int Foo { set { } |
-            // int Foo { set { } private |
+            // int Goo { set { } |
+            // int Goo { set { } private |
             if (targetToken.Kind() == SyntaxKind.CloseBraceToken &&
                 targetToken.Parent.IsKind(SyntaxKind.Block) &&
                 targetToken.Parent.GetParent() is AccessorDeclarationSyntax)
@@ -591,14 +576,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-            // int Foo { set; |
+            // int Goo { set; |
             if (targetToken.Kind() == SyntaxKind.SemicolonToken &&
                 targetToken.Parent is AccessorDeclarationSyntax)
             {
                 return true;
             }
 
-            // int Foo { [Bar]|
+            // int Goo { [Bar]|
             if (targetToken.Kind() == SyntaxKind.CloseBracketToken &&
                 targetToken.Parent.IsKind(SyntaxKind.AttributeList) &&
                 targetToken.Parent.GetParent() is AccessorDeclarationSyntax)
@@ -631,9 +616,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static bool IsTypeParameterVarianceContext(this SyntaxToken targetToken)
         {
             // cases:
-            // interface IFoo<|
-            // interface IFoo<A,|
-            // interface IFoo<[Bar]|
+            // interface IGoo<|
+            // interface IGoo<A,|
+            // interface IGoo<[Bar]|
 
             // delegate X D<|
             // delegate X D<A,|
@@ -676,8 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                     if (item.IsNode)
                     {
-                        var node = item.AsNode() as ArgumentSyntax;
-                        if (node != null && node.NameColon != null)
+                        if (item.AsNode() is ArgumentSyntax node && node.NameColon != null)
                         {
                             return true;
                         }

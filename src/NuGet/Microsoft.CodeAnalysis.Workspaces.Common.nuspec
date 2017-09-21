@@ -6,12 +6,17 @@
       A shared package used by the .NET Compiler Platform ("Roslyn") including support for analyzing projects and solutions.
     </summary>
     <description>
-      A shared package used by the .NET Compiler Platform ("Roslyn") including support for analyzing projects and solutions. Do not install this package manually, it will be added as a prerequisite by other packages that require it.
+      A shared package used by the .NET Compiler Platform ("Roslyn") including support for analyzing projects and solutions.
+      Do not install this package manually, it will be added as a prerequisite by other packages that require it.
+
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
     </description>
     <dependencies>
       <group targetFramework="netstandard1.3">
         <dependency id="Microsoft.CodeAnalysis.Common" version="[$version$]" />
-        <dependency id="Microsoft.Composition" version="$MicrosoftCompositionVersion$" />
+        <dependency id="System.Composition" version="$SystemCompositionVersion$" />
         <dependency id="System.Diagnostics.Contracts" version="$SystemDiagnosticsContractsVersion$" />
         <dependency id="System.Linq.Parallel" version="$SystemLinqParallelVersion$" />
         <dependency id="System.ObjectModel" version="$SystemObjectModelVersion$" />
@@ -19,9 +24,8 @@
         <dependency id="System.Threading.Tasks.Parallel" version="$SystemThreadingTasksParallelVersion$" />
       </group>
       <group targetFramework="net46">
-        <dependency id="ManagedEsent" version="$ManagedEsentVersion$" />
         <dependency id="Microsoft.CodeAnalysis.Common" version="[$version$]" />
-        <dependency id="Microsoft.Composition" version="$MicrosoftCompositionVersion$" />
+        <dependency id="System.Composition" version="$SystemCompositionVersion$" />
       </group>
     </dependencies>
 

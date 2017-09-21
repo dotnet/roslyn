@@ -1,10 +1,12 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.NamingStyles;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -305,6 +307,42 @@ class D : C
 {
     internal override void [|m|]() { }
 }", new TestParameters(options: MethodNamesArePascalCase));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [WorkItem(19106, "https://github.com/dotnet/roslyn/issues/19106")]
+        public async Task TestMissingOnSymbolsWithNoName()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+namespace Microsoft.CodeAnalysis.Host
+{
+    internal interface 
+[|}|]
+", new TestParameters(options: InterfaceNamesStartWithI));
+        }
+        
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [WorkItem(16562, "https://github.com/dotnet/roslyn/issues/16562")]
+        public async Task TestRefactorNotify()
+        {
+            var markup = @"public class [|c|] { }";
+            var testParameters = new TestParameters(options: ClassNamesArePascalCase);
+
+            using (var workspace = CreateWorkspaceFromOptions(markup, testParameters))
+            {
+                var actions = await GetCodeActionsAsync(workspace, testParameters);
+
+                var previewOperations = await actions[0].GetPreviewOperationsAsync(CancellationToken.None);
+                Assert.Empty(previewOperations.OfType<TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation>());
+
+                var commitOperations = await actions[0].GetOperationsAsync(CancellationToken.None);
+                Assert.Equal(2, commitOperations.Length);
+
+                var symbolRenamedOperation = (TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation)commitOperations[1];
+                Assert.Equal("c", symbolRenamedOperation._symbol.Name);
+                Assert.Equal("C", symbolRenamedOperation._newName);
+            }
         }
     }
 }

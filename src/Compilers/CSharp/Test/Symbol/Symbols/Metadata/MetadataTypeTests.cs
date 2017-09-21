@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataNamespaceSymbol01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateCompilation(text, new[] { MscorlibRef });
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataTypeSymbolClass01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateCompilation(text, new[] { MscorlibRef });
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataTypeSymbolGenClass02()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            var compilation = CreateCompilation(text, new[] { MscorlibRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -157,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataTypeSymbolGenInterface01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilationWithMscorlib(text);
+            var compilation = CreateStandardCompilation(text);
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -205,7 +206,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataTypeSymbolStruct01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            var compilation = CreateCompilation(text,
+                new[] { MscorlibRef },
+                options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -251,7 +254,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataArrayTypeSymbol01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            var compilation = CreateCompilation(text, new[] { MscorlibRef },
+                options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -326,7 +330,7 @@ class Test : StaticModClass
         r";
 
             var tree = SyntaxFactory.ParseSyntaxTree(String.Empty);
-            var comp = CreateCompilationWithMscorlib(syntaxTree: tree, references: new[] { modRef });
+            var comp = CreateStandardCompilation(syntaxTree: tree, references: new[] { modRef });
 
             var currComp = comp;
 

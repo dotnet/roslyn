@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -16,20 +17,22 @@ namespace Roslyn.Utilities
         // We consider '/' a directory separator on Unix like systems. 
         // On Windows both / and \ are equally accepted.
         internal static readonly char DirectorySeparatorChar = PlatformInformation.IsUnix ? '/' : '\\';
-        internal static readonly char AltDirectorySeparatorChar = '/';
-        internal static readonly string ParentRelativeDirectory = "..";
-        internal static readonly string ThisDirectory = ".";
+        internal const char AltDirectorySeparatorChar = '/';
+        internal const string ParentRelativeDirectory = "..";
+        internal const string ThisDirectory = ".";
         internal static readonly string DirectorySeparatorStr = new string(DirectorySeparatorChar, 1);
         internal const char VolumeSeparatorChar = ':';
         internal static bool IsUnixLikePlatform => PlatformInformation.IsUnix;
 
         /// <summary>
-        /// True if the character is a directory separator character.
+        /// True if the character is the platform directory separator character or the alternate directory separator.
         /// </summary>
-        public static bool IsDirectorySeparator(char c)
-        {
-            return c == DirectorySeparatorChar || c == AltDirectorySeparatorChar;
-        }
+        public static bool IsDirectorySeparator(char c) => c == DirectorySeparatorChar || c == AltDirectorySeparatorChar;
+
+        /// <summary>
+        /// True if the character is any recognized directory separator character.
+        /// </summary>
+        public static bool IsAnyDirectorySeparator(char c) => c == '\\' || c == '/';
 
         /// <summary>
         /// Removes trailing directory separator characters
@@ -280,13 +283,13 @@ namespace Roslyn.Utilities
             if (!IsUnixLikePlatform)
             {
                 // "\"
-                // "\foo"
+                // "\goo"
                 if (path.Length >= 1 && IsDirectorySeparator(path[0]))
                 {
                     return PathKind.RelativeToCurrentRoot;
                 }
 
-                // "C:foo"
+                // "C:goo"
 
                 if (path.Length >= 2 && path[1] == VolumeSeparatorChar && (path.Length <= 2 || !IsDirectorySeparator(path[2])))
                 {
@@ -294,7 +297,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            // "foo.dll"
+            // "goo.dll"
             return PathKind.Relative;
         }
 
@@ -321,7 +324,7 @@ namespace Roslyn.Utilities
             }
 
             // "\\machine\share"
-            // Including invalid/incomplete UNC paths (e.g. "\\foo")
+            // Including invalid/incomplete UNC paths (e.g. "\\goo")
             return path.Length >= 2 &&
                 IsDirectorySeparator(path[0]) &&
                 IsDirectorySeparator(path[1]);
@@ -425,13 +428,13 @@ namespace Roslyn.Utilities
 
         /// <summary>
         /// Determines if "path" contains 'component' within itself.
-        /// i.e. asking if the path "c:\foo\bar\baz" has component "bar" would return 'true'.
-        /// On the other hand, if you had "c:\foo\bar1\baz" then it would not have "bar" as a
+        /// i.e. asking if the path "c:\goo\bar\baz" has component "bar" would return 'true'.
+        /// On the other hand, if you had "c:\goo\bar1\baz" then it would not have "bar" as a
         /// component.
         /// 
         /// A path contains a component if any file name or directory name in the path
-        /// matches 'component'.  As such, if you had something like "\\foo" then that would
-        /// not have "foo" as a component. That's because here "foo" is the server name portion
+        /// matches 'component'.  As such, if you had something like "\\goo" then that would
+        /// not have "goo" as a component. That's because here "goo" is the server name portion
         /// of the UNC path, and not an actual directory or file name.
         /// </summary>
         public static bool ContainsPathComponent(string path, string component, bool ignoreCase)
@@ -614,6 +617,41 @@ namespace Roslyn.Utilities
 
             return hc;
         }
+
+        public static string NormalizePathPrefix(string filePath, ImmutableArray<KeyValuePair<string, string>> pathMap)
+        {
+            if (pathMap.IsDefaultOrEmpty)
+            {
+                return filePath;
+            }
+
+            // find the first key in the path map that matches a prefix of the normalized path (followed by a path separator).
+            // Note that we expect the client to use consistent capitalization; we use ordinal (case-sensitive) comparisons.
+            foreach (var kv in pathMap)
+            {
+                var oldPrefix = kv.Key;
+                if (!(oldPrefix?.Length > 0)) continue;
+
+                if (filePath.StartsWith(oldPrefix, StringComparison.Ordinal) && filePath.Length > oldPrefix.Length && IsAnyDirectorySeparator(filePath[oldPrefix.Length]))
+                {
+                    var replacementPrefix = kv.Value;
+
+                    // Replace that prefix.
+                    var replacement = replacementPrefix + filePath.Substring(oldPrefix.Length);
+
+                    // Normalize the path separators if used uniformly in the replacement
+                    bool hasSlash = replacementPrefix.IndexOf('/') >= 0;
+                    bool hasBackslash = replacementPrefix.IndexOf('\\') >= 0;
+                    return
+                        (hasSlash && !hasBackslash) ? replacement.Replace('\\', '/') :
+                        (hasBackslash && !hasSlash) ? replacement.Replace('/', '\\') :
+                        replacement;
+                }
+            }
+
+            return filePath;
+        }
+
 
         public static readonly IEqualityComparer<string> Comparer = new PathComparer();
 

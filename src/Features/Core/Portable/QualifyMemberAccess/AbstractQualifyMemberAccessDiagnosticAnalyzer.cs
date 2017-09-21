@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -37,6 +37,14 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
         protected abstract string GetLanguageName();
 
+        /// <summary>
+        /// Reports on whether the specified member is suitable for qualification. Some member
+        /// access expressions cannot be qualified; for instance if they begin with <c>base.</c>,
+        /// <c>MyBase.</c>, or <c>MyClass.</c>.
+        /// </summary>
+        /// <returns>True if the member access can be qualified; otherwise, False.</returns>
+        protected abstract bool CanMemberAccessBeQualified(ISymbol containingSymbol, SyntaxNode node);
+
         protected abstract bool IsAlreadyQualifiedMemberAccess(SyntaxNode node);
 
         private static MethodInfo s_registerMethod = typeof(AnalysisContext).GetTypeInfo().GetDeclaredMethod("RegisterOperationActionImmutableArrayInternal");
@@ -45,13 +53,18 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             => s_registerMethod.Invoke(context, new object[]
                {
                    new Action<OperationAnalysisContext>(AnalyzeOperation),
-                   ImmutableArray.Create(OperationKind.FieldReferenceExpression, OperationKind.PropertyReferenceExpression, OperationKind.MethodBindingExpression)
+                   ImmutableArray.Create(OperationKind.FieldReferenceExpression, OperationKind.PropertyReferenceExpression, OperationKind.MethodReferenceExpression)
                });
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
+            if (context.ContainingSymbol.IsStatic)
+            {
+                return;
+            }
+
             var memberReference = (IMemberReferenceExpression)context.Operation;
 
             // this is a static reference so we don't care if it's qualified
@@ -62,6 +75,12 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
             // if we're not referencing `this.` or `Me.` (e.g., a parameter, local, etc.)
             if (memberReference.Instance.Kind != OperationKind.InstanceReferenceExpression)
+            {
+                return;
+            }
+
+            // If we can't be qualified (e.g., because we're already qualified with `base.`), we're done.
+            if (!CanMemberAccessBeQualified(context.ContainingSymbol, memberReference.Instance.Syntax))
             {
                 return;
             }

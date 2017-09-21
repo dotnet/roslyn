@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
@@ -89,7 +88,7 @@ End Class
         Public Sub TestDiagnosticWithSeverity()
             Dim source = <project><file>
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x
     End Sub
 End Class
@@ -340,7 +339,7 @@ BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
         End Sub
 
         <Fact>
-        Public Sub DiagnositcsInCompilationOptionsParseOptionsAreDedupedWithParseTreesParseOptions()
+        Public Sub DiagnosticsInCompilationOptionsParseOptionsAreDedupedWithParseTreesParseOptions()
             Dim dict1 = New Dictionary(Of String, Object)
             dict1.Add("1", Nothing)
             Dim dict2 = New Dictionary(Of String, Object)
@@ -372,7 +371,7 @@ BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
         End Sub
 
         <Fact>
-        Public Sub DiagnositcsInCompilationOptionsParseOptionsAreReportedSeparately()
+        Public Sub DiagnosticsInCompilationOptionsParseOptionsAreReportedSeparately()
             Dim dict1 = New Dictionary(Of String, Object)
             dict1.Add("1", Nothing)
             Dim dict2 = New Dictionary(Of String, Object)
@@ -424,9 +423,15 @@ BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
                     Dim symbolDeclaredEvent = TryCast(compEvent, SymbolDeclaredCompilationEvent)
                     If symbolDeclaredEvent IsNot Nothing Then
                         Dim symbol = symbolDeclaredEvent.Symbol
-                        Assert.True(declaredSymbolNames.Add(symbol.Name), "Unexpected multiple symbol declared events for same symbol")
-                        Dim method = TryCast(symbol, Symbols.MethodSymbol)
-                        Assert.Null(method?.PartialDefinitionPart) ' we should never get a partial method's implementation part
+                        Dim added = declaredSymbolNames.Add(symbol.Name)
+                        If Not added Then
+                            Dim method = TryCast(symbol, Symbols.MethodSymbol)
+                            Assert.NotNull(method)
+
+                            Dim isPartialMethod = method.PartialDefinitionPart IsNot Nothing OrElse
+                                                  method.PartialImplementationPart IsNot Nothing
+                            Assert.True(isPartialMethod, "Unexpected multiple symbol declared events for same symbol " + symbol.Name)
+                        End If
                     Else
                         Dim compilationCompeletedEvent = TryCast(compEvent, CompilationUnitCompletedEvent)
                         If compilationCompeletedEvent IsNot Nothing Then

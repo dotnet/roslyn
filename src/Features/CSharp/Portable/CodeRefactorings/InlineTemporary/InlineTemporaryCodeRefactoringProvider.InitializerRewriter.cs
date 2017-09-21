@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -66,8 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             {
                 if (IsReference(node))
                 {
-                    var assignmentExpression = node.Parent as AssignmentExpressionSyntax;
-                    if (assignmentExpression != null)
+                    if (node.Parent is AssignmentExpressionSyntax assignmentExpression)
                     {
                         if (assignmentExpression.IsCompoundAssignExpression() &&
                             assignmentExpression.Left == node)

@@ -6,7 +6,8 @@
   <PropertyGroup>
     <OutputArchitecture>neutral</OutputArchitecture>
     <OutputLocalized>false</OutputLocalized>
-    <OutputPath>$(OutDir)Insertion</OutputPath>
+    <RoslynOutputPath>$(OutputPath)</RoslynOutputPath>
+    <OutputPath>$(OutputPath)\Insertion</OutputPath>
     <IsPackage>true</IsPackage>
     <OutputType>vsix</OutputType>
   </PropertyGroup>
@@ -14,7 +15,7 @@
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.props" />
 
   <PropertyGroup>
-    <PackagePreprocessorDefinitions>$(PackagePreprocessorDefinitions);Version=$(VsixVersion);OutputPath=$(OutDir)</PackagePreprocessorDefinitions>
+    <PackagePreprocessorDefinitions>$(PackagePreprocessorDefinitions);Version=$(VsixVersion);OutputPath=$(RoslynOutputPath)</PackagePreprocessorDefinitions>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
 

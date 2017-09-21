@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -24,6 +24,8 @@ using VSLangProj140;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Export]
     internal class AnalyzersCommandHandler : IAnalyzersCommandHandler, IVsUpdateSolutionEvents
     {
@@ -187,7 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private bool ShouldShowDiagnosticContextMenu(IEnumerable<object> items)
         {
-            return items.All(item => item is DiagnosticItem);
+            return items.All(item => item is BaseDiagnosticItem);
         }
 
         private void UpdateDiagnosticContextMenu()
@@ -253,7 +255,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             HashSet<ReportDiagnostic> selectedItemSeverities = new HashSet<ReportDiagnostic>();
 
-            var groups = _tracker.SelectedDiagnosticItems.GroupBy(item => item.AnalyzerItem.AnalyzersFolder.ProjectId);
+            var groups = _tracker.SelectedDiagnosticItems.GroupBy(item => item.ProjectId);
 
             foreach (var group in groups)
             {
@@ -412,7 +414,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             foreach (var selectedDiagnostic in _tracker.SelectedDiagnosticItems)
             {
-                var projectId = selectedDiagnostic.AnalyzerItem.AnalyzersFolder.ProjectId;
+                var projectId = selectedDiagnostic.ProjectId;
                 var project = (AbstractProject)workspace.GetHostProject(projectId);
 
                 if (project == null)

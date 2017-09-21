@@ -13,82 +13,82 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public CSharpReplIntellisense(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
         {
-            VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(true);
+            VisualStudio.Workspace.SetUseSuggestionMode(true);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20219")]
         public void VerifyCompletionListOnEmptyTextAtTopLevel()
         {
-            InvokeCompletionList();
-            VerifyCompletionItemExists("var", "public", "readonly", "goto");
+            VisualStudio.InteractiveWindow.InvokeCompletionList();
+            VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("var", "public", "readonly", "goto");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20219")]
         public void VerifySharpRCompletionList()
         {
-            InsertCode("#r \"");
-            InvokeCompletionList();
-            VerifyCompletionItemExists("System");
+            VisualStudio.InteractiveWindow.InsertCode("#r \"");
+            VisualStudio.InteractiveWindow.InvokeCompletionList();
+            VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("System");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20219")]
         public void VerifyCommitCompletionOnTopLevel()
         {
-            InsertCode("pub");
-            InvokeCompletionList();
-            VerifyCompletionItemExists("public");
-            SendKeys(VirtualKey.Tab);
-            VerifyLastReplInput("public");
-            SendKeys(VirtualKey.Escape);
+            VisualStudio.InteractiveWindow.InsertCode("pub");
+            VisualStudio.InteractiveWindow.InvokeCompletionList();
+            VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("public");
+            VisualStudio.SendKeys.Send(VirtualKey.Tab);
+            VisualStudio.InteractiveWindow.Verify.LastReplInput("public");
+            VisualStudio.SendKeys.Send(VirtualKey.Escape);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20219")]
         public void VerifyCompletionListForAmbiguousParsingCases()
         {
-            InsertCode(@"class C { }
+            VisualStudio.InteractiveWindow.InsertCode(@"class C { }
 public delegate R Del<T, R>(T arg);
 Del<C, System");
-            SendKeys(VirtualKey.Period);
-            WaitForAsyncOperations(FeatureAttribute.CompletionSet);
-            VerifyCompletionItemExists("ArgumentException");
+            VisualStudio.SendKeys.Send(VirtualKey.Period);
+            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
+            VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("ArgumentException");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20219")]
         public void VerifySharpLoadCompletionList()
         {
-            InsertCode("#load \"");
-            InvokeCompletionList();
-            VerifyCompletionItemExists("C:");
+            VisualStudio.InteractiveWindow.InsertCode("#load \"");
+            VisualStudio.InteractiveWindow.InvokeCompletionList();
+            VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("C:");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20219")]
         public void VerifyNoCrashOnEnter()
         {
-            VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
-            SendKeys("#help", VirtualKey.Enter, VirtualKey.Enter);
+            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.SendKeys.Send("#help", VirtualKey.Enter, VirtualKey.Enter);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20219")]
         public void VerifyCorrectIntellisenseSelectionOnEnter()
         {
-            VisualStudioWorkspaceOutOfProc.SetUseSuggestionMode(false);
-            SendKeys("TimeSpan.FromMin");
-            SendKeys(VirtualKey.Enter, "(0d)", VirtualKey.Enter);
-            WaitForReplOutput("[00:00:00]");
+            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.SendKeys.Send("TimeSpan.FromMin");
+            VisualStudio.SendKeys.Send(VirtualKey.Enter, "(0d)", VirtualKey.Enter);
+            VisualStudio.InteractiveWindow.WaitForReplOutput("[00:00:00]");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20219")]
         public void VerifyCompletionListForLoadMembers()
         {
             using (var temporaryTextFile = new TemporaryTextFile(
-                "c.csx", 
-                "int x = 2; class Complex { public int foo() { return 4; } }"))
+                "c.csx",
+                "int x = 2; class Complex { public int goo() { return 4; } }"))
             {
                 temporaryTextFile.Create();
-                SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
-                InvokeCompletionList();
-                VerifyCompletionItemExists("x", "Complex");
-                SendKeys(VirtualKey.Escape);
+                VisualStudio.InteractiveWindow.SubmitText(string.Format("#load \"{0}\"", temporaryTextFile.FullName));
+                VisualStudio.InteractiveWindow.InvokeCompletionList();
+                VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("x", "Complex");
+                VisualStudio.SendKeys.Send(VirtualKey.Escape);
             }
         }
     }

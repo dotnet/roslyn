@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -221,8 +221,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             foreach (var symbol in symbols)
             {
-                var otherProperty = symbol as IPropertySymbol;
-                if (otherProperty != null)
+                if (symbol is IPropertySymbol otherProperty)
                 {
                     var mappedProperty = otherProperty.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as IPropertySymbol;
                     if (property.Equals(mappedProperty))

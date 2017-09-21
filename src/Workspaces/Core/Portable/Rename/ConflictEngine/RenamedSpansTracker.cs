@@ -124,15 +124,15 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         // test only
         internal TextSpan GetResolutionTextSpan(TextSpan originalSpan, DocumentId documentId)
         {
-            if (_documentToModifiedSpansMap.ContainsKey(documentId) &&
-                _documentToModifiedSpansMap[documentId].Contains(t => t.oldSpan == originalSpan))
+            if (_documentToModifiedSpansMap.TryGetValue(documentId, out var modifiedSpans) &&
+                modifiedSpans.Contains(t => t.oldSpan == originalSpan))
             {
-                return _documentToModifiedSpansMap[documentId].First(t => t.oldSpan == originalSpan).newSpan;
+                return modifiedSpans.First(t => t.oldSpan == originalSpan).newSpan;
             }
 
-            if (_documentToComplexifiedSpansMap.ContainsKey(documentId))
+            if (_documentToComplexifiedSpansMap.TryGetValue(documentId, out var complexifiedSpans))
             {
-                return _documentToComplexifiedSpansMap[documentId].First(c => c.OriginalSpan.Contains(originalSpan)).NewSpan;
+                return complexifiedSpans.First(c => c.OriginalSpan.Contains(originalSpan)).NewSpan;
             }
 
             // The RenamedSpansTracker doesn't currently track unresolved conflicts for
@@ -145,17 +145,17 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// Information to track deltas of complexified spans
         /// 
         /// Consider the following example where renaming a->b causes a conflict 
-        /// and Foo is an extension method:
-        ///     "a.Foo(a)" is rewritten to "NS1.NS2.Foo(NS3.a, NS3.a)"
+        /// and Goo is an extension method:
+        ///     "a.Goo(a)" is rewritten to "NS1.NS2.Goo(NS3.a, NS3.a)"
         /// 
-        /// The OriginalSpan is the span of "a.Foo(a)"
+        /// The OriginalSpan is the span of "a.Goo(a)"
         /// 
-        /// The NewSpan is the span of "NS1.NS2.Foo(NS3.a, NS3.a)"
+        /// The NewSpan is the span of "NS1.NS2.Goo(NS3.a, NS3.a)"
         /// 
         /// The ModifiedSubSpans are the pairs of complexified symbols sorted 
         /// according to their order in the original source code span:
         ///     "a", "NS3.a"
-        ///     "Foo", "NS1.NS2.Foo"
+        ///     "Goo", "NS1.NS2.Goo"
         ///     "a", "NS3.a"
         /// 
         /// </summary>
@@ -206,14 +206,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                     // Simplification may have removed escaping and formatted whitespace.  We need to update
                     // our list of modified spans accordingly
-                    if (_documentToModifiedSpansMap.ContainsKey(documentId))
+                    if (_documentToModifiedSpansMap.TryGetValue(documentId, out var modifiedSpans))
                     {
-                        _documentToModifiedSpansMap[documentId].Clear();
+                        modifiedSpans.Clear();
                     }
 
-                    if (_documentToComplexifiedSpansMap.ContainsKey(documentId))
+                    if (_documentToComplexifiedSpansMap.TryGetValue(documentId, out var complexifiedSpans))
                     {
-                        _documentToComplexifiedSpansMap[documentId].Clear();
+                        complexifiedSpans.Clear();
                     }
 
                     var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -269,21 +269,21 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         internal Dictionary<TextSpan, TextSpan> GetModifiedSpanMap(DocumentId documentId)
         {
             var result = new Dictionary<TextSpan, TextSpan>();
-            if (_documentToModifiedSpansMap.ContainsKey(documentId))
+            if (_documentToModifiedSpansMap.TryGetValue(documentId, out var modifiedSpans))
             {
-                foreach (var pair in _documentToModifiedSpansMap[documentId])
+                foreach (var pair in modifiedSpans)
                 {
-                    result[pair.Item1] = pair.Item2;
+                    result[pair.oldSpan] = pair.newSpan;
                 }
             }
 
-            if (_documentToComplexifiedSpansMap.ContainsKey(documentId))
+            if (_documentToComplexifiedSpansMap.TryGetValue(documentId, out var complexifiedSpans))
             {
-                foreach (var complexifiedSpan in _documentToComplexifiedSpansMap[documentId])
+                foreach (var complexifiedSpan in complexifiedSpans)
                 {
                     foreach (var pair in complexifiedSpan.ModifiedSubSpans)
                     {
-                        result[pair.Item1] = pair.Item2;
+                        result[pair.oldSpan] = pair.newSpan;
                     }
                 }
             }
@@ -293,9 +293,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         internal IEnumerable<(TextSpan oldSpan, TextSpan newSpan)> GetComplexifiedSpans(DocumentId documentId)
         {
-            if (_documentToComplexifiedSpansMap.ContainsKey(documentId))
+            if (_documentToComplexifiedSpansMap.TryGetValue(documentId, out var complexifiedSpans))
             {
-                return _documentToComplexifiedSpansMap[documentId].Select(c => (c.OriginalSpan, c.NewSpan));
+                return complexifiedSpans.Select(c => (c.OriginalSpan, c.NewSpan));
             }
 
             return SpecializedCollections.EmptyEnumerable<(TextSpan oldSpan, TextSpan newSpan)>();

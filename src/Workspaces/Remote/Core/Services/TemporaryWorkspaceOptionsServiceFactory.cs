@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    [ExportWorkspaceServiceFactory(typeof(IOptionService), TemporaryWorkspace.WorkspaceKind_TemporaryWorkspace), Shared]
+    [ExportWorkspaceServiceFactory(typeof(IOptionService), WorkspaceKind.RemoteTemporaryWorkspace), Shared]
     internal class TemporaryWorkspaceOptionsServiceFactory : IWorkspaceServiceFactory
     {
         private readonly ImmutableArray<Lazy<IOptionProvider>> _providers;

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (!_solutionAdded)
                 {
                     string solutionFilePath = null;
-                    VersionStamp? version = default(VersionStamp?);
+                    VersionStamp? version = default;
                     // Figure out the solution version
                     if (ErrorHandler.Succeeded(_tracker._vsSolution.GetSolutionInfo(out var solutionDirectory, out var solutionFileName, out var userOptsFile)) && solutionFileName != null)
                     {
@@ -139,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     var solutionInfo = SolutionInfo.Create(id, version.Value, solutionFilePath, projects: projectInfos);
 
-                    this.Host.OnSolutionAdded(solutionInfo);
+                    _workspaceHost.OnSolutionAdded(solutionInfo);
 
                     _solutionAdded = true;
                 }

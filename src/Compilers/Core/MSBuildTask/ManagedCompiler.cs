@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -227,6 +227,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (ITaskItem)_store[nameof(OutputAssembly)]; }
         }
 
+        [Output]
+        public ITaskItem OutputRefAssembly
+        {
+            set { _store[nameof(OutputRefAssembly)] = value; }
+            get { return (ITaskItem)_store[nameof(OutputRefAssembly)]; }
+        }
+
         public string Platform
         {
             set { _store[nameof(Platform)] = value; }
@@ -249,6 +256,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(References)] = value; }
             get { return (ITaskItem[])_store[nameof(References)]; }
+        }
+
+        public bool RefOnly
+        {
+            set { _store[nameof(RefOnly)] = value; }
+            get { return _store.GetOrDefault(nameof(RefOnly), false); }
         }
 
         public bool ReportAnalyzer
@@ -382,14 +395,68 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
         }
 
+        public string LangVersion
+        {
+            set { _store[nameof(LangVersion)] = value; }
+            get { return (string)_store[nameof(LangVersion)]; }
+        }
+
         #endregion
+
+        private DotnetHost _dotnetHostInfo;
+        private DotnetHost DotnetHostInfo
+        {
+            get
+            {
+                if (_dotnetHostInfo is null)
+                {
+                    CommandLineBuilderExtension commandLineBuilder = new CommandLineBuilderExtension();
+                    AddCommandLineCommands(commandLineBuilder);
+                    var commandLine = commandLineBuilder.ToString();
+
+                    // ToolExe delegates back to ToolName if the override is not
+                    // set.
+                    // So, we can't check if it's unset, as that will recur
+                    // and stackoverflow.
+                    // However, checking only ToolPath is inadequate, as some
+                    // callers only set ToolExe, and not ToolPath (e.g. CLI).
+                    // So, do the check after _dotnetHostInfo is assigned, and
+                    // if ToolExe routes back here and returns
+                    // _dotnetHostInfo.ToolName, we know that ToolExe is unset.
+                    // So, if it does *not* return such, we know ToolExe is
+                    // explicitly overriden - so swap out the DotnetHost with
+                    // the passthrough implementation, as otherwise the command
+                    // line would be incorrect (it would have csc.dll in the
+                    // arguments).
+                    if (string.IsNullOrEmpty(ToolPath))
+                    {
+                        _dotnetHostInfo = DotnetHost.CreateManagedToolInvocation(ToolNameWithoutExtension, commandLine);
+
+                        if (ToolExe != _dotnetHostInfo.ToolNameOpt)
+                        {
+                            _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolPath, commandLine);
+                        }
+                    }
+                    else
+                    {
+                        // Explicitly provided ToolPath, don't try to figure anything out
+                        _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolPath, commandLine);
+                    }
+                }
+                return _dotnetHostInfo;
+            }
+        }
+
+        protected abstract string ToolNameWithoutExtension { get; }
+
+        protected sealed override string ToolName => DotnetHostInfo.ToolNameOpt;
 
         /// <summary>
         /// Return the path to the tool to execute.
         /// </summary>
         protected override string GenerateFullPathToTool()
         {
-            var pathToTool = Utilities.GenerateFullPathToTool(ToolName);
+            var pathToTool = DotnetHostInfo.PathToToolOpt;
 
             if (null == pathToTool)
             {
@@ -423,7 +490,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 using (_sharedCompileCts = new CancellationTokenSource())
                 {
-                
+
                     CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
                     CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
 
@@ -579,13 +646,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         private void LogErrorOutput(string output)
         {
+            LogErrorOutput(output, Log);
+        }
+
+        internal static void LogErrorOutput(string output, TaskLoggingHelper log)
+        {
             string[] lines = output.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string line in lines)
             {
                 string trimmedMessage = line.Trim();
                 if (trimmedMessage != "")
                 {
-                    Log.LogError(trimmedMessage);
+                    log.LogError(trimmedMessage);
                 }
             }
         }
@@ -630,9 +702,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override string GenerateCommandLineCommands()
         {
-            CommandLineBuilderExtension commandLineBuilder = new CommandLineBuilderExtension();
-            AddCommandLineCommands(commandLineBuilder);
-            return commandLineBuilder.ToString();
+            return DotnetHostInfo.CommandLineArgs;
         }
 
         /// <summary>
@@ -705,6 +775,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/optimize", _store, nameof(Optimize));
             commandLine.AppendSwitchIfNotNull("/pathmap:", PathMap);
             commandLine.AppendSwitchIfNotNull("/out:", OutputAssembly);
+            commandLine.AppendSwitchIfNotNull("/refout:", OutputRefAssembly);
+            commandLine.AppendWhenTrue("/refonly", _store, nameof(RefOnly));
             commandLine.AppendSwitchIfNotNull("/ruleset:", CodeAnalysisRuleSet);
             commandLine.AppendSwitchIfNotNull("/errorlog:", ErrorLog);
             commandLine.AppendSwitchIfNotNull("/subsystemversion:", SubsystemVersion);
@@ -733,6 +805,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/checksumalgorithm:", ChecksumAlgorithm);
             commandLine.AppendSwitchWithSplitting("/instrument:", Instrument, ",", ';', ',');
             commandLine.AppendSwitchIfNotNull("/sourcelink:", SourceLink);
+            commandLine.AppendSwitchIfNotNull("/langversion:", LangVersion);
 
             AddFeatures(commandLine, Features);
             AddEmbeddedFilesToCommandLine(commandLine);

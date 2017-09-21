@@ -30,21 +30,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeSymbol _type;
 
         /// <summary>
-        /// There are three ways to initialize a fixed statement local:
-        ///   1) with an address;
-        ///   2) with an array (or fixed-size buffer); or
-        ///   3) with a string.
-        /// 
-        /// In the first two cases, the resulting local will be emitted with a "pinned" modifier.
-        /// In the third case, it is not the fixed statement local but a synthesized temp that is pinned.  
-        /// Unfortunately, we can't distinguish these cases when the local is declared; we only know
-        /// once we have bound the initializer.
+        /// Scope to which the local can "escape" via aliasing/ref assignment.
+        /// Not readonly because we can only know escape values after binding the initializer.
         /// </summary>
-        /// <remarks>
-        /// CompareExchange doesn't support bool, so use an int.  First bit is true/false, second bit 
-        /// is read/unread (debug-only).
-        /// </remarks>
-        private int _isSpecificallyNotPinned;
+        protected uint _refEscapeScope;
+
+        /// <summary>
+        /// Scope to which the local's values can "escape" via ordinary assignemnts.
+        /// Not readonly because we can only know escape values after binding the initializer.
+        /// </summary>
+        protected uint _valEscapeScope;
 
         private SourceLocalSymbol(
             Symbol containingSymbol,
@@ -66,6 +61,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // create this eagerly as it will always be needed for the EnsureSingleDefinition
             _locations = ImmutableArray.Create<Location>(identifierToken.GetLocation());
+
+            _refEscapeScope = this._refKind == RefKind.None ?
+                                        scopeBinder.LocalScopeDepth :
+                                        Binder.ExternalScope; // default to returnable, unless there is initializer
+
+            // we do not know the type yet. 
+            // assume this is returnable in case we never get to know our type.
+            _valEscapeScope = Binder.ExternalScope;
         }
 
         /// <summary>
@@ -80,6 +83,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return _scopeBinder.ScopeDesignator; }
         }
+
+        internal override uint RefEscapeScope => _refEscapeScope;
+
+        internal override uint ValEscapeScope => _valEscapeScope;
 
         /// <summary>
         /// Binder that should be used to bind type syntax for the local.
@@ -224,25 +231,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-#if DEBUG
-                if ((_isSpecificallyNotPinned & 2) == 0)
-                {
-                    Interlocked.CompareExchange(ref _isSpecificallyNotPinned, _isSpecificallyNotPinned | 2, _isSpecificallyNotPinned);
-                    Debug.Assert((_isSpecificallyNotPinned & 2) == 2, "Regardless of which thread won, the read bit should be set.");
-                }
-#endif
-                return _declarationKind == LocalDeclarationKind.FixedVariable && (_isSpecificallyNotPinned & 1) == 0;
+                // even when dealing with "fixed" locals it is the underlying managed reference that gets pinned
+                // the pointer variable itself is not pinned.
+                return false;
             }
         }
 
-        internal void SetSpecificallyNotPinned()
+        internal virtual void SetRefEscape(uint value)
         {
-            Debug.Assert((_isSpecificallyNotPinned & 2) == 0, "Shouldn't be writing after first read.");
-            Interlocked.CompareExchange(ref _isSpecificallyNotPinned, _isSpecificallyNotPinned | 1, _isSpecificallyNotPinned);
-            Debug.Assert((_isSpecificallyNotPinned & 1) == 1, "Regardless of which thread won, the flag bit should be set.");
+            throw ExceptionUtilities.Unreachable;
         }
 
-        internal virtual void SetReturnable()
+        internal virtual void SetValEscape(uint value)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -496,11 +496,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             private EvaluatedConstant _constantTuple;
 
-            /// <summary>
-            /// Unfortunately we can only know a ref local is returnable after binding the initializer.
-            /// </summary>
-            private bool _returnable;
-
             public LocalWithInitializer(
                 Symbol containingSymbol,
                 Binder scopeBinder,
@@ -517,11 +512,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _initializer = initializer;
                 _initializerBinder = initializerBinder;
 
-                // byval locals are always returnable
-                // byref locals with initializers are assumed not returnable unless proven otherwise
-                // NOTE: if we assumed returnable, then self-referring initializer could result in 
-                //       a randomly changing returnability when initializer is bound concurrently.
-                _returnable = this.RefKind == RefKind.None;
+                // default to the current scope in case we need to handle self-referential error cases.
+                _refEscapeScope = _scopeBinder.LocalScopeDepth;
+                _valEscapeScope = _scopeBinder.LocalScopeDepth;
             }
 
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
@@ -581,17 +574,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _constantTuple == null ? ImmutableArray<Diagnostic>.Empty : _constantTuple.Diagnostics;
             }
 
-            internal override void SetReturnable()
+            internal override void SetRefEscape(uint value)
             {
-                _returnable = true;
+                Debug.Assert(value <= _refEscapeScope);
+                _refEscapeScope = value;
             }
 
-            internal override bool IsReturnable
+            internal override void SetValEscape(uint value)
             {
-                get
-                {
-                    return _returnable;
-                }
+                Debug.Assert(value <= _valEscapeScope);
+                _valEscapeScope = value;
             }
         }
 

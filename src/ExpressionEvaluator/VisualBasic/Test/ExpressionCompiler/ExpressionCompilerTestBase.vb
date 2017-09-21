@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -43,14 +44,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
                 instance.Dispose()
             Next
             _runtimeInstances.Free()
-        End Sub
-
-        ' TODO: remove -- workaround for bug https://github.com/dotnet/roslyn/issues/8473 in the VB compiler
-        ' https://github.com/dotnet/roslyn/issues/8473
-        Friend Shared Sub WithRuntimeInstancePortableBug(compilation As Compilation, validator As Action(Of RuntimeInstance))
-            Using instance = RuntimeInstance.Create(compilation, Nothing, DebugInformationFormat.Pdb, includeLocalSignatures:=True, includeIntrinsicAssembly:=True)
-                validator(instance)
-            End Using
         End Sub
 
         Friend Shared Sub WithRuntimeInstance(compilation As Compilation, validator As Action(Of RuntimeInstance))
@@ -369,7 +362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         End Function
 
         Friend Shared Function GetAttributeIfAny(method As IMethodSymbol, typeName As String) As SynthesizedAttributeData
-            Return method.GetSynthesizedAttributes(forReturnType:=True).
+            Return DirectCast(method, MethodSymbol).GetSynthesizedAttributes(forReturnType:=True).
                 Where(Function(a) a.AttributeClass.ToTestDisplayString() = typeName).
                 SingleOrDefault()
         End Function

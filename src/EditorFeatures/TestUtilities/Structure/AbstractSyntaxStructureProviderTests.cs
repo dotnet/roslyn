@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
     {
         protected abstract string LanguageName { get; }
 
-        protected virtual string WorkspaceKind => TestWorkspace.WorkspaceName;
+        protected virtual string WorkspaceKind => CodeAnalysis.WorkspaceKind.Test;
 
         private Task<ImmutableArray<BlockSpan>> GetBlockSpansAsync(Document document, int position)
         {
@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             using (var workspace = TestWorkspace.Create(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode))
             {
                 var hostDocument = workspace.Documents.Single();
+                workspace.Options = workspace.Options.WithChangedOption(
+                    BlockStructureOptions.MaximumBannerLength, LanguageName, 120);
                 Assert.True(hostDocument.CursorPosition.HasValue, "Test must specify a position.");
                 var position = hostDocument.CursorPosition.Value;
 

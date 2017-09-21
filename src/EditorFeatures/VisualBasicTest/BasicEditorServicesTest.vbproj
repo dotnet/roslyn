@@ -1,145 +1,51 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\Settings.props" />
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{0BE66736-CDAA-4989-88B1-B3F46EBDCA4A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Services.Editor.VisualBasic.UnitTests</AssemblyName>
     <OptionStrict>Off</OptionStrict>
     <VBRuntime>Default</VBRuntime>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <TargetFrameworkProfile />
+    <TargetFramework>net461</TargetFramework>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">
-      <Project>{7fe6b002-89d8-4298-9b1b-0b5c247dd1fd}</Project>
-      <Name>CompilerTestResources</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj">
-      <Project>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F8}</Project>
-      <Name>BasicCompilerTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Features\CSharp\Portable\CSharpFeatures.csproj">
-      <Project>{3973b09a-4fbf-44a5-8359-3d22ceb71f71}</Project>
-      <Name>CSharpFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj">
-      <Project>{92412d1a-0f23-45b5-b196-58839c524917}</Project>
-      <Name>InteractiveEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj">
-      <Project>{fe2cbea6-d121-4faa-aa8b-fc9900bf8c83}</Project>
-      <Name>CSharpInteractiveEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Interactive\EditorFeatures\VisualBasic\BasicInteractiveEditorFeatures.vbproj">
-      <Project>{849e516a-595f-474b-adb4-e099f921cedf}</Project>
-      <Name>BasicInteractiveEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Interactive\Features\InteractiveFeatures.csproj">
-      <Project>{8e2a252e-a140-45a6-a81a-2652996ea589}</Project>
-      <Name>InteractiveFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Interactive\Host\InteractiveHost.csproj">
-      <Project>{eba4dfa1-6ded-418f-a485-a3b608978906}</Project>
-      <Name>InteractiveHost</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj">
-      <Project>{12a68549-4e8c-42d6-8703-a09335f97997}</Project>
-      <Name>Scripting</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj">
-      <Project>{066f0dbd-c46c-4c20-afec-99829a172625}</Project>
-      <Name>CSharpScripting</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\VisualBasic\BasicScripting.vbproj">
-      <Project>{3e7dea65-317b-4f43-a25d-62f18d96cfd7}</Project>
-      <Name>BasicScripting</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Test\PdbUtilities\PdbUtilities.csproj">
-      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
-      <Name>PdbUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj">
-      <Project>{A1BCD0CE-6C2F-4F8C-9A48-D9D93928E26D}</Project>
-      <Name>BasicFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.csproj">
-      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
-      <Name>TestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj">
-      <Project>{3f2fdc1c-dc6f-44cb-b4a1-a9026f25d66e}</Project>
-      <Name>WorkspacesTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
-      <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
-      <Name>Workspaces.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
-      <Project>{5F8D2414-064A-4B3A-9B42-8E2A04246BE5}</Project>
-      <Name>Workspaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
-      <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
-      <Name>Features</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\EditorFeatures\Text\TextEditorFeatures.csproj">
-      <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
-      <Name>TextEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
-      <Project>{21b239d0-d144-430f-a394-c066d58ee267}</Project>
-      <Name>CSharpWorkspace</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj">
-      <Project>{f822f72a-cc87-4e31-b57d-853f65cbebf3}</Project>
-      <Name>RemoteWorkspaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj">
-      <Project>{80fddd00-9393-47f7-8baf-7e87ce011068}</Project>
-      <Name>ServiceHub</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj">
-      <Project>{57CA988D-F010-4BF2-9A2E-07D6DCD2FF2C}</Project>
-      <Name>BasicWorkspace</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj">
-      <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
-      <Name>EditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\EditorFeatures\VisualBasic\BasicEditorFeatures.vbproj">
-      <Project>{49BFAE50-1BCE-48AE-BC89-78B7D90A3ECD}</Project>
-      <Name>BasicEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CSharp\CSharpEditorFeatures.csproj">
-      <Project>{b0ce9307-ffdb-4838-a5ec-ce1f7cdc4ac2}</Project>
-      <Name>CSharpEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TestUtilities\ServicesTestUtilities.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-39189DDBEB52}</Project>
-      <Name>ServicesTestUtilities</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj" />
+    <ProjectReference Include="..\..\Compilers\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj" />
+    <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
+    <ProjectReference Include="..\..\Features\CSharp\Portable\CSharpFeatures.csproj" />
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\VisualBasic\BasicInteractiveEditorFeatures.vbproj" />
+    <ProjectReference Include="..\..\Interactive\Features\InteractiveFeatures.csproj" />
+    <ProjectReference Include="..\..\Interactive\Host\InteractiveHost.csproj" />
+    <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj" />
+    <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj" />
+    <ProjectReference Include="..\..\Scripting\VisualBasic\BasicScripting.vbproj" />
+    <ProjectReference Include="..\..\Test\PdbUtilities\PdbUtilities.csproj" />
+    <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj" />
+    <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.csproj" />
+    <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj" />
+    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj" />
+    <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj" />
+    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj" />
+    <ProjectReference Include="..\..\EditorFeatures\Text\TextEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj" />
+    <ProjectReference Include="..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj" />
+    <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj" />
+    <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj" />
+    <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj" />
+    <ProjectReference Include="..\..\EditorFeatures\VisualBasic\BasicEditorFeatures.vbproj" />
+    <ProjectReference Include="..\CSharp\CSharpEditorFeatures.csproj" />
+    <ProjectReference Include="..\TestUtilities\ServicesTestUtilities.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -152,432 +58,22 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
+    <PackageReference Include="BasicUndo" Version="$(BasicUndoVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor" Version="$(MicrosoftVisualStudioPlatformVSEditorVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor.Interop" Version="$(MicrosoftVisualStudioPlatformVSEditorInteropVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow" Version="$(MicrosoftVisualStudioInteractiveWindowVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal" Version="$(MicrosoftVisualStudioTextInternalVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="$(MicrosoftVisualStudioLanguageCallHierarchyVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AutomaticCompletion\AutomaticBraceCompletionTests.vb" />
-    <Compile Include="AutomaticCompletion\AutomaticBracketCompletionTests.vb" />
-    <Compile Include="AutomaticCompletion\AutomaticInterpolatedStringExpressionCompletionTests.vb" />
-    <Compile Include="AutomaticCompletion\AutomaticInterpolationCompletionTests.vb" />
-    <Compile Include="AutomaticCompletion\AutomaticLessAndGreaterThanCompletionTests.vb" />
-    <Compile Include="AutomaticCompletion\AutomaticLineEnderTests.vb" />
-    <Compile Include="AutomaticCompletion\AutomaticParenthesesCompletion.vb" />
-    <Compile Include="AutomaticCompletion\AutomaticStringLiteralCompletionTests.vb" />
-    <Compile Include="AutomaticEndConstructCorrection\AutomaticEndConstructCorrectorTests.vb" />
-    <Compile Include="BraceMatching\BraceHighlightingTests.vb" />
-    <Compile Include="BraceMatching\VisualBasicBraceMatcherTests.vb" />
-    <Compile Include="CaseCorrecting\CaseCorrectionServiceTests.vb" />
-    <Compile Include="ChangeSignature\ChangeSignatureTests.vb" />
-    <Compile Include="ChangeSignature\ChangeSignature_CheckAllSignatureChanges.vb" />
-    <Compile Include="ChangeSignature\ChangeSignature_Delegates.vb" />
-    <Compile Include="ChangeSignature\ChangeSignature_Formatting.vb" />
-    <Compile Include="ChangeSignature\RemoveParametersTests.vb" />
-    <Compile Include="ChangeSignature\ReorderParameters.InvocationErrors.vb" />
-    <Compile Include="ChangeSignature\ReorderParameters.InvocationLocations.vb" />
-    <Compile Include="ChangeSignature\ReorderParameters.MultiFile.vb" />
-    <Compile Include="ChangeSignature\ReorderParametersTests.Cascading.vb" />
-    <Compile Include="ChangeSignature\ReorderParametersTests.vb" />
-    <Compile Include="Classification\AbstractVisualBasicClassifierTests.vb" />
-    <Compile Include="Classification\SemanticClassifierTests.vb" />
-    <Compile Include="Classification\SyntacticClassifierTests.vb" />
-    <Compile Include="CodeActions\AbstractVisualBasicCodeActionTest.vb" />
-    <Compile Include="CodeActions\ConvertIfToSwitch\ConvertIfToSwitchTests.vb" />
-    <Compile Include="CodeActions\ConvertNumericLiteral\ConvertNumericLiteralTests.vb" />
-    <Compile Include="CodeActions\UseNamedArguments\UseNamedArgumentsTests.vb" />
-    <Compile Include="Diagnostics\RemoveUnusedVariable\RemoveUnusedVariableTest.vb" />
-    <Compile Include="Structure\CollectionInitializerStructureProviderTests.vb" />
-    <Compile Include="ConvertToInterpolatedString\ConvertPlaceholderToInterpolatedStringTests.vb" />
-    <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.vb" />
-    <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.vb" />
-    <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.vb" />
-    <Compile Include="AddConstructorParametersFromMembers\AddConstructorParametersFromMembersTests.vb" />
-    <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.vb" />
-    <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndGetHashCodeFromMembersTests.vb" />
-    <Compile Include="CodeActions\InlineTemporary\InlineTemporaryTests.vb" />
-    <Compile Include="CodeActions\IntroduceVariable\IntroduceVariableTests.vb" />
-    <Compile Include="CodeActions\InvertIf\InvertIfTests.vb" />
-    <Compile Include="CodeActions\MoveType\BasicMoveTypeTestsBase.vb" />
-    <Compile Include="CodeActions\MoveType\MoveTypeTests.ActionCountTests.vb" />
-    <Compile Include="CodeActions\MoveType\MoveTypeTests.MoveToNewFile.vb" />
-    <Compile Include="CodeActions\MoveType\MoveTypeTests.RenameType.vb" />
-    <Compile Include="CodeActions\MoveType\MoveTypeTests.RenameFile.vb" />
-    <Compile Include="CodeActions\Preview\PreviewTests.vb" />
-    <Compile Include="CodeActions\ReplacePropertyWithMethods\ReplacePropertyWithMethodsTests.vb" />
-    <Compile Include="CodeLens\VisualBasicCodeLensTests.vb" />
-    <Compile Include="Completion\CompletionServiceTests.vb" />
-    <Compile Include="Diagnostics\AddImport\AddImportTests_NuGet.vb" />
-    <Compile Include="ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.vb" />
-    <Compile Include="ImplementInterface\ImplementInterfaceTests_FixAllTests.vb" />
-    <Compile Include="Diagnostics\Iterator\IteratorTests.vb" />
-    <Compile Include="CommentSelection\VisualBasicCommentSelectionTests.vb" />
-    <Compile Include="Completion\CompletionProviders\AbstractContextTests.vb" />
-    <Compile Include="Completion\CompletionProviders\AbstractVisualBasicCompletionProviderTests.vb" />
-    <Compile Include="Completion\CompletionProviders\CrefCompletionProviderTests.vb" />
-    <Compile Include="Completion\CompletionProviders\CompletionListTagCompletionProviderTests.vb" />
-    <Compile Include="Completion\CompletionProviders\EnumCompletionProviderTests.vb" />
-    <Compile Include="Completion\CompletionProviders\HandlesClauseCompletionProviderTests.vb" />
-    <Compile Include="Completion\CompletionProviders\ImplementsClauseCompletionProviderTests.vb" />
-    <Compile Include="Completion\CompletionProviders\KeywordCompletionProviderTests.vb" />
-    <Compile Include="Completion\CompletionProviders\NamedParameterCompletionProviderTests.vb" />
-    <Compile Include="Completion\CompletionProviders\NamespaceContextTests.vb" />
-    <Compile Include="Completion\CompletionProviders\ObjectCreationCompletionProviderTests.vb" />
-    <Compile Include="Completion\CompletionProviders\ObjectInitializerCompletionProviderTests.vb" />
-    <Compile Include="Completion\CompletionProviders\OverrideCompletionProviderTests.vb" />
-    <Compile Include="Completion\CompletionProviders\PartialTypeCompletionProviderTests.vb" />
-    <Compile Include="Completion\CompletionProviders\SuggestionModeCompletionProviderTests.vb" />
-    <Compile Include="Completion\CompletionProviders\SymbolCompletionProviderTests.vb" />
-    <Compile Include="Completion\CompletionProviders\TypeContextTests.vb" />
-    <Compile Include="Completion\CompletionProviders\XmlDocCommentCompletionProviderTests.vb" />
-    <Compile Include="Diagnostics\AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest.vb" />
-    <Compile Include="Diagnostics\AddImport\AddImportTests.vb" />
-    <Compile Include="Diagnostics\Async\AddAwaitTests.vb" />
-    <Compile Include="Diagnostics\MakeMethodAsynchronous\MakeMethodAsynchronousTests.vb" />
-    <Compile Include="Diagnostics\Async\ChangeToAsyncTests.vb" />
-    <Compile Include="Diagnostics\CorrectNextControlVariable\CorrectNextControlVariableTests.vb" />
-    <Compile Include="Diagnostics\DiagnosticAnalyzerDriver\DiagnosticAnalyzerDriverTests.vb" />
-    <Compile Include="Diagnostics\ExitContinue\ExitContinueCodeActionTests.vb" />
-    <Compile Include="Diagnostics\FixIncorrectFunctionReturnType\FixIncorrectFunctionReturnTypeTests.vb" />
-    <Compile Include="Diagnostics\FullyQualify\FullyQualifyTests.vb" />
-    <Compile Include="Diagnostics\GenerateConstructor\GenerateConstructorTests.vb" />
-    <Compile Include="Diagnostics\GenerateEndConstruct\GenerateEndConstructTests.vb" />
-    <Compile Include="Diagnostics\GenerateEnumMember\GenerateEnumMemberTests.vb" />
-    <Compile Include="Diagnostics\GenerateEvent\GenerateEventTests.vb" />
-    <Compile Include="Diagnostics\GenerateMethod\GenerateMethodTests.vb" />
-    <Compile Include="Diagnostics\GenerateType\GenerateTypeTests.vb" />
-    <Compile Include="Diagnostics\GenerateType\GenerateTypeTests_Dialog.vb" />
-    <Compile Include="Diagnostics\GenerateVariable\GenerateVariableTests.vb" />
-    <Compile Include="ImplementAbstractClass\ImplementAbstractClassCommandHandlerTests.vb" />
-    <Compile Include="ImplementAbstractClass\ImplementAbstractClassTests.vb" />
-    <Compile Include="ImplementInterface\ImplementInterfaceCommandHandlerTests.vb" />
-    <Compile Include="ImplementInterface\ImplementInterfaceTests.vb" />
-    <Compile Include="Diagnostics\InsertMissingCast\InsertMissingCastTests.vb" />
-    <Compile Include="Diagnostics\MakeMethodSynchronous\MakeMethodSynchronousTests.vb" />
-    <Compile Include="Diagnostics\MoveToTopOfFile\MoveToTopOfFileTests.vb" />
-    <Compile Include="Diagnostics\OverloadBase\OverloadBaseTests.vb" />
-    <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests.vb" />
-    <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests_FixAllTests.vb" />
-    <Compile Include="Structure\ObjectCreationInitializerStructureProviderTests.vb" />
-    <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests.vb" />
-    <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.vb" />
-    <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.vb" />
-    <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.vb" />
-    <Compile Include="RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests.vb" />
-    <Compile Include="RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests_FixAllTests.vb" />
-    <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests_FixAllTests.vb" />
-    <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests.vb" />
-    <Compile Include="Diagnostics\Spellcheck\SpellCheckTests.vb" />
-    <Compile Include="Diagnostics\Suppression\SuppressionAllCodeTests.vb" />
-    <Compile Include="Diagnostics\Suppression\SuppressionTests.vb" />
-    <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.vb" />
-    <Compile Include="DocumentationComments\CodeFixes\RemoveDocCommentNodeCodeFixProviderTests.vb" />
-    <Compile Include="DocumentationComments\DocumentationCommentTests.vb" />
-    <Compile Include="DocumentationComments\XmlTagCompletionTests.vb" />
-    <Compile Include="EditAndContinue\ActiveStatementTests.vb" />
-    <Compile Include="EditAndContinue\ActiveStatementTrackingServiceTests.vb" />
-    <Compile Include="EditAndContinue\BreakpointSpansTests.vb" />
-    <Compile Include="EditAndContinue\SyntaxComparerTests.vb" />
-    <Compile Include="EditAndContinue\Helpers\Extensions.vb" />
-    <Compile Include="EditAndContinue\Helpers\RudeEditTestBase.vb" />
-    <Compile Include="EditAndContinue\Helpers\VisualBasicEditAndContinueTestHelpers.vb" />
-    <Compile Include="EditAndContinue\LineEditTests.vb" />
-    <Compile Include="EditAndContinue\RudeEditStatementTests.vb" />
-    <Compile Include="EditAndContinue\RudeEditTopLevelTests.vb" />
-    <Compile Include="EditAndContinue\SyntaxUtilitiesTests.vb" />
-    <Compile Include="EditAndContinue\VisualBasicEditAndContinueAnalyzerTests.vb" />
-    <Compile Include="EncapsulateField\EncapsulateFieldCommandHandlerTests.vb" />
-    <Compile Include="EncapsulateField\EncapsulateFieldTestState.vb" />
-    <Compile Include="EndConstructGeneration\CharacterTypingTests.vb" />
-    <Compile Include="EndConstructGeneration\CustomEventTests.vb" />
-    <Compile Include="EndConstructGeneration\DoLoopTests.vb" />
-    <Compile Include="EndConstructGeneration\EndConstructCommandHandlerTests.vb" />
-    <Compile Include="EndConstructGeneration\EndConstructTestingHelpers.vb" />
-    <Compile Include="EndConstructGeneration\ForLoopTests.vb" />
-    <Compile Include="EndConstructGeneration\IfBlockTests.vb" />
-    <Compile Include="EndConstructGeneration\ITextSnapshotExtensionsTests.vb" />
-    <Compile Include="EndConstructGeneration\MethodBlockTests.vb" />
-    <Compile Include="EndConstructGeneration\MiscellaneousTests.vb" />
-    <Compile Include="EndConstructGeneration\MultiLineLambdaTests.vb" />
-    <Compile Include="EndConstructGeneration\NamespaceBlockTests.vb" />
-    <Compile Include="EndConstructGeneration\PreprocessorIfTests.vb" />
-    <Compile Include="EndConstructGeneration\PreprocessorRegionsTests.vb" />
-    <Compile Include="EndConstructGeneration\PropertyBlockTests.vb" />
-    <Compile Include="EndConstructGeneration\SelectBlockTests.vb" />
-    <Compile Include="EndConstructGeneration\SyncLockBlockTests.vb" />
-    <Compile Include="EndConstructGeneration\TryBlockTests.vb" />
-    <Compile Include="EndConstructGeneration\TypeBlockTests.vb" />
-    <Compile Include="EndConstructGeneration\UsingBlockTests.vb" />
-    <Compile Include="EndConstructGeneration\WhileLoopTests.vb" />
-    <Compile Include="EndConstructGeneration\WhiteSpacesInsertTests.vb" />
-    <Compile Include="EndConstructGeneration\WithBlockTests.vb" />
-    <Compile Include="EndConstructGeneration\XmlLiteralTests.vb" />
-    <Compile Include="Extensions\StatementSyntaxExtensionTests.vb" />
-    <Compile Include="ExtractInterface\ExtractInterfaceTests.vb" />
-    <Compile Include="ExtractMethod\ExtractMethodTests.ControlFlowAnalysis.vb" />
-    <Compile Include="ExtractMethod\ExtractMethodTests.DataFlowAnalysis.vb" />
-    <Compile Include="ExtractMethod\ExtractMethodTests.LanguageInteraction.vb" />
-    <Compile Include="ExtractMethod\ExtractMethodTests.MethodNameGeneration.vb" />
-    <Compile Include="ExtractMethod\ExtractMethodTests.SelectionValidator.vb" />
-    <Compile Include="ExtractMethod\ExtractMethodTests.TriviaProcessor.vb" />
-    <Compile Include="ExtractMethod\ExtractMethodTests.vb" />
-    <Compile Include="Formatting\FormattingTestBase.vb" />
-    <Compile Include="Formatting\FormattingEngineTests_Venus.vb" />
-    <Compile Include="Formatting\Indentation\SmartIndenterTests.vb" />
-    <Compile Include="Formatting\Indentation\SmartIndentProviderTests.vb" />
-    <Compile Include="Formatting\Indentation\SmartTokenFormatter_FormatTokenTests.vb" />
-    <Compile Include="Formatting\XmlLiterals.Designer.vb" />
-    <Compile Include="GoToAdjacentMember\VisualBasicGoToAdjacentMemberTests.vb" />
-    <Compile Include="KeywordHighlighting\AbstractVisualBasicKeywordHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\AccessorDeclarationHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\ConditionalPreprocessorHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\ConstructorDeclarationHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\DoLoopBlockHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\EnumBlockHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\EventBlockHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\EventDeclarationHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\ForLoopBlockHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\MethodDeclarationHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\MultiLineIfBlockHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\MultiLineLambdaExpressionHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\NamespaceBlockHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\OperatorDeclarationHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\PropertyBlockHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\PropertyDeclarationHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\RegionHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\SelectBlockHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\SingleLineIfBlockHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\SyncLockBlockHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\TryBlockHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\TypeBlockHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\UsingBlockHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\WhileBlockHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\WithBlockHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\XmlCDataHighligherTests.vb" />
-    <Compile Include="KeywordHighlighting\XmlCommentHighligherTests.vb" />
-    <Compile Include="KeywordHighlighting\XmlDocumentPrologueHighligherTests.vb" />
-    <Compile Include="KeywordHighlighting\XmlElementHighlighterTests.vb" />
-    <Compile Include="KeywordHighlighting\XmlEmbeddedExpressionHighligherTests.vb" />
-    <Compile Include="KeywordHighlighting\XmlProcessingInstructionHighlighterTests.vb" />
-    <Compile Include="LineCommit\CommitOnEnterTests.vb" />
-    <Compile Include="LineCommit\CommitOnMiscellaneousCommandsTests.vb" />
-    <Compile Include="LineCommit\CommitTestData.vb" />
-    <Compile Include="LineCommit\CommitWithViewTests.vb" />
-    <Compile Include="LineSeparators\LineSeparatorTests.vb" />
-    <Compile Include="NavigateTo\NavigateToTests.vb" />
-    <Compile Include="Organizing\AbstractOrganizerTests.vb" />
-    <Compile Include="Organizing\OrganizeImportsTests.vb" />
-    <Compile Include="Organizing\OrganizeModifiersTests.vb" />
-    <Compile Include="Organizing\OrganizeTypeDeclarationTests.vb" />
-    <Compile Include="PopulateSwitch\PopulateSwitchTests.vb" />
-    <Compile Include="PopulateSwitch\PopulateSwitchTests_FixAllTests.vb" />
-    <Compile Include="QuickInfo\SemanticQuickInfoSourceTests.vb" />
-    <Compile Include="Recommendations\ArrayStatements\EraseKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\ArrayStatements\PreserveKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\ArrayStatements\ReDimKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\AliasKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\AsKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\AsyncKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\AttributeScopesKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\CharsetModifierKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\ClassKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\ConstKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\CovarianceModifierKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\CustomEventKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\DeclareKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\DelegateKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\DelegateSubFunctionKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\DimKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\EndBlockKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\EnumKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\EventKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\ExternalSubFunctionKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\FunctionKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\GenericConstraintsKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\GetSetKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\HandlesKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\ImplementsKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\ImportsKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\InheritsKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\InKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\InterfaceKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\IteratorKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\LibKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\ModifierKeywordRecommenderTests.InsideClassDeclaration.vb" />
-    <Compile Include="Recommendations\Declarations\ModifierKeywordRecommenderTests.InsideInterfaceDeclaration.vb" />
-    <Compile Include="Recommendations\Declarations\ModifierKeywordRecommenderTests.InsideModuleDeclaration.vb" />
-    <Compile Include="Recommendations\Declarations\ModifierKeywordRecommenderTests.InsideNamespaceDeclaration.vb" />
-    <Compile Include="Recommendations\Declarations\ModifierKeywordRecommenderTests.InsideStructureDeclaration.vb" />
-    <Compile Include="Recommendations\Declarations\ModuleKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\NamespaceKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\OfKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\OperatorKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\ParameterModifiersKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\PropertyKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\StaticKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\StructureKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\SubKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Declarations\ToKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\EventHandling\AddHandlerKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\EventHandling\RaiseEventKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\EventHandling\RemoveHandlerKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Expressions\AddressOfKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Expressions\AwaitKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Expressions\BinaryOperatorKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Expressions\CastOperatorsKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Expressions\FromKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Expressions\GetTypeKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Expressions\GetXmlNamespaceKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Expressions\GlobalKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Expressions\IfKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Expressions\KeyKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Expressions\LambdaKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Expressions\MeKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Expressions\MyBaseKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Expressions\MyClassKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Expressions\NameOfKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Expressions\NewKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Expressions\NothingKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Expressions\NotKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Expressions\TrueFalseKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Expressions\TypeOfKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Expressions\WithKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\OnErrorStatements\ErrorKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\OnErrorStatements\GoToDestinationsRecommenderTests.vb" />
-    <Compile Include="Recommendations\OnErrorStatements\GoToKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\OnErrorStatements\NextKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\OnErrorStatements\OnErrorKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\OnErrorStatements\ResumeKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\OptionStatements\CompareOptionsRecommenderTests.vb" />
-    <Compile Include="Recommendations\OptionStatements\ExplicitOptionsRecommenderTests.vb" />
-    <Compile Include="Recommendations\OptionStatements\InferOptionsRecommenderTests.vb" />
-    <Compile Include="Recommendations\OptionStatements\OptionKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\OptionStatements\OptionNamesRecommenderTests.vb" />
-    <Compile Include="Recommendations\OptionStatements\StrictOptionsRecommenderTests.vb" />
-    <Compile Include="Recommendations\PreprocessorDirectives\ConstDirectiveKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\PreprocessorDirectives\ElseDirectiveKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\PreprocessorDirectives\ElseIfDirectiveKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\PreprocessorDirectives\WarningDirectiveKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\PreprocessorDirectives\EndIfDirectiveKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\PreprocessorDirectives\EndRegionDirectiveKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\PreprocessorDirectives\IfDirectiveKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\PreprocessorDirectives\RegionDirectiveKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Queries\AggregateKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Queries\AscendingDescendingKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Queries\EqualsKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Queries\FromKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Queries\GroupKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Queries\IntoKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Queries\JoinKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Queries\LetKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Queries\OrderByKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Queries\SelectKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Queries\WhereKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\RecommendationTestHelpers.vb" />
-    <Compile Include="Recommendations\Statements\CallKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\CaseKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\CatchKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\ContinueKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\DoKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\EachKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\ElseIfKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\ElseKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\EndKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\ExitKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\FinallyKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\ForKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\GoToKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\IfKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\IsKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\LoopKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\MidKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\NextKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\ReturnKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\SelectKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\StepKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\StopKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\SyncLockKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\ThenKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\ThrowKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\ToKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\TryKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\UntilAndWhileKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\WhenKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\WhileLoopKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\WithKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Statements\YieldKeywordRecommenderTests.vb" />
-    <Compile Include="Recommendations\Types\BuiltInTypesKeywordRecommenderTests.vb" />
-    <Compile Include="Semantics\SpeculationAnalyzerTests.vb" />
-    <Compile Include="SignatureHelp\AbstractVisualBasicSignatureHelpProviderTests.vb" />
-    <Compile Include="SignatureHelp\AddRemoveHandlerSignatureHelpProviderTests.vb" />
-    <Compile Include="SignatureHelp\AttributeSignatureHelpProviderTests.vb" />
-    <Compile Include="SignatureHelp\CastExpressionSignatureHelpProviderTests.vb" />
-    <Compile Include="SignatureHelp\ConditionalExpressionSignatureHelpProviderTests.vb" />
-    <Compile Include="SignatureHelp\FunctionAggregationSignatureHelpProviderTests.vb" />
-    <Compile Include="SignatureHelp\GenericNameSignatureHelpProviderTests.vb" />
-    <Compile Include="SignatureHelp\GetTypeExpressionSignatureHelpProviderTests.vb" />
-    <Compile Include="SignatureHelp\GetXmlNamespaceExpressionSignatureHelpProviderTests.vb" />
-    <Compile Include="SignatureHelp\InvocationExpressionSignatureHelpProviderTests.vb" />
-    <Compile Include="SignatureHelp\MidAssignmentSignatureHelpProviderTests.vb" />
-    <Compile Include="SignatureHelp\ObjectCreationExpressionSignatureHelpProviderTests.vb" />
-    <Compile Include="SignatureHelp\PredefinedCastExpressionSignatureHelpProviderTests.vb" />
-    <Compile Include="SignatureHelp\RaiseEventStatementSignatureHelpProviderTests.vb" />
-    <Compile Include="Squiggles\ErrorSquiggleProducerTests.vb" />
-    <Compile Include="Structure\AbstractVisualBasicSyntaxNodeStructureTests.vb" />
-    <Compile Include="Structure\AbstractVisualBasicSyntaxTriviaStructureTests.vb" />
-    <Compile Include="Structure\AccessorDeclarationStructureTests.vb" />
-    <Compile Include="Structure\CommentStructureTests.vb" />
-    <Compile Include="Structure\CompilationUnitStructureTests.vb" />
-    <Compile Include="Structure\ConstructorDeclarationStructureTests.vb" />
-    <Compile Include="Structure\DelegateDeclarationStructureTests.vb" />
-    <Compile Include="Structure\DisabledCodeStructureTests.vb" />
-    <Compile Include="Structure\DocumentationCommentStructureTests.vb" />
-    <Compile Include="Structure\EnumDeclarationStructureTests.vb" />
-    <Compile Include="Structure\EventDeclarationStructureTests.vb" />
-    <Compile Include="Structure\ExternalMethodDeclarationStructureTests.vb" />
-    <Compile Include="Structure\FieldDeclarationStructureTests.vb" />
-    <Compile Include="Structure\ForBlockStructureTests.vb" />
-    <Compile Include="Structure\MetadataAsSource\ConstructorDeclarationStructureTests.vb" />
-    <Compile Include="Structure\MetadataAsSource\DelegateDeclarationStructureTests.vb" />
-    <Compile Include="Structure\MetadataAsSource\EnumDeclarationStructureTests.vb" />
-    <Compile Include="Structure\MetadataAsSource\EnumMemberDeclarationStructureTests.vb" />
-    <Compile Include="Structure\MetadataAsSource\EventDeclarationStructureTests.vb" />
-    <Compile Include="Structure\MetadataAsSource\FieldDeclarationStructureTests.vb" />
-    <Compile Include="Structure\MetadataAsSource\InvalidIdentifierStructureTests.vb" />
-    <Compile Include="Structure\MetadataAsSource\MethodDeclarationStructureTests.vb" />
-    <Compile Include="Structure\MetadataAsSource\OperatorDeclarationStructureTests.vb" />
-    <Compile Include="Structure\MetadataAsSource\PropertyDeclarationStructureTests.vb" />
-    <Compile Include="Structure\MetadataAsSource\RegionDirectiveStructureTests.vb" />
-    <Compile Include="Structure\MetadataAsSource\TypeDeclarationStructureTests.vb" />
-    <Compile Include="Structure\DoLoopBlockStructureTests.vb" />
-    <Compile Include="Structure\SelectBlockStructureTests.vb" />
-    <Compile Include="Structure\MultiLineIfBlockStructureTests.vb" />
-    <Compile Include="Structure\ForEachBlockStructureTests.vb" />
-    <Compile Include="Structure\TryBlockStructureTests.vb" />
-    <Compile Include="Structure\SyncLockBlockStructureTests.vb" />
-    <Compile Include="Structure\WithBlockStructureTests.vb" />
-    <Compile Include="Structure\UsingBlockStructureTests.vb" />
-    <Compile Include="Structure\WhileBlockStructureTests.vb" />
-    <Compile Include="Structure\MethodDeclarationStructureTests.vb" />
-    <Compile Include="Structure\MultilineLambdaStructureTests.vb" />
-    <Compile Include="Structure\NamespaceDeclarationStructureTests.vb" />
-    <Compile Include="Structure\OperatorDeclarationStructureTests.vb" />
-    <Compile Include="Structure\OverallStructureTests.vb" />
-    <Compile Include="Structure\PropertyDeclarationStructureTests.vb" />
-    <Compile Include="Structure\RegionDirectiveStructureTests.vb" />
-    <Compile Include="Structure\TypeDeclarationStructureTests.vb" />
-    <Compile Include="Structure\XmlExpressionStructureTests.vb" />
-    <Compile Include="SymbolId\SymbolKeyCompilationsTests.vb" />
-    <Compile Include="SymbolId\SymbolKeyMetadataVsSourceTests.vb" />
-    <Compile Include="SymbolId\SymbolKeyTestBase.vb" />
-    <Compile Include="TextStructureNavigation\TextStructureNavigatorTests.vb" />
-    <Compile Include="TodoComment\TodoCommentTests.vb" />
-    <Compile Include="TypeInferrer\TypeInferrerTests.vb" />
-    <Compile Include="UseCollectionInitializer\UseCollectionInitializerTests.vb" />
-    <Compile Include="UseCoalesceExpression\UseCoalesceExpressionForNullableTests.vb" />
-    <Compile Include="UseExplicitTupleName\UseExplicitTupleNameTests.vb" />
-    <Compile Include="UseObjectInitializer\UseObjectInitializerTests.vb" />
-    <Compile Include="Utilities\CodeSnippets.vb" />
-    <Compile Include="Utils.vb" />
-    <EmbeddedResource Include="Formatting\XmlLiterals.resx" />
-    <None Include="project.json" />
+
     <None Include="PerfTests\BasicPerfFindRefs.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -669,8 +165,6 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="UseCoalesceExpression\UseCoalesceExpressionTests.vb" />
-    <Compile Include="UseNullPropagation\UseNullPropagationTests.vb" />
     <None Include="PerfTests\BasicPerfGoldilocksTypingFullSolutionDiagnosticsThirdPartyAnalyzers.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
@@ -682,7 +176,6 @@
     <None Include="PerfTests\BasicPerfLightBulb.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Compile Include="CodeActions\ReplaceMethodWithProperty\ReplaceMethodWithPropertyTests.vb" />
     <None Include="PerfTests\BasicPerfFullSolutionDiagnosticsThirdPartyAnalyzers.xml">
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -691,13 +184,13 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </None>
-    <Compile Include="ConvertToInterpolatedString\ConvertConcatenationToInterpolatedStringTests.vb" />
-    <Compile Include="AddParameter\AddParameterTests.vb" />
-    <Compile Include="ConflictMarkerResolution\ConflictMarkerResolutionTests.vb" />
-    <Compile Include="GenerateOverrides\GenerateOverridesTests.vb" />
     <Content Include="PerfTests\Sources\BasicPgoTypingInput.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <!-- These are None\Content items from above. Don't pass them to the compiler -->
+  <ItemGroup>
+    <Compile Remove="PerfTests\Sources\*.vb" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -35,10 +35,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private readonly ICodeRefactoringService _codeRefactoringService;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly ICodeFixService _codeFixService;
+        private readonly ISuggestedActionCategoryRegistryService _suggestedActionCategoryRegistry;
 
         public readonly ICodeActionEditHandlerService EditHandler;
         public readonly IAsynchronousOperationListener OperationListener;
         public readonly IWaitIndicator WaitIndicator;
+        public readonly ImmutableArray<Lazy<ISuggestedActionCallback>> ActionCallbacks;
 
         public readonly ImmutableArray<Lazy<IImageMonikerService, OrderableMetadata>> ImageMonikerServices;
 
@@ -49,12 +51,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ICodeFixService codeFixService,
             ICodeActionEditHandlerService editHandler,
             IWaitIndicator waitIndicator,
+            ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
-            [ImportMany] IEnumerable<Lazy<IImageMonikerService, OrderableMetadata>> imageMonikerServices)
+            [ImportMany] IEnumerable<Lazy<IImageMonikerService, OrderableMetadata>> imageMonikerServices,
+            [ImportMany] IEnumerable<Lazy<ISuggestedActionCallback>> actionCallbacks)
         {
             _codeRefactoringService = codeRefactoringService;
             _diagnosticService = diagnosticService;
             _codeFixService = codeFixService;
+            _suggestedActionCategoryRegistry = suggestedActionCategoryRegistry;
+            ActionCallbacks = actionCallbacks.ToImmutableArray();
             EditHandler = editHandler;
             WaitIndicator = waitIndicator;
             OperationListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.LightBulb);
@@ -67,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             Contract.ThrowIfNull(textView);
             Contract.ThrowIfNull(textBuffer);
 
-            return new SuggestedActionsSource(this, textView, textBuffer);
+            return new SuggestedActionsSource(this, textView, textBuffer, _suggestedActionCategoryRegistry);
         }
     }
 }

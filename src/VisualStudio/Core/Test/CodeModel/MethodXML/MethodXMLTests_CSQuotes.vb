@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Roslyn.Test.Utilities
@@ -15,14 +15,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
 public class C
 {
     $$void M()
-    { // Foo
+    { // Goo
         int i = 0; // comment after local
         // hello comment!
-        for (int i = 0; i &lt; 10; i++) // Foo
+        for (int i = 0; i &lt; 10; i++) // Goo
         {
 
-        } // Foo2
-        // Foo3
+        } // Goo2
+        // Goo3
     }
 }
             </Document>
@@ -41,11 +41,11 @@ public class C
         </Expression>
     </Local>
     <Comment> hello comment!</Comment>
-    <Quote line="7">for (int i = 0; i &lt; 10; i++) // Foo
+    <Quote line="7">for (int i = 0; i &lt; 10; i++) // Goo
         {
 
         }</Quote>
-    <Comment> Foo3</Comment>
+    <Comment> Goo3</Comment>
 </Block>
 
             Test(definition, expected)

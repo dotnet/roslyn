@@ -36,13 +36,13 @@ static class Program
 
     static async void f()
     {
-        await foo;
+        await goo;
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (8,15): error CS0103: The name 'foo' does not exist in the current context
-                //         await foo;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "foo").WithArguments("foo"));
+                // (8,15): error CS0103: The name 'goo' does not exist in the current context
+                //         await goo;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "goo").WithArguments("goo"));
         }
 
         [Fact]
@@ -1894,11 +1894,11 @@ class C
             var calls = actualIL.Split(new[] { '\n', '\r' }, System.StringSplitOptions.RemoveEmptyEntries).Where(s => s.Contains("OnCompleted")).ToArray();
             Assert.Equal(calls.Length, 6);
             Assert.Equal("    IL_0056:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitOnCompleted<T1, C.<F>d__0<T1, T2, T3, T4, T5, T6>>(ref T1, ref C.<F>d__0<T1, T2, T3, T4, T5, T6>)\"", calls[0]);
-            Assert.Equal("    IL_00c1:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T2, C.<F>d__0<T1, T2, T3, T4, T5, T6>>(ref T2, ref C.<F>d__0<T1, T2, T3, T4, T5, T6>)\"", calls[1]);
-            Assert.Equal("    IL_012c:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T3, C.<F>d__0<T1, T2, T3, T4, T5, T6>>(ref T3, ref C.<F>d__0<T1, T2, T3, T4, T5, T6>)\"", calls[2]);
-            Assert.Equal("    IL_019a:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitOnCompleted<T4, C.<F>d__0<T1, T2, T3, T4, T5, T6>>(ref T4, ref C.<F>d__0<T1, T2, T3, T4, T5, T6>)\"", calls[3]);
-            Assert.Equal("    IL_020a:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T5, C.<F>d__0<T1, T2, T3, T4, T5, T6>>(ref T5, ref C.<F>d__0<T1, T2, T3, T4, T5, T6>)\"", calls[4]);
-            Assert.Equal("    IL_027a:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T6, C.<F>d__0<T1, T2, T3, T4, T5, T6>>(ref T6, ref C.<F>d__0<T1, T2, T3, T4, T5, T6>)\"", calls[5]);
+            Assert.Equal("    IL_00b9:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T2, C.<F>d__0<T1, T2, T3, T4, T5, T6>>(ref T2, ref C.<F>d__0<T1, T2, T3, T4, T5, T6>)\"", calls[1]);
+            Assert.Equal("    IL_011c:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T3, C.<F>d__0<T1, T2, T3, T4, T5, T6>>(ref T3, ref C.<F>d__0<T1, T2, T3, T4, T5, T6>)\"", calls[2]);
+            Assert.Equal("    IL_0182:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitOnCompleted<T4, C.<F>d__0<T1, T2, T3, T4, T5, T6>>(ref T4, ref C.<F>d__0<T1, T2, T3, T4, T5, T6>)\"", calls[3]);
+            Assert.Equal("    IL_01ea:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T5, C.<F>d__0<T1, T2, T3, T4, T5, T6>>(ref T5, ref C.<F>d__0<T1, T2, T3, T4, T5, T6>)\"", calls[4]);
+            Assert.Equal("    IL_0252:  call       \"void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<T6, C.<F>d__0<T1, T2, T3, T4, T5, T6>>(ref T6, ref C.<F>d__0<T1, T2, T3, T4, T5, T6>)\"", calls[5]);
         }
 
         [Fact]
@@ -2583,15 +2583,15 @@ class C
 {
     async void M()
     {
-        using (await foo())
+        using (await goo())
         {
         }
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (6,22): error CS0103: The name 'foo' does not exist in the current context
-                //         using (await foo())
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "foo").WithArguments("foo"));
+                // (6,22): error CS0103: The name 'goo' does not exist in the current context
+                //         using (await goo())
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "goo").WithArguments("goo"));
         }
 
         [Fact]
@@ -2600,11 +2600,11 @@ class C
             var source = @"
 class Test
 {
-    public void foo() { }
+    public void goo() { }
 
     public async void awaitVoid()
     {
-        await foo();
+        await goo();
     }
 
     public async void awaitNull()
@@ -2614,7 +2614,7 @@ class Test
 
     public async void awaitMethodGroup()
     {
-        await foo;
+        await goo;
     }
 
     public async void awaitLambda()
@@ -2626,14 +2626,14 @@ class Test
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (8,9): error CS4008: Cannot await 'void'
-                //         await foo();
-                Diagnostic(ErrorCode.ERR_BadAwaitArgVoidCall, "await foo()"),
+                //         await goo();
+                Diagnostic(ErrorCode.ERR_BadAwaitArgVoidCall, "await goo()"),
                 // (13,9): error CS4001: Cannot await '<null>;'
                 //         await null;
                 Diagnostic(ErrorCode.ERR_BadAwaitArgIntrinsic, "await null").WithArguments("<null>"),
                 // (18,9): error CS4001: Cannot await 'method group'
-                //         await foo;
-                Diagnostic(ErrorCode.ERR_BadAwaitArgIntrinsic, "await foo").WithArguments("method group"),
+                //         await goo;
+                Diagnostic(ErrorCode.ERR_BadAwaitArgIntrinsic, "await goo").WithArguments("method group"),
                 // (23,9): error CS4001: Cannot await 'lambda expression'
                 //         await (x => x);
                 Diagnostic(ErrorCode.ERR_BadAwaitArgIntrinsic, "await (x => x)").WithArguments("lambda expression"));
@@ -2647,22 +2647,22 @@ using System.Threading.Tasks;
 
 class Test
 {
-    public async void foo()
+    public async void goo()
     {
         await Task.Factory.StartNew(() => { });
     }
 
     public async void bar()
     {
-        await foo();
+        await goo();
     }
 
     public static void Main() { }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (10,9): error CS4008: Cannot await 'void'
-                //         await foo();
-                Diagnostic(ErrorCode.ERR_BadAwaitArgVoidCall, "await foo()"));
+                //         await goo();
+                Diagnostic(ErrorCode.ERR_BadAwaitArgVoidCall, "await goo()"));
         }
 
         [Fact, WorkItem(531356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531356")]
@@ -2682,17 +2682,13 @@ class C
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (4,12): error CS0246: The type or namespace name 'IVsTask' could not be found (are you missing a using directive or an assembly reference?)
                 //     public IVsTask ResolveReferenceAsync()
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IVsTask").WithArguments("IVsTask"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IVsTask").WithArguments("IVsTask").WithLocation(4, 12),
                 // (6,21): error CS1061: 'C' does not contain a definition for 'VsTasksService' and no extension method 'VsTasksService' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //         return this.VsTasksService.InvokeAsync(async delegate
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "VsTasksService").WithArguments("C", "VsTasksService"),
-                // (6,48): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "VsTasksService").WithArguments("C", "VsTasksService").WithLocation(6, 21),
+                // (6,54): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         return this.VsTasksService.InvokeAsync(async delegate
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, @"async delegate
-        {
-            return null;
-        }")
-                );
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(6, 54));
         }
 
         [Fact, WorkItem(627123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627123")]
@@ -2835,7 +2831,28 @@ class Repro
                 // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
                 Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1));
 
-            CompileAndVerify(comp, expectedOutput: "dynamic42");
+            var compiled = CompileAndVerify(comp, expectedOutput: "dynamic42", verify: false);
+
+            compiled.VerifyIL("MyAwaiter.OnCompleted(System.Action)", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  3
+  .locals init (MyAwaiter.<>c__DisplayClass5_0 V_0) //CS$<>8__locals0
+  IL_0000:  newobj     ""MyAwaiter.<>c__DisplayClass5_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldarg.1
+  IL_0008:  stfld      ""System.Action MyAwaiter.<>c__DisplayClass5_0.continuation""
+  IL_000d:  ldarg.0
+  IL_000e:  ldflda     ""MyTask MyAwaiter.task""
+  IL_0013:  ldfld      ""System.Threading.Tasks.Task MyTask.task""
+  IL_0018:  ldloc.0
+  IL_0019:  ldftn      ""void MyAwaiter.<>c__DisplayClass5_0.<OnCompleted>b__0(System.Threading.Tasks.Task)""
+  IL_001f:  newobj     ""System.Action<System.Threading.Tasks.Task>..ctor(object, System.IntPtr)""
+  IL_0024:  callvirt   ""System.Threading.Tasks.Task System.Threading.Tasks.Task.ContinueWith(System.Action<System.Threading.Tasks.Task>)""
+  IL_0029:  pop
+  IL_002a:  ret
+}");
         }
     }
 }

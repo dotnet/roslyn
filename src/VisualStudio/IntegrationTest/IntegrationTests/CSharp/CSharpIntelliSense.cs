@@ -23,11 +23,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
             SetUpEditor(@"$$");
 
-            SendKeys("usi");
-            VerifyCompletionItemExists("using");
+            VisualStudio.Editor.SendKeys("usi");
+            VisualStudio.Editor.Verify.CompletionItemsExist("using");
 
-            SendKeys(VirtualKey.Tab);
-            VerifyCurrentLineText("using$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("using$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -39,22 +39,21 @@ class C
     $$
 }");
 
-            SendKeys("pub");
-            VerifyCompletionItemExists("public");
+            VisualStudio.Editor.SendKeys("pub");
+            VisualStudio.Editor.Verify.CompletionItemsExist("public");
 
-            SendKeys(' ');
-            VerifyCurrentLineText("public $$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys(' ');
+            VisualStudio.Editor.Verify.CurrentLineText("public $$", assertCaretPosition: true);
 
-            SendKeys('t');
-            VerifyCompletionItemExists("T");
+            VisualStudio.Editor.SendKeys('t');
+            VisualStudio.Editor.Verify.CompletionItemsExist("T");
 
-            SendKeys(' ');
-            SendKeys("Foo<T>() { }");
-
-            VerifyTextContains(@"
+            VisualStudio.Editor.SendKeys(' ');
+            VisualStudio.Editor.SendKeys("Goo<T>() { }");
+            VisualStudio.Editor.Verify.TextContains(@"
 class C
 {
-    public T Foo<T>() { }$$
+    public T Goo<T>() { }$$
 }",
 assertCaretPosition: true);
         }
@@ -77,68 +76,68 @@ public static class NavigateTo
     public static void Navigate(int i){ }
 }");
 
-            SendKeys('.');
-            VerifyCompletionItemExists("Search", "Navigate");
+            VisualStudio.Editor.SendKeys('.');
+            VisualStudio.Editor.Verify.CompletionItemsExist("Search", "Navigate");
 
-            SendKeys('S', VirtualKey.Tab);
-            VerifyCurrentLineText("NavigateTo.Search$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys('S', VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("NavigateTo.Search$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CtrlAltSpace()
         {
-            DisableSuggestionMode();
+            VisualStudio.Workspace.SetUseSuggestionMode(false);
 
-            SendKeys("nam Foo", VirtualKey.Enter);
-            SendKeys('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
-            SendKeys("pu cla Program", VirtualKey.Enter);
-            SendKeys('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
-            SendKeys("pub stati voi Main(string[] args)", VirtualKey.Enter);
-            SendKeys('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
-            SendKeys("System.Console.writeline();");
-            VerifyCurrentLineText("System.Console.WriteLine();$$", assertCaretPosition: true);
-            SendKeys(VirtualKey.Home, Shift(VirtualKey.End), VirtualKey.Delete);
+            VisualStudio.Editor.SendKeys("nam Goo", VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys("pu cla Program", VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys("pub stati voi Main(string[] args)", VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys("System.Console.writeline();");
+            VisualStudio.Editor.Verify.CurrentLineText("System.Console.WriteLine();$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys(VirtualKey.Home, Shift(VirtualKey.End), VirtualKey.Delete);
 
-            ExecuteCommand(WellKnownCommandNames.Edit_ToggleCompletionMode);
+            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_ToggleCompletionMode);
 
-            SendKeys("System.Console.writeline();");
-            VerifyCurrentLineText("System.Console.writeline();$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("System.Console.writeline();");
+            VisualStudio.Editor.Verify.CurrentLineText("System.Console.writeline();$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CtrlAltSpaceOption()
         {
-            DisableSuggestionMode();
+            VisualStudio.Workspace.SetUseSuggestionMode(false);
 
-            SendKeys("nam Foo");
-            VerifyCurrentLineText("namespace Foo$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("nam Goo");
+            VisualStudio.Editor.Verify.CurrentLineText("namespace Goo$$", assertCaretPosition: true);
 
             ClearEditor();
-            EnableSuggestionMode();
+            VisualStudio.Workspace.SetUseSuggestionMode(true);
 
-            SendKeys("nam Foo");
-            VerifyCurrentLineText("nam Foo$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("nam Goo");
+            VisualStudio.Editor.Verify.CurrentLineText("nam Goo$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CtrlSpace()
         {
             SetUpEditor("class c { void M() {$$ } }");
-            SendKeys(Ctrl(VirtualKey.Space));
-            VerifyCompletionItemExists("System");
+            VisualStudio.Editor.SendKeys(Ctrl(VirtualKey.Space));
+            VisualStudio.Editor.Verify.CompletionItemsExist("System");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NavigatingWithDownKey()
         {
             SetUpEditor("class c { void M() {$$ } }");
-            SendKeys('c');
-            VerifyCurrentCompletionItem("c");
-            VerifyCompletionItemExists("c");
+            VisualStudio.Editor.SendKeys('c');
+            VisualStudio.Editor.Verify.CurrentCompletionItem("c");
+            VisualStudio.Editor.Verify.CompletionItemsExist("c");
 
-            SendKeys(VirtualKey.Down);
-            VerifyCurrentCompletionItem("char");
-            VerifyCompletionItemExists("char");
+            VisualStudio.Editor.SendKeys(VirtualKey.Down);
+            VisualStudio.Editor.Verify.CurrentCompletionItem("char");
+            VisualStudio.Editor.Verify.CompletionItemsExist("char");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -154,11 +153,11 @@ class Class1
     }
 }");
 
-            SendKeys("<s");
-            VerifyCompletionItemExists("see", "seealso", "summary");
+            VisualStudio.Editor.SendKeys("<s");
+            VisualStudio.Editor.Verify.CompletionItemsExist("see", "seealso", "summary");
 
-            SendKeys(VirtualKey.Enter);
-            VerifyCurrentLineText("///<see cref=\"$$\"/>", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys(VirtualKey.Enter);
+            VisualStudio.Editor.Verify.CurrentLineText("///<see cref=\"$$\"/>", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -169,16 +168,16 @@ class Class1
 class C { }
 ");
 
-            SendKeys("<summary>");
-            VerifyCurrentLineText("/// <summary>$$</summary>", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("<summary>");
+            VisualStudio.Editor.Verify.CurrentLineText("/// <summary>$$</summary>", assertCaretPosition: true);
 
             SetUpEditor(@"
 /// <summary>$$
 class C { }
 ");
 
-            SendKeys("</");
-            VerifyCurrentLineText("/// <summary></summary>$$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("</");
+            VisualStudio.Editor.Verify.CurrentLineText("/// <summary></summary>$$", assertCaretPosition: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -193,12 +192,12 @@ class Class1
     }
 }");
 
-            DisableSuggestionMode();
+            VisualStudio.Workspace.SetUseSuggestionMode(false);
 
-            SendKeys("Mai(");
+            VisualStudio.Editor.SendKeys("Mai(");
 
-            VerifyCurrentSignature("void Class1.Main(string[] args)");
-            VerifyCurrentParameter("args", "");
+            VisualStudio.Editor.Verify.CurrentSignature("void Class1.Main(string[] args)");
+            VisualStudio.Editor.Verify.CurrentParameter("args", "");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -211,18 +210,18 @@ class Class1
     $$
 }");
 
-            DisableSuggestionMode();
+            VisualStudio.Workspace.SetUseSuggestionMode(false);
 
-            SendKeys(
+            VisualStudio.Editor.SendKeys(
                 '{',
                 VirtualKey.Enter,
                 "                 ");
 
-            InvokeCompletionList();
+            VisualStudio.Editor.InvokeCompletionList();
 
-            SendKeys('}');
+            VisualStudio.Editor.SendKeys('}');
 
-            VerifyTextContains(@"
+            VisualStudio.Editor.Verify.TextContains(@"
 class Class1
 {
     void Main(string[] args)
@@ -244,13 +243,13 @@ class Class1
     }
 }");
 
-            DisableSuggestionMode();
+            VisualStudio.Workspace.SetUseSuggestionMode(false);
 
-            SendKeys(
+            VisualStudio.Editor.SendKeys(
                 'M',
                 Shift(VirtualKey.Enter));
 
-            VerifyTextContains(@"
+            VisualStudio.Editor.Verify.TextContains(@"
 class Class1
 {
     void Main(string[] args)
@@ -270,11 +269,11 @@ class Class1
     $$
 }");
 
-            DisableSuggestionMode();
+            VisualStudio.Workspace.SetUseSuggestionMode(false);
 
-            SendKeys("int P { g{");
+            VisualStudio.Editor.SendKeys("int P { g{");
 
-            VerifyTextContains(@"
+            VisualStudio.Editor.Verify.TextContains(@"
 class Class1
 {
     int P { get { $$} }
@@ -295,13 +294,13 @@ public class Program
     }
 }");
 
-            SendKeys(
+            VisualStudio.Editor.SendKeys(
                 VirtualKey.Delete,
                 "aaa",
                 VirtualKey.Tab);
-
-            VerifyTextContains("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa = aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-            VerifyCaretIsOnScreen();
+            var actualText = VisualStudio.Editor.GetText();
+            Assert.Contains("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa = aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", actualText);
+            Assert.True(VisualStudio.Editor.IsCaretOnScreen());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -309,11 +308,11 @@ public class Program
         {
             SetUpEditor(@"$$");
 
-            SendKeys(Ctrl(VirtualKey.Space));
-            VerifyCompletionListIsActive(expected: true);
+            VisualStudio.Editor.SendKeys(Ctrl(VirtualKey.Space));
+            Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
 
-            SendKeys(Ctrl(VirtualKey.A));
-            VerifyCompletionListIsActive(expected: false);
+            VisualStudio.Editor.SendKeys(Ctrl(VirtualKey.A));
+            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
         }
     }
 }

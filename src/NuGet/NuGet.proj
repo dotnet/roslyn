@@ -5,17 +5,17 @@
 
   <Target Name="Build">
     <!-- NuGetPerBuildPreReleaseVersion -->
-    <Exec Command="$(OutDir)Exes\csi\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetPerBuildPreReleaseVersion) $(OutDir)NuGet\PerBuildPreRelease" Condition="'$(NuGetPerBuildPreReleaseVersion)' != ''" />
+    <Exec Command="$(OutputPath)Exes\csi\net46\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutputPath) $(NuGetPerBuildPreReleaseVersion) $(OutputPath)NuGet\PerBuildPreRelease &quot;$(GitHeadSha)&quot;" Condition="'$(SkipBuildPreReleaseVersion)' != 'true'" />
 
     <!-- NuGetPreReleaseVersion -->
-    <Exec Command="$(OutDir)Exes\csi\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetPreReleaseVersion) $(OutDir)NuGet\PreRelease" Condition="'$(NuGetPreReleaseVersion)' != ''" />
+    <Exec Command="$(OutputPath)Exes\csi\net46\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutputPath) $(NuGetPreReleaseVersion) $(OutputPath)NuGet\PreRelease &quot;$(GitHeadSha)&quot;" Condition="'$(SkipPreReleaseVersion)' != 'true'" />
 
     <!-- NuGetReleaseVersion -->
-    <Exec Command="$(OutDir)Exes\csi\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutDir) $(NuGetReleaseVersion) $(OutDir)NuGet\Release" Condition="'$(NuGetReleaseVersion)' != ''" />
+    <Exec Command="$(OutputPath)Exes\csi\net46\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutputPath) $(NuGetReleaseVersion) $(OutputPath)NuGet\Release &quot;$(GitHeadSha)&quot;" Condition="'$(SkipReleaseVersion)' != 'true'" />
   </Target>
 
   <Target Name="Clean">
-    <RemoveDir Directories="$(OutDir)NuGet" />
+    <RemoveDir Directories="$(OutputPath)NuGet" />
   </Target>
 
   <Target Name="Rebuild" DependsOnTargets="Clean;Build">

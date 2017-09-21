@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -39,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportDiagnostic(diagnostics, node, ERRID.ERR_StrictDisallowsLateBinding)
                 End If
 
-                Dim children = ArrayBuilder(Of BoundNode).GetInstance
+                Dim children = ArrayBuilder(Of BoundExpression).GetInstance
                 If receiver IsNot Nothing Then
                     children.Add(receiver)
                 End If
@@ -128,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If receiver.IsNothingLiteral Then
                 ReportDiagnostic(diagnostics, node, ERRID.ERR_IllegalCallOrIndex)
 
-                Return BadExpression(node, StaticCast(Of BoundNode).From(arguments), ErrorTypeSymbol.UnknownResultType)
+                Return BadExpression(node, arguments, ErrorTypeSymbol.UnknownResultType)
             End If
 
             If OptionStrict = VisualBasic.OptionStrict.On Then
@@ -137,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' "Option Strict On disallows late binding."
                 ReportDiagnostic(diagnostics, GetLocationForOverloadResolutionDiagnostic(node, groupOpt), ERRID.ERR_StrictDisallowsLateBinding)
 
-                Dim children = ArrayBuilder(Of BoundNode).GetInstance
+                Dim children = ArrayBuilder(Of BoundExpression).GetInstance
                 If receiver IsNot Nothing Then
                     children.Add(receiver)
                 End If
@@ -156,6 +157,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim objectType = GetSpecialType(SpecialType.System_Object, node, diagnostics)
 
             If Not arguments.IsEmpty Then
+                CheckNamedArgumentsForLateboundInvocation(argumentNames, arguments, diagnostics)
+
                 Dim builder As ArrayBuilder(Of BoundExpression) = Nothing
 
                 For i As Integer = 0 To arguments.Length - 1
@@ -218,7 +221,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundLateInvocation(node, receiver, arguments, argumentNames, LateBoundAccessKind.Unknown, groupOpt, objType)
         End Function
 
+        Private Sub CheckNamedArgumentsForLateboundInvocation(argumentNames As ImmutableArray(Of String),
+                                                            arguments As ImmutableArray(Of BoundExpression),
+                                                            diagnostics As DiagnosticBag)
 
+            Debug.Assert(Not arguments.IsDefault)
+
+            If argumentNames.IsDefault OrElse argumentNames.Count = 0 Then
+                Return
+            End If
+
+            If Not Compilation.LanguageVersion.AllowNonTrailingNamedArguments() Then
+                Return
+            End If
+
+            Dim seenName As Boolean = False
+            For i As Integer = 0 To argumentNames.Count - 1
+
+                If argumentNames(i) IsNot Nothing Then
+                    seenName = True
+                ElseIf seenName Then
+                    ReportDiagnostic(diagnostics, arguments(i).Syntax, ERRID.ERR_NamedArgumentSpecificationBeforeFixedArgumentInLateboundInvocation)
+                    Return
+                End If
+            Next
+
+        End Sub
     End Class
 End Namespace
 

@@ -329,7 +329,7 @@ class Test2 : M4
             var crossRefModule2 = TestReferences.SymbolsTests.netModule.CrossRefModule2;
             var crossRefLib = TestReferences.SymbolsTests.netModule.CrossRefLib;
 
-            var compilation1 = CreateCompilationWithMscorlib(compilationDef1, new MetadataReference[] { crossRefLib }, TestOptions.ReleaseDll);
+            var compilation1 = CreateStandardCompilation(compilationDef1, new MetadataReference[] { crossRefLib }, TestOptions.ReleaseDll);
 
             compilation1.VerifyDiagnostics();
 
@@ -349,7 +349,7 @@ public class M3 : M1
 public class M4 : M2
 {}
 ";
-            var compilation2 = CreateCompilationWithMscorlib(compilationDef2, new MetadataReference[] { crossRefModule1, crossRefModule2 }, TestOptions.ReleaseDll);
+            var compilation2 = CreateStandardCompilation(compilationDef2, new MetadataReference[] { crossRefModule1, crossRefModule2 }, TestOptions.ReleaseDll);
 
             compilation2.VerifyDiagnostics();
 
@@ -361,7 +361,7 @@ public class M4 : M2
             Assert.False(m4.BaseType.IsErrorType());
             Assert.False(m4.BaseType.BaseType.IsErrorType());
 
-            var compilation3 = CreateCompilationWithMscorlib(compilationDef2, new MetadataReference[] { crossRefModule2 }, TestOptions.ReleaseDll);
+            var compilation3 = CreateStandardCompilation(compilationDef2, new MetadataReference[] { crossRefModule2 }, TestOptions.ReleaseDll);
 
             m3 = compilation3.GetTypeByMetadataName("M3");
             m4 = compilation3.GetTypeByMetadataName("M4");

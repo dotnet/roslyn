@@ -1,18 +1,51 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
+    <!-- xUnit.net Console Runner -->
     <XUnitPath>$(NuGetPackageRoot)\xunit.runner.console\$(xunitrunnerconsoleVersion)\tools\xunit.console.x86.exe</XUnitPath>
     <XUnitTestResultsDirectory>$(OutDir)\xUnitResults</XUnitTestResultsDirectory>
     <XUnitArguments>"$(OutDir)\$(AssemblyName).dll" -html "$(XUnitTestResultsDirectory)\$(AssemblyName).html" -noshadow</XUnitArguments>
-
-    <StartAction Condition="'$(StartActions)' == ''">Program</StartAction>
-    <StartProgram Condition="'$(StartProgram)' == ''">$(XUnitPath)</StartProgram>
-    <StartArguments Condition="'$(StartArguments)' == ''">$(XUnitArguments)</StartArguments>
-
     <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);AddDefaultTestAppConfig</PrepareForBuildDependsOn>
+
+    <!-- xUnit.net WPF Runner -->
+    <XUnitWpfPath>$(NuGetPackageRoot)\xunit.runner.wpf\$(xunitrunnerwpfVersion)\tools\xunit.runner.wpf.exe</XUnitWpfPath>
+    <XUnitWpfArguments>"$(OutDir)\$(AssemblyName).dll"</XUnitWpfArguments>
+
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
+
+    <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net461' AND '$(RuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">win7</RuntimeIdentifier>
   </PropertyGroup>
+    
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
+    <Content Include="$(NetStandard20RefPath)\netstandard.dll">
+      <Link>ref/%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NetStandard20RefPath)\mscorlib.dll">
+      <Link>ref/%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NetStandard20RefPath)\System.Runtime.dll">
+      <Link>ref/%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NetStandard20RefPath)\System.Dynamic.Runtime.dll">
+      <Link>ref/%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(MicrosoftCSharpRefPath)\Microsoft.CSharp.dll">
+      <Link>ref/%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+  </ItemGroup>
 
   <Target Name="Test" DependsOnTargets="Build">
     <MakeDir Directories="$(XUnitTestResultsDirectory)" />
@@ -23,8 +56,8 @@
   <Target Name="AddDefaultTestAppConfig">
     <PropertyGroup>
       <_AlreadyHasAppConfig Condition="'%(None.Filename)%(None.Extension)' == 'app.config'">true</_AlreadyHasAppConfig>
-      <_DefaultAppConfigFile Condition="'$(RoslynProjectType)' == 'UnitTest'">$(MSBuildThisFileDirectory)..\Defaults\Desktop\app.config</_DefaultAppConfigFile>
-      <_DefaultAppConfigFile Condition="'$(RoslynProjectType)' != 'UnitTest'">$(MSBuildThisFileDirectory)..\Defaults\Portable\app.config</_DefaultAppConfigFile>
+      <_DefaultAppConfigFile Condition="'$(TargetFramework)' != 'netcoreapp2.0'">$(MSBuildThisFileDirectory)..\Defaults\Desktop\app.config</_DefaultAppConfigFile>
+      <_DefaultAppConfigFile Condition="'$(TargetFramework)' == 'netcoreapp2.0'">$(MSBuildThisFileDirectory)..\Defaults\Portable\app.config</_DefaultAppConfigFile>
     </PropertyGroup>
 
     <ItemGroup Condition="'$(_AlreadyHasAppConfig)' != 'true'">
@@ -32,7 +65,5 @@
         <Link>app.config</Link>
       </None>
     </ItemGroup>
-
   </Target>
-
 </Project>

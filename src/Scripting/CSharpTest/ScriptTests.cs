@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -13,6 +13,8 @@ using System.IO;
 using System.Globalization;
 using System.Text;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Scripting.Test;
+using KeyValuePair = Roslyn.Utilities.KeyValuePair;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
@@ -129,13 +131,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         }
 
         [Fact]
-        public async Task TestRunVoidScript()
+        public void TestRunVoidScript()
         {
-            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
-            {
-                var state = await CSharpScript.RunAsync("System.Console.WriteLine(0);");
-                Assert.Null(state.ReturnValue);
-            }
+            var state = ScriptingTestHelpers.RunScriptWithOutput(
+                CSharpScript.Create("System.Console.WriteLine(0);"),
+                "0");
+            Assert.Null(state.ReturnValue);
         }
 
         [WorkItem(5279, "https://github.com/dotnet/roslyn/issues/5279")]
@@ -448,14 +449,10 @@ const int z = 3;
         }
 
         [Fact]
-        public async Task NoReturn()
+        public void NoReturn()
         {
-            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
-            {
-                var script = CSharpScript.Create<object>("System.Console.WriteLine();");
-                var result = await script.EvaluateAsync();
-                Assert.Null(result);
-            }
+            Assert.Null(ScriptingTestHelpers.EvaluateScriptWithOutput(
+                CSharpScript.Create("System.Console.WriteLine();"), ""));
         }
 
         [Fact]
@@ -500,11 +497,7 @@ if (condition)
 }
 System.Console.WriteLine();");
 
-            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
-            {
-                result = await script.EvaluateAsync();
-                Assert.Equal(1, result);
-            }
+            Assert.Equal(1, ScriptingTestHelpers.EvaluateScriptWithOutput(script, ""));
         }
 
         [Fact]
@@ -528,11 +521,7 @@ if (condition)
 }
 System.Console.WriteLine()");
 
-            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
-            {
-                result = await script.EvaluateAsync();
-                Assert.Equal(0, result);
-            }
+            Assert.Equal(0, ScriptingTestHelpers.EvaluateScriptWithOutput(script, ""));
         }
 
         [Fact]
@@ -641,29 +630,26 @@ if (false)
         }
 
         [Fact]
-        public async Task ReturnInLoadedFileTrailingVoidExpression()
+        public void ReturnInLoadedFileTrailingVoidExpression()
         {
-            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
-            {
-                var resolver = TestSourceReferenceResolver.Create(
-                    KeyValuePair.Create("a.csx", @"
+            var resolver = TestSourceReferenceResolver.Create(
+                KeyValuePair.Create("a.csx", @"
 if (false)
 {
     return 1;
 }
 System.Console.WriteLine(42)"));
-                var options = ScriptOptions.Default.WithSourceResolver(resolver);
+            var options = ScriptOptions.Default.WithSourceResolver(resolver);
 
-                var script = CSharpScript.Create("#load \"a.csx\"", options);
-                var result = await script.EvaluateAsync();
-                Assert.Null(result);
+            var script = CSharpScript.Create("#load \"a.csx\"", options);
+            var result = ScriptingTestHelpers.EvaluateScriptWithOutput(script, "42");
+            Assert.Null(result);
 
-                script = CSharpScript.Create(@"
+            script = CSharpScript.Create(@"
 #load ""a.csx""
 2", options);
-                result = await script.EvaluateAsync();
-                Assert.Equal(2, result);
-            }
+            result = ScriptingTestHelpers.EvaluateScriptWithOutput(script, "42");
+            Assert.Equal(2, result);
         }
 
         [Fact]
@@ -817,7 +803,8 @@ i", options);
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromString_CodeFromFile_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFilePath("debug.csx").WithFileEncoding(Encoding.UTF8);
@@ -838,7 +825,8 @@ i", options);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromStream_CodeFromFile_WithEmitDebugInformation_ResultInPdbEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFilePath("debug.csx");
@@ -852,14 +840,16 @@ i", options);
             return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromString_InlineCode_WithEmitDebugInformation_WithoutFileEncoding_ResultInPdbEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFileEncoding(null);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), line: 1, column: 1, filename: "");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromString_InlineCode_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFileEncoding(Encoding.UTF8);
@@ -880,7 +870,8 @@ i", options);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromStream_InlineCode_WithEmitDebugInformation_ResultInPdbEmitted()
         {
             var opts = ScriptOptions.Default.WithEmitDebugInformation(true);
@@ -896,15 +887,12 @@ i", options);
 
         [WorkItem(12348, "https://github.com/dotnet/roslyn/issues/12348")]
         [Fact]
-        public async Task StreamWithOffset()
+        public void StreamWithOffset()
         {
             var resolver = new StreamOffsetResolver();
             var options = ScriptOptions.Default.WithSourceResolver(resolver);
             var script = CSharpScript.Create(@"#load ""a.csx""", options);
-            using (var redirect = new OutputRedirect(CultureInfo.InvariantCulture))
-            {
-                await script.EvaluateAsync();
-            }
+            ScriptingTestHelpers.EvaluateScriptWithOutput(script, "Hello World!");
         }
 
         private class StreamOffsetResolver : SourceReferenceResolver
@@ -957,7 +945,8 @@ i", options);
             catch (Exception ex)
             {
                 // line information is only available when PDBs have been emitted
-                var stackTrace = new StackTrace(ex, needFileInfo: true);
+                var needFileInfo = true;
+                var stackTrace = new StackTrace(ex, needFileInfo);
                 var firstFrame = stackTrace.GetFrames()[0];
                 Assert.Equal(filename, firstFrame.GetFileName());
                 Assert.Equal(line, firstFrame.GetFileLineNumber());

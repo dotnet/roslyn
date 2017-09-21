@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.DocumentationComments;
@@ -38,6 +38,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public bool IsWriteOnly => _symbol.IsWriteOnly;
 
             public bool ReturnsByRef => _symbol.ReturnsByRef;
+
+            public bool ReturnsByRefReadonly => _symbol.ReturnsByRefReadonly;
 
             public IPropertySymbol OverriddenProperty => _symbol.OverriddenProperty;
 

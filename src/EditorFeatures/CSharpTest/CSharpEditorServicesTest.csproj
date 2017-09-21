@@ -1,147 +1,50 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\Settings.props" />
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <StartupObject />
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <TargetFrameworkProfile />
+    <TargetFramework>net461</TargetFramework>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
-      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
-      <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
-      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
-      <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj">
-      <Project>{7a4b2176-7bfd-4b75-a61a-e25a1fdd0a1e}</Project>
-      <Name>CSharpCompilerTestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj">
-      <Project>{4371944a-d3ba-4b5b-8285-82e5ffc6d1f9}</Project>
-      <Name>CSharpCompilerTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj">
-      <Project>{fe2cbea6-d121-4faa-aa8b-fc9900bf8c83}</Project>
-      <Name>CSharpInteractiveEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.csproj">
-      <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
-      <Name>TestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
-      <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
-      <Name>Workspaces.Desktop</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
-      <Project>{5F8D2414-064A-4B3A-9B42-8E2A04246BE5}</Project>
-      <Name>Workspaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Features\CSharp\Portable\CSharpFeatures.csproj">
-      <Project>{3973B09A-4FBF-44A5-8359-3D22CEB71F71}</Project>
-      <Name>CSharpFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
-      <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
-      <Name>Features</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj">
-      <Project>{92412D1A-0F23-45B5-B196-58839C524917}</Project>
-      <Name>InteractiveEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Interactive\Features\InteractiveFeatures.csproj">
-      <Project>{8E2A252E-A140-45A6-A81A-2652996EA589}</Project>
-      <Name>InteractiveFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\EditorFeatures\Text\TextEditorFeatures.csproj">
-      <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
-      <Name>TextEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
-      <Project>{21B239D0-D144-430F-A394-C066D58EE267}</Project>
-      <Name>CSharpWorkspace</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj">
-      <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
-      <Name>EditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\EditorFeatures\CSharp\CSharpEditorFeatures.csproj">
-      <Project>{B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2}</Project>
-      <Name>CSharpEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">
-      <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
-      <Name>CompilerTestResources</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TestUtilities\ServicesTestUtilities.csproj">
-      <Project>{76C6F005-C89D-4348-BB4A-39189DDBEB52}</Project>
-      <Name>ServicesTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
-      <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
-      <Name>BasicCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\VisualBasic\BasicEditorFeatures.vbproj">
-      <Project>{49bfae50-1bce-48ae-bc89-78b7d90a3ecd}</Project>
-      <Name>BasicEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj">
-      <Project>{a1bcd0ce-6c2f-4f8c-9a48-d9d93928e26d}</Project>
-      <Name>BasicFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Interactive\EditorFeatures\VisualBasic\BasicInteractiveEditorFeatures.vbproj">
-      <Project>{849e516a-595f-474b-adb4-e099f921cedf}</Project>
-      <Name>BasicInteractiveEditorFeatures</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\VisualBasic\BasicScripting.vbproj">
-      <Project>{3e7dea65-317b-4f43-a25d-62f18d96cfd7}</Project>
-      <Name>BasicScripting</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj">
-      <Project>{57ca988d-f010-4bf2-9a2e-07d6dcd2ff2c}</Project>
-      <Name>BasicWorkspace</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj">
-      <Project>{066f0dbd-c46c-4c20-afec-99829a172625}</Project>
-      <Name>CSharpScripting</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Interactive\Host\InteractiveHost.csproj">
-      <Project>{eba4dfa1-6ded-418f-a485-a3b608978906}</Project>
-      <Name>InteractiveHost</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Test\PdbUtilities\PdbUtilities.csproj">
-      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
-      <Name>PdbUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj">
-      <Project>{f822f72a-cc87-4e31-b57d-853f65cbebf3}</Project>
-      <Name>RemoteWorkspaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj">
-      <Project>{12a68549-4e8c-42d6-8703-a09335f97997}</Project>
-      <Name>Scripting</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj">
-      <Project>{80fddd00-9393-47f7-8baf-7e87ce011068}</Project>
-      <Name>ServiceHub</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj">
-      <Project>{3f2fdc1c-dc6f-44cb-b4a1-a9026f25d66e}</Project>
-      <Name>WorkspacesTestUtilities</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp.Desktop\CSharpCompilerTestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj" />
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
+    <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.csproj" />
+    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj" />
+    <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj" />
+    <ProjectReference Include="..\..\Features\CSharp\Portable\CSharpFeatures.csproj" />
+    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj" />
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\Interactive\Features\InteractiveFeatures.csproj" />
+    <ProjectReference Include="..\..\EditorFeatures\Text\TextEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj" />
+    <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj" />
+    <ProjectReference Include="..\..\EditorFeatures\CSharp\CSharpEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj" />
+    <ProjectReference Include="..\TestUtilities\ServicesTestUtilities.csproj" />
+    <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
+    <ProjectReference Include="..\VisualBasic\BasicEditorFeatures.vbproj" />
+    <ProjectReference Include="..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj" />
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\VisualBasic\BasicInteractiveEditorFeatures.vbproj" />
+    <ProjectReference Include="..\..\Scripting\VisualBasic\BasicScripting.vbproj" />
+    <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj" />
+    <ProjectReference Include="..\..\Scripting\CSharp\CSharpScripting.csproj" />
+    <ProjectReference Include="..\..\Interactive\Host\InteractiveHost.csproj" />
+    <ProjectReference Include="..\..\Test\PdbUtilities\PdbUtilities.csproj" />
+    <ProjectReference Include="..\..\Workspaces\Remote\Core\RemoteWorkspaces.csproj" />
+    <ProjectReference Include="..\..\Scripting\Core\Scripting.csproj" />
+    <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj" />
+    <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj" />
   </ItemGroup>
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{AC2BCEFB-9298-4621-AC48-1FF5E639E48D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.Editor.CSharp.UnitTests</AssemblyName>
@@ -161,314 +64,21 @@
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor" Version="$(MicrosoftVisualStudioPlatformVSEditorVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor.Interop" Version="$(MicrosoftVisualStudioPlatformVSEditorInteropVersion)" />
+    <PackageReference Include="BasicUndo" Version="$(BasicUndoVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow" Version="$(MicrosoftVisualStudioInteractiveWindowVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal" Version="$(MicrosoftVisualStudioTextInternalVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="$(MicrosoftVisualStudioLanguageCallHierarchyVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AddBraces\AddBracesFixAllTests.cs" />
-    <Compile Include="AddBraces\AddBracesTests.cs" />
-    <Compile Include="AddParameter\AddParameterTests.cs" />
-    <Compile Include="AutomaticCompletion\AutomaticBraceCompletionTests.cs" />
-    <Compile Include="AutomaticCompletion\AutomaticBracketCompletionTests.cs" />
-    <Compile Include="AutomaticCompletion\AutomaticLessAndGreaterThanCompletionTests.cs" />
-    <Compile Include="AutomaticCompletion\AutomaticLineEnderTests.cs" />
-    <Compile Include="AutomaticCompletion\AutomaticLiteralCompletionTests.cs" />
-    <Compile Include="AutomaticCompletion\AutomaticParenthesisCompletionTests.cs" />
-    <Compile Include="BlockCommentEditing\BlockCommentEditingTests.cs" />
-    <Compile Include="BraceHighlighting\BraceHighlightingTests.cs" />
-    <Compile Include="BraceMatching\CSharpBraceMatcherTests.cs" />
-    <Compile Include="CallHierarchy\CallHierarchyTests.cs" />
-    <Compile Include="ChangeSignature\ChangeSignatureTests.cs" />
-    <Compile Include="ChangeSignature\ChangeSignature_CheckAllSignatureChanges.cs" />
-    <Compile Include="ChangeSignature\ChangeSignature_Delegates.cs" />
-    <Compile Include="ChangeSignature\ChangeSignature_Formatting.cs" />
-    <Compile Include="ChangeSignature\RemoveParametersTests.cs" />
-    <Compile Include="ChangeSignature\ReorderParametersTests.Cascading.cs" />
-    <Compile Include="ChangeSignature\ReorderParametersTests.cs" />
-    <Compile Include="ChangeSignature\ReorderParametersTests.InvocationErrors.cs" />
-    <Compile Include="ChangeSignature\ReorderParametersTests.InvocationLocation.cs" />
-    <Compile Include="Classification\AbstractCSharpClassifierTests.cs" />
-    <Compile Include="Classification\SemanticClassifierTests.cs" />
-    <Compile Include="Classification\SyntacticClassifierTests.cs" />
-    <Compile Include="Classification\SyntacticClassifierTests_Preprocessor.cs" />
-    <Compile Include="Classification\SyntacticTaggerTests.cs" />
-    <Compile Include="Classification\TotalClassifierTests.cs" />
-    <Compile Include="Classification\TotalClassifierTests_Dynamic.cs" />
-    <Compile Include="CodeActions\AbstractCSharpCodeActionTest.cs" />
-    <Compile Include="CodeActions\ConvertIfToSwitch\ConvertIfToSwitchTests.cs" />
-    <Compile Include="CodeActions\ConvertNumericLiteral\ConvertNumericLiteralTests.cs" />
-    <Compile Include="CodeActions\UseNamedArguments\UseNamedArgumentsTests.cs" />
-    <Compile Include="ConflictMarkerResolution\ConflictMarkerResolutionTests.cs" />
-    <Compile Include="Completion\CompletionProviders\OverrideCompletionProviderTests_ExpressionBody.cs" />
-    <Compile Include="Completion\CompletionProviders\TupleNameCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProviderTests.cs" />
-    <Compile Include="ConvertToInterpolatedString\ConvertConcatenationToInterpolatedStringTests.cs" />
-    <Compile Include="ConvertToInterpolatedString\ConvertPlaceholderToInterpolatedStringTests.cs" />
-    <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.cs" />
-    <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.cs" />
-    <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.cs" />
-    <Compile Include="Diagnostics\UpgradeProject\UpgradeProjectTests.cs" />
-    <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProviderTests_NameDeclarationInfoTests.cs" />
-    <Compile Include="GenerateFromMembers\AddConstructorParametersFromMembers\AddConstructorParametersFromMembersTests.cs" />
-    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.cs" />
-    <Compile Include="CodeActions\InlineTemporary\InlineTemporaryTests.cs" />
-    <Compile Include="CodeActions\IntroduceVariable\IntroduceVariableTests.cs" />
-    <Compile Include="CodeActions\InvertIf\InvertIfTests.cs" />
-    <Compile Include="CodeActions\LambdaSimplifier\LambdaSimplifierTests.cs" />
-    <Compile Include="CodeActions\MoveType\CSharpMoveTypeTestsBase.cs" />
-    <Compile Include="CodeActions\MoveType\MoveTypeTests.ActionCountTests.cs" />
-    <Compile Include="CodeActions\MoveType\MoveTypeTests.MoveToNewFile.cs" />
-    <Compile Include="CodeActions\MoveType\MoveTypeTests.RenameType.cs" />
-    <Compile Include="CodeActions\MoveType\MoveTypeTests.RenameFile.cs" />
-    <Compile Include="CodeActions\ReplacePropertyWithMethods\ReplacePropertyWithMethodsTests.cs" />
-    <Compile Include="CodeLens\CSharpCodeLensTests.cs" />
-    <Compile Include="Completion\CompletionServiceTests.cs" />
-    <Compile Include="Diagnostics\AddUsing\AddUsingTests_NuGet.cs" />
-    <Compile Include="Diagnostics\GenerateMethod\GenerateConversionTests.cs" />
-    <Compile Include="Diagnostics\InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessTests_FixAllTests.cs" />
-    <Compile Include="Diagnostics\MakeMethodSynchronous\MakeMethodSynchronousTests.cs" />
-    <Compile Include="CodeActions\MoveDeclarationNearReference\MoveDeclarationNearReferenceTests.cs" />
-    <Compile Include="CodeActions\Preview\ErrorCases\ExceptionInCodeAction.cs" />
-    <Compile Include="CodeActions\Preview\PreviewExceptionTests.cs" />
-    <Compile Include="CodeActions\Preview\PreviewTests.cs" />
-    <Compile Include="CodeActions\ReplaceMethodWithProperty\ReplaceMethodWithPropertyTests.cs" />
-    <Compile Include="Diagnostics\InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessTests.cs" />
-    <Compile Include="Diagnostics\NamingStyles\EditorConfigNamingStyleParserTests.cs" />
-    <Compile Include="Diagnostics\NamingStyles\NamingStylesTests_OptionSets.cs" />
-    <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests.cs" />
-    <Compile Include="Diagnostics\PreferFrameworkType\PreferFrameworkTypeTests_FixAllTests.cs" />
-    <Compile Include="Diagnostics\RemoveUnusedVariable\RemoveUnusedVariableTest.cs" />
-    <Compile Include="Extensions\ContextQuery\IsPossibleDeconstructionDesignationTests.cs" />
-    <Compile Include="Extensions\ContextQuery\PossibleTupleContextTests.cs" />
-    <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndGetHashCodeFromMembersTests.cs" />
-    <Compile Include="GenerateOverrides\GenerateOverridesTests.cs" />
-    <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests.cs" />
-    <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
-    <Compile Include="Diagnostics\SpellCheck\SpellCheckTests.cs" />
-    <Compile Include="Diagnostics\Suppression\RemoveSuppressionTests.cs" />
-    <Compile Include="Diagnostics\Suppression\SuppressionTest_FixMultipleTests.cs" />
-    <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.cs" />
-    <Compile Include="CommentSelection\CSharpCommentSelectionTests.cs" />
-    <Compile Include="Completion\CompletionProviders\AbstractCSharpCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\AttributeNamedParameterCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\CrefCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\EnumAndCompletionListTagCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\ExplicitInterfaceCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\ExternAliasCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\GlobalAssemblyCacheCompletionHelperTests.cs" />
-    <Compile Include="Completion\CompletionProviders\KeywordCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\NamedParameterCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\ObjectCreationCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\ObjectInitializerCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\OverrideCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\PartialMethodCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\SnippetCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\SpeculativeTCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\SuggestionModeCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\SymbolCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\SymbolCompletionProviderTests_NoInteractive.cs" />
-    <Compile Include="Completion\CompletionProviders\XmlDocumentationCommentCompletionProviderTests.cs" />
-    <Compile Include="Completion\LoadDirectiveCompletionProviderTests.cs" />
-    <Compile Include="Completion\ReferenceDirectiveCompletionProviderTests.cs" />
-    <Compile Include="Diagnostics\NamingStyles\NamingStylesTests.cs" />
-    <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseExplicitTypeTests.cs" />
-    <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseExplicitTypeTests_FixAllTests.cs" />
-    <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseImplicitTypeTests.cs" />
-    <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseImplicitTypeTests_FixAllTests.cs" />
-    <Compile Include="DocumentationComments\CodeFixes\AddDocCommentNodesCodeFixProviderTests.cs" />
-    <Compile Include="DocumentationComments\CodeFixes\RemoveDocCommentNodeCodeFixProviderTests.cs" />
-    <Compile Include="GoToAdjacentMember\CSharpGoToAdjacentMemberTests.cs" />
-    <Compile Include="Diagnostics\AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest.cs" />
-    <Compile Include="Diagnostics\AddUsing\AddUsingTests.cs" />
-    <Compile Include="Diagnostics\AddUsing\AddUsingTests_ExtensionMethods.cs" />
-    <Compile Include="Diagnostics\AddUsing\AddUsingTests_Queries.cs" />
-    <Compile Include="Diagnostics\MakeMethodAsynchronous\MakeMethodAsynchronousTests.cs" />
-    <Compile Include="Diagnostics\Async\AddAwaitTests.cs" />
-    <Compile Include="Diagnostics\Async\ChangeToAsyncTests.cs" />
-    <Compile Include="Diagnostics\DiagnosticAnalyzerDriver\DiagnosticAnalyzerDriverTests.cs" />
-    <Compile Include="Diagnostics\FixAllProvider\BatchFixerTests.cs" />
-    <Compile Include="Diagnostics\FullyQualify\FullyQualifyTests.cs" />
-    <Compile Include="GenerateConstructor\GenerateConstructorTests.cs" />
-    <Compile Include="Diagnostics\GenerateEnumMember\GenerateEnumMemberTests.cs" />
-    <Compile Include="Diagnostics\GenerateMethod\GenerateMethodTests.cs" />
-    <Compile Include="Diagnostics\GenerateType\GenerateTypeTests.cs" />
-    <Compile Include="Diagnostics\GenerateType\GenerateTypeTests_Dialog.cs" />
-    <Compile Include="Diagnostics\GenerateVariable\GenerateVariableTests.cs" />
-    <Compile Include="Diagnostics\HideBase\HideBaseTests.cs" />
-    <Compile Include="ImplementAbstractClass\ImplementAbstractClassTests.cs" />
-    <Compile Include="ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.cs" />
-    <Compile Include="ImplementInterface\ImplementInterfaceTests_FixAllTests.cs" />
-    <Compile Include="ImplementInterface\ImplementInterfaceTests.cs" />
-    <Compile Include="Diagnostics\Iterator\AddYieldTests.cs" />
-    <Compile Include="Diagnostics\Iterator\ChangeToIEnumerableTests.cs" />
-    <Compile Include="Diagnostics\MockDiagnosticAnalyzerTests.cs" />
-    <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.cs" />
-    <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.cs" />
-    <Compile Include="RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests.cs" />
-    <Compile Include="RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests_FixAllTests.cs" />
-    <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests_FixAllTests.cs" />
-    <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests.cs" />
-    <Compile Include="Diagnostics\Suppression\SuppressionTest_FixAllTests.cs" />
-    <Compile Include="Diagnostics\Suppression\SuppressionAllCodeTests.cs" />
-    <Compile Include="Diagnostics\Suppression\SuppressionTests.cs" />
-    <Compile Include="DocumentationComments\DocumentationCommentTests.cs" />
-    <Compile Include="DocumentationComments\XmlTagCompletionTests.cs" />
-    <Compile Include="EditAndContinue\ActiveStatementTests.cs" />
-    <Compile Include="EditAndContinue\ActiveStatementTests.Methods.cs" />
-    <Compile Include="EditAndContinue\ActiveStatementTrackingServiceTests.cs" />
-    <Compile Include="EditAndContinue\BreakpointSpansTests.cs" />
-    <Compile Include="EditAndContinue\CSharpEditAndContinueAnalyzerTests.cs" />
-    <Compile Include="EditAndContinue\Helpers\CSharpEditAndContinueTestHelpers.cs" />
-    <Compile Include="EditAndContinue\Helpers\Extensions.cs" />
-    <Compile Include="EditAndContinue\Helpers\RudeEditTestBase.cs" />
-    <Compile Include="EditAndContinue\LineEditTests.cs" />
-    <Compile Include="EditAndContinue\RudeEditStatementTests.cs" />
-    <Compile Include="EditAndContinue\RudeEditTopLevelTests.cs" />
-    <Compile Include="EditAndContinue\SyntaxComparerTests.cs" />
-    <Compile Include="EditAndContinue\SyntaxUtilitiesTests.cs" />
-    <Compile Include="EncapsulateField\EncapsulateFieldCommandHandlerTests.cs" />
-    <Compile Include="EncapsulateField\EncapsulateFieldTestState.cs" />
-    <Compile Include="EventHookup\EventHookupCommandHandlerTests.cs" />
-    <Compile Include="EventHookup\EventHookupTestState.cs" />
-    <Compile Include="Extensions\ContextQuery\AbstractContextTests.cs" />
-    <Compile Include="Extensions\ContextQuery\NamespaceContextTests.cs" />
-    <Compile Include="Extensions\ContextQuery\TypeContextTests.cs" />
-    <Compile Include="Extensions\SyntaxTreeExtensionsTests.cs" />
-    <Compile Include="ExtractInterface\ExtractInterfaceTests.cs" />
-    <Compile Include="ExtractMethod\ExtractMethodBase.cs" />
-    <Compile Include="ExtractMethod\ExtractMethodTests.cs" />
-    <Compile Include="ExtractMethod\ExtractMethodTests.LanguageInteraction.cs" />
-    <Compile Include="ExtractMethod\MiscTests.cs" />
-    <Compile Include="ExtractMethod\SelectionValidatorTests.cs" />
-    <Compile Include="Formatting\FormattingEngineTestBase.cs" />
-    <Compile Include="Formatting\FormattingEngineTests.cs" />
-    <Compile Include="Formatting\FormattingEngineTests_Venus.cs" />
-    <Compile Include="Formatting\Indentation\FormatterTestsBase.cs" />
-    <Compile Include="Formatting\Indentation\SmartIndenterEnterOnTokenTests.cs" />
-    <Compile Include="Formatting\Indentation\SmartIndenterTests.cs" />
-    <Compile Include="Formatting\Indentation\SmartIndenterTests_Performance.cs" />
-    <Compile Include="Formatting\Indentation\SmartTokenFormatterFormatRangeTests.cs" />
-    <Compile Include="Formatting\Indentation\SmartTokenFormatterFormatTokenTests.cs" />
-    <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests_FixAllTests.cs" />
-    <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests.cs" />
-    <Compile Include="Structure\ArrowExpressionClauseStructureTests.cs" />
-    <Compile Include="Structure\InitializerExpressionStructureTests.cs" />
-    <Compile Include="SuggestionTags\SuggestionTagProducerTests.cs" />
-    <Compile Include="UseCollectionInitializer\UseCollectionInitializerTests.cs" />
-    <Compile Include="UseCoalesceExpression\UseCoalesceExpressionForNullableTests.cs" />
-    <Compile Include="UseCoalesceExpression\UseCoalesceExpressionTests.cs" />
-    <Compile Include="UseExplicitTupleName\UseExplicitTupleNameTests.cs" />
-    <Compile Include="UseNullPropagation\UseNullPropagationTests.cs" />
-    <Compile Include="UsePatternMatching\CSharpIsAndCastCheckTests_FixAllTests.cs" />
-    <Compile Include="UsePatternMatching\CSharpIsAndCastCheckTests.cs" />
-    <Compile Include="UsePatternMatching\CSharpAsAndNullCheckTests.cs" />
-    <Compile Include="UsePatternMatching\CSharpAsAndNullCheckTests_FixAllTests.cs" />
-    <Compile Include="Interactive\BraceMatching\InteractiveBraceHighlightingTests.cs" />
-    <Compile Include="Interactive\CodeActions\InteractiveIntroduceVariableTests.cs" />
-    <Compile Include="Interactive\NavigateTo\InteractiveNavigateToTests.cs" />
-    <Compile Include="KeywordHighlighting\AbstractCSharpKeywordHighlighterTests.cs" />
-    <Compile Include="KeywordHighlighting\AsyncAnonymousMethodHighlighterTests.cs" />
-    <Compile Include="KeywordHighlighting\AsyncMethodHighlighterTests.cs" />
-    <Compile Include="KeywordHighlighting\AsyncParenthesizedLambdaHighlighterTests.cs" />
-    <Compile Include="KeywordHighlighting\AsyncSimpleLambdaHighlighterTests.cs" />
-    <Compile Include="KeywordHighlighting\AwaitHighlighterTests.cs" />
-    <Compile Include="KeywordHighlighting\CheckedExpressionHighlighterTests.cs" />
-    <Compile Include="KeywordHighlighting\CheckedStatementHighlighterTests.cs" />
-    <Compile Include="KeywordHighlighting\ConditionalPreprocessorHighlighterTests.cs" />
-    <Compile Include="KeywordHighlighting\IfStatementHighlighterTests.cs" />
-    <Compile Include="KeywordHighlighting\LockStatementHighlighterTests.cs" />
-    <Compile Include="KeywordHighlighting\LoopHighlighterTests.cs" />
-    <Compile Include="KeywordHighlighting\RegionHighlighterTests.cs" />
-    <Compile Include="KeywordHighlighting\ReturnStatementHighlighterTests.cs" />
-    <Compile Include="KeywordHighlighting\SwitchStatementHighlighterTests.cs" />
-    <Compile Include="KeywordHighlighting\TryStatementHighlighterTests.cs" />
-    <Compile Include="KeywordHighlighting\UnsafeStatementHighlighterTests.cs" />
-    <Compile Include="KeywordHighlighting\UsingStatementHighlighterTests.cs" />
-    <Compile Include="KeywordHighlighting\YieldStatementHighlighterTests.cs" />
-    <Compile Include="LineSeparators\LineSeparatorTests.cs" />
-    <Compile Include="NavigateTo\NavigateToTests.cs" />
-    <Compile Include="Organizing\AbstractOrganizerTests.cs" />
-    <Compile Include="Organizing\OrganizeModifiersTests.cs" />
-    <Compile Include="Organizing\OrganizeTypeDeclarationTests.cs" />
-    <Compile Include="Organizing\OrganizeUsingsTests.cs" />
-    <Compile Include="Structure\BlockSyntaxStructureTests.cs" />
-    <Compile Include="Structure\SwitchStatementStructureTests.cs" />
-    <Compile Include="UseExpressionBody\UseExpressionBodyForIndexerTests.cs" />
-    <Compile Include="UseExpressionBody\UseExpressionBodyForPropertiesTests.cs" />
-    <Compile Include="UseExpressionBody\UseExpressionBodyForConstructorsTests.cs" />
-    <Compile Include="UseExpressionBody\UseExpressionBodyForConversionOperatorsTests.cs" />
-    <Compile Include="UseExpressionBody\UseExpressionBodyForAccessorsTests.cs" />
-    <Compile Include="UseExpressionBody\UseExpressionBodyForOperatorsTests.cs" />
-    <Compile Include="UseExpressionBody\UseExpressionBodyForMethodsTests.cs" />
-    <Compile Include="SignatureHelp\TupleConstructionSignatureHelpProviderTests.cs" />
-    <Compile Include="UseThrowExpression\UseThrowExpressionTests_FixAllTests.cs" />
-    <Compile Include="UseThrowExpression\UseThrowExpressionTests.cs" />
-    <Compile Include="Structure\AbstractCSharpSyntaxNodeStructureTests.cs" />
-    <Compile Include="Structure\AbstractCSharpSyntaxTriviaStructureTests.cs" />
-    <Compile Include="Structure\AccessorDeclarationStructureTests.cs" />
-    <Compile Include="Structure\AnonymousMethodExpressionStructureTests.cs" />
-    <Compile Include="Structure\CommentStructureTests.cs" />
-    <Compile Include="Structure\CompilationUnitStructureTests.cs" />
-    <Compile Include="Structure\ConstructorDeclarationStructureTests.cs" />
-    <Compile Include="Structure\ConversionOperatorDeclarationStructureTests.cs" />
-    <Compile Include="Structure\DelegateDeclarationStructureTests.cs" />
-    <Compile Include="Structure\DestructorDeclarationStructureTests.cs" />
-    <Compile Include="Structure\DisabledTextStructureTests.cs" />
-    <Compile Include="Structure\DocumentationCommentStructureTests.cs" />
-    <Compile Include="Structure\EnumDeclarationStructureTests.cs" />
-    <Compile Include="Structure\EventDeclarationStructureTests.cs" />
-    <Compile Include="Structure\EventFieldDeclarationStructureTests.cs" />
-    <Compile Include="Structure\FieldDeclarationStructureTests.cs" />
-    <Compile Include="Structure\IndexerDeclarationStructureTests.cs" />
-    <Compile Include="PopulateSwitch\PopulateSwitchTests.cs" />
-    <Compile Include="PopulateSwitch\PopulateSwitchTests_FixAllTests.cs" />
-    <Compile Include="QuickInfo\SemanticQuickInfoSourceTests.cs" />
-    <Compile Include="QuickInfo\SyntacticQuickInfoSourceTests.cs" />
-    <Compile Include="Semantics\SpeculationAnalyzerTests.cs" />
-    <Compile Include="SignatureHelp\AbstractCSharpSignatureHelpProviderTests.cs" />
-    <Compile Include="SignatureHelp\AttributeSignatureHelpProviderTests.cs" />
-    <Compile Include="SignatureHelp\ConstructorInitializerSignatureHelpProviderTests.cs" />
-    <Compile Include="SignatureHelp\ElementAccessExpressionSignatureHelpProviderTests.cs" />
-    <Compile Include="SignatureHelp\GenericNamePartiallyWrittenSignatureHelpProviderTests.cs" />
-    <Compile Include="SignatureHelp\GenericNameSignatureHelpProviderTests.cs" />
-    <Compile Include="SignatureHelp\InvocationExpressionSignatureHelpProviderTests.cs" />
-    <Compile Include="SignatureHelp\ObjectCreationExpressionSignatureHelpProviderTests.cs" />
-    <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandlerTests.cs" />
-    <Compile Include="Squiggles\ErrorSquiggleProducerTests.cs" />
-    <Compile Include="Structure\MetadataAsSource\ConstructorDeclarationStructureTests.cs" />
-    <Compile Include="Structure\MetadataAsSource\ConversionOperatorDeclarationStructureTests.cs" />
-    <Compile Include="Structure\MetadataAsSource\DelegateDeclarationStructureTests.cs" />
-    <Compile Include="Structure\MetadataAsSource\DestructorDeclarationStructureTests.cs" />
-    <Compile Include="Structure\MetadataAsSource\EnumDeclarationStructureTests.cs" />
-    <Compile Include="Structure\MetadataAsSource\EnumMemberDeclarationStructureTests.cs" />
-    <Compile Include="Structure\MetadataAsSource\EventDeclarationStructureTests.cs" />
-    <Compile Include="Structure\MetadataAsSource\EventFieldDeclarationStructureTests.cs" />
-    <Compile Include="Structure\MetadataAsSource\FieldDeclarationStructureTests.cs" />
-    <Compile Include="Structure\MetadataAsSource\IndexerDeclarationStructureTests.cs" />
-    <Compile Include="Structure\MetadataAsSource\InvalidIdentifierStructureTests.cs" />
-    <Compile Include="Structure\MetadataAsSource\MethodDeclarationStructureTests.cs" />
-    <Compile Include="Structure\MetadataAsSource\OperatorDeclarationStructureTests.cs" />
-    <Compile Include="Structure\MetadataAsSource\PropertyDeclarationStructureTests.cs" />
-    <Compile Include="Structure\MetadataAsSource\RegionDirectiveStructureTests.cs" />
-    <Compile Include="Structure\MetadataAsSource\TypeDeclarationStructureTests.cs" />
-    <Compile Include="Structure\MethodDeclarationStructureTests.cs" />
-    <Compile Include="Structure\NamespaceDeclarationStructureTests.cs" />
-    <Compile Include="Structure\OperatorDeclarationStructureTests.cs" />
-    <Compile Include="Structure\ParenthesizedLambdaStructureTests.cs" />
-    <Compile Include="Structure\PropertyDeclarationStructureTests.cs" />
-    <Compile Include="Structure\RegionDirectiveStructureTests.cs" />
-    <Compile Include="Structure\SimpleLambdaExpressionStructureTests.cs" />
-    <Compile Include="Structure\TypeDeclarationStructureTests.cs" />
-    <Compile Include="SymbolId\SymbolKeyCompilationsTests.cs" />
-    <Compile Include="SymbolId\SymbolKeyMetadataVsSourceTests.cs" />
-    <Compile Include="SymbolId\SymbolKeyTestBase.cs" />
-    <Compile Include="TextStructureNavigation\TextStructureNavigatorTests.cs" />
-    <Compile Include="TodoComment\TodoCommentTests.cs" />
-    <Compile Include="UseObjectInitializer\UseObjectInitializerTests.cs" />
-    <Compile Include="Utilities\CodeSnippets.cs" />
-    <Compile Include="Utilities\CSharpServiceTestExtensions.cs" />
-    <Compile Include="TypeInferrer\TypeInferrerTests.Delegate.cs" />
-    <Compile Include="TypeInferrer\TypeInferrerTests.cs" />
-    <Compile Include="Workspaces\WorkspaceTests.cs" />
-    <None Include="project.json" />
     <None Include="PerfTests\CSharpPerfFindRefs.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -583,7 +193,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
@@ -607,7 +216,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </None>
-    <Compile Include="Completion\CompletionProviders\PartialTypeCompletionProviderTests.cs" />
     <Content Include="PerfTests\Sources\CSharpPgoTypingInput.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -617,6 +225,17 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests2" />
+  </ItemGroup>
+  <!-- These are None\content items above. Don't pass them to the compiler. -->
+  <ItemGroup>
+    <Compile Remove="Interactive\CommandArgumentsParsingTest.cs" />
+    <Compile Remove="PerfTests\Sources\CSharpClassesAtEndBase.cs" />
+    <Compile Remove="PerfTests\Sources\LargeMethod.cs" />
+    <Compile Remove="PerfTests\Sources\Scrolling.cs" />
+    <Compile Remove="ReorderParameters\ReorderParametersTests.Cascading.cs" />
+    <Compile Remove="ReorderParameters\ReorderParametersTests.cs" />
+    <Compile Remove="ReorderParameters\ReorderParametersTests.InvocationErrors.cs" />
+    <Compile Remove="ReorderParameters\ReorderParametersTests.InvocationLocation.cs" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

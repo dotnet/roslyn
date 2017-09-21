@@ -7,7 +7,9 @@ using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -186,7 +188,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((object)_globalNamespace == null)
                 {
-                    var globalNS = new SourceNamespaceSymbol(this, this, DeclaringCompilation.MergedRootDeclaration);
+                    var diagnostics = DiagnosticBag.GetInstance();
+                    var globalNS = new SourceNamespaceSymbol(
+                        this, this, DeclaringCompilation.MergedRootDeclaration, diagnostics);
+                    Debug.Assert(diagnostics.IsEmptyWithoutResolution);
+                    diagnostics.Free();
                     Interlocked.CompareExchange(ref _globalNamespace, globalNS, null);
                 }
 
@@ -508,9 +514,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             var compilation = _assemblySymbol.DeclaringCompilation;
             if (compilation.Options.AllowUnsafe)

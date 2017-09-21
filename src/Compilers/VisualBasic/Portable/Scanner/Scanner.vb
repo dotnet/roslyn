@@ -11,6 +11,7 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Text
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
@@ -1672,6 +1673,7 @@ FullWidthRepeat:
             Dim IntegerLiteralStart As Integer
             Dim UnderscoreInWrongPlace As Boolean
             Dim UnderscoreUsed As Boolean = False
+            Dim LeadingUnderscoreUsed = False
 
             Dim Base As LiteralBase = LiteralBase.Decimal
             Dim literalKind As NumericLiteralKind = NumericLiteralKind.Integral
@@ -1694,7 +1696,10 @@ FullWidthRepeat:
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Hexadecimal
 
-                        UnderscoreInWrongPlace = (CanGet(Here) AndAlso Peek(Here) = "_"c)
+                        If CanGet(Here) AndAlso Peek(Here) = "_"c Then
+                            LeadingUnderscoreUsed = True
+                        End If
+
                         While CanGet(Here)
                             ch = Peek(Here)
                             If Not IsHexDigit(ch) AndAlso ch <> "_"c Then
@@ -1712,7 +1717,10 @@ FullWidthRepeat:
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Binary
 
-                        UnderscoreInWrongPlace = (CanGet(Here) AndAlso Peek(Here) = "_"c)
+                        If CanGet(Here) AndAlso Peek(Here) = "_"c Then
+                            LeadingUnderscoreUsed = True
+                        End If
+
                         While CanGet(Here)
                             ch = Peek(Here)
                             If Not IsBinaryDigit(ch) AndAlso ch <> "_"c Then
@@ -1730,7 +1738,10 @@ FullWidthRepeat:
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Octal
 
-                        UnderscoreInWrongPlace = (CanGet(Here) AndAlso Peek(Here) = "_"c)
+                        If CanGet(Here) AndAlso Peek(Here) = "_"c Then
+                            LeadingUnderscoreUsed = True
+                        End If
+
                         While CanGet(Here)
                             ch = Peek(Here)
                             If Not IsOctalDigit(ch) AndAlso ch <> "_"c Then
@@ -2084,13 +2095,16 @@ FullWidthRepeat2:
 
             If Overflows Then
                 result = DirectCast(result.AddError(ErrorFactory.ErrorInfo(ERRID.ERR_Overflow)), SyntaxToken)
-            ElseIf UnderscoreInWrongPlace Then
-                result = DirectCast(result.AddError(ErrorFactory.ErrorInfo(ERRID.ERR_Syntax)), SyntaxToken)
             End If
 
-            If UnderscoreUsed Then
+            If UnderscoreInWrongPlace Then
+                result = DirectCast(result.AddError(ErrorFactory.ErrorInfo(ERRID.ERR_Syntax)), SyntaxToken)
+            ElseIf LeadingUnderscoreUsed Then
+                result = CheckFeatureAvailability(result, Feature.LeadingDigitSeparator)
+            ElseIf UnderscoreUsed Then
                 result = CheckFeatureAvailability(result, Feature.DigitSeparators)
             End If
+
             If Base = LiteralBase.Binary Then
                 result = CheckFeatureAvailability(result, Feature.BinaryLiterals)
             End If

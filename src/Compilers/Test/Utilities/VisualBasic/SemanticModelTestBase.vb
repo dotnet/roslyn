@@ -1,5 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
+Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -151,33 +153,4 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
             binding.LookupSymbols(position, container, name, includeReducedExtensionMethods)
             ).Where(Function(s) anyArity OrElse DirectCast(s, Symbol).GetArity() = arity.Value).ToList()
     End Function
-
-    Friend Function GetOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, fileName As String, Optional which As Integer = 0) As String
-        Dim node As SyntaxNode = CompilationUtils.FindBindingText(Of TSyntaxNode)(compilation, fileName, which, prefixMatch:=True)
-        If node Is Nothing Then
-            Return Nothing
-        End If
-
-        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
-        Dim semanticModel = compilation.GetSemanticModel(tree)
-        Dim operation = semanticModel.GetOperationInternal(node)
-        Return If(operation IsNot Nothing, OperationTreeVerifier.GetOperationTree(operation), Nothing)
-    End Function
-
-    Friend Function GetOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0) As String
-        Dim fileName = "a.vb"
-        Dim syntaxTree = Parse(testSrc, fileName, parseOptions)
-        Dim compilation = CreateCompilationWithMscorlib(syntaxTree)
-        Return GetOperationTreeForTest(Of TSyntaxNode)(compilation, fileName, which)
-    End Function
-
-    Friend Sub VerifyOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, fileName As String, expectedOperationTree As String, Optional which As Integer = 0)
-        Dim actualOperationTree = GetOperationTreeForTest(Of TSyntaxNode)(compilation, fileName, which)
-        OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree)
-    End Sub
-
-    Friend Sub VerifyOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, expectedOperationTree As String, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0)
-        Dim actualOperationTree = GetOperationTreeForTest(Of TSyntaxNode)(testSrc, parseOptions, which)
-        OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree)
-    End Sub
 End Class

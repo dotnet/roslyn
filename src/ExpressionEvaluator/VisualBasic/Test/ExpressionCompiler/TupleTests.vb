@@ -6,6 +6,7 @@ Imports System.IO
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -142,9 +143,9 @@ End Class"
                 Dim appRef = app.Assembly.Identity.Name
                 AssertEx.SetEqual({"corlib 2.0", appRef + " 0.0"}, reader.DumpAssemblyReferences())
 
-                AssertEx.SetEqual({"Object, System, AssemblyRef:corlib",
-                    "ValueTuple`2, System, AssemblyRef:" + appRef, ' ValueTuple comes from app, not corlib
-                    ", System, AssemblyRef:" + appRef},
+                AssertEx.SetEqual({"Object, System, AssemblyReference:corlib",
+                    "ValueTuple`2, System, AssemblyReference:" + appRef, ' ValueTuple comes from app, not corlib
+                    ", System, AssemblyReference:" + appRef},
                     reader.DumpTypeReferences())
             End Using
         End Sub
@@ -318,9 +319,9 @@ End Class"
   .maxstack  2
   .locals init ((Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer) V_0) //x
   IL_0000:  ldloc.0
-  IL_0001:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer)).Item4 As Integer""
+  IL_0001:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer)).Item4 As Integer""
   IL_0006:  ldloc.0
-  IL_0007:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer)).Rest As (Integer)""
+  IL_0007:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer)).Rest As ValueTuple(Of Integer)""
   IL_000c:  ldfld      ""System.ValueTuple(Of Integer).Item1 As Integer""
   IL_0011:  add.ovf
   IL_0012:  ret
@@ -355,10 +356,10 @@ End Class"
   .maxstack  2
   .locals init ((Integer, Integer, Three As Integer, Four As Integer, Integer, Integer, Integer, Eight As Integer) V_0) //x
   IL_0000:  ldloc.0
-  IL_0001:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer)).Rest As (Integer)""
+  IL_0001:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer)).Rest As ValueTuple(Of Integer)""
   IL_0006:  ldfld      ""System.ValueTuple(Of Integer).Item1 As Integer""
   IL_000b:  ldloc.0
-  IL_000c:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer)).Rest As (Integer)""
+  IL_000c:  ldfld      ""System.ValueTuple(Of Integer, Integer, Integer, Integer, Integer, Integer, Integer, ValueTuple(Of Integer)).Rest As ValueTuple(Of Integer)""
   IL_0011:  ldfld      ""System.ValueTuple(Of Integer).Item1 As Integer""
   IL_0016:  add.ovf
   IL_0017:  ret

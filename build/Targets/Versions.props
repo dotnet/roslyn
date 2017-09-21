@@ -4,17 +4,19 @@
 
   <!-- This controls the version numbers of the build that we are producing -->
 
-  <Import Project="Dependencies.props" />
+  <Import Project="Packages.props" />
+  <Import Project="FixedPackages.props" />
 
   <PropertyGroup>
     <!-- This is the assembly version of Roslyn from the .NET assembly perspective. It should only be revved during significant point releases. -->
-    <RoslynAssemblyVersionBase Condition="'$(RoslynAssemblyVersion)' == ''">2.3.0</RoslynAssemblyVersionBase>
+    <RoslynAssemblyVersionBase Condition="'$(RoslynAssemblyVersion)' == ''">2.6.0</RoslynAssemblyVersionBase>
     <!-- This is the file version of Roslyn, as placed in the PE header. It should be revved during point releases, and is also what provides the basis for our NuGet package versioning. -->
-    <RoslynFileVersionBase Condition="'$(RoslynFileVersionBase)' == ''">2.3.0</RoslynFileVersionBase>
+    <RoslynFileVersionBase Condition="'$(RoslynFileVersionBase)' == ''">2.6.0</RoslynFileVersionBase>
     <!-- The release moniker for our packages.  Developers should use "dev" and official builds pick the branch
          moniker listed below -->
     <RoslynNuGetMoniker Condition="'$(RoslynNuGetMoniker)' == ''">dev</RoslynNuGetMoniker>
-    <RoslynNuGetMoniker Condition="'$(OfficialBuild)' == 'true'">beta1</RoslynNuGetMoniker>
+    <RoslynNuGetMoniker Condition="'$(OfficialBuild)' == 'true'">beta1</RoslynNuGetMoniker> 
+
     <!-- This is the base of the NuGet versioning for prerelease packages -->
     <NuGetPreReleaseVersion>$(RoslynFileVersionBase)-$(RoslynNuGetMoniker)</NuGetPreReleaseVersion>
 
@@ -28,7 +30,7 @@
          can still be deployed to VS and override the version that is globally installed. -->
     <BuildNumber Condition="'$(BuildNumber)' == ''">00065535.0</BuildNumber>
     <!-- When a build number is specified, it needs to be in the format of 'x.y'-->
-    <Error Condition="$(BuildNumber.Split('.').Length) != 2">BuildNumber should have two parts (in the form of 'x.y')</Error>
+    <Error Condition="$(BuildNumber.Split($([System.Convert]::ToString(`.`).ToCharArray())).Length) != 2">BuildNumber should have two parts (in the form of 'x.y')</Error>
 
     <!-- Split the build parts out from the BuildNumber which is given to us by MicroBuild in the format of yyyymmdd.nn
          where BuildNumberFiveDigitDateStamp is mmmdd (such as 60615) and BuildNumberBuildOfTheDay is nn (which represents the nth build
@@ -38,15 +40,16 @@
          Additionally, in order ensure the value fits in the 16-bit PE header fields, we will only take the last five digits of the BuildNumber, so
          in the case of 20160615, we will set BuildNumberFiveDigitDateStamp to 60615. Unfortunately for releases in 2017 we can't go any higher, so
          well continue the month counting instead: the build after 61231 is 61301. -->
-    <BuildNumberFiveDigitDateStamp>$([MSBuild]::Subtract($(BuildNumber.Split('.')[0].Substring(3).Trim()), 8800))</BuildNumberFiveDigitDateStamp>
-    <BuildNumberBuildOfTheDayPadded>$(BuildNumber.Split('.')[1].PadLeft(2,'0'))</BuildNumberBuildOfTheDayPadded>
+    <BuildNumberFiveDigitDateStampLeft>$(BuildNumber.Split($([System.Convert]::ToString(`.`).ToCharArray())).GetValue($([System.Convert]::ToInt32(0))).Substring($([System.Convert]::ToInt32(3))).Trim())</BuildNumberFiveDigitDateStampLeft>
+    <BuildNumberFiveDigitDateStamp>$([MSBuild]::Subtract($([System.Convert]::ToInt32($(BuildNumberFiveDigitDateStampLeft))), $([System.Convert]::ToInt32(8800))))</BuildNumberFiveDigitDateStamp>
+    <BuildNumberBuildOfTheDayPadded>$(BuildNumber.Split($([System.Convert]::ToString(`.`).ToCharArray())).GetValue($([System.Convert]::ToInt32(1))).PadLeft($([System.Convert]::ToInt32(2)), $([System.Convert]::ToChar(`0`))))</BuildNumberBuildOfTheDayPadded>
 
     <!-- NuGet version -->
     <NuGetReleaseVersion>$(RoslynFileVersionBase)</NuGetReleaseVersion>
     <NuGetPerBuildPreReleaseVersion>$(NuGetPreReleaseVersion)-$(BuildNumberFiveDigitDateStamp)-$(BuildNumberBuildOfTheDayPadded)</NuGetPerBuildPreReleaseVersion>
     <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == ''">$(NUGET_PACKAGES)</NuGetPackageRoot> <!-- Respect environment variable if set -->
-    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' AND '$(OS)' == 'Windows_NT'">$(UserProfile)\.nuget\packages</NuGetPackageRoot>
-    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' AND '$(OS)' != 'Windows_NT'">$(HOME)\.nuget\packages</NuGetPackageRoot>
+    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' AND '$(OS)' == 'Windows_NT'">$(UserProfile)/.nuget/packages/</NuGetPackageRoot>
+    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' AND '$(OS)' != 'Windows_NT'">$(HOME)/.nuget/packages/</NuGetPackageRoot>
     <NuGetPackagesDirectory>$(NuGetPackageRoot)</NuGetPackagesDirectory>
   </PropertyGroup>
 

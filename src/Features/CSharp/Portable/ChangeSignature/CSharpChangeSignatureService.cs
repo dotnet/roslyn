@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -22,24 +22,53 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
     [ExportLanguageService(typeof(AbstractChangeSignatureService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureService
     {
-        private static readonly ImmutableArray<SyntaxKind> _invokableAncestorKinds = ImmutableArray.Create(
-                SyntaxKind.MethodDeclaration,
-                SyntaxKind.ConstructorDeclaration,
-                SyntaxKind.IndexerDeclaration,
+        private static readonly ImmutableArray<SyntaxKind> _declarationKinds = ImmutableArray.Create(
+            SyntaxKind.MethodDeclaration,
+            SyntaxKind.ConstructorDeclaration,
+            SyntaxKind.IndexerDeclaration,
+            SyntaxKind.DelegateDeclaration,
+            SyntaxKind.SimpleLambdaExpression,
+            SyntaxKind.ParenthesizedLambdaExpression);
+
+        private static readonly ImmutableArray<SyntaxKind> _declarationAndInvocableKinds =
+            _declarationKinds.Concat(ImmutableArray.Create(
                 SyntaxKind.InvocationExpression,
                 SyntaxKind.ElementAccessExpression,
                 SyntaxKind.ThisConstructorInitializer,
                 SyntaxKind.BaseConstructorInitializer,
                 SyntaxKind.ObjectCreationExpression,
                 SyntaxKind.Attribute,
-                SyntaxKind.NameMemberCref,
-                SyntaxKind.SimpleLambdaExpression,
-                SyntaxKind.ParenthesizedLambdaExpression,
-                SyntaxKind.DelegateDeclaration);
+                SyntaxKind.NameMemberCref));
 
-        private static readonly ImmutableArray<SyntaxKind> _invokableAncestorInDeclarationKinds =
-            _invokableAncestorKinds.AddRange(
-                ImmutableArray.Create(SyntaxKind.Block, SyntaxKind.ArrowExpressionClause));
+        private static readonly ImmutableArray<SyntaxKind> _updatableAncestorKinds = ImmutableArray.Create(
+            SyntaxKind.ConstructorDeclaration,
+            SyntaxKind.IndexerDeclaration,
+            SyntaxKind.InvocationExpression,
+            SyntaxKind.ElementAccessExpression,
+            SyntaxKind.ThisConstructorInitializer,
+            SyntaxKind.BaseConstructorInitializer,
+            SyntaxKind.ObjectCreationExpression,
+            SyntaxKind.Attribute,
+            SyntaxKind.DelegateDeclaration,
+            SyntaxKind.SimpleLambdaExpression,
+            SyntaxKind.ParenthesizedLambdaExpression,
+            SyntaxKind.NameMemberCref);
+
+        private static readonly ImmutableArray<SyntaxKind> _updatableNodeKinds = ImmutableArray.Create(
+            SyntaxKind.MethodDeclaration,
+            SyntaxKind.ConstructorDeclaration,
+            SyntaxKind.IndexerDeclaration,
+            SyntaxKind.InvocationExpression,
+            SyntaxKind.ElementAccessExpression,
+            SyntaxKind.ThisConstructorInitializer,
+            SyntaxKind.BaseConstructorInitializer,
+            SyntaxKind.ObjectCreationExpression,
+            SyntaxKind.Attribute,
+            SyntaxKind.DelegateDeclaration,
+            SyntaxKind.NameMemberCref,
+            SyntaxKind.AnonymousMethodExpression,
+            SyntaxKind.ParenthesizedLambdaExpression,
+            SyntaxKind.SimpleLambdaExpression);
 
         public override async Task<ISymbol> GetInvocationSymbolAsync(
             Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
@@ -49,25 +78,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             var token = root.FindToken(position != tree.Length ? position : Math.Max(0, position - 1));
 
-            // Allow the user to invoke Change-Sig if they've written:   Foo(a, b, c);$$ 
+            // Allow the user to invoke Change-Sig if they've written:   Goo(a, b, c);$$ 
             if (token.Kind() == SyntaxKind.SemicolonToken && token.Parent is StatementSyntax)
             {
                 token = token.GetPreviousToken();
                 position = token.Span.End;
             }
 
-            var ancestorDeclarationKinds = restrictToDeclarations 
-                ? _invokableAncestorInDeclarationKinds
-                : _invokableAncestorKinds;
-
-            var matchingNode = token.Parent.AncestorsAndSelf().FirstOrDefault(n => ancestorDeclarationKinds.Contains(n.Kind()));
-
-            // If we walked up and we hit a block/expression-body, then we didn't find anything
-            // viable to reorder.  Just bail here.  This helps prevent Change-sig from appearing
-            // too aggressively inside method bodies.
-            if (matchingNode == null ||
-                matchingNode.IsKind(SyntaxKind.Block) ||
-                matchingNode.IsKind(SyntaxKind.ArrowExpressionClause))
+            var matchingNode = GetMatchingNode(token.Parent, restrictToDeclarations);
+            if (matchingNode == null)
             {
                 return null;
             }
@@ -78,13 +97,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return null;
             }
 
+            // If we're actually on the declaration of some symbol, ensure that we're
+            // in a good location for that symbol (i.e. not in the attributes/constraints).
+            if (!InSymbolHeader(matchingNode, position))
+            {
+                return null;
+            }
+
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = semanticModel.GetDeclaredSymbol(matchingNode, cancellationToken);
             if (symbol != null)
             {
-                // If we're actually on the declaration of some symbol, ensure that we're
-                // in a good location for that symbol (i.e. not in the attributes/constraints).
-                return restrictToDeclarations && !InSymbolHeader(matchingNode, position) ? null : symbol;
+                return symbol;
             }
 
             if (matchingNode.IsKind(SyntaxKind.ObjectCreationExpression))
@@ -103,6 +127,29 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             var symbolInfo = semanticModel.GetSymbolInfo(matchingNode, cancellationToken);
             return symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault();
+        }
+
+        private SyntaxNode GetMatchingNode(SyntaxNode node, bool restrictToDeclarations)
+        {
+            var matchKinds = restrictToDeclarations
+                ? _declarationKinds
+                : _declarationAndInvocableKinds;
+
+            for (var current = node; current != null; current = current.Parent)
+            {
+                if (restrictToDeclarations &&
+                    current.Kind() == SyntaxKind.Block || current.Kind() == SyntaxKind.ArrowExpressionClause)
+                {
+                    return null;
+                }
+
+                if (matchKinds.Contains(current.Kind()))
+                {
+                    return current;
+                }
+            }
+
+            return null;
         }
 
         private bool InSymbolHeader(SyntaxNode matchingNode, int position)
@@ -127,40 +174,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             // Case we haven't handled yet.  Just assume we're in the header.
             return true;
         }
-
-        private ImmutableArray<SyntaxKind> _updatableAncestorKinds = new[]
-            {
-                SyntaxKind.ConstructorDeclaration,
-                SyntaxKind.IndexerDeclaration,
-                SyntaxKind.InvocationExpression,
-                SyntaxKind.ElementAccessExpression,
-                SyntaxKind.ThisConstructorInitializer,
-                SyntaxKind.BaseConstructorInitializer,
-                SyntaxKind.ObjectCreationExpression,
-                SyntaxKind.Attribute,
-                SyntaxKind.DelegateDeclaration,
-                SyntaxKind.SimpleLambdaExpression,
-                SyntaxKind.ParenthesizedLambdaExpression,
-                SyntaxKind.NameMemberCref
-            }.ToImmutableArray();
-
-        private ImmutableArray<SyntaxKind> _updatableNodeKinds = new[]
-            {
-                SyntaxKind.MethodDeclaration,
-                SyntaxKind.ConstructorDeclaration,
-                SyntaxKind.IndexerDeclaration,
-                SyntaxKind.InvocationExpression,
-                SyntaxKind.ElementAccessExpression,
-                SyntaxKind.ThisConstructorInitializer,
-                SyntaxKind.BaseConstructorInitializer,
-                SyntaxKind.ObjectCreationExpression,
-                SyntaxKind.Attribute,
-                SyntaxKind.DelegateDeclaration,
-                SyntaxKind.NameMemberCref,
-                SyntaxKind.AnonymousMethodExpression,
-                SyntaxKind.ParenthesizedLambdaExpression,
-                SyntaxKind.SimpleLambdaExpression
-            }.ToImmutableArray();
 
         public override SyntaxNode FindNodeToUpdate(Document document, SyntaxNode node)
         {
