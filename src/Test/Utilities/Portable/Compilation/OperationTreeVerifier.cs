@@ -1432,6 +1432,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.GuardExpression, "Guard Expression");
         }
 
+        public override void VisitTranslatedQueryExpression(ITranslatedQueryExpression operation)
+        {
+            LogString(nameof(ITranslatedQueryExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Expression, "Expression");
+        }
+
         #endregion
     }
 }

@@ -6309,5 +6309,78 @@ class C
 }");
         });
         }
+
+        [Fact]
+        public void RefReadOnlyLambdasEvaluationWillSynthesizeRequiredAttributes_Parameters()
+        {
+            var reference = CreateStandardCompilation(@"
+public delegate void D(ref readonly int p);");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                Assert.NotNull(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
+                Assert.NotNull(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.IsReadOnlyAttribute.FullName));
+            });
+
+            var comp = CreateStandardCompilation(@"
+public class Test
+{
+    void M(D lambda)
+    {
+    }
+}", references: new[] { reference.EmitToImageReference() });
+
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
+                Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.IsReadOnlyAttribute.FullName));
+            });
+
+            var testData = Evaluate(
+                comp,
+                methodName: "Test.M",
+                expr: "M((ref readonly int p) => {})");
+
+            var methodsGenerated = testData.GetMethodsByName().Keys;
+            Assert.Contains(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName + "..ctor()", methodsGenerated);
+            Assert.Contains(AttributeDescription.IsReadOnlyAttribute.FullName + "..ctor()", methodsGenerated);
+        }
+
+        [Fact]
+        public void RefReadOnlyLambdasEvaluationWillSynthesizeRequiredAttributes_ReturnTypes()
+        {
+            var reference = CreateStandardCompilation(@"
+public delegate ref readonly int D();");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                Assert.NotNull(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
+                Assert.NotNull(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.IsReadOnlyAttribute.FullName));
+            });
+
+            var comp = CreateStandardCompilation(@"
+public class Test
+{
+    private int x = 0;
+    void M(D lambda)
+    {
+    }
+}", references: new[] { reference.EmitToImageReference() });
+
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
+                Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.IsReadOnlyAttribute.FullName));
+            });
+
+            var testData = Evaluate(
+                comp,
+                methodName: "Test.M",
+                expr: "M(() => ref x)");
+
+            var methodsGenerated = testData.GetMethodsByName().Keys;
+            Assert.Contains(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName + "..ctor()", methodsGenerated);
+            Assert.Contains(AttributeDescription.IsReadOnlyAttribute.FullName + "..ctor()", methodsGenerated);
+        }
     }
 }

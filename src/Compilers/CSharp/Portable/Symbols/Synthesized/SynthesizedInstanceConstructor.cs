@@ -266,6 +266,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return containingType.CalculateSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isStatic: false);
         }
 
+        internal sealed override DiagnosticInfo GetUseSiteDiagnostic()
+        {
+            return ReturnType.GetUseSiteDiagnostic();
+        }
         #endregion
     }
 }

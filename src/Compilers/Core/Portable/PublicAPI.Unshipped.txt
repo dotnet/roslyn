@@ -36,6 +36,7 @@ Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBloc
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBlockEndActionsCount.set -> void
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBlockStartActionsCount.get -> int
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBlockStartActionsCount.set -> void
+Microsoft.CodeAnalysis.IMethodSymbol.ReturnsByRefReadonly.get -> bool
 Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.IOperation.Accept(Microsoft.CodeAnalysis.Semantics.OperationVisitor visitor) -> void
 Microsoft.CodeAnalysis.IOperation.Accept<TArgument, TResult>(Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult> visitor, TArgument argument) -> TResult
@@ -47,6 +48,7 @@ Microsoft.CodeAnalysis.IOperation.Language.get -> string
 Microsoft.CodeAnalysis.IOperation.Parent.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.IOperation.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.IOperation.Type.get -> Microsoft.CodeAnalysis.ITypeSymbol
+Microsoft.CodeAnalysis.IPropertySymbol.ReturnsByRefReadonly.get -> bool
 Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.AddressOfExpression = 515 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.AnonymousFunctionExpression = 273 -> Microsoft.CodeAnalysis.OperationKind
@@ -115,6 +117,7 @@ Microsoft.CodeAnalysis.OperationKind.SizeOfExpression = 514 -> Microsoft.CodeAna
 Microsoft.CodeAnalysis.OperationKind.SwitchCase = 1033 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.SwitchStatement = 4 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.ThrowExpression = 519 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.TranslatedQueryExpression = 297 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.TupleExpression = 292 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.TypeOfExpression = 513 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.TypeParameterObjectCreationExpression = 275 -> Microsoft.CodeAnalysis.OperationKind
@@ -124,6 +127,7 @@ Microsoft.CodeAnalysis.OperationKind.VariableDeclaration = 1030 -> Microsoft.Cod
 Microsoft.CodeAnalysis.OperationKind.VariableDeclarationStatement = 3 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.YieldBreakStatement = 12 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.YieldReturnStatement = 16 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.RefKind.RefReadOnly = 3 -> Microsoft.CodeAnalysis.RefKind
 Microsoft.CodeAnalysis.SemanticModel.GetOperation(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.ArgumentKind
 Microsoft.CodeAnalysis.Semantics.ArgumentKind.DefaultValue = 3 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
@@ -408,6 +412,8 @@ Microsoft.CodeAnalysis.Semantics.ISymbolInitializer
 Microsoft.CodeAnalysis.Semantics.ISymbolInitializer.Value.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IThrowExpression
 Microsoft.CodeAnalysis.Semantics.IThrowExpression.Expression.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.ITranslatedQueryExpression
+Microsoft.CodeAnalysis.Semantics.ITranslatedQueryExpression.Expression.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.ITupleExpression
 Microsoft.CodeAnalysis.Semantics.ITupleExpression.Elements.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.ITypeOfExpression
@@ -560,6 +566,7 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitSizeOfExpression(
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitSwitchCase(Microsoft.CodeAnalysis.Semantics.ISwitchCase operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitSwitchStatement(Microsoft.CodeAnalysis.Semantics.ISwitchStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitThrowExpression(Microsoft.CodeAnalysis.Semantics.IThrowExpression operation) -> void
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitTranslatedQueryExpression(Microsoft.CodeAnalysis.Semantics.ITranslatedQueryExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitTupleExpression(Microsoft.CodeAnalysis.Semantics.ITupleExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitTypeOfExpression(Microsoft.CodeAnalysis.Semantics.ITypeOfExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitTypeParameterObjectCreationExpression(Microsoft.CodeAnalysis.Semantics.ITypeParameterObjectCreationExpression operation) -> void
@@ -643,6 +650,7 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.Vi
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitSwitchCase(Microsoft.CodeAnalysis.Semantics.ISwitchCase operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitSwitchStatement(Microsoft.CodeAnalysis.Semantics.ISwitchStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitThrowExpression(Microsoft.CodeAnalysis.Semantics.IThrowExpression operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitTranslatedQueryExpression(Microsoft.CodeAnalysis.Semantics.ITranslatedQueryExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitTupleExpression(Microsoft.CodeAnalysis.Semantics.ITupleExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitTypeOfExpression(Microsoft.CodeAnalysis.Semantics.ITypeOfExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitTypeParameterObjectCreationExpression(Microsoft.CodeAnalysis.Semantics.ITypeParameterObjectCreationExpression operation, TArgument argument) -> TResult

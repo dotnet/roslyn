@@ -24,6 +24,7 @@ using System.Text;
 using System.Threading;
 using Xunit;
 using static TestReferences;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -212,6 +213,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return CSharpTestBase.CreateCompilation(text,
                                                     WinRtRefs.Concat(additionalRefs ?? Enumerable.Empty<MetadataReference>()),
                                                     TestOptions.ReleaseExe);
+        }
+
+        internal static PEAssemblyBuilder GetDefaultPEBuilder(CSharpCompilation compilation)
+        {
+            return new PEAssemblyBuilder(
+                (SourceAssemblySymbol)compilation.Assembly,
+                EmitOptions.Default,
+                compilation.Options.OutputKind,
+                GetDefaultModulePropertiesForSerialization(),
+                SpecializedCollections.EmptyEnumerable<ResourceDescription>());
         }
 
         protected override CompilationOptions CompilationOptionsReleaseDll
@@ -1234,6 +1245,72 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return ilReference;
         }
 
+        #endregion
+
+        #region Span
+
+        protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            var reference = CreateCompilation(
+                spanSource,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                options: TestOptions.UnsafeReleaseDll);
+
+            reference.VerifyDiagnostics();
+
+            var comp = CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
+                options: options ?? TestOptions.ReleaseExe,
+                parseOptions: parseOptions);
+
+
+            return comp;
+        }
+
+        protected static CSharpCompilation CreateCompilationWithMscorlibAndSpanSrc(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            var textWitSpan = new string[] { text, spanSource };
+            var comp = CreateCompilation(
+                textWitSpan,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                options: options ?? TestOptions.UnsafeReleaseDll,
+                parseOptions: parseOptions);
+
+            return comp;
+        }
+
+        private static string spanSource = @"
+namespace System
+{
+    public ref struct Span<T> 
+    {
+        public ref T this[int i] => throw null;
+        public override int GetHashCode() => 1;
+        public int Length { get; private set; }
+
+        unsafe public Span(void* pointer, int length)
+        {
+            this.Length = length;
+        }
+
+        public void CopyTo(Span<T> other){}
+    }
+
+    public ref struct ReadOnlySpan<T>
+    {
+        public ref readonly T this[int i] => throw null;
+        public override int GetHashCode() => 2;
+
+        public void CopyTo(Span<T> other){}
+    }
+
+    public ref struct SpanLike<T>
+    {
+        public Span<T> field;
+    }
+}
+";
         #endregion
     }
 }
