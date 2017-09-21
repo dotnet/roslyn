@@ -374,7 +374,7 @@ public class C1
         }
 
         [Fact()]
-        public void NoTypedRefBox2()
+        public void NoTypedRefBox_RefStruct()
         {
             var source1 =
 @"namespace System
@@ -392,6 +392,7 @@ public class C1
         public ObsoleteAttribute(string message, bool error){}
     }
 
+    // Make the type ref struct. Should work just fine.
     public ref struct TypedReference { }
 }";
             var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
