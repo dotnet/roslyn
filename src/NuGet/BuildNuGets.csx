@@ -117,7 +117,6 @@ string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis.VisualBasic.Workspaces",
     "Microsoft.CodeAnalysis.Workspaces.Common",
     "Microsoft.VisualStudio.LanguageServices",
-    "Microsoft.VisualStudio.LanguageServices.Next",
 };
 
 string[] SourcePackageNames = {
@@ -154,7 +153,6 @@ var PreReleaseOnlyPackages = new HashSet<string>
     "Microsoft.CodeAnalysis.Remote.Workspaces",
     "Microsoft.CodeAnalysis.Test.Resources.Proprietary",
     "Microsoft.VisualStudio.IntegrationTest.Utilities",
-    "Microsoft.VisualStudio.LanguageServices.Next",
     "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
     "Microsoft.CodeAnalysis.PooledObjects",
     "Microsoft.CodeAnalysis.Debugging",
@@ -176,7 +174,6 @@ var PackagesNotBuiltOnCore = new HashSet<string>
      "Microsoft.Net.Compilers",
      "Microsoft.VisualStudio.IntegrationTest.Utilities",
      "Microsoft.VisualStudio.LanguageServices",
-     "Microsoft.VisualStudio.LanguageServices.Next",
      "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
      "Roslyn.VisualStudio.Test.Utilities",
 };
@@ -275,7 +272,7 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
         {
             string packageArgs = commonArgs.Replace($"-prop version=\"{BuildVersion}\"", $"-prop version=\"{GetPackageVersion(Path.GetFileNameWithoutExtension(file))}\"");
 
-            p.StartInfo.FileName = Path.GetFullPath(Path.Combine(SolutionRoot, "nuget.exe"));
+            p.StartInfo.FileName = Path.GetFullPath(Path.Combine(SolutionRoot, @"Binaries\Tools\nuget.exe"));
             p.StartInfo.Arguments = $@"pack {file} {packageArgs}";
         }
         else

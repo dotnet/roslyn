@@ -263,6 +263,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is VariableDeclaratorSyntax
         End Function
 
+        Public Function IsMethodBody(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsMethodBody
+            Return TypeOf node Is MethodBlockBaseSyntax
+        End Function
+
         Public Function GetExpressionOfReturnStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfReturnStatement
             Return TryCast(node, ReturnStatementSyntax)?.Expression
         End Function

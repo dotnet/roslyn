@@ -264,11 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var inputConstant = byType.Expression.ConstantValue;
 
                 // three-valued: true if input known null, false if input known non-null, null if not known.
-                bool? inputIsNull = null;
-                if (inputConstant != null)
-                {
-                    inputIsNull = inputConstant.IsNull;
-                }
+                bool? inputIsNull = inputConstant?.IsNull;
 
                 var defaultLabel = _factory.GenerateLabel("byTypeDefault");
 

@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -60,7 +61,14 @@ namespace Roslyn.Utilities
         // thread.  In the future we are going ot be removing this and disallowing its use.
         public static T WaitAndGetResult_CanCallOnBackground<T>(this Task<T> task, CancellationToken cancellationToken)
         {
-            task.Wait(cancellationToken);
+            try
+            {
+                task.Wait(cancellationToken);
+            }
+            catch (AggregateException ex)
+            {
+                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+            }
             return task.Result;
         }
 

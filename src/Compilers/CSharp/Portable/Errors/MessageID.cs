@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         None = 0,
         MessageBase = 1200,
+
         IDS_SK_METHOD = MessageBase + 2000,
         IDS_SK_TYPE = MessageBase + 2001,
         IDS_SK_NAMESPACE = MessageBase + 2002,
@@ -23,6 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_SK_ALIAS = MessageBase + 2010,
         //IDS_SK_EXTERNALIAS = MessageBase + 2011,
         IDS_SK_LABEL = MessageBase + 2012,
+        IDS_SK_CONSTRUCTOR = MessageBase + 2013,
+
         IDS_NULL = MessageBase + 10001,
         //IDS_RELATEDERROR = MessageBase + 10002,
         //IDS_RELATEDWARNING = MessageBase + 10003,
@@ -134,6 +137,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_LangVersions = MessageBase +  12722,
 
         IDS_FeatureLeadingDigitSeparator = MessageBase + 12723,
+        IDS_FeatureNonTrailingNamedArguments = MessageBase + 12724,
+
+        IDS_FeatureReadOnlyReferences = MessageBase + 12725,
+        IDS_FeatureRefStructs = MessageBase + 12726,
+        IDS_FeatureReadOnlyStructs = MessageBase + 12727,
+        IDS_FeatureRefExtensionMethods = MessageBase + 12728,
+        IDS_StackAllocExpression = MessageBase + 12729,
+        IDS_FeaturePrivateProtected = MessageBase + 12730,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -191,7 +202,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (feature)
             {
                 // C# 7.2 features.
+                case MessageID.IDS_FeatureNonTrailingNamedArguments: // semantic check
                 case MessageID.IDS_FeatureLeadingDigitSeparator:
+                case MessageID.IDS_FeaturePrivateProtected:
+                case MessageID.IDS_FeatureReadOnlyReferences:
+                case MessageID.IDS_FeatureRefStructs:
+                case MessageID.IDS_FeatureReadOnlyStructs:
+                case MessageID.IDS_FeatureRefExtensionMethods:
                     return LanguageVersion.CSharp7_2;
 
                 // C# 7.1 features.

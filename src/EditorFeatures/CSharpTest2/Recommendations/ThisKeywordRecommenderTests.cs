@@ -632,5 +632,141 @@ class Program
 }
 ", matchPriority: SymbolMatchPriority.Keyword);
         }
+
+        [Fact]
+        public async Task TestExtensionMethods_FirstParameter_AfterRefKeyword_InClass()
+        {
+            await VerifyKeywordAsync(@"
+public static class Extensions
+{
+    public static void Extension(ref $$");
+
+            await VerifyKeywordAsync(@"
+public static class Extensions
+{
+    public static void Extension(ref $$ object obj, int x) { }
+}");
+        }
+
+        [Fact]
+        public async Task TestExtensionMethods_FirstParameter_AfterRefReadOnlyKeywords_InClass()
+        {
+            await VerifyKeywordAsync(@"
+public static class Extensions
+{
+    public static void Extension(ref readonly $$");
+
+            await VerifyKeywordAsync(@"
+public static class Extensions
+{
+    public static void Extension(ref readonly $$ object obj, int x) { }
+}");
+        }
+
+        [Fact]
+        public async Task TestExtensionMethods_SecondParameter_AfterRefKeyword_InClass()
+        {
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public static void Extension(int x, ref $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public static void Extension(int x, ref $$ object obj) { }
+}");
+        }
+
+        [Fact]
+        public async Task TestExtensionMethods_SecondParameter_AfterRefReadonlyKeywords_InClass()
+        {
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public static void Extension(int x, ref readonly $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public static void Extension(int x, ref readonly $$ object obj) { }
+}");
+        }
+
+        [Fact]
+        public async Task TestExtensionMethods_FirstParameter_AfterRefKeyword_OutsideClass()
+        {
+            await VerifyAbsenceAsync("public static void Extension(ref $$");
+
+            await VerifyAbsenceAsync("public static void Extension(ref $$ object obj, int x) { }");
+        }
+
+        [Fact]
+        public async Task TestExtensionMethods_FirstParameter_AfterRefReadOnlyKeywords_OutsideClass()
+        {
+            await VerifyAbsenceAsync("public static void Extension(ref readonly $$");
+
+            await VerifyAbsenceAsync("public static void Extension(ref readonly $$ object obj, int x) { }");
+        }
+
+        [Fact]
+        public async Task TestExtensionMethods_FirstParameter_AfterRefKeyword_NonStaticClass()
+        {
+            await VerifyAbsenceAsync(@"
+public class Extensions
+{
+    public static void Extension(ref $$");
+
+            await VerifyAbsenceAsync(@"
+public class Extensions
+{
+    public static void Extension(ref $$ object obj, int x) { }
+}");
+        }
+
+        [Fact]
+        public async Task TestExtensionMethods_FirstParameter_AfterRefReadOnlyKeywords_NonStaticClass()
+        {
+            await VerifyAbsenceAsync(@"
+public class Extensions
+{
+    public static void Extension(ref readonly $$");
+
+            await VerifyAbsenceAsync(@"
+public class Extensions
+{
+    public static void Extension(ref readonly $$ object obj, int x) { }
+}");
+        }
+
+        [Fact]
+        public async Task TestExtensionMethods_FirstParameter_AfterRefKeyword_NonStaticMethod()
+        {
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public void Extension(ref $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public void Extension(ref $$ object obj, int x) { }
+}");
+        }
+
+        [Fact]
+        public async Task TestExtensionMethods_FirstParameter_AfterRefReadOnlyKeywords_NonStaticMethod()
+        {
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public void Extension(ref readonly $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public void Extension(ref readonly $$ object obj, int x) { }
+}");
+        }
     }
 }

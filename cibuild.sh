@@ -19,10 +19,13 @@ usage()
 }
 
 THIS_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-BINARIES_PATH=${THIS_DIR}/Binaries
+source ${THIS_DIR}/build/scripts/build-utils.sh
+ROOT_PATH=$(get_repo_dir)
+BINARIES_PATH=${ROOT_PATH}/Binaries
 BOOTSTRAP_PATH=${BINARIES_PATH}/Bootstrap
-SRC_PATH=${THIS_DIR}/src
-BUILD_LOG_PATH=${BINARIES_PATH}/Build.log
+SRC_PATH=${ROOT_PATH}/src
+BUILD_LOG_PATH=${BINARIES_PATH}/Build.binlog
+TARGET_FRAMEWORK=netcoreapp2.0
 
 BUILD_CONFIGURATION=Debug
 CLEAN_RUN=false
@@ -94,31 +97,34 @@ fi
 
 # obtain_dotnet.sh puts the right dotnet on the PATH
 FORCE_DOWNLOAD=true
-source ${THIS_DIR}/build/scripts/obtain_dotnet.sh
+source ${ROOT_PATH}/build/scripts/obtain_dotnet.sh
 
 RUNTIME_ID=$(dotnet --info | awk '/RID:/{print $2;}')
 echo "Using Runtime Identifier: ${RUNTIME_ID}"
 
 RESTORE_ARGS="-r ${RUNTIME_ID} -v Minimal --disable-parallel"
 echo "Restoring BaseToolset.csproj"
-dotnet restore ${RESTORE_ARGS} ${THIS_DIR}/build/ToolsetPackages/BaseToolset.csproj
+dotnet restore ${RESTORE_ARGS} ${ROOT_PATH}/build/ToolsetPackages/BaseToolset.csproj
+echo "Restoring CoreToolset.csproj"
+dotnet restore ${RESTORE_ARGS} ${ROOT_PATH}/build/ToolsetPackages/CoreToolset.csproj
 echo "Restoring CrossPlatform.sln"
-dotnet restore ${RESTORE_ARGS} ${THIS_DIR}/CrossPlatform.sln
+dotnet restore ${RESTORE_ARGS} ${ROOT_PATH}/CrossPlatform.sln
 
-BUILD_ARGS="-c ${BUILD_CONFIGURATION} -r ${RUNTIME_ID} /nologo /consoleloggerparameters:Verbosity=minimal;summary /filelogger /fileloggerparameters:Verbosity=normal;logFile=${BUILD_LOG_PATH} /p:RoslynRuntimeIdentifier=${RUNTIME_ID} /maxcpucount:1"
+BUILD_ARGS="--no-restore -c ${BUILD_CONFIGURATION} /nologo /consoleloggerparameters:Verbosity=minimal;summary /bl:${BUILD_LOG_PATH} /maxcpucount:1"
+PUBLISH_ARGS="-f ${TARGET_FRAMEWORK} -r ${RUNTIME_ID} ${BUILD_ARGS}"
 
-echo "Building bootstrap CscCore"
-dotnet publish ${SRC_PATH}/Compilers/CSharp/CscCore -o ${BOOTSTRAP_PATH}/csc ${BUILD_ARGS}
-echo "Building bootstrap VbcCore"
-dotnet publish ${SRC_PATH}/Compilers/VisualBasic/VbcCore -o ${BOOTSTRAP_PATH}/vbc ${BUILD_ARGS}
+echo "Building bootstrap csc"
+dotnet publish ${SRC_PATH}/Compilers/CSharp/csc -o ${BOOTSTRAP_PATH}/csc ${PUBLISH_ARGS}
+echo "Building bootstrap vbc"
+dotnet publish ${SRC_PATH}/Compilers/VisualBasic/vbc -o ${BOOTSTRAP_PATH}/vbc ${PUBLISH_ARGS}
 rm -rf ${BINARIES_PATH}/${BUILD_CONFIGURATION}
 BUILD_ARGS+=" /p:CscToolPath=${BOOTSTRAP_PATH}/csc /p:CscToolExe=csc /p:VbcToolPath=${BOOTSTRAP_PATH}/vbc /p:VbcToolExe=vbc"
 
 echo "Building CrossPlatform.sln"
-dotnet build ${THIS_DIR}/CrossPlatform.sln ${BUILD_ARGS}
+dotnet build ${ROOT_PATH}/CrossPlatform.sln ${BUILD_ARGS}
 
 if [[ "${SKIP_TESTS}" == false ]]
 then
     echo "Running tests"
-    ${THIS_DIR}/build/scripts/tests.sh ${BUILD_CONFIGURATION}
+    ${ROOT_PATH}/build/scripts/tests.sh ${BUILD_CONFIGURATION}
 fi
