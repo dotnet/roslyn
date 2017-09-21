@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         Var,
         Tuples,
         RefLocalsReturns,
+        ReadOnlyReferences,
         OutVar,
         Patterns,
         DefaultLiteral,
@@ -25,5 +26,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         IOperation,
         NonTrailingNamedArgs,
         PrivateProtected,
+        PEVerifyCompat,
+        RefConditionalOperator,
     }
 }

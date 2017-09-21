@@ -151,17 +151,17 @@ namespace Microsoft.CodeAnalysis
         DynamicInvocationExpression = 0x127,
         /// <summary>Indicates an <see cref="IDynamicIndexerAccessExpression"/>.</summary>
         DynamicIndexerAccessExpression = 0x128,
+        /// <summary>Indicates an <see cref="ITranslatedQueryExpression"/>.</summary>
+        TranslatedQueryExpression = 0x129,
 
         // Expressions that occur only in C#.
 
         /// <summary>Indicates an <see cref="IDefaultValueExpression"/>.</summary>
         DefaultValueExpression = 0x200,
-        // https://github.com/dotnet/roslyn/issues/22003
-        // /// <summary>Indicates an <see cref="ITypeOfExpression"/>.</summary>
-        // TypeOfExpression = 0x201,
-        // https://github.com/dotnet/roslyn/issues/21296
-        // /// <summary>Indicates an <see cref="ISizeOfExpression"/>.</summary>
-        // SizeOfExpression = 0x202,
+        /// <summary>Indicates an <see cref="ITypeOfExpression"/>.</summary>
+        TypeOfExpression = 0x201,
+        /// <summary>Indicates an <see cref="ISizeOfExpression"/>.</summary>
+        SizeOfExpression = 0x202,
         /// <summary>Indicates an <see cref="IAddressOfExpression"/>.</summary>
         AddressOfExpression = 0x203,
         // <summary>Indicates an <see cref="IPointerIndirectionReferenceExpression"/>.</summary>
@@ -181,7 +181,9 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>Indicates an <see cref="IOmittedArgumentExpression"/>.</summary>
         OmittedArgumentExpression = 0x300,
+
         // 0x301 was removed, and is available for use.
+
         // https://github.com/dotnet/roslyn/issues/21294
         // /// <summary>Indicates an <see cref="IPlaceholderExpression"/>.</summary>
         // PlaceholderExpression = 0x302,

@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenReceiver: rewrittenReceiver,
                 method: method,
                 rewrittenArguments: rewrittenArguments,
-                argumentRefKinds: ImmutableArray<RefKind>.Empty,
+                argumentRefKinds: default(ImmutableArray<RefKind>),
                 invokedAsExtensionMethod: false,
                 resultKind: LookupResultKind.Viable,
                 type: type);
@@ -391,10 +391,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ArrayBuilder<LocalSymbol> temporariesBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
             rewrittenArguments = _factory.MakeTempsForDiscardArguments(rewrittenArguments, temporariesBuilder);
+            ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
 
             if (CanSkipRewriting(rewrittenArguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var isComReceiver))
             {
                 temps = temporariesBuilder.ToImmutableAndFree();
+                argumentRefKindsOpt = GetEffectiveArgumentRefKinds(argumentRefKindsOpt, parameters);
+
                 return rewrittenArguments;
             }
 
@@ -447,7 +450,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We start by binding everything that is not obviously reorderable as a temporary, and
             // then run an optimizer to remove unnecessary temporaries.
 
-            ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
             BoundExpression[] actualArguments = new BoundExpression[parameters.Length]; // The actual arguments that will be passed; one actual argument per formal parameter.
             ArrayBuilder<BoundAssignmentOperator> storesToTemps = ArrayBuilder<BoundAssignmentOperator>.GetInstance(rewrittenArguments.Length);
             ArrayBuilder<RefKind> refKinds = ArrayBuilder<RefKind>.GetInstance(parameters.Length, RefKind.None);
@@ -455,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step one: Store everything that is non-trivial into a temporary; record the
             // stores in storesToTemps and make the actual argument a reference to the temp.
             // Do not yet attempt to deal with params arrays or optional arguments.
-            BuildStoresToTemps(expanded, argsToParamsOpt, argumentRefKindsOpt, rewrittenArguments, actualArguments, refKinds, storesToTemps);
+            BuildStoresToTemps(expanded, argsToParamsOpt, parameters, argumentRefKindsOpt, rewrittenArguments, actualArguments, refKinds, storesToTemps);
 
 
             // all the formal arguments, except missing optionals, are now in place. 
@@ -490,6 +492,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             refKinds.Free();
 
             return actualArguments.AsImmutableOrNull();
+        }
+
+        /// <summary>
+        /// patch refKinds for "readonly ref" to have effective RefReadOnly kind.
+        /// </summary>
+        private static ImmutableArray<RefKind> GetEffectiveArgumentRefKinds(ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<ParameterSymbol> parameters)
+        {
+            ArrayBuilder<RefKind> refKindsBuilder = null;
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                var paramRefKind = parameters[i].RefKind;
+                if (paramRefKind == RefKind.RefReadOnly)
+                {
+                    if (refKindsBuilder == null)
+                    {
+                        if (!argumentRefKindsOpt.IsDefault)
+                        {
+                            Debug.Assert(!argumentRefKindsOpt.IsEmpty);
+                            refKindsBuilder = ArrayBuilder<RefKind>.GetInstance(parameters.Length);
+                            refKindsBuilder.AddRange(argumentRefKindsOpt);
+                        }
+                        else
+                        {
+                            refKindsBuilder = ArrayBuilder<RefKind>.GetInstance(parameters.Length, fillWithValue: RefKind.None);
+                        }
+                    }
+
+                    refKindsBuilder[i] = paramRefKind;
+                }
+            }
+
+            if (refKindsBuilder != null)
+            {
+                argumentRefKindsOpt = refKindsBuilder.ToImmutableAndFree();
+            }
+
+            // NOTE: we may have more arguments than parameters in a case of arglist. That is ok.
+            Debug.Assert(argumentRefKindsOpt.IsDefault || argumentRefKindsOpt.Length >= parameters.Length);
+            return argumentRefKindsOpt;
         }
 
         internal static ImmutableArray<IArgument> MakeArgumentsInEvaluationOrder(
@@ -605,6 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void BuildStoresToTemps(
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
+            ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<RefKind> argumentRefKinds,
             ImmutableArray<BoundExpression> rewrittenArguments,
             /* out */ BoundExpression[] arguments,
@@ -619,6 +661,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression argument = rewrittenArguments[a];
                 int p = (!argsToParamsOpt.IsDefault) ? argsToParamsOpt[a] : a;
                 RefKind refKind = argumentRefKinds.RefKinds(a);
+                if (refKind == RefKind.None && parameters[p].RefKind == RefKind.RefReadOnly)
+                {
+                    refKind = RefKind.RefReadOnly;
+                }
+
                 Debug.Assert(arguments[p] == null);
 
                 // Unfortunately, we violate the specification and allow:
