@@ -1,9 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -41,7 +40,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return result;
         }
 
-        public static async Task<Checksum> GetSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)
+        /// <summary>
+        /// Cache of project to the checksum for it so that we don't have to expensively recompute
+        /// this each time we get a project.
+        /// </summary>
+        private static ConditionalWeakTable<ProjectState, AsyncLazy<Checksum>> s_projectToSourceChecksum =
+            new ConditionalWeakTable<ProjectState, AsyncLazy<Checksum>>();
+
+        public static Task<Checksum> GetSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)
+        {
+            var lazy = s_projectToSourceChecksum.GetValue(
+                project.State, p => new AsyncLazy<Checksum>(c => ComputeSourceSymbolsChecksumAsync(p, c), cacheResult: true));
+
+            return lazy.GetValueAsync(cancellationToken);
+        }
+
+        private static async Task<Checksum> ComputeSourceSymbolsChecksumAsync(ProjectState projectState, CancellationToken cancellationToken)
         {
             // The SymbolTree for source is built from the source-symbols from the project's compilation's
             // assembly.  Specifically, we only get the name, kind and parent/child relationship of all the
@@ -49,14 +63,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // changed.  The only thing that can make those source-symbols change in that manner are if
             // the text of any document changes, or if options for the project change.  So we build our
             // checksum out of that data.
-            var serializer = new Serializer(project.Solution.Workspace);
-            var projectStateChecksums = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            var serializer = new Serializer(projectState.LanguageServices.WorkspaceServices);
+            var projectStateChecksums = await projectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
             // Order the documents by FilePath.  Default ordering in the RemoteWorkspace is
             // to be ordered by Guid (which is not consistent across VS sessions).
-            var textChecksumsTasks = project.Documents.OrderBy(d => d.FilePath).Select(async d =>
+            var textChecksumsTasks = projectState.DocumentStates.OrderBy(d => d.Value.FilePath).Select(async d =>
             {
-                var documentStateChecksum = await d.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                var documentStateChecksum = await d.Value.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                 return documentStateChecksum.Text;
             });
 
@@ -96,7 +110,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             GenerateSourceNodes(assembly.GlobalNamespace, unsortedNodes, s_getMembersNoPrivate);
 
             return CreateSymbolTreeInfo(
-                project.Solution, checksum, project.FilePath, unsortedNodes.ToImmutableAndFree(), 
+                project.Solution, checksum, project.FilePath, unsortedNodes.ToImmutableAndFree(),
                 inheritanceMap: new OrderPreservingMultiDictionary<string, string>());
         }
 
