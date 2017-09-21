@@ -40,7 +40,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -128,7 +128,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20175")]
@@ -159,7 +159,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -193,7 +193,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -229,7 +229,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -263,7 +263,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20175")]
@@ -296,7 +296,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -332,7 +332,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier()
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier()
                 {
                     SyntaxSelector = (syntax) =>
                     {
@@ -377,7 +377,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -408,7 +408,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -443,7 +443,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -474,7 +474,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -508,7 +508,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 parseOptions: TestOptions.Regular7_1,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -541,7 +541,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         /// <summary>
@@ -605,7 +605,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -633,7 +633,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -661,7 +661,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -693,7 +693,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -728,7 +728,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -759,7 +759,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -790,7 +790,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -825,7 +825,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -864,7 +864,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -901,7 +901,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -936,7 +936,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -975,7 +975,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1013,7 +1013,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1051,7 +1051,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1093,7 +1093,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1127,7 +1127,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1165,7 +1165,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1203,7 +1203,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1247,7 +1247,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1279,7 +1279,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1311,7 +1311,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1346,7 +1346,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1378,7 +1378,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1413,7 +1413,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1448,7 +1448,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1489,7 +1489,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20175")]
@@ -1525,7 +1525,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         /// <summary>
@@ -1589,7 +1589,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1622,7 +1622,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1655,7 +1655,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
             Func<int, float> f = (int num) => num;
         }
 
@@ -1694,7 +1694,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         /// <summary>
@@ -1764,7 +1764,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1808,7 +1808,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1856,7 +1856,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1900,7 +1900,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1948,7 +1948,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1979,7 +1979,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2012,7 +2012,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2049,7 +2049,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2081,7 +2081,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2117,7 +2117,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2150,7 +2150,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2187,7 +2187,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2223,7 +2223,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2259,7 +2259,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2288,7 +2288,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2317,7 +2317,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2349,7 +2349,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2385,7 +2385,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2418,7 +2418,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2455,7 +2455,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2487,7 +2487,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2523,7 +2523,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2559,7 +2559,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2598,7 +2598,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2626,7 +2626,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2654,7 +2654,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2686,7 +2686,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                    AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                    additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2718,7 +2718,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2750,7 +2750,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2785,7 +2785,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2823,7 +2823,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier()
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier()
                 {
                     ConversionChildSelector = ExpectedSymbolVerifier.NestedConversionChildSelector
                 }.Verify);
@@ -2965,7 +2965,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2997,7 +2997,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -3029,7 +3029,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -3063,7 +3063,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -3092,7 +3092,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 compilationOptions: TestOptions.UnsafeReleaseDll,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -3123,7 +3123,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 compilationOptions: TestOptions.UnsafeReleaseDll,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -3158,7 +3158,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 compilationOptions: TestOptions.UnsafeReleaseDll,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -3192,7 +3192,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 compilationOptions: TestOptions.UnsafeReleaseDll,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -3227,7 +3227,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20291")]
@@ -3268,7 +3268,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             // Due to https://github.com/dotnet/roslyn/issues/20291, we cannot verify that the types of the ioperation tree and the sematic model
             // match, as they do not actually match.
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -3306,7 +3306,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -3332,7 +3332,7 @@ IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return i;')
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -3362,7 +3362,7 @@ IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'return f;'
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -3433,7 +3433,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -3466,7 +3466,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
-                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+                additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

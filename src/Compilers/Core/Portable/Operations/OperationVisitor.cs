@@ -310,8 +310,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        // https://github.com/dotnet/roslyn/issues/22007
-        internal virtual void VisitAwaitExpression(IAwaitExpression operation)
+        public virtual void VisitAwaitExpression(IAwaitExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -801,8 +800,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        // https://github.com/dotnet/roslyn/issues/22007
-        internal virtual TResult VisitAwaitExpression(IAwaitExpression operation, TArgument argument)
+        public virtual TResult VisitAwaitExpression(IAwaitExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

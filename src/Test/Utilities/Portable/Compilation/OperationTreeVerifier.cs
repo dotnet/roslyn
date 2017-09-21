@@ -1015,12 +1015,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
         }
 
-        internal override void VisitAwaitExpression(IAwaitExpression operation)
+        public override void VisitAwaitExpression(IAwaitExpression operation)
         {
             LogString(nameof(IAwaitExpression));
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.AwaitedValue, "AwaitedValue");
+            Visit(operation.Expression, "Expression");
         }
 
         public override void VisitNameOfExpression(INameOfExpression operation)

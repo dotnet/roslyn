@@ -538,24 +538,22 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal abstract partial class BaseAwaitExpression : Operation, IAwaitExpression
     {
         protected BaseAwaitExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            // https://github.com/dotnet/roslyn/issues/22007
-            // base(OperationKind.AwaitExpression, semanticModel, syntax, type, constantValue, isImplicit)
-            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+            base(OperationKind.AwaitExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
-        protected abstract IOperation AwaitedValueImpl { get; }
+        protected abstract IOperation ExpressionImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                yield return AwaitedValue;
+                yield return Expression;
             }
         }
         /// <summary>
-        /// Value to be awaited.
+        /// Awaited expression.
         /// </summary>
-        public IOperation AwaitedValue => Operation.SetParentOperation(AwaitedValueImpl, this);
+        public IOperation Expression => Operation.SetParentOperation(ExpressionImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitAwaitExpression(this);
@@ -571,13 +569,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class AwaitExpression : BaseAwaitExpression, IAwaitExpression
     {
-        public AwaitExpression(IOperation awaitedValue, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public AwaitExpression(IOperation expression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            AwaitedValueImpl = awaitedValue;
+            ExpressionImpl = expression;
         }
 
-        protected override IOperation AwaitedValueImpl { get; }
+        protected override IOperation ExpressionImpl { get; }
     }
 
     /// <summary>
@@ -585,14 +583,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LazyAwaitExpression : BaseAwaitExpression, IAwaitExpression
     {
-        private readonly Lazy<IOperation> _lazyAwaitedValue;
+        private readonly Lazy<IOperation> _lazyExpression;
 
-        public LazyAwaitExpression(Lazy<IOperation> awaitedValue, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyAwaitExpression(Lazy<IOperation> expression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            _lazyAwaitedValue = awaitedValue ?? throw new System.ArgumentNullException(nameof(awaitedValue));
+            _lazyExpression = expression ?? throw new System.ArgumentNullException(nameof(expression));
         }
 
-        protected override IOperation AwaitedValueImpl => _lazyAwaitedValue.Value;
+        protected override IOperation ExpressionImpl => _lazyExpression.Value;
     }
 
     /// <summary>

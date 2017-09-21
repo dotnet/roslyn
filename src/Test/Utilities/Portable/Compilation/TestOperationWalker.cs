@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitLiteralExpression(operation);
         }
 
-        internal override void VisitAwaitExpression(IAwaitExpression operation)
+        public override void VisitAwaitExpression(IAwaitExpression operation)
         {
             base.VisitAwaitExpression(operation);
         }
