@@ -44,11 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             var nameInfo = await NameDeclarationInfo.GetDeclarationInfo(document, position, cancellationToken).ConfigureAwait(false);
-            if (nameInfo == default)
-            {
-                return;
-            }
-
             var baseNames = GetBaseNames(semanticModel, nameInfo);
             if (baseNames == default)
             {
@@ -60,39 +55,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             foreach (var (name, kind) in recommendedNames)
             {
                 // We've produced items in the desired order, add a sort text to each item to prevent alphabetization
-                completionContext.AddItem(CreateCompletionItem(name, GetGlyph(kind, nameInfo[0].DeclaredAccessibility), sortValue.ToString("D8")));
+                completionContext.AddItem(CreateCompletionItem(name, GetGlyph(kind, nameInfo.DeclaredAccessibility), sortValue.ToString("D8")));
                 sortValue++;
             }
 
             completionContext.SuggestionModeItem = CommonCompletionItem.Create(CSharpFeaturesResources.Name, CompletionItemRules.Default);
         }
 
-        private ImmutableArray<ImmutableArray<string>> GetBaseNames(SemanticModel semanticModel, ImmutableArray<NameDeclarationInfo> nameInfo)
+        private ImmutableArray<ImmutableArray<string>> GetBaseNames(SemanticModel semanticModel, NameDeclarationInfo info)
         {
-            var infoToName = nameInfo.SelectAsArray(info =>
-               {
-                   if (info.Alias != null)
-                   {
-                       return NameGenerator.GetBaseNames(info.Alias);
-                   }
+            ImmutableArray<ImmutableArray<string>> baseNames = default;
+            if (info.Aliases != null)
+            {
+                baseNames = info.Aliases.ToSet().SelectMany(alias => NameGenerator.GetBaseNames(alias)).ToImmutableArray();
+            }
+            else if (info.Types != null)
+            {
+                baseNames = info.Types
+                    .Where(IsValidType)
+                    .ToSet()
+                    .Select(t => UnwrapType(t, semanticModel.Compilation))
+                    .SelectMany(t => NameGenerator.GetBaseNames(t))
+                    .ToImmutableArray();
+            }
 
-                   if (!IsValidType(info.Type))
-                   {
-                       return default;
-                   }
+            if (info.ParameterNames != null)
+            {
+                // In the `out var` case, also suggest the name of the out parameter
+                baseNames = baseNames.AddRange(info.ParameterNames.Select(p => ImmutableArray.Create(p)));
+            }
 
-                   var type = UnwrapType(info.Type, semanticModel.Compilation);
-                   var baseNames = NameGenerator.GetBaseNames(type);
-                   if (info.ParameterName != null)
-                   {
-                       // In the `out var` case, also suggest the name of the out parameter
-                       baseNames = baseNames.Add(ImmutableArray.Create(info.ParameterName));
-                   }
-
-                   return baseNames;
-               });
-
-            return infoToName.SelectMany(i => i).ToImmutableArray();
+            return baseNames;
 
         }
 
@@ -197,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private async Task<ImmutableArray<(string, SymbolKind)>> GetRecommendedNamesAsync(
             ImmutableArray<ImmutableArray<string>> baseNames,
-            ImmutableArray<NameDeclarationInfo> declarationInfos,
+            NameDeclarationInfo declarationInfo,
             CSharpSyntaxContext context,
             Document document,
             CancellationToken cancellationToken)
@@ -206,23 +199,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var namingStyleOptions = options.GetOption(SimplificationOptions.NamingPreferences);
             var rules = namingStyleOptions.CreateRules().NamingRules.Concat(s_BuiltInRules);
             var result = new Dictionary<string, SymbolKind>();
-            foreach (var declarationInfo in declarationInfos)
+            foreach (var symbolKind in declarationInfo.PossibleSymbolKinds)
             {
-                foreach (var symbolKind in declarationInfo.PossibleSymbolKinds)
+                var kind = new SymbolKindOrTypeKind(symbolKind);
+                var modifiers = declarationInfo.Modifiers;
+                foreach (var rule in rules)
                 {
-                    var kind = new SymbolKindOrTypeKind(symbolKind);
-                    var modifiers = declarationInfo.Modifiers;
-                    foreach (var rule in rules)
+                    if (rule.SymbolSpecification.AppliesTo(kind, declarationInfo.Modifiers, declarationInfo.DeclaredAccessibility))
                     {
-                        if (rule.SymbolSpecification.AppliesTo(kind, declarationInfo.Modifiers, declarationInfo.DeclaredAccessibility))
+                        foreach (var baseName in baseNames)
                         {
-                            foreach (var baseName in baseNames)
+                            var name = rule.NamingStyle.CreateName(baseName).EscapeIdentifier(context.IsInQuery);
+                            if (name.Length > 1 && !result.ContainsKey(name)) // Don't add multiple items for the same name
                             {
-                                var name = rule.NamingStyle.CreateName(baseName).EscapeIdentifier(context.IsInQuery);
-                                if (name.Length > 1 && !result.ContainsKey(name)) // Don't add multiple items for the same name
-                                {
-                                    result.Add(name, symbolKind);
-                                }
+                                result.Add(name, symbolKind);
                             }
                         }
                     }

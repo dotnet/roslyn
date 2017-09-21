@@ -667,5 +667,27 @@ class Test
             await VerifyItemExistsAsync(markup, "test");
             await VerifyItemExistsAsync(markup, "goo");
         }
+
+        [WorkItem(21837, "https://github.com/dotnet/roslyn/issues/21837")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void OutParameterNamesSuggestedMultipleNames()
+        {
+            var markup = @"
+class Zed {}
+class Test
+{
+    void Do(out Zed boo) {}
+
+    void Do(out Test goo)
+    {
+        Do(out var $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "test");
+            await VerifyItemExistsAsync(markup, "zed");
+            await VerifyItemExistsAsync(markup, "goo");
+            await VerifyItemExistsAsync(markup, "boo");
+        }
     }
 }
