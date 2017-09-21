@@ -233,7 +233,7 @@ Class C
 End Class
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If x <> 0 T ... End If')
   Condition: IBinaryOperatorExpression (BinaryOperatorKind.NotEquals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x <> 0')
       Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
@@ -476,7 +476,7 @@ BC30518: Overload resolution failed because no accessible 'P1' can be called wit
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/22224")>
+        <Fact>
         Public Sub TestClone()
             Dim sourceCode = TestResource.AllInOneVisualBasicCode
 
@@ -491,7 +491,7 @@ BC30518: Overload resolution failed because no accessible 'P1' can be called wit
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/22224")>
+        <Fact>
         Public Sub TestParentOperations()
             Dim sourceCode = TestResource.AllInOneVisualBasicCode
 
@@ -606,5 +606,40 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If i = 0 Th ... End If')
 
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics, compilationOptions:=TestOptions.ReleaseExe)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestCatchClause()
+            Dim source = <![CDATA[
+Imports System
+
+Module Program
+    Sub Main(args As String())
+        Try
+            Main(Nothing)
+        Catch ex As Exception When ex Is Nothing'BIND:"Catch ex As Exception When ex Is Nothing"
+
+        End Try
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+ICatchClause (Exception type: System.Exception, Exception local: ex As System.Exception) (OperationKind.None) (Syntax: 'Catch ex As ...  Is Nothing')
+  Filter: IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'ex Is Nothing')
+      Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'ex')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+          Operand: ILocalReferenceExpression: ex (OperationKind.LocalReferenceExpression, Type: System.Exception) (Syntax: 'ex')
+      Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'Nothing')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
+  Handler: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Catch ex As ...  Is Nothing')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CatchBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+
     End Class
 End Namespace

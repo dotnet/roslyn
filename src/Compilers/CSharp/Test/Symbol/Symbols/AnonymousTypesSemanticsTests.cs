@@ -136,7 +136,7 @@ IBlockStatement (4 statements, 4 locals) (OperationKind.BlockStatement) (Syntax:
     Local_3: System.Object v3
     Local_4: <empty anonymous type> v4
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'object v1 = ... };')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'object v1 = ... };')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'v1 = new ... }')
       Variables: Local_1: System.Object v1
       Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'new ... }')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
@@ -157,7 +157,7 @@ IBlockStatement (4 statements, 4 locals) (OperationKind.BlockStatement) (Syntax:
                         Arguments(0)
                         Initializer: null
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'object v2 = ... };')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'object v2 = ... };')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'v2 = new ... }')
       Variables: Local_1: System.Object v2
       Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'new ... }')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
@@ -187,14 +187,14 @@ IBlockStatement (4 statements, 4 locals) (OperationKind.BlockStatement) (Syntax:
                             IFieldReferenceExpression: ClassA.SSS ClassA.CCC (Static) (OperationKind.FieldReferenceExpression, Type: ClassA.SSS) (Syntax: 'ClassA.CCC')
                               Instance Receiver: null
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'object v3 = new { };')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'object v3 = new { };')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'v3 = new { }')
       Variables: Local_1: System.Object v3
       Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'new { }')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <empty anonymous type>) (Syntax: 'new { }')
               Initializers(0)
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var v4 = new { };')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'var v4 = new { };')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'v4 = new { }')
       Variables: Local_1: <empty anonymous type> v4
       Initializer: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <empty anonymous type>) (Syntax: 'new { }')
           Initializers(0)
@@ -1026,7 +1026,7 @@ IBlockStatement (2 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
   Locals: Local_1: System.Object v1
     Local_2: System.Object v2
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'object v1 = ... };')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'object v1 = ... };')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'v1 = new ... }')
       Variables: Local_1: System.Object v1
       Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'new ... }')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
@@ -1047,7 +1047,7 @@ IBlockStatement (2 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
                     Right: IInvalidExpression (OperationKind.InvalidExpression, Type: SSS, IsInvalid) (Syntax: 'new SSS()')
                         Children(0)
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'object v2 = ... };')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'object v2 = ... };')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'v2 = new ... }')
       Variables: Local_1: System.Object v2
       Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'new ... }')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
@@ -1144,14 +1144,11 @@ class ClassA
 }
 ";
             string expectedOperationTree = @"
-IUsingStatement (OperationKind.UsingStatement, IsInvalid) (Syntax: 'using (/*<b ... }')
-  Declaration: IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var v1 = new { }')
-      IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'v1 = new { }')
-        Variables: Local_1: <empty anonymous type> v1
-        Initializer: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <empty anonymous type>, IsInvalid) (Syntax: 'new { }')
-            Initializers(0)
-  Value: null
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var v1 = new { }')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'v1 = new { }')
+    Variables: Local_1: <empty anonymous type> v1
+    Initializer: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <empty anonymous type>, IsInvalid) (Syntax: 'new { }')
+        Initializers(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1336,6 +1336,8 @@ class C
             string expectedOperationTree = @"
 IInvocationExpression ( ? C.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'c.Goo<short>(d, d)')
   Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'c.Goo<short>')
+      Children(1):
+          IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'd')
         IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')

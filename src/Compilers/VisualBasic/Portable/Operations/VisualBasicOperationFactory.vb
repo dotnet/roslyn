@@ -35,43 +35,11 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Return _semanticModel.CloneOperation(CreateInternal(boundNode))
             End If
 
-            ' this should be removed once this issue is fixed
-            ' https://github.com/dotnet/roslyn/issues/21187
-            If IsIgnoredNode(boundNode) Then
-                ' due to how IOperation is set up, some of VB BoundNode must be ignored
-                ' while generating IOperation. otherwise, 2 different IOperation trees will be created
-                ' for nodes under same sub tree
-                Return Nothing
-            End If
-
             ' A BoundUserDefined conversion is always the operand of a BoundConversion, and is handled
             ' by the BoundConversion creation. We should never receive one in this top level create call.
             Debug.Assert(boundNode.Kind <> BoundKind.UserDefinedConversion)
 
             Return _cache.GetOrAdd(boundNode, Function(n) CreateInternal(n))
-        End Function
-
-        Private Shared Function IsIgnoredNode(boundNode As BoundNode) As Boolean
-            ' since boundNode doesn't have parent pointer, it can't just look around using bound node
-            ' it needs to use syntax node.  we ignore these because this will return its own operation tree
-            ' that don't belong to its parent operation tree.
-            Select Case boundNode.Kind
-                Case BoundKind.LocalDeclaration
-                    Return boundNode.Syntax.Kind() = SyntaxKind.ModifiedIdentifier AndAlso
-                           If(boundNode.Syntax.Parent?.Kind() = SyntaxKind.VariableDeclarator, False)
-                Case BoundKind.ExpressionStatement
-                    Return boundNode.Syntax.Kind() = SyntaxKind.SelectStatement
-                Case BoundKind.CaseBlock
-                    Return True
-                Case BoundKind.CaseStatement
-                    Return True
-                Case BoundKind.EventAccess
-                    Return boundNode.Syntax.Parent.Kind() = SyntaxKind.AddHandlerStatement OrElse
-                           boundNode.Syntax.Parent.Kind() = SyntaxKind.RemoveHandlerStatement OrElse
-                           boundNode.Syntax.Parent.Kind() = SyntaxKind.RaiseEventAccessorStatement
-            End Select
-
-            Return False
         End Function
 
         Private Function CreateInternal(boundNode As BoundNode) As IOperation
@@ -168,6 +136,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return CreateBoundIfStatementOperation(DirectCast(boundNode, BoundIfStatement))
                 Case BoundKind.SelectStatement
                     Return CreateBoundSelectStatementOperation(DirectCast(boundNode, BoundSelectStatement))
+                Case BoundKind.CaseBlock
+                    Return CreateBoundCaseBlockOperation(DirectCast(boundNode, BoundCaseBlock))
                 Case BoundKind.SimpleCaseClause
                     Return CreateBoundSimpleCaseClauseOperation(DirectCast(boundNode, BoundSimpleCaseClause))
                 Case BoundKind.RangeCaseClause
@@ -285,6 +255,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim builder = ArrayBuilder(Of IOperation).GetInstance(boundNodeWithChildren.Children.Length)
             For Each childNode In boundNodeWithChildren.Children
                 Dim operation = Create(childNode)
+                If operation Is Nothing Then
+                    Continue For
+                End If
+
                 builder.Add(operation)
             Next
 
@@ -533,7 +507,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
             ' We match semantic model here: If the Then expression IsMissing, we have a null type, rather than the ErrorType Of the bound node.
             Dim type As ITypeSymbol = If(syntax.IsMissing, Nothing, boundBadExpression.Type)
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundBadExpression.ConstantValueOpt)
-            Dim isImplicit As Boolean = boundBadExpression.WasCompilerGenerated
+
+            ' if child has syntax node point to same syntax node as bad expression, then this invalid expression Is implicit
+            Dim isImplicit = boundBadExpression.WasCompilerGenerated OrElse boundBadExpression.ChildBoundNodes.Any(Function(e) e?.Syntax Is boundBadExpression.Syntax)
             Return New LazyInvalidExpression(children, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
@@ -911,12 +887,38 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundSelectStatementOperation(boundSelectStatement As BoundSelectStatement) As ISwitchStatement
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundSelectStatement.ExpressionStatement.Expression))
-            Dim cases As Lazy(Of ImmutableArray(Of ISwitchCase)) = New Lazy(Of ImmutableArray(Of ISwitchCase))(Function() GetSwitchStatementCases(boundSelectStatement.CaseBlocks))
+            Dim cases As Lazy(Of ImmutableArray(Of ISwitchCase)) = New Lazy(Of ImmutableArray(Of ISwitchCase))(Function() boundSelectStatement.CaseBlocks.SelectAsArray(Function(n) DirectCast(Create(n), ISwitchCase)))
             Dim syntax As SyntaxNode = boundSelectStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundSelectStatement.WasCompilerGenerated
             Return New LazySwitchStatement(value, cases, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundCaseBlockOperation(boundCaseBlock As BoundCaseBlock) As ISwitchCase
+            Dim clauses As Lazy(Of ImmutableArray(Of ICaseClause)) = New Lazy(Of ImmutableArray(Of ICaseClause))(
+                Function()
+                    ' `CaseElseClauseSyntax` is bound to `BoundCaseStatement` with an empty list of case clauses,
+                    ' so we explicitly create an IOperation node for Case-Else clause to differentiate it from Case clause.
+                    Dim caseStatement = boundCaseBlock.CaseStatement
+                    If caseStatement.CaseClauses.IsEmpty AndAlso caseStatement.Syntax.Kind() = SyntaxKind.CaseElseStatement Then
+                        Return ImmutableArray.Create(Of ICaseClause)(
+                            New DefaultCaseClause(
+                                _semanticModel,
+                                caseStatement.Syntax,
+                                type:=Nothing,
+                                constantValue:=Nothing,
+                                isImplicit:=boundCaseBlock.WasCompilerGenerated))
+                    Else
+                        Return caseStatement.CaseClauses.SelectAsArray(Function(n) DirectCast(Create(n), ICaseClause))
+                    End If
+                End Function)
+            Dim body As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() ImmutableArray.Create(Create(boundCaseBlock.Body)))
+            Dim syntax As SyntaxNode = boundCaseBlock.Syntax
+            Dim type As ITypeSymbol = Nothing
+            Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
+            Dim isImplicit As Boolean = boundCaseBlock.WasCompilerGenerated
+            Return New LazySwitchCase(clauses, body, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundSimpleCaseClauseOperation(boundSimpleCaseClause As BoundSimpleCaseClause) As ISingleValueCaseClause
@@ -1076,7 +1078,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundCatchBlockOperation(boundCatchBlock As BoundCatchBlock) As ICatchClause
             Dim handler As Lazy(Of IBlockStatement) = New Lazy(Of IBlockStatement)(Function() DirectCast(Create(boundCatchBlock.Body), IBlockStatement))
-            Dim caughtType As ITypeSymbol = Nothing ' Manual
+            Dim caughtType As ITypeSymbol = boundCatchBlock.ExceptionSourceOpt?.Type
             Dim filter As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundCatchBlock.ExceptionFilterOpt))
             Dim exceptionLocal As ILocalSymbol = boundCatchBlock.LocalOpt
             Dim syntax As SyntaxNode = boundCatchBlock.Syntax
@@ -1122,7 +1124,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim syntax As SyntaxNode = boundBadStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Dim isImplicit As Boolean = boundBadStatement.WasCompilerGenerated
+
+            ' if child has syntax node point to same syntax node as bad statement, then this invalid statement is implicit
+            Dim isImplicit = boundBadStatement.WasCompilerGenerated OrElse boundBadStatement.ChildBoundNodes.Any(Function(e) e?.Syntax Is boundBadStatement.Syntax)
             Return New LazyInvalidStatement(children, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 

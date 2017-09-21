@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var csnode = (CSharpSyntaxNode)node;
             CheckSyntaxNode(csnode);
 
-            return this.GetOperationWorker(csnode, GetOperationOptions.Lowest, cancellationToken);
+            return this.GetOperationWorker(csnode, cancellationToken);
         }
 
         internal enum GetOperationOptions
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Parent
         }
 
-        internal virtual IOperation GetOperationWorker(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
+        internal virtual IOperation GetOperationWorker(CSharpSyntaxNode node, CancellationToken cancellationToken)
         {
             return null;
         }

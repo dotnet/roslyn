@@ -164,12 +164,12 @@ namespace Microsoft.CodeAnalysis
 
         private class NoneOperation : Operation
         {
-            private readonly Func<ImmutableArray<IOperation>> _getChildren;
+            private readonly Lazy<ImmutableArray<IOperation>> _lazyChildren;
 
             public NoneOperation(SemanticModel semanticModel, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren, bool isImplicit) :
                 base(OperationKind.None, semanticModel, node, type: null, constantValue: constantValue, isImplicit: isImplicit)
             {
-                _getChildren = getChildren;
+                _lazyChildren = new Lazy<ImmutableArray<IOperation>>(getChildren);
             }
 
             public override void Accept(OperationVisitor visitor)
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    foreach (var child in _getChildren().NullToEmpty())
+                    foreach (var child in _lazyChildren.Value)
                     {
                         if (child == null)
                         {

@@ -14116,32 +14116,35 @@ End Class
 Module Module1
     Sub Main()
         Dim q As New QueryAble()
-        Dim q2 As Object = From s In q
-                           Where s > 0'BIND:"Where s > 0"
+        Dim q2 As Object = From s In q'BIND:"From s In q"
+                           Where s > 0 
 
     End Sub
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvocationExpression ( Function QueryAble.Where(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble) (Syntax: 'Where s > 0')
-  Instance Receiver: ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
-  Arguments(1):
-      IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument) (Syntax: 's > 0')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.Int32, System.Boolean)) (Syntax: 's > 0')
-          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 's > 0')
-              IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 0')
-                IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 0')
-                  ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 0')
-                      Left: IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 0')
-                      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'From s In q ... Where s > 0')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+  Operand: ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble) (Syntax: 'From s In q ... Where s > 0')
+      Expression: IInvocationExpression ( Function QueryAble.Where(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble) (Syntax: 'Where s > 0')
+          Instance Receiver: ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
+          Arguments(1):
+              IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument) (Syntax: 's > 0')
+                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.Int32, System.Boolean)) (Syntax: 's > 0')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand: IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 's > 0')
+                      IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 0')
+                        IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 0')
+                          ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 0')
+                              Left: IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 0')
+                              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
-            VerifyOperationTreeAndDiagnosticsForTest(Of WhereClauseSyntax)(source, expectedOperationTree, expectedDiagnostics)
+            VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
@@ -14168,17 +14171,46 @@ End Class
 Module Module1
     Sub Main()
         Dim q As New QueryAble()
-        Dim q2 As Object = From s In q Where s > 0 Where 10 > s'BIND:"s In q"
+        Dim q2 As Object = From s In q Where s > 0 Where 10 > s 'BIND:"From s In q Where s > 0 Where 10 > s"
     End Sub
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'From s In q ... here 10 > s')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+  Operand: ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble) (Syntax: 'From s In q ... here 10 > s')
+      Expression: IInvocationExpression ( Function QueryAble.Where(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble) (Syntax: 'Where 10 > s')
+          Instance Receiver: IInvocationExpression ( Function QueryAble.Where(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble) (Syntax: 'Where s > 0')
+              Instance Receiver: ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
+              Arguments(1):
+                  IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument) (Syntax: 's > 0')
+                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.Int32, System.Boolean)) (Syntax: 's > 0')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Operand: IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 's > 0')
+                          IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 0')
+                            IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 0')
+                              ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 0')
+                                  Left: IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 0')
+                                  Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Arguments(1):
+              IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument) (Syntax: '10 > s')
+                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.Int32, System.Boolean)) (Syntax: '10 > s')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand: IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '10 > s')
+                      IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '10 > s')
+                        IReturnStatement (OperationKind.ReturnStatement) (Syntax: '10 > s')
+                          ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '10 > s')
+                              Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+                              Right: IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: '10 > s')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
-            VerifyOperationTreeAndDiagnosticsForTest(Of CollectionRangeVariableSyntax)(source, expectedOperationTree, expectedDiagnostics)
+            VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
@@ -14205,17 +14237,33 @@ End Class
 Module Module1
     Sub Main()
         Dim q As New QueryAble()
-        Dim q2 As Object = From s In q Where s > 0'BIND:"s"
+        Dim q2 As Object = From s In q Where s > 0 'BIND:"From s In q Where s > 0"
     End Sub
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None) (Syntax: 's')
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'From s In q Where s > 0')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+  Operand: ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble) (Syntax: 'From s In q Where s > 0')
+      Expression: IInvocationExpression ( Function QueryAble.Where(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble) (Syntax: 'Where s > 0')
+          Instance Receiver: ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
+          Arguments(1):
+              IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument) (Syntax: 's > 0')
+                IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.Int32, System.Boolean)) (Syntax: 's > 0')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand: IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 's > 0')
+                      IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 0')
+                        IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 0')
+                          ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 0')
+                              Left: IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 0')
+                              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
-            VerifyOperationTreeAndDiagnosticsForTest(Of IdentifierNameSyntax)(source, expectedOperationTree, expectedDiagnostics)
+            VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
     End Class
 

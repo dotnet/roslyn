@@ -133,4 +133,20 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Expression);
     }
+
+    internal abstract partial class BoundMethodOrPropertyGroup
+    {
+        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.ReceiverOpt);
+    }
+
+    internal partial class BoundSequence
+    {
+        protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.SideEffects.Add(this.Value));
+    }
+
+    internal partial class BoundStatementList
+    {
+        protected override ImmutableArray<BoundNode> Children => 
+            (this.Kind == BoundKind.StatementList || this.Kind == BoundKind.Scope) ? StaticCast<BoundNode>.From(this.Statements) : ImmutableArray<BoundNode>.Empty;
+    }
 }
