@@ -313,5 +313,26 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.RefOnly = true;
             Assert.Equal("/out:test.exe /refonly test.cs", csc.GenerateResponseFileContents());
         }
+
+        [Fact]
+        public void SharedCompilationId()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.UseSharedCompilation = true;
+            csc.SharedCompilationId = "testPipeName";
+            Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.UseSharedCompilation = false;
+            csc.SharedCompilationId = "testPipeName";
+            Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.SharedCompilationId = "testPipeName";
+            Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
     }
 }
