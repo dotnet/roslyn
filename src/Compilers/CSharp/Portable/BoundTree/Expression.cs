@@ -114,6 +114,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Count);
     }
 
+    internal partial class BoundConvertedStackAllocExpression
+    {
+        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Count);
+    }
+
     internal partial class BoundDynamicObjectCreationExpression
     {
         protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.Arguments.AddRange(BoundObjectCreationExpression.GetChildInitializers(this.InitializerExpressionOpt)));

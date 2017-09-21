@@ -82,7 +82,21 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public new IPropertySymbol OriginalDefinition => this;
 
-        public IPropertySymbol OverriddenProperty => null;
+        public bool ReturnsByRefReadonly
+        {
+            get
+            {
+                return this.GetMethod != null && this.GetMethod.ReturnsByRefReadonly;
+            }
+        }
+
+        public IPropertySymbol OverriddenProperty
+        {
+            get
+            {
+                return null;
+            }
+        }
 
         public bool IsWithEvents => false;
 

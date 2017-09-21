@@ -183,7 +183,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             consequence,
                             _factory.Default(nodeType),
                             null,
-                            nodeType);
+                            nodeType,
+                            isRef: false);
 
                         if (temp != null)
                         {

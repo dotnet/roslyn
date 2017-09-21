@@ -3578,7 +3578,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (8,32): error CS8305: Tuple element name 'a' is inferred. Please use language version 7.1 or greater to access an element by its inferred name.
                 //         System.Console.Write(t.a);
@@ -3704,7 +3704,7 @@ public static class Extensions
     public static string a(this (int, int) self) { return ""hello""; }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef }, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (8,32): error CS8305: Tuple element name 'a' is inferred. Please use language version 7.1 or greater to access an element by its inferred name.
                 //         System.Console.Write(t.a);
@@ -4366,7 +4366,7 @@ namespace System
 ";
             var comp = CreateStandardCompilation(source, assemblyName: "comp");
             comp.VerifyDiagnostics(
-                // (11,13): error CS8207: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
+                // (11,13): error CS8330: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
                 //     void M2((int a, int b) y)
                 Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "(int a, int b)").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(11, 13),
                 // (7,39): error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -15153,7 +15153,7 @@ class TestAttribute : System.Attribute
                 // (6,38): error CS8129: Type of the tuple element cannot be infered from '<null>'.
                 //         var x0 = new {tuple = (null, null)};
                 Diagnostic(ErrorCode.Unknown, "null").WithArguments("<null>").WithLocation(6, 38),
-                // (8,31): error CS8207: Cannot implicitly convert tuple expression to 'ValueType'
+                // (8,31): error CS8330: Cannot implicitly convert tuple expression to 'ValueType'
                 //         System.ValueType x1 = (null, "1");
                 Diagnostic(ErrorCode.Unknown, @"(null, ""1"")").WithArguments("System.ValueType").WithLocation(8, 31),
                 // (11,20): error CS1503: Argument 1: cannot convert from '<tuple>' to '(int, string)'
@@ -15189,25 +15189,25 @@ class TestAttribute : System.Attribute
                 // (29,20): error CS0655: 'Val' is not a valid named attribute argument because it is not a valid attribute parameter type
                 //     [TestAttribute(Val = ("12", "12"))]
                 Diagnostic(ErrorCode.ERR_BadNamedAttributeArgumentType, "Val").WithArguments("Val").WithLocation(29, 20),
-                // (34,14): error CS8207: Cannot implicitly convert tuple expression to 'int'
+                // (34,14): error CS8330: Cannot implicitly convert tuple expression to 'int'
                 //         V1 = (13, null),
                 Diagnostic(ErrorCode.Unknown, "(13, null)").WithArguments("int").WithLocation(34, 14),
-                // (35,14): error CS8207: Cannot implicitly convert tuple expression to 'int'
+                // (35,14): error CS8330: Cannot implicitly convert tuple expression to 'int'
                 //         V2 = (14, "14"),
                 Diagnostic(ErrorCode.Unknown, @"(14, ""14"")").WithArguments("int").WithLocation(35, 14),
-                // (36,14): error CS8207: Cannot implicitly convert tuple expression to 'int'
+                // (36,14): error CS8330: Cannot implicitly convert tuple expression to 'int'
                 //         V3 = ("15", "15"),
                 Diagnostic(ErrorCode.Unknown, @"(""15"", ""15"")").WithArguments("int").WithLocation(36, 14),
                 // (41,28): error CS8129: Type of the tuple element cannot be infered from '<null>'.
                 //         var x = (16, (16 , null));
                 Diagnostic(ErrorCode.Unknown, "null").WithArguments("<null>").WithLocation(41, 28),
-                // (44,17): error CS8207: Cannot implicitly convert tuple expression to 'TypedReference'
+                // (44,17): error CS8330: Cannot implicitly convert tuple expression to 'TypedReference'
                 //         var u = __refvalue((17, null), (int, string));
                 Diagnostic(ErrorCode.Unknown, "__refvalue((17, null), (int, string))").WithArguments("System.TypedReference").WithLocation(44, 17),
-                // (45,17): error CS8207: Cannot implicitly convert tuple expression to 'TypedReference'
+                // (45,17): error CS8330: Cannot implicitly convert tuple expression to 'TypedReference'
                 //         var v = __refvalue((18, "18"), (int, string));
                 Diagnostic(ErrorCode.Unknown, @"__refvalue((18, ""18""), (int, string))").WithArguments("System.TypedReference").WithLocation(45, 17),
-                // (46,17): error CS8207: Cannot implicitly convert tuple expression to 'TypedReference'
+                // (46,17): error CS8330: Cannot implicitly convert tuple expression to 'TypedReference'
                 //         var w = __refvalue(("19", "19"), (int, string));
                 Diagnostic(ErrorCode.Unknown, @"__refvalue((""19"", ""19""), (int, string))").WithArguments("System.TypedReference").WithLocation(46, 17)
                 );
