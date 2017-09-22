@@ -827,41 +827,44 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseCatchClause : Operation, ICatchClause
     {
-        protected BaseCatchClause(ITypeSymbol caughtType, ILocalSymbol exceptionLocal, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            // https://github.com/dotnet/roslyn/issues/22008   
-            // base(OperationKind.CatchClause, semanticModel, syntax, type, constantValue, isImplicit)
-            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+        protected BaseCatchClause(ITypeSymbol exceptionType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.CatchClause, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            CaughtType = caughtType;
-            ExceptionLocal = exceptionLocal;
+            ExceptionType = exceptionType;
         }
-
-        protected abstract IBlockStatement HandlerImpl { get; }
         /// <summary>
-        /// Type of exception to be handled.
+        /// Type of the exception handled by the catch clause.
         /// </summary>
-        public ITypeSymbol CaughtType { get; }
+        public ITypeSymbol ExceptionType { get; }
+        protected abstract IOperation ExceptionDeclarationOrExpressionImpl { get; }
         protected abstract IOperation FilterImpl { get; }
-        /// <summary>
-        /// Symbol for the local catch variable bound to the caught exception.
-        /// </summary>
-        public ILocalSymbol ExceptionLocal { get; }
+        protected abstract IBlockStatement HandlerImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
+                yield return ExceptionDeclarationOrExpression;
                 yield return Filter;
                 yield return Handler;
             }
         }
         /// <summary>
-        /// Body of the exception handler.
+        /// Optional source for exception. This could be any of the following operation:
+        /// 1. Declaration for the local catch variable bound to the caught exception (C# and VB) OR
+        /// 2. Type expression for the caught expression type (C#) OR
+        /// 3. Null, indicating no expression (C#)
+        /// 4. Reference to an existing local or parameter (VB) OR
+        /// 5. An error expression (VB)
         /// </summary>
-        public IBlockStatement Handler => Operation.SetParentOperation(HandlerImpl, this);
+        public IOperation ExceptionDeclarationOrExpression => Operation.SetParentOperation(ExceptionDeclarationOrExpressionImpl, this);
         /// <summary>
         /// Filter expression to be executed to determine whether to handle the exception.
         /// </summary>
         public IOperation Filter => Operation.SetParentOperation(FilterImpl, this);
+        /// <summary>
+        /// Body of the exception handler.
+        /// </summary>
+        public IBlockStatement Handler => Operation.SetParentOperation(HandlerImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitCatchClause(this);
@@ -877,15 +880,17 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class CatchClause : BaseCatchClause, ICatchClause
     {
-        public CatchClause(IBlockStatement handler, ITypeSymbol caughtType, IOperation filter, ILocalSymbol exceptionLocal, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(caughtType, exceptionLocal, semanticModel, syntax, type, constantValue, isImplicit)
+        public CatchClause(IOperation exceptionDeclarationOrExpression, ITypeSymbol exceptionType, IOperation filter, IBlockStatement handler, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(exceptionType, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            HandlerImpl = handler;
+            ExceptionDeclarationOrExpressionImpl = exceptionDeclarationOrExpression;
             FilterImpl = filter;
+            HandlerImpl = handler;
         }
 
         protected override IBlockStatement HandlerImpl { get; }
         protected override IOperation FilterImpl { get; }
+        protected override IOperation ExceptionDeclarationOrExpressionImpl { get; }
     }
 
     /// <summary>
@@ -893,18 +898,21 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LazyCatchClause : BaseCatchClause, ICatchClause
     {
-        private readonly Lazy<IBlockStatement> _lazyHandler;
+        private readonly Lazy<IOperation> _lazyExceptionDeclarationOrExpression;
         private readonly Lazy<IOperation> _lazyFilter;
+        private readonly Lazy<IBlockStatement> _lazyHandler;
 
-        public LazyCatchClause(Lazy<IBlockStatement> handler, ITypeSymbol caughtType, Lazy<IOperation> filter, ILocalSymbol exceptionLocal, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(caughtType, exceptionLocal, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyCatchClause(Lazy<IOperation> exceptionDeclarationOrExpression, ITypeSymbol exceptionType, Lazy<IOperation> filter, Lazy<IBlockStatement> handler, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(exceptionType, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            _lazyHandler = handler ?? throw new System.ArgumentNullException(nameof(handler));
+            _lazyExceptionDeclarationOrExpression = exceptionDeclarationOrExpression ?? throw new System.ArgumentNullException(nameof(exceptionDeclarationOrExpression));
             _lazyFilter = filter ?? throw new System.ArgumentNullException(nameof(filter));
+            _lazyHandler = handler ?? throw new System.ArgumentNullException(nameof(handler));
         }
 
-        protected override IBlockStatement HandlerImpl => _lazyHandler.Value;
-
+        protected override IOperation ExceptionDeclarationOrExpressionImpl => _lazyExceptionDeclarationOrExpression.Value;
         protected override IOperation FilterImpl => _lazyFilter.Value;
+        protected override IBlockStatement HandlerImpl => _lazyHandler.Value;
     }
 
     /// <summary>
@@ -4338,9 +4346,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal abstract partial class BaseTryStatement : Operation, ITryStatement
     {
         protected BaseTryStatement(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            // https://github.com/dotnet/roslyn/issues/22008
-            // base(OperationKind.TryStatement, semanticModel, syntax, type, constantValue, isImplicit)
-            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+            base(OperationKind.TryStatement, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 

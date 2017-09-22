@@ -56,6 +56,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             return OperationFactory.CreateVariableDeclaration(boundLocalDeclaration.LocalSymbol, Create(boundLocalDeclaration.InitializerOpt), _semanticModel, syntax);
         }
 
+        private IVariableDeclaration CreateVariableDeclaration(BoundLocal boundLocal)
+        {
+            return OperationFactory.CreateVariableDeclaration(boundLocal.LocalSymbol, initialValue: null, semanticModel: _semanticModel, syntax: boundLocal.Syntax);
+        }
+
         private IOperation CreateBoundCallInstanceOperation(BoundCall boundCall)
         {
             if (boundCall.Method == null || boundCall.Method.IsStatic)

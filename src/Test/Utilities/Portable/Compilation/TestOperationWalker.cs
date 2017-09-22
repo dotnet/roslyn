@@ -180,15 +180,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitLockStatement(operation);
         }
 
-        internal override void VisitTryStatement(ITryStatement operation)
+        public override void VisitTryStatement(ITryStatement operation)
         {
             base.VisitTryStatement(operation);
         }
 
-        internal override void VisitCatchClause(ICatchClause operation)
+        public override void VisitCatchClause(ICatchClause operation)
         {
-            var caughtType = operation.CaughtType;
-            var exceptionLocal = operation.ExceptionLocal;
+            var exceptionType = operation.ExceptionType;
 
             base.VisitCatchClause(operation);
         }

@@ -799,7 +799,11 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New ParameterReferenceExpression(parameter, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundLocalOperation(boundLocal As BoundLocal) As ILocalReferenceExpression
+        Private Function CreateBoundLocalOperation(boundLocal As BoundLocal) As IOperation
+            If boundLocal.Syntax.Kind = SyntaxKind.IdentifierName AndAlso boundLocal.Syntax.Parent?.Kind = SyntaxKind.CatchStatement Then
+                Return OperationFactory.CreateVariableDeclaration(boundLocal.LocalSymbol, initialValue:=Nothing, semanticModel:=_semanticModel, syntax:=boundLocal.Syntax)
+            End If
+
             Dim local As ILocalSymbol = boundLocal.LocalSymbol
             Dim isDeclaration As Boolean = False
             Dim syntax As SyntaxNode = boundLocal.Syntax
@@ -1077,15 +1081,16 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundCatchBlockOperation(boundCatchBlock As BoundCatchBlock) As ICatchClause
-            Dim handler As Lazy(Of IBlockStatement) = New Lazy(Of IBlockStatement)(Function() DirectCast(Create(boundCatchBlock.Body), IBlockStatement))
-            Dim caughtType As ITypeSymbol = boundCatchBlock.ExceptionSourceOpt?.Type
+            Dim exceptionDeclarationOrExpression As Lazy(Of IOperation) = New Lazy(Of IOperation)(
+                Function() If(boundCatchBlock.ExceptionSourceOpt IsNot Nothing, Create(boundCatchBlock.ExceptionSourceOpt), Nothing))
+            Dim exceptionType As ITypeSymbol = If(boundCatchBlock.ExceptionSourceOpt?.Type, DirectCast(_semanticModel.Compilation, VisualBasicCompilation).GetWellKnownType(WellKnownType.System_Exception))
             Dim filter As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundCatchBlock.ExceptionFilterOpt))
-            Dim exceptionLocal As ILocalSymbol = boundCatchBlock.LocalOpt
+            Dim handler As Lazy(Of IBlockStatement) = New Lazy(Of IBlockStatement)(Function() DirectCast(Create(boundCatchBlock.Body), IBlockStatement))
             Dim syntax As SyntaxNode = boundCatchBlock.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundCatchBlock.WasCompilerGenerated
-            Return New LazyCatchClause(handler, caughtType, filter, exceptionLocal, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyCatchClause(exceptionDeclarationOrExpression, exceptionType, filter, handler, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundBlockOperation(boundBlock As BoundBlock) As IBlockStatement
@@ -1095,7 +1100,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     ' https://github.com/dotnet/roslyn/issues/21776
                     Return boundBlock.Statements.Select(Function(n) (s:=Create(n), bound:=n)).Where(
                         Function(tuple)
-                            Return tuple.s.Kind <> OperationKind.None OrElse tuple.bound.Kind = BoundKind.TryStatement OrElse
+                            Return tuple.s.Kind <> OperationKind.None OrElse
                                 tuple.bound.Kind = BoundKind.WithStatement OrElse tuple.bound.Kind = BoundKind.StopStatement OrElse
                                 tuple.bound.Kind = BoundKind.EndStatement
                         End Function).Select(Function(tuple) tuple.s).ToImmutableArray()
