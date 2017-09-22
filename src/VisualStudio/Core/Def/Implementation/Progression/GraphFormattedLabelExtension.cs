@@ -33,9 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         private string GetStringPropertyForGraphObject(GraphObject graphObject, string graphCommandDefinitionIdentifier, GraphProperty propertyWithoutContainingSymbol, GraphProperty propertyWithContainingSymbol)
         {
-            var graphNode = graphObject as GraphNode;
 
-            if (graphNode != null)
+            if (graphObject is GraphNode graphNode)
             {
                 if (graphCommandDefinitionIdentifier != GraphCommandDefinition.Contains.Id)
                 {

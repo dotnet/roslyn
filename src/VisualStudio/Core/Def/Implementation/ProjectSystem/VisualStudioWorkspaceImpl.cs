@@ -378,8 +378,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private string GetMetadataPath(MetadataReference metadataReference)
         {
-            var fileMetadata = metadataReference as PortableExecutableReference;
-            if (fileMetadata != null)
+            if (metadataReference is PortableExecutableReference fileMetadata)
             {
                 return fileMetadata.FilePath;
             }
@@ -1160,8 +1159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             uint canAddProjectReference = (uint)__VSREFERENCEQUERYRESULT.REFERENCE_UNKNOWN;
             uint canBeReferenced = (uint)__VSREFERENCEQUERYRESULT.REFERENCE_UNKNOWN;
 
-            var referencingProjectFlavor3 = referencingHierarchy as IVsProjectFlavorReferences3;
-            if (referencingProjectFlavor3 != null)
+            if (referencingHierarchy is IVsProjectFlavorReferences3 referencingProjectFlavor3)
             {
                 if (ErrorHandler.Failed(referencingProjectFlavor3.QueryAddProjectReferenceEx(referencedHierarchy, ContextFlags, out canAddProjectReference, out var unused)))
                 {
@@ -1177,8 +1175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            var referencedProjectFlavor3 = referencedHierarchy as IVsProjectFlavorReferences3;
-            if (referencedProjectFlavor3 != null)
+            if (referencedHierarchy is IVsProjectFlavorReferences3 referencedProjectFlavor3)
             {
                 if (ErrorHandler.Failed(referencedProjectFlavor3.QueryCanBeReferencedEx(referencingHierarchy, ContextFlags, out canBeReferenced, out var unused)))
                 {

@@ -91,13 +91,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         public static Task<BuildResponse> RunServerCompilation(
             RequestLanguage language,
+            string sharedCompilationId,
             List<string> arguments,
             BuildPathsAlt buildPaths,
             string keepAlive,
             string libEnvVariable,
             CancellationToken cancellationToken)
         {
-            var pipeNameOpt = GetPipeNameForPathOpt(buildPaths.ClientDirectory);
+            var pipeNameOpt = sharedCompilationId ?? GetPipeNameForPathOpt(buildPaths.ClientDirectory);
 
             return RunServerCompilationCore(
                 language,

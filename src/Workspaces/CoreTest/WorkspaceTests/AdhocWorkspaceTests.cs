@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 pws.SetParseOptions(projid, parseOptions.WithLanguageVersion(CS.LanguageVersion.CSharp3));
 
                 // get partial semantics doc
-                var frozen = await pws.CurrentSolution.GetDocument(docid1).WithFrozenPartialSemanticsAsync(CancellationToken.None);
+                var frozen = pws.CurrentSolution.GetDocument(docid1).WithFrozenPartialSemantics(CancellationToken.None);
             }
         }
 

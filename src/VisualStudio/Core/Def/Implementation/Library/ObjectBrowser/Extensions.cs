@@ -50,8 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         public static string GetProjectDisplayName(this Project project)
         {
-            var workspace = project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            if (workspace != null)
+            if (project.Solution.Workspace is VisualStudioWorkspaceImpl workspace)
             {
                 return workspace.GetProjectDisplayName(project);
             }

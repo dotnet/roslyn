@@ -24,9 +24,9 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
-                // (6,17): error CS8107: Feature 'default literal' is not available in C# 7. Please use language version 7.1 or greater.
+                // (6,17): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //         int x = default;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(6, 17)
                 );
@@ -45,9 +45,9 @@ class C
     async Task M(CancellationToken t = default) { await Task.Delay(0); }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source);
+            var comp = CreateCompilationWithMscorlib46(source,parseOptions: TestOptions.Regular7 );
             comp.VerifyDiagnostics(
-                // (7,40): error CS8107: Feature 'default literal' is not available in C# 7. Please use language version 7.1 or greater.
+                // (7,40): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //     async Task M(CancellationToken t = default) { await Task.Delay(0); }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(7, 40)
                 );
@@ -319,7 +319,10 @@ class C
             comp.VerifyDiagnostics(
                 // (6,9): error CS8150: By-value returns may only be used in methods that return by value
                 //         return default;
-                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(6, 9),
+                // (6,16): error CS8151: The return expression must be of type 'int' because this method returns by reference
+                //         return default;
+                Diagnostic(ErrorCode.ERR_RefReturnMustHaveIdentityConversion, "default").WithArguments("int").WithLocation(6, 16)
                 );
         }
 
@@ -921,6 +924,7 @@ class C
         var q = default && 1;
         var r = default || 1;
         var s = default ?? 1;
+        var t = default ?? default(int?);
     }
 }
 ";
@@ -974,6 +978,12 @@ class C
                 // (23,17): error CS8310: Operator '||' cannot be applied to operand 'default'
                 //         var r = default || 1;
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default || 1").WithArguments("||", "default").WithLocation(23, 17),
+                // (24,17): error CS8310: Operator '??' cannot be applied to operand 'default'
+                //         var s = default ?? 1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default ?? 1").WithArguments("??", "default").WithLocation(24, 17),
+                // (25,17): error CS8310: Operator '??' cannot be applied to operand 'default'
+                //         var t = default ?? default(int?);
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default ?? default(int?)").WithArguments("??", "default").WithLocation(25, 17),
                 // (20,13): warning CS0219: The variable 'o' is assigned but its value is never used
                 //         var o = default == 1; // ok
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(20, 13),
@@ -1009,7 +1019,8 @@ class C
         var p = 1 != default; // ok
         var q = 1 && default;
         var r = 1 || default;
-        var s = 1 ?? default;
+        var s = new object() ?? default; // ok
+        var t = 1 ?? default;
     }
 }
 ";
@@ -1063,9 +1074,9 @@ class C
                 // (23,17): error CS8310: Operator '||' cannot be applied to operand 'default'
                 //         var r = 1 || default;
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 || default").WithArguments("||", "default").WithLocation(23, 17),
-                // (24,17): error CS8310: Operator '??' cannot be applied to operand 'default'
-                //         var s = 1 ?? default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 ?? default").WithArguments("??", "default").WithLocation(24, 17),
+                // (25,17): error CS0019: Operator '??' cannot be applied to operands of type 'int' and 'default'
+                //         var t = 1 ?? default;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 ?? default").WithArguments("??", "int", "default").WithLocation(25, 17),
                 // (20,13): warning CS0219: The variable 'o' is assigned but its value is never used
                 //         var o = 1 == default; // ok
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(20, 13),
@@ -1073,6 +1084,26 @@ class C
                 //         var p = 1 != default; // ok
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p").WithLocation(21, 13)
                 );
+        }
+
+        [Fact]
+        public void TestBinaryOperators4()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        var a = default(string) ?? """";
+        var b = default(int?) ?? default;
+        var c = null ?? default(int?);
+        System.Console.Write($""{a == """"} {b == 0} {c == null}"");
+    }
+}
+";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "True True True");
         }
 
         [Fact]
@@ -2211,9 +2242,9 @@ class Program
 
             var comp = CreateCompilationWithMscorlibAndSystemCore(text, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (6,47): error CS0845: An expression tree lambda may not contain a coalescing operator with a null or default literal left-hand side
+                // (6,47): error CS8310: Operator '??' cannot be applied to operand 'default'
                 //     Expression<Func<object>> testExpr = () => default ?? "hello";
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "default").WithLocation(6, 47)
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, @"default ?? ""hello""").WithArguments("??", "default").WithLocation(6, 47)
                 );
         }
 

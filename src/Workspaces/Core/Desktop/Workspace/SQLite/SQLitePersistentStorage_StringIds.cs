@@ -12,23 +12,34 @@ namespace Microsoft.CodeAnalysis.SQLite
     {
         private readonly ConcurrentDictionary<string, int> _stringToIdMap = new ConcurrentDictionary<string, int>();
 
-        private void FetchStringTable(SqlConnection connection)
+        private bool TryFetchStringTable(SqlConnection connection)
         {
-            using (var resettableStatement = connection.GetResettableStatement(
-                $@"select * from ""{StringInfoTableName}"""))
+            try
             {
-                var statement = resettableStatement.Statement;
-                while (statement.Step() == Result.ROW)
+                using (var resettableStatement = connection.GetResettableStatement(
+                    $@"select * from ""{StringInfoTableName}"""))
                 {
-                    var id = statement.GetInt32At(columnIndex: 0);
-                    var value = statement.GetStringAt(columnIndex: 1);
+                    var statement = resettableStatement.Statement;
+                    while (statement.Step() == Result.ROW)
+                    {
+                        var id = statement.GetInt32At(columnIndex: 0);
+                        var value = statement.GetStringAt(columnIndex: 1);
 
-                    // Note that TryAdd won't overwrite an existing string->id pair.  That's what
-                    // we want.  we don't want the strings we've allocated from the DB to be what
-                    // we hold onto.  We'd rather hold onto the strings we get from sources like
-                    // the workspaces.  This helps avoid unnecessary string instance duplication.
-                    _stringToIdMap.TryAdd(value, id);
+                        // Note that TryAdd won't overwrite an existing string->id pair.  That's what
+                        // we want.  we don't want the strings we've allocated from the DB to be what
+                        // we hold onto.  We'd rather hold onto the strings we get from sources like
+                        // the workspaces.  This helps avoid unnecessary string instance duplication.
+                        _stringToIdMap.TryAdd(value, id);
+                    }
                 }
+
+                return true;
+            }
+            catch (SqlException e) when (e.Result == Result.BUSY)
+            {
+                // Couldn't get access to sql database to fetch the string table.  
+                // Try again later.
+                return false;
             }
         }
 

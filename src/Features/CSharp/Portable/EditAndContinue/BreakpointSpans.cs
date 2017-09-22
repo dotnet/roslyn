@@ -77,14 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         private static TextSpan CreateSpan(SyntaxToken startToken, SyntaxToken endToken)
-        {
-            return TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End);
-        }
+            => TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End);
 
         private static TextSpan CreateSpan(SyntaxNode node)
-        {
-            return TextSpan.FromBounds(node.SpanStart, node.Span.End);
-        }
+            => CreateSpan(node.GetFirstToken(), node.GetLastToken());
 
         private static TextSpan CreateSpan(SyntaxNode node, SyntaxToken token)
         {

@@ -1147,6 +1147,85 @@ BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression in
         End Sub
 
         <Fact>
+        Public Sub TupleDisallowedWithNew()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+
+Imports System
+Class C
+
+    Dim t1 = New (a1 as Integer, a2 as Integer)()
+    Dim t2 As New (a1 as Integer, a2 as Integer)
+
+    Sub M()
+        Dim t1 = New (a1 as Integer, a2 as Integer)()
+        Dim t2 As New (a1 as Integer, a2 as Integer)
+    End Sub
+End Class
+]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+
+            comp.AssertTheseDiagnostics(
+<errors>
+BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
+    Dim t1 = New (a1 as Integer, a2 as Integer)()
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
+    Dim t2 As New (a1 as Integer, a2 as Integer)
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
+        Dim t1 = New (a1 as Integer, a2 as Integer)()
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
+        Dim t2 As New (a1 as Integer, a2 as Integer)
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</errors>)
+        End Sub
+
+        <Fact>
+        Public Sub ParseNewTuple()
+            Dim comp1 = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class A
+    Sub Main()
+        Dim x = New (A, A)
+        Dim y = New (A, A)()
+        Dim z = New (x As Integer, A)
+    End Sub
+End Class
+    ]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+            comp1.AssertTheseDiagnostics(<errors>
+BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
+        Dim x = New (A, A)
+                    ~~~~~~
+BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
+        Dim y = New (A, A)()
+                    ~~~~~~
+BC37280: 'New' cannot be used with tuple type. Use a tuple literal expression instead.
+        Dim z = New (x As Integer, A)
+                    ~~~~~~~~~~~~~~~~~
+                                         </errors>)
+
+            Dim comp2 = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Module Module1
+    Public Function Bar() As (Alice As (Alice As Integer, Bob As Integer)(), Bob As Integer)
+        ' this is actually ok, since it is an array
+        Return (New(Integer, Integer)() {(4, 5)}, 5)
+    End Function
+End Module
+    ]]></file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+            comp2.AssertNoDiagnostics()
+
+        End Sub
+
+        <Fact>
         Public Sub TupleLiteralBinding()
 
             Dim verifier = CompileAndVerify(
@@ -6278,11 +6357,31 @@ BC37289: Tuple element name 'M' is inferred. Please use language version 15.3 or
         End Sub
 
         <Fact>
+        Public Sub InferredName_Conversion()
+            Dim source = <compilation>
+                             <file>
+Class C
+    Shared Sub F(t As (Object, Object))
+    End Sub
+    Shared Sub G(o As Object)
+        Dim t = (1, o)
+        F(t)
+    End Sub
+End Class
+    </file>
+                         </compilation>
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source,
+                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef},
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+            comp.AssertTheseEmitDiagnostics(<errors/>)
+        End Sub
+
+        <Fact>
         Public Sub LongTupleWithArgumentEvaluation()
 
             Dim verifier = CompileAndVerify(
 <compilation>
-                                  <file name="a.vb">
+    <file name="a.vb">
 Class C
     Shared Sub Main()
         Dim x = (a:=PrintAndReturn(1), b:=2, c:=3, d:=PrintAndReturn(4), e:=5, f:=6, g:=PrintAndReturn(7), h:=PrintAndReturn("Alice"), i:=2, j:=3, k:=4, l:=5, m:=6, n:=PrintAndReturn(7), o:=PrintAndReturn("Bob"), p:=2, q:=PrintAndReturn(3))
@@ -7564,7 +7663,7 @@ BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is
         End Sub
 
         <Fact>
-        Public Sub TupleInferredLambdStrictOn()
+        Public Sub TupleInferredLambdaStrictOn()
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -7600,7 +7699,7 @@ BC36642: Option Strict On requires each lambda expression parameter to be declar
         End Sub
 
         <Fact()>
-        Public Sub TupleInferredLambdStrictOff()
+        Public Sub TupleInferredLambdaStrictOff()
 
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -13896,7 +13995,7 @@ System.Object
         Public Sub Constraints_01()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
-<file name="a.vb"><![CDATA[
+    <file name="a.vb"><![CDATA[
 Namespace System
     Public Structure ValueTuple(Of T1 As Class, T2)   
         Sub New(_1 As T1, _2 As T2)       
@@ -13913,7 +14012,7 @@ End Class
 ]]></file>
 </compilation>)
 
-        	comp.AssertTheseDiagnostics(
+            comp.AssertTheseDiagnostics(
 <errors>
 BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for type parameter 'T1'.
     Sub M(p As (Integer, Integer))
@@ -13931,7 +14030,7 @@ BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for typ
         Public Sub Constraints_02()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
-<file name="a.vb"><![CDATA[
+    <file name="a.vb"><![CDATA[
 Imports System
 Class C
     Sub M(p As (Integer, ArgIterator), q As ValueTuple(Of Integer, ArgIterator))
@@ -13972,7 +14071,7 @@ BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data t
         Public Sub Constraints_03()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
-<file name="a.vb"><![CDATA[
+    <file name="a.vb"><![CDATA[
 Imports System.Collections.Generic
 Namespace System
     Public Structure ValueTuple(Of T1, T2 As Class)   
@@ -14006,7 +14105,7 @@ BC32106: Type argument 'U' does not satisfy the 'Class' constraint for type para
         Public Sub Constraints_04()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
-<file name="a.vb"><![CDATA[
+    <file name="a.vb"><![CDATA[
 Imports System.Collections.Generic
 Namespace System
     Public Structure ValueTuple(Of T1, T2 As Class)   
@@ -14040,7 +14139,7 @@ BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for typ
         Public Sub Constraints_05()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
-<file name="a.vb"><![CDATA[
+    <file name="a.vb"><![CDATA[
 Imports System.Collections.Generic
 Namespace System
     Public Structure ValueTuple(Of T1, T2 As Structure)   
@@ -14086,7 +14185,7 @@ BC32105: Type argument 'Object' does not satisfy the 'Structure' constraint for 
         Public Sub Constraints_06()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
-<file name="a.vb"><![CDATA[
+    <file name="a.vb"><![CDATA[
 Namespace System
     Public Structure ValueTuple(Of T1 As Class)
         Public Sub New(item1 As T1)
@@ -14133,7 +14232,7 @@ BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for typ
         Public Sub LongTupleConstraints()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
-<file name="a.vb"><![CDATA[
+    <file name="a.vb"><![CDATA[
 Imports System
 Class C
     Sub M0(p As (Integer, Integer, Integer, Integer, Integer, Integer, Integer, ArgIterator))
@@ -20811,6 +20910,124 @@ End Module
     'Public Sub M1(Of Integer, (Integer, Integer))(a As ((Integer, Integer), Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, Integer, (Integer, Integer)))': Not most specific.").WithLocation(7, 9)
                 )
         End Sub
+
+        <Fact>
+        <WorkItem(21785, "https://github.com/dotnet/roslyn/issues/21785")>
+        Public Sub TypelessTupleInArrayInitializer()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Private mTupleArray As (X As Integer, P As System.Func(Of Byte(), Integer))() = {
+            (X:=0, P:=Nothing), (X:=0, P:=AddressOf MyFunction)
+        }
+
+    Sub Main()
+        System.Console.Write(mTupleArray(1).P(Nothing))
+    End Sub
+
+    Public Function MyFunction(ArgBytes As Byte()) As Integer
+        Return 1
+    End Function
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
+            comp.AssertNoDiagnostics()
+            CompileAndVerify(comp, expectedOutput:="1")
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim node = nodes.OfType(Of TupleExpressionSyntax)().ElementAt(1)
+
+            Assert.Equal("(X:=0, P:=AddressOf MyFunction)", node.ToString())
+            Dim tupleSymbol = model.GetTypeInfo(node)
+            Assert.Null(tupleSymbol.Type)
+
+            Assert.Equal("(X As System.Int32, P As System.Func(Of System.Byte(), System.Int32))",
+                         tupleSymbol.ConvertedType.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        <WorkItem(21785, "https://github.com/dotnet/roslyn/issues/21785")>
+        Public Sub TypelessTupleInArrayInitializerWithInferenceFailure()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Private mTupleArray = { (X:=0, P:=AddressOf MyFunction) }
+
+    Sub Main()
+        System.Console.Write(mTupleArray(1).P(Nothing))
+    End Sub
+
+    Public Function MyFunction(ArgBytes As Byte()) As Integer
+        Return 1
+    End Function
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
+            comp.AssertTheseDiagnostics(<errors>
+BC30491: Expression does not produce a value.
+    Private mTupleArray = { (X:=0, P:=AddressOf MyFunction) }
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                        </errors>)
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim node = nodes.OfType(Of TupleExpressionSyntax)().ElementAt(0)
+
+            Assert.Equal("(X:=0, P:=AddressOf MyFunction)", node.ToString())
+            Dim tupleSymbol = model.GetTypeInfo(node)
+            Assert.Null(tupleSymbol.Type)
+
+            Assert.Equal("System.Object", tupleSymbol.ConvertedType.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        <WorkItem(21785, "https://github.com/dotnet/roslyn/issues/21785")>
+        Public Sub TypelessTupleInArrayInitializerWithInferenceSuccess()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Sub Main()
+        Dim y As MyDelegate = AddressOf MyFunction
+        Dim mTupleArray = { (X:=0, P:=y), (X:=0, P:=AddressOf MyFunction) }
+        System.Console.Write(mTupleArray(1).P(Nothing))
+    End Sub
+
+    Delegate Function MyDelegate(ArgBytes As Byte()) As Integer
+
+    Public Function MyFunction(ArgBytes As Byte()) As Integer
+        Return 1
+    End Function
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, options:=TestOptions.DebugExe)
+            comp.AssertNoDiagnostics()
+            CompileAndVerify(comp, expectedOutput:="1")
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim node = nodes.OfType(Of TupleExpressionSyntax)().ElementAt(1)
+
+            Assert.Equal("(X:=0, P:=AddressOf MyFunction)", node.ToString())
+            Dim tupleSymbol = model.GetTypeInfo(node)
+            Assert.Null(tupleSymbol.Type)
+
+            Assert.Equal("(X As System.Int32, P As Module1.MyDelegate)", tupleSymbol.ConvertedType.ToTestDisplayString())
+        End Sub
+
     End Class
 
 End Namespace

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Extensibility.Composition;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
@@ -18,28 +17,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         private readonly Workspace _workspace;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly INavigateToItemDisplayFactory _displayFactory;
-        private readonly ImmutableArray<Lazy<INavigateToHostVersionService, VisualStudioVersionMetadata>> _hostServices;
 
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         public NavigateToItemProvider(
             Workspace workspace,
-            IGlyphService glyphService,
-            IAsynchronousOperationListener asyncListener,
-            IEnumerable<Lazy<INavigateToHostVersionService, VisualStudioVersionMetadata>> hostServices)
+            IAsynchronousOperationListener asyncListener)
         {
             Contract.ThrowIfNull(workspace);
-            Contract.ThrowIfNull(glyphService);
             Contract.ThrowIfNull(asyncListener);
 
             _workspace = workspace;
             _asyncListener = asyncListener;
-            _hostServices = hostServices.ToImmutableArray();
-
-            var hostService = _hostServices.Length > 0
-                ? VersionSelector.SelectHighest(hostServices)
-                : new Dev14NavigateToHostVersionService(glyphService);
-            _displayFactory = hostService.CreateDisplayFactory();
+            _displayFactory = new NavigateToItemDisplayFactory();
         }
 
         public void StopSearch()
@@ -95,11 +85,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
         private bool GetSearchCurrentDocumentOptionWorker(INavigateToCallback callback)
         {
-            var hostService = _hostServices.Length > 0
-                ? VersionSelector.SelectHighest(_hostServices)
-                : null;
-            var searchCurrentDocument = hostService?.GetSearchCurrentDocument(callback.Options) ?? false;
-            return searchCurrentDocument;
+            var options2 = callback.Options as INavigateToOptions2;
+            return options2?.SearchCurrentDocument ?? false;
         }
     }
 }

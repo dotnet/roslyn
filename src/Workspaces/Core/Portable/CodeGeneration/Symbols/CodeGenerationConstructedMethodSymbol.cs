@@ -30,9 +30,22 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override bool ReturnsByRef => _constructedFrom.ReturnsByRef;
 
-        public override ITypeSymbol ReturnType =>
+        public override bool ReturnsByRefReadonly
+        {
+            get
+            {
+                return _constructedFrom.ReturnsByRefReadonly;
+            }
+        }
+
+        public override ITypeSymbol ReturnType
+        {
+            get
+            {
                 // TODO(cyrusn): Construct this.
-                _constructedFrom.ReturnType;
+                return _constructedFrom.ReturnType;
+            }
+        }
 
         public override ImmutableArray<ITypeSymbol> TypeArguments
         {

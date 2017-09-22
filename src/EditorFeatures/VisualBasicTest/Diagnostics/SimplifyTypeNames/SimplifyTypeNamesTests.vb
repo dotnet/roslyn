@@ -120,6 +120,94 @@ Module Program
 End Module")
         End Function
 
+        <WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Async Function DoNotChangeToAliasInNameOfIfItChangesNameOfName() As Task
+            Await TestInRegularAndScript1Async(
+"Imports System
+Imports Foo = SimplifyInsideNameof.Program
+
+namespace SimplifyInsideNameof
+  class Program
+    shared sub Main()
+      Console.WriteLine(nameof([|SimplifyInsideNameof.Program|]))
+    end sub
+  end class
+end namespace",
+"Imports System
+Imports Foo = SimplifyInsideNameof.Program
+
+namespace SimplifyInsideNameof
+  class Program
+    shared sub Main()
+      Console.WriteLine(nameof(Program))
+    end sub
+  end class
+end namespace")
+        End Function
+
+        <WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Async Function DoChangeToAliasInNameOfIfItDoesNotAffectName1() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Imports Goo = SimplifyInsideNameof.Program
+
+namespace SimplifyInsideNameof
+  class Program
+    shared sub Main()
+      Console.WriteLine(nameof([|SimplifyInsideNameof.Program|].Main))
+    end sub
+  end class
+end namespace",
+"Imports System
+Imports Goo = SimplifyInsideNameof.Program
+
+namespace SimplifyInsideNameof
+  class Program
+    shared sub Main()
+      Console.WriteLine(nameof(Goo.Main))
+    end sub
+  end class
+end namespace")
+        End Function
+
+        <WorkItem(21449, "https://github.com/dotnet/roslyn/issues/21449")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Async Function DoChangeToAliasInNameOfIfItDoesNotAffectName2() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Imports Goo = N.Goo
+
+namespace N
+    class Goo
+    end class
+end namespace
+
+namespace SimplifyInsideNameof
+  class Program
+    shared sub Main()
+      Console.WriteLine(nameof([|N.Goo|]))
+    end sub
+  end class
+end namespace",
+"Imports System
+Imports Goo = N.Goo
+
+namespace N
+    class Goo
+    end class
+end namespace
+
+namespace SimplifyInsideNameof
+  class Program
+    shared sub Main()
+      Console.WriteLine(nameof(Goo))
+    end sub
+  end class
+end namespace")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestWithCursorAtBeginning() As Task
             Await TestInRegularAndScriptAsync(
@@ -1039,8 +1127,7 @@ Namespace OuterNamespace
 End Namespace
 
 </Text>.Value.Replace(vbLf, vbCrLf),
-        index:=1,
-        ignoreTrivia:=False)
+        index:=1)
         End Function
 
         <WorkItem(542138, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542138")>
@@ -2007,7 +2094,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, ignoreTrivia:=False, options:=PreferIntrinsicPredefinedTypeInDeclaration())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicPredefinedTypeInDeclaration())
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2031,7 +2118,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, ignoreTrivia:=False, options:=PreferIntrinsicPredefinedTypeInDeclaration())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicPredefinedTypeInDeclaration())
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2053,7 +2140,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, ignoreTrivia:=False, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2073,7 +2160,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, ignoreTrivia:=False, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(1012713, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012713")>
@@ -2159,7 +2246,7 @@ Module Program
     End Sub
 End Module
 </Code>
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, ignoreTrivia:=False, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2181,7 +2268,7 @@ Module Program
     End Sub
 End Module
 </Code>
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, ignoreTrivia:=False, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(956667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956667")>

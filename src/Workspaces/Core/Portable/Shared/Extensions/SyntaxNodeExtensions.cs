@@ -543,8 +543,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 if (trivia.HasStructure)
                 {
-                    var skippedTokensTrivia = trivia.GetStructure() as ISkippedTokensTriviaSyntax;
-                    if (skippedTokensTrivia != null)
+                    if (trivia.GetStructure() is ISkippedTokensTriviaSyntax skippedTokensTrivia)
                     {
                         foreach (var token in skippedTokensTrivia.Tokens)
                         {
@@ -574,8 +573,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 if (trivia.HasStructure)
                 {
-                    var skippedTokensTrivia = trivia.GetStructure() as ISkippedTokensTriviaSyntax;
-                    if (skippedTokensTrivia != null)
+                    if (trivia.GetStructure() is ISkippedTokensTriviaSyntax skippedTokensTrivia)
                     {
                         foreach (var token in skippedTokensTrivia.Tokens)
                         {

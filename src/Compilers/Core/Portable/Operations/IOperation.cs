@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Semantics;
 
@@ -16,14 +17,14 @@ namespace Microsoft.CodeAnalysis
     public interface IOperation
     {
         /// <summary>
+        /// IOperation that has this operation as a child
+        /// </summary>
+        IOperation Parent { get; }
+
+        /// <summary>
         /// Identifies the kind of the operation.
         /// </summary>
         OperationKind Kind { get; }
-
-        /// <summary>
-        ///  Indicates whether the operation is invalid, either semantically or syntactically.
-        /// </summary>
-        bool IsInvalid { get; }
 
         /// <summary>
         /// Syntax that was analyzed to produce the operation.
@@ -40,8 +41,23 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         Optional<object> ConstantValue { get; }
 
+        /// <summary>
+        /// An array of child operations for this operation.
+        /// </summary>
+        IEnumerable<IOperation> Children { get; }
+
+        /// <summary>
+        /// The source language of the IOperation. Possible values are <see cref="LanguageNames.CSharp"/> and <see cref="LanguageNames.VisualBasic"/>.
+        /// </summary>
+        string Language { get; }
+
         void Accept(OperationVisitor visitor);
 
         TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
+
+        /// <summary>
+        /// Set to True if compiler generated /implicitly computed by compiler code
+        /// </summary>
+        bool IsImplicit { get; }
     }
 }

@@ -82,6 +82,9 @@
     <PackageReference Include="System.Security.Cryptography.Algorithms">
       <Version>$(SystemSecurityCryptographyAlgorithmsVersion)</Version>
     </PackageReference>
+    <PackageReference Include="System.Security.Cryptography.Csp">
+      <Version>$(SystemSecurityCryptographyCspVersion)</Version>
+    </PackageReference>
     <PackageReference Include="System.Security.Cryptography.Encoding">
       <Version>$(SystemSecurityCryptographyEncodingVersion)</Version>
     </PackageReference>

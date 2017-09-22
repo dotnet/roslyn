@@ -255,8 +255,7 @@ class C
     private sub Goo()
         dim x = new C(true, 0, 0)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
 
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
@@ -283,8 +282,7 @@ class C
     private sub Goo()
         dim x = new C(0, true, 0)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
 
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
@@ -311,8 +309,7 @@ class C
     private sub Goo()
         dim x = new C(0, 0, true)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
 
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
@@ -341,8 +338,7 @@ class C
     private sub Goo()
         dim x = new C(true, 0, 0)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
 
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
@@ -371,8 +367,7 @@ class C
     private sub Goo()
         dim x = new C(0, true, 0)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
 
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
@@ -401,8 +396,7 @@ class C
     private sub Goo()
         dim x = new C(0, 0, true)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
     End Class
 End Namespace

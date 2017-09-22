@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -727,8 +728,65 @@ class C
 
             var global = comp.GlobalNamespace;
             var d = global.GetMembers("D")[0] as NamedTypeSymbol;
+            Assert.True(d.DelegateInvokeMethod.ReturnsByRef);
+            Assert.False(d.DelegateInvokeMethod.ReturnsByRefReadonly);
             Assert.Equal(RefKind.Ref, d.DelegateInvokeMethod.RefKind);
             Assert.Equal(RefKind.Ref, ((MethodSymbol)d.GetMembers("EndInvoke").Single()).RefKind);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void RefReadonlyReturningDelegate()
+        {
+            var source = @"delegate ref readonly int D(ref readonly int arg);";
+
+            var comp = CreateCompilationWithMscorlib45(source);
+            comp.VerifyDiagnostics();
+
+            var global = comp.GlobalNamespace;
+            var d = global.GetMembers("D")[0] as NamedTypeSymbol;
+            Assert.False(d.DelegateInvokeMethod.ReturnsByRef);
+            Assert.True(d.DelegateInvokeMethod.ReturnsByRefReadonly);
+            Assert.Equal(RefKind.RefReadOnly, d.DelegateInvokeMethod.RefKind);
+            Assert.Equal(RefKind.RefReadOnly, ((MethodSymbol)d.GetMembers("EndInvoke").Single()).RefKind);
+
+            Assert.Equal(RefKind.RefReadOnly, d.DelegateInvokeMethod.Parameters[0].RefKind);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void RefReadonlysInlambda()
+        {
+            var source = @"
+class C
+{
+    public delegate ref readonly T DD<T>(ref readonly T arg);
+
+    public static void Main()
+    {
+        DD<int> d1 = (ref readonly int a) => ref a;
+
+        DD<int> d2 = delegate(ref readonly int a){return ref a;};
+    }
+}";
+            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib45(new SyntaxTree[] { tree }).VerifyDiagnostics();
+
+            var model = compilation.GetSemanticModel(tree);
+
+            ExpressionSyntax lambdaSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+            var lambda = (LambdaSymbol)model.GetSymbolInfo(lambdaSyntax).Symbol;
+
+            Assert.False(lambda.ReturnsByRef);
+            Assert.True(lambda.ReturnsByRefReadonly);
+            Assert.Equal(lambda.Parameters[0].RefKind, RefKind.RefReadOnly);
+
+            lambdaSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousMethodExpressionSyntax>().Single();
+            lambda = (LambdaSymbol)model.GetSymbolInfo(lambdaSyntax).Symbol;
+
+            Assert.False(lambda.ReturnsByRef);
+            Assert.True(lambda.ReturnsByRefReadonly);
+            Assert.Equal(lambda.Parameters[0].RefKind, RefKind.RefReadOnly);
         }
     }
 }

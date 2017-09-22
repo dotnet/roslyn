@@ -225,24 +225,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             {
                 AssertIsBackground();
                 var parentToken = plusEqualsToken.Parent as AssignmentExpressionSyntax;
-                var memberAccessExpression = parentToken.Left as MemberAccessExpressionSyntax;
 
-                if (memberAccessExpression != null)
+                if (parentToken.Left is MemberAccessExpressionSyntax memberAccessExpression)
                 {
                     // This is expected -- it means the last thing is(probably) the event name. We 
                     // already have that in eventSymbol. What we need is the LHS of that dot.
 
                     var lhs = memberAccessExpression.Expression;
 
-                    var lhsMemberAccessExpression = lhs as MemberAccessExpressionSyntax;
-                    if (lhsMemberAccessExpression != null)
+                    if (lhs is MemberAccessExpressionSyntax lhsMemberAccessExpression)
                     {
                         // Okay, cool.  The name we're after is in the RHS of this dot.
                         return lhsMemberAccessExpression.Name.ToString();
                     }
 
-                    var lhsNameSyntax = lhs as NameSyntax;
-                    if (lhsNameSyntax != null)
+                    if (lhs is NameSyntax lhsNameSyntax)
                     {
                         // Even easier -- the LHS of the dot is the name itself
                         return lhsNameSyntax.ToString();

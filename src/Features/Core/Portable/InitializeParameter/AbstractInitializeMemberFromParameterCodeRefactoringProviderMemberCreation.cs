@@ -391,8 +391,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return true;
             }
 
-            if (UnwrapImplicitConversion(assignmentExpression.Value) is INullCoalescingExpression coalesceExpression &&
-                IsParameterReference(coalesceExpression.PrimaryOperand, parameter))
+            if (UnwrapImplicitConversion(assignmentExpression.Value) is ICoalesceExpression coalesceExpression &&
+                IsParameterReference(coalesceExpression.Expression, parameter))
             {
                 // We already have a member initialized with this parameter like:
                 //      this.field = parameter ?? ...

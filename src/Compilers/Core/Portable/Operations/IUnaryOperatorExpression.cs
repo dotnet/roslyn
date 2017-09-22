@@ -16,11 +16,23 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Kind of unary operation.
         /// </summary>
-        UnaryOperationKind UnaryOperationKind { get; }
+        UnaryOperatorKind OperatorKind { get; }
         /// <summary>
         /// Single operand.
         /// </summary>
         IOperation Operand { get; }
+
+        /// <summary>
+        /// <code>true</code> if this is a 'lifted' unary operator.  When there is an 
+        /// operator that is defined to work on a value type, 'lifted' operators are 
+        /// created to work on the <see cref="System.Nullable{T}"/> versions of those
+        /// value types.
+        /// </summary>
+        bool IsLifted { get; }
+
+        /// <summary>
+        /// <code>true</code> if overflow checking is performed for the arithmetic operation.
+        /// </summary>
+        bool IsChecked { get; }
     }
 }
-

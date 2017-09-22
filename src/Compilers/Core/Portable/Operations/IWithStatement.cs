@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IWithStatement : IOperation
+    internal interface IWithStatement : IOperation // https://github.com/dotnet/roslyn/issues/22005
     {
         /// <summary>
         /// Body of the with.

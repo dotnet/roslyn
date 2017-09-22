@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _source = source;
         }
 
-        protected override Workspace Workspace
+        protected override Microsoft.CodeAnalysis.Workspace Workspace
         {
             get { return _source.Workspace; }
         }

@@ -158,8 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         {
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -192,12 +191,12 @@ ignoreTrivia: false);
             return count;
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
+        [WorkItem(21460, "https://github.com/dotnet/roslyn/issues/21460")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-        public async Task TestIfDefMethod()
+        public async Task TestIfDefMethod1()
         {
             await TestWithAllCodeStyleOff(
 @"class C
@@ -210,6 +209,7 @@ ignoreTrivia: false);
 }",
 @"class C
 {
+#if true
     int Goo
     {
         get
@@ -218,6 +218,144 @@ ignoreTrivia: false);
     }
 #endif
 }");
+        }
+
+        [WorkItem(21460, "https://github.com/dotnet/roslyn/issues/21460")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestIfDefMethod2()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+#if true
+    int [||]GetGoo()
+    {
+    }
+
+    void SetGoo(int val)
+    {
+    }
+#endif
+}",
+@"class C
+{
+#if true
+    int Goo
+    {
+        get
+        {
+        }
+    }
+
+    void SetGoo(int val)
+    {
+    }
+#endif
+}");
+        }
+
+        [WorkItem(21460, "https://github.com/dotnet/roslyn/issues/21460")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestIfDefMethod3()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+#if true
+    int [||]GetGoo()
+    {
+    }
+
+    void SetGoo(int val)
+    {
+    }
+#endif
+}",
+@"class C
+{
+#if true
+    int Goo
+    {
+        get
+        {
+        }
+
+        set
+        {
+        }
+    }
+#endif
+}", index: 1);
+        }
+
+        [WorkItem(21460, "https://github.com/dotnet/roslyn/issues/21460")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestIfDefMethod4()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+#if true
+    void SetGoo(int val)
+    {
+    }
+
+    int [||]GetGoo()
+    {
+    }
+#endif
+}",
+@"class C
+{
+#if true
+    void SetGoo(int val)
+    {
+    }
+
+    int Goo
+    {
+        get
+        {
+        }
+    }
+#endif
+}");
+        }
+
+        [WorkItem(21460, "https://github.com/dotnet/roslyn/issues/21460")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestIfDefMethod5()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+#if true
+    void SetGoo(int val)
+    {
+    }
+
+    int [||]GetGoo()
+    {
+    }
+#endif
+}",
+@"class C
+{
+
+#if true
+
+    int Goo
+    {
+        get
+        {
+        }
+
+        set
+        {
+        }
+    }
+#endif
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -250,8 +388,7 @@ ignoreTrivia: false);
         }
     }
 }",
-index: 1,
-ignoreTrivia: false);
+index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -742,7 +879,6 @@ class C
 
 class C
 {
-
     int Goo
     {
         get
@@ -782,7 +918,6 @@ class C
 
 class C
 {
-
     int Goo
     {
         get
@@ -822,7 +957,6 @@ class C
 
 class C
 {
-
     public int Goo
     {
         get
@@ -893,7 +1027,6 @@ class C
 
 class C
 {
-
     int Goo
     {
         get
@@ -934,7 +1067,6 @@ class C
 
 class C
 {
-
     int Goo
     {
         get
@@ -971,7 +1103,6 @@ class C
 
 class C
 {
-
     int Goo
     {
         get
@@ -1008,7 +1139,6 @@ class C
 
 class C
 {
-
     int Goo
     {
         get
@@ -1193,7 +1323,6 @@ class C
 
 class C
 {
-
     int Goo
     {
         get
@@ -1249,7 +1378,6 @@ class C
 
 class C
 {
-
     (int, string) Goo
     {
         get
@@ -1284,7 +1412,6 @@ class C
 
 class C
 {
-
     (int a, string b) Goo
     {
         get
@@ -1361,8 +1488,7 @@ index: 1));
         SetGoo(out int i);
     }
 }",
-index: 0,
-ignoreTrivia: false);
+index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1405,8 +1531,7 @@ ignoreTrivia: false);
         {|Conflict:Goo|}(out int i);
     }
 }",
-index: 1,
-ignoreTrivia: false);
+index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1562,7 +1687,6 @@ ignoreTrivia: false);
 }",
 @"class C
 {
-
     int Goo { get => 1; set => _i = value; }
 }", 
 index: 1,
@@ -1588,7 +1712,6 @@ options: PreferExpressionBodiedAccessors);
 }",
 @"class C
 {
-
     int Goo
     {
         get
@@ -1625,7 +1748,6 @@ options: PreferExpressionBodiedProperties);
 }",
 @"class C
 {
-
     int Goo { get => 1; set => _i = value; }
 }",
 index: 1,
@@ -1800,13 +1922,11 @@ class C : IGoo
 
         private async Task TestWithAllCodeStyleOff(
             string initialMarkup, string expectedMarkup, 
-            ParseOptions parseOptions = null, int index = 0, 
-            bool ignoreTrivia = false)
+            ParseOptions parseOptions = null, int index = 0)
         {
             await TestAsync(
                 initialMarkup, expectedMarkup, parseOptions,
                 index: index,
-                ignoreTrivia: ignoreTrivia,
                 options: AllCodeStyleOff);
         }
 

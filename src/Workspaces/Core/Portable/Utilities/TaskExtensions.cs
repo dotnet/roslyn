@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -60,7 +61,14 @@ namespace Roslyn.Utilities
         // thread.  In the future we are going ot be removing this and disallowing its use.
         public static T WaitAndGetResult_CanCallOnBackground<T>(this Task<T> task, CancellationToken cancellationToken)
         {
-            task.Wait(cancellationToken);
+            try
+            {
+                task.Wait(cancellationToken);
+            }
+            catch (AggregateException ex)
+            {
+                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+            }
             return task.Result;
         }
 
@@ -90,11 +98,13 @@ namespace Roslyn.Utilities
             TaskContinuationOptions continuationOptions,
             TaskScheduler scheduler)
         {
-            Func<Task, bool> continuationFunction = antecedent =>
+            Contract.ThrowIfNull(continuationAction, nameof(continuationAction));
+
+            bool continuationFunction(Task antecedent)
             {
                 continuationAction(antecedent);
                 return true;
-            };
+            }
 
             return task.SafeContinueWith(continuationFunction, cancellationToken, continuationOptions, scheduler);
         }
@@ -116,6 +126,8 @@ namespace Roslyn.Utilities
             TaskContinuationOptions continuationOptions,
             TaskScheduler scheduler)
         {
+            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
+
             return task.SafeContinueWith<TResult>(
                 (Task antecedent) => continuationFunction((Task<TInput>)antecedent), cancellationToken, continuationOptions, scheduler);
         }
@@ -127,6 +139,8 @@ namespace Roslyn.Utilities
             TaskContinuationOptions continuationOptions,
             TaskScheduler scheduler)
         {
+            Contract.ThrowIfNull(continuationAction, nameof(continuationAction));
+
             return task.SafeContinueWith(
                 (Task antecedent) => continuationAction((Task<TInput>)antecedent), cancellationToken, continuationOptions, scheduler);
         }
@@ -156,7 +170,9 @@ namespace Roslyn.Utilities
             // We do not want this, so we pass the LazyCancellation flag to the TPL which implements
             // the behavior we want.
 
-            Func<Task, TResult> outerFunction = t =>
+            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
+
+            TResult outerFunction(Task t)
             {
                 try
                 {
@@ -166,7 +182,7 @@ namespace Roslyn.Utilities
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            };
+            }
 
             // This is the only place in the code where we're allowed to call ContinueWith.
             return task.ContinueWith(outerFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler);
@@ -223,6 +239,8 @@ namespace Roslyn.Utilities
             TaskContinuationOptions taskContinuationOptions,
             TaskScheduler scheduler)
         {
+            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
+
             return task.SafeContinueWith(t =>
                 Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWith(
                     _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),
@@ -237,6 +255,8 @@ namespace Roslyn.Utilities
             TaskContinuationOptions taskContinuationOptions,
             TaskScheduler scheduler)
         {
+            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
+
             return task.SafeContinueWith(t =>
                 Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWith(
                     _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),
@@ -251,6 +271,8 @@ namespace Roslyn.Utilities
             TaskContinuationOptions taskContinuationOptions,
             TaskScheduler scheduler)
         {
+            Contract.ThrowIfNull(continuationAction, nameof(continuationAction));
+
             return task.SafeContinueWith(t =>
                 Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWith(
                     _ => continuationAction(), cancellationToken, TaskContinuationOptions.None, scheduler),
@@ -264,6 +286,8 @@ namespace Roslyn.Utilities
             TaskContinuationOptions continuationOptions,
             TaskScheduler scheduler)
         {
+            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
+
             return task.SafeContinueWithFromAsync<TResult>(
                 (Task antecedent) => continuationFunction((Task<TInput>)antecedent), cancellationToken, continuationOptions, scheduler);
         }
@@ -350,6 +374,8 @@ namespace Roslyn.Utilities
             TaskContinuationOptions taskContinuationOptions,
             TaskScheduler scheduler)
         {
+            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
+
             return task.SafeContinueWith(t =>
                 Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWithFromAsync(
                     _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),
@@ -364,6 +390,8 @@ namespace Roslyn.Utilities
             TaskContinuationOptions taskContinuationOptions,
             TaskScheduler scheduler)
         {
+            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
+
             return task.SafeContinueWith(t =>
                 Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWithFromAsync(
                     _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),

@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 var reference = new MockAnalyzerReference();
                 var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
                 var document = project.Documents.Single();
-                var unused = await fixService.GetFirstDiagnosticWithFixAsync(document, TextSpan.FromBounds(0, 0), cancellationToken: CancellationToken.None);
+                var unused = await fixService.GetMostSevereFixableDiagnostic(document, TextSpan.FromBounds(0, 0), cancellationToken: CancellationToken.None);
 
                 var fixer1 = fixers.Single().Value as MockFixer;
                 var fixer2 = reference.Fixer as MockFixer;
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             await GetAddedFixesAsync(new ErrorCases.ExceptionInFixableDiagnosticIds());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21533")]
         public async Task TestGetCodeFixWithExceptionInFixableDiagnosticIds2()
         {
             await GetDefaultFixesAsync(new ErrorCases.ExceptionInFixableDiagnosticIds2());
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             using (var workspace = tuple.Item1)
             {
                 GetDocumentAndExtensionManager(tuple.Item2, workspace, out var document, out var extensionManager);
-                var unused = await tuple.Item3.GetFirstDiagnosticWithFixAsync(document, TextSpan.FromBounds(0, 0), cancellationToken: CancellationToken.None);
+                var unused = await tuple.Item3.GetMostSevereFixableDiagnostic(document, TextSpan.FromBounds(0, 0), cancellationToken: CancellationToken.None);
                 Assert.True(extensionManager.IsDisabled(codefix));
                 Assert.False(extensionManager.IsIgnored(codefix));
             }
