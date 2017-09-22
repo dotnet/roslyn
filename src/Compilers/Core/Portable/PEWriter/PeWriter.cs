@@ -202,8 +202,9 @@ namespace Microsoft.Cci
             var strongNameProvider = context.Module.CommonCompilation.Options.StrongNameProvider;
 
             var corFlags = properties.CorFlags;
-            if (privateKeyOpt != null && strongNameProvider.Capability == SigningCapability.SignsPeBuilder)
+            if (privateKeyOpt != null)
             {
+                Debug.Assert(strongNameProvider.Capability == SigningCapability.SignsPeBuilder);
                 corFlags |= CorFlags.StrongNameSigned;
             }
 
@@ -224,7 +225,7 @@ namespace Microsoft.Cci
             var peBlob = new BlobBuilder();
             var peContentId = peBuilder.Serialize(peBlob, out Blob mvidSectionFixup);
 
-            if (privateKeyOpt != null && strongNameProvider.Capability == SigningCapability.SignsPeBuilder)
+            if (privateKeyOpt != null)
             {
                 strongNameProvider.SignPeBuilder(peBuilder, peBlob, privateKeyOpt.Value);
             }
