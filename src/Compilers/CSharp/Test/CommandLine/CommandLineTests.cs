@@ -9533,6 +9533,7 @@ class C
         {
             var dir = Temp.CreateDirectory();
             var cscPath = dir.CopyFile(typeof(Csc).Assembly.Location).Path;
+            dir.CopyFile(typeof(Compilation).Assembly.Location);
 
             // Missing Microsoft.CodeAnalysis.CSharp.dll.
             var result = ProcessUtilities.Run(cscPath, arguments: "/nologo /t:library unknown.cs", workingDirectory: dir.Path);
@@ -9542,7 +9543,6 @@ class C
                 result.Output.Trim());
 
             // Missing System.Collections.Immutable.dll.
-            dir.CopyFile(typeof(Compilation).Assembly.Location);
             dir.CopyFile(typeof(CSharpCompilation).Assembly.Location);
             result = ProcessUtilities.Run(cscPath, arguments: "/nologo /t:library unknown.cs", workingDirectory: dir.Path);
             Assert.Equal(1, result.ExitCode);
