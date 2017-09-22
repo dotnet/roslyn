@@ -26,7 +26,7 @@ class C
 ";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
-                // (6,17): error CS8107: Feature 'default literal' is not available in C# 7. Please use language version 7.1 or greater.
+                // (6,17): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //         int x = default;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(6, 17)
                 );
@@ -47,7 +47,7 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib46(source,parseOptions: TestOptions.Regular7 );
             comp.VerifyDiagnostics(
-                // (7,40): error CS8107: Feature 'default literal' is not available in C# 7. Please use language version 7.1 or greater.
+                // (7,40): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //     async Task M(CancellationToken t = default) { await Task.Delay(0); }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(7, 40)
                 );

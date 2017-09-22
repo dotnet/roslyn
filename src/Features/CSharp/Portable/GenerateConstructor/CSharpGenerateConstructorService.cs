@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
 
         protected override ImmutableArray<ParameterName> GenerateParameterNames(
             SemanticModel semanticModel, IEnumerable<AttributeArgumentSyntax> arguments, IList<string> reservedNames, CancellationToken cancellationToken)
-            => semanticModel.GenerateParameterNames(arguments, reservedNames, cancellationToken).ToImmutableArray();
+            => semanticModel.GenerateParameterNames(arguments, reservedNames, cancellationToken);
 
         protected override string GenerateNameForArgument(SemanticModel semanticModel, ArgumentSyntax argument, CancellationToken cancellationToken)
             => semanticModel.GenerateNameForArgument(argument, cancellationToken);
