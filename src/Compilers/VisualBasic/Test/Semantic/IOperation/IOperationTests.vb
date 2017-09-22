@@ -7,6 +7,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
+    <CompilerTrait(CompilerFeature.IOperation)>
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
