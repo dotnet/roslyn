@@ -45,9 +45,8 @@ namespace Microsoft.CodeAnalysis
                     string resolvedKeyFile = FileSystem.ResolveStrongNameKeyFile(keyFilePath, _keyFileSearchPaths);
                     if (resolvedKeyFile == null)
                     {
-                        // Used for getting the exception message.
-                        var exception = new FileNotFoundException(CodeAnalysisResources.FileNotFound, keyFilePath);
-                        return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, exception.Message));
+                        var message = $"{keyFilePath}: {CodeAnalysisResources.FileNotFound}";
+                        return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, message));
                     }
 
                     Debug.Assert(PathUtilities.IsAbsolute(resolvedKeyFile));
