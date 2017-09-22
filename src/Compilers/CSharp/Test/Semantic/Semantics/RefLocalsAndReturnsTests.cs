@@ -2715,7 +2715,7 @@ class Test
         }
 
         [Fact]
-        public void RefReadOnlyIIteratorMethodDisallowed()
+        public void RefReadOnlyInIteratorMethodsDisallowed()
         {
             CreateCompilationWithMscorlib45(@"
 using System.Collections.Generic;
@@ -2734,7 +2734,7 @@ class Test
         }
 
         [Fact]
-        public void RefReadOnlyInIteratorMethods()
+        public void RefReadOnlyInEnumeratorMethodsDisallowed()
         {
             CreateStandardCompilation(@"
 using System.Collections.Generic;

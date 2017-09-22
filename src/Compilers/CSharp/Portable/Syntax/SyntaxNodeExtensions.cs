@@ -130,7 +130,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
-            while (node.Parent.IsKind(SyntaxKind.CastExpression) || node.Parent.IsKind(SyntaxKind.ConditionalExpression))
+            if (node.Parent.IsKind(SyntaxKind.CastExpression))
+            {
+                node = node.Parent;
+            }
+
+            while (node.Parent.IsKind(SyntaxKind.ConditionalExpression))
             {
                 node = node.Parent;
             }
