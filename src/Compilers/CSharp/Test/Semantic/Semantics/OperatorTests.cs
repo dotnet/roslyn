@@ -2059,7 +2059,7 @@ IBlockStatement (10 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22263, "https://github.com/dotnet/roslyn/pull/22263")]
+        [Fact, WorkItem(21723, "https://github.com/dotnet/roslyn/issues/21723")]
         public void TestCompoundLiftedAssignment_IOperation()
         {
             string source = @"
