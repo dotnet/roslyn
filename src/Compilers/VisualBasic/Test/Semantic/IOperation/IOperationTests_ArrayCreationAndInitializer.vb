@@ -1,7 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Semantics
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -10,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18150"), WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub SimpleArrayCreation_PrimitiveType()
             Dim source = <![CDATA[
 Class C
@@ -21,12 +19,18 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationExpression (Dimension sizes: 1, Element Type: System.String) (OperationKind.ArrayCreationExpression, Type: System.String())
-  ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0)
-  IArrayInitializer (OperationKind.ArrayInitializer)
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String()) (Syntax: 'New String(0) {}')
+  Dimension Sizes(1):
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 1) (Syntax: '0')
+        Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '0')
+  Initializer: IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: '{}')
+      Element Values(0)
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
@@ -50,7 +54,9 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: M()) (Syn
       Element Values(0)
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
@@ -77,7 +83,9 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: M()) (Syn
       Element Values(0)
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
@@ -103,12 +111,16 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: M()) (Syn
       Element Values(0)
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
         Public Sub SimpleArrayCreation_DimensionWithImplicitConversion()
             Dim source = <![CDATA[
+Imports System
+
 Class M
 End Class
 
@@ -124,14 +136,16 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: M()) (Syn
   Dimension Sizes(1):
       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'dimension')
         Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'dimension')
-            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: IParameterReferenceExpression: dimension (OperationKind.ParameterReferenceExpression, Type: UInt16) (Syntax: 'dimension')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: IParameterReferenceExpression: dimension (OperationKind.ParameterReferenceExpression, Type: System.UInt16) (Syntax: 'dimension')
         Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'dimension')
   Initializer: IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: '{}')
       Element Values(0)
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
@@ -159,7 +173,9 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: M()) (Syn
       Element Values(0)
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
@@ -182,7 +198,70 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.St
             Instance Receiver: null
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
+        Public Sub ArrayCreationWithInitializer_PrimitiveTypeWithExplicitDimension()
+            Dim source = <![CDATA[
+Class C
+    Public Sub F()
+        Dim a = New C(1) {New C, Nothing}'BIND:"New C(1) {New C, Nothing}"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: C()) (Syntax: 'New C(1) {N ... C, Nothing}')
+  Dimension Sizes(1):
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2) (Syntax: '1')
+        Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{New C, Nothing}')
+      Element Values(2):
+          IObjectCreationExpression (Constructor: Sub C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'New C')
+            Arguments(0)
+            Initializer: null
+          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C, Constant: null) (Syntax: 'Nothing')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
+        Public Sub ArrayCreationWithInitializerErrorCase_PrimitiveTypeWithIncorrectExplicitDimension()
+            Dim source = <![CDATA[
+Class C
+    Public Sub F()
+        Dim a = New C(2) {New C}'BIND:"New C(2) {New C}"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: C(), IsInvalid) (Syntax: 'New C(2) {New C}')
+  Dimension Sizes(1):
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 3) (Syntax: '2')
+        Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '2')
+  Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{New C}')
+      Element Values(1):
+          IObjectCreationExpression (Constructor: Sub C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'New C')
+            Arguments(0)
+            Initializer: null
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30567: Array initializer is missing 2 elements.
+        Dim a = New C(2) {New C}'BIND:"New C(2) {New C}"
+                         ~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
@@ -209,7 +288,9 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: M()) (Syn
             Initializer: null
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
@@ -235,8 +316,34 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: M()) (Syn
             Arguments(0)
             Initializer: null
 ]]>.Value
+            Dim expectedDiagnostics = String.Empty
 
-            VerifyOperationTreeForTest(Of CollectionInitializerSyntax)(source, expectedOperationTree)
+            VerifyOperationTreeAndDiagnosticsForTest(Of CollectionInitializerSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
+        Public Sub ArrayCreationWithInitializer_ImplicitlyTypedWithoutInitializerAndDimension()
+            Dim source = <![CDATA[
+Class C
+    Public Sub F()
+        Dim a = {}'BIND:"Dim a = {}"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a = {}')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
+    Variables: Local_1: a As System.Object()
+    Initializer: IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Object()) (Syntax: '{}')
+        Dimension Sizes(1):
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '{}')
+        Initializer: IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: '{}')
+            Element Values(0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
@@ -263,7 +370,9 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.St
             Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of CollectionInitializerSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CollectionInitializerSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
@@ -293,7 +402,9 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.By
       Element Values(0)
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
@@ -342,7 +453,9 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.By
                         Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6) (Syntax: '6')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
@@ -375,7 +488,9 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.In
                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6) (Syntax: '6')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of CollectionInitializerSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CollectionInitializerSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
@@ -398,7 +513,9 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.In
       Element Values(0)
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
@@ -438,7 +555,9 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.In
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of CollectionInitializerSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CollectionInitializerSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
@@ -448,8 +567,7 @@ Class C
     Public Sub F()
         Dim a = New String(1,) {}'BIND:"New String(1,) {}"
     End Sub
-End Class
-    ]]>.Value
+End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String(,), IsInvalid) (Syntax: 'New String(1,) {}')
@@ -465,7 +583,13 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.St
       Element Values(0)
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC30306: Array subscript expression missing.
+        Dim a = New String(1,) {}'BIND:"New String(1,) {}"
+                             ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
@@ -475,8 +599,7 @@ Class C
     Public Sub F()
         Dim a = New C() {1}'BIND:"New C() {1}"
     End Sub
-End Class
-    ]]>.Value
+End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: C(), IsInvalid) (Syntax: 'New C() {1}')
@@ -489,7 +612,181 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: C(), IsIn
             Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ]]>.Value
 
-            VerifyOperationTreeForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree)
+            Dim expectedDiagnostics = <![CDATA[
+BC30311: Value of type 'Integer' cannot be converted to 'C'.
+        Dim a = New C() {1}'BIND:"New C() {1}"
+                         ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
+        Public Sub ArrayCreationErrorCase_MissingExplicitCast()
+            Dim source = <![CDATA[
+Class C
+    Public Sub F(c As C)
+        Dim a = New C(c) {}'BIND:"New C(c) {}"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: C(), IsInvalid) (Syntax: 'New C(c) {}')
+  Dimension Sizes(1):
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: 'c')
+        Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'c')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: 'c')
+  Initializer: IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: '{}')
+      Element Values(0)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30311: Value of type 'C' cannot be converted to 'Integer'.
+        Dim a = New C(c) {}'BIND:"New C(c) {}"
+                      ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
+        Public Sub ArrayCreation_InvocationExpressionAsDimension()
+            Dim source = <![CDATA[
+Class C
+    Public Sub F(c As C)
+        Dim a = New C(M()) {}'BIND:"New C(M()) {}"
+    End Sub
+
+    Public Function M() As Integer
+        Return 1
+    End Function
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: C()) (Syntax: 'New C(M()) {}')
+  Dimension Sizes(1):
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'M()')
+        Left: IInvocationExpression ( Function C.M() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'M()')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'M')
+            Arguments(0)
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M()')
+  Initializer: IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: '{}')
+      Element Values(0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
+        Public Sub ArrayCreation_InvocationExpressionWithConversionAsDimension()
+            Dim source = <![CDATA[
+Option Strict On
+Class C
+    Public Sub F(c As C)
+        Dim a = New C(DirectCast(M(), Integer)) {}'BIND:"New C(DirectCast(M(), Integer)) {}"
+    End Sub
+
+    Public Function M() As Object
+        Return 1
+    End Function
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: C()) (Syntax: 'New C(Direc ... nteger)) {}')
+  Dimension Sizes(1):
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'DirectCast(M(), Integer)')
+        Left: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'DirectCast(M(), Integer)')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: IInvocationExpression ( Function C.M() As System.Object) (OperationKind.InvocationExpression, Type: System.Object) (Syntax: 'M()')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'M')
+                Arguments(0)
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'DirectCast(M(), Integer)')
+  Initializer: IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: '{}')
+      Element Values(0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
+        Public Sub ArrayCreationErrorCase_InvocationExpressionAsDimension()
+            Dim source = <![CDATA[
+Option Strict On
+Class C
+    Public Sub F(c As C)
+        Dim a = New C(M()) {}'BIND:"New C(M()) {}"
+    End Sub
+
+    Public Function M() As Object
+        Return 1
+    End Function
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: C(), IsInvalid) (Syntax: 'New C(M()) {}')
+  Dimension Sizes(1):
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: 'M()')
+        Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'M()')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: IInvocationExpression ( Function C.M() As System.Object) (OperationKind.InvocationExpression, Type: System.Object, IsInvalid) (Syntax: 'M()')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsInvalid) (Syntax: 'M')
+                Arguments(0)
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: 'M()')
+  Initializer: IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: '{}')
+      Element Values(0)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30512: Option Strict On disallows implicit conversions from 'Object' to 'Integer'.
+        Dim a = New C(M()) {}'BIND:"New C(M()) {}"
+                      ~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
+        Public Sub ArrayCreationErrorCase_InvocationExpressionWithConversionAsDimension()
+            Dim source = <![CDATA[
+Option Strict On
+Class C
+    Public Sub F(c As C)
+        Dim a = New C(DirectCast(M(), Integer)) {}'BIND:"New C(DirectCast(M(), Integer)) {}"
+    End Sub
+
+    Public Function M() As C
+        Return New C
+    End Function
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: C(), IsInvalid) (Syntax: 'New C(Direc ... nteger)) {}')
+  Dimension Sizes(1):
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: 'DirectCast(M(), Integer)')
+        Left: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'DirectCast(M(), Integer)')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: IInvocationExpression ( Function C.M() As C) (OperationKind.InvocationExpression, Type: C, IsInvalid) (Syntax: 'M()')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsInvalid) (Syntax: 'M')
+                Arguments(0)
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: 'DirectCast(M(), Integer)')
+  Initializer: IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: '{}')
+      Element Values(0)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30311: Value of type 'C' cannot be converted to 'Integer'.
+        Dim a = New C(DirectCast(M(), Integer)) {}'BIND:"New C(DirectCast(M(), Integer)) {}"
+                                 ~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
     End Class
 End Namespace
