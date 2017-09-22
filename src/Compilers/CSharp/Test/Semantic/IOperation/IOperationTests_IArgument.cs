@@ -2433,7 +2433,6 @@ class P
     }
     static void M2(int i, int j) { }
 }
-
 ";
             string expectedOperationTree = @"
 IArgument (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument) (Syntax: 'j: 1')
@@ -2458,7 +2457,6 @@ class P
     }
     static void M2(int i, int j) { }
 }
-
 ";
             string expectedOperationTree = @"
 IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: 'i: 1')
@@ -2483,7 +2481,6 @@ class P
     }
     public P(int i) { }
 }
-
 ";
             string expectedOperationTree = @"
 IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '1')
@@ -2534,7 +2531,6 @@ class P
     }
     public P(out int i) { }
 }
-
 ";
             string expectedOperationTree = @"
 IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: 'out i')
@@ -2563,7 +2559,6 @@ class P
     }
     public P(params int[] array) { }
 }
-
 ";
             string expectedOperationTree = @"
 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'new P(1);')
@@ -2597,7 +2592,6 @@ class P
     }
     public P(params int[] array) { }
 }
-
 ";
             string expectedOperationTree = @"
 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'new P(0, 1);')
@@ -2632,7 +2626,6 @@ class P
     }
     public int this[int i] => 0;
 }
-
 ";
             string expectedOperationTree = @"
 IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '1')
@@ -2657,7 +2650,6 @@ class P
     }
     public int this[params int[] array] => 0;
 }
-
 ";
             string expectedOperationTree = @"
 IPropertyReferenceExpression: System.Int32 P.this[params System.Int32[] array] { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[1]')
@@ -2690,7 +2682,6 @@ class P
     }
     public int this[params int[] array] => 0;
 }
-
 ";
             string expectedOperationTree = @"
 IPropertyReferenceExpression: System.Int32 P.this[params System.Int32[] array] { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[0, 1]')
@@ -2710,6 +2701,67 @@ IPropertyReferenceExpression: System.Int32 P.this[params System.Int32[] array] {
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void DirectlyBindArgument_Attribute()
+        {
+            string source = @"
+[assembly: /*<bind>*/System.CLSCompliant(isCompliant: true)/*</bind>*/]
+";
+            string expectedOperationTree = @"
+IOperation:  (OperationKind.None) (Syntax: 'System.CLSC ... iant: true)')
+  Children(1):
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void DirectlyBindArgument2_Attribute()
+        {
+            string source = @"
+[assembly: MyA(/*<bind>*/Prop = ""test""/*</bind>*/)]
+
+class MyA : System.Attribute
+{
+    public string Prop {get;set;}
+}
+";
+            string expectedOperationTree = @"
+ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: 'Prop = ""test""')
+  Left: IPropertyReferenceExpression: System.String MyA.Prop { get; set; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Prop')
+      Instance Receiver: null
+  Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""test"") (Syntax: '""test""')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeArgumentSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void DirectlyBindArgument_NonTrailingNamedArgument()
+        {
+            string source = @"
+class P
+{
+    void M1(int i, int i2)
+    {
+        M1(i: 0, /*<bind>*/2/*</bind>*/);
+    }
+}
+";
+            string expectedOperationTree = @"
+IArgument (ArgumentKind.Explicit, Matching Parameter: i2) (OperationKind.Argument) (Syntax: '2')
+  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ArgumentSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         private class IndexerAccessArgumentVerifier : OperationWalker

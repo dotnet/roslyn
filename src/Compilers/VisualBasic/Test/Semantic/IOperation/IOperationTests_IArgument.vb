@@ -1338,5 +1338,31 @@ IObjectCreationExpression (Constructor: Sub Program..ctor(ParamArray a As System
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        <Fact()>
+        Public Sub DirectlyBindArgument_RangeArgument()
+            Dim source = <![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim a(0 To 20) As Integer'BIND:"Dim a(0 To 20) As Integer"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a(0 To  ...  As Integer')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a(0 To 20)')
+    Variables: Local_1: a As System.Int32()
+    Initializer: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'a(0 To 20)')
+        Dimension Sizes(1):
+            IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 21) (Syntax: '0 To 20')
+              Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '0 To 20')
+        Initializer: null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace
