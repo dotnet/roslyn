@@ -5015,5 +5015,23 @@ class Test
 ",
             MainDescription("T Test.F<T>()"));
         }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(403665, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=403665&_a=edit")]
+        public async Task TestExceptionWithCrefToConstructorDoesNotCrash()
+        {
+            await TestAsync(
+@"
+class Test
+{
+    /// <summary>
+    /// </summary>
+    /// <exception cref=""Test.Test""/>
+    public Test$$() {}
+}
+",
+            MainDescription("Test.Test()"));
+        }
     }
 }

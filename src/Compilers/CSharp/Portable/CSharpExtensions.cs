@@ -7,9 +7,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
-using System.ComponentModel;
 using Microsoft.CodeAnalysis.Syntax;
+using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -683,6 +682,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 return Conversion.NoConversion;
+            }
+        }
+
+        /// <summary>
+        /// Gets the underlying <see cref="Conversion"/> information from this <see cref="IConversionExpression"/>. This
+        /// <see cref="IConversionExpression"/> must have been created from CSharp code.
+        /// </summary>
+        /// <param name="conversionExpression">The conversion expression to get original info from.</param>
+        /// <returns>The underlying <see cref="Conversion"/>.</returns>
+        /// <exception cref="InvalidCastException">If the <see cref="IConversionExpression"/> was not created from CSharp code.</exception>
+        public static Conversion GetConversion(this IConversionExpression conversionExpression)
+        {
+            if (conversionExpression is BaseCSharpConversionExpression csharpConversionExpression)
+            {
+                return csharpConversionExpression.ConversionInternal;
+            }
+            else
+            {
+                throw new ArgumentException(string.Format(CSharpResources.IConversionExpressionIsNotCSharpConversion,
+                                                          nameof(IConversionExpression)),
+                                            nameof(conversionExpression));
             }
         }
 

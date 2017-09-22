@@ -19,23 +19,26 @@ namespace Microsoft.CodeAnalysis.Remote
         /// 
         /// This will be called by ServiceHub/JsonRpc framework
         /// </summary>
-        public async Task<IList<DesignerAttributeDocumentData>> ScanDesignerAttributesAsync(ProjectId projectId, CancellationToken cancellationToken)
+        public Task<IList<DesignerAttributeDocumentData>> ScanDesignerAttributesAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
-            using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetDesignerAttributesAsync, projectId.DebugName, cancellationToken))
+            return RunServiceAsync(async () =>
             {
-                var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
-                var project = solution.GetProject(projectId);
-
-                var data = await AbstractDesignerAttributeService.TryAnalyzeProjectInCurrentProcessAsync(
-                    project, cancellationToken).ConfigureAwait(false);
-
-                if (data.Count == 0)
+                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetDesignerAttributesAsync, projectId.DebugName, cancellationToken))
                 {
-                    return SpecializedCollections.EmptyList<DesignerAttributeDocumentData>();
-                }
+                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                    var project = solution.GetProject(projectId);
 
-                return data.Values.ToList();
-            }
+                    var data = await AbstractDesignerAttributeService.TryAnalyzeProjectInCurrentProcessAsync(
+                        project, cancellationToken).ConfigureAwait(false);
+
+                    if (data.Count == 0)
+                    {
+                        return SpecializedCollections.EmptyList<DesignerAttributeDocumentData>();
+                    }
+
+                    return data.Values.ToList();
+                }
+            }, cancellationToken);
         }
     }
 }

@@ -169,5 +169,77 @@ namespace Microsoft.CodeAnalysis.Remote
             var solutionController = (ISolutionController)roslynService.SolutionService;
             return solutionController.GetSolutionAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, cancellationToken);
         }
+
+        protected async Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken)
+        {
+            AssetStorage.UpdateLastActivityTime();
+
+            try
+            {
+                return await callAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
+            {
+                // never reach
+                return default(T);
+            }
+        }
+
+        protected async Task RunServiceAsync(Func<Task> callAsync, CancellationToken cancellationToken)
+        {
+            AssetStorage.UpdateLastActivityTime();
+
+            try
+            {
+                await callAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
+            {
+                // never reach
+                return;
+            }
+        }
+
+        protected T RunService<T>(Func<T> call, CancellationToken cancellationToken)
+        {
+            AssetStorage.UpdateLastActivityTime();
+
+            try
+            {
+                return call();
+            }
+            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
+            {
+                // never reach
+                return default;
+            }
+        }
+
+        protected void RunService(Action call, CancellationToken cancellationToken)
+        {
+            AssetStorage.UpdateLastActivityTime();
+
+            try
+            {
+                call();
+            }
+            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
+            {
+                // never reach
+            }
+        }
+
+        private bool LogUnlessCanceled(Exception ex, CancellationToken cancellationToken)
+        {
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                LogError("Exception: " + ex.ToString());
+
+                var callStack = new StackTrace().ToString();
+                LogError("From: " + callStack);
+            }
+
+            return false;
+        }
     }
 }

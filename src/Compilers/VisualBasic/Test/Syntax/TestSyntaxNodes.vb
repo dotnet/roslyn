@@ -145,6 +145,75 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.False(xc <> children, "Verifying <> operator for ChildSyntaxList items - This should return false as xc was assigned from Children")
         End Sub
 
+        <Fact>
+        <WorkItem(21812, "https://github.com/dotnet/roslyn/issues/21812")>
+        Public Sub TestTupleTypeInSyntaxFactory()
+            Dim int = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntegerKeyword))
+            Dim tuple = SyntaxFactory.TupleType(SyntaxFactory.TypedTupleElement(int), SyntaxFactory.TypedTupleElement(int))
+
+            ' Array
+            Dim intArraySyntax = Parse("
+Class C
+    Dim x As (Integer, Integer)()
+End Class")
+            intArraySyntax.AssertTheseDiagnostics(<errors></errors>)
+            SyntaxFactory.ArrayType(tuple) ' no exception
+
+            ' Object creation
+            Dim objectCreationSyntax = Parse("
+Class C
+    Dim x = New (Integer, Integer)(1)
+End Class")
+            objectCreationSyntax.AssertTheseDiagnostics(<errors></errors>)
+            SyntaxFactory.ObjectCreationExpression(tuple) ' no exception
+
+            ' Array creation
+            Dim arrayCreationSyntax = Parse("
+Class C
+    Dim x = New (Integer, Integer)(1) { }
+End Class")
+            arrayCreationSyntax.AssertTheseDiagnostics(<errors></errors>)
+            SyntaxFactory.ArrayCreationExpression(tuple, SyntaxFactory.CollectionInitializer()) ' no exception
+
+            ' Nullable
+            Dim nullableSyntax = Parse("
+Class C
+    Dim x As (Integer, Integer)?
+End Class")
+            nullableSyntax.AssertTheseDiagnostics(<errors></errors>)
+            SyntaxFactory.NullableType(tuple) ' no exception
+
+            ' Attribute (cannot parse)
+            Dim attributeSyntax = Parse("
+<(Integer, Integer)>
+")
+            attributeSyntax.AssertTheseDiagnostics(<errors><![CDATA[
+BC30203: Identifier expected.
+<(Integer, Integer)>
+ ~
+                                                   ]]></errors>)
+            Assert.Throws(Of ArgumentException)(Sub() SyntaxFactory.Attribute(tuple))
+
+            ' Inherits
+            Dim inheritsSyntax = Parse("
+Class C
+    Inherits (Integer, Integer)
+End Class
+")
+            inheritsSyntax.AssertTheseDiagnostics(<errors></errors>)
+            SyntaxFactory.InheritsStatement(tuple)
+
+            ' Implements
+            Dim implementsSyntax = Parse("
+Class C
+    Implements (Integer, Integer)
+End Class
+")
+            implementsSyntax.AssertTheseDiagnostics(<errors></errors>)
+            SyntaxFactory.ImplementsStatement(tuple)
+
+        End Sub
+
         ' Verify spans within a list of consecutive nodes are all consistent.
         Private Sub VerifyListSpans(Of T As VisualBasicSyntaxNode)(list As SyntaxList(Of T), expectedFullSpan As TextSpan)
             If list.Count > 0 Then

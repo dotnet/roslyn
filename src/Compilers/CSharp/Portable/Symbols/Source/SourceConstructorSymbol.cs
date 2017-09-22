@@ -36,6 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, location, diagnostics, out modifierErrors);
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false);
 
+            if (syntax.Identifier.ValueText != containingType.Name)
+            {
+                // This is probably a method declaration with the type missing.
+                diagnostics.Add(ErrorCode.ERR_MemberNeedsType, location);
+            }
+
             bool hasBlockBody = syntax.Body != null;
             _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
 
@@ -83,6 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bodyBinder, this, parameterList, out arglistToken,
                 allowRefOrOut: true,
                 allowThis: false,
+                addRefReadOnlyModifier: false,
                 diagnostics: diagnostics);
 
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
@@ -100,6 +107,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_BadVarargs, location);
             }
+        }
+
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        {
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
         }
 
         internal ConstructorDeclarationSyntax GetSyntax()

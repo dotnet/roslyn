@@ -456,7 +456,7 @@ class C
 {
     private string s;
 
-    public M([||]string s)
+    public void M([||]string s)
     {
     }
 }");
@@ -593,7 +593,7 @@ class C
     {
         this.s = s;
     }
-}", ignoreTrivia: false);
+}");
         }
     }
 }

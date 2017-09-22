@@ -168,13 +168,13 @@ class C : Middle
         c.Goo(optArg1: 3333, 11111);
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
                 // (37,15): error CS1739: The best overload for 'Goo' does not have a parameter named 'optParam3'
                 //         c.Goo(optParam3: 333, reqParam1: 111 , optParam2: 222, optParam1: 1111); 
                 Diagnostic(ErrorCode.ERR_BadNamedArgument, "optParam3").WithArguments("Goo", "optParam3").WithLocation(37, 15),
-                // (39,30): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
+                // (39,30): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         c.Goo(optArg1: 3333, 11111);
-                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "11111").WithLocation(39, 30),
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "11111").WithArguments("7.2").WithLocation(39, 30),
                 // (39,15): error CS1739: The best overload for 'Goo' does not have a parameter named 'optArg1'
                 //         c.Goo(optArg1: 3333, 11111);
                 Diagnostic(ErrorCode.ERR_BadNamedArgument, "optArg1").WithArguments("Goo", "optArg1").WithLocation(39, 15)

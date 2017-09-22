@@ -34,13 +34,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Tuples
         IOperation
         InferredTupleNames
+        LeadingDigitSeparator
+        NonTrailingNamedArguments
+        PrivateProtected
     End Enum
 
     Friend Module FeatureExtensions
         <Extension>
         Friend Function GetFeatureFlag(feature As Feature) As String
             Select Case feature
-                Case feature.IOperation
+                Case Feature.IOperation
                     Return "IOperation"
 
                 Case Else
@@ -89,6 +92,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case Feature.InferredTupleNames
                     Return LanguageVersion.VisualBasic15_3
+
+                Case Feature.LeadingDigitSeparator,
+                    Feature.NonTrailingNamedArguments,
+                    Feature.PrivateProtected
+                    Return LanguageVersion.VisualBasic15_5
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
@@ -153,6 +161,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_Tuples
                 Case Feature.IOperation
                     Return ERRID.FEATURE_IOperation
+                Case Feature.LeadingDigitSeparator
+                    Return ERRID.FEATURE_LeadingDigitSeparator
+                Case Feature.PrivateProtected
+                    Return ERRID.FEATURE_PrivateProtected
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

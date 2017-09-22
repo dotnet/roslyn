@@ -158,10 +158,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private void AddSymbolTasks(
             ConcurrentSet<SymbolAndProjectId> result,
-            IEnumerable<SymbolAndProjectId> symbols,
+            ImmutableArray<SymbolAndProjectId> symbols,
             List<Task> symbolTasks)
         {
-            if (symbols != null)
+            if (!symbols.IsDefault)
             {
                 foreach (var child in symbols)
                 {

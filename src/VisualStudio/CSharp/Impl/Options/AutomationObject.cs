@@ -19,6 +19,8 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [ComVisible(true)]
     public class AutomationObject
     {

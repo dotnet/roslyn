@@ -41,6 +41,11 @@ namespace Microsoft.CodeAnalysis
         bool ReturnsByRef { get; }
 
         /// <summary>
+        /// Returns true if this property returns by reference a readonly variable.
+        /// </summary>
+        bool ReturnsByRefReadonly { get; }
+
+        /// <summary>
         /// The type of the property. 
         /// </summary>
         ITypeSymbol Type { get; }

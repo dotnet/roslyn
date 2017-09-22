@@ -2061,7 +2061,7 @@ struct S
 ";
             var expected = @"
 No, TypeExpression 'int*' is not a non-moveable variable
-Yes, StackAllocArrayCreation 'stackalloc int[1]' is a non-moveable variable
+Yes, ConvertedStackAllocExpression 'stackalloc int[1]' is a non-moveable variable
 No, Literal '1' is not a non-moveable variable
 ".Trim();
 
@@ -7519,54 +7519,16 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,25): error CS1525: Invalid expression term 'stackalloc'
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,19): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
                 //         { var p = (int*)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc"),
-                // (6,25): error CS1003: Syntax error, ',' expected
-                //         { var p = (int*)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "stackalloc").WithArguments(",", "stackalloc"),
-                // (6,36): error CS1002: ; expected
-                //         { var p = (int*)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "int"),
-                // (6,40): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         { var p = (int*)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1"),
-                // (6,42): error CS1001: Identifier expected
-                //         { var p = (int*)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";"),
-
-                // (7,26): error CS1525: Invalid expression term 'stackalloc'
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(int*)stackalloc int[1]").WithArguments("int", "int*").WithLocation(6, 19),
+                // (7,19): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'void*' is not possible.
                 //         { var p = (void*)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc"),
-                // (7,26): error CS1003: Syntax error, ',' expected
-                //         { var p = (void*)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "stackalloc").WithArguments(",", "stackalloc"),
-                // (7,37): error CS1002: ; expected
-                //         { var p = (void*)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "int"),
-                // (7,41): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         { var p = (void*)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1"),
-                // (7,43): error CS1001: Identifier expected
-                //         { var p = (void*)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";"),
-
-                // (8,22): error CS1525: Invalid expression term 'stackalloc'
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(void*)stackalloc int[1]").WithArguments("int", "void*").WithLocation(7, 19),
+                // (8,19): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'C' is not possible.
                 //         { var p = (C)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc"),
-                // (8,22): error CS1003: Syntax error, ',' expected
-                //         { var p = (C)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "stackalloc").WithArguments(",", "stackalloc"),
-                // (8,33): error CS1002: ; expected
-                //         { var p = (C)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "int"),
-                // (8,37): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         { var p = (C)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1"),
-                // (8,39): error CS1001: Identifier expected
-                //         { var p = (C)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";"));
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(C)stackalloc int[1]").WithArguments("int", "C").WithLocation(8, 19));
         }
 
         [Fact]
@@ -7598,23 +7560,8 @@ unsafe class C
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,21): error CS1525: Invalid expression term 'stackalloc'
                 //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 21),
-                // (4,21): error CS1003: Syntax error, ',' expected
-                //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_SyntaxError, "stackalloc").WithArguments(",", "stackalloc").WithLocation(4, 21),
-                // (4,32): error CS1003: Syntax error, ',' expected
-                //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",", "int").WithLocation(4, 32),
-                // (4,36): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1").WithLocation(4, 36),
-                // (4,38): error CS1001: Identifier expected
-                //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 38),
-                // (4,38): error CS1737: Optional parameters must appear after all required parameters
-                //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(4, 38)
-                );
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 21)
+            );
         }
 
         [Fact]

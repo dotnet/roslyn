@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public bool ReturnsByRef => _symbol.ReturnsByRef;
 
+            public bool ReturnsByRefReadonly => _symbol.ReturnsByRefReadonly;
+
             public IPropertySymbol OverriddenProperty => _symbol.OverriddenProperty;
 
             public ImmutableArray<IParameterSymbol> Parameters => _symbol.Parameters;

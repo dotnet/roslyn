@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    [CompilerTrait(CompilerFeature.IOperation)]
     public class OperationAnalyzerTests : CompilingTestBase
     {
         private readonly static CSharpParseOptions patternParseOptions = TestOptions.Regular;
@@ -831,7 +832,7 @@ class C
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19300")]
+        [Fact]
         public void MemberInitializerCSharp()
         {
             const string source = @"
@@ -877,13 +878,13 @@ class C
                 //         var e1 = new Goo() { Property2 = 1 };
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "Bar").WithLocation(24, 42))
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new MemberInitializerTestAnalyzer() }, null, null, false,
-                Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitializerDescriptor.Id, "Field = 2").WithLocation(19, 30),
-                Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, @"Property1 = """"").WithLocation(20, 30),
-                Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, @"Property1 = """"").WithLocation(21, 30),
-                Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitializerDescriptor.Id, "Field = 2").WithLocation(21, 46),
-                Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, "Property2 = new Bar { Field = true }").WithLocation(22, 30),
-                Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitializerDescriptor.Id, "Field = true").WithLocation(22, 52),
-                Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, "Property2 = 1").WithLocation(24, 30));
+                Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitializerDescriptor.Id, "Field").WithLocation(19, 30),
+                Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, "Property1").WithLocation(20, 30),
+                Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, "Property1").WithLocation(21, 30),
+                Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitializerDescriptor.Id, "Field").WithLocation(21, 46),
+                Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, "Property2").WithLocation(22, 30),
+                Diagnostic(MemberInitializerTestAnalyzer.DoNotUseFieldInitializerDescriptor.Id, "Field").WithLocation(22, 52),
+                Diagnostic(MemberInitializerTestAnalyzer.DoNotUsePropertyInitializerDescriptor.Id, "Property2").WithLocation(24, 30));
         }
 
         [Fact]
@@ -927,9 +928,17 @@ class C
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AssignmentTestAnalyzer() }, null, null, false,
-                Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "x1.Field = 10").WithLocation(28, 9),
-                Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "x1.Property1 = null").WithLocation(29, 9),
-                Diagnostic(AssignmentTestAnalyzer.DoNotUseMemberAssignmentDescriptor.Id, "x2.Field = true").WithLocation(32, 9));
+                Diagnostic("DoNotUseMemberAssignment", "Property2 = new Bar { Field = true }").WithLocation(27, 30),
+                Diagnostic("DoNotUseMemberAssignment", "Field = true").WithLocation(27, 52),
+                Diagnostic("DoNotUseMemberAssignment", "x1.Field = 10").WithLocation(28, 9),
+                Diagnostic("DoNotUseMemberAssignment", "x1.Property1 = null").WithLocation(29, 9),
+                Diagnostic("DoNotUseMemberAssignment", "x2.Field = true").WithLocation(32, 9),
+                Diagnostic("DoNotUseMemberAssignment", "Field = 2").WithLocation(19, 30),
+                Diagnostic("DoNotUseMemberAssignment", @"Property1 = """"").WithLocation(20, 30),
+                Diagnostic("DoNotUseMemberAssignment", @"Property1 = """"").WithLocation(21, 30),
+                Diagnostic("DoNotUseMemberAssignment", "Field = 2").WithLocation(21, 46),
+                Diagnostic("DoNotUseMemberAssignment", "Property2 = new Bar { Field = true }").WithLocation(22, 30),
+                Diagnostic("DoNotUseMemberAssignment", "Field = true").WithLocation(22, 52));
         }
 
         [Fact]
@@ -1117,7 +1126,7 @@ class D : C
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18839")]
+        [Fact]
         public void EventAndMethodReferencesCSharp()
         {
             const string source = @"
@@ -1146,21 +1155,18 @@ class C
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new MemberReferenceAnalyzer() }, null, null, false,
+                // Bug: we are missing diagnostics of "MethodBindingDescriptor" here. https://github.com/dotnet/roslyn/issues/20095
                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "Mumble += new MumbleEventHandler(Mumbler)").WithLocation(10, 9),
-                // Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
-                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "Mumbler").WithLocation(10, 42),
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(10, 9),
                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "Mumble += (s, a) => {}").WithLocation(11, 9),
-                // Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(11, 9),
                 Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "Mumble += new MumbleEventHandler((s, a) => {})").WithLocation(12, 9),
-                // Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
-                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "(s, a) => {}").WithLocation(12, 42),   // Bug: this is not a method binding https://github.com/dotnet/roslyn/issues/8347
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(12, 9),
                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(13, 9),
                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(14, 20),
                 Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "Mumbler").WithLocation(15, 32),
                 Diagnostic(MemberReferenceAnalyzer.HandlerRemovedDescriptor.Id, "Mumble -= new MumbleEventHandler(Mumbler)").WithLocation(17, 9),
-                // Bug: Missing a EventReferenceExpression here https://github.com/dotnet/roslyn/issues/8346
-                Diagnostic(MemberReferenceAnalyzer.MethodBindingDescriptor.Id, "Mumbler").WithLocation(17, 42)
-                );
+                Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(17, 9));
         }
 
         [Fact]
@@ -1209,7 +1215,7 @@ class C
 ";
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ParamsArrayTestAnalyzer() }, null, null, false, 
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new ParamsArrayTestAnalyzer() }, null, null, false,
                 Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "M0(1, 2, 3, 4, 5)").WithLocation(13, 9),
                 Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6)").WithLocation(14, 9),
                 Diagnostic(ParamsArrayTestAnalyzer.LongParamsDescriptor.Id, "new int[] { 2, 3, 4, 5 }"),
@@ -1294,8 +1300,7 @@ class C
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new NoneOperationTestAnalyzer() }, null, null, false);
         }
 
-        // This test can't reliablely trigger stack overflow on Linux
-        [ClrOnlyFact, WorkItem(9025, "https://github.com/dotnet/roslyn/issues/9025")]
+        [Fact, WorkItem(9025, "https://github.com/dotnet/roslyn/issues/9025")]
         public void LongArithmeticExpressionCSharp()
         {
             Func<int, string> buildSequenceOfBinaryExpressions =
@@ -1331,7 +1336,7 @@ class Test
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AssignmentOperationSyntaxTestAnalyzer() }, null, null, true,
-                Diagnostic("AD0002").WithArguments("System.InsufficientExecutionStackException", new InsufficientExecutionStackException().Message).WithLocation(1, 1),
+                Diagnostic(AssignmentOperationSyntaxTestAnalyzer.AssignmentOperationDescriptor.Id, $"x = { buildSequenceOfBinaryExpressions(8192) }").WithLocation(7, 9),
                 Diagnostic(AssignmentOperationSyntaxTestAnalyzer.AssignmentSyntaxDescriptor.Id, $"x = { buildSequenceOfBinaryExpressions(8192) }").WithLocation(7, 9));
         }
 
@@ -1477,11 +1482,11 @@ class C
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
             .VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("D.E").WithLocation(6, 32))
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new StaticMemberTestAnalyzer() }, null, null, false,
-                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "C.E += D.Method").WithLocation(23, 9),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "C.E").WithLocation(23, 9),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Method").WithLocation(23, 16),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "C.E").WithLocation(24, 9),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "C.Bar()").WithLocation(25, 9),
-                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.E += () => { }").WithLocation(27, 9),
+                Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.E").WithLocation(27, 9),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Field").WithLocation(28, 9),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Property").WithLocation(29, 17),
                 Diagnostic(StaticMemberTestAnalyzer.StaticMemberDescriptor.Id, "D.Method()").WithLocation(30, 9)
@@ -1609,14 +1614,12 @@ class C
 }
 ";
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature)
-             .VerifyDiagnostics(Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + 10", new object[] { "+", "A", "int"}).WithLocation(29, 13),
-                                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-x", new object[] { "-", "A"}).WithLocation(31, 13))
-             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new OperatorPropertyPullerTestAnalyzer() }, null, null, false,
-                 Diagnostic(OperatorPropertyPullerTestAnalyzer.BinaryOperatorDescriptor.Id, "x + 10").WithArguments("Invalid").WithLocation(29, 13),
-                 Diagnostic(OperatorPropertyPullerTestAnalyzer.UnaryOperatorDescriptor.Id, "-x").WithArguments("Invalid").WithLocation(31, 13)
-                 );
-        } 
-        
+             .VerifyDiagnostics(Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + 10", new object[] { "+", "A", "int" }).WithLocation(29, 13),
+                                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-x", new object[] { "-", "A" }).WithLocation(31, 13))
+             // no diagnostics from the analyzer since node it is looking for is invalid
+             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new OperatorPropertyPullerTestAnalyzer() }, null, null, false);
+        }
+
         [Fact, WorkItem(8520, "https://github.com/dotnet/roslyn/issues/8520")]
         public void NullOperationSyntaxCSharp()
         {
@@ -1714,7 +1717,7 @@ public class A
                 Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidUnaryDescriptor.Id, "-f").WithLocation(11, 16),
                 Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidIncrementDescriptor.Id, "f++").WithLocation(16, 9));
         }
-        
+
         [Fact, WorkItem(9114, "https://github.com/dotnet/roslyn/issues/9114")]
         public void InvalidArgumentCSharp()
         {
@@ -1879,7 +1882,7 @@ class C
                 Diagnostic(TrueFalseUnaryOperationTestAnalyzer.UnaryTrueDescriptor.Id, "x && y").WithLocation(29, 13),
                 Diagnostic(TrueFalseUnaryOperationTestAnalyzer.UnaryTrueDescriptor.Id, "x").WithLocation(30, 18));
         }
-        
+
         [Fact, WorkItem(9202, "https://github.com/dotnet/roslyn/issues/9202")]
         public void IOperationFeatureFlagCSharp()
         {

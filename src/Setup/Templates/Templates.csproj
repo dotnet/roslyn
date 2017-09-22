@@ -20,7 +20,7 @@
     <TargetVsixContainerName>Roslyn SDK.vsix</TargetVsixContainerName>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <TargetFrameworkProfile />
     <RoslynProjectType>Vsix</RoslynProjectType>

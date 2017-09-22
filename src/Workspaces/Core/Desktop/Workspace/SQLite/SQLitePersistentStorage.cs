@@ -270,12 +270,16 @@ $@"create table if not exists ""{DocumentDataTableName}"" (
     ""{DataColumnName}"" blob)");
 
                 // Also get the known set of string-to-id mappings we already have in the DB.
-                FetchStringTable(connection);
+                // Do this in one batch if possible.
+                var fetched = TryFetchStringTable(connection);
+
+                // If we weren't able to retrieve the entire string table in one batch,
+                // attempt to retrieve it for each 
+                var fetchStringTable = !fetched;
 
                 // Try to bulk populate all the IDs we'll need for strings/projects/documents.
                 // Bulk population is much faster than trying to do everything individually.
-                // Note: we don't need to fetch the string table as we did it right above this.
-                BulkPopulateIds(connection, solution, fetchStringTable: false);
+                BulkPopulateIds(connection, solution, fetchStringTable);
             }
         }
     }
