@@ -8118,7 +8118,7 @@ BC30518: Overload resolution failed because no accessible 'sub1' can be called w
         <file name="a.vb">
 Option Strict On
 Option Infer On
-
+Imports System
 Imports System.Threading.Tasks
 
 Public Module Program
@@ -8132,12 +8132,16 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30518: Overload resolution failed because no accessible 'ForEach' can be called with these arguments:
-    'Public Shared Overloads Function ForEach(Of TSource)(source As IEnumerable(Of TSource), body As Action(Of TSource)) As ParallelLoopResult': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
-    'Public Shared Overloads Function ForEach(Of TSource)(source As IEnumerable(Of TSource), body As Action(Of TSource, ParallelLoopState)) As ParallelLoopResult': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
-    'Public Shared Overloads Function ForEach(Of TSource)(source As IEnumerable(Of TSource), body As Action(Of TSource, ParallelLoopState, Long)) As ParallelLoopResult': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
-    'Public Shared Overloads Function ForEach(Of TSource)(source As Partitioner(Of TSource), body As Action(Of TSource)) As ParallelLoopResult': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
-    'Public Shared Overloads Function ForEach(Of TSource)(source As Partitioner(Of TSource), body As Action(Of TSource, ParallelLoopState)) As ParallelLoopResult': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
-    'Public Shared Overloads Function ForEach(Of TSource)(source As OrderablePartitioner(Of TSource), body As Action(Of TSource, ParallelLoopState, Long)) As ParallelLoopResult': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+    'Public Shared Overloads Function ForEach(Of Object)(source As IEnumerable(Of Object), body As Action(Of Object)) As ParallelLoopResult': Option Strict On disallows implicit conversions from 'Object' to 'IEnumerable(Of Object)'.
+    'Public Shared Overloads Function ForEach(Of Object)(source As IEnumerable(Of Object), body As Action(Of Object, ParallelLoopState)) As ParallelLoopResult': Option Strict On disallows implicit conversions from 'Object' to 'IEnumerable(Of Object)'.
+    'Public Shared Overloads Function ForEach(Of Object)(source As IEnumerable(Of Object), body As Action(Of Object, ParallelLoopState)) As ParallelLoopResult': Nested sub does not have a signature that is compatible with delegate 'Action(Of Object, ParallelLoopState)'.
+    'Public Shared Overloads Function ForEach(Of Object)(source As IEnumerable(Of Object), body As Action(Of Object, ParallelLoopState, Long)) As ParallelLoopResult': Option Strict On disallows implicit conversions from 'Object' to 'IEnumerable(Of Object)'.
+    'Public Shared Overloads Function ForEach(Of Object)(source As IEnumerable(Of Object), body As Action(Of Object, ParallelLoopState, Long)) As ParallelLoopResult': Nested sub does not have a signature that is compatible with delegate 'Action(Of Object, ParallelLoopState, Long)'.
+    'Public Shared Overloads Function ForEach(Of Object)(source As Partitioner(Of Object), body As Action(Of Object)) As ParallelLoopResult': Option Strict On disallows implicit conversions from 'Object' to 'Partitioner(Of Object)'.
+    'Public Shared Overloads Function ForEach(Of Object)(source As Partitioner(Of Object), body As Action(Of Object, ParallelLoopState)) As ParallelLoopResult': Option Strict On disallows implicit conversions from 'Object' to 'Partitioner(Of Object)'.
+    'Public Shared Overloads Function ForEach(Of Object)(source As Partitioner(Of Object), body As Action(Of Object, ParallelLoopState)) As ParallelLoopResult': Nested sub does not have a signature that is compatible with delegate 'Action(Of Object, ParallelLoopState)'.
+    'Public Shared Overloads Function ForEach(Of Object)(source As OrderablePartitioner(Of Object), body As Action(Of Object, ParallelLoopState, Long)) As ParallelLoopResult': Option Strict On disallows implicit conversions from 'Object' to 'OrderablePartitioner(Of Object)'.
+    'Public Shared Overloads Function ForEach(Of Object)(source As OrderablePartitioner(Of Object), body As Action(Of Object, ParallelLoopState, Long)) As ParallelLoopResult': Nested sub does not have a signature that is compatible with delegate 'Action(Of Object, ParallelLoopState, Long)'.
         Parallel.ForEach(a, Sub(x As Object) Console.WriteLine(x))
                  ~~~~~~~
 </expected>)

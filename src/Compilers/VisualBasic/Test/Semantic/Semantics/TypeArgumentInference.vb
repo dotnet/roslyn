@@ -1865,6 +1865,31 @@ BC36639: 'ByRef' parameter 'a' cannot be used in a lambda expression.
 </expected>)
         End Sub
 
+        <Fact>
+        Public Sub ShapeMismatchInOneArgument()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Public Class C3
+    Shared Sub Main()
+        Test2(Nullable(New VT(Of Integer, Integer)()), New VT(Of Integer, Integer)())
+        Test2(New VT(Of Integer, Integer)(), Nullable(New VT(Of Integer, Integer)()))
+    End Sub
+    Shared Function Nullable(Of T As Structure)(x As T) As T?
+        Return x
+    End Function
+    Shared Sub Test2(Of T, U)(x As VT(Of T, U), y As VT(Of T, U))
+        System.Console.Write(1) 
+    End Sub
+    Public Structure VT(Of T, S)
+    End Structure
+End Class
+    </file>
+</compilation>, expectedOutput:=<![CDATA[
+11
+]]>)
+        End Sub
+
     End Class
 End Namespace
 

@@ -586,7 +586,8 @@ HandleAsAGeneralExpression:
                             ParameterType,
                             Parameter,
                             MatchGenericArgumentToParameter.MatchBaseOfGenericArgumentToParameter,
-                            inferenceRestrictions)
+                            inferenceRestrictions,
+                            addedHints:=Nothing)
                 End Select
 
 
@@ -1231,7 +1232,8 @@ HandleAsAGeneralExpression:
                                     parameterType:=delegateParameters(i).Type,
                                     param:=delegateParameters(i),
                                     digThroughToBasesAndImplements:=MatchGenericArgumentToParameter.MatchArgumentToBaseOfGenericParameter,
-                                    inferenceRestrictions:=RequiredConversion.Any)
+                                    inferenceRestrictions:=RequiredConversion.Any,
+                                    addedHints:=Nothing)
                             End If
 
                             AddTypeToGraph(delegateParameters(i).Type, argNode, isOutgoingEdge:=False, haveSeenTypeParameters:=haveSeenTypeParameters)
@@ -1372,17 +1374,14 @@ HandleAsAGeneralExpression:
                 parameterType As TypeSymbol,
                 param As ParameterSymbol,
                 digThroughToBasesAndImplements As MatchGenericArgumentToParameter,
-                inferenceRestrictions As RequiredConversion
+                inferenceRestrictions As RequiredConversion,
+                ByRef addedHints As Boolean
             ) As Boolean
 
                 If argumentType Is Nothing OrElse argumentType.IsVoidType() Then
                     ' We should never be able to infer a value from something that doesn't provide a value, e.g:
                     ' Goo(Of T) can't be passed Sub bar(), as in Goo(Bar())  
                     Return False
-                End If
-
-                If Not RefersToGenericParameterToInferArgumentFor(parameterType) Then
-                    Return True
                 End If
 
                 ' If a generic method is parameterized by T, an argument of type A matching a parameter of type
@@ -1404,6 +1403,7 @@ HandleAsAGeneralExpression:
                         param,
                         False,
                         inferenceRestrictions)
+                    addedHints = True
                     Return True
                 End If
 
@@ -1432,7 +1432,8 @@ HandleAsAGeneralExpression:
                                         parameterElementType,
                                         param,
                                         digThroughToBasesAndImplements,
-                                        inferenceRestrictions
+                                        inferenceRestrictions,
+                                        addedHints
                           ) Then
                             Return False
                         End If
@@ -1443,11 +1444,11 @@ HandleAsAGeneralExpression:
                 ElseIf parameterType.Kind = SymbolKind.NamedType Then
                     ' e.g. handle goo(of T)(x as Bar(Of T)) We need to dig into Bar(Of T)
 
-                    Dim parameterTypeAsNamedType = DirectCast(parameterType, NamedTypeSymbol)
+                    Dim parameterTypeAsNamedType = DirectCast(parameterType.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol)
 
                     If parameterTypeAsNamedType.IsGenericType Then
 
-                        Dim argumentTypeAsNamedType = If(argumentType.Kind = SymbolKind.NamedType, DirectCast(argumentType, NamedTypeSymbol), Nothing)
+                        Dim argumentTypeAsNamedType = If(argumentType.Kind = SymbolKind.NamedType, DirectCast(argumentType.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol), Nothing)
 
                         If argumentTypeAsNamedType IsNot Nothing AndAlso argumentTypeAsNamedType.IsGenericType Then
                             If argumentTypeAsNamedType.OriginalDefinition.IsSameTypeIgnoringAll(parameterTypeAsNamedType.OriginalDefinition) Then
@@ -1534,7 +1535,8 @@ HandleAsAGeneralExpression:
                                                                         parameterTypeAsNamedType.TypeArgumentWithDefinitionUseSiteDiagnostics(typeArgumentIndex, Me.UseSiteDiagnostics),
                                                                         param,
                                                                         _DigThroughToBasesAndImplements,
-                                                                        paramInferenceRestrictions
+                                                                        paramInferenceRestrictions,
+                                                                        addedHints
                                                                   ) Then
                                             ' TODO: Would it make sense to continue through other type arguments even if inference failed for 
                                             '       the current one?
@@ -1567,11 +1569,12 @@ HandleAsAGeneralExpression:
                                 parameterTypeAsNamedType.GetNullableUnderlyingType(),
                                 param,
                                 digThroughToBasesAndImplements,
-                                Conversions.CombineConversionRequirements(inferenceRestrictions, RequiredConversion.ArrayElement))
+                                Conversions.CombineConversionRequirements(inferenceRestrictions, RequiredConversion.ArrayElement),
+                                addedHints)
 
                         End If
 
-                        Return False
+                        Return True
                     End If
 
                 ElseIf parameterType.IsArrayType() Then
@@ -1590,7 +1593,8 @@ HandleAsAGeneralExpression:
                                     parameterArray.ElementType,
                                     param,
                                     digThroughToBasesAndImplements,
-                                    Conversions.CombineConversionRequirements(inferenceRestrictions, If(argumentIsAarrayLiteral, RequiredConversion.Any, RequiredConversion.ArrayElement)))
+                                    Conversions.CombineConversionRequirements(inferenceRestrictions, If(argumentIsAarrayLiteral, RequiredConversion.Any, RequiredConversion.ArrayElement)),
+                                    addedHints)
                         End If
                     End If
 
@@ -1630,20 +1634,30 @@ HandleAsAGeneralExpression:
                 parameterType As TypeSymbol,
                 param As ParameterSymbol,
                 digThroughToBasesAndImplements As MatchGenericArgumentToParameter,
-                inferenceRestrictions As RequiredConversion
+                inferenceRestrictions As RequiredConversion,
+                ByRef addedHints As Boolean
             ) As Boolean
 
+                If Not RefersToGenericParameterToInferArgumentFor(parameterType) Then
+                    Return True
+                End If
+
                 ' First try to the things directly. Only if this fails will we bother searching for things like List->IEnumerable.
-                Dim Inferred As Boolean = InferTypeArgumentsFromArgumentDirectly(
+                Dim addedDirectHints As Boolean = False
+                Dim directInferenceResult As Boolean = InferTypeArgumentsFromArgumentDirectly(
                     argumentLocation,
                     argumentType,
                     argumentTypeByAssumption,
                     parameterType,
                     param,
                     digThroughToBasesAndImplements,
-                    inferenceRestrictions)
+                    inferenceRestrictions,
+                    addedDirectHints)
 
-                If Inferred Then
+                Debug.Assert(Not addedDirectHints OrElse directInferenceResult)
+
+                If directInferenceResult AndAlso addedDirectHints Then
+                    addedHints = True
                     Return True
                 End If
 
@@ -1661,7 +1675,7 @@ HandleAsAGeneralExpression:
                 ' covariance and contravariance...
 
                 If digThroughToBasesAndImplements = MatchGenericArgumentToParameter.MatchGenericArgumentToParameterExactly Then
-                    Return False
+                    Return directInferenceResult
                 End If
 
                 ' Special handling for Anonymous Delegates.
@@ -1723,7 +1737,8 @@ HandleAsAGeneralExpression:
                                         parameterParams(i).Type,
                                         param,
                                         MatchGenericArgumentToParameter.MatchArgumentToBaseOfGenericParameter,
-                                        RequiredConversion.AnyReverse) Then  ' AnyReverse: contravariance in delegate arguments
+                                        RequiredConversion.AnyReverse, ' AnyReverse: contravariance in delegate arguments
+                                        addedHints) Then
                                 Return False
                             End If
                         Next
@@ -1746,7 +1761,8 @@ HandleAsAGeneralExpression:
                                         parameterInvokeProc.ReturnType,
                                         param,
                                         MatchGenericArgumentToParameter.MatchBaseOfGenericArgumentToParameter,
-                                        RequiredConversion.Any) ' Any: covariance in delegate returns
+                                        RequiredConversion.Any, ' Any: covariance in delegate returns
+                                        addedHints)
                         End If
                     End If
                 End If
@@ -1766,7 +1782,7 @@ HandleAsAGeneralExpression:
                 End If
 
                 If Not fContinue Then
-                    Return False
+                    Return directInferenceResult
                 End If
 
                 ' NOTE: baseSearchType was a REFERENCE, to either ArgumentType or ParameterType.
@@ -1778,7 +1794,8 @@ HandleAsAGeneralExpression:
                             parameterType,
                             param,
                             digThroughToBasesAndImplements,
-                            inferenceRestrictions)
+                            inferenceRestrictions,
+                            addedHints)
 
             End Function
 
@@ -1987,7 +2004,8 @@ HandleAsAGeneralExpression:
                                 parameterType:=returnType,
                                 param:=param,
                                 digThroughToBasesAndImplements:=MatchGenericArgumentToParameter.MatchBaseOfGenericArgumentToParameter,
-                                inferenceRestrictions:=RequiredConversion.Any)
+                                inferenceRestrictions:=RequiredConversion.Any,
+                                addedHints:=Nothing)
                 End If
 
                 ' We did not infer anything for this addressOf, AddressOf can never be of type Object, so mark inference
@@ -2045,7 +2063,8 @@ HandleAsAGeneralExpression:
                             parameterType:=parameterType,
                             param:=param,
                             digThroughToBasesAndImplements:=MatchGenericArgumentToParameter.MatchBaseOfGenericArgumentToParameter,
-                            inferenceRestrictions:=RequiredConversion.Any)
+                            inferenceRestrictions:=RequiredConversion.Any,
+                            addedHints:=Nothing)
                     Else
                         Return True
                     End If
@@ -2122,7 +2141,8 @@ HandleAsAGeneralExpression:
                                 parameterType:=delegateParam.Type,
                                 param:=param,
                                 digThroughToBasesAndImplements:=MatchGenericArgumentToParameter.MatchArgumentToBaseOfGenericParameter,
-                                inferenceRestrictions:=RequiredConversion.Any)
+                                inferenceRestrictions:=RequiredConversion.Any,
+                                addedHints:=Nothing)
                         End If
                     Next
 
@@ -2273,7 +2293,8 @@ HandleAsAGeneralExpression:
                             argumentTypeByAssumption:=False,
                             parameterType:=returnType,
                             param:=param, digThroughToBasesAndImplements:=MatchGenericArgumentToParameter.MatchBaseOfGenericArgumentToParameter,
-                            inferenceRestrictions:=RequiredConversion.Any)
+                            inferenceRestrictions:=RequiredConversion.Any,
+                            addedHints:=Nothing)
 
                 ElseIf parameterType.OriginalDefinition = argument.GetBinderFromLambda().Compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T) Then
                     ' If we've got an Expression(Of T), skip through to T
