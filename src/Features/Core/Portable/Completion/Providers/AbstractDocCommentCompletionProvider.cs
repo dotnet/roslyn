@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected IEnumerable<CompletionItem> GetItemTagItems()
         {
-            return new[] { TermTagName, DescriptionTagName }.Select(GetItem);
+            return new[] { TermElementName, DescriptionElementName }.Select(GetItem);
         }
 
         protected IEnumerable<CompletionItem> GetListItems()

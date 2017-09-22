@@ -104,8 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     items.AddRange(GetNestedItems(declaredSymbol));
                 }
 
-                if (token.Parent.Parent is XmlElementSyntax xmlElement &&
-                    xmlElement.StartTag.Name.LocalName.ValueText == ListElementName)
+                if (token.Parent.Parent is XmlElementSyntax xmlElement)
                 {
                     AddXmlElementItems(items, xmlElement.StartTag);
                 }
@@ -116,11 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     AddXmlElementItems(items, nestedXmlElement.StartTag);
                 }
 
-                if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement && ((XmlElementSyntax)token.Parent.Parent).StartTag.Name.LocalName.ValueText == ListHeaderElementName)
-                {
-                    items.AddRange(GetListHeaderItems());
-                }
-
                 if (token.Parent.Parent is DocumentationCommentTriviaSyntax ||
                     (token.Parent.Parent.IsKind(SyntaxKind.XmlEmptyElement) && token.Parent.Parent.Parent is DocumentationCommentTriviaSyntax))
                 {
@@ -128,18 +122,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            if (token.Parent is XmlElementStartTagSyntax startTag)
+            if (token.Parent is XmlElementStartTagSyntax startTag &&
+                token == startTag.GreaterThanToken)
             {
-                if (token == startTag.GreaterThanToken && startTag.Name.LocalName.ValueText == ListElementName)
-                {
-                    items.AddRange(GetListItems());
-                }
-
-                if (token == startTag.GreaterThanToken && startTag.Name.LocalName.ValueText == ListHeaderElementName)
-                {
-                    var tagName = startTag.Name.LocalName.ValueText;
-                    AddXmlElementItems(items, startTag);
-                }
+                AddXmlElementItems(items, startTag);
             }
 
             items.AddRange(GetAlwaysVisibleItems());
