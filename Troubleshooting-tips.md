@@ -18,3 +18,9 @@ Windows Registry Editor Version 5.00
 ```
 
 More [information](https://msdn.microsoft.com/en-us/library/windows/desktop/bb787181(v=vs.85).aspx)
+
+## Running the compiler with a long command line
+
+Often times the command-line recorded by msbuild logs is very long. Simply copy/pasting it into a command window fails, because the line gets truncated.
+
+The solution is to copy the command-line options into a test file (for instance, `repro.rsp`) then invoke the compiler with `csc.exe /noconfig @repro.rsp`. The same thing works with `vbc.exe`.
