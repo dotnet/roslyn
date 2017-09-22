@@ -43,36 +43,5 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             return ConstantValue.Bad;
         }
-
-        public static BinaryOperationKind DeriveAdditionKind(ITypeSymbol type)
-        {
-            switch (type.SpecialType)
-            {
-                case SpecialType.System_Int32:
-                case SpecialType.System_Int64:
-                case SpecialType.System_Int16:
-                case SpecialType.System_SByte:
-                    return BinaryOperationKind.IntegerAdd;
-                case SpecialType.System_UInt32:
-                case SpecialType.System_UInt64:
-                case SpecialType.System_UInt16:
-                case SpecialType.System_Byte:
-                case SpecialType.System_Char:
-                case SpecialType.System_Boolean:
-                    return BinaryOperationKind.UnsignedAdd;
-                case SpecialType.System_Single:
-                case SpecialType.System_Double:
-                    return BinaryOperationKind.FloatingAdd;
-                case SpecialType.System_Object:
-                    return BinaryOperationKind.ObjectAdd;
-            }
-
-            if (type.TypeKind == TypeKind.Enum)
-            {
-                return BinaryOperationKind.EnumAdd;
-            }
-
-            return BinaryOperationKind.Invalid;
-        }
     }
 }

@@ -88,9 +88,14 @@ namespace Microsoft.CodeAnalysis
             return _factory.GetEnumUnderlyingType(this.moduleSymbol, type);
         }
 
-        protected bool IsVolatileModifierType(TypeSymbol type)
+        protected bool IsAcceptedVolatileModifierType(TypeSymbol type)
         {
-            return _factory.IsVolatileModifierType(this.moduleSymbol, type);
+            return _factory.IsAcceptedVolatileModifierType(this.moduleSymbol, type);
+        }
+
+        protected bool IsAcceptedInAttributeModifierType(TypeSymbol type)
+        {
+            return _factory.IsAcceptedInAttributeModifierType(type);
         }
 
         protected Microsoft.Cci.PrimitiveTypeCode GetPrimitiveTypeCode(TypeSymbol type)

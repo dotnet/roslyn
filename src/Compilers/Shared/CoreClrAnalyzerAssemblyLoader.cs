@@ -8,7 +8,7 @@ using System.Runtime.Loader;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class CoreClrAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
+    internal class CoreClrAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
     {
         private AssemblyLoadContext _loadContext;
 
@@ -37,8 +37,10 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return _loadContext.LoadFromAssemblyPath(fullPath);
+            return LoadImpl(fullPath);
         }
+
+        protected virtual Assembly LoadImpl(string fullPath) => _loadContext.LoadFromAssemblyPath(fullPath);
     }
 }
 

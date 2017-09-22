@@ -9313,5 +9313,191 @@ public class Program
             Assert.Equal("void E.F(B b)", candidates[1].ToTestDisplayString());
             Assert.Equal("void E.F(C c)", candidates[2].ToTestDisplayString());
         }
+
+        [Fact]
+        public void PassingArgumentsToRefReadOnlyParameters_RefKind_None()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(ref readonly int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        int x = 5;
+        Method(x);
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void PassingArgumentsToRefReadOnlyParameters_RefKind_Ref()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(ref readonly int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        int x = 5;
+        Method(ref x);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (11,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+                //         Method(ref x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "ref").WithLocation(11, 20));
+        }
+
+        [WorkItem(20799, "https://github.com/dotnet/roslyn/issues/20799")]
+        [Fact]
+        public void PassingArgumentsToRefReadOnlyParameters_RefKind_None_WrongType()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(ref readonly int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        System.Exception x = null;
+        Method(x);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (11,16): error CS1503: Argument 1: cannot convert from 'System.Exception' to 'ref readonly int'
+                //         Method(x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Exception", "ref readonly int").WithLocation(11, 16)
+            );
+        }
+
+        [WorkItem(20799, "https://github.com/dotnet/roslyn/issues/20799")]
+        [Fact]
+        public void PassingArgumentsToRefParameters_RefKind_None_WrongType()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(ref int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        System.Exception x = null;
+        Method(x);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (11,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         Method(x);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref").WithLocation(11, 16)
+            );
+        }
+
+        [Fact]
+        public void PassingArgumentsToRefReadOnlyParameters_RefKind_RefReadOnly()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(ref readonly int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        int x = 5;
+        Method(ref readonly x);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (11,20): error CS1525: Invalid expression term 'readonly'
+                //         Method(ref readonly x);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(11, 20),
+                // (11,20): error CS1026: ) expected
+                //         Method(ref readonly x);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(11, 20),
+                // (11,20): error CS1002: ; expected
+                //         Method(ref readonly x);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(11, 20),
+                // (11,20): error CS0106: The modifier 'readonly' is not valid for this item
+                //         Method(ref readonly x);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(11, 20),
+                // (11,30): error CS1001: Identifier expected
+                //         Method(ref readonly x);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(11, 30),
+                // (11,30): error CS1002: ; expected
+                //         Method(ref readonly x);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(11, 30),
+                // (11,30): error CS1513: } expected
+                //         Method(ref readonly x);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(11, 30),
+                // (11,29): error CS0118: 'x' is a variable but is used like a type
+                //         Method(ref readonly x);
+                Diagnostic(ErrorCode.ERR_BadSKknown, "x").WithArguments("x", "variable", "type").WithLocation(11, 29),
+                // (10,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         int x = 5;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(10, 13));
+        }
+
+        [Fact]
+        public void PassingArgumentsToRefReadOnlyParameters_RefKind_In()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(ref readonly int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        int x = 5;
+        Method(in x);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (11,16): error CS1041: Identifier expected; 'in' is a keyword
+                //         Method(in x);
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "in").WithArguments("", "in").WithLocation(11, 16));
+        }
+
+        [Fact]
+        public void PassingArgumentsToRefReadOnlyParameters_RefKind_Out()
+        {
+            var code = @"
+public static class Program
+{
+    public static void Method(ref readonly int p)
+    {
+        System.Console.WriteLine(p);
+    }
+    public static void Main()
+    {
+        int x = 5;
+        Method(out x);
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (11,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //         Method(out x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "out").WithLocation(11, 20));
+        }
     }
 }

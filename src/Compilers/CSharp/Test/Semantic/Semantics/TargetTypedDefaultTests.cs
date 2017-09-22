@@ -24,7 +24,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (6,17): error CS8107: Feature 'default literal' is not available in C# 7. Please use language version 7.1 or greater.
                 //         int x = default;
@@ -45,7 +45,7 @@ class C
     async Task M(CancellationToken t = default) { await Task.Delay(0); }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source);
+            var comp = CreateCompilationWithMscorlib46(source,parseOptions: TestOptions.Regular7 );
             comp.VerifyDiagnostics(
                 // (7,40): error CS8107: Feature 'default literal' is not available in C# 7. Please use language version 7.1 or greater.
                 //     async Task M(CancellationToken t = default) { await Task.Delay(0); }
@@ -319,7 +319,10 @@ class C
             comp.VerifyDiagnostics(
                 // (6,9): error CS8150: By-value returns may only be used in methods that return by value
                 //         return default;
-                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(6, 9),
+                // (6,16): error CS8151: The return expression must be of type 'int' because this method returns by reference
+                //         return default;
+                Diagnostic(ErrorCode.ERR_RefReturnMustHaveIdentityConversion, "default").WithArguments("int").WithLocation(6, 16)
                 );
         }
 
