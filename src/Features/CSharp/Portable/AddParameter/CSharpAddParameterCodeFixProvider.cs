@@ -3,8 +3,10 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.AddParameter;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod;
 using Microsoft.CodeAnalysis.CSharp.GenerateConstructor;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -20,8 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
         InvocationExpressionSyntax,
         ObjectCreationExpressionSyntax>
     {
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            GenerateConstructorDiagnosticIds.AllDiagnosticIds;
+        private static readonly ImmutableArray<string> AddParameterFixableDiagnosticIds =
+            GenerateConstructorDiagnosticIds.AllDiagnosticIds.Union(
+            GenerateMethodDiagnosticIds.FixableDiagnosticIds).ToImmutableArray();
+
+        public override ImmutableArray<string> FixableDiagnosticIds => AddParameterFixableDiagnosticIds;
 
         protected override ImmutableArray<string> TooManyArgumentsDiagnosticIds { get; } =
             GenerateConstructorDiagnosticIds.TooManyArgumentsDiagnosticIds;

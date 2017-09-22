@@ -584,5 +584,91 @@ class D
     }
 }");
         }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocationInstanceMethod1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M1()
+    {
+    }
+    void M2()
+    {
+        int i=0;
+        [|M1|](i);
+    }
+}
+",
+@"
+class C
+{
+    void M1(int i)
+    {
+    }
+    void M2()
+    {
+        int i=0;
+        M1(i);
+    }
+}
+");
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocationInheritedMethodGetFixed()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Base
+{
+    protected void M1()
+    {
+    }
+}
+class C1 : Base
+{
+    void M2()
+    {
+        int i = 0;
+        [|M1|](i);
+    }
+}",
+@"
+class Base
+{
+    protected void M1(int i)
+    {
+    }
+}
+class C1 : Base
+{
+    void M2()
+    {
+        int i = 0;
+        M1(i);
+    }
+}");
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocationInheritedMethodInMetadatGetsNotFixed()
+        {
+            await TestMissingAsync(
+    @"
+class C1
+{
+    void M2()
+    {
+        int i = 0;
+        [|GetHashCode|](i);
+    }
+}");
+        }
     }
 }

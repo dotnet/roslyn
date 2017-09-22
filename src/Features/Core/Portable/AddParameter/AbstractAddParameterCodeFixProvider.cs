@@ -73,11 +73,25 @@ namespace Microsoft.CodeAnalysis.AddParameter
                               .LastOrDefault(a => a.AncestorsAndSelf().Contains(node));
         }
 
-        private Task HandleInvocationExpressionAsync(
+        private async Task HandleInvocationExpressionAsync(
             CodeFixContext context, TInvocationExpressionSyntax invocationExpression, TArgumentSyntax argumentOpt)
         {
-            // Currently we only support this for 'new obj' calls.
-            return SpecializedTasks.EmptyTask;
+            var document = context.Document;
+            var cancellationToken = context.CancellationToken;
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
+            var expression = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
+            if (expression == null)
+            {
+                return;
+            }
+            var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
+            var candidates = symbolInfo.CandidateSymbols.OfType<IMethodSymbol>().ToImmutableArray();
+            var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
+
+            var argumentInsertPositionInMethodCandidates = GetArgumentInsertPositionForMethodCandidates(argumentOpt, semanticModel, syntaxFacts, arguments, candidates);
+            RegisterFixForMethodOverloads(context, arguments, argumentInsertPositionInMethodCandidates);
         }
 
         private async Task HandleObjectCreationExpressionAsync(
@@ -111,17 +125,43 @@ namespace Microsoft.CodeAnalysis.AddParameter
             }
 
             var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreation);
+            var methodCandidates = type.InstanceConstructors;
 
-            var comparer = syntaxFacts.StringComparer;
-            var constructorsAndArgumentToAdd = ArrayBuilder<(IMethodSymbol constructor, TArgumentSyntax argument, int index)>.GetInstance();
+            var constructorsAndArgumentToAdd = GetArgumentInsertPositionForMethodCandidates(argumentOpt, semanticModel, syntaxFacts, arguments, methodCandidates);
 
-            foreach (var constructor in type.InstanceConstructors.OrderBy(m => m.Parameters.Length))
+            RegisterFixForMethodOverloads(context, arguments, constructorsAndArgumentToAdd);
+        }
+
+        private void RegisterFixForMethodOverloads(CodeFixContext context, SeparatedSyntaxList<TArgumentSyntax> arguments, ImmutableArray<(IMethodSymbol method, TArgumentSyntax argument, int index)> methodsAndArgumentToAdd)
+        {
+            // Order by the furthest argument index to the nearest argument index.  The ones with
+            // larger argument indexes mean that we matched more earlier arguments (and thus are
+            // likely to be the correct match).
+            foreach (var (method, argumentToAdd, _) in methodsAndArgumentToAdd.OrderByDescending(t => t.index))
             {
-                if (constructor.IsNonImplicitAndFromSource() &&
-                    NonParamsParameterCount(constructor) < arguments.Count)
+                var parameters = method.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
+                var signature = $"{method.Name}({string.Join(", ", parameters)})";
+
+                var title = string.Format(FeaturesResources.Add_parameter_to_0, signature);
+
+                context.RegisterCodeFix(
+                    new MyCodeAction(title, c => FixAsync(context.Document, method, argumentToAdd, arguments, c)),
+                    context.Diagnostics);
+            }
+        }
+
+        private ImmutableArray<(IMethodSymbol method, TArgumentSyntax argument, int index)> GetArgumentInsertPositionForMethodCandidates(TArgumentSyntax argumentOpt, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, SeparatedSyntaxList<TArgumentSyntax> arguments, ImmutableArray<IMethodSymbol> methodCandidates)
+        {
+            var comparer = syntaxFacts.StringComparer;
+            var methodsAndArgumentToAdd = ArrayBuilder<(IMethodSymbol constructor, TArgumentSyntax argument, int index)>.GetInstance();
+
+            foreach (var method in methodCandidates.OrderBy(m => m.Parameters.Length))
+            {
+                if (method.IsNonImplicitAndFromSource() &&
+                    NonParamsParameterCount(method) < arguments.Count)
                 {
                     var argumentToAdd = DetermineFirstArgumentToAdd(
-                        semanticModel, syntaxFacts, comparer, constructor,
+                        semanticModel, syntaxFacts, comparer, method,
                         arguments, argumentOpt);
 
                     if (argumentToAdd != null)
@@ -135,29 +175,13 @@ namespace Microsoft.CodeAnalysis.AddParameter
                             continue;
                         }
 
-                        constructorsAndArgumentToAdd.Add(
-                            (constructor, argumentToAdd, arguments.IndexOf(argumentToAdd)));
+                        methodsAndArgumentToAdd.Add(
+                            (method, argumentToAdd, arguments.IndexOf(argumentToAdd)));
                     }
                 }
             }
 
-            // Order by the furthest argument index to the nearest argument index.  The ones with
-            // larger argument indexes mean that we matched more earlier arguments (and thus are
-            // likely to be the correct match).
-            foreach (var tuple in constructorsAndArgumentToAdd.OrderByDescending(t => t.index))
-            {
-                var constructor = tuple.constructor;
-                var argumentToAdd = tuple.argument;
-
-                var parameters = constructor.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
-                var signature = $"{type.Name}({string.Join(", ", parameters)})";
-
-                var title = string.Format(FeaturesResources.Add_parameter_to_0, signature);
-
-                context.RegisterCodeFix(
-                    new MyCodeAction(title, c => FixAsync(document, constructor, argumentToAdd, arguments, c)),
-                    context.Diagnostics);
-            }
+            return methodsAndArgumentToAdd.ToImmutableArray();
         }
 
         private int NonParamsParameterCount(IMethodSymbol method)
@@ -477,7 +501,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         }
 
         private bool TypeInfoMatchesWithParamsExpansion(
-            TypeInfo argumentTypeInfo, IParameterSymbol parameter, 
+            TypeInfo argumentTypeInfo, IParameterSymbol parameter,
             bool isNullLiteral, bool isDefaultLiteral)
         {
             if (parameter.IsParams && parameter.Type is IArrayTypeSymbol arrayType)
