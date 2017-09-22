@@ -941,19 +941,99 @@ class C1
             );
         }
 
-        private static void AssertReferencedIsByRefLikeAttributes(Accessibility accessibility, ImmutableArray<CSharpAttributeData> attributes, string assemblyName)
+        [WorkItem(22198, "https://github.com/dotnet/roslyn/issues/22198")]
+        [Fact]
+        public void SpecialTypes_CorLib()
         {
-            Assert.Equal(2, attributes.Count());
+            var source1 =
+@"
+namespace System
+{
+    public class Object { }
+    public class String { }
+    public struct Void { }
+    public class ValueType { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public struct Decimal { }
+    public class Attribute{ }
+    public class ObsoleteAttribute: Attribute
+    {
+        public ObsoleteAttribute(string message, bool error){}
+    }
+
+    public ref struct TypedReference { }
+    public ref struct ArgIterator { }
+    public ref struct RuntimeArgumentHandle { }
+
+    public ref struct NotTypedReference { }
+}";
+            var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
+
+            CompileAndVerify(compilation1, verify: false, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("System.TypedReference");
+                Assert.True(type.IsByRefLikeType);
+
+                AssertReferencedIsByRefLikeAttributes(Accessibility.Internal, type.GetAttributes(), module.ContainingAssembly.Name, hasObsolete: false);
+
+                type = module.ContainingAssembly.GetTypeByMetadataName("System.ArgIterator");
+                Assert.True(type.IsByRefLikeType);
+
+                AssertReferencedIsByRefLikeAttributes(Accessibility.Internal, type.GetAttributes(), module.ContainingAssembly.Name, hasObsolete: false);
+
+                type = module.ContainingAssembly.GetTypeByMetadataName("System.RuntimeArgumentHandle");
+                Assert.True(type.IsByRefLikeType);
+
+                AssertReferencedIsByRefLikeAttributes(Accessibility.Internal, type.GetAttributes(), module.ContainingAssembly.Name, hasObsolete: false);
+
+                type = module.ContainingAssembly.GetTypeByMetadataName("System.NotTypedReference");
+                Assert.True(type.IsByRefLikeType);
+
+                // control case. Not a special type.
+                AssertReferencedIsByRefLikeAttributes(Accessibility.Internal, type.GetAttributes(), module.ContainingAssembly.Name, hasObsolete: true);
+            });
+        }
+
+        [Fact]
+        public void SpecialTypes_NotCorLib()
+        {
+            var text = @"
+namespace System
+{
+    public ref struct TypedReference { }
+}
+";
+
+            CompileAndVerify(text, verify: false, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("System.TypedReference");
+                Assert.True(type.IsByRefLikeType);
+
+                AssertReferencedIsByRefLikeAttributes(Accessibility.Internal, type.GetAttributes(), module.ContainingAssembly.Name);
+            });
+        }
+
+        private static void AssertReferencedIsByRefLikeAttributes(
+            Accessibility accessibility, 
+            ImmutableArray<CSharpAttributeData> attributes, 
+            string assemblyName, 
+            bool hasObsolete = true)
+        {
+            Assert.Equal(hasObsolete? 2: 1, attributes.Count());
 
             var attributeType = attributes[0].AttributeClass;
             Assert.Equal("System.Runtime.CompilerServices.IsByRefLikeAttribute", attributeType.ToDisplayString());
             Assert.Equal(assemblyName, attributeType.ContainingAssembly.Name);
             Assert.Equal(accessibility, attributeType.DeclaredAccessibility);
 
-            var attribute = attributes[1];
-            Assert.Equal("System.ObsoleteAttribute", attribute.AttributeClass.ToDisplayString());
-            Assert.Equal("Types with embedded references are not supported in this version of your compiler.", attribute.ConstructorArguments.ElementAt(0).Value);
-            Assert.Equal(false, attribute.ConstructorArguments.ElementAt(1).Value);
+            if (hasObsolete)
+            {
+                var attribute = attributes[1];
+                Assert.Equal("System.ObsoleteAttribute", attribute.AttributeClass.ToDisplayString());
+                Assert.Equal("Types with embedded references are not supported in this version of your compiler.", attribute.ConstructorArguments.ElementAt(0).Value);
+                Assert.Equal(false, attribute.ConstructorArguments.ElementAt(1).Value);
+            }
         }
 
         private static void AssertNotReferencedIsByRefLikeAttribute(ImmutableArray<CSharpAttributeData> attributes)
