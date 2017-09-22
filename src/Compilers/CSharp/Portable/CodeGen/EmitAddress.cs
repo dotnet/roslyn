@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var local = localAccess.LocalSymbol;
 
-            if (!HasHome(localAccess, addressKind != AddressKind.ReadOnly))
+            if (!HasHome(localAccess, needWriteable: addressKind != AddressKind.ReadOnly))
             {
                 return EmitAddressOfTempClone(localAccess);
             }
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </summary>
         private LocalDefinition EmitDupAddress(BoundDup dup, AddressKind addressKind)
         {
-            if (!HasHome(dup, addressKind != AddressKind.ReadOnly))
+            if (!HasHome(dup, needWriteable: addressKind != AddressKind.ReadOnly))
             {
                 return EmitAddressOfTempClone(dup);
             }
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             ParameterSymbol parameterSymbol = parameter.ParameterSymbol;
 
-            if (!HasHome(parameter, addressKind != AddressKind.ReadOnly))
+            if (!HasHome(parameter, needWriteable: addressKind != AddressKind.ReadOnly))
             {
                 // accessing a parameter that is not writable
                 return EmitAddressOfTempClone(parameter);

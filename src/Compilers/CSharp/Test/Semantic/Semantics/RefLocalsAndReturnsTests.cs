@@ -23,6 +23,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         }
 
         [Fact]
+        public void RefReadonlyLocalToLiteral()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        ref readonly int x = ref 42;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,34): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+                //         ref readonly int x = ref 42;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "42").WithLocation(6, 34));
+        }
+
+        [Fact]
         public void RefReadonlyNoCaptureInLambda()
         {
             var comp = CreateStandardCompilation(@"
