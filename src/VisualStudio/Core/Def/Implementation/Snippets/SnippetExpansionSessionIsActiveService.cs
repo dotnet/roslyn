@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
     [Shared]
-    [ExportWorkspaceService(typeof(ISnippetExpansionSessionIsActiveService), layer: ServiceLayer.Host)]
+    [ExportWorkspaceService(typeof(ISnippetExpansionSessionIsActiveService), ServiceLayer.Host)]
     internal class SnippetExpansionSessionIsActiveService : ISnippetExpansionSessionIsActiveService
     {
         public bool SnippetsAreActive(ITextView textView)
