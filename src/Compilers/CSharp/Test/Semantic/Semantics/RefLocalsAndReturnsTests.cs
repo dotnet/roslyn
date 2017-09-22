@@ -23,6 +23,61 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         }
 
         [Fact]
+        public void RefReadonlyOnlyIn72()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        int x = 0;
+        ref readonly int y = ref x;
+    }
+}", options: TestOptions.Regular7_1);
+            var comp = CreateStandardCompilation(tree);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         ref readonly int y = ref x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "readonly").WithArguments("readonly references", "7.2").WithLocation(7, 13));
+        }
+
+        [Fact]
+        public void CovariantConversionRefReadonly()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        string s = string.Empty;
+        ref readonly object x = ref s;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,37): error CS8173: The expression must be of type 'object' because it is being assigned by reference
+                //         ref readonly object x = ref s;
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "s").WithArguments("object").WithLocation(7, 37));
+        }
+
+        [Fact]
+        public void ImplicitNumericRefReadonlyConversion()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        int x = 0;
+        ref readonly long y = ref x;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,35): error CS8173: The expression must be of type 'long' because it is being assigned by reference
+                //         ref readonly long y = ref x;
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "x").WithArguments("long").WithLocation(7, 35));
+        }
+
+        [Fact]
         public void RefReadonlyLocalToLiteral()
         {
             var comp = CreateStandardCompilation(@"
