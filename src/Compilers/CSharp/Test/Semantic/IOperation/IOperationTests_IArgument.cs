@@ -2300,6 +2300,32 @@ IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument
         }
 
         [Fact]
+        public void DirectlyBindRefReadonlyArgument_InvocationExpression()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        int i = 0;
+        ref int refI = ref i;
+        M2(/*<bind>*/refI/*</bind>*/);
+    }
+    static void M2(ref readonly int i) { }
+}
+";
+            string expectedOperationTree = @"
+IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: 'refI')
+  ILocalReferenceExpression: refI (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'refI')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ArgumentSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
         public void DirectlyBindOutArgument_InvocationExpression()
         {
             string source = @"
