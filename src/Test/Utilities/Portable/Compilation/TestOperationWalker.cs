@@ -528,8 +528,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitArrayCreationExpression(IArrayCreationExpression operation)
         {
-            var elementType = operation.ElementType;
-
             base.VisitArrayCreationExpression(operation);
         }
 

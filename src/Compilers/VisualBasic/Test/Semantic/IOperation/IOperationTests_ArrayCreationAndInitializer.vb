@@ -43,7 +43,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationExpression (Element Type: M) (OperationKind.ArrayCreationExpression, Type: M()) (Syntax: 'New M() {}')
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: M()) (Syntax: 'New M() {}')
   Dimension Sizes(1):
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'New M() {}')
   Initializer: IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: '{}')
@@ -68,7 +68,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationExpression (Element Type: M) (OperationKind.ArrayCreationExpression, Type: M()) (Syntax: 'New M(dimension) {}')
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: M()) (Syntax: 'New M(dimension) {}')
   Dimension Sizes(1):
       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2) (Syntax: 'dimension')
         Left: ILocalReferenceExpression: dimension (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'dimension')
@@ -94,7 +94,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationExpression (Element Type: M) (OperationKind.ArrayCreationExpression, Type: M()) (Syntax: 'New M(dimension) {}')
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: M()) (Syntax: 'New M(dimension) {}')
   Dimension Sizes(1):
       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'dimension')
         Left: IParameterReferenceExpression: dimension (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'dimension')
@@ -120,7 +120,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationExpression (Element Type: M) (OperationKind.ArrayCreationExpression, Type: M()) (Syntax: 'New M(dimension) {}')
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: M()) (Syntax: 'New M(dimension) {}')
   Dimension Sizes(1):
       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'dimension')
         Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'dimension')
@@ -148,7 +148,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationExpression (Element Type: M) (OperationKind.ArrayCreationExpression, Type: M()) (Syntax: 'New M(Direc ... nteger)) {}')
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: M()) (Syntax: 'New M(Direc ... nteger)) {}')
   Dimension Sizes(1):
       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'DirectCast( ... n, Integer)')
         Left: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'DirectCast( ... n, Integer)')
@@ -173,7 +173,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationExpression (Element Type: System.String) (OperationKind.ArrayCreationExpression, Type: System.String()) (Syntax: 'New String( ... ring.Empty}')
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String()) (Syntax: 'New String( ... ring.Empty}')
   Dimension Sizes(1):
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'New String( ... ring.Empty}')
   Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{String.Empty}')
@@ -199,7 +199,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationExpression (Element Type: M) (OperationKind.ArrayCreationExpression, Type: M()) (Syntax: 'New M() {New M}')
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: M()) (Syntax: 'New M() {New M}')
   Dimension Sizes(1):
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'New M() {New M}')
   Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{New M}')
@@ -226,7 +226,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationExpression (Element Type: M) (OperationKind.ArrayCreationExpression, Type: M()) (Syntax: '{New M}')
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: M()) (Syntax: '{New M}')
   Dimension Sizes(1):
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '{New M}')
   Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{New M}')
@@ -251,7 +251,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationExpression (Element Type: System.String) (OperationKind.ArrayCreationExpression, Type: System.String()) (Syntax: '{"hello", a, Nothing}')
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String()) (Syntax: '{"hello", a, Nothing}')
   Dimension Sizes(1):
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '{"hello", a, Nothing}')
   Initializer: IArrayInitializer (3 elements) (OperationKind.ArrayInitializer) (Syntax: '{"hello", a, Nothing}')
@@ -278,7 +278,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationExpression (Element Type: System.Byte) (OperationKind.ArrayCreationExpression, Type: System.Byte(,,)) (Syntax: 'New Byte(0, 1, 2) {}')
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Byte(,,)) (Syntax: 'New Byte(0, 1, 2) {}')
   Dimension Sizes(3):
       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 1) (Syntax: '0')
         Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -307,7 +307,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationExpression (Element Type: System.Byte) (OperationKind.ArrayCreationExpression, Type: System.Byte(,,)) (Syntax: 'New Byte(,, ... {4, 5, 6}}}')
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Byte(,,)) (Syntax: 'New Byte(,, ... {4, 5, 6}}}')
   Dimension Sizes(3):
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'New Byte(,, ... {4, 5, 6}}}')
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'New Byte(,, ... {4, 5, 6}}}')
@@ -357,7 +357,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(,)) (Syntax: '{{1, 2, 3}, {4, 5, 6}}')
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(,)) (Syntax: '{{1, 2, 3}, {4, 5, 6}}')
   Dimension Sizes(2):
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '{{1, 2, 3}, {4, 5, 6}}')
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '{{1, 2, 3}, {4, 5, 6}}')
@@ -389,7 +389,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationExpression (Element Type: System.Int32(,)) (OperationKind.ArrayCreationExpression, Type: System.Int32()(,)) (Syntax: 'New Integer(0)(,) {}')
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()(,)) (Syntax: 'New Integer(0)(,) {}')
   Dimension Sizes(1):
       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 1) (Syntax: '0')
         Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -412,7 +412,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(,,,)) (Syntax: '{{{{1, 2}}}, {{{3, 4}}}}')
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(,,,)) (Syntax: '{{{{1, 2}}}, {{{3, 4}}}}')
   Dimension Sizes(4):
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '{{{{1, 2}}}, {{{3, 4}}}}')
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '{{{{1, 2}}}, {{{3, 4}}}}')
@@ -452,7 +452,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationExpression (Element Type: System.String) (OperationKind.ArrayCreationExpression, Type: System.String(,), IsInvalid) (Syntax: 'New String(1,) {}')
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String(,), IsInvalid) (Syntax: 'New String(1,) {}')
   Dimension Sizes(2):
       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2) (Syntax: '1')
         Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -479,7 +479,7 @@ End Class
     ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationExpression (Element Type: C) (OperationKind.ArrayCreationExpression, Type: C(), IsInvalid) (Syntax: 'New C() {1}')
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: C(), IsInvalid) (Syntax: 'New C() {1}')
   Dimension Sizes(1):
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: 'New C() {1}')
   Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{1}')

@@ -472,7 +472,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (Element Type: X) (OperationKind.ArrayCreationExpression, Type: X[], IsInvalid) (Syntax: 'new X[Program] { { 1 } }')
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: X[], IsInvalid) (Syntax: 'new X[Program] { { 1 } }')
   Dimension Sizes(1):
       IInvalidExpression (OperationKind.InvalidExpression, Type: Program, IsInvalid) (Syntax: 'Program')
         Children(1):

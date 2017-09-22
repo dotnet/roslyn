@@ -990,7 +990,7 @@ IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 
   LoopControlVariable: IOperation:  (OperationKind.None) (Syntax: 'var (x, y)')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'new Point[] ... int(0, 1) }')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IArrayCreationExpression (Element Type: Point) (OperationKind.ArrayCreationExpression, Type: Point[]) (Syntax: 'new Point[] ... int(0, 1) }')
+      Operand: IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: Point[]) (Syntax: 'new Point[] ... int(0, 1) }')
           Dimension Sizes(1):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'new Point[] ... int(0, 1) }')
           Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{ new Point(0, 1) }')

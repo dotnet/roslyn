@@ -691,14 +691,13 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundArrayCreationOperation(boundArrayCreation As BoundArrayCreation) As IArrayCreationExpression
-            Dim elementType As ITypeSymbol = TryCast(boundArrayCreation.Type, IArrayTypeSymbol)?.ElementType
             Dim dimensionSizes As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundArrayCreation.Bounds.SelectAsArray(Function(n) Create(n)))
             Dim initializer As Lazy(Of IArrayInitializer) = New Lazy(Of IArrayInitializer)(Function() DirectCast(Create(boundArrayCreation.InitializerOpt), IArrayInitializer))
             Dim syntax As SyntaxNode = boundArrayCreation.Syntax
             Dim type As ITypeSymbol = boundArrayCreation.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundArrayCreation.ConstantValueOpt)
             Dim isImplicit As Boolean = boundArrayCreation.WasCompilerGenerated
-            Return New LazyArrayCreationExpression(elementType, dimensionSizes, initializer, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyArrayCreationExpression(dimensionSizes, initializer, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundArrayInitializationOperation(boundArrayInitialization As BoundArrayInitialization) As IArrayInitializer
