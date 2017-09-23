@@ -578,8 +578,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (parameter.IsParams && parameter.Type.IsSZArray() && i + 1 == parameterCount)
                 {
-                    reorderedArgument = GetParamArrayArgument(parameter, constructorArgsArray, constructorArgumentNamesOpt, argumentsCount, argsConsumedCount, this.Conversions);
-                    sourceIndices = sourceIndices ?? CreateSourceIndicesArray(i, parameterCount);
+                    reorderedArgument = GetParamArrayArgument(parameter, constructorArgsArray, constructorArgumentNamesOpt, argumentsCount,
+                        argsConsumedCount, this.Conversions, out bool foundNamed);
+                    if (!foundNamed)
+                    {
+                        sourceIndices = sourceIndices ?? CreateSourceIndicesArray(i, parameterCount);
+                    }
                 }
                 else if (argsConsumedCount < argumentsCount)
                 {
@@ -821,7 +825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static TypedConstant GetParamArrayArgument(ParameterSymbol parameter, ImmutableArray<TypedConstant> constructorArgsArray,
-            ImmutableArray<string> constructorArgumentNamesOpt, int argumentsCount, int argsConsumedCount, Conversions conversions)
+            ImmutableArray<string> constructorArgumentNamesOpt, int argumentsCount, int argsConsumedCount, Conversions conversions, out bool foundNamed)
         {
             Debug.Assert(argsConsumedCount <= argumentsCount);
 
@@ -831,17 +835,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int argIndex = constructorArgumentNamesOpt.IndexOf(parameter.Name);
                 if (argIndex >= 0)
                 {
+                    foundNamed = true;
                     if (TryGetNormalParamValue(parameter, constructorArgsArray, argIndex, conversions, out var namedValue))
                     {
                         return namedValue;
                     }
 
                     // A named argument for a params parameter is necessarily the only one for that parameter
-                    return new TypedConstant(parameter.Type, ImmutableArray.Create(constructorArgsArray[argIndex] ));
+                    return new TypedConstant(parameter.Type, ImmutableArray.Create(constructorArgsArray[argIndex]));
                 }
             }
 
             int paramArrayArgCount = argumentsCount - argsConsumedCount;
+            foundNamed = false;
 
             // If there are zero arguments left
             if (paramArrayArgCount == 0)
