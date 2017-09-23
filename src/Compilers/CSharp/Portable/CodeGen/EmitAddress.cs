@@ -240,6 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 _builder.EmitLocalAddress(GetLocal(localAccess));
             }
+
             return null;
         }
 

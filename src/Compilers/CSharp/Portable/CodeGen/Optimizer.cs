@@ -971,23 +971,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var lhs = node.Left;
 
-            bool IsAssignable(RefKind lhsKind, RefKind rhsKind)
-            {
-                switch (lhsKind)
-                {
-                    case RefKind.None:
-                    case RefKind.Ref:
-                        return lhsKind == rhsKind;
-                    case RefKind.RefReadOnly:
-                        return rhsKind == RefKind.RefReadOnly || rhsKind == RefKind.Ref;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(lhsKind);
-                }
-            }
-
-            Debug.Assert(node.RefKind == RefKind.None || 
-                         lhs is BoundLocal local &&
-                         IsAssignable(local.LocalSymbol.RefKind, node.RefKind),
+            Debug.Assert(node.RefKind == RefKind.None || lhs is BoundLocal local &&
+                         (local.LocalSymbol.RefKind == node.RefKind ||
+                          local.LocalSymbol.RefKind == RefKind.RefReadOnly),
                                 "only ref locals can be a target of a ref assignment");
             
             switch (lhs.Kind)

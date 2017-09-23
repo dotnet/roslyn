@@ -11,6 +11,80 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class CodeGenRefReadOnlyReturnTests : CompilingTestBase
     {
         [Fact]
+        public void RefReadonlyLocalToField()
+        {
+            var comp = CompileAndVerify(@"
+struct S
+{
+    public int X;
+    public S(int x) => X = x;
+
+    public void AddOne() => this.X++;
+}
+
+readonly struct S2
+{
+    public readonly int X;
+    public S2(int x) => X = x;
+
+    public void AddOne() { }
+}
+
+class C
+{
+    static S s1 = new S(0);
+    readonly static S s2 = new S(0);
+
+    static S2 s3 = new S2(0);
+    readonly S2 s4 = new S2(0);
+
+    ref readonly S M()
+    {
+        ref readonly S rs1 = ref s1;
+        rs1.AddOne();
+        ref readonly S rs2 = ref s2;
+        rs2.AddOne();
+
+        ref readonly S2 rs3 = ref s3;
+        rs3.AddOne();
+        ref readonly S2 rs4 = ref s4;
+        rs4.AddOne();
+
+        return ref rs1;
+    }
+}");
+            comp.VerifyIL("C.M", @"
+{
+  // Code size       65 (0x41)
+  .maxstack  2
+  .locals init (S V_0,
+                S V_1,
+                S2 V_2)
+  IL_0000:  ldsflda    ""S C.s1""
+  IL_0005:  dup
+  IL_0006:  ldobj      ""S""
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  call       ""void S.AddOne()""
+  IL_0013:  ldsfld     ""S C.s2""
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  ldobj      ""S""
+  IL_0020:  stloc.1
+  IL_0021:  ldloca.s   V_1
+  IL_0023:  call       ""void S.AddOne()""
+  IL_0028:  ldsflda    ""S2 C.s3""
+  IL_002d:  call       ""void S2.AddOne()""
+  IL_0032:  ldarg.0
+  IL_0033:  ldfld      ""S2 C.s4""
+  IL_0038:  stloc.2
+  IL_0039:  ldloca.s   V_2
+  IL_003b:  call       ""void S2.AddOne()""
+  IL_0040:  ret
+}");
+        }
+
+        [Fact]
         public void CallsOnRefReadonlyCopyReceiver()
         {
             var comp = CompileAndVerify(@"
