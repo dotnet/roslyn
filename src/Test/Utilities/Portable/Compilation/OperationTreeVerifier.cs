@@ -89,6 +89,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 LogString(", IsInvalid");
             }
 
+            // IsImplicit
+            if (operation.IsImplicit)
+            {
+                LogString(", IsImplicit");
+            }
+
             LogString(")");
 
             // Syntax

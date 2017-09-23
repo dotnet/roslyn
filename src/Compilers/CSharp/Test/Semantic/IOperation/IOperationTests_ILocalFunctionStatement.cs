@@ -55,7 +55,7 @@ class C
             string expectedOperationTree = @"
 ILocalFunctionStatement (Symbol: System.Int32 Local(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(i ... p1) => x++;')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x++')
-    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x++')
+    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'x++')
       ReturnedValue: IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
           Target: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ";
@@ -81,7 +81,7 @@ class C
             string expectedOperationTree = @"
 ILocalFunctionStatement (Symbol: System.Int32 Local(System.Int32 x)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(int x) => x++;')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x++')
-    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x++')
+    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'x++')
       ReturnedValue: IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
           Target: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ";
@@ -112,7 +112,7 @@ class C
             string expectedOperationTree = @"
 ILocalFunctionStatement (Symbol: System.Int32 Local(System.Int32 y)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(i ... ) => x + y;')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x + y')
-    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x + y')
+    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'x + y')
       ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y')
           Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
           Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
@@ -143,7 +143,7 @@ class C
             string expectedOperationTree = @"
 ILocalFunctionStatement (Symbol: System.Int32 Local3(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local3( ... Local2(p1);')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x + Local2(p1)')
-    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x + Local2(p1)')
+    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'x + Local2(p1)')
       ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + Local2(p1)')
           Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
           Right: IInvocationExpression (System.Int32 Local2(System.Int32 p1)) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Local2(p1)')
@@ -175,7 +175,7 @@ class C
             string expectedOperationTree = @"
 ILocalFunctionStatement (Symbol: System.Int32 Local(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(i ... al(x + p1);')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> Local(x + p1)')
-    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Local(x + p1)')
+    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Local(x + p1)')
       ReturnedValue: IInvocationExpression (System.Int32 Local(System.Int32 p1)) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Local(x + p1)')
           Instance Receiver: null
           Arguments(1):
@@ -254,7 +254,7 @@ class C
             string expectedOperationTree = @"
 ILocalFunctionStatement (Symbol: System.Int32 Local()) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local() => x;')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x')
-    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x')
+    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'x')
       ReturnedValue: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -280,10 +280,10 @@ class C
             string expectedOperationTree = @"
 ILocalFunctionStatement (Symbol: void F()) (OperationKind.LocalFunctionStatement) (Syntax: 'void F() => x++;')
   IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '=> x++')
-    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x++')
+    IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'x++')
       Expression: IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
           Target: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-    IReturnStatement (OperationKind.ReturnStatement) (Syntax: '=> x++')
+    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '=> x++')
       ReturnedValue: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -313,12 +313,13 @@ class C
             string expectedOperationTree = @"
 ILocalFunctionStatement (Symbol: void F(out System.Int32 y)) (OperationKind.LocalFunctionStatement) (Syntax: 'void F(out  ... ) => y = p;')
   IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '=> y = p')
-    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'y = p')
+    IExpressionStatement (OperationKind.ExpressionStatement, IsImplicit) (Syntax: 'y = p')
       Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'y = p')
           Left: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
           Right: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'p')
-    IReturnStatement (OperationKind.ReturnStatement) (Syntax: '=> y = p')
-      ReturnedValue: null";
+    IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '=> y = p')
+      ReturnedValue: null
+";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -340,10 +341,10 @@ class C
             string expectedOperationTree = @"
 ILocalFunctionStatement (Symbol: void F(out System.Int32 y)) (OperationKind.LocalFunctionStatement, IsInvalid) (Syntax: 'void F(out int y) => ;')
   IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '=> ')
-    IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
+    IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit) (Syntax: '')
       Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
           Children(0)
-    IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '=> ')
+    IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: '=> ')
       ReturnedValue: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -377,7 +378,7 @@ class C
             string expectedOperationTree = @"
 ILocalFunctionStatement (Symbol: void F()) (OperationKind.LocalFunctionStatement, IsInvalid) (Syntax: 'void F( { }')
   IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ }')
-    IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '{ }')
+    IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit) (Syntax: '{ }')
       ReturnedValue: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
