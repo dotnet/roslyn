@@ -836,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return namedValue;
                     }
 
-                    // A named argument for a params parameter must be trailing, so expanded params must have a single value
+                    // A named argument for a params parameter is necessarily the only one for that parameter
                     return new TypedConstant(parameter.Type, ImmutableArray.Create(constructorArgsArray[argIndex] ));
                 }
             }

@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -110,12 +109,12 @@ static class Program
     public static void Main()
     {
         var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
-        Console.Write(attr.B[0]);
+        Console.Write($""B.Length={attr.B.Length}, B[0]={attr.B[0]}, B[1]={attr.B[1]}"");
     }
 }", options: TestOptions.DebugExe);
             source.VerifyDiagnostics();
 
-            CompileAndVerify(source, expectedOutput: @"Hello");
+            CompileAndVerify(source, expectedOutput: @"B.Length=2, B[0]=Hello, B[1]=World");
         }
 
         [Fact]
@@ -130,8 +129,10 @@ sealed class MarkAttribute : Attribute
 {
     public MarkAttribute(bool a, params object[] b)
     {
+        A = a;
         B = b;
     }
+    public bool A { get; }
     public object[] B { get; }
 }
 
@@ -141,12 +142,12 @@ static class Program
     public static void Main()
     {
         var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
-        Console.Write(attr.B[0]);
+        Console.Write($""A={attr.A}, B.Length={attr.B.Length}, B[0]={attr.B[0]}"");
     }
 }", options: TestOptions.DebugExe);
             source.VerifyDiagnostics();
 
-            CompileAndVerify(source, expectedOutput: @"Hello");
+            CompileAndVerify(source, expectedOutput: @"A=True, B.Length=1, B[0]=Hello");
         }
 
         [Fact]
@@ -215,6 +216,37 @@ static class Program
 
         [Fact]
         [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnObjectParamsArgument5()
+        {
+            var source = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, params object[] b)
+    {
+        B = b;
+    }
+    public object[] B { get; }
+}
+
+[Mark(b: null, a: true)]
+static class Program
+{
+    public static void Main()
+    {
+        var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
+        Console.Write(attr.B == null);
+    }
+}", options: TestOptions.DebugExe);
+            source.VerifyDiagnostics();
+
+            CompileAndVerify(source, expectedOutput: @"True");
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
         public void TestNamedArgumentOnNonParamsArgument()
         {
             var source = CreateCompilationWithMscorlib46(@"
@@ -225,8 +257,10 @@ sealed class MarkAttribute : Attribute
 {
     public MarkAttribute(int a, int b)
     {
+        A = a;
         B = b;
     }
+    public int A { get; }
     public int B { get;  }
 }
 
@@ -236,12 +270,12 @@ static class Program
     public static void Main()
     {
         var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
-        Console.Write(attr.B);
+        Console.Write($""A={attr.A}, B={attr.B}"");
     }
 }", options: TestOptions.DebugExe);
             source.VerifyDiagnostics();
 
-            CompileAndVerify(source, expectedOutput: "42");
+            CompileAndVerify(source, expectedOutput: "A=1, B=42");
         }
 
         [WorkItem(984896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984896")]
