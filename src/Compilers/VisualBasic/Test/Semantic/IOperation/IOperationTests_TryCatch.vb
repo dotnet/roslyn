@@ -27,30 +27,26 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITryStatement (OperationKind.TryStatement) (Syntax: 'Try'BIND:"T ... End Try')
-  Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Try'BIND:"T ... End Try')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = 0')
-        Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = 0')
-            Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
-            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+ITryStatement (OperationKind.None, Language: Visual Basic) (Syntax: 'Try'BIND:"T ... End Try')
+  Body: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Try'BIND:"T ... End Try')
+      IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'i = 0')
+        Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i = 0')
+            Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
   Catch clauses(1):
-      ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'Catch ex As ... Throw ex')
-        Locals: Local_1: ex As System.Exception
-        ExceptionDeclarationOrExpression: IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'ex')
-            Variables: Local_1: ex As System.Exception
-            Initializer: null
-        Filter: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i > 0')
-            Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
-            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-        Handler: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Catch ex As ... Throw ex')
-            IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Throw ex')
-              Expression: IThrowExpression (OperationKind.ThrowExpression, Type: System.Exception) (Syntax: 'Throw ex')
-                  ILocalReferenceExpression: ex (OperationKind.LocalReferenceExpression, Type: System.Exception) (Syntax: 'ex')
-  Finally: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Finally ... i = 1')
-      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = 1')
-        Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = 1')
-            Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
-            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ICatchClause (Exception type: System.Exception, Exception local: ex As System.Exception) (OperationKind.None, Language: Visual Basic) (Syntax: 'Catch ex As ... Throw ex')
+        Filter: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'i > 0')
+            Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+        Handler: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Catch ex As ... Throw ex')
+            IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'Throw ex')
+              Expression: IThrowExpression (OperationKind.ThrowExpression, Type: System.Exception, Language: Visual Basic) (Syntax: 'Throw ex')
+                  ILocalReferenceExpression: ex (OperationKind.LocalReferenceExpression, Type: System.Exception, Language: Visual Basic) (Syntax: 'ex')
+  Finally: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Finally ... i = 1')
+      IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'i = 1')
+        Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i = 1')
+            Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i')
+            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -77,34 +73,30 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Private Sub ... End Sub')
-  ITryStatement (OperationKind.TryStatement) (Syntax: 'Try ... End Try')
-    Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Try ... End Try')
-        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = 0')
-          Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = 0')
-              Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
-              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+IBlockStatement (3 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Private Sub ... End Sub')
+  ITryStatement (OperationKind.None, Language: Visual Basic) (Syntax: 'Try ... End Try')
+    Body: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Try ... End Try')
+        IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'i = 0')
+          Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i = 0')
+              Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i')
+              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
     Catch clauses(1):
-        ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'Catch ex As ... Throw ex')
-          Locals: Local_1: ex As System.Exception
-          ExceptionDeclarationOrExpression: IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'ex')
-              Variables: Local_1: ex As System.Exception
-              Initializer: null
-          Filter: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i > 0')
-              Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
-              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-          Handler: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Catch ex As ... Throw ex')
-              IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Throw ex')
-                Expression: IThrowExpression (OperationKind.ThrowExpression, Type: System.Exception) (Syntax: 'Throw ex')
-                    ILocalReferenceExpression: ex (OperationKind.LocalReferenceExpression, Type: System.Exception) (Syntax: 'ex')
-    Finally: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Finally ... i = 1')
-        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'i = 1')
-          Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'i = 1')
-              Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
-              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+        ICatchClause (Exception type: System.Exception, Exception local: ex As System.Exception) (OperationKind.None, Language: Visual Basic) (Syntax: 'Catch ex As ... Throw ex')
+          Filter: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'i > 0')
+              Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i')
+              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+          Handler: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Catch ex As ... Throw ex')
+              IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'Throw ex')
+                Expression: IThrowExpression (OperationKind.ThrowExpression, Type: System.Exception, Language: Visual Basic) (Syntax: 'Throw ex')
+                    ILocalReferenceExpression: ex (OperationKind.LocalReferenceExpression, Type: System.Exception, Language: Visual Basic) (Syntax: 'ex')
+    Finally: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Finally ... i = 1')
+        IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'i = 1')
+          Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i = 1')
+              Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i')
+              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'End Sub')
     Statement: null
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+  IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'End Sub')
     ReturnedValue: null
 ]]>.Value
 

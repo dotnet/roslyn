@@ -25,7 +25,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return;')
+IReturnStatement (OperationKind.ReturnStatement, Language: C#) (Syntax: 'return;')
   ReturnedValue: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -46,8 +46,8 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return true;')
-  ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
+IReturnStatement (OperationKind.ReturnStatement, Language: C#) (Syntax: 'return true;')
+  ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True, Language: C#) (Syntax: 'true')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -69,8 +69,8 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IReturnStatement (OperationKind.YieldReturnStatement) (Syntax: 'yield return 0;')
-  ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+IReturnStatement (OperationKind.YieldReturnStatement, Language: C#) (Syntax: 'yield return 0;')
+  ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: '0')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -93,7 +93,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IReturnStatement (OperationKind.YieldBreakStatement) (Syntax: 'yield break;')
+IReturnStatement (OperationKind.YieldBreakStatement, Language: C#) (Syntax: 'yield break;')
   ReturnedValue: null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;

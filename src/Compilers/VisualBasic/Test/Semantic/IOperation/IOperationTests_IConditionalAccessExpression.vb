@@ -22,10 +22,10 @@ Public Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConditionalAccessExpression (OperationKind.ConditionalAccessExpression, Type: System.Void) (Syntax: 'o?.ToString()')
-  Expression: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
-  WhenNotNull: IInvocationExpression (virtual Function System.Object.ToString() As System.String) (OperationKind.InvocationExpression, Type: System.String) (Syntax: '.ToString()')
-      Instance Receiver: IPlaceholderExpression (OperationKind.None, IsImplicit) (Syntax: 'o?.ToString()')
+IConditionalAccessExpression (OperationKind.ConditionalAccessExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'o?.ToString()')
+  Expression: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'o')
+  WhenNotNull: IInvocationExpression (virtual Function System.Object.ToString() As System.String) (OperationKind.InvocationExpression, Type: System.String, Language: Visual Basic) (Syntax: '.ToString()')
+      Instance Receiver: IPlaceholderExpression (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'o?.ToString()')
       Arguments(0)
 ]]>.Value
 
@@ -51,10 +51,10 @@ Public Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConditionalAccessExpression (OperationKind.ConditionalAccessExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'c1?.Prop1')
-  Expression: ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C1) (Syntax: 'c1')
-  WhenNotNull: IPropertyReferenceExpression: ReadOnly Property C1.Prop1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.Prop1')
-      Instance Receiver: IPlaceholderExpression (OperationKind.None, IsImplicit) (Syntax: 'c1?.Prop1')
+IConditionalAccessExpression (OperationKind.ConditionalAccessExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'c1?.Prop1')
+  Expression: ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C1, Language: Visual Basic) (Syntax: 'c1')
+  WhenNotNull: IPropertyReferenceExpression: ReadOnly Property C1.Prop1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '.Prop1')
+      Instance Receiver: IPlaceholderExpression (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'c1?.Prop1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

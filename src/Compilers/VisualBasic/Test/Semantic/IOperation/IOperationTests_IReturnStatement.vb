@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -20,7 +20,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return')
+IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'Return')
   ReturnedValue: null
 ]]>.Value
 
@@ -40,8 +40,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return True')
-  ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')]]>.Value
+IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'Return True')
+  ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True, Language: Visual Basic) (Syntax: 'True')
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -59,8 +60,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IReturnStatement (OperationKind.YieldReturnStatement) (Syntax: 'Yield 0')
-  ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')]]>.Value
+IReturnStatement (OperationKind.YieldReturnStatement, Language: Visual Basic) (Syntax: 'Yield 0')
+  ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -79,7 +81,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return')
+IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'Return')
   ReturnedValue: null
 ]]>.Value
 

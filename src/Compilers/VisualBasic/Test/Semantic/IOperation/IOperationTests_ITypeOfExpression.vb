@@ -21,7 +21,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type) (Syntax: 'GetType(Integer)')
+ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, Language: Visual Basic) (Syntax: 'GetType(Integer)')
   TypeOperand: System.Int32
 ]]>.Value
 
@@ -42,7 +42,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type) (Syntax: 'GetType(C)')
+ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, Language: Visual Basic) (Syntax: 'GetType(C)')
   TypeOperand: C
 ]]>.Value
 
@@ -63,7 +63,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'GetType(UndefinedType)')
+ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid, Language: Visual Basic) (Syntax: 'GetType(UndefinedType)')
   TypeOperand: UndefinedType
 ]]>.Value
 
@@ -88,7 +88,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'GetType(t)')
+ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid, Language: Visual Basic) (Syntax: 'GetType(t)')
   TypeOperand: t
 ]]>.Value
 
@@ -117,7 +117,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'GetType(M2())')
+ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid, Language: Visual Basic) (Syntax: 'GetType(M2())')
   TypeOperand: M2()
 ]]>.Value
 
@@ -142,7 +142,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'GetType()')
+ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid, Language: Visual Basic) (Syntax: 'GetType()')
   TypeOperand: ?
 ]]>.Value
 

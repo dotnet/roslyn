@@ -95,6 +95,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 LogString(", IsImplicit");
             }
 
+            // Language
+            if (!string.IsNullOrWhiteSpace(operation.Language))
+            {
+                LogString(", Language: "+ operation.Language);
+            }
+
             LogString(")");
 
             // Syntax

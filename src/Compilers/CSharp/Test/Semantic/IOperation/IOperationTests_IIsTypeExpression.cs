@@ -30,8 +30,8 @@ namespace TestIsOperator
 }
 ";
             string expectedOperationTree = @"
-IIsTypeExpression (OperationKind.IsTypeExpression, Type: System.Boolean) (Syntax: 'o is string')
-  Operand: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
+IIsTypeExpression (OperationKind.IsTypeExpression, Type: System.Boolean, Language: C#) (Syntax: 'o is string')
+  Operand: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object, Language: C#) (Syntax: 'o')
   IsType: System.String
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -61,8 +61,8 @@ namespace TestIsOperator
 }
 ";
             string expectedOperationTree = @"
-IIsTypeExpression (OperationKind.IsTypeExpression, Type: System.Boolean) (Syntax: 'myInt is int')
-  Operand: ILocalReferenceExpression: myInt (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'myInt')
+IIsTypeExpression (OperationKind.IsTypeExpression, Type: System.Boolean, Language: C#) (Syntax: 'myInt is int')
+  Operand: ILocalReferenceExpression: myInt (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'myInt')
   IsType: System.Int32
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -97,8 +97,8 @@ namespace TestIsOperator
 }
 ";
             string expectedOperationTree = @"
-IIsTypeExpression (OperationKind.IsTypeExpression, Type: System.Boolean) (Syntax: 'o is TestType')
-  Operand: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
+IIsTypeExpression (OperationKind.IsTypeExpression, Type: System.Boolean, Language: C#) (Syntax: 'o is TestType')
+  Operand: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object, Language: C#) (Syntax: 'o')
   IsType: TestIsOperator.TestType
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -129,8 +129,8 @@ namespace TestIsOperator
 }
 ";
             string expectedOperationTree = @"
-IIsTypeExpression (OperationKind.IsTypeExpression, Type: System.Boolean) (Syntax: 'null is TestType')
-  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+IIsTypeExpression (OperationKind.IsTypeExpression, Type: System.Boolean, Language: C#) (Syntax: 'null is TestType')
+  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: C#) (Syntax: 'null')
   IsType: TestIsOperator.TestType
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -159,8 +159,8 @@ enum color
 { }
 ";
             string expectedOperationTree = @"
-IIsTypeExpression (OperationKind.IsTypeExpression, Type: System.Boolean) (Syntax: '1 is color')
-  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+IIsTypeExpression (OperationKind.IsTypeExpression, Type: System.Boolean, Language: C#) (Syntax: '1 is color')
+  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
   IsType: color
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -191,8 +191,8 @@ namespace TestIsOperatorGeneric
 }
 ";
             string expectedOperationTree = @"
-IIsTypeExpression (OperationKind.IsTypeExpression, Type: System.Boolean) (Syntax: 't is int')
-  Operand: IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: T) (Syntax: 't')
+IIsTypeExpression (OperationKind.IsTypeExpression, Type: System.Boolean, Language: C#) (Syntax: 't is int')
+  Operand: IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: T, Language: C#) (Syntax: 't')
   IsType: System.Int32
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -219,8 +219,8 @@ namespace TestIsOperatorGeneric
 }
 ";
             string expectedOperationTree = @"
-IIsTypeExpression (OperationKind.IsTypeExpression, Type: System.Boolean) (Syntax: 'u is object')
-  Operand: IParameterReferenceExpression: u (OperationKind.ParameterReferenceExpression, Type: U) (Syntax: 'u')
+IIsTypeExpression (OperationKind.IsTypeExpression, Type: System.Boolean, Language: C#) (Syntax: 'u is object')
+  Operand: IParameterReferenceExpression: u (OperationKind.ParameterReferenceExpression, Type: U, Language: C#) (Syntax: 'u')
   IsType: System.Object
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -247,8 +247,8 @@ namespace TestIsOperatorGeneric
 }
 ";
             string expectedOperationTree = @"
-IIsTypeExpression (OperationKind.IsTypeExpression, Type: System.Boolean) (Syntax: 't is U')
-  Operand: IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: T) (Syntax: 't')
+IIsTypeExpression (OperationKind.IsTypeExpression, Type: System.Boolean, Language: C#) (Syntax: 't is U')
+  Operand: IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: T, Language: C#) (Syntax: 't')
   IsType: U
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -275,8 +275,8 @@ namespace TestIsOperatorGeneric
 }
 ";
             string expectedOperationTree = @"
-IIsTypeExpression (OperationKind.IsTypeExpression, Type: System.Boolean) (Syntax: 't is T')
-  Operand: IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: T) (Syntax: 't')
+IIsTypeExpression (OperationKind.IsTypeExpression, Type: System.Boolean, Language: C#) (Syntax: 't is T')
+  Operand: IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: T, Language: C#) (Syntax: 't')
   IsType: T
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
