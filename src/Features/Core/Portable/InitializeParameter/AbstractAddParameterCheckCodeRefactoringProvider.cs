@@ -105,10 +105,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             foreach (var coalesceNode in syntax.DescendantNodes().OfType<TBinaryExpressionSyntax>())
             {
                 var operation = GetOperation(semanticModel, coalesceNode, cancellationToken);
-                if (operation is INullCoalescingExpression coalesceExpression)
+                if (operation is ICoalesceExpression coalesceExpression)
                 {
-                    if (IsParameterReference(coalesceExpression.PrimaryOperand, parameter) &&
-                        syntaxFacts.IsThrowExpression(coalesceExpression.SecondaryOperand.Syntax))
+                    if (IsParameterReference(coalesceExpression.Expression, parameter) &&
+                        syntaxFacts.IsThrowExpression(coalesceExpression.WhenNull.Syntax))
                     {
                         return true;
                     }

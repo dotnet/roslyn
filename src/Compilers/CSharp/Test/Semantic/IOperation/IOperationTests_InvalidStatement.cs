@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18077"), WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidVariableDeclarationStatement()
         {
@@ -51,6 +52,7 @@ IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationSt
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18080"), WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidSwitchStatementExpression()
         {
@@ -84,6 +86,7 @@ IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'switch (Pro ... }')
             VerifyOperationTreeAndDiagnosticsForTest<SwitchStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidSwitchStatementCaseLabel()
         {
@@ -107,11 +110,16 @@ class Program
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (x.T ... }')
   Switch expression: IInvocationExpression (virtual System.String System.Object.ToString()) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'x.ToString()')
       Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
-  Sections: ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase, IsInvalid) (Syntax: 'case 1: ... break;')
-        Clauses: ISingleValueCaseClause (Equality operator kind: BinaryOperationKind.StringEquals) (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause, IsInvalid) (Syntax: 'case 1:')
-            IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: '1')
-              ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        Body: IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+      Arguments(0)
+  Sections:
+      ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase, IsInvalid) (Syntax: 'case 1: ... break;')
+          Clauses:
+              ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause, IsInvalid) (Syntax: 'case 1:')
+                Value: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: '1')
+                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+          Body:
+              IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'int' to 'string'
@@ -122,6 +130,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: '
             VerifyOperationTreeAndDiagnosticsForTest<SwitchStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidIfStatement()
         {
@@ -141,12 +150,15 @@ class Program
 ";
             string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (x = nul ... }')
-  Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x = null')
-      IAssignmentExpression (OperationKind.AssignmentExpression, Type: Program) (Syntax: 'x = null')
-        Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
-        Right: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: Program, Constant: null) (Syntax: 'null')
-            ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+  Condition: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x = null')
+      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: Program, IsInvalid) (Syntax: 'x = null')
+          Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
+          Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, Constant: null, IsInvalid) (Syntax: 'null')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+              Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
   IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+  IfFalse: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'Program' to 'bool'
@@ -157,6 +169,7 @@ IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (x = nul ... }'
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidIfElseStatement()
         {
@@ -178,16 +191,18 @@ class Program
 ";
             string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if () ... else')
-  Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: '')
-      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+  Condition: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+      Children(0)
   IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
   IfFalse: IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (x) x; ... else')
-      Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x')
-          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
+      Condition: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
       IfTrue: IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x;')
-          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
-      IfFalse: IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
-          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+          Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
+      IfFalse: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '')
+          Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: null) (Syntax: '')
+              Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ')'
@@ -210,6 +225,7 @@ IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if () ... else')
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidForStatement()
         {
@@ -229,10 +245,14 @@ class Program
 ";
             string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'for (P; x;) ... }')
-  Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x')
-      ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
-  Before: IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'P')
-      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'P')
+  Condition: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x')
+      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
+  Before:
+      IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'P')
+        Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'P')
+            Children(0)
+  AtLoopBottom(0)
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -250,6 +270,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Synta
             VerifyOperationTreeAndDiagnosticsForTest<ForStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidGotoCaseStatement_MissingLabel()
         {
@@ -271,7 +292,8 @@ class Program
 ";
             string expectedOperationTree = @"
 IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'goto case 1;')
-  Children(1): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  Children(1):
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0159: No such label 'case 1:' within the scope of the goto statement
@@ -282,6 +304,7 @@ IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'goto cas
             VerifyOperationTreeAndDiagnosticsForTest<GotoStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18225"), WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidGotoCaseStatement_OutsideSwitchStatement()
         {
@@ -298,7 +321,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'goto case 1;')
-  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0153: A goto case is only valid inside a switch statement
@@ -309,6 +332,7 @@ IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'goto cas
             VerifyOperationTreeAndDiagnosticsForTest<GotoStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidBreakStatement_OutsideLoopOrSwitch()
         {
@@ -325,6 +349,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'break;')
+  Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0139: No enclosing loop out of which to break or continue
@@ -335,6 +360,7 @@ IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'break;')
             VerifyOperationTreeAndDiagnosticsForTest<BreakStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidContinueStatement_OutsideLoopOrSwitch()
         {
@@ -351,6 +377,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'continue;')
+  Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0139: No enclosing loop out of which to break or continue

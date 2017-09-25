@@ -70,7 +70,12 @@ Public Class BuildDevDivInsertionFiles
         "StreamJsonRpc.resources.dll",
         "codeAnalysisService.servicehub.service.json",
         "remoteHostService.servicehub.service.json",
-        "serviceHubSnapshotService.servicehub.service.json",
+        "snapshotService.servicehub.service.json",
+        "remoteSymbolSearchUpdateEngine.servicehub.service.json",
+        "codeAnalysisService64.servicehub.service.json",
+        "remoteHostService64.servicehub.service.json",
+        "snapshotService64.servicehub.service.json",
+        "remoteSymbolSearchUpdateEngine64.servicehub.service.json",
         "Microsoft.Build.Conversion.Core.dll",
         "Microsoft.Build.dll",
         "Microsoft.Build.Engine.dll",
@@ -829,15 +834,13 @@ Public Class BuildDevDivInsertionFiles
             Next
         Next
 
-        add("Exes\csc\csc.exe.config")
-        add("Exes\csc\csc.rsp")
-        add("Exes\vbc\vbc.exe.config")
-        add("Exes\vbc\vbc.rsp")
-        add("Exes\VBCSCompiler\VBCSCompiler.exe.config")
+        add("Exes\csc\net46\csc.exe.config")
+        add("Exes\csc\net46\csc.rsp")
+        add("Exes\vbc\net46\vbc.exe.config")
+        add("Exes\vbc\net46\vbc.rsp")
+        add("Exes\VBCSCompiler\net46\VBCSCompiler.exe.config")
         add("Exes\InteractiveHost\InteractiveHost.exe.config")
-        add("Exes\csi\csi.rsp")
-        add("Vsix\Roslyn.Deployment.Full.Next\remoteSymbolSearchUpdateEngine.servicehub.service.json")
-        add("Vsix\Roslyn.Deployment.Full.Next\snapshotService.servicehub.service.json")
+        add("Exes\csi\net46\csi.rsp")
         add("Vsix\VisualStudioInteractiveComponents\CSharpInteractive.rsp")
         add("Vsix\VisualStudioSetup\Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll")
         add("Vsix\VisualStudioSetup\System.Composition.Convention.dll")

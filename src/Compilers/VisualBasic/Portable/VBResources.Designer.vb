@@ -3036,7 +3036,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Only one of &apos;Public&apos;, &apos;Private&apos;, &apos;Protected&apos;, &apos;Friend&apos;, or &apos;Protected Friend&apos; can be specified..
+        '''  Looks up a localized string similar to Only one of &apos;Public&apos;, &apos;Private&apos;, &apos;Protected&apos;, &apos;Friend&apos;, &apos;Protected Friend&apos;, or &apos;Private Protected&apos; can be specified..
         '''</summary>
         Friend ReadOnly Property ERR_DuplicateAccessCategoryUsed() As String
             Get
@@ -10289,7 +10289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Method in a structure cannot be declared &apos;Protected&apos; or &apos;Protected Friend&apos;..
+        '''  Looks up a localized string similar to Method in a structure cannot be declared &apos;Protected&apos;, &apos;Protected Friend&apos;, or &apos;Private Protected&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_StructureCantUseProtected() As String
             Get
@@ -12136,6 +12136,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Private Protected.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_PrivateProtected() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_PrivateProtected", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to readonly auto-implemented properties.
         '''</summary>
         Friend ReadOnly Property FEATURE_ReadonlyAutoProperties() As String
@@ -12267,6 +12276,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property HDN_UnusedImportStatement_Title() As String
             Get
                 Return ResourceManager.GetString("HDN_UnusedImportStatement_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to {0} is not a valid Visual Basic argument.
+        '''</summary>
+        Friend ReadOnly Property IArgumentIsNotVisualBasicArgument() As String
+            Get
+                Return ResourceManager.GetString("IArgumentIsNotVisualBasicArgument", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to {0} is not a valid Visual Basic conversion expression.
+        '''</summary>
+        Friend ReadOnly Property IConversionExpressionIsNotVisualBasicConversion() As String
+            Get
+                Return ResourceManager.GetString("IConversionExpressionIsNotVisualBasicConversion", resourceCulture)
             End Get
         End Property
         

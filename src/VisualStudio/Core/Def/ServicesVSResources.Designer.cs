@@ -1613,6 +1613,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer deconstructed variable declaration.
+        /// </summary>
+        internal static string Prefer_deconstructed_variable_declaration {
+            get {
+                return ResourceManager.GetString("Prefer_deconstructed_variable_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer explicit tuple name.
         /// </summary>
         internal static string Prefer_explicit_tuple_name {

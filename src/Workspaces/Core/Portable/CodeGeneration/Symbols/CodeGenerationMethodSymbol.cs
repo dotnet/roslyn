@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }
         public override ImmutableArray<IParameterSymbol> Parameters { get; }
         public override ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations { get; }
-        public override bool ReturnsByRef { get; }
         public override MethodKind MethodKind { get; }
 
         public CodeGenerationMethodSymbol(
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             : base(containingType, attributes, declaredAccessibility, modifiers, name, returnTypeAttributes)
         {
             this.ReturnType = returnType;
-            this.ReturnsByRef = returnsByRef;
+            this.RefKind = returnsByRef ? RefKind.Ref : RefKind.None;
             this.TypeParameters = typeParameters.NullToEmpty();
             this.Parameters = parameters.NullToEmpty();
             this.MethodKind = methodKind;
@@ -39,6 +38,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.ExplicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
             this.OriginalDefinition = this;
         }
+
+        public RefKind RefKind { get; }
 
         protected override CodeGenerationSymbol Clone()
         {
@@ -62,6 +63,22 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override bool ReturnsVoid
             => this.ReturnType == null || this.ReturnType.SpecialType == SpecialType.System_Void;
+
+        public override bool ReturnsByRef
+        {
+            get
+            {
+                return RefKind == RefKind.Ref;
+            }
+        }
+
+        public override bool ReturnsByRefReadonly
+        {
+            get
+            {
+                return RefKind == RefKind.RefReadOnly;
+            }
+        }
 
         public override ImmutableArray<ITypeSymbol> TypeArguments
             => this.TypeParameters.As<ITypeSymbol>();

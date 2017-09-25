@@ -351,7 +351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
+        Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, cancellationToken As CancellationToken) As IOperation
             Dim model As MemberSemanticModel
 
             Dim methodBlock = TryCast(node, MethodBlockBaseSyntax)
@@ -367,7 +367,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If model IsNot Nothing Then
-                Return model.GetOperationWorker(node, options, cancellationToken)
+                Return model.GetOperationWorker(node, cancellationToken)
             Else
                 Return Nothing
             End If

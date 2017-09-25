@@ -3,7 +3,10 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -32,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             bool isParams,
             bool isExtensionMethodThis,
+            bool addRefReadOnlyModifier,
             DiagnosticBag declarationDiagnostics)
         {
             var name = identifier.ValueText;
@@ -44,6 +48,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     WellKnownMember.System_ParamArrayAttribute__ctor,
                     declarationDiagnostics,
                     identifier.Parent.GetLocation());
+            }
+
+            if (addRefReadOnlyModifier && refKind == RefKind.RefReadOnly)
+            {
+                var modifierType = context.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, declarationDiagnostics, syntax);
+
+                return new SourceComplexParameterSymbolWithCustomModifiers(
+                    owner,
+                    ordinal,
+                    parameterType,
+                    refKind,
+                    ImmutableArray<CustomModifier>.Empty,
+                    ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType)),
+                    name,
+                    locations,
+                    syntax.GetReference(),
+                    ConstantValue.Unset,
+                    isParams,
+                    isExtensionMethodThis);
             }
 
             if (!isParams &&
@@ -227,6 +250,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // The non-synthesized accessors are on the property/event itself.
                 MethodSymbol owningMethod = ContainingSymbol as MethodSymbol;
                 return (object)owningMethod != null && owningMethod.IsAccessor();
+            }
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+
+            if (this.RefKind == RefKind.RefReadOnly)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
         }
     }

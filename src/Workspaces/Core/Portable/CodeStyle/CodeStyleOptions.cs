@@ -126,6 +126,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_inlined_variable_declaration"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferInlinedVariableDeclaration") });
 
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferDeconstructedVariableDeclaration = new PerLanguageOption<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions),
+            nameof(PreferDeconstructedVariableDeclaration),
+            defaultValue: TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_deconstructed_variable_declaration"),
+                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(PreferDeconstructedVariableDeclaration)}")});
+
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferExplicitTupleNames = new PerLanguageOption<CodeStyleOption<bool>>(
             nameof(CodeStyleOptions),
             nameof(PreferExplicitTupleNames),

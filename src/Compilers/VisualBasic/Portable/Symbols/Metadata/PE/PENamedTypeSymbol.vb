@@ -81,7 +81,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private _lazyMightContainExtensionMethods As Byte = ThreeState.Unknown
 
-        Private _lazyHasEmbeddedAttribute As Integer = ThreeState.Unknown
+        Private _lazyHasCodeAnalysisEmbeddedAttribute As Integer = ThreeState.Unknown
+
+        Private _lazyHasVisualBasicEmbeddedAttribute As Integer = ThreeState.Unknown
 
         Private _lazyObsoleteAttributeData As ObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
 
@@ -934,15 +936,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasEmbeddedAttribute As Boolean
+        Friend Overrides ReadOnly Property HasCodeAnalysisEmbeddedAttribute As Boolean
             Get
-                If Me._lazyHasEmbeddedAttribute = ThreeState.Unknown Then
-                    Interlocked.CompareExchange(Me._lazyHasEmbeddedAttribute,
-                                                If(Me.ContainingPEModule.Module.HasVisualBasicEmbeddedAttribute(Me._handle),
-                                                   ThreeState.True, ThreeState.False),
-                                                ThreeState.Unknown)
+                If Me._lazyHasCodeAnalysisEmbeddedAttribute = ThreeState.Unknown Then
+                    Interlocked.CompareExchange(
+                        Me._lazyHasCodeAnalysisEmbeddedAttribute,
+                        Me.ContainingPEModule.Module.HasCodeAnalysisEmbeddedAttribute(Me._handle).ToThreeState(),
+                        ThreeState.Unknown)
                 End If
-                Return Me._lazyHasEmbeddedAttribute = ThreeState.True
+                Return Me._lazyHasCodeAnalysisEmbeddedAttribute = ThreeState.True
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasVisualBasicEmbeddedAttribute As Boolean
+            Get
+                If Me._lazyHasVisualBasicEmbeddedAttribute = ThreeState.Unknown Then
+                    Interlocked.CompareExchange(
+                        Me._lazyHasVisualBasicEmbeddedAttribute,
+                        Me.ContainingPEModule.Module.HasVisualBasicEmbeddedAttribute(Me._handle).ToThreeState(),
+                        ThreeState.Unknown)
+                End If
+                Return Me._lazyHasVisualBasicEmbeddedAttribute = ThreeState.True
             End Get
         End Property
 

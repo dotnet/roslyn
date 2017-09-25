@@ -42,3 +42,5 @@ static Func<int> M(__arglist)
     return null;
 }
 ```
+
+- https://github.com/dotnet/roslyn/issues/21485 In Roslyn 2.0, the `unsafe` modifier could be used on a local function without using the `/unsafe` flag on the compilation. In Roslyn 2.6 (Visual Studio 2017 verion 15.5) the compiler requires the `/unsafe` compilation flag, and produces a diagnostic if the flag is not used.
