@@ -204,7 +204,7 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.St
         End Sub
 
         <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
-        Public Sub ArrayCreationWithInitializer_PrimitiveTypeWithExplicitDimension()
+        Public Sub ArrayCreationWithInitializer_WithExplicitDimension()
             Dim source = <![CDATA[
 Class C
     Public Sub F()
@@ -234,7 +234,7 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: C()) (Syn
         End Sub
 
         <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
-        Public Sub ArrayCreationWithInitializerErrorCase_PrimitiveTypeWithIncorrectExplicitDimension()
+        Public Sub ArrayCreationWithInitializerErrorCase_WithIncorrectExplicitDimension()
             Dim source = <![CDATA[
 Class C
     Public Sub F()
@@ -259,6 +259,40 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: C(), IsIn
 BC30567: Array initializer is missing 2 elements.
         Dim a = New C(2) {New C}'BIND:"New C(2) {New C}"
                          ~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
+        Public Sub ArrayCreationWithInitializerErrorCase_WithNonConstantExpressionExplicitDimension()
+            Dim source = <![CDATA[
+Class C
+    Public Sub F()
+        Dim x = New Integer(2) {1, 2, 3}
+        x = New Integer(x(0)) {1, 2}'BIND:"New Integer(x(0)) {1, 2}"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsInvalid) (Syntax: 'New Integer(x(0)) {1, 2}')
+  Dimension Sizes(1):
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x(0)')
+        Left: IArrayElementReferenceExpression (OperationKind.None) (Syntax: 'x(0)')
+            Array reference: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32()) (Syntax: 'x')
+            Indices(1):
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'x(0)')
+  Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{1, 2}')
+      Element Values(2):
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30949: Array initializer cannot be specified for a non constant dimension; use the empty initializer '{}'.
+        x = New Integer(x(0)) {1, 2}'BIND:"New Integer(x(0)) {1, 2}"
+                              ~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -511,6 +545,247 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.In
         Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '0')
   Initializer: IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: '{}')
       Element Values(0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
+        Public Sub ArrayCreationOfMultiDimensionalArrays_MultipleExplicitNonConstantDimensions()
+            Dim source = <![CDATA[
+Class C
+    Public Sub F(x As Integer())
+        Dim y = New Integer(x(0), x(1)) {}'BIND:"New Integer(x(0), x(1)) {}"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(,)) (Syntax: 'New Integer ... ), x(1)) {}')
+  Dimension Sizes(2):
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x(0)')
+        Left: IArrayElementReferenceExpression (OperationKind.None) (Syntax: 'x(0)')
+            Array reference: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32()) (Syntax: 'x')
+            Indices(1):
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'x(0)')
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x(1)')
+        Left: IArrayElementReferenceExpression (OperationKind.None) (Syntax: 'x(1)')
+            Array reference: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32()) (Syntax: 'x')
+            Indices(1):
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'x(1)')
+  Initializer: IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: '{}')
+      Element Values(0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
+        Public Sub ArrayCreationOfMultiDimensionalArrays_MultipleExplicitConstantDimensions()
+            Dim source = <![CDATA[
+Class C
+    Public Sub F()
+        Dim y = New Integer(1, 1) {}'BIND:"New Integer(1, 1) {}"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(,)) (Syntax: 'New Integer(1, 1) {}')
+  Dimension Sizes(2):
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2) (Syntax: '1')
+        Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2) (Syntax: '1')
+        Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  Initializer: IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: '{}')
+      Element Values(0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
+        Public Sub ArrayCreationOfMultiDimensionalArraysErrorCase_InitializerMissingElements()
+            Dim source = <![CDATA[
+Class C
+    Public Sub F()
+        Dim y = New Integer(1, 1) {{}}'BIND:"New Integer(1, 1) {{}}"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(,), IsInvalid) (Syntax: 'New Integer(1, 1) {{}}')
+  Dimension Sizes(2):
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2) (Syntax: '1')
+        Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2) (Syntax: '1')
+        Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{{}}')
+      Element Values(1):
+          IArrayInitializer (0 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{}')
+            Element Values(0)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30567: Array initializer is missing 1 elements.
+        Dim y = New Integer(1, 1) {{}}'BIND:"New Integer(1, 1) {{}}"
+                                  ~~~~
+BC30567: Array initializer is missing 2 elements.
+        Dim y = New Integer(1, 1) {{}}'BIND:"New Integer(1, 1) {{}}"
+                                   ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
+        Public Sub ArrayCreationOfMultiDimensionalArraysErrorCase_InitializerMissingElements02()
+            Dim source = <![CDATA[
+Class C
+    Public Sub F()
+        Dim y = New Integer(1, 1) {{}, {}}'BIND:"New Integer(1, 1) {{}, {}}"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(,), IsInvalid) (Syntax: 'New Integer ... 1) {{}, {}}')
+  Dimension Sizes(2):
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2) (Syntax: '1')
+        Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2) (Syntax: '1')
+        Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{{}, {}}')
+      Element Values(2):
+          IArrayInitializer (0 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{}')
+            Element Values(0)
+          IArrayInitializer (0 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{}')
+            Element Values(0)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30567: Array initializer is missing 2 elements.
+        Dim y = New Integer(1, 1) {{}, {}}'BIND:"New Integer(1, 1) {{}, {}}"
+                                   ~~
+BC30567: Array initializer is missing 2 elements.
+        Dim y = New Integer(1, 1) {{}, {}}'BIND:"New Integer(1, 1) {{}, {}}"
+                                       ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
+        Public Sub ArrayCreationOfMultiDimensionalArraysErrorCase_InitializerMissingElements03()
+            Dim source = <![CDATA[
+Class C
+    Public Sub F()
+        Dim y = New Integer(1, 1) {{1, 2}}'BIND:"New Integer(1, 1) {{1, 2}}"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(,), IsInvalid) (Syntax: 'New Integer ... 1) {{1, 2}}')
+  Dimension Sizes(2):
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2) (Syntax: '1')
+        Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2) (Syntax: '1')
+        Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{{1, 2}}')
+      Element Values(1):
+          IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{1, 2}')
+            Element Values(2):
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30567: Array initializer is missing 1 elements.
+        Dim y = New Integer(1, 1) {{1, 2}}'BIND:"New Integer(1, 1) {{1, 2}}"
+                                  ~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
+        Public Sub ArrayCreationOfMultiDimensionalArraysErrorCase_InitializerMissingElements04()
+            Dim source = <![CDATA[
+Class C
+    Public Sub F()
+        Dim y = New Integer(1, 1) {{1, 2}, {}}'BIND:"New Integer(1, 1) {{1, 2}, {}}"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(,), IsInvalid) (Syntax: 'New Integer ... {1, 2}, {}}')
+  Dimension Sizes(2):
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2) (Syntax: '1')
+        Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2) (Syntax: '1')
+        Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{{1, 2}, {}}')
+      Element Values(2):
+          IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{1, 2}')
+            Element Values(2):
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+          IArrayInitializer (0 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{}')
+            Element Values(0)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30567: Array initializer is missing 2 elements.
+        Dim y = New Integer(1, 1) {{1, 2}, {}}'BIND:"New Integer(1, 1) {{1, 2}, {}}"
+                                           ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
+        Public Sub ArrayCreationOfMultiDimensionalArrays_InitializerWithNestedArrayInitializers()
+            Dim source = <![CDATA[
+Class C
+    Public Sub F()
+        Dim y = New Integer(1, 1) {{1, 2}, {1, 2}}'BIND:"New Integer(1, 1) {{1, 2}, {1, 2}}"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(,)) (Syntax: 'New Integer ... 2}, {1, 2}}')
+  Dimension Sizes(2):
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2) (Syntax: '1')
+        Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2) (Syntax: '1')
+        Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{{1, 2}, {1, 2}}')
+      Element Values(2):
+          IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{1, 2}')
+            Element Values(2):
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+          IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{1, 2}')
+            Element Values(2):
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -788,5 +1063,30 @@ BC30311: Value of type 'C' cannot be converted to 'Integer'.
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")>
+        Public Sub ArrayCreation_DeclarationWithExplicitDimension()
+            Dim source = <![CDATA[
+Class C
+    Public Sub F()
+        Dim x(2) As Integer'BIND:"Dim x(2) As Integer"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim x(2) As Integer')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x(2)')
+    Variables: Local_1: x As System.Int32()
+    Initializer: IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'x(2)')
+        Dimension Sizes(1):
+            IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 3) (Syntax: '2')
+              Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '2')
+        Initializer: null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace
