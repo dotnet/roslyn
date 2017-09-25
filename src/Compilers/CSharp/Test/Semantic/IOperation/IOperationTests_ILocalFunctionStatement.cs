@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -30,7 +30,7 @@ class C
 ILocalFunctionStatement (Symbol: System.Int32 Local(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(i ... }')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return x++;')
-      ReturnedValue: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
+      ReturnedValue: IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
           Target: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -56,7 +56,7 @@ class C
 ILocalFunctionStatement (Symbol: System.Int32 Local(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(i ... p1) => x++;')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x++')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x++')
-      ReturnedValue: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
+      ReturnedValue: IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
           Target: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -82,7 +82,7 @@ class C
 ILocalFunctionStatement (Symbol: System.Int32 Local(System.Int32 x)) (OperationKind.LocalFunctionStatement) (Syntax: 'int Local(int x) => x++;')
   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '=> x++')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x++')
-      ReturnedValue: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
+      ReturnedValue: IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
           Target: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -216,8 +216,8 @@ class C
 ILocalFunctionStatement (Symbol: System.Threading.Tasks.Task<System.Int32> LocalAsync(System.Int32 p1)) (OperationKind.LocalFunctionStatement) (Syntax: 'async Task< ... }')
   IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
     IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'await Task.Delay(0);')
-      Expression: IAwaitExpression (OperationKind.None) (Syntax: 'await Task.Delay(0)')
-          AwaitedValue: IInvocationExpression (System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(System.Int32 millisecondsDelay)) (OperationKind.InvocationExpression, Type: System.Threading.Tasks.Task) (Syntax: 'Task.Delay(0)')
+      Expression: IAwaitExpression (OperationKind.AwaitExpression, Type: System.Void) (Syntax: 'await Task.Delay(0)')
+          Expression: IInvocationExpression (System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(System.Int32 millisecondsDelay)) (OperationKind.InvocationExpression, Type: System.Threading.Tasks.Task) (Syntax: 'Task.Delay(0)')
               Instance Receiver: null
               Arguments(1):
                   IArgument (ArgumentKind.Explicit, Matching Parameter: millisecondsDelay) (OperationKind.Argument) (Syntax: '0')
@@ -231,7 +231,7 @@ ILocalFunctionStatement (Symbol: System.Threading.Tasks.Task<System.Int32> Local
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalReferences: new[] { MscorlibRef_v46 });
+            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics, useLatestFrameworkReferences: true);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -281,7 +281,7 @@ class C
 ILocalFunctionStatement (Symbol: void F()) (OperationKind.LocalFunctionStatement) (Syntax: 'void F() => x++;')
   IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '=> x++')
     IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x++')
-      Expression: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
+      Expression: IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: 'x++')
           Target: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: '=> x++')
       ReturnedValue: null

@@ -346,6 +346,7 @@ static class Program {
             var corAssembly = @"
 namespace System {
     public class Object {}
+    public class Void {}
     public abstract class ValueType{}
     public struct Int32{}
 }";
@@ -658,11 +659,12 @@ class A
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation.VerifyDiagnostics(
-                // (6,18): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
+                // (6,18): error CS8107: Feature 'async main' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //     async static Task Main(string[] args)
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Task").WithArguments("async main", "7.1").WithLocation(6, 18),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
-                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1)
+                );
         }
 
         [Fact]

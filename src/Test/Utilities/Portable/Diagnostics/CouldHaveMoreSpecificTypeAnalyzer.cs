@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                        {
                                            AssignTo(assignment.Target, localsSourceTypes, fieldsSourceTypes, assignment.Value);
                                        }
-                                       else if (operationContext.Operation is IIncrementExpression increment)
+                                       else if (operationContext.Operation is IIncrementOrDecrementExpression increment)
                                        {
                                            SyntaxNode syntax = increment.Syntax;
                                            ITypeSymbol type = increment.Type;

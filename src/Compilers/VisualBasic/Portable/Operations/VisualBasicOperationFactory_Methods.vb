@@ -92,17 +92,13 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Dim parameter = parameters(index)
                     Dim value = Create(byRefArgument.OriginalArgument)
 
-                    Return New VisualBasicArgument(
+                    Return CreateArgumentOperation(
                         ArgumentKind.Explicit,
                         parameter,
                         value,
                         CreateConversion(byRefArgument.InConversion),
                         CreateConversion(byRefArgument.OutConversion),
-                        _semanticModel,
-                        value.Syntax,
-                        type:=Nothing,
-                        constantValue:=Nothing,
-                        isImplicit:=isImplicit)
+                        isImplicit)
                 Case Else
                     Dim lastParameterIndex = parameters.Length - 1
                     Dim kind As ArgumentKind
@@ -120,20 +116,41 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         '       https://github.com/dotnet/roslyn/issues/18550
                         kind = If(argument.WasCompilerGenerated, ArgumentKind.DefaultValue, ArgumentKind.Explicit)
                     End If
-                    
+
                     Dim value = Create(argument)
-                    Return New VisualBasicArgument(
+                    Return CreateArgumentOperation(
                         kind,
                         parameters(index),
                         value,
-                        inConversion:=New Conversion(Conversions.Identity),
-                        outConversion:=New Conversion(Conversions.Identity),
-                        semanticModel:=_semanticModel,
-                        syntax:=value.Syntax,
-                        type:=Nothing,
-                        constantValue:=Nothing,
-                        isImplicit:=isImplicit)
+                        New Conversion(Conversions.Identity),
+                        New Conversion(Conversions.Identity),
+                        isImplicit)
             End Select
+        End Function
+
+        Private Function CreateArgumentOperation(
+            kind As ArgumentKind,
+            parameter As IParameterSymbol,
+            value As IOperation,
+            inConversion As Conversion,
+            outConversion As Conversion,
+            isImplicit As Boolean) As IArgument
+
+            ' put argument syntax to argument operation
+            Dim argument = TryCast(value.Syntax?.Parent, ArgumentSyntax)
+
+            ' if argument syntax doesn't exist, then this operation is implicit
+            Return New VisualBasicArgument(
+                kind,
+                parameter,
+                value,
+                inConversion:=inConversion,
+                outConversion:=outConversion,
+                semanticModel:=_semanticModel,
+                syntax:=If(argument, value.Syntax),
+                type:=Nothing,
+                constantValue:=Nothing,
+                isImplicit:=isImplicit OrElse argument Is Nothing)
         End Function
 
         Private Shared Function ParameterIsParamArray(parameter As VisualBasic.Symbols.ParameterSymbol) As Boolean
@@ -185,32 +202,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Next i
 
             Return builder.ToImmutableAndFree()
-        End Function
-
-        Private Function GetSwitchStatementCases(caseBlocks As ImmutableArray(Of BoundCaseBlock)) As ImmutableArray(Of ISwitchCase)
-            Return caseBlocks.SelectAsArray(
-                Function(boundCaseBlock)
-                    ' `CaseElseClauseSyntax` is bound to `BoundCaseStatement` with an empty list of case clauses,
-                    ' so we explicitly create an IOperation node for Case-Else clause to differentiate it from Case clause.
-                    Dim clauses As ImmutableArray(Of ICaseClause)
-                    Dim caseStatement = boundCaseBlock.CaseStatement
-                    Dim isImplicit As Boolean = boundCaseBlock.WasCompilerGenerated
-                    If caseStatement.CaseClauses.IsEmpty AndAlso caseStatement.Syntax.Kind() = SyntaxKind.CaseElseStatement Then
-                        clauses = ImmutableArray.Create(Of ICaseClause)(
-                                                                    New DefaultCaseClause(
-                                                                        _semanticModel,
-                                                                        caseStatement.Syntax,
-                                                                        type:=Nothing,
-                                                                        constantValue:=Nothing,
-                                                                        isImplicit:=isImplicit))
-                    Else
-                        clauses = caseStatement.CaseClauses.SelectAsArray(Function(n) DirectCast(Create(n), ICaseClause))
-                    End If
-
-                    Dim body = ImmutableArray.Create(Create(boundCaseBlock.Body))
-                    Dim syntax = boundCaseBlock.Syntax
-                    Return DirectCast(New SwitchCase(clauses, body, _semanticModel, syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=isImplicit), ISwitchCase)
-                End Function)
         End Function
 
         Private Shared Function GetSingleValueCaseClauseValue(clause As BoundSimpleCaseClause) As BoundExpression

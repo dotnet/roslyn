@@ -976,7 +976,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Unindent();
         }
 
-        internal override void VisitSizeOfExpression(ISizeOfExpression operation)
+        public override void VisitSizeOfExpression(ISizeOfExpression operation)
         {
             LogString(nameof(ISizeOfExpression));
             LogCommonPropertiesAndNewLine(operation);
@@ -987,7 +987,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Unindent();
         }
 
-        internal override void VisitTypeOfExpression(ITypeOfExpression operation)
+        public override void VisitTypeOfExpression(ITypeOfExpression operation)
         {
             LogString(nameof(ITypeOfExpression));
             LogCommonPropertiesAndNewLine(operation);
@@ -1015,12 +1015,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
         }
 
-        internal override void VisitAwaitExpression(IAwaitExpression operation)
+        public override void VisitAwaitExpression(IAwaitExpression operation)
         {
             LogString(nameof(IAwaitExpression));
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.AwaitedValue, "AwaitedValue");
+            Visit(operation.Expression, "Expression");
         }
 
         public override void VisitNameOfExpression(INameOfExpression operation)
@@ -1227,12 +1227,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Value, "Right");
         }
 
-        public override void VisitIncrementExpression(IIncrementExpression operation)
+        public override void VisitIncrementOrDecrementExpression(IIncrementOrDecrementExpression operation)
         {
-            LogString(nameof(IIncrementExpression));
+            LogString(nameof(IIncrementOrDecrementExpression));
 
             var kindStr = operation.IsPostfix ? "Postfix" : "Prefix";
-            kindStr += operation.IsDecrement ? "Decrement" : "Increment";
             if (operation.IsLifted)
             {
                 kindStr += ", IsLifted";
@@ -1431,6 +1430,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.Pattern, "Pattern");
             Visit(operation.GuardExpression, "Guard Expression");
+        }
+
+        public override void VisitTranslatedQueryExpression(ITranslatedQueryExpression operation)
+        {
+            LogString(nameof(ITranslatedQueryExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Expression, "Expression");
         }
 
         #endregion

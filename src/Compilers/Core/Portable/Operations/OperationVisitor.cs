@@ -290,14 +290,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        // https://github.com/dotnet/roslyn/issues/21296
-        internal virtual void VisitSizeOfExpression(ISizeOfExpression operation)
+        public virtual void VisitSizeOfExpression(ISizeOfExpression operation)
         {
             DefaultVisit(operation);
         }
 
-        // https://github.com/dotnet/roslyn/issues/22003
-        internal virtual void VisitTypeOfExpression(ITypeOfExpression operation)
+        public virtual void VisitTypeOfExpression(ITypeOfExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -312,8 +310,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        // https://github.com/dotnet/roslyn/issues/22007
-        internal virtual void VisitAwaitExpression(IAwaitExpression operation)
+        public virtual void VisitAwaitExpression(IAwaitExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -408,7 +405,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitIncrementExpression(IIncrementExpression operation)
+        public virtual void VisitIncrementOrDecrementExpression(IIncrementOrDecrementExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -484,6 +481,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual void VisitTupleExpression(ITupleExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitTranslatedQueryExpression(ITranslatedQueryExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -783,14 +785,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        // https://github.com/dotnet/roslyn/issues/21296
-        internal virtual TResult VisitSizeOfExpression(ISizeOfExpression operation, TArgument argument)
+        public virtual TResult VisitSizeOfExpression(ISizeOfExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
 
-        // https://github.com/dotnet/roslyn/issues/22003
-        internal virtual TResult VisitTypeOfExpression(ITypeOfExpression operation, TArgument argument)
+        public virtual TResult VisitTypeOfExpression(ITypeOfExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -805,8 +805,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        // https://github.com/dotnet/roslyn/issues/22007
-        internal virtual TResult VisitAwaitExpression(IAwaitExpression operation, TArgument argument)
+        public virtual TResult VisitAwaitExpression(IAwaitExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -901,7 +900,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitIncrementExpression(IIncrementExpression operation, TArgument argument)
+        public virtual TResult VisitIncrementOrDecrementExpression(IIncrementOrDecrementExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -977,6 +976,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitTupleExpression(ITupleExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitTranslatedQueryExpression(ITranslatedQueryExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static ImmutableArray<ITypeParameterSymbol> RenameTypeParameters(
-            IList<ITypeParameterSymbol> typeParameters,
+            ImmutableArray<ITypeParameterSymbol> typeParameters,
             IList<string> newNames,
             ITypeGenerator typeGenerator)
         {
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // parameter.  The second updates the constraints to point at this new type parameter.
             var newTypeParameters = new List<CodeGenerationTypeParameterSymbol>();
             var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>();
-            for (int i = 0; i < typeParameters.Count; i++)
+            for (int i = 0; i < typeParameters.Length; i++)
             {
                 var typeParameter = typeParameters[i];
 

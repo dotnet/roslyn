@@ -280,12 +280,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new IsTypeExpression(Visit(operation.Operand), operation.IsType, operation.IsNotTypeExpression, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        internal override IOperation VisitSizeOfExpression(ISizeOfExpression operation, object argument)
+        public override IOperation VisitSizeOfExpression(ISizeOfExpression operation, object argument)
         {
             return new SizeOfExpression(operation.TypeOperand, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        internal override IOperation VisitTypeOfExpression(ITypeOfExpression operation, object argument)
+        public override IOperation VisitTypeOfExpression(ITypeOfExpression operation, object argument)
         {
             return new TypeOfExpression(operation.TypeOperand, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
@@ -300,9 +300,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LiteralExpression(((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        internal override IOperation VisitAwaitExpression(IAwaitExpression operation, object argument)
+        public override IOperation VisitAwaitExpression(IAwaitExpression operation, object argument)
         {
-            return new AwaitExpression(Visit(operation.AwaitedValue), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new AwaitExpression(Visit(operation.Expression), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitNameOfExpression(INameOfExpression operation, object argument)
@@ -380,9 +380,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new CompoundAssignmentExpression(operation.OperatorKind, operation.IsLifted, operation.IsChecked, Visit(operation.Target), Visit(operation.Value), operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitIncrementExpression(IIncrementExpression operation, object argument)
+        public override IOperation VisitIncrementOrDecrementExpression(IIncrementOrDecrementExpression operation, object argument)
         {
-            return new IncrementExpression(operation.IsDecrement, operation.IsPostfix, operation.IsLifted, operation.IsChecked, Visit(operation.Target), operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            bool isDecrement = operation.Kind == OperationKind.DecrementExpression;
+            return new IncrementExpression(isDecrement, operation.IsPostfix, operation.IsLifted, operation.IsChecked, Visit(operation.Target), operation.UsesOperatorMethod, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitParenthesizedExpression(IParenthesizedExpression operation, object argument)
@@ -473,6 +474,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override IOperation VisitTupleExpression(ITupleExpression operation, object argument)
         {
             return new TupleExpression(VisitArray(operation.Elements), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitTranslatedQueryExpression(ITranslatedQueryExpression operation, object argument)
+        {
+            return new TranslatedQueryExpression(Visit(operation.Expression), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
     }
 }

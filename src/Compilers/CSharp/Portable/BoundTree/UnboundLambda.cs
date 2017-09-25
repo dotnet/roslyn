@@ -446,8 +446,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 cacheKey.ParameterTypes,
                 cacheKey.ParameterRefKinds,
                 refKind,
-                returnType);
+                returnType,
+                diagnostics);
             lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, binder));
+
+            if (lambdaSymbol.RefKind == CodeAnalysis.RefKind.RefReadOnly)
+            {
+                binder.Compilation.EnsureIsReadOnlyAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilationForRefReadOnly: false);
+            }
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(lambdaSymbol.Parameters, diagnostics, modifyCompilationForRefReadOnly: false);
+
             block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
 
             ((ExecutableCodeBinder)lambdaBodyBinder).ValidateIteratorMethods(diagnostics);
@@ -521,7 +530,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundLambda ReallyInferReturnType(NamedTypeSymbol delegateType, ImmutableArray<TypeSymbol> parameterTypes, ImmutableArray<RefKind> parameterRefKinds)
         {
             var diagnostics = DiagnosticBag.GetInstance();
-            var lambdaSymbol = new LambdaSymbol(binder.Compilation, binder.ContainingMemberOrLambda, _unboundLambda, parameterTypes, parameterRefKinds, refKind: Microsoft.CodeAnalysis.RefKind.None, returnType: null);
+            var lambdaSymbol = new LambdaSymbol(
+                binder.Compilation,
+                binder.ContainingMemberOrLambda,
+                _unboundLambda,
+                parameterTypes,
+                parameterRefKinds,
+                refKind: CodeAnalysis.RefKind.None,
+                returnType: null,
+                diagnostics: diagnostics);
             Binder lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, binder));
             var block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
 

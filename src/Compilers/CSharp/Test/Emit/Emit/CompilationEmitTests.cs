@@ -157,17 +157,21 @@ namespace N.Goo;
 
             emitResult.Diagnostics.Verify(
                 // (13,16): error CS1514: { expected
-                Diagnostic(ErrorCode.ERR_LbraceExpected, ";"),
+                // namespace N.Foo;
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(13, 16),
                 // (13,17): error CS1513: } expected
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ""),
+                // namespace N.Foo;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(13, 17),
                 // (4,16): error CS0246: The type or namespace name 'Blah' could not be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Blah").WithArguments("Blah"),
+                //         public Blah field;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Blah").WithArguments("Blah").WithLocation(4, 16),
                 // (8,13): error CS0198: A static readonly field cannot be assigned to (except in a static constructor or a variable initializer)
-                Diagnostic(ErrorCode.ERR_AssgReadonlyStatic, "ro"),
-                // (4,21): warning CS0649: Field 'N.X.field' is never assigned to, and will always have its default value null
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("N.X.field", "null"),
-                // (5,37): warning CS0414: The field 'N.X.ro' is assigned but its value is never used
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "ro").WithArguments("N.X.ro"));
+                //             ro = 4;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyStatic, "ro").WithLocation(8, 13),
+                // (4,21): warning CS0649: Field 'X.field' is never assigned to, and will always have its default value null
+                //         public Blah field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("N.X.field", "null").WithLocation(4, 21)
+                );
         }
 
         // Check that EmitMetadataOnly works

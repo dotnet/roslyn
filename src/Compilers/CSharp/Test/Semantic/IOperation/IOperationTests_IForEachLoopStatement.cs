@@ -498,13 +498,15 @@ IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement, IsInvalid
   Body: IBlockStatement (1 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       Locals: Local_1: System.Boolean b
       IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'bool b = !x ... uals(null);')
-        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'bool b = !x ... uals(null);')
+        IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b = !x.Equals(null)')
           Variables: Local_1: System.Boolean b
           Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean) (Syntax: '!x.Equals(null)')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Operand: IUnaryOperatorExpression (UnaryOperatorKind.Not) (OperationKind.UnaryOperatorExpression, Type: System.Object) (Syntax: '!x.Equals(null)')
                   Operand: IInvocationExpression ( ? C.()) (OperationKind.InvocationExpression, Type: ?) (Syntax: 'x.Equals(null)')
                       Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'x.Equals')
+                          Children(1):
+                              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: MissingType) (Syntax: 'x')
                       Arguments(1):
                           IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: 'null')
                             ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
@@ -591,7 +593,7 @@ IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement, IsInvalid
       Operand: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32[]) (Syntax: 'a')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ x++; }')
       IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x++;')
-        Expression: IIncrementExpression (PostfixIncrement) (OperationKind.IncrementExpression, Type: System.Object, IsInvalid) (Syntax: 'x++')
+        Expression: IIncrementOrDecrementExpression (Postfix) (OperationKind.IncrementExpression, Type: System.Object, IsInvalid) (Syntax: 'x++')
             Target: IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
                 Children(1):
                     ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')

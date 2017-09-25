@@ -172,6 +172,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected async Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken)
         {
+            AssetStorage.UpdateLastActivityTime();
+
             try
             {
                 return await callAsync().ConfigureAwait(false);
@@ -185,6 +187,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected async Task RunServiceAsync(Func<Task> callAsync, CancellationToken cancellationToken)
         {
+            AssetStorage.UpdateLastActivityTime();
+
             try
             {
                 await callAsync().ConfigureAwait(false);
@@ -198,6 +202,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected T RunService<T>(Func<T> call, CancellationToken cancellationToken)
         {
+            AssetStorage.UpdateLastActivityTime();
+
             try
             {
                 return call();
@@ -211,6 +217,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected void RunService(Action call, CancellationToken cancellationToken)
         {
+            AssetStorage.UpdateLastActivityTime();
+
             try
             {
                 call();

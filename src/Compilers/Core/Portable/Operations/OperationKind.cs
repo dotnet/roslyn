@@ -114,9 +114,8 @@ namespace Microsoft.CodeAnalysis
         InstanceReferenceExpression = 0x115,
         /// <summary>Indicates an <see cref="IIsTypeExpression"/>.</summary>
         IsTypeExpression = 0x116,
-        // https://github.com/dotnet/roslyn/issues/22007
-        // /// <summary>Indicates an <see cref="IAwaitExpression"/>.</summary>
-        // AwaitExpression = 0x117,
+        /// <summary>Indicates an <see cref="IAwaitExpression"/>.</summary>
+        AwaitExpression = 0x117,
         /// <summary>Indicates an <see cref="ISimpleAssignmentExpression"/>.</summary>
         SimpleAssignmentExpression = 0x118,
         /// <summary>Indicates an <see cref="ICompoundAssignmentExpression"/>.</summary>
@@ -151,17 +150,17 @@ namespace Microsoft.CodeAnalysis
         DynamicInvocationExpression = 0x127,
         /// <summary>Indicates an <see cref="IDynamicIndexerAccessExpression"/>.</summary>
         DynamicIndexerAccessExpression = 0x128,
+        /// <summary>Indicates an <see cref="ITranslatedQueryExpression"/>.</summary>
+        TranslatedQueryExpression = 0x129,
 
         // Expressions that occur only in C#.
 
         /// <summary>Indicates an <see cref="IDefaultValueExpression"/>.</summary>
         DefaultValueExpression = 0x200,
-        // https://github.com/dotnet/roslyn/issues/22003
-        // /// <summary>Indicates an <see cref="ITypeOfExpression"/>.</summary>
-        // TypeOfExpression = 0x201,
-        // https://github.com/dotnet/roslyn/issues/21296
-        // /// <summary>Indicates an <see cref="ISizeOfExpression"/>.</summary>
-        // SizeOfExpression = 0x202,
+        /// <summary>Indicates an <see cref="ITypeOfExpression"/>.</summary>
+        TypeOfExpression = 0x201,
+        /// <summary>Indicates an <see cref="ISizeOfExpression"/>.</summary>
+        SizeOfExpression = 0x202,
         /// <summary>Indicates an <see cref="IAddressOfExpression"/>.</summary>
         AddressOfExpression = 0x203,
         // <summary>Indicates an <see cref="IPointerIndirectionReferenceExpression"/>.</summary>
@@ -170,16 +169,20 @@ namespace Microsoft.CodeAnalysis
         //PointerIndirectionReferenceExpression = 0x204,
         /// <summary>Indicates an <see cref="IIsPatternExpression"/>.</summary>
         IsPatternExpression = 0x205,
-        /// <summary>Indicates an <see cref="IIncrementExpression"/>.</summary>
+        /// <summary>Indicates an <see cref="IIncrementOrDecrementExpression"/> for increment operator.</summary>
         IncrementExpression = 0x206,
         /// <summary>Indicates an <see cref="IThrowExpression"/>.</summary>
         ThrowExpression = 0x207,
+        /// <summary>Indicates an <see cref="IIncrementOrDecrementExpression"/> for decrement operator.</summary>
+        DecrementExpression = 0x208,
 
         // Expressions that occur only in Visual Basic.
 
         /// <summary>Indicates an <see cref="IOmittedArgumentExpression"/>.</summary>
         OmittedArgumentExpression = 0x300,
+
         // 0x301 was removed, and is available for use.
+
         // https://github.com/dotnet/roslyn/issues/21294
         // /// <summary>Indicates an <see cref="IPlaceholderExpression"/>.</summary>
         // PlaceholderExpression = 0x302,

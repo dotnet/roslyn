@@ -942,9 +942,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if the type is one of the restricted types, namely: <see cref="T:System.TypedReference"/>, 
         /// <see cref="T:System.ArgIterator"/>, or <see cref="T:System.RuntimeArgumentHandle"/>.
+        /// or a ref-like type.
         /// </summary>
 #pragma warning restore RS0010
-        internal static bool IsRestrictedType(this TypeSymbol type)
+        internal static bool IsRestrictedType(this TypeSymbol type,
+                                                bool ignoreSpanLikeTypes = false)
         {
             // See Dev10 C# compiler, "type.cpp", bool Type::isSpecialByRefType() const
             Debug.Assert((object)type != null);
@@ -955,7 +957,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SpecialType.System_RuntimeArgumentHandle:
                     return true;
             }
-            return false;
+
+            return ignoreSpanLikeTypes? 
+                        false:
+                        type.IsByRefLikeType;
         }
 
         public static bool IsIntrinsicType(this TypeSymbol type)
@@ -1298,6 +1303,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (name.Length == length) && (string.Compare(name, 0, namespaceName, offset, length, comparison) == 0);
         }
 
+        internal static bool IsSpanType(this TypeSymbol type)
+        {
+            if ((type as NamedTypeSymbol)?.Arity != 1)
+            {
+                // must be a generic type of arity '1'
+                return false;
+            }
+
+            if (type.Name != "Span" && type.Name != "ReadOnlySpan")
+            {
+                // must be called "Span" or "ReadOnlySpan"
+                return false;
+            }
+
+            var ns = type.ContainingSymbol as NamespaceSymbol;
+            if (ns?.Name != "System")
+            {
+                // must be in "System" namespace
+                return false;
+            }
+
+            // the "System" must be in the global namespace
+            return ns.ContainingNamespace?.IsGlobalNamespace == true;
+        }
+
         internal static bool IsNonGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)
         {
             var namedType = type as NamedTypeSymbol;
@@ -1521,6 +1551,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return new Cci.TypeReferenceWithAttributes(typeRef);
+        }
+
+        internal static bool IsWellKnownTypeInAttribute(this ITypeSymbol typeSymbol)
+        {
+            if (typeSymbol.Name != "InAttribute" || typeSymbol.ContainingType != null)
+            {
+                return false;
+            }
+
+            var interopServicesNamespace = typeSymbol.ContainingNamespace;
+            if (interopServicesNamespace?.Name != "InteropServices")
+            {
+                return false;
+            }
+
+            var runtimeNamespace = interopServicesNamespace.ContainingNamespace;
+            if (runtimeNamespace?.Name != "Runtime")
+            {
+                return false;
+            }
+
+            var systemNamespace = runtimeNamespace.ContainingNamespace;
+            if (systemNamespace?.Name != "System")
+            {
+                return false;
+            }
+
+            var globalNamespace = systemNamespace.ContainingNamespace;
+
+            return globalNamespace != null && globalNamespace.IsGlobalNamespace;
         }
     }
 }
