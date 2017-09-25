@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public async Task HelloWorld()
         {
             var source = @"using System;
@@ -89,7 +89,7 @@ class Hello
             await RunDeterministicTest(source);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public async Task CallerInfo()
         {
             var source = @"using System;
@@ -115,7 +115,7 @@ class CallerInfo {
             await RunDeterministicTest(source);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public async Task AnonType()
         {
             var source = @"using System;
@@ -133,7 +133,7 @@ class AnonType {
             await RunDeterministicTest(source);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public async Task LineDirective()
         {
             var source = @"using System;

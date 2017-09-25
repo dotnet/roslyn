@@ -566,7 +566,7 @@ End Class"}};
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MissingFileErrorVB()
         {
@@ -1123,7 +1123,7 @@ End Module
         }
 
         [WorkItem(545446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_On_Shared_CS()
         {

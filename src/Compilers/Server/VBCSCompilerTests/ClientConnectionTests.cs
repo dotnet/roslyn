@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.Equal(BuildResponse.ResponseType.Rejected, response.Type);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public async Task NoCompilationsProcessShutdown()
         {
             var stream = new TestableStream();

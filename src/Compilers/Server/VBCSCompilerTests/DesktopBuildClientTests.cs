@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 }
             }
 
-            [Fact]
+            [ConditionalFact(typeof(WindowsOnly))]
             public async Task ConnectToPipeWithSpinWait()
             {
                 // No server should be started with the current pipe name
