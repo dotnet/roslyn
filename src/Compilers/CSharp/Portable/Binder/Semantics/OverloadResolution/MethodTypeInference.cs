@@ -587,20 +587,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ExplicitParameterTypeInference(argument, target, ref useSiteDiagnostics);
             }
-            else if (argument.Kind == BoundKind.TupleLiteral &&
-                MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, isExactInference, ref useSiteDiagnostics))
+            else if (argument.Kind != BoundKind.TupleLiteral ||
+                !MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, isExactInference, ref useSiteDiagnostics))
             {
-                ;
-            }
-            else if (IsReallyAType(source))
-            {
-                if (isExactInference)
+                // Either the argument is not a tuple literal, or we were unable to do the inference from its elements, let' try to infer from arguments's type
+                if (IsReallyAType(source))
                 {
-                    ExactInference(source, target, ref useSiteDiagnostics);
-                }
-                else
-                {
-                    LowerBoundInference(source, target, ref useSiteDiagnostics);
+                    if (isExactInference)
+                    {
+                        ExactInference(source, target, ref useSiteDiagnostics);
+                    }
+                    else
+                    {
+                        LowerBoundInference(source, target, ref useSiteDiagnostics);
+                    }
                 }
             }
         }
