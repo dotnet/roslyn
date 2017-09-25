@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1699,6 +1699,7 @@ IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (Operatio
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
         public void CS1914ERR_StaticMemberInObjectInitializer_EnumTypeMember()
         {
             string source = @"
@@ -1715,12 +1716,16 @@ class MemberInitializerTest
             string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: X..ctor()) (OperationKind.ObjectCreationExpression, Type: X, IsInvalid, Language: C#) (Syntax: 'new X() { x = 0 }')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: X, IsInvalid, Language: C#) (Syntax: '{ x = 0 }')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: X, IsInvalid, Language: C#) (Syntax: '{ x = 0 }')
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: X, IsInvalid, Language: C#) (Syntax: 'x = 0')
-            Left: IFieldReferenceExpression: X.x (OperationKind.FieldReferenceExpression, Type: X, IsInvalid, Language: C#) (Syntax: 'x')
-                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: X, IsInvalid, Language: C#) (Syntax: 'x')
-            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: '0')
+            Left: 
+              IFieldReferenceExpression: X.x (OperationKind.FieldReferenceExpression, Type: X, IsInvalid, Language: C#) (Syntax: 'x')
+                Instance Receiver: 
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: X, IsInvalid, Language: C#) (Syntax: 'x')
+            Right: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1914: Static field or property 'X.x' cannot be assigned in an object initializer

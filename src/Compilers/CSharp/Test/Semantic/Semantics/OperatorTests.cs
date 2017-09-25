@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -1309,6 +1309,7 @@ IBinaryOperatorExpression (BinaryOperatorKind.Or) (OperatorMethod: S S.op_Bitwis
         }
 
         [Fact, WorkItem(657084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/657084")]
+        [CompilerTrait(CompilerFeature.IOperation)]
         public void DuplicateOperatorInSubclass()
         {
             string source = @"
@@ -1332,12 +1333,16 @@ class Test
 ";
             string expectedOperationTree = @"
 IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'new C() + new B()')
-  Left: IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid, Language: C#) (Syntax: 'new C()')
+  Left: 
+    IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid, Language: C#) (Syntax: 'new C()')
       Arguments(0)
-      Initializer: null
-  Right: IObjectCreationExpression (Constructor: B..ctor()) (OperationKind.ObjectCreationExpression, Type: B, IsInvalid, Language: C#) (Syntax: 'new B()')
+      Initializer: 
+      null
+  Right: 
+    IObjectCreationExpression (Constructor: B..ctor()) (OperationKind.ObjectCreationExpression, Type: B, IsInvalid, Language: C#) (Syntax: 'new B()')
       Arguments(0)
-      Initializer: null
+      Initializer: 
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0034: Operator '+' is ambiguous on operands of type 'C' and 'B'
@@ -1408,6 +1413,7 @@ class C<T>
         }
 
         [Fact, WorkItem(624274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624274")]
+        [CompilerTrait(CompilerFeature.IOperation)]
         public void TestBinaryOperatorOverloading_Enums_Dynamic_Ambiguous()
         {
             string source = @"
@@ -1493,10 +1499,13 @@ class X
 ";
             string expectedOperationTree = @"
 IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 D<System.Object>.C.op_Addition(D<System.Object>.C x, D<System.Object>.C y)) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Language: C#) (Syntax: 'x + y')
-  Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: D<System.Object>.C, Language: C#) (Syntax: 'x')
-  Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: D<System.Object>.C, IsImplicit, Language: C#) (Syntax: 'y')
+  Left: 
+    ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: D<System.Object>.C, Language: C#) (Syntax: 'x')
+  Right: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: D<System.Object>.C, IsImplicit, Language: C#) (Syntax: 'y')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: D<dynamic>.C, Language: C#) (Syntax: 'y')
+      Operand: 
+        ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: D<dynamic>.C, Language: C#) (Syntax: 'y')
 ";
             // Dev11 reports error CS0121: The call is ambiguous between the following methods or properties: 
             // 'D<object>.C.operator+(D<object>.C, D<object>.C)' and 'D<dynamic>.C.operator +(D<dynamic>.C, D<dynamic>.C)'
@@ -1506,6 +1515,7 @@ IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperatorMethod: System.Int32
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
         public void TestBinaryOperatorOverloading_UserDefined_Dynamic_Ambiguous()
         {
             string source = @"
@@ -1529,9 +1539,10 @@ class X
 ";
             string expectedOperationTree = @"
 IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'x + y')
-  Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: D<System.Object>.C, IsInvalid, Language: C#) (Syntax: 'x')
-  Right: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: D<dynamic>.C, IsInvalid, Language: C#) (Syntax: 'y')
-";
+  Left: 
+    ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: D<System.Object>.C, IsInvalid, Language: C#) (Syntax: 'x')
+  Right: 
+    ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: D<dynamic>.C, IsInvalid, Language: C#) (Syntax: 'y')";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0034: Operator '+' is ambiguous on operands of type 'D<object>.C' and 'D<dynamic>.C'
                 //         var z = /*<bind>*/x + y/*</bind>*/;
