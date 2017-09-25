@@ -38,6 +38,7 @@ namespace APISampleUnitTestsCS
         public void SyntaxFactsMethods()
         {
             Assert.Equal("protected internal", SyntaxFacts.GetText(Accessibility.ProtectedOrInternal));
+            Assert.Equal("private protected", SyntaxFacts.GetText(Accessibility.ProtectedAndInternal));
             Assert.Equal("??", SyntaxFacts.GetText(SyntaxKind.QuestionQuestionToken));
             Assert.Equal("this", SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
 

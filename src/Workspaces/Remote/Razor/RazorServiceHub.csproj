@@ -33,7 +33,7 @@
     <InternalsVisibleToRazor Include="Microsoft.CodeAnalysis.Remote.Razor" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\VisualStudio\Core\Next\Remote\JsonRpcMessageHandler.cs">
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Remote\JsonRpcMessageHandler.cs">
       <Link>Shared\JsonRpcMessageHandler.cs</Link>
     </Compile>
     <Compile Include="..\ServiceHub\Shared\RoslynJsonConverter.cs">

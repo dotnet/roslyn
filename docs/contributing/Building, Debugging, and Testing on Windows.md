@@ -15,6 +15,7 @@ Using the command line Roslyn can be developed using the following pattern:
     - Ensure C#, VB, MSBuild and Visual Studio Extensibility are included in the selected work loads
     - Ensure Visual Studio is on Version "15.3" or greater
 1. [.NET Core SDK 2.0](https://www.microsoft.com/net/download/core)
+1. [PowerShell 3.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on Windows 7. The download link is under the "upgrading existing Windows PowerShell" heading.
 1. Run Restore.cmd
 1. Open Roslyn.sln
 
@@ -26,11 +27,9 @@ do the following:
 - Click on the hamburger menu, click Modify 
 - Choose the workloads listed above and click Modify
 
-During the last few weeks of a development cycle for a quarterly release (versions 15.3, 15.6, etc.), it is possible for the Roslyn codebase to make use of new language features, which will not be suppored by the last released version. During that period, it is recommended to use the [preview version of Visual Studio](https://www.visualstudio.com/vs/preview/) or [Roslyn nightlies](https://github.com/dotnet/roslyn/issues/18783#issuecomment-299064434). Alternatively, you can just ignore some red squiggles produced by the IDE that do not correspond to build errors (on portions of the code using the latest language features).
-
 ## Running Tests
 
-There are a number of options for running the core Roslyn unit tests
+There are a number of options for running the core Roslyn unit tests:
 
 ### Command Line
 
@@ -57,7 +56,7 @@ give it a try.
 The Rosyln solution is designed to support easy debugging via F5.  Several of our
 projects produce VSIX which deploy into Visual Studio during build.  The F5 operation 
 will start a new Visual Studio instance using those VSIX which override our installed
-binaries.  This means trying out a change to the languge, IDE or debugger is as
+binaries.  This means trying out a change to the language, IDE or debugger is as
 simple as hitting F5.
 
 The startup project needs to be set to VisualStudioSetup.Next.  This should be
@@ -122,4 +121,4 @@ csc and vbc inside it. You can check the cibuild.cmd and see how it is used.
 
 ## Contributing
 
-Please see [Contributing Code](https://github.com/dotnet/roslyn/blob/master/CONTRIBUTING.md)) for details on contributing changes back to the code.
+Please see [Contributing Code](https://github.com/dotnet/roslyn/blob/master/CONTRIBUTING.md) for details on contributing changes back to the code.

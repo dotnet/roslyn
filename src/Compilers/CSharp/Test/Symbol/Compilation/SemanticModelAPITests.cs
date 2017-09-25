@@ -3806,6 +3806,68 @@ using System.Dynamic;
             Assert.Equal(TypeKind.Dynamic, dynamicType.Type.TypeKind);
         }
 
+        [Fact]
+        public void IsAccessible()
+        {
+            var source =
+@"using System;
+class A
+{
+    public int X;
+    protected int Y;
+    private protected int Z;
+}
+class B : A
+{
+    void Goo()
+    {
+        // in B.Goo
+    }
+    // in B class level
+    int field;
+}
+class C
+{
+    void Goo()
+    {
+        // in C.Goo
+    }
+}
+namespace N
+{
+    // in N
+}";
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
+
+            var tree = compilation.SyntaxTrees[0];
+            var text = tree.GetText().ToString();
+            var semanticModel = compilation.GetSemanticModel(tree);
+            int positionInB = text.IndexOf("in B class level");
+            int positionInBGoo = text.IndexOf("in B.Goo");
+            int positionInCGoo = text.IndexOf("in C.Goo");
+            int positionInN = text.IndexOf("in N");
+
+            var globalNs = compilation.GlobalNamespace;
+            var classA = (NamedTypeSymbol)globalNs.GetMembers("A").Single();
+            var fieldX = (FieldSymbol)classA.GetMembers("X").Single();
+            var fieldY = (FieldSymbol)classA.GetMembers("Y").Single();
+            var fieldZ = (FieldSymbol)classA.GetMembers("Z").Single();
+
+            Assert.True(semanticModel.IsAccessible(positionInN, fieldX));
+            Assert.False(semanticModel.IsAccessible(positionInN, fieldY));
+            Assert.False(semanticModel.IsAccessible(positionInN, fieldZ));
+            Assert.True(semanticModel.IsAccessible(positionInB, fieldX));
+            Assert.True(semanticModel.IsAccessible(positionInB, fieldY));
+            Assert.True(semanticModel.IsAccessible(positionInB, fieldZ));
+            Assert.True(semanticModel.IsAccessible(positionInBGoo, fieldX));
+            Assert.True(semanticModel.IsAccessible(positionInBGoo, fieldY));
+            Assert.True(semanticModel.IsAccessible(positionInBGoo, fieldZ));
+            Assert.True(semanticModel.IsAccessible(positionInCGoo, fieldX));
+            Assert.False(semanticModel.IsAccessible(positionInCGoo, fieldY));
+            Assert.False(semanticModel.IsAccessible(positionInCGoo, fieldZ));
+        }
+
         #region "regression helper"
         private void Regression(string text)
         {

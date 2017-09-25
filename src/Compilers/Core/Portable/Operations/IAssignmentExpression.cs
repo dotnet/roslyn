@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents an assignment expression.
+    /// Represents a base interface for assignment expressions.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
@@ -21,6 +21,17 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Value to be assigned to the target of the assignment.
         /// </summary>
         IOperation Value { get; }
+    }
+
+    /// <summary>
+    /// Represents an assignment expression.
+    /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
+    public interface ISimpleAssignmentExpression : IAssignmentExpression
+    {
     }
 }
 

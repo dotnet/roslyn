@@ -165,11 +165,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Return the name of the tool to execute.
         /// </summary>
-        override protected string ToolName
+        override protected string ToolNameWithoutExtension
         {
             get
             {
-                return "csc.exe";
+                return "csc";
             }
         }
 

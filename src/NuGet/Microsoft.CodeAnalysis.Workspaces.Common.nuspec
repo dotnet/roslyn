@@ -6,7 +6,10 @@
       A shared package used by the .NET Compiler Platform ("Roslyn") including support for analyzing projects and solutions.
     </summary>
     <description>
-      A shared package used by the .NET Compiler Platform ("Roslyn") including support for analyzing projects and solutions. Do not install this package manually, it will be added as a prerequisite by other packages that require it.
+      A shared package used by the .NET Compiler Platform ("Roslyn") including support for analyzing projects and solutions.
+      Do not install this package manually, it will be added as a prerequisite by other packages that require it.
+
+      More details at https://aka.ms/roslyn-packages
 
       $commitPathMessage$
     </description>

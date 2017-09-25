@@ -197,29 +197,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte, supportedPackageIds, installationPath);
         }
 
-        private static ISetupConfiguration GetSetupConfiguration()
-        {
-            try
-            {
-                return new SetupConfiguration();
-            }
-            catch (COMException comException) when (comException.HResult == NativeMethods.REGDB_E_CLASSNOTREG)
-            {
-                // Fallback to P/Invoke if the COM registration is missing
-                var hresult = NativeMethods.GetSetupConfiguration(out var setupConfiguration, pReserved: IntPtr.Zero);
-
-                if (hresult < 0)
-                {
-                    throw Marshal.GetExceptionForHR(hresult);
-                }
-
-                return setupConfiguration;
-            }
-        }
-
         private static IEnumerable<ISetupInstance> EnumerateVisualStudioInstances()
         {
-            var setupConfiguration = GetSetupConfiguration() as ISetupConfiguration2;
+            var setupConfiguration = new SetupConfiguration();
 
             var instanceEnumerator = setupConfiguration.EnumAllInstances();
             var instances = new ISetupInstance[3];
