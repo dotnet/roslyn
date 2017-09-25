@@ -952,6 +952,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind refArg = arguments.RefKind(arg);
             RefKind refParm = parameter.RefKind;
 
+            if (arguments.IsExtensionMethodThisArgument(arg))
+            {
+                Debug.Assert(refArg == RefKind.None);
+                if (refParm == RefKind.Ref || refParm == RefKind.RefReadOnly)
+                {
+                    // For ref and ref-readonly extension methods, we omit the "ref" modifier on receiver arguments.
+                    // Setting the correct RefKind for finding the correct diagnostics message.
+                    // For other ref kinds, keeping it as it is to find mismatch errors. 
+                    refArg = refParm;
+                }
+            }
+
             // If the expression is untyped because it is a lambda, anonymous method, method group or null
             // then we never want to report the error "you need a ref on that thing". Rather, we want to
             // say that you can't convert "null" to "ref int".
@@ -980,9 +992,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         UnwrapIfParamsArray(parameter, isLastParameter));
                 }
             }
-            else if (refArg != refParm)
+            else if (refArg != refParm && !(refArg == RefKind.None && refParm == RefKind.RefReadOnly))
             {
-                if (refParm == RefKind.None)
+                if (refParm == RefKind.None || refParm == RefKind.RefReadOnly)
                 {
                     //  Argument {0} should not be passed with the {1} keyword
                     diagnostics.Add(
@@ -990,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         sourceLocation,
                         symbols,
                         arg + 1,
-                        refArg.ToDisplayString());
+                        refArg.ToArgumentDisplayString());
                 }
                 else
                 {
@@ -1000,7 +1012,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         sourceLocation,
                         symbols,
                         arg + 1,
-                        refParm.ToDisplayString());
+                        refParm.ToParameterDisplayString());
                 }
             }
             else

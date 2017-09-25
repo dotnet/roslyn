@@ -138,28 +138,17 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None) (Syntax: 'Aggregate y ... nto Count()')
-  Children(1):
-      IOperation:  (OperationKind.None) (Syntax: 'Aggregate y ... nto Count()')
-        Children(1):
-            IOperation:  (OperationKind.None) (Syntax: 'Count()')
-              Children(1):
-                  IOperation:  (OperationKind.None) (Syntax: 'Count()')
-                    Children(1):
-                        IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Count() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Count()')
-                          Instance Receiver: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32)) (Syntax: 'y In New Integer() {x}')
-                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                              Operand: IOperation:  (OperationKind.None) (Syntax: 'y In New Integer() {x}')
-                                  Children(1):
-                                      IOperation:  (OperationKind.None) (Syntax: 'New Integer() {x}')
-                                        Children(1):
-                                            IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {x}')
-                                              Dimension Sizes(1):
-                                                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'New Integer() {x}')
-                                              Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{x}')
-                                                  Element Values(1):
-                                                      IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                          Arguments(0)
+ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Int32) (Syntax: 'Aggregate y ... nto Count()')
+  Expression: IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Count() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Count()')
+      Instance Receiver: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32)) (Syntax: 'y In New Integer() {x}')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+          Operand: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {x}')
+              Dimension Sizes(1):
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'New Integer() {x}')
+              Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{x}')
+                  Element Values(1):
+                      IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+      Arguments(0)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -609,7 +598,8 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
       IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
         Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Alignment: null
-        FormatString: null]]>.Value
+        FormatString: null
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -659,8 +649,10 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'Case x')
-  Children(0)
+IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Case x')
+  Children(1):
+      ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause, IsInvalid) (Syntax: 'x')
+        Value: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -851,10 +843,7 @@ End Structure
                 references:={MscorlibRef, SystemRef, compilation0.EmitToImageReference(embedInteropTypes:=True)})
 
             Dim expectedOperationTree = <![CDATA[
-IInvalidExpression (OperationKind.InvalidExpression, Type: I, IsInvalid) (Syntax: 'New I(x)')
-  Children(2):
-      IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'x')
-      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New I(x)')
+IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New I(x)')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

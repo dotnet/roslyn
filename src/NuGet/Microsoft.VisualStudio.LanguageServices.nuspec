@@ -4,11 +4,17 @@
     <id>Microsoft.VisualStudio.LanguageServices</id>
     <summary>
       .NET Compiler Platform ("Roslyn") support for Visual Studio.
-      
-Supported Platforms:
-- .NET Framework 4.6
     </summary>
-    <description>$commitPathMessage$</description>
+    <description>
+      .NET Compiler Platform ("Roslyn") support for Visual Studio.
+      
+      Supported Platforms:
+      - .NET Framework 4.6
+
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
+    </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis" version="[$version$]" />
     </dependencies>

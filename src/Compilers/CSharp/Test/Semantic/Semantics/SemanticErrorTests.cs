@@ -15533,22 +15533,15 @@ public unsafe class C
     public readonly S _s2;
 }";
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (18,9): error CS1708: Fixed size buffers can only be accessed through locals or fields
+                // (18,9): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
                 //         myC.UnsafeMethod().name[3] = 'a';  // CS1708
-                Diagnostic(ErrorCode.ERR_FixedNeedsLvalue, "myC.UnsafeMethod().name"),
-                // (19,9): error CS0198: A static readonly field cannot be assigned to (except in a static constructor or a variable initializer)
-                //         C._s1.name[3] = 'a';  // CS1708
-                Diagnostic(ErrorCode.ERR_AssgReadonlyStatic, "C._s1.name"),
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "myC.UnsafeMethod().name").WithLocation(18, 9),
                 // (19,9): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
                 //         C._s1.name[3] = 'a';  // CS1708
-                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "C._s1.name"),
-                // (20,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
-                //         myC._s2.name[3] = 'a';  // CS1708
-                Diagnostic(ErrorCode.ERR_AssgReadonly, "myC._s2.name"),
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "C._s1.name").WithLocation(19, 9),
                 // (20,9): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
                 //         myC._s2.name[3] = 'a';  // CS1708
-                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "myC._s2.name")
-                );
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "myC._s2.name").WithLocation(20, 9));
         }
 
         [Fact, WorkItem(543995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543995"), WorkItem(544258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544258")]

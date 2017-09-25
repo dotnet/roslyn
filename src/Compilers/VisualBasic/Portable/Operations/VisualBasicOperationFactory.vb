@@ -26,21 +26,13 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
             ' this should be removed once this issue is fixed
             ' https://github.com/dotnet/roslyn/issues/21186
-            If TypeOf boundNode Is BoundValuePlaceholderBase Then
-                ' since same place holder bound node appears in multiple places in the tree
+            ' https://github.com/dotnet/roslyn/issues/21554
+            If TypeOf boundNode Is BoundValuePlaceholderBase OrElse
+               (TypeOf boundNode Is BoundParameter AndAlso boundNode.WasCompilerGenerated) Then
+                ' since same bound node appears in multiple places in the tree
                 ' we can't use bound node to operation map.
-                ' for now, we will just create new operation and return clone but we need to figure out
-                ' what we want to do with place holder node such as just returning nothing
+                ' for now, we will just create new operation and return cloned
                 Return _semanticModel.CloneOperation(CreateInternal(boundNode))
-            End If
-
-            ' this should be removed once this issue is fixed
-            ' https://github.com/dotnet/roslyn/issues/21187
-            If IsIgnoredNode(boundNode) Then
-                ' due to how IOperation is set up, some of VB BoundNode must be ignored
-                ' while generating IOperation. otherwise, 2 different IOperation trees will be created
-                ' for nodes under same sub tree
-                Return Nothing
             End If
 
             ' A BoundUserDefined conversion is always the operand of a BoundConversion, and is handled
@@ -48,29 +40,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Debug.Assert(boundNode.Kind <> BoundKind.UserDefinedConversion)
 
             Return _cache.GetOrAdd(boundNode, Function(n) CreateInternal(n))
-        End Function
-
-        Private Shared Function IsIgnoredNode(boundNode As BoundNode) As Boolean
-            ' since boundNode doesn't have parent pointer, it can't just look around using bound node
-            ' it needs to use syntax node.  we ignore these because this will return its own operation tree
-            ' that don't belong to its parent operation tree.
-            Select Case boundNode.Kind
-                Case BoundKind.LocalDeclaration
-                    Return boundNode.Syntax.Kind() = SyntaxKind.ModifiedIdentifier AndAlso
-                           If(boundNode.Syntax.Parent?.Kind() = SyntaxKind.VariableDeclarator, False)
-                Case BoundKind.ExpressionStatement
-                    Return boundNode.Syntax.Kind() = SyntaxKind.SelectStatement
-                Case BoundKind.CaseBlock
-                    Return True
-                Case BoundKind.CaseStatement
-                    Return True
-                Case BoundKind.EventAccess
-                    Return boundNode.Syntax.Parent.Kind() = SyntaxKind.AddHandlerStatement OrElse
-                           boundNode.Syntax.Parent.Kind() = SyntaxKind.RemoveHandlerStatement OrElse
-                           boundNode.Syntax.Parent.Kind() = SyntaxKind.RaiseEventAccessorStatement
-            End Select
-
-            Return False
         End Function
 
         Private Function CreateInternal(boundNode As BoundNode) As IOperation
@@ -125,6 +94,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return CreateBoundTernaryConditionalExpressionOperation(DirectCast(boundNode, BoundTernaryConditionalExpression))
                 Case BoundKind.TypeOf
                     Return CreateBoundTypeOfOperation(DirectCast(boundNode, BoundTypeOf))
+                Case BoundKind.GetType
+                    Return CreateBoundGetTypeOperation(DirectCast(boundNode, BoundGetType))
                 Case BoundKind.ObjectCreationExpression
                     Return CreateBoundObjectCreationExpressionOperation(DirectCast(boundNode, BoundObjectCreationExpression))
                 Case BoundKind.ObjectInitializerExpression
@@ -167,6 +138,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return CreateBoundIfStatementOperation(DirectCast(boundNode, BoundIfStatement))
                 Case BoundKind.SelectStatement
                     Return CreateBoundSelectStatementOperation(DirectCast(boundNode, BoundSelectStatement))
+                Case BoundKind.CaseBlock
+                    Return CreateBoundCaseBlockOperation(DirectCast(boundNode, BoundCaseBlock))
                 Case BoundKind.SimpleCaseClause
                     Return CreateBoundSimpleCaseClauseOperation(DirectCast(boundNode, BoundSimpleCaseClause))
                 Case BoundKind.RangeCaseClause
@@ -238,6 +211,36 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return Create(DirectCast(boundNode, BoundAnonymousTypeFieldInitializer).Value)
                 Case BoundKind.AnonymousTypePropertyAccess
                     Return CreateBoundAnonymousTypePropertyAccessOperation(DirectCast(boundNode, BoundAnonymousTypePropertyAccess))
+                Case BoundKind.QueryExpression
+                    Return CreateBoundQueryExpressionOperation(DirectCast(boundNode, BoundQueryExpression))
+                Case BoundKind.QueryClause
+                    ' Query clause has no special representation in the IOperation tree
+                    Return Create(DirectCast(boundNode, BoundQueryClause).UnderlyingExpression)
+                Case BoundKind.QueryableSource
+                    ' Queryable source has no special representation in the IOperation tree
+                    Return Create(DirectCast(boundNode, BoundQueryableSource).Source)
+                Case BoundKind.AggregateClause
+                    ' Aggregate clause has no special representation in the IOperation tree
+                    Return Create(DirectCast(boundNode, BoundAggregateClause).UnderlyingExpression)
+                Case BoundKind.Ordering
+                    ' Ordering clause has no special representation in the IOperation tree
+                    Return Create(DirectCast(boundNode, BoundOrdering).UnderlyingExpression)
+                Case BoundKind.GroupAggregation
+                    ' Group aggregation has no special representation in the IOperation tree
+                    Return Create(DirectCast(boundNode, BoundGroupAggregation).Group)
+                Case BoundKind.QuerySource
+                    ' Query source has no special representation in the IOperation tree
+                    Return Create(DirectCast(boundNode, BoundQuerySource).Expression)
+                Case BoundKind.ToQueryableCollectionConversion
+                    ' Queryable collection conversion has no special representation in the IOperation tree
+                    Return Create(DirectCast(boundNode, BoundToQueryableCollectionConversion).ConversionCall)
+                Case BoundKind.QueryLambda
+                    ' Query lambda must be lowered to the regular lambda form for the operation tree.
+                    Dim rewrittenLambda As BoundNode = RewriteQueryLambda(DirectCast(boundNode, BoundQueryLambda))
+                    Return Create(rewrittenLambda)
+                Case BoundKind.RangeVariableAssignment
+                    ' Range variable assignment has no special representation in the IOperation tree
+                    Return Create(DirectCast(boundNode, BoundRangeVariableAssignment).Value)
                 Case Else
                     Dim constantValue = ConvertToOptional(TryCast(boundNode, BoundExpression)?.ConstantValueOpt)
                     Dim isImplicit As Boolean = boundNode.WasCompilerGenerated
@@ -254,6 +257,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim builder = ArrayBuilder(Of IOperation).GetInstance(boundNodeWithChildren.Children.Length)
             For Each childNode In boundNodeWithChildren.Children
                 Dim operation = Create(childNode)
+                If operation Is Nothing Then
+                    Continue For
+                End If
+
                 builder.Add(operation)
             Next
 
@@ -502,7 +509,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
             ' We match semantic model here: If the Then expression IsMissing, we have a null type, rather than the ErrorType Of the bound node.
             Dim type As ITypeSymbol = If(syntax.IsMissing, Nothing, boundBadExpression.Type)
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundBadExpression.ConstantValueOpt)
-            Dim isImplicit As Boolean = boundBadExpression.WasCompilerGenerated
+
+            ' if child has syntax node point to same syntax node as bad expression, then this invalid expression Is implicit
+            Dim isImplicit = boundBadExpression.WasCompilerGenerated OrElse boundBadExpression.ChildBoundNodes.Any(Function(e) e?.Syntax Is boundBadExpression.Syntax)
             Return New LazyInvalidExpression(children, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
@@ -691,6 +700,15 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundTypeOf.ConstantValueOpt)
             Dim isImplicit As Boolean = boundTypeOf.WasCompilerGenerated
             Return New LazyIsTypeExpression(operand, isType, isNotTypeExpression, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundGetTypeOperation(boundGetType As BoundGetType) As ITypeOfExpression
+            Dim typeOperand As ITypeSymbol = boundGetType.SourceType.Type
+            Dim syntax As SyntaxNode = boundGetType.Syntax
+            Dim type As ITypeSymbol = boundGetType.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundGetType.ConstantValueOpt)
+            Dim isImplicit As Boolean = boundGetType.WasCompilerGenerated
+            Return New TypeOfExpression(typeOperand, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundLateInvocationOperation(boundLateInvocation As BoundLateInvocation) As IOperation
@@ -972,12 +990,38 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundSelectStatementOperation(boundSelectStatement As BoundSelectStatement) As ISwitchStatement
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundSelectStatement.ExpressionStatement.Expression))
-            Dim cases As Lazy(Of ImmutableArray(Of ISwitchCase)) = New Lazy(Of ImmutableArray(Of ISwitchCase))(Function() GetSwitchStatementCases(boundSelectStatement.CaseBlocks))
+            Dim cases As Lazy(Of ImmutableArray(Of ISwitchCase)) = New Lazy(Of ImmutableArray(Of ISwitchCase))(Function() boundSelectStatement.CaseBlocks.SelectAsArray(Function(n) DirectCast(Create(n), ISwitchCase)))
             Dim syntax As SyntaxNode = boundSelectStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundSelectStatement.WasCompilerGenerated
             Return New LazySwitchStatement(value, cases, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundCaseBlockOperation(boundCaseBlock As BoundCaseBlock) As ISwitchCase
+            Dim clauses As Lazy(Of ImmutableArray(Of ICaseClause)) = New Lazy(Of ImmutableArray(Of ICaseClause))(
+                Function()
+                    ' `CaseElseClauseSyntax` is bound to `BoundCaseStatement` with an empty list of case clauses,
+                    ' so we explicitly create an IOperation node for Case-Else clause to differentiate it from Case clause.
+                    Dim caseStatement = boundCaseBlock.CaseStatement
+                    If caseStatement.CaseClauses.IsEmpty AndAlso caseStatement.Syntax.Kind() = SyntaxKind.CaseElseStatement Then
+                        Return ImmutableArray.Create(Of ICaseClause)(
+                            New DefaultCaseClause(
+                                _semanticModel,
+                                caseStatement.Syntax,
+                                type:=Nothing,
+                                constantValue:=Nothing,
+                                isImplicit:=boundCaseBlock.WasCompilerGenerated))
+                    Else
+                        Return caseStatement.CaseClauses.SelectAsArray(Function(n) DirectCast(Create(n), ICaseClause))
+                    End If
+                End Function)
+            Dim body As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() ImmutableArray.Create(Create(boundCaseBlock.Body)))
+            Dim syntax As SyntaxNode = boundCaseBlock.Syntax
+            Dim type As ITypeSymbol = Nothing
+            Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
+            Dim isImplicit As Boolean = boundCaseBlock.WasCompilerGenerated
+            Return New LazySwitchCase(clauses, body, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundSimpleCaseClauseOperation(boundSimpleCaseClause As BoundSimpleCaseClause) As ISingleValueCaseClause
@@ -1137,7 +1181,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function CreateBoundCatchBlockOperation(boundCatchBlock As BoundCatchBlock) As ICatchClause
             Dim handler As Lazy(Of IBlockStatement) = New Lazy(Of IBlockStatement)(Function() DirectCast(Create(boundCatchBlock.Body), IBlockStatement))
-            Dim caughtType As ITypeSymbol = Nothing ' Manual
+            Dim caughtType As ITypeSymbol = boundCatchBlock.ExceptionSourceOpt?.Type
             Dim filter As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundCatchBlock.ExceptionFilterOpt))
             Dim exceptionLocal As ILocalSymbol = boundCatchBlock.LocalOpt
             Dim syntax As SyntaxNode = boundCatchBlock.Syntax
@@ -1183,7 +1227,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim syntax As SyntaxNode = boundBadStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Dim isImplicit As Boolean = boundBadStatement.WasCompilerGenerated
+
+            ' if child has syntax node point to same syntax node as bad statement, then this invalid statement is implicit
+            Dim isImplicit = boundBadStatement.WasCompilerGenerated OrElse boundBadStatement.ChildBoundNodes.Any(Function(e) e?.Syntax Is boundBadStatement.Syntax)
             Return New LazyInvalidStatement(children, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
@@ -1442,6 +1488,15 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAnonymousTypePropertyAccess.ConstantValueOpt)
             Dim isImplicit As Boolean = boundAnonymousTypePropertyAccess.WasCompilerGenerated
             Return New LazyPropertyReferenceExpression([property], instance, [property], argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundQueryExpressionOperation(boundQueryExpression As BoundQueryExpression) As IOperation
+            Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundQueryExpression.LastOperator))
+            Dim syntax As SyntaxNode = boundQueryExpression.Syntax
+            Dim type As ITypeSymbol = boundQueryExpression.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundQueryExpression.ConstantValueOpt)
+            Dim isImplicit As Boolean = boundQueryExpression.WasCompilerGenerated
+            Return New LazyTranslatedQueryExpression(expression, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
     End Class
 End Namespace

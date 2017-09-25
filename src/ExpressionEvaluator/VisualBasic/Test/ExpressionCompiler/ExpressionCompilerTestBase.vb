@@ -362,7 +362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         End Function
 
         Friend Shared Function GetAttributeIfAny(method As IMethodSymbol, typeName As String) As SynthesizedAttributeData
-            Return method.GetSynthesizedAttributes(forReturnType:=True).
+            Return DirectCast(method, MethodSymbol).GetSynthesizedAttributes(forReturnType:=True).
                 Where(Function(a) a.AttributeClass.ToTestDisplayString() = typeName).
                 SingleOrDefault()
         End Function

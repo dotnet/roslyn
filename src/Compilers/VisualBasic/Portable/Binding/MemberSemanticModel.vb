@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim vbDestination = destination.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(destination))
 
-            Dim boundExpression = TryCast(Me.GetLowerBoundNode(expression), boundExpression)
+            Dim boundExpression = TryCast(Me.GetLowerBoundNode(expression), BoundExpression)
 
             If boundExpression Is Nothing OrElse vbDestination.IsErrorType() Then
                 Return New Conversion(Nothing)  ' NoConversion
@@ -177,17 +177,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            Dim expressionSyntax = TryCast(parent, expressionSyntax)
+            Dim expressionSyntax = TryCast(parent, ExpressionSyntax)
             If expressionSyntax IsNot Nothing Then
                 Return SyntaxFactory.GetStandaloneExpression(expressionSyntax)
             End If
 
-            Dim statementSyntax = TryCast(parent, statementSyntax)
+            Dim statementSyntax = TryCast(parent, StatementSyntax)
             If statementSyntax IsNot Nothing AndAlso IsStandaloneStatement(statementSyntax) Then
                 Return statementSyntax
             End If
 
-            Dim attributeSyntax = TryCast(parent, attributeSyntax)
+            Dim attributeSyntax = TryCast(parent, AttributeSyntax)
             If attributeSyntax IsNot Nothing Then
                 Return attributeSyntax
             End If
@@ -793,17 +793,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return GetSymbolInfoForNode(options, GetBoundNodeSummary(node), binderOpt:=Nothing)
         End Function
 
-        Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
-            Dim summary = GetBoundNodeSummary(node)
-            Dim result As BoundNode
-            Select Case options
-                Case GetOperationOptions.Highest
-                    result = summary.HighestBoundNode
-                Case GetOperationOptions.Parent
-                    result = summary.LowestBoundNodeOfSyntacticParent
-                Case Else
-                    result = summary.LowestBoundNode
-            End Select
+        Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, cancellationToken As CancellationToken) As IOperation
+            ' see whether we can bind smaller scope than GetBindingRoot to make perf better
+            ' https://github.com/dotnet/roslyn/issues/22176
+            Dim bindingRoot = DirectCast(GetBindingRoot(node), VisualBasicSyntaxNode)
+
+            Dim statementOrRootOperation As IOperation = GetStatementOrRootOperation(bindingRoot, cancellationToken)
+            If statementOrRootOperation Is Nothing Then
+                Return Nothing
+            End If
+
+            ' we might optimize it later
+            ' https://github.com/dotnet/roslyn/issues/22180
+            Return statementOrRootOperation.DescendantsAndSelf().FirstOrDefault(Function(o) Not o.IsImplicit AndAlso o.Syntax Is node)
+        End Function
+
+        Private Function GetStatementOrRootOperation(node As VisualBasicSyntaxNode, cancellationToken As CancellationToken) As IOperation
+            Debug.Assert(node Is GetBindingRoot(node))
+
+            Dim summary As BoundNodeSummary = GetBoundNodeSummary(node)
+
+            ' decide whether we should use highest or lowest bound node here 
+            ' https://github.com/dotnet/roslyn/issues/22179
+            Dim result As BoundNode = summary.HighestBoundNode
 
             Return _operationFactory.Value.Create(result)
         End Function

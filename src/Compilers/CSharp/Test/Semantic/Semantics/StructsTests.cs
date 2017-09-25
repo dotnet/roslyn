@@ -182,6 +182,7 @@ class Program
         }
 
         // Overriding base System.Object methods on struct
+        [WorkItem(20496, "https://github.com/dotnet/roslyn/issues/20496")]
         [WorkItem(540990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540990")]
         [ClrOnlyFact(ClrOnlyReason.MemberOrder)]
         public void TestOverridingBaseConstructorStruct()

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -1680,13 +1680,13 @@ IBlockStatement (3 statements, 3 locals) (OperationKind.BlockStatement) (Syntax:
     Local_2: System.Int32? q
     Local_3: System.Boolean[] b
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int x = xint + 123;')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'int x = xint + 123;')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x = xint + 123')
       Variables: Local_1: System.Int32 x
       Initializer: IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 X<System.Int32>.op_Addition(X<System.Int32> x, System.Int32 y)) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'xint + 123')
           Left: IParameterReferenceExpression: xint (OperationKind.ParameterReferenceExpression, Type: X<System.Int32>) (Syntax: 'xint')
           Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 123) (Syntax: '123')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int? q = ne ... new int?();')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'int? q = ne ... new int?();')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'q = new Q<i ...  new int?()')
       Variables: Local_1: System.Int32? q
       Initializer: IBinaryOperatorExpression (BinaryOperatorKind.Add, IsLifted) (OperatorMethod: System.Int32 Q<System.Int32>.op_Addition(Q<System.Int32> x, System.Int32 y)) (OperationKind.BinaryOperatorExpression, Type: System.Int32?) (Syntax: 'new Q<int>? ...  new int?()')
           Left: IObjectCreationExpression (Constructor: Q<System.Int32>?..ctor()) (OperationKind.ObjectCreationExpression, Type: Q<System.Int32>?) (Syntax: 'new Q<int>?()')
@@ -1696,7 +1696,7 @@ IBlockStatement (3 statements, 3 locals) (OperationKind.BlockStatement) (Syntax:
               Arguments(0)
               Initializer: null
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'bool[] b = ... };')
-    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'bool[] b = ... };')
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b = ... }')
       Variables: Local_1: System.Boolean[] b
       Initializer: IArrayCreationExpression (Element Type: System.Boolean) (OperationKind.ArrayCreationExpression, Type: System.Boolean[]) (Syntax: '{ ... }')
           Dimension Sizes(1):
@@ -2056,6 +2056,33 @@ IBlockStatement (10 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(21723, "https://github.com/dotnet/roslyn/issues/21723")]
+        public void TestCompoundLiftedAssignment_IOperation()
+        {
+            string source = @"
+class C
+{
+    static void M(int a, int? b)
+    {
+        /*<bind>*/a += b/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+ICompoundAssignmentExpression (BinaryOperatorKind.Add, IsLifted) (OperationKind.CompoundAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: 'a += b')
+  Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'a')
+  Right: IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32?, IsInvalid) (Syntax: 'b')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0266: Cannot implicitly convert type 'int?' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         /*<bind>*/a += b/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a += b").WithArguments("int?", "int").WithLocation(6, 19)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

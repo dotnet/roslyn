@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    internal interface ITypeOfExpression : IOperation // https://github.com/dotnet/roslyn/issues/22003
+    public interface ITypeOfExpression : IOperation
     {
         /// <summary>
         /// Type operand.

@@ -47,7 +47,8 @@ End Class]]>.Value
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"Only text part"')
   Parts(1):
       IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'Only text part')
-        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Only text part") (Syntax: 'Only text part')]]>.Value
+        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Only text part") (Syntax: 'Only text part')
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -72,7 +73,8 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
       IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
         Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Alignment: null
-        FormatString: null]]>.Value
+        FormatString: null
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -136,7 +138,8 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
       IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
         Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Alignment: null
-        FormatString: null]]>.Value
+        FormatString: null
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -180,7 +183,8 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
       IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
         Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Alignment: null
-        FormatString: null]]>.Value
+        FormatString: null
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -210,7 +214,8 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
         Expression: IFieldReferenceExpression: [Class].x As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'x')
             Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'x')
         Alignment: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
-        FormatString: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "D3") (Syntax: ':D3')]]>.Value
+        FormatString: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "D3") (Syntax: ':D3')
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 

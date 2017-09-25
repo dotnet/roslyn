@@ -164,6 +164,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool FeatureStrictEnabled => Feature("strict") != null;
 
         /// <summary>
+        /// True when "peverify-compat" is set
+        /// With this flag we will avoid certain patterns known not be compatible with PEVerify.
+        /// The code may be less efficient and may deviate from spec in corner cases.
+        /// The flag is only to be used if PEVerify pass is extremely important.
+        /// </summary>
+        internal bool FeaturePEVerifyCompatEnabled => Feature("peverify-compat") != null;
+
+        /// <summary>
         /// The language version that was used to parse the syntax trees of this compilation.
         /// </summary>
         public LanguageVersion LanguageVersion
@@ -1989,6 +1997,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private IEnumerable<Diagnostic> FreezeDeclarationDiagnostics()
         {
             _declarationDiagnosticsFrozen = true;
+
+            // Also freeze generated attribute flags by observing them
+            // symbols bound after getting the declaration diagnostics shouldn't need to modify the flags
+            _needsGeneratedIsReadOnlyAttribute_IsFrozen = true;
+            _needsGeneratedIsByRefLikeAttribute_IsFrozen = true;
+
             var result = _lazyDeclarationDiagnostics?.AsEnumerable() ?? Enumerable.Empty<Diagnostic>();
             return result;
         }
