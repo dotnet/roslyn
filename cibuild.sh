@@ -114,9 +114,9 @@ BUILD_ARGS="--no-restore -c ${BUILD_CONFIGURATION} /nologo /consoleloggerparamet
 PUBLISH_ARGS="-f ${TARGET_FRAMEWORK} -r ${RUNTIME_ID} ${BUILD_ARGS}"
 
 echo "Building bootstrap csc"
-dotnet publish "${SRC_PATH}"/Compilers/CSharp/csc -o "${BOOTSTRAP_PATH}"/csc "${PUBLISH_ARGS}"
+dotnet publish "${SRC_PATH}"/Compilers/CSharp/csc -o "${BOOTSTRAP_PATH}"/csc ${PUBLISH_ARGS}
 echo "Building bootstrap vbc"
-dotnet publish "${SRC_PATH}"/Compilers/VisualBasic/vbc -o "${BOOTSTRAP_PATH}"/vbc "${PUBLISH_ARGS}"
+dotnet publish "${SRC_PATH}"/Compilers/VisualBasic/vbc -o "${BOOTSTRAP_PATH}"/vbc ${PUBLISH_ARGS}
 rm -rf "${BINARIES_PATH:?}"/"${BUILD_CONFIGURATION}"
 BUILD_ARGS+=" /p:CscToolPath=${BOOTSTRAP_PATH}/csc /p:CscToolExe=csc /p:VbcToolPath=${BOOTSTRAP_PATH}/vbc /p:VbcToolExe=vbc"
 
