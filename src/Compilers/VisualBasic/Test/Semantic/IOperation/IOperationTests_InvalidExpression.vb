@@ -379,7 +379,7 @@ Class Program
 End Class]]>.Value
 
 Dim expectedOperationTree = <![CDATA[
-IArrayCreationExpression (Element Type: X) (OperationKind.ArrayCreationExpression, Type: X(), IsInvalid) (Syntax: 'New X(Program - 1) {{1}}')
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: X(), IsInvalid) (Syntax: 'New X(Program - 1) {{1}}')
   Dimension Sizes(1):
       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program - 1')
         Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program - 1')
@@ -391,7 +391,8 @@ IArrayCreationExpression (Element Type: X) (OperationKind.ArrayCreationExpressio
   Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{{1}}')
       Element Values(1):
           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '{1}')
-            Children(0)]]>.Value
+            Children(0)
+]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
 BC30002: Type 'X' is not defined.
