@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         IOperation Value { get; }
         /// <summary>
-        /// Conversion applied to the argument value passing it into the target method. Applicable only to VB Reference arguments.
+        /// Information of the conversion applied to the argument value passing it into the target method. Applicable only to VB Reference arguments.
         /// </summary>
-        IOperation InConversion { get; }
+        CommonConversion InConversion { get; }
         /// <summary>
-        /// Conversion applied to the argument value after the invocation. Applicable only to VB Reference arguments.
+        /// Information of the conversion applied to the argument value after the invocation. Applicable only to VB Reference arguments.
         /// </summary>
-        IOperation OutConversion { get; }
+        CommonConversion OutConversion { get; }
     }
 }
 

@@ -5,7 +5,13 @@
     <summary>
       .NET Compiler Platform ("Roslyn") support for analyzing C# projects and solutions.
     </summary>
-    <description>$commitPathMessage$</description>
+    <description>
+      .NET Compiler Platform ("Roslyn") support for analyzing C# projects and solutions.
+
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
+    </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.CSharp" version="[$version$]" />
       <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="[$version$]" />

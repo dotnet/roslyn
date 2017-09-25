@@ -1015,7 +1015,9 @@ public class Cls
 
             var typeInfo = model.GetTypeInfo(decl);
             Assert.Equal(expectedType, typeInfo.Type);
-            Assert.Equal(expectedType, model.GetOperationInternal(decl)?.Type);
+
+            // skip cases where operation is not supported
+            AssertTypeFromOperation(model, expectedType, decl);
 
             // Note: the following assertion is not, in general, correct for declaration expressions,
             // even though this helper is used to handle declaration expressions.
@@ -1064,6 +1066,38 @@ public class Cls
             Assert.Equal(conversion, ((CSharpSemanticModel)model).ClassifyConversion(decl.Position, decl, model.Compilation.ObjectType, true));
 
             Assert.Null(model.GetDeclaredSymbol(decl));
+        }
+
+        private static void AssertTypeFromOperation(SemanticModel model, TypeSymbol expectedType, DeclarationExpressionSyntax decl)
+        {
+            // see https://github.com/dotnet/roslyn/issues/22175 for more detail.
+
+            // unlike GetSymbolInfo or GetTypeInfo, GetOperation doesn't use SemanticModel's recovery mode.
+            // what that means is that GetOperation might return null for ones GetSymbol/GetTypeInfo do return info from
+            // error recovery mode
+            var variableDeclarator = decl.Ancestors().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
+            if (variableDeclarator?.ArgumentList?.FullSpan.Contains(decl.Span) == true)
+            {
+                // node in argument list is error case which operation doesn't support
+                return;
+            }
+
+            var foreachLoop = decl.Ancestors().OfType<ForEachVariableStatementSyntax>().FirstOrDefault();
+            if (foreachLoop?.Variable?.FullSpan.Contains(decl.Span) == true &&
+                foreachLoop?.Variable.IsKind(SyntaxKind.InvocationExpression) == true)
+            {
+                // invalid syntax case where operation is not supported
+                return;
+            }
+
+            var typeofExpression = decl.Ancestors().OfType<TypeOfExpressionSyntax>().FirstOrDefault();
+            if (typeofExpression?.Type?.FullSpan.Contains(decl.Span) == true)
+            {
+                // invalid syntax case where operation is not supported
+                return;
+            }
+
+            Assert.Equal(expectedType, model.GetOperationInternal(decl)?.Type);
         }
 
         private static void VerifyDataFlow(SemanticModel model, DeclarationExpressionSyntax decl, bool isDelegateCreation, bool isExecutableCode, IdentifierNameSyntax[] references, ISymbol symbol)
@@ -8650,7 +8684,7 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
-            
+
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -21605,7 +21639,7 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "StaticType").WithArguments("Cls.StaticType").WithLocation(6, 19)
                 );
         }
-        
+
         [Fact]
         public void GlobalCode_Catch_01()
         {
@@ -32511,7 +32545,7 @@ class C
 
             var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
             Assert.Equal("var", varType.ToString());
-            Assert.Null(model.GetAliasInfo(varType)); 
+            Assert.Null(model.GetAliasInfo(varType));
 
             var decl = GetOutVarDeclaration(tree, "x");
             Assert.Equal("var", model.GetTypeInfo(decl).Type.ToTestDisplayString()); // crashes
@@ -32547,7 +32581,7 @@ class C
 
             var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
             Assert.Equal("var", varType.ToString());
-            Assert.Null(model.GetAliasInfo(varType)); 
+            Assert.Null(model.GetAliasInfo(varType));
 
             var decl = GetOutVarDeclaration(tree, "x");
             Assert.Equal("var", model.GetTypeInfo(decl).Type.ToTestDisplayString()); // crashes
@@ -32653,7 +32687,7 @@ class C
 
             var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
             Assert.Equal("var", varType.ToString());
-            Assert.Null(model.GetAliasInfo(varType)); 
+            Assert.Null(model.GetAliasInfo(varType));
 
             var decl = GetOutVarDeclaration(tree, "x");
             Assert.Equal("var", model.GetTypeInfo(decl).Type.ToTestDisplayString()); // crashes

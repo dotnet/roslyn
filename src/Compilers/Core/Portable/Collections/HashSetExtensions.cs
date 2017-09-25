@@ -10,5 +10,19 @@ namespace Microsoft.CodeAnalysis
         {
             return hashSet == null || hashSet.Count == 0;
         }
+
+        internal static bool InitializeAndAdd<T>(ref HashSet<T> hashSet, T item) where T : class
+        {
+            if (item is null)
+            {
+                return false;
+            }
+            else if (hashSet is null)
+            {
+                hashSet = new HashSet<T>();
+            }
+
+            return hashSet.Add(item);
+        }
     }
 }

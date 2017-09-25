@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SyntaxTreeSemanticModel _parentSemanticModelOpt;
         private readonly int _speculatedPosition;
 
+        private readonly Lazy<CSharpOperationFactory> _operationFactory;
+
         protected MemberSemanticModel(CSharpCompilation compilation, CSharpSyntaxNode root, Symbol memberSymbol, Binder rootBinder, SyntaxTreeSemanticModel parentSemanticModelOpt, int speculatedPosition)
         {
             Debug.Assert(compilation != null);
@@ -48,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.RootBinder = rootBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
             _parentSemanticModelOpt = parentSemanticModelOpt;
             _speculatedPosition = speculatedPosition;
+
+            _operationFactory = new Lazy<CSharpOperationFactory>(() => new CSharpOperationFactory(this));
         }
 
         public override CSharpCompilation Compilation
@@ -104,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override MemberSemanticModel GetMemberModel(SyntaxNode node)
         {
             // We do have to override this method, but should never call it because it might not do the right thing. 
-            Debug.Assert(false); 
+            Debug.Assert(false);
             return IsInTree(node) ? this : null;
         }
 
@@ -592,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static LocalFunctionSymbol GetDeclaredLocalFunction(Binder enclosingBinder, SyntaxToken declaredIdentifier)
         {
-            for (var binder = enclosingBinder ; binder != null; binder = binder.Next)
+            for (var binder = enclosingBinder; binder != null; binder = binder.Next)
             {
                 foreach (var localFunction in binder.LocalFunctions)
                 {
@@ -930,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var elements = tupleLiteralType.TupleElements;
 
-                if(!elements.IsDefault)
+                if (!elements.IsDefault)
                 {
                     var idx = tupleLiteral.Arguments.IndexOf(declaratorSyntax);
                     return elements[idx];
@@ -955,31 +959,76 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override IOperation GetOperationWorker(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
+        internal override IOperation GetOperationWorker(CSharpSyntaxNode node, CancellationToken cancellationToken)
         {
-            CSharpSyntaxNode bindableNode;
+            CSharpSyntaxNode bindingRoot = GetBindingRootOrInitializer(node);
 
-            BoundNode lowestBoundNode;
-            BoundNode highestBoundNode;
-            BoundNode boundParent;
-
-            GetBoundNodes(node, out bindableNode, out lowestBoundNode, out highestBoundNode, out boundParent);
-            BoundNode result;
-            switch (options)
+            IOperation statementOrRootOperation = GetStatementOrRootOperation(bindingRoot, cancellationToken);
+            if (statementOrRootOperation == null)
             {
-                case GetOperationOptions.Parent:
-                    result = boundParent;
-                    break;
-                case GetOperationOptions.Highest:
-                    result = highestBoundNode;
-                    break;
-                case GetOperationOptions.Lowest:
-                default:
-                    result = lowestBoundNode;
-                    break;
+                return null;
             }
 
-            return result as IOperation;
+            // we might optimize it later
+            // https://github.com/dotnet/roslyn/issues/22180
+            return statementOrRootOperation.DescendantsAndSelf().FirstOrDefault(o => !o.IsImplicit && o.Syntax == node);
+        }
+
+        private CSharpSyntaxNode GetBindingRootOrInitializer(CSharpSyntaxNode node)
+        {
+            CSharpSyntaxNode bindingRoot = GetBindingRoot(node);
+
+            // if binding root is parameter, make it equal value
+            // we need to do this since node map doesn't contain bound node for parameter
+            if (bindingRoot is ParameterSyntax parameter && parameter.Default?.FullSpan.Contains(node.Span) == true)
+            {
+                return parameter.Default;
+            }
+
+            // if binding root is field variable declarator, make it initializer
+            // we need to do this since node map doesn't contain bound node for field/event variable declarator
+            if (bindingRoot is VariableDeclaratorSyntax variableDeclarator && variableDeclarator.Initializer?.FullSpan.Contains(node.Span) == true)
+            {
+                if (variableDeclarator.Parent?.Parent.IsKind(SyntaxKind.FieldDeclaration) == true ||
+                    variableDeclarator.Parent?.Parent.IsKind(SyntaxKind.EventFieldDeclaration) == true)
+                {
+                    return variableDeclarator.Initializer;
+                }
+            }
+
+            // if binding root is enum member decleration, make it equal value
+            // we need to do this since node map doesn't contain bound node for enum member decl
+            if (bindingRoot is EnumMemberDeclarationSyntax enumMember && enumMember.EqualsValue?.FullSpan.Contains(node.Span) == true)
+            {
+                return enumMember.EqualsValue;
+            }
+
+            // if binding root is property member decleration, make it equal value
+            // we need to do this since node map doesn't contain bound node for property initializer
+            if (bindingRoot is PropertyDeclarationSyntax propertyMember && propertyMember.Initializer?.FullSpan.Contains(node.Span) == true)
+            {
+                return propertyMember.Initializer;
+            }
+
+            return bindingRoot;
+        }
+
+        private IOperation GetStatementOrRootOperation(CSharpSyntaxNode node, CancellationToken cancellationToken)
+        {
+            Debug.Assert(node == GetBindingRootOrInitializer(node));
+
+            BoundNode highestBoundNode;
+            GetBoundNodes(node, out _, out _, out highestBoundNode, out _);
+
+            // decide whether we should use highest or lowest bound node here 
+            // https://github.com/dotnet/roslyn/issues/22179
+            BoundNode result = highestBoundNode;
+
+            // The CSharp operation factory assumes that UnboundLambda will be bound for error recovery and never be passed to the factory
+            // as the start of a tree to get operations for. This is guaranteed by the builder that populates the node map, as it will call
+            // UnboundLambda.BindForErrorRecovery() when it encounters an UnboundLambda node.
+            Debug.Assert(result?.Kind != BoundKind.UnboundLambda);
+            return _operationFactory.Value.Create(result);
         }
 
         internal override SymbolInfo GetSymbolInfoWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))
@@ -1079,6 +1128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void GetBoundNodes(CSharpSyntaxNode node, out CSharpSyntaxNode bindableNode, out BoundNode lowestBoundNode, out BoundNode highestBoundNode, out BoundNode boundParent)
         {
             bindableNode = this.GetBindableSyntaxNode(node);
+
             CSharpSyntaxNode bindableParent = this.GetBindableParentNode(bindableNode);
 
             // Special handling for the Color Color case.
@@ -1282,19 +1332,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
-            StatementSyntax enclosingStatement = null;
+#if DEBUG
+            for (CSharpSyntaxNode current = node; current != this.Root; current = current.ParentOrStructuredTriviaParent)
+            {
+                // make sure we never go out of Root
+                Debug.Assert(current != null, "How did we get outside the root?");
+            }
+#endif
 
             for (CSharpSyntaxNode current = node; current != this.Root; current = current.ParentOrStructuredTriviaParent)
             {
-                Debug.Assert(current != null, "How did we get outside the root?");
-
-                if (enclosingStatement == null)
+                if (current is StatementSyntax)
                 {
-                    enclosingStatement = current as StatementSyntax;
+                    return current;
                 }
             }
 
-            return enclosingStatement ?? this.Root;
+            return this.Root;
         }
 
         // We want the binder in which this syntax node is going to be bound, NOT the binder which
@@ -1754,7 +1808,7 @@ done:
             }
 
             var parent = node.Parent;
-            if (parent != null)
+            if (parent != null && node != this.Root)
             {
                 switch (node.Kind())
                 {
@@ -1827,7 +1881,7 @@ done:
                 {
                     return null;
                 }
-                
+
                 throw new ArgumentException($"The parent of {nameof(node)} must not be null unless this is a speculative semantic model.", nameof(node));
             }
 
@@ -1936,7 +1990,7 @@ done:
                     // _lazyGuardedSynthesizedStatementsMap
                     if (statement.WasCompilerGenerated)
                     {
-                        _semanticModel.GuardedAddSynthesizedStatementToMap(node, statement); 
+                        _semanticModel.GuardedAddSynthesizedStatementToMap(node, statement);
                     }
 
                     return statement;

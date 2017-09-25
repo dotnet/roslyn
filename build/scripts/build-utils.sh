@@ -7,13 +7,7 @@ set -u
 
 get_repo_dir()
 {
-    local d=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-    pushd $d > /dev/null
-    cd ..
-    cd ..
-    local repoDir=$(pwd)
-    popd > /dev/null
-    echo $repoDir
+    cd -P "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd
 }
 
 # This function will give you the current version number for the specified string in the 

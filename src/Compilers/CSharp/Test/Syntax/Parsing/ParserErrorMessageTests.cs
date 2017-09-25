@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -3069,89 +3071,103 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "message").WithArguments("message").WithLocation(8, 22));
         }
 
-        [WorkItem(863401, "DevDiv/Personal")]
         [Fact]
-        public void CS1101ERR_BadRefWithThis()
+        public void BadParameterModifiers_ThisWithRef()
         {
-            // No error
             var test = @"
 using System;
 public static class Extensions
 {
     //No type parameters
-    public static void Goo(ref this int i) {}
+    public static void Goo1(this ref int i) {}
     //Single type parameter
-    public static void Goo<T>(ref this T t) {}
+    public static void Goo1<T>(this ref T t) where T : struct {}
     //Multiple type parameters
-    public static void Goo<T,U,V>(ref this U u) {}
+    public static void Goo1<T,U,V>(this ref U u) where U : struct {}
 }
-public static class GenExtensions<X>
+public static class GenExtensions<X> where X : struct
 {
     //No type parameters
-    public static void Goo(ref this int i) {}
-    public static void Goo(ref this X x) {}
+    public static void Goo2(this ref int i) {}
+    public static void Goo2(this ref X x) {}
     //Single type parameter
-    public static void Goo<T>(ref this T t) {}
-    public static void Goo<T>(ref this X x) {}
+    public static void Goo2<T>(this ref T t) where T : struct {}
+    public static void Goo2<T>(this ref X x) {}
     //Multiple type parameters
-    public static void Goo<T,U,V>(ref this U u) {}
-    public static void Goo<T,U,V>(ref this X x) {}
+    public static void Goo2<T,U,V>(this ref U u) where U : struct {}
+    public static void Goo2<T,U,V>(this ref X x) {}
 }
 ";
 
             CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
-                // (10,39): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
-                //     public static void Goo<T,U,V>(ref this U u) {}
-                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(10, 39),
-                // (22,39): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
-                //     public static void Goo<T,U,V>(ref this X x) {}
-                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(22, 39),
+                // (10,41): error CS8328:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Goo1<T,U,V>(this ref U u) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(10, 41),
+                // (22,41): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Goo2<T,U,V>(this ref X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(22, 41),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (8,35): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
-                //     public static void Goo<T>(ref this T t) {}
-                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(8, 35),
-                // (16,32): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
-                //     public static void Goo(ref this X x) {}
-                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(16, 32),
+                // (8,37): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Goo1<T>(this ref T t) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(8, 37),
+                // (16,34): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Goo2(this ref X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(16, 34),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (6,32): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
-                //     public static void Goo(ref this int i) {}
-                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(6, 32),
-                // (18,35): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
-                //     public static void Goo<T>(ref this T t) {}
-                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(18, 35),
+                // (6,34): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Goo1(this ref int i) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(6, 34),
+                // (18,37): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Goo2<T>(this ref T t) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(18, 37),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (19,35): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
-                //     public static void Goo<T>(ref this X x) {}
-                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(19, 35),
+                // (19,37): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Goo2<T>(this ref X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(19, 37),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (21,39): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
-                //     public static void Goo<T,U,V>(ref this U u) {}
-                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(21, 39),
+                // (21,41): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Goo2<T,U,V>(this ref U u) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(21, 41),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (15,32): error CS1101:  The parameter modifier 'ref' cannot be used with 'this' 
-                //     public static void Goo(ref this int i) {}
-                Diagnostic(ErrorCode.ERR_BadRefWithThis, "this").WithLocation(15, 32),
+                // (15,34): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Goo2(this ref int i) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(15, 34),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void RefReadOnlyParametersWouldErrorOutInEarlierCSharpVersions()
+        {
+            var code = @"
+public class Test
+{
+    public void DoSomething(ref readonly int x) { }
+}";
+
+            ParseAndValidate(code, new CSharpParseOptions(LanguageVersion.CSharp7),
+                // (4,29): error CS8107: Feature 'readonly references' is not available in C# 7. Please use language version 7.2 or greater.
+                // public void DoSomething(ref readonly int x) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "ref").WithArguments("readonly references", "7.2").WithLocation(4, 29)
+            );
         }
 
         [WorkItem(906072, "DevDiv/Personal")]
         [Fact]
         public void CS1102ERR_BadOutWithThis()
         {
-            // No error
             var test = @"
 using System;
 public static class Extensions
@@ -3178,48 +3194,48 @@ public static class GenExtensions<X>
 ";
 
             CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
-                // (10,40): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
-                //     public static void Goo<T,U,V>(this out U u) {}
-                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(10, 40),
-                // (8,36): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
-                //     public static void Goo<T>(this out T t) {}
-                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(8, 36),
-                // (6,33): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
-                //     public static void Goo(this out int i) {}
-                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(6, 33),
-                // (22,40): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
-                //     public static void Goo<T,U,V>(this out X x) {}
-                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(22, 40),
+                // (10,40): error CS8328:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(this out U u) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this"),
+                // (8,36): error CS8328:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T>(this out T t) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this"),
+                // (6,33): error CS8328:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo(this out int i) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this"),
+                // (22,40): error CS8328:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(this out X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this"),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (16,33): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
-                //     public static void Goo(this out X x) {}
-                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(16, 33),
+                // (16,33): error CS8328:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo(this out X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this"),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (18,36): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
-                //     public static void Goo<T>(this out T t) {}
-                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(18, 36),
+                // (18,36): error CS8328:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T>(this out T t) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this"),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (19,36): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
-                //     public static void Goo<T>(this out X x) {}
-                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(19, 36),
+                // (19,36): error CS8328:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T>(this out X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this"),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (21,40): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
-                //     public static void Goo<T,U,V>(this out U u) {}
-                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(21, 40),
+                // (21,40): error CS8328:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo<T,U,V>(this out U u) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this"),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (15,33): error CS1102:  The parameter modifier 'out' cannot be used with 'this' 
-                //     public static void Goo(this out int i) {}
-                Diagnostic(ErrorCode.ERR_BadOutWithThis, "out").WithLocation(15, 33),
+                // (15,33): error CS8328:  The parameter modifier 'out' cannot be used with 'this' 
+                //     public static void Foo(this out int i) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this"),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21));
@@ -3229,7 +3245,6 @@ public static class GenExtensions<X>
         [Fact]
         public void CS1104ERR_BadParamModThis()
         {
-            // NO error
             var test = @"
 using System;
 public static class Extensions
@@ -3306,7 +3321,6 @@ public static class GenExtensions<X>
         [Fact, WorkItem(535930, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535930")]
         public void CS1107ERR_DupParamMod()
         {
-            // Diff errors
             var test = @"
 using System;
 public static class Extensions
@@ -3319,7 +3333,6 @@ public static class Extensions
     public static void Goo(int this) {}
 }
 ";
-            // Extra errors
             CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
                 // (10,32): error CS1100: Method 'Goo' has a parameter modifier 'this' which is not on the first parameter
                 //     public static void Goo(int this) {}
@@ -3348,7 +3361,6 @@ public static class Extensions
         [Fact]
         public void CS1108ERR_MultiParamMod()
         {
-            // No error
             var test = @"
 using System;
 public static class Extensions
@@ -3375,33 +3387,319 @@ public static class GenExtensions<X>
 ";
 
             CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
-                // (10,39): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
-                //     public static void Goo<T,U,V>(ref out U u) {}
-                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(10, 39),
-                // (8,35): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
-                //     public static void Goo<T>(ref out T t) {}
-                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(8, 35),
-                // (6,32): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
-                //     public static void Goo(ref out int i) {}
-                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(6, 32),
-                // (22,39): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
-                //     public static void Goo<T,U,V>(ref out X x) {}
-                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(22, 39),
-                // (16,32): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
-                //     public static void Goo(ref out X x) {}
-                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(16, 32),
-                // (18,35): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
-                //     public static void Goo<T>(ref out T t) {}
-                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(18, 35),
-                // (19,35): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
-                //     public static void Goo<T>(ref out X x) {}
-                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(19, 35),
-                // (21,39): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
-                //     public static void Goo<T,U,V>(ref out U u) {}
-                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(21, 39),
-                // (15,32): error CS1108: A parameter cannot have all the specified modifiers; there are too many modifiers on the parameter
-                //     public static void Goo(ref out int i) {}
-                Diagnostic(ErrorCode.ERR_MultiParamMod, "out").WithLocation(15, 32));
+                // (6,32): error CS81250:  The parameter modifier 'out' cannot be used with 'ref' 
+                //     public static void Foo(ref out int i) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(6, 32),
+                // (8,35): error CS81250:  The parameter modifier 'out' cannot be used with 'ref' 
+                //     public static void Foo<T>(ref out T t) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(8, 35),
+                // (10,39): error CS81250:  The parameter modifier 'out' cannot be used with 'ref' 
+                //     public static void Foo<T,U,V>(ref out U u) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(10, 39),
+                // (15,32): error CS81250:  The parameter modifier 'out' cannot be used with 'ref' 
+                //     public static void Foo(ref out int i) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(15, 32),
+                // (16,32): error CS81250:  The parameter modifier 'out' cannot be used with 'ref' 
+                //     public static void Foo(ref out X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(16, 32),
+                // (18,35): error CS81250:  The parameter modifier 'out' cannot be used with 'ref' 
+                //     public static void Foo<T>(ref out T t) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(18, 35),
+                // (19,35): error CS81250:  The parameter modifier 'out' cannot be used with 'ref' 
+                //     public static void Foo<T>(ref out X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(19, 35),
+                // (21,39): error CS81250:  The parameter modifier 'out' cannot be used with 'ref' 
+                //     public static void Foo<T,U,V>(ref out U u) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(21, 39),
+                // (22,39): error CS81250:  The parameter modifier 'out' cannot be used with 'ref' 
+                //     public static void Foo<T,U,V>(ref out X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(22, 39));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void DuplicateParameterModifiersWillErrorOut()
+        {
+            var test = @"
+public static class TestType
+{
+    public static void Test1(ref ref int i) {}
+    public static void Test2(out out int i) {}
+    public static void Test3(this this int i) {}
+    public static void Test4(params params int[] i) {}
+    public static void Test5(ref readonly ref readonly int[] i) {}
+}
+";
+
+            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+                // (8,43): error CS1107: A parameter can only have one 'ref' modifier
+                //     public static void Test5(ref readonly ref readonly int[] i) {}
+                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(8, 43),
+                // (8,47): error CS1107: A parameter can only have one 'readonly' modifier
+                //     public static void Test6(ref readonly ref readonly int[] i) {}
+                Diagnostic(ErrorCode.ERR_DupParamMod, "readonly").WithArguments("readonly").WithLocation(8, 47),
+                // (5,34): error CS1107: A parameter can only have one 'out' modifier
+                //     public static void Test2(out out int i) {}
+                Diagnostic(ErrorCode.ERR_DupParamMod, "out").WithArguments("out").WithLocation(5, 34),
+                // (6,35): error CS1107: A parameter can only have one 'this' modifier
+                //     public static void Test3(this this int i) {}
+                Diagnostic(ErrorCode.ERR_DupParamMod, "this").WithArguments("this").WithLocation(6, 35),
+                // (7,37): error CS1107: A parameter can only have one 'params' modifier
+                //     public static void Test4(params params int[] i) {}
+                Diagnostic(ErrorCode.ERR_DupParamMod, "params").WithArguments("params").WithLocation(7, 37),
+                // (4,34): error CS1107: A parameter can only have one 'ref' modifier
+                //     public static void Test1(ref ref int i) {}
+                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(4, 34));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void BadRefReadOnlyWithRefParameterModifiers()
+        {
+            var test = @"
+public class TestType
+{
+// No type parameters
+public static void Method1(ref readonly ref int i) { }
+public static void Method2(ref ref readonly int i) { }
+
+// Single type parameters
+public static void Method3<T>(ref readonly ref int i) { }
+public static void Method4<T>(ref ref readonly int i) { }
+
+// Multiple type parameters
+public static void Method5<T, U, V>(ref readonly ref int i) { }
+public static void Method6<T, U, V>(ref ref readonly int i) { }
+}
+";
+
+            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+                // (5,41): error CS1107: A parameter can only have one 'ref' modifier
+                // public static void Method1(ref readonly ref int i) { }
+                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(5, 41),
+                // (6,32): error CS1107: A parameter can only have one 'ref' modifier
+                // public static void Method2(ref ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(6, 32),
+                // (9,44): error CS1107: A parameter can only have one 'ref' modifier
+                // public static void Method3<T>(ref readonly ref int i) { }
+                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(9, 44),
+                // (10,35): error CS1107: A parameter can only have one 'ref' modifier
+                // public static void Method4<T>(ref ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(10, 35),
+                // (13,50): error CS1107: A parameter can only have one 'ref' modifier
+                // public static void Method5<T, U, V>(ref readonly ref int i) { }
+                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(13, 50),
+                // (14,41): error CS1107: A parameter can only have one 'ref' modifier
+                // public static void Method6<T, U, V>(ref ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(14, 41));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void BadRefReadOnlyWithThisParameterModifiers()
+        {
+            var test = @"
+public static class TestType
+{
+// No type parameters
+public static void Method1(ref readonly this int i) { }
+public static void Method2(this ref readonly int i) { }
+
+// Single type parameters
+public static void Method3<T>(ref readonly this int i) { }
+public static void Method4<T>(this ref readonly int i) { }
+
+// Multiple type parameters
+public static void Method5<T, U, V>(ref readonly this int i) { }
+public static void Method6<T, U, V>(this ref readonly int i) { }
+}
+";
+
+            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+                // (14,42): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                // public static void Method6<T, U, V>(this ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(14, 42),
+                // (14,46): error CS8339:  The parameter modifier 'readonly' cannot be used after the modifier 'this' 
+                // public static void Method6<T, U, V>(this ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "readonly").WithArguments("readonly", "this").WithLocation(14, 46),
+                // (6,33): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                // public static void Method2(this ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(6, 33),
+                // (6,37): error CS8339:  The parameter modifier 'readonly' cannot be used after the modifier 'this' 
+                // public static void Method2(this ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "readonly").WithArguments("readonly", "this").WithLocation(6, 37),
+                // (10,36): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                // public static void Method4<T>(this ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(10, 36),
+                // (10,40): error CS8339:  The parameter modifier 'readonly' cannot be used after the modifier 'this' 
+                // public static void Method4<T>(this ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "readonly").WithArguments("readonly", "this").WithLocation(10, 40));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void BadRefReadOnlyWithParamsParameterModifiers()
+        {
+            var test = @"
+public class TestType
+{
+// No type parameters
+public static void Method1(ref readonly params int[] i) { }
+public static void Method2(params ref readonly int[] i) { }
+
+// Single type parameters
+public static void Method3<T>(ref readonly params int[] i) { }
+public static void Method4<T>(params ref readonly int[] i) { }
+
+// Multiple type parameters
+public static void Method5<T, U, V>(ref readonly params int[] i) { }
+public static void Method6<T, U, V>(params ref readonly int[] i) { }
+}
+";
+
+            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+                // (6,35): error CS1611: The params parameter cannot be declared as ref
+                // public static void Method2(params ref readonly int[] i) { }
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "ref").WithArguments("ref").WithLocation(6, 35),
+                // (6,39): error CS1611: The params parameter cannot be declared as readonly
+                // public static void Method2(params ref readonly int[] i) { }
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "readonly").WithArguments("readonly").WithLocation(6, 39),
+                // (9,44): error CS8328:  The parameter modifier 'params' cannot be used with 'ref' 
+                // public static void Method3<T>(ref readonly params int[] i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "ref").WithLocation(9, 44),
+                // (10,38): error CS1611: The params parameter cannot be declared as ref
+                // public static void Method4<T>(params ref readonly int[] i) { }
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "ref").WithArguments("ref").WithLocation(10, 38),
+                // (10,42): error CS1611: The params parameter cannot be declared as readonly
+                // public static void Method4<T>(params ref readonly int[] i) { }
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "readonly").WithArguments("readonly").WithLocation(10, 42),
+                // (13,50): error CS8328:  The parameter modifier 'params' cannot be used with 'ref' 
+                // public static void Method5<T, U, V>(ref readonly params int[] i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "ref").WithLocation(13, 50),
+                // (14,44): error CS1611: The params parameter cannot be declared as ref
+                // public static void Method6<T, U, V>(params ref readonly int[] i) { }
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "ref").WithArguments("ref").WithLocation(14, 44),
+                // (14,48): error CS1611: The params parameter cannot be declared as readonly
+                // public static void Method6<T, U, V>(params ref readonly int[] i) { }
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "readonly").WithArguments("readonly").WithLocation(14, 48),
+                // (5,41): error CS8328:  The parameter modifier 'params' cannot be used with 'ref' 
+                // public static void Method1(ref readonly params int[] i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "ref").WithLocation(5, 41));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void BadRefReadOnlyWithOutParameterModifiers()
+        {
+            var test = @"
+public class TestType
+{
+// No type parameters
+public static void Method1(ref readonly out int i) { }
+public static void Method2(out ref readonly int i) { }
+
+// Single type parameters
+public static void Method3<T>(ref readonly out int i) { }
+public static void Method4<T>(out ref readonly int i) { }
+
+// Multiple type parameters
+public static void Method5<T, U, V>(ref readonly out int i) { }
+public static void Method6<T, U, V>(out ref readonly int i) { }
+}
+";
+
+            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+                // (5,41): error CS8328:  The parameter modifier 'out' cannot be used with 'ref' 
+                // public static void Method1(ref readonly out int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(5, 41),
+                // (6,32): error CS8328:  The parameter modifier 'ref' cannot be used with 'out' 
+                // public static void Method2(out ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(6, 32),
+                // (6,36): error CS8328:  The parameter modifier 'readonly' cannot be used with 'out' 
+                // public static void Method2(out ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "out").WithLocation(6, 36),
+                // (9,44): error CS8328:  The parameter modifier 'out' cannot be used with 'ref' 
+                // public static void Method3<T>(ref readonly out int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(9, 44),
+                // (10,35): error CS8328:  The parameter modifier 'ref' cannot be used with 'out' 
+                // public static void Method4<T>(out ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(10, 35),
+                // (10,39): error CS8328:  The parameter modifier 'readonly' cannot be used with 'out' 
+                // public static void Method4<T>(out ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "out").WithLocation(10, 39),
+                // (13,50): error CS8328:  The parameter modifier 'out' cannot be used with 'ref' 
+                // public static void Method5<T, U, V>(ref readonly out int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(13, 50),
+                // (14,41): error CS8328:  The parameter modifier 'ref' cannot be used with 'out' 
+                // public static void Method6<T, U, V>(out ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(14, 41),
+                // (14,45): error CS8328:  The parameter modifier 'readonly' cannot be used with 'out' 
+                // public static void Method6<T, U, V>(out ref readonly int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "out").WithLocation(14, 45));
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void RefReadonlyParametersAreParsedCorrectly()
+        {
+            var test = @"
+public class Test
+{
+    public delegate int Delegate(ref readonly int a);
+
+    public void Method(ref readonly int b)
+    {
+        void localFunc(ref readonly int c) { }
+
+        Delegate lambda = (ref readonly int d) => d;
+
+        Delegate anonymousDelegate = delegate (ref readonly int e) { return e; };
+    }
+
+    public int this [ref readonly int f]
+    {
+        get { return f; }
+    }
+
+    public static bool operator ! (ref readonly Test g)
+    {
+        return false;
+    }
+}
+";
+
+            var tree = ParseTree(test, TestOptions.Regular);
+            tree.GetDiagnostics().Verify();
+
+            var methodDeclaration = (MethodDeclarationSyntax)tree.GetRoot().DescendantNodes().Single(node => node is MethodDeclarationSyntax);
+            verifyModifier(methodDeclaration.ParameterList.Parameters);
+
+            var delegateDeclaration = (DelegateDeclarationSyntax)tree.GetRoot().DescendantNodes().Single(node => node is DelegateDeclarationSyntax);
+            verifyModifier(delegateDeclaration.ParameterList.Parameters);
+
+            var localFunctionStatement = (LocalFunctionStatementSyntax)tree.GetRoot().DescendantNodes().Single(node => node is LocalFunctionStatementSyntax);
+            verifyModifier(localFunctionStatement.ParameterList.Parameters);
+
+            var lambdaExpression = (ParenthesizedLambdaExpressionSyntax)tree.GetRoot().DescendantNodes().Single(node => node is ParenthesizedLambdaExpressionSyntax);
+            verifyModifier(lambdaExpression.ParameterList.Parameters);
+
+            var anonymousMethodExpression = (AnonymousMethodExpressionSyntax)tree.GetRoot().DescendantNodes().Single(node => node is AnonymousMethodExpressionSyntax);
+            verifyModifier(anonymousMethodExpression.ParameterList.Parameters);
+
+            var indexerDeclaration = (IndexerDeclarationSyntax)tree.GetRoot().DescendantNodes().Single(node => node is IndexerDeclarationSyntax);
+            verifyModifier(indexerDeclaration.ParameterList.Parameters);
+
+            var operatorDeclaration = (OperatorDeclarationSyntax)tree.GetRoot().DescendantNodes().Single(node => node is OperatorDeclarationSyntax);
+            verifyModifier(operatorDeclaration.ParameterList.Parameters);
+
+            void verifyModifier(SeparatedSyntaxList<ParameterSyntax> list)
+            {
+                var parameter = list.Single();
+                Assert.Equal(2, parameter.Modifiers.Count);
+
+                Assert.Equal(SyntaxKind.RefKeyword, parameter.Modifiers.First().Kind());
+                Assert.Equal(SyntaxKind.ReadOnlyKeyword, parameter.Modifiers.Last().Kind());
+            }
         }
 
         [Fact]
@@ -4315,28 +4613,23 @@ public class Test
 }
 ";
             // Extra errors
-            CreateStandardCompilation(test).VerifyDiagnostics(
-                // (6,33): error CS1002: ; expected
-                //         int *p = stackalloc int (30); 
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(6, 33),
+            CreateStandardCompilation(test, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (7,34): error CS1002: ; expected
                 //         int *pp = stackalloc int 30; 
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "30").WithLocation(7, 34),
-                // (4,30): error CS0227: Unsafe code may only appear if compiling with /unsafe
-                //     unsafe public static int Main()
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Main").WithLocation(4, 30),
+                // (6,18): error CS1525: Invalid expression term 'stackalloc'
+                //         int *p = stackalloc int (30); 
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 18),
                 // (6,29): error CS1575: A stackalloc expression requires [] after type
                 //         int *p = stackalloc int (30); 
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int").WithLocation(6, 29),
-                // (6,33): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
-                //         int *p = stackalloc int (30); 
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "(30)").WithLocation(6, 33),
                 // (7,30): error CS1575: A stackalloc expression requires [] after type
                 //         int *pp = stackalloc int 30; 
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int").WithLocation(7, 30),
                 // (7,34): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
                 //         int *pp = stackalloc int 30; 
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "30").WithLocation(7, 34));
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "30").WithLocation(7, 34)
+                );
         }
 
         [Fact]
@@ -4349,10 +4642,7 @@ unsafe public class Test
     int* p = stackalloc int[1];
 }
 ";
-            CreateStandardCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
-                // (4,14): error CS1525: Invalid expression term 'stackalloc'
-                //     int* p = stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 14));
+            CreateStandardCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).GetParseDiagnostics().Verify();
         }
 
         [Fact]
@@ -4368,10 +4658,7 @@ unsafe public class Test
     }
 }
 ";
-            CreateStandardCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
-                // (6,33): error CS1525: Invalid expression term 'stackalloc'
-                //         int*[] p = new int*[] { stackalloc int[1] };
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 33));
+            CreateStandardCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).GetParseDiagnostics().Verify();
         }
 
         [Fact]
@@ -4390,10 +4677,8 @@ unsafe public class Test
             CreateStandardCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
                 // (6,15): error CS0283: The type 'int*' cannot be declared const
                 //         const int* p = stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_BadConstType, "int*").WithArguments("int*").WithLocation(6, 15),
-                // (6,24): error CS1525: Invalid expression term 'stackalloc'
-                //         const int* p = stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 24));
+                Diagnostic(ErrorCode.ERR_BadConstType, "int*").WithArguments("int*").WithLocation(6, 15)
+            );
         }
         
         [Fact]
@@ -4433,9 +4718,13 @@ public class Test
 }
 ";
             CreateStandardCompilation(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
-                // (6,39): error CS0029: Cannot implicitly convert type 'int*' to 'System.IDisposable'
+                // (6,39): error CS0518: Predefined type 'System.Span`1' is not defined or imported
                 //         using (System.IDisposable v = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "stackalloc int[1]").WithArguments("int*", "System.IDisposable").WithLocation(6, 39));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1]").WithArguments("System.Span`1").WithLocation(6, 39),
+                // (6,39): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'IDisposable' is not possible.
+                //         using (System.IDisposable v = stackalloc int[1])
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[1]").WithArguments("int", "System.IDisposable").WithLocation(6, 39)
+             );
         }
 
         [WorkItem(906993, "DevDiv/Personal")]
@@ -4622,40 +4911,35 @@ public class Test
                 Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "private").WithLocation(8, 9));
         }
 
-        [WorkItem(863423, "DevDiv/Personal")]
         [Fact]
-        public void CS1611ERR_ParamsCantBeRefOut()
+        public void ParamsCantBeUsedWithModifiers()
         {
-            // No error
             var test = @"
 public class Test
 {
-    public static void goo(params ref int[] a) 
+    public static void ParamsWithRef(params ref int[] a) 
     {
     }
-    public static void boo(params out int[] a) 
+    public static void ParamsWithOut(params out int[] a) 
     {
     }
     public static int Main()
     {
         int i = 10;
-        goo(ref i);
-        boo(out i);
+        ParamsWithRef(ref i);
+        ParamsWithOut(out i);
         return 1;
     }
 }
 ";
 
-            CreateStandardCompilation(test).VerifyDiagnostics(
-                // (7,35): error CS1611: The params parameter cannot be declared as ref or out
-                //     public static void boo(params out int[] a) 
-                Diagnostic(ErrorCode.ERR_ParamsCantBeRefOut, "out").WithLocation(7, 35),
-                // (4,35): error CS1611: The params parameter cannot be declared as ref or out
-                //     public static void goo(params ref int[] a) 
-                Diagnostic(ErrorCode.ERR_ParamsCantBeRefOut, "ref").WithLocation(4, 35),
-                // (7,24): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
-                //     public static void boo(params out int[] a) 
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "boo").WithArguments("a").WithLocation(7, 24));
+            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+                // (4,45): error CS1611: The params parameter cannot be declared as ref
+                //     public static void ParamsWithRef(params ref int[] a) 
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "ref").WithArguments("ref").WithLocation(4, 45),
+                // (7,45): error CS1611: The params parameter cannot be declared as out
+                //     public static void ParamsWithOut(params out int[] a) 
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "out").WithArguments("out").WithLocation(7, 45));
         }
 
         [Fact]
@@ -5309,6 +5593,67 @@ class TestClass { }";
                 N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
+        }
+
+        [Fact]
+        public void RefExtensionMethodsNotSupportedBefore7_2_RefReadOnlySyntax()
+        {
+            var code = @"
+public static class Extensions
+{
+    public static void Print(ref readonly this int p)
+    {
+        System.Console.WriteLine(p);
+    }
+}
+public static class Program
+{
+    public static void Main()
+    {
+        int p = 5;
+        p.Print();
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).GetParseDiagnostics().Verify(
+               // (4,30): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
+               //     public static void Print(ref readonly this int p)
+               Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "ref").WithArguments("readonly references", "7.2").WithLocation(4, 30),
+               // (4,30): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+               //     public static void Print(ref readonly this int p)
+               Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "ref").WithArguments("ref extension methods", "7.2").WithLocation(4, 30)
+            );
+
+            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void RefExtensionMethodsNotSupportedBefore7_2_RefSyntax()
+        {
+            var code = @"
+public static class Extensions
+{
+    public static void Print(ref this int p)
+    {
+        System.Console.WriteLine(p);
+    }
+}
+public static class Program
+{
+    public static void Main()
+    {
+        int p = 5;
+        p.Print();
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).GetParseDiagnostics().Verify(
+               // (4,30): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+               //     public static void Print(ref this int p)
+               Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "ref").WithArguments("ref extension methods", "7.2").WithLocation(4, 30)
+            );
+
+            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "5");
         }
 
         #endregion

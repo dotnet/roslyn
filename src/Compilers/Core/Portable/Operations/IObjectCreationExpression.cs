@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         IMethodSymbol Constructor { get; }
         /// <summary>
-        /// List of member or collection initializer expressions in the object initializer, if any.
+        /// Object or collection initializer, if any.
         /// </summary>
-        ImmutableArray<IOperation> Initializers { get; }
+        IObjectOrCollectionInitializerExpression Initializer { get; }
     }
 }
 
