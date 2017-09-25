@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -2056,6 +2056,33 @@ IBlockStatement (10 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(21723, "https://github.com/dotnet/roslyn/issues/21723")]
+        public void TestCompoundLiftedAssignment_IOperation()
+        {
+            string source = @"
+class C
+{
+    static void M(int a, int? b)
+    {
+        /*<bind>*/a += b/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+ICompoundAssignmentExpression (BinaryOperatorKind.Add, IsLifted) (OperationKind.CompoundAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: 'a += b')
+  Left: IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'a')
+  Right: IParameterReferenceExpression: b (OperationKind.ParameterReferenceExpression, Type: System.Int32?, IsInvalid) (Syntax: 'b')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0266: Cannot implicitly convert type 'int?' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         /*<bind>*/a += b/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a += b").WithArguments("int?", "int").WithLocation(6, 19)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
