@@ -2,7 +2,6 @@
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -10,10 +9,12 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 {
-    internal abstract class AbstractXmlTagCompletionCommandHandler : ICommandHandler<TypeCharCommandArgs>
+    internal abstract class AbstractXmlTagCompletionCommandHandler : ILegacyCommandHandler<TypeCharCommandArgs>
     {
         private readonly ITextUndoHistoryRegistry _undoHistory;
         private readonly IWaitIndicator _waitIndicator;

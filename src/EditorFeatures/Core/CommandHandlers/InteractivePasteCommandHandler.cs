@@ -10,22 +10,22 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using System.IO;
 using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
     // This command handler must be invoked after the handlers specified in `Order` attribute
-    // (those handlers also implement `ICommandHandler<PasteCommandArgs>`),
+    // (those handlers also implement `ILegacyCommandHandler<PasteCommandArgs>`),
     // because it will intercept the paste command and skip the rest of handlers in chain.  
-    [ExportCommandHandler(PredefinedCommandHandlerNames.InteractivePaste, ContentTypeNames.RoslynContentType)]
+    [ExportLegacyCommandHandler(PredefinedCommandHandlerNames.InteractivePaste, ContentTypeNames.RoslynContentType)]
     [Order(After = PredefinedCommandHandlerNames.Rename)]
     [Order(After = PredefinedCommandHandlerNames.FormatDocument)]
     [Order(After = PredefinedCommandHandlerNames.Commit)]
     [Order(After = PredefinedCommandHandlerNames.Completion)]
-    internal sealed class InteractivePasteCommandHandler : ICommandHandler<PasteCommandArgs>
+    internal sealed class InteractivePasteCommandHandler : ILegacyCommandHandler<PasteCommandArgs>
     {
         // The following two field definitions have to stay in sync with VS editor implementation
 

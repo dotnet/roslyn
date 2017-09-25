@@ -22,11 +22,13 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
-    internal partial class EventHookupCommandHandler : ICommandHandler<TabKeyCommandArgs>
+    internal partial class EventHookupCommandHandler : ILegacyCommandHandler<TabKeyCommandArgs>
     {
         public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler)
         {
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             AssertIsForeground();
             if (EventHookupSessionManager.CurrentSession != null)
             {
-                return CommandState.Available;
+                return CommandState.CommandIsAvailable;
             }
             else
             {

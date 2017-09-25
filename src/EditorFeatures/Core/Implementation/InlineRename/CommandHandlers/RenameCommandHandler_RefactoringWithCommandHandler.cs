@@ -1,15 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal partial class RenameCommandHandler :
-        ICommandHandler<ReorderParametersCommandArgs>,
-        ICommandHandler<RemoveParametersCommandArgs>,
-        ICommandHandler<ExtractInterfaceCommandArgs>,
-        ICommandHandler<EncapsulateFieldCommandArgs>
+        ILegacyCommandHandler<ReorderParametersCommandArgs>,
+        ILegacyCommandHandler<RemoveParametersCommandArgs>,
+        ILegacyCommandHandler<ExtractInterfaceCommandArgs>,
+        ILegacyCommandHandler<EncapsulateFieldCommandArgs>
     {
         public CommandState GetCommandState(ReorderParametersCommandArgs args, Func<CommandState> nextHandler)
         {

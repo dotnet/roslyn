@@ -3,7 +3,6 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -13,17 +12,19 @@ using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.OrganizeDocument,
+    [ExportLegacyCommandHandler(PredefinedCommandHandlerNames.OrganizeDocument,
         ContentTypeNames.CSharpContentType,
         ContentTypeNames.VisualBasicContentType,
         ContentTypeNames.XamlContentType)]
     internal class OrganizeDocumentCommandHandler :
-        ICommandHandler<OrganizeDocumentCommandArgs>,
-        ICommandHandler<SortAndRemoveUnnecessaryImportsCommandArgs>
+        ILegacyCommandHandler<OrganizeDocumentCommandArgs>,
+        ILegacyCommandHandler<SortAndRemoveUnnecessaryImportsCommandArgs>
     {
         protected readonly IWaitIndicator WaitIndicator;
 
