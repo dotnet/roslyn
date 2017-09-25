@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public TestDesktopStrongNameProvider(
                 Func<string, byte[]> readAllBytes = null,
-                ReadKeysFromContainerDelegate readKeysFromContainer = null): base(ImmutableArray<string>.Empty, null, new TestStrongNameFileSystem(readAllBytes))
+                ReadKeysFromContainerDelegate readKeysFromContainer = null) : base(ImmutableArray<string>.Empty, null, new TestStrongNameFileSystem(readAllBytes))
             {
                 m_readKeysFromContainer = readKeysFromContainer;
             }
