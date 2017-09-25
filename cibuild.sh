@@ -104,11 +104,11 @@ echo "Using Runtime Identifier: ${RUNTIME_ID}"
 
 RESTORE_ARGS="-r ${RUNTIME_ID} -v Minimal --disable-parallel"
 echo "Restoring BaseToolset.csproj"
-dotnet restore "${RESTORE_ARGS}" "${ROOT_PATH}"/build/ToolsetPackages/BaseToolset.csproj
+dotnet restore ${RESTORE_ARGS} "${ROOT_PATH}"/build/ToolsetPackages/BaseToolset.csproj
 echo "Restoring CoreToolset.csproj"
-dotnet restore "${RESTORE_ARGS}" "${ROOT_PATH}"/build/ToolsetPackages/CoreToolset.csproj
+dotnet restore ${RESTORE_ARGS} "${ROOT_PATH}"/build/ToolsetPackages/CoreToolset.csproj
 echo "Restoring CrossPlatform.sln"
-dotnet restore "${RESTORE_ARGS}" "${ROOT_PATH}"/CrossPlatform.sln
+dotnet restore ${RESTORE_ARGS} "${ROOT_PATH}"/CrossPlatform.sln
 
 BUILD_ARGS="--no-restore -c ${BUILD_CONFIGURATION} /nologo /consoleloggerparameters:Verbosity=minimal;summary /bl:${BUILD_LOG_PATH} /maxcpucount:1"
 PUBLISH_ARGS="-f ${TARGET_FRAMEWORK} -r ${RUNTIME_ID} ${BUILD_ARGS}"
