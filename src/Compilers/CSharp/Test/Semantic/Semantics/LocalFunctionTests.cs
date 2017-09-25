@@ -31,6 +31,106 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
         [Fact]
+        public void UnsafeLocal()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        var bytesA = local();
+
+        unsafe byte[] local()
+        {
+            var bytes = new byte[sizeof(int)];
+            fixed (byte* ptr = &bytes[0])
+            {
+                *(int*)ptr = sizeof(int);
+            }
+            return bytes;
+        }
+    }
+}";
+
+            var comp = CreateStandardCompilation(source);
+            Assert.Empty(comp.GetDeclarationDiagnostics());
+            comp.VerifyDiagnostics(
+                // (8,23): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //         unsafe byte[] local()
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "local").WithLocation(8, 23)
+                );
+
+            var compWithUnsafe = CreateStandardCompilation(source, options: TestOptions.UnsafeDebugDll);
+            compWithUnsafe.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalInUnsafeStruct()
+        {
+            var source = @"
+unsafe struct C
+{
+    void A()
+    {
+        var bytesA = local();
+        var bytesB = B();
+
+        byte[] local()
+        {
+            var bytes = new byte[sizeof(int)];
+            fixed (byte* ptr = &bytes[0])
+            {
+                *(int*)ptr = sizeof(int);
+            }
+            return bytes;
+        }
+    }
+
+    byte[] B()
+    {
+        var bytes = new byte[sizeof(long)];
+        fixed (byte* ptr = &bytes[0])
+        {
+            *(long*)ptr = sizeof(long);
+        }
+        return bytes;
+    }
+}";
+            // no need to declare local function `local` or method `B` as unsafe
+            var compWithUnsafe = CreateStandardCompilation(source, options: TestOptions.UnsafeDebugDll);
+            compWithUnsafe.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalInUnsafeBlock()
+        {
+            var source = @"
+struct C
+{
+    void A()
+    {
+        unsafe
+        {
+            var bytesA = local();
+
+            byte[] local()
+            {
+                var bytes = new byte[sizeof(int)];
+                fixed (byte* ptr = &bytes[0])
+                {
+                    *(int*)ptr = sizeof(int);
+                }
+                return bytes;
+            }
+        }
+    }
+}";
+            // no need to declare local function `local` as unsafe
+            var compWithUnsafe = CreateStandardCompilation(source, options: TestOptions.UnsafeDebugDll);
+            compWithUnsafe.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void ConstraintBinding()
         {
             var comp = CreateStandardCompilation(@"

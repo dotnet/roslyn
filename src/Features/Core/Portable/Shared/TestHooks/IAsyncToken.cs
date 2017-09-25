@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         public void Dispose()
         {
+            // Empty by design requirement: operations which use IAsyncToken are free to optimize code sequences by
+            // eliding calls to EmptyAsyncToken.Dispose() with the understanding that it doesn't do anything.
         }
     }
 }

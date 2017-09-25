@@ -11,12 +11,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    internal interface IAwaitExpression : IOperation // https://github.com/dotnet/roslyn/issues/22007
+    public interface IAwaitExpression : IOperation
     {
         /// <summary>
-        /// Value to be awaited.
+        /// Awaited expression.
         /// </summary>
-        IOperation AwaitedValue { get; }
+        IOperation Expression { get; }
     }
 }
 

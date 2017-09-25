@@ -773,7 +773,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                valueKind = BindValueKind.RefOrOut;
+                valueKind = variableRefKind == RefKind.RefReadOnly
+                    ? BindValueKind.ReadonlyRef
+                    : BindValueKind.RefOrOut;
+
                 if (initializer == null)
                 {
                     Error(diagnostics, ErrorCode.ERR_ByReferenceVariableMustBeInitialized, node);
@@ -836,19 +839,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // might own nested scope.
             bool hasErrors = localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
-            if (localSymbol.RefKind == RefKind.RefReadOnly)
+            var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
+            if (containingMethod != null && containingMethod.IsAsync && localSymbol.RefKind != RefKind.None)
             {
-                Debug.Assert(typeSyntax.Parent is RefTypeSyntax);
-                var refKeyword = typeSyntax.Parent.GetFirstToken();
-                diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refKeyword.GetLocation(), refKeyword.ToString());
-            }
-            else
-            {
-                var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
-                if (containingMethod != null && containingMethod.IsAsync && localSymbol.RefKind != RefKind.None)
-                {
-                    Error(diagnostics, ErrorCode.ERR_BadAsyncLocalType, declarator);
-                }
+                Error(diagnostics, ErrorCode.ERR_BadAsyncLocalType, declarator);
             }
 
             EqualsValueClauseSyntax equalsClauseSyntax = declarator.Initializer;

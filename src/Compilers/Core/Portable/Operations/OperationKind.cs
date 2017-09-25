@@ -114,9 +114,8 @@ namespace Microsoft.CodeAnalysis
         InstanceReferenceExpression = 0x115,
         /// <summary>Indicates an <see cref="IIsTypeExpression"/>.</summary>
         IsTypeExpression = 0x116,
-        // https://github.com/dotnet/roslyn/issues/22007
-        // /// <summary>Indicates an <see cref="IAwaitExpression"/>.</summary>
-        // AwaitExpression = 0x117,
+        /// <summary>Indicates an <see cref="IAwaitExpression"/>.</summary>
+        AwaitExpression = 0x117,
         /// <summary>Indicates an <see cref="ISimpleAssignmentExpression"/>.</summary>
         SimpleAssignmentExpression = 0x118,
         /// <summary>Indicates an <see cref="ICompoundAssignmentExpression"/>.</summary>
