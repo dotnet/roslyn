@@ -1350,7 +1350,7 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; set
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1384,7 +1384,7 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; set
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1423,7 +1423,7 @@ IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 1], [System.
 
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1460,7 +1460,7 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { set; } (
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "this[10]").WithArguments("P.this[int]").WithLocation(12, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1498,7 +1498,7 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; } (
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "this[10]").WithArguments("P.this[int]").WithLocation(12, 19)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1549,7 +1549,7 @@ IPropertyReferenceExpression: System.Int32 Derived.this[[System.Int32 x = 8], [S
 
             string expectedOutput = @"1";
 
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
 
             CompileAndVerify(new[] { source }, new[] { SystemRef }, expectedOutput: expectedOutput);
         }
@@ -1592,7 +1592,7 @@ IPropertyReferenceExpression: System.Int32 P.this[System.Int32 x, params System.
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1624,7 +1624,7 @@ IPropertyReferenceExpression: ref System.Int32 P.this[System.Int32 x] { get; } (
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1739,7 +1739,7 @@ IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.
             var expectedOutput = @"10 4
 ";
 
-            var ilReference = VerifyOperationTreeAndDiagnosticsForTestWithIL<ElementAccessExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
+            var ilReference = VerifyOperationTreeAndDiagnosticsForTestWithIL<ElementAccessExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
 
             CompileAndVerify(new[] { csharp }, new[] { SystemRef, ilReference }, expectedOutput: expectedOutput);
         }
@@ -1857,7 +1857,7 @@ IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.
             var expectedOutput = @"10 2
 ";
 
-            var ilReference = VerifyOperationTreeAndDiagnosticsForTestWithIL<ElementAccessExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
+            var ilReference = VerifyOperationTreeAndDiagnosticsForTestWithIL<ElementAccessExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
 
             CompileAndVerify(new[] { csharp }, new[] { SystemRef, ilReference }, expectedOutput: expectedOutput);
         }
@@ -1976,7 +1976,7 @@ IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.
 10 2
 ";
 
-            var ilReference = VerifyOperationTreeAndDiagnosticsForTestWithIL<ElementAccessExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
+            var ilReference = VerifyOperationTreeAndDiagnosticsForTestWithIL<ElementAccessExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
 
             CompileAndVerify(new[] { csharp }, new[] { SystemRef, ilReference }, expectedOutput: expectedOutput);
         }
