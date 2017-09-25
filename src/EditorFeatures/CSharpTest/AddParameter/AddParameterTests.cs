@@ -1003,7 +1003,7 @@ class C1
         M1(1, 2);
     }
 }";
-                using (var workspace = CreateWorkspaceFromOptions(code, default))
+            using (var workspace = CreateWorkspaceFromOptions(code, default))
             {
                 var actions = await GetCodeActionsAsync(workspace, default);
                 Assert.True(actions.Length == 1);
