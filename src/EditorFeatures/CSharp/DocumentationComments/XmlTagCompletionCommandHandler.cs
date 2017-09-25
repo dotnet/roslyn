@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 {
-    [ExportCommandHandler("XmlTagCompletionCommandHandler", ContentTypeNames.CSharpContentType)]
+    [ExportLegacyCommandHandler("XmlTagCompletionCommandHandler", ContentTypeNames.CSharpContentType)]
     [Order(Before = PredefinedCommandHandlerNames.Completion)]
     internal class XmlTagCompletionCommandHandler : AbstractXmlTagCompletionCommandHandler
     {

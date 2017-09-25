@@ -8,13 +8,13 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal class ExportCommandHandlerAttribute : ExportAttribute
+    internal class ExportLegacyCommandHandlerAttribute : ExportAttribute
     {
         public string Name { get; }
         public IEnumerable<string> ContentTypes { get; }
 
-        public ExportCommandHandlerAttribute(string name, params string[] contentTypes) :
-            base(typeof(ICommandHandler))
+        public ExportLegacyCommandHandlerAttribute(string name, params string[] contentTypes) :
+            base(typeof(ILegacyCommandHandler))
         {
             this.Name = name;
             this.ContentTypes = contentTypes;

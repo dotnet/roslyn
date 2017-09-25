@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -845,7 +846,7 @@ $$
             return () => { };
         }
 
-        internal override ICommandHandler<AutomaticLineEnderCommandArgs> CreateCommandHandler(
+        internal override ILegacyCommandHandler<AutomaticLineEnderCommandArgs> CreateCommandHandler(
             Microsoft.CodeAnalysis.Editor.Host.IWaitIndicator waitIndicator,
             ITextUndoHistoryRegistry undoRegistry,
             IEditorOperationsFactoryService editorOperations)

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -14,17 +13,19 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
     [Export]
-    [ExportCommandHandler(PredefinedCommandHandlerNames.SignatureHelp, ContentTypeNames.RoslynContentType)]
+    [ExportLegacyCommandHandler(PredefinedCommandHandlerNames.SignatureHelp, ContentTypeNames.RoslynContentType)]
     [Order(Before = PredefinedCommandHandlerNames.Completion)]
     internal class SignatureHelpCommandHandler :
         ForegroundThreadAffinitizedObject,
-        ICommandHandler<TypeCharCommandArgs>,
-        ICommandHandler<InvokeSignatureHelpCommandArgs>
+        ILegacyCommandHandler<TypeCharCommandArgs>,
+        ILegacyCommandHandler<InvokeSignatureHelpCommandArgs>
     {
         private readonly IInlineRenameService _inlineRenameService;
         private readonly IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> _signatureHelpPresenter;
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             return true;
         }
 
-        private bool TryGetControllerCommandHandler<TCommandArgs>(TCommandArgs args, out ICommandHandler<TCommandArgs> commandHandler)
+        private bool TryGetControllerCommandHandler<TCommandArgs>(TCommandArgs args, out ILegacyCommandHandler<TCommandArgs> commandHandler)
             where TCommandArgs : CommandArgs
         {
             AssertIsForeground();
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 return false;
             }
 
-            commandHandler = (ICommandHandler<TCommandArgs>)controller;
+            commandHandler = (ILegacyCommandHandler<TCommandArgs>)controller;
             return true;
         }
 
@@ -125,25 +126,25 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             }
         }
 
-        CommandState ICommandHandler<TypeCharCommandArgs>.GetCommandState(TypeCharCommandArgs args, System.Func<CommandState> nextHandler)
+        CommandState ILegacyCommandHandler<TypeCharCommandArgs>.GetCommandState(TypeCharCommandArgs args, System.Func<CommandState> nextHandler)
         {
             AssertIsForeground();
             return GetCommandStateWorker(args, nextHandler);
         }
 
-        void ICommandHandler<TypeCharCommandArgs>.ExecuteCommand(TypeCharCommandArgs args, System.Action nextHandler)
+        void ILegacyCommandHandler<TypeCharCommandArgs>.ExecuteCommand(TypeCharCommandArgs args, System.Action nextHandler)
         {
             AssertIsForeground();
             ExecuteCommandWorker(args, nextHandler);
         }
 
-        CommandState ICommandHandler<InvokeSignatureHelpCommandArgs>.GetCommandState(InvokeSignatureHelpCommandArgs args, Func<CommandState> nextHandler)
+        CommandState ILegacyCommandHandler<InvokeSignatureHelpCommandArgs>.GetCommandState(InvokeSignatureHelpCommandArgs args, Func<CommandState> nextHandler)
         {
             AssertIsForeground();
             return GetCommandStateWorker(args, nextHandler);
         }
 
-        void ICommandHandler<InvokeSignatureHelpCommandArgs>.ExecuteCommand(InvokeSignatureHelpCommandArgs args, Action nextHandler)
+        void ILegacyCommandHandler<InvokeSignatureHelpCommandArgs>.ExecuteCommand(InvokeSignatureHelpCommandArgs args, Action nextHandler)
         {
             AssertIsForeground();
             ExecuteCommandWorker(args, nextHandler);

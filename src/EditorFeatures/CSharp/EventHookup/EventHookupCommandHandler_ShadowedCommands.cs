@@ -2,10 +2,12 @@
 
 using System;
 using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
-    internal partial class EventHookupCommandHandler : ICommandHandler<InvokeCompletionListCommandArgs>
+    internal partial class EventHookupCommandHandler : ILegacyCommandHandler<InvokeCompletionListCommandArgs>
     {
         public void ExecuteCommand(InvokeCompletionListCommandArgs args, Action nextHandler)
         {

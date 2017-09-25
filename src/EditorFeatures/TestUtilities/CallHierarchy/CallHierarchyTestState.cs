@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.CSharp.CallHierarchy;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy;
@@ -18,6 +17,7 @@ using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.VisualStudio.Language.CallHierarchy;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         internal CallHierarchyItem GetRoot()
         {
             var args = new ViewCallHierarchyCommandArgs(_textView, _subjectBuffer);
-            _commandHandler.ExecuteCommand(args, () => { });
+            _commandHandler.ExecuteCommand(args);
             return _presenter.PresentedRoot;
         }
 

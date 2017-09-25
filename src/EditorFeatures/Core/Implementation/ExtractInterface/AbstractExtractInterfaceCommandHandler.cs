@@ -2,7 +2,6 @@
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ExtractInterface;
@@ -10,10 +9,12 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 {
-    internal abstract class AbstractExtractInterfaceCommandHandler : ICommandHandler<ExtractInterfaceCommandArgs>
+    internal abstract class AbstractExtractInterfaceCommandHandler : ILegacyCommandHandler<ExtractInterfaceCommandArgs>
     {
         public CommandState GetCommandState(ExtractInterfaceCommandArgs args, Func<CommandState> nextHandler)
         {
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
                 return nextHandler();
             }
 
-            return CommandState.Available;
+            return CommandState.CommandIsAvailable;
         }
 
         public void ExecuteCommand(ExtractInterfaceCommandArgs args, Action nextHandler)

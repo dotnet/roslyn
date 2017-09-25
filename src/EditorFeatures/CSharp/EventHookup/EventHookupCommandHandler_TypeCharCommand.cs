@@ -8,10 +8,12 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
-    internal partial class EventHookupCommandHandler : ICommandHandler<TypeCharCommandArgs>
+    internal partial class EventHookupCommandHandler : ILegacyCommandHandler<TypeCharCommandArgs>
     {
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler)
         {

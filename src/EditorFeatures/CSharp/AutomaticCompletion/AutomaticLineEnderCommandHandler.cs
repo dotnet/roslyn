@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
     /// <summary>
     /// csharp automatic line ender command handler
     /// </summary>
-    [ExportCommandHandler(PredefinedCommandHandlerNames.AutomaticLineEnder, ContentTypeNames.CSharpContentType)]
+    [ExportLegacyCommandHandler(PredefinedCommandHandlerNames.AutomaticLineEnder, ContentTypeNames.CSharpContentType)]
     [Order(After = PredefinedCommandHandlerNames.Completion)]
     internal class AutomaticLineEnderCommandHandler : AbstractAutomaticLineEnderCommandHandler
     {
