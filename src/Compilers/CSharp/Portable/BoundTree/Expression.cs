@@ -114,6 +114,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Count);
     }
 
+    internal partial class BoundConvertedStackAllocExpression
+    {
+        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Count);
+    }
+
     internal partial class BoundDynamicObjectCreationExpression
     {
         protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.Arguments.AddRange(BoundObjectCreationExpression.GetChildInitializers(this.InitializerExpressionOpt)));
@@ -127,5 +132,21 @@ namespace Microsoft.CodeAnalysis.CSharp
     partial class BoundThrowExpression
     {
         protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Expression);
+    }
+
+    internal abstract partial class BoundMethodOrPropertyGroup
+    {
+        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.ReceiverOpt);
+    }
+
+    internal partial class BoundSequence
+    {
+        protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.SideEffects.Add(this.Value));
+    }
+
+    internal partial class BoundStatementList
+    {
+        protected override ImmutableArray<BoundNode> Children => 
+            (this.Kind == BoundKind.StatementList || this.Kind == BoundKind.Scope) ? StaticCast<BoundNode>.From(this.Statements) : ImmutableArray<BoundNode>.Empty;
     }
 }

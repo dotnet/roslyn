@@ -52,9 +52,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return type.PrimitiveTypeCode;
         }
 
-        internal override bool IsVolatileModifierType(PEModuleSymbol moduleSymbol, TypeSymbol type)
+        internal override bool IsAcceptedVolatileModifierType(PEModuleSymbol moduleSymbol, TypeSymbol type)
         {
             return type.SpecialType == SpecialType.System_Runtime_CompilerServices_IsVolatile;
+        }
+
+        internal override bool IsAcceptedInAttributeModifierType(TypeSymbol type)
+        {
+            return type.IsWellKnownTypeInAttribute();
         }
 
         internal override TypeSymbol GetSZArrayTypeSymbol(PEModuleSymbol moduleSymbol, TypeSymbol elementType, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)

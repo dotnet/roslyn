@@ -393,14 +393,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitIsTypeExpression(operation);
         }
 
-        internal override void VisitSizeOfExpression(ISizeOfExpression operation)
+        public override void VisitSizeOfExpression(ISizeOfExpression operation)
         {
             var typeOperand = operation.TypeOperand;
 
             base.VisitSizeOfExpression(operation);
         }
 
-        internal override void VisitTypeOfExpression(ITypeOfExpression operation)
+        public override void VisitTypeOfExpression(ITypeOfExpression operation)
         {
             var typeOperand = operation.TypeOperand;
 
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitLiteralExpression(operation);
         }
 
-        internal override void VisitAwaitExpression(IAwaitExpression operation)
+        public override void VisitAwaitExpression(IAwaitExpression operation)
         {
             base.VisitAwaitExpression(operation);
         }
@@ -637,6 +637,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var label = operation.Label;
 
             base.VisitPatternCaseClause(operation);
+        }
+
+        public override void VisitTranslatedQueryExpression(ITranslatedQueryExpression operation)
+        {
+            base.VisitTranslatedQueryExpression(operation);
         }
     }
 }

@@ -233,7 +233,7 @@ Class C
 End Class
 ]]>.Value
 
-Dim expectedOperationTree = <![CDATA[
+            Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement) (Syntax: 'If x <> 0 T ... End If')
   Condition: IBinaryOperatorExpression (BinaryOperatorKind.NotEquals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x <> 0')
       Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
@@ -354,6 +354,8 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
 "IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(New S ... ), Nothing)')
   Children(3):
       IOperation:  (OperationKind.None) (Syntax: 'Test2')
+        Children(1):
+            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Module1) (Syntax: 'Test2')
       IObjectCreationExpression (Constructor: Sub System.Guid..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Guid, IsInvalid) (Syntax: 'New System.Guid()')
         Arguments(0)
         Initializer: null
@@ -363,16 +365,114 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
 "IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test1(AddressOf Main)')
   Children(2):
       IOperation:  (OperationKind.None) (Syntax: 'Test1')
-      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Main')")
+        Children(1):
+            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Module1) (Syntax: 'Test1')
+      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Main')
+        Children(1):
+            IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Main')
+              Children(1):
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Module1, IsInvalid) (Syntax: 'Main')")
 
             comp.VerifyOperationTree(nodes(3), expectedOperationTree:=
 "IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(New S ... essOf Main)')
   Children(3):
       IOperation:  (OperationKind.None) (Syntax: 'Test2')
+        Children(1):
+            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Module1) (Syntax: 'Test2')
       IObjectCreationExpression (Constructor: Sub System.Guid..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Guid, IsInvalid) (Syntax: 'New System.Guid()')
         Arguments(0)
         Initializer: null
-      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Main')")
+      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Main')
+        Children(1):
+            IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Main')
+              Children(1):
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Module1, IsInvalid) (Syntax: 'Main')")
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub BoundMethodGroup_ExposesReceiver()
+            Dim source = <![CDATA[
+Imports System
+Module Program
+    Sub Main(args As String())
+        Dim c1 As New C1
+        Console.WriteLine(New With {Key .a = AddressOf c1.S})'BIND:"New With {Key .a = AddressOf c1.S}"
+    End Sub
+
+    Class C1
+        Sub S()
+        End Sub
+    End Class
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key a As ?>, IsInvalid) (Syntax: 'New With {K ... essOf c1.S}')
+  Initializers(1):
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: 'Key .a = AddressOf c1.S')
+        Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
+            Instance Receiver: null
+        Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'AddressOf c1.S')
+            Children(1):
+                IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf c1.S')
+                  Children(1):
+                      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'c1.S')
+                        Children(1):
+                            IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'c1')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30491: Expression does not produce a value.
+        Console.WriteLine(New With {Key .a = AddressOf c1.S})'BIND:"New With {Key .a = AddressOf c1.S}"
+                                             ~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub BoundPropertyGroup_ExposesReceiver()
+            Dim source = <![CDATA[
+Option Strict Off
+
+Class C
+    Private Sub M(c As C, d As Object)
+        Dim x = c(c, d)'BIND:"c(c, d)"
+    End Sub
+
+    Default ReadOnly Property P1(x As Integer, x2 As Object) As Integer
+        Get
+            Return 1
+        End Get
+    End Property
+
+    Default ReadOnly Property P1(x As String, x2 As Object) As Integer
+        Get
+            Return 1
+        End Get
+    End Property
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'c(c, d)')
+  Children(3):
+      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'c')
+        Children(1):
+            IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
+      IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
+      IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30518: Overload resolution failed because no accessible 'P1' can be called with these arguments:
+    'Public ReadOnly Default Property P1(x As Integer, x2 As Object) As Integer': Value of type 'C' cannot be converted to 'Integer'.
+    'Public ReadOnly Default Property P1(x As String, x2 As Object) As Integer': Value of type 'C' cannot be converted to 'String'.
+        Dim x = c(c, d)'BIND:"c(c, d)"
+                ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
@@ -506,5 +606,40 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If i = 0 Th ... End If')
 
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics, compilationOptions:=TestOptions.ReleaseExe)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestCatchClause()
+            Dim source = <![CDATA[
+Imports System
+
+Module Program
+    Sub Main(args As String())
+        Try
+            Main(Nothing)
+        Catch ex As Exception When ex Is Nothing'BIND:"Catch ex As Exception When ex Is Nothing"
+
+        End Try
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+ICatchClause (Exception type: System.Exception, Exception local: ex As System.Exception) (OperationKind.None) (Syntax: 'Catch ex As ...  Is Nothing')
+  Filter: IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'ex Is Nothing')
+      Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'ex')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+          Operand: ILocalReferenceExpression: ex (OperationKind.LocalReferenceExpression, Type: System.Exception) (Syntax: 'ex')
+      Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'Nothing')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
+  Handler: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Catch ex As ...  Is Nothing')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CatchBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+
     End Class
 End Namespace

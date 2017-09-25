@@ -6,8 +6,12 @@
       .NET Compiler Platform ("Roslyn") support for Visual Studio "15".
     </summary>
     <description>
+      .NET Compiler Platform ("Roslyn") support for Visual Studio "15".
+
       Supported Platforms:
         - .NET Framework 4.6
+
+      More details at https://aka.ms/roslyn-packages
 
       $commitPathMessage$
     </description>
