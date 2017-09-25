@@ -13862,8 +13862,6 @@ Public Class C
     Shared Sub Main()
         Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=DirectCast(1, Object)))
         Test1(Nullable((a:=1, b:=(a:=1, b:=2))), (a:=1, b:=DirectCast(1, Object)))
-        Test2(Nullable((a:=1, b:=(a:=1, b:=2))), (a:=1, b:=DirectCast(1, Object)))
-        Test2((a:=1, b:=(a:=1, b:=2)), Nullable((a:=1, b:=DirectCast((a:=1, b:=2), Object))))
         Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=(c:=1, d:=2)))
         Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=(1, 2)))
         Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=(a:=1, b:=2)))
@@ -13876,6 +13874,38 @@ Public Class C
     Shared Sub Test1(Of T, U)(x As (T, U)?, y As (T, U))
         Console.WriteLine(GetType(U))
     End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+System.Object
+System.Object
+System.ValueTuple`2[System.Int32,System.Int32]
+System.ValueTuple`2[System.Int32,System.Int32]
+System.ValueTuple`2[System.Int32,System.Int32]
+")
+        End Sub
+
+        <Fact>
+        <WorkItem(22329, "https://github.com/dotnet/roslyn/issues/22329")>
+        <WorkItem(14152, "https://github.com/dotnet/roslyn/issues/14152")>
+        Public Sub Inference13a()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class C
+    Shared Sub Main()
+        Test2(Nullable((a:=1, b:=(a:=1, b:=2))), (a:=1, b:=DirectCast(1, Object)))
+        Test2((a:=1, b:=(a:=1, b:=2)), Nullable((a:=1, b:=DirectCast((a:=1, b:=2), Object))))
+    End Sub
+
+    Shared Function Nullable(Of T as structure)(x as T) as T?
+        return x
+    End Function
 
     Shared Sub Test2(Of T, U)(x As (T, U), y As (T, U))
         Console.WriteLine(GetType(U))
@@ -13885,15 +13915,16 @@ End Class
 </compilation>,
 options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
 
-            CompileAndVerify(comp, expectedOutput:="
-System.Object
-System.Object
-System.Object
-System.ValueTuple`2[System.Int32,System.Int32]
-System.ValueTuple`2[System.Int32,System.Int32]
-System.ValueTuple`2[System.Int32,System.Int32]
-System.ValueTuple`2[System.Int32,System.Int32]
-")
+            AssertTheseDiagnostics(comp,
+<expected>
+BC36645: Data type(s) of the type parameter(s) in method 'Public Shared Sub Test2(Of T, U)(x As (T, U), y As (T, U))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+        Test2(Nullable((a:=1, b:=(a:=1, b:=2))), (a:=1, b:=DirectCast(1, Object)))
+        ~~~~~
+BC36645: Data type(s) of the type parameter(s) in method 'Public Shared Sub Test2(Of T, U)(x As (T, U), y As (T, U))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+        Test2((a:=1, b:=(a:=1, b:=2)), Nullable((a:=1, b:=DirectCast((a:=1, b:=2), Object))))
+        ~~~~~
+</expected>)
+
         End Sub
 
         <Fact>
