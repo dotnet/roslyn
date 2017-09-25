@@ -53,83 +53,120 @@ IBlockStatement (7 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: C#) (Syntax: 'var x1 = new F();')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'x1 = new F()')
       Variables: Local_1: F x1
-      Initializer: IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, Language: C#) (Syntax: 'new F()')
+      Initializer: 
+        IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, Language: C#) (Syntax: 'new F()')
           Arguments(0)
-          Initializer: null
+          Initializer: 
+          null
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: C#) (Syntax: 'var x2 = ne ... ield = 2 };')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'x2 = new F( ... Field = 2 }')
       Variables: Local_1: F x2
-      Initializer: IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, Language: C#) (Syntax: 'new F() { Field = 2 }')
+      Initializer: 
+        IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, Language: C#) (Syntax: 'new F() { Field = 2 }')
           Arguments(0)
-          Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, Language: C#) (Syntax: '{ Field = 2 }')
+          Initializer: 
+            IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, Language: C#) (Syntax: '{ Field = 2 }')
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: C#) (Syntax: 'Field = 2')
-                    Left: IFieldReferenceExpression: System.Int32 F.Field (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'Field')
-                        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, Language: C#) (Syntax: 'Field')
-                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: C#) (Syntax: '2')
+                    Left: 
+                      IFieldReferenceExpression: System.Int32 F.Field (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'Field')
+                        Instance Receiver: 
+                          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, Language: C#) (Syntax: 'Field')
+                    Right: 
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: C#) (Syntax: '2')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: C#) (Syntax: 'var x3 = ne ... ty1 = """" };')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'x3 = new F( ... rty1 = """" }')
       Variables: Local_1: F x3
-      Initializer: IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, Language: C#) (Syntax: 'new F() { P ... rty1 = """" }')
+      Initializer: 
+        IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, Language: C#) (Syntax: 'new F() { P ... rty1 = """" }')
           Arguments(0)
-          Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, Language: C#) (Syntax: '{ Property1 = """" }')
+          Initializer: 
+            IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, Language: C#) (Syntax: '{ Property1 = """" }')
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, Language: C#) (Syntax: 'Property1 = """"')
-                    Left: IPropertyReferenceExpression: System.String F.Property1 { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.String, Language: C#) (Syntax: 'Property1')
-                        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, Language: C#) (Syntax: 'Property1')
-                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: """", Language: C#) (Syntax: '""""')
+                    Left: 
+                      IPropertyReferenceExpression: System.String F.Property1 { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.String, Language: C#) (Syntax: 'Property1')
+                        Instance Receiver: 
+                          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, Language: C#) (Syntax: 'Property1')
+                    Right: 
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: """", Language: C#) (Syntax: '""""')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: C#) (Syntax: 'var x4 = ne ... ield = 2 };')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'x4 = new F( ... Field = 2 }')
       Variables: Local_1: F x4
-      Initializer: IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, Language: C#) (Syntax: 'new F() { P ... Field = 2 }')
+      Initializer: 
+        IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, Language: C#) (Syntax: 'new F() { P ... Field = 2 }')
           Arguments(0)
-          Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, Language: C#) (Syntax: '{ Property1 ... Field = 2 }')
+          Initializer: 
+            IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, Language: C#) (Syntax: '{ Property1 ... Field = 2 }')
               Initializers(2):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, Language: C#) (Syntax: 'Property1 = """"')
-                    Left: IPropertyReferenceExpression: System.String F.Property1 { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.String, Language: C#) (Syntax: 'Property1')
-                        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, Language: C#) (Syntax: 'Property1')
-                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: """", Language: C#) (Syntax: '""""')
+                    Left: 
+                      IPropertyReferenceExpression: System.String F.Property1 { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.String, Language: C#) (Syntax: 'Property1')
+                        Instance Receiver: 
+                          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, Language: C#) (Syntax: 'Property1')
+                    Right: 
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: """", Language: C#) (Syntax: '""""')
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: C#) (Syntax: 'Field = 2')
-                    Left: IFieldReferenceExpression: System.Int32 F.Field (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'Field')
-                        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, Language: C#) (Syntax: 'Field')
-                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: C#) (Syntax: '2')
+                    Left: 
+                      IFieldReferenceExpression: System.Int32 F.Field (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'Field')
+                        Instance Receiver: 
+                          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, Language: C#) (Syntax: 'Field')
+                    Right: 
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: C#) (Syntax: '2')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: C#) (Syntax: 'var x5 = ne ... = true } };')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'x5 = new F( ...  = true } }')
       Variables: Local_1: F x5
-      Initializer: IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, Language: C#) (Syntax: 'new F() { P ...  = true } }')
+      Initializer: 
+        IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, Language: C#) (Syntax: 'new F() { P ...  = true } }')
           Arguments(0)
-          Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, Language: C#) (Syntax: '{ Property2 ...  = true } }')
+          Initializer: 
+            IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, Language: C#) (Syntax: '{ Property2 ...  = true } }')
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B, Language: C#) (Syntax: 'Property2 = ... ld = true }')
-                    Left: IPropertyReferenceExpression: B F.Property2 { get; set; } (OperationKind.PropertyReferenceExpression, Type: B, Language: C#) (Syntax: 'Property2')
-                        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, Language: C#) (Syntax: 'Property2')
-                    Right: IObjectCreationExpression (Constructor: B..ctor()) (OperationKind.ObjectCreationExpression, Type: B, Language: C#) (Syntax: 'new B { Field = true }')
+                    Left: 
+                      IPropertyReferenceExpression: B F.Property2 { get; set; } (OperationKind.PropertyReferenceExpression, Type: B, Language: C#) (Syntax: 'Property2')
+                        Instance Receiver: 
+                          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, Language: C#) (Syntax: 'Property2')
+                    Right: 
+                      IObjectCreationExpression (Constructor: B..ctor()) (OperationKind.ObjectCreationExpression, Type: B, Language: C#) (Syntax: 'new B { Field = true }')
                         Arguments(0)
-                        Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: B, Language: C#) (Syntax: '{ Field = true }')
+                        Initializer: 
+                          IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: B, Language: C#) (Syntax: '{ Field = true }')
                             Initializers(1):
                                 ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean, Language: C#) (Syntax: 'Field = true')
-                                  Left: IFieldReferenceExpression: System.Boolean B.Field (OperationKind.FieldReferenceExpression, Type: System.Boolean, Language: C#) (Syntax: 'Field')
-                                      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: B, Language: C#) (Syntax: 'Field')
-                                  Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True, Language: C#) (Syntax: 'true')
+                                  Left: 
+                                    IFieldReferenceExpression: System.Boolean B.Field (OperationKind.FieldReferenceExpression, Type: System.Boolean, Language: C#) (Syntax: 'Field')
+                                      Instance Receiver: 
+                                        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: B, Language: C#) (Syntax: 'Field')
+                                  Right: 
+                                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True, Language: C#) (Syntax: 'true')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid, Language: C#) (Syntax: 'var e1 = ne ... rty2 = 1 };')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'e1 = new F( ... erty2 = 1 }')
       Variables: Local_1: F e1
-      Initializer: IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, IsInvalid, Language: C#) (Syntax: 'new F() { P ... erty2 = 1 }')
+      Initializer: 
+        IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, IsInvalid, Language: C#) (Syntax: 'new F() { P ... erty2 = 1 }')
           Arguments(0)
-          Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, IsInvalid, Language: C#) (Syntax: '{ Property2 = 1 }')
+          Initializer: 
+            IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, IsInvalid, Language: C#) (Syntax: '{ Property2 = 1 }')
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B, IsInvalid, Language: C#) (Syntax: 'Property2 = 1')
-                    Left: IPropertyReferenceExpression: B F.Property2 { get; set; } (OperationKind.PropertyReferenceExpression, Type: B, Language: C#) (Syntax: 'Property2')
-                        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, Language: C#) (Syntax: 'Property2')
-                    Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: B, IsInvalid, IsImplicit, Language: C#) (Syntax: '1')
+                    Left: 
+                      IPropertyReferenceExpression: B F.Property2 { get; set; } (OperationKind.PropertyReferenceExpression, Type: B, Language: C#) (Syntax: 'Property2')
+                        Instance Receiver: 
+                          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, Language: C#) (Syntax: 'Property2')
+                    Right: 
+                      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: B, IsInvalid, IsImplicit, Language: C#) (Syntax: '1')
                         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, Language: C#) (Syntax: '1')
+                        Operand: 
+                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, Language: C#) (Syntax: '1')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid, Language: C#) (Syntax: 'var e2 = new F() { """" };')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'e2 = new F() { """" }')
       Variables: Local_1: F e2
-      Initializer: IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, IsInvalid, Language: C#) (Syntax: 'new F() { """" }')
+      Initializer: 
+        IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, IsInvalid, Language: C#) (Syntax: 'new F() { """" }')
           Arguments(0)
-          Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, IsInvalid, Language: C#) (Syntax: '{ """" }')
+          Initializer: 
+            IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, IsInvalid, Language: C#) (Syntax: '{ """" }')
               Initializers(1):
                   IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit, Language: C#) (Syntax: '""""')
                     Children(1):
@@ -167,7 +204,8 @@ class C
             string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List<System.Int32>, Language: C#) (Syntax: 'new List<in ...  y, field }')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Int32>, Language: C#) (Syntax: '{ x, y, field }')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Int32>, Language: C#) (Syntax: '{ x, y, field }')
       Initializers(3):
           ICollectionElementInitializerExpression (AddMethod: void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit, Language: C#) (Syntax: 'x')
             Arguments(1):
@@ -178,7 +216,8 @@ IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.I
           ICollectionElementInitializerExpression (AddMethod: void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit, Language: C#) (Syntax: 'field')
             Arguments(1):
                 IFieldReferenceExpression: System.Int32 C.field (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'field')
-                  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: C#) (Syntax: 'field')
+                  Instance Receiver: 
+                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: C#) (Syntax: 'field')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0649: Field 'C.field' is never assigned to, and will always have its default value 0
@@ -213,20 +252,24 @@ class C
             string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, Language: C#) (Syntax: 'new List<Li ... }')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, Language: C#) (Syntax: '{ ... }')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, Language: C#) (Syntax: '{ ... }')
       Initializers(2):
           ICollectionElementInitializerExpression (AddMethod: void System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>.Add(System.Collections.Generic.List<System.Int32> item)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit, Language: C#) (Syntax: 'new[] { x, y }.ToList()')
             Arguments(1):
                 IInvocationExpression (System.Collections.Generic.List<System.Int32> System.Linq.Enumerable.ToList<System.Int32>(this System.Collections.Generic.IEnumerable<System.Int32> source)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.List<System.Int32>, Language: C#) (Syntax: 'new[] { x, y }.ToList()')
-                  Instance Receiver: null
+                  Instance Receiver: 
+                  null
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit, Language: C#) (Syntax: 'new[] { x, y }')
                         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit, Language: C#) (Syntax: 'new[] { x, y }')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                          Operand: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[], Language: C#) (Syntax: 'new[] { x, y }')
+                          Operand: 
+                            IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[], Language: C#) (Syntax: 'new[] { x, y }')
                               Dimension Sizes(1):
                                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: C#) (Syntax: 'new[] { x, y }')
-                              Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, Language: C#) (Syntax: '{ x, y }')
+                              Initializer: 
+                                IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, Language: C#) (Syntax: '{ x, y }')
                                   Element Values(2):
                                       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'x')
                                       ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'y')
@@ -236,12 +279,14 @@ IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.C
             Arguments(1):
                 IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List<System.Int32>, Language: C#) (Syntax: 'new List<int> { field }')
                   Arguments(0)
-                  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Int32>, Language: C#) (Syntax: '{ field }')
+                  Initializer: 
+                    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Int32>, Language: C#) (Syntax: '{ field }')
                       Initializers(1):
                           ICollectionElementInitializerExpression (AddMethod: void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit, Language: C#) (Syntax: 'field')
                             Arguments(1):
                                 IFieldReferenceExpression: System.Int32 C.field (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'field')
-                                  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: C#) (Syntax: 'field')
+                                  Instance Receiver: 
+                                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: C#) (Syntax: 'field')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -279,16 +324,23 @@ internal class Class
             string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: Class..ctor()) (OperationKind.ObjectCreationExpression, Type: Class, Language: C#) (Syntax: 'new Class() ... }')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Class, Language: C#) (Syntax: '{ ... }')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Class, Language: C#) (Syntax: '{ ... }')
       Initializers(4):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: C#) (Syntax: 'X = x')
-            Left: IPropertyReferenceExpression: System.Int32 Class.X { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'X')
-                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, Language: C#) (Syntax: 'X')
-            Right: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'x')
+            Left: 
+              IPropertyReferenceExpression: System.Int32 Class.X { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'X')
+                Instance Receiver: 
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, Language: C#) (Syntax: 'X')
+            Right: 
+              IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'x')
           IMemberInitializerExpression (OperationKind.MemberInitializerExpression, Type: System.Collections.Generic.List<System.Int32>, Language: C#) (Syntax: 'Y = { x, y, 3 }')
-            InitializedMember: IPropertyReferenceExpression: System.Collections.Generic.List<System.Int32> Class.Y { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.List<System.Int32>, Language: C#) (Syntax: 'Y')
-                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, Language: C#) (Syntax: 'Y')
-            Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Int32>, Language: C#) (Syntax: '{ x, y, 3 }')
+            InitializedMember: 
+              IPropertyReferenceExpression: System.Collections.Generic.List<System.Int32> Class.Y { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.List<System.Int32>, Language: C#) (Syntax: 'Y')
+                Instance Receiver: 
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, Language: C#) (Syntax: 'Y')
+            Initializer: 
+              IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Int32>, Language: C#) (Syntax: '{ x, y, 3 }')
                 Initializers(3):
                     ICollectionElementInitializerExpression (AddMethod: void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit, Language: C#) (Syntax: 'x')
                       Arguments(1):
@@ -300,24 +352,34 @@ IObjectCreationExpression (Constructor: Class..ctor()) (OperationKind.ObjectCrea
                       Arguments(1):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3, Language: C#) (Syntax: '3')
           IMemberInitializerExpression (OperationKind.MemberInitializerExpression, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>, Language: C#) (Syntax: 'Z = { { x, y } }')
-            InitializedMember: IPropertyReferenceExpression: System.Collections.Generic.Dictionary<System.Int32, System.Int32> Class.Z { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>, Language: C#) (Syntax: 'Z')
-                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, Language: C#) (Syntax: 'Z')
-            Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>, Language: C#) (Syntax: '{ { x, y } }')
+            InitializedMember: 
+              IPropertyReferenceExpression: System.Collections.Generic.Dictionary<System.Int32, System.Int32> Class.Z { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>, Language: C#) (Syntax: 'Z')
+                Instance Receiver: 
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, Language: C#) (Syntax: 'Z')
+            Initializer: 
+              IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>, Language: C#) (Syntax: '{ { x, y } }')
                 Initializers(1):
                     ICollectionElementInitializerExpression (AddMethod: void System.Collections.Generic.Dictionary<System.Int32, System.Int32>.Add(System.Int32 key, System.Int32 value)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit, Language: C#) (Syntax: '{ x, y }')
                       Arguments(2):
                           IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'x')
                           ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'y')
           IMemberInitializerExpression (OperationKind.MemberInitializerExpression, Type: Class, Language: C#) (Syntax: 'C = { X = field }')
-            InitializedMember: IPropertyReferenceExpression: Class Class.C { get; set; } (OperationKind.PropertyReferenceExpression, Type: Class, Language: C#) (Syntax: 'C')
-                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, Language: C#) (Syntax: 'C')
-            Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Class, Language: C#) (Syntax: '{ X = field }')
+            InitializedMember: 
+              IPropertyReferenceExpression: Class Class.C { get; set; } (OperationKind.PropertyReferenceExpression, Type: Class, Language: C#) (Syntax: 'C')
+                Instance Receiver: 
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, Language: C#) (Syntax: 'C')
+            Initializer: 
+              IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Class, Language: C#) (Syntax: '{ X = field }')
                 Initializers(1):
                     ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: C#) (Syntax: 'X = field')
-                      Left: IPropertyReferenceExpression: System.Int32 Class.X { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'X')
-                          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, Language: C#) (Syntax: 'X')
-                      Right: IFieldReferenceExpression: System.Int32 Class.field (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'field')
-                          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit, Language: C#) (Syntax: 'field')
+                      Left: 
+                        IPropertyReferenceExpression: System.Int32 Class.X { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'X')
+                          Instance Receiver: 
+                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, Language: C#) (Syntax: 'X')
+                      Right: 
+                        IFieldReferenceExpression: System.Int32 Class.field (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'field')
+                          Instance Receiver: 
+                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit, Language: C#) (Syntax: 'field')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

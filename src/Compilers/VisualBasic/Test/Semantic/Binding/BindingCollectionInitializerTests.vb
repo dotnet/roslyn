@@ -38,7 +38,8 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of System.String)..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List(Of System.String), Language: Visual Basic) (Syntax: 'New List(Of ... lo World!"}')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List(Of System.String), Language: Visual Basic) (Syntax: 'From {"Hello World!"}')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List(Of System.String), Language: Visual Basic) (Syntax: 'From {"Hello World!"}')
       Initializers(1):
           ICollectionElementInitializerExpression (AddMethod: Sub System.Collections.Generic.List(Of System.String).Add(item As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit, Language: Visual Basic) (Syntax: '"Hello World!"')
             Arguments(1):
@@ -78,7 +79,8 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of System.String)..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List(Of System.String), Language: Visual Basic) (Syntax: 'New List(Of ... {"World!"}}')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List(Of System.String), Language: Visual Basic) (Syntax: 'From {{"Hel ... {"World!"}}')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List(Of System.String), Language: Visual Basic) (Syntax: 'From {{"Hel ... {"World!"}}')
       Initializers(3):
           ICollectionElementInitializerExpression (AddMethod: Sub System.Collections.Generic.List(Of System.String).Add(item As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit, Language: Visual Basic) (Syntax: '{"Hello"}')
             Arguments(1):
@@ -128,7 +130,8 @@ World 42
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub System.Collections.Generic.Dictionary(Of System.String, System.Int32)..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), Language: Visual Basic) (Syntax: 'New Diction ... orld", 42}}')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), Language: Visual Basic) (Syntax: 'From {{"Hel ... orld", 42}}')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), Language: Visual Basic) (Syntax: 'From {{"Hel ... orld", 42}}')
       Initializers(2):
           ICollectionElementInitializerExpression (AddMethod: Sub System.Collections.Generic.Dictionary(Of System.String, System.Int32).Add(key As System.String, value As System.Int32)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit, Language: Visual Basic) (Syntax: '{"Hello", 23}')
             Arguments(2):
@@ -231,7 +234,8 @@ Hello World
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub Custom..ctor()) (OperationKind.ObjectCreationExpression, Type: Custom, Language: Visual Basic) (Syntax: 'New Custom( ... ", "World"}')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Custom, Language: Visual Basic) (Syntax: 'From {"Hell ... ", "World"}')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Custom, Language: Visual Basic) (Syntax: 'From {"Hell ... ", "World"}')
       Initializers(3):
           ICollectionElementInitializerExpression (AddMethod: Sub Custom.add(p As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit, Language: Visual Basic) (Syntax: '"Hello"')
             Arguments(1):
@@ -273,7 +277,8 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of System.Int32)..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List(Of System.Int32), IsInvalid, Language: Visual Basic) (Syntax: 'New List(Of ... ) From {{}}')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List(Of System.Int32), IsInvalid, Language: Visual Basic) (Syntax: 'From {{}}')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List(Of System.Int32), IsInvalid, Language: Visual Basic) (Syntax: 'From {{}}')
       Initializers(1):
           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: '{}')
             Children(0)
@@ -306,7 +311,8 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1, IsInvalid, Language: Visual Basic) (Syntax: 'New C1() Fr ... lo World!"}')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1, IsInvalid, Language: Visual Basic) (Syntax: 'From {"Hello World!"}')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1, IsInvalid, Language: Visual Basic) (Syntax: 'From {"Hello World!"}')
       Initializers(1):
           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: '"Hello World!"')
             Children(1):
@@ -385,20 +391,27 @@ IBlockStatement (6 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: Visual Basic) (Syntax: 'Dim a As Ne ... .a = "goo"}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 'a')
       Variables: Local_1: a As C2
-      Initializer: IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, Language: Visual Basic) (Syntax: 'New C2() Wi ... .a = "goo"}')
+      Initializer: 
+        IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, Language: Visual Basic) (Syntax: 'New C2() Wi ... .a = "goo"}')
           Arguments(0)
-          Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, Language: Visual Basic) (Syntax: 'With {.a = "goo"}')
+          Initializer: 
+            IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, Language: Visual Basic) (Syntax: 'With {.a = "goo"}')
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, Language: Visual Basic) (Syntax: '.a = "goo"')
-                    Left: IFieldReferenceExpression: C2.a As System.String (OperationKind.FieldReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'a')
-                        Instance Receiver: IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New C2() Wi ... .a = "goo"}')
-                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo", Language: Visual Basic) (Syntax: '"goo"')
+                    Left: 
+                      IFieldReferenceExpression: C2.a As System.String (OperationKind.FieldReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'a')
+                        Instance Receiver: 
+                          IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New C2() Wi ... .a = "goo"}')
+                    Right: 
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo", Language: Visual Basic) (Syntax: '"goo"')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: Visual Basic) (Syntax: 'Dim b As Ne ... lo World!"}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 'b')
       Variables: Local_1: b As C2
-      Initializer: IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, Language: Visual Basic) (Syntax: 'New C2() Fr ... lo World!"}')
+      Initializer: 
+        IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, Language: Visual Basic) (Syntax: 'New C2() Fr ... lo World!"}')
           Arguments(0)
-          Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, Language: Visual Basic) (Syntax: 'From {"Hello World!"}')
+          Initializer: 
+            IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, Language: Visual Basic) (Syntax: 'From {"Hello World!"}')
               Initializers(1):
                   ICollectionElementInitializerExpression (AddMethod: Sub C2.Add(p As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit, Language: Visual Basic) (Syntax: '"Hello World!"')
                     Arguments(1):
@@ -406,9 +419,11 @@ IBlockStatement (6 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid, Language: Visual Basic) (Syntax: 'Dim c As C2 ... lo World!"}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 'c')
       Variables: Local_1: c As C2
-      Initializer: IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, IsInvalid, Language: Visual Basic) (Syntax: 'New C2() Fr ... lo World!"}')
+      Initializer: 
+        IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, IsInvalid, Language: Visual Basic) (Syntax: 'New C2() Fr ... lo World!"}')
           Arguments(0)
-          Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, IsInvalid, Language: Visual Basic) (Syntax: 'From {"Hello World!"}')
+          Initializer: 
+            IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, IsInvalid, Language: Visual Basic) (Syntax: 'From {"Hello World!"}')
               Initializers(1):
                   ICollectionElementInitializerExpression (AddMethod: Sub C2.Add(p As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: '"Hello World!"')
                     Arguments(1):
@@ -416,18 +431,25 @@ IBlockStatement (6 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid, Language: Visual Basic) (Syntax: 'Dim d As C2 ... .a = "goo"}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 'd')
       Variables: Local_1: d As C2
-      Initializer: IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, IsInvalid, Language: Visual Basic) (Syntax: 'New C2() Wi ... .a = "goo"}')
+      Initializer: 
+        IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, IsInvalid, Language: Visual Basic) (Syntax: 'New C2() Wi ... .a = "goo"}')
           Arguments(0)
-          Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, IsInvalid, Language: Visual Basic) (Syntax: 'With {.a = "goo"}')
+          Initializer: 
+            IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, IsInvalid, Language: Visual Basic) (Syntax: 'With {.a = "goo"}')
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: '.a = "goo"')
-                    Left: IFieldReferenceExpression: C2.a As System.String (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: 'a')
-                        Instance Receiver: IOperation:  (OperationKind.None, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: 'New C2() Wi ... .a = "goo"}')
-                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo", IsInvalid, Language: Visual Basic) (Syntax: '"goo"')
+                    Left: 
+                      IFieldReferenceExpression: C2.a As System.String (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: 'a')
+                        Instance Receiver: 
+                          IOperation:  (OperationKind.None, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: 'New C2() Wi ... .a = "goo"}')
+                    Right: 
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo", IsInvalid, Language: Visual Basic) (Syntax: '"goo"')
   ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'End Sub')
-    Statement: null
+    Statement: 
+    null
   IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'End Sub')
-    ReturnedValue: null
+    ReturnedValue: 
+    null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -519,7 +541,8 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, IsInvalid, Language: Visual Basic) (Syntax: 'New C2() Fr ... lo World!"}')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, IsInvalid, Language: Visual Basic) (Syntax: 'From {"Hello World!"}')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, IsInvalid, Language: Visual Basic) (Syntax: 'From {"Hello World!"}')
       Initializers(1):
           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: '"Hello World!"')
             Children(1):
@@ -604,7 +627,8 @@ What's the point of returning something here?
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1, Language: Visual Basic) (Syntax: 'New C1() From {1}')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1, Language: Visual Basic) (Syntax: 'From {1}')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C1, Language: Visual Basic) (Syntax: 'From {1}')
       Initializers(1):
           ICollectionElementInitializerExpression (AddMethod: Function C1.Add(p As System.Int32) As System.String) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.String, IsImplicit, Language: Visual Basic) (Syntax: '1')
             Arguments(1):
@@ -785,7 +809,8 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, Language: Visual Basic) (Syntax: 'New C2() Fr ... r element"}')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, Language: Visual Basic) (Syntax: 'From {"Hell ... r element"}')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C2, Language: Visual Basic) (Syntax: 'From {"Hell ... r element"}')
       Initializers(2):
           ICollectionElementInitializerExpression (AddMethod: Sub C2.Add(p As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit, Language: Visual Basic) (Syntax: '"Hello World!"')
             Arguments(1):
@@ -1106,7 +1131,8 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub System.Collections.Generic.Dictionary(Of System.String, System.Int32)..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), IsInvalid, Language: Visual Basic) (Syntax: 'New Diction ...  From {{1}}')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), IsInvalid, Language: Visual Basic) (Syntax: 'From {{1}}')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), IsInvalid, Language: Visual Basic) (Syntax: 'From {{1}}')
       Initializers(1):
           IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: '{1}')
             Children(2):
@@ -1406,7 +1432,8 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of System.String)..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List(Of System.String), Language: Visual Basic) (Syntax: 'New List(Of ...  x.Item(0)}')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List(Of System.String), Language: Visual Basic) (Syntax: 'From {"1", x.Item(0)}')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List(Of System.String), Language: Visual Basic) (Syntax: 'From {"1", x.Item(0)}')
       Initializers(2):
           ICollectionElementInitializerExpression (AddMethod: Sub System.Collections.Generic.List(Of System.String).Add(item As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit, Language: Visual Basic) (Syntax: '"1"')
             Arguments(1):
@@ -1414,7 +1441,8 @@ IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of S
           ICollectionElementInitializerExpression (AddMethod: Sub System.Collections.Generic.List(Of System.String).Add(item As System.String)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit, Language: Visual Basic) (Syntax: 'x.Item(0)')
             Arguments(1):
                 IPropertyReferenceExpression: Property System.Collections.Generic.List(Of System.String).Item(index As System.Int32) As System.String (OperationKind.PropertyReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'x.Item(0)')
-                  Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List(Of System.String), Language: Visual Basic) (Syntax: 'x')
+                  Instance Receiver: 
+                    ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List(Of System.String), Language: Visual Basic) (Syntax: 'x')
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument, Language: Visual Basic) (Syntax: '0')
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
@@ -1504,7 +1532,8 @@ Hello World!
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub Custom..ctor()) (OperationKind.ObjectCreationExpression, Type: Custom, Language: Visual Basic) (Syntax: 'New Custom( ... rld", "!"}}')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Custom, Language: Visual Basic) (Syntax: 'From {"Hell ... rld", "!"}}')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Custom, Language: Visual Basic) (Syntax: 'From {"Hell ... rld", "!"}}')
       Initializers(2):
           ICollectionElementInitializerExpression (AddMethod: Sub Custom.add(p As System.String, [p2 As System.String = " "])) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit, Language: Visual Basic) (Syntax: '"Hello"')
             Arguments(2):

@@ -108,16 +108,20 @@ class Program
 ";
             string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid, Language: C#) (Syntax: 'switch (x.T ... }')
-  Switch expression: IInvocationExpression (virtual System.String System.Object.ToString()) (OperationKind.InvocationExpression, Type: System.String, Language: C#) (Syntax: 'x.ToString()')
-      Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, Language: C#) (Syntax: 'x')
+  Switch expression: 
+    IInvocationExpression (virtual System.String System.Object.ToString()) (OperationKind.InvocationExpression, Type: System.String, Language: C#) (Syntax: 'x.ToString()')
+      Instance Receiver: 
+        ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, Language: C#) (Syntax: 'x')
       Arguments(0)
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase, IsInvalid, Language: C#) (Syntax: 'case 1: ... break;')
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause, IsInvalid, Language: C#) (Syntax: 'case 1:')
-                Value: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit, Language: C#) (Syntax: '1')
+                Value: 
+                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit, Language: C#) (Syntax: '1')
                     Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, Language: C#) (Syntax: '1')
+                    Operand: 
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, Language: C#) (Syntax: '1')
           Body:
               IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement, Language: C#) (Syntax: 'break;')
 ";
@@ -150,15 +154,22 @@ class Program
 ";
             string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement, IsInvalid, Language: C#) (Syntax: 'if (x = nul ... }')
-  Condition: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, IsImplicit, Language: C#) (Syntax: 'x = null')
+  Condition: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, IsImplicit, Language: C#) (Syntax: 'x = null')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: Program, IsInvalid, Language: C#) (Syntax: 'x = null')
-          Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid, Language: C#) (Syntax: 'x')
-          Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, Constant: null, IsInvalid, IsImplicit, Language: C#) (Syntax: 'null')
+      Operand: 
+        ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: Program, IsInvalid, Language: C#) (Syntax: 'x = null')
+          Left: 
+            ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid, Language: C#) (Syntax: 'x')
+          Right: 
+            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, Constant: null, IsInvalid, IsImplicit, Language: C#) (Syntax: 'null')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-              Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid, Language: C#) (Syntax: 'null')
-  IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ ... }')
-  IfFalse: null
+              Operand: 
+                ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid, Language: C#) (Syntax: 'null')
+  IfTrue: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ ... }')
+  IfFalse: 
+  null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'Program' to 'bool'
@@ -191,17 +202,26 @@ class Program
 ";
             string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement, IsInvalid, Language: C#) (Syntax: 'if () ... else')
-  Condition: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid, Language: C#) (Syntax: '')
+  Condition: 
+    IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid, Language: C#) (Syntax: '')
       Children(0)
-  IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ ... }')
-  IfFalse: IIfStatement (OperationKind.IfStatement, IsInvalid, Language: C#) (Syntax: 'if (x) x; ... else')
-      Condition: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, IsImplicit, Language: C#) (Syntax: 'x')
+  IfTrue: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ ... }')
+  IfFalse: 
+    IIfStatement (OperationKind.IfStatement, IsInvalid, Language: C#) (Syntax: 'if (x) x; ... else')
+      Condition: 
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, IsImplicit, Language: C#) (Syntax: 'x')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid, Language: C#) (Syntax: 'x')
-      IfTrue: IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, Language: C#) (Syntax: 'x;')
-          Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid, Language: C#) (Syntax: 'x')
-      IfFalse: IExpressionStatement (OperationKind.ExpressionStatement, Language: C#) (Syntax: '')
-          Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: null, Language: C#) (Syntax: '')
+          Operand: 
+            ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid, Language: C#) (Syntax: 'x')
+      IfTrue: 
+        IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, Language: C#) (Syntax: 'x;')
+          Expression: 
+            ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid, Language: C#) (Syntax: 'x')
+      IfFalse: 
+        IExpressionStatement (OperationKind.ExpressionStatement, Language: C#) (Syntax: '')
+          Expression: 
+            IInvalidExpression (OperationKind.InvalidExpression, Type: null, Language: C#) (Syntax: '')
               Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -245,15 +265,19 @@ class Program
 ";
             string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid, Language: C#) (Syntax: 'for (P; x;) ... }')
-  Condition: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, IsImplicit, Language: C#) (Syntax: 'x')
+  Condition: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, IsImplicit, Language: C#) (Syntax: 'x')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid, Language: C#) (Syntax: 'x')
+      Operand: 
+        ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid, Language: C#) (Syntax: 'x')
   Before:
       IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit, Language: C#) (Syntax: 'P')
-        Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'P')
+        Expression: 
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'P')
             Children(0)
   AtLoopBottom(0)
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ ... }')
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0103: The name 'P' does not exist in the current context

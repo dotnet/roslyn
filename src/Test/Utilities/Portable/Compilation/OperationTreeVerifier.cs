@@ -269,6 +269,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Indent();
             LogString($"{header}: ");
+            LogNewLine();
             Visit(operation);
             Unindent();
         }

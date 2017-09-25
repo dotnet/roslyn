@@ -24,7 +24,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub Program.M2(a As System.Int32, b As System.Double)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2(1, 0.0)')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Language: Visual Basic) (Syntax: '1')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
@@ -56,7 +57,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub Program.M2(a As System.Int32, [b As System.Double = 0])) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2(1)')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Language: Visual Basic) (Syntax: '1')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
@@ -88,7 +90,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub Program.M2(a As System.Int32, [b As System.Double = 0])) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2(a:=1, b:=1.0)')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Language: Visual Basic) (Syntax: 'a:=1')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
@@ -120,7 +123,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub Program.M2(a As System.Int32, [b As System.Double = 0])) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2(b:=1.0, a:=0)')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Language: Visual Basic) (Syntax: 'a:=0')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
@@ -152,7 +156,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub Program.M2([a As System.Int32 = 0], [b As System.Double = 0], [c As System.Double = 0])) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2(b:=1.0, c:=2.0)')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
   Arguments(3):
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: a) (OperationKind.Argument, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
@@ -188,7 +193,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub Program.M2([a As System.Int32 = 0], [b As System.Double = 0], [c As System.Double = 0])) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2(, b:=1.0, c:=2.0)')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
   Arguments(3):
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: a) (OperationKind.Argument, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
@@ -224,7 +230,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub Program.M2([a As System.Int32 = 0], [b As System.Double = 0], [c As System.Double = 0])) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2(b:=2.0)')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
   Arguments(3):
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: a) (OperationKind.Argument, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
@@ -260,7 +267,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub Program.M2([a As System.Int32 = 0], [b As System.Double = 0], [c As System.Double = 0])) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2(1, c:=2.0)')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
   Arguments(3):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Language: Visual Basic) (Syntax: '1')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
@@ -296,7 +304,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2(1)')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Language: Visual Basic) (Syntax: '1')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
@@ -325,7 +334,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2(x)')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Language: Visual Basic) (Syntax: 'x')
         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
@@ -355,7 +365,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0], [ByRef b As System.Double = 0])) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2(b:=y, a:=x)')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Language: Visual Basic) (Syntax: 'a:=x')
         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
@@ -388,7 +399,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2()')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
   Arguments(1):
       IArgument (ArgumentKind.DefaultValue, Matching Parameter: a) (OperationKind.Argument, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
@@ -416,12 +428,14 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2(1.0)')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Language: Visual Basic) (Syntax: '1.0')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1.0')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 1, Language: Visual Basic) (Syntax: '1.0')
+          Operand: 
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 1, Language: Visual Basic) (Syntax: '1.0')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -447,7 +461,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2(x)')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, IsImplicit, Language: Visual Basic) (Syntax: 'x')
         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Double, Language: Visual Basic) (Syntax: 'x')
@@ -480,7 +495,8 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub P.E1([b As System.Int32 = 0], [c As System.Int32 = 0])) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'E1(1, 2)')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit, Language: Visual Basic) (Syntax: 'E1')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit, Language: Visual Basic) (Syntax: 'E1')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Language: Visual Basic) (Syntax: '1')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
@@ -517,7 +533,8 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub P.E1([b As System.Int32 = 0], [c As System.Int32 = 0])) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'E1(c:=1, b:=2)')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit, Language: Visual Basic) (Syntax: 'E1')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit, Language: Visual Basic) (Syntax: 'E1')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Language: Visual Basic) (Syntax: 'b:=2')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
@@ -553,7 +570,8 @@ End Class
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32())) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2(1, a)')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Language: Visual Basic) (Syntax: '1')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
@@ -586,7 +604,8 @@ End Class
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32())) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2(1, 2, 3)')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Language: Visual Basic) (Syntax: '1')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
@@ -596,7 +615,8 @@ IInvocationExpression ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32
         IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsImplicit, Language: Visual Basic) (Syntax: 'M2(1, 2, 3)')
           Dimension Sizes(1):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: 'M2(1, 2, 3)')
-          Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsImplicit, Language: Visual Basic) (Syntax: 'M2(1, 2, 3)')
+          Initializer: 
+            IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsImplicit, Language: Visual Basic) (Syntax: 'M2(1, 2, 3)')
               Element Values(2):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3, Language: Visual Basic) (Syntax: '3')
@@ -627,7 +647,8 @@ End Class
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32())) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2(1)')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
   Arguments(2):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Language: Visual Basic) (Syntax: '1')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
@@ -637,7 +658,8 @@ IInvocationExpression ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32
         IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsImplicit, Language: Visual Basic) (Syntax: 'M2(1)')
           Dimension Sizes(1):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsImplicit, Language: Visual Basic) (Syntax: 'M2(1)')
-          Initializer: IArrayInitializer (0 elements) (OperationKind.ArrayInitializer, IsImplicit, Language: Visual Basic) (Syntax: 'M2(1)')
+          Initializer: 
+            IArrayInitializer (0 elements) (OperationKind.ArrayInitializer, IsImplicit, Language: Visual Basic) (Syntax: 'M2(1)')
               Element Values(0)
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -895,7 +917,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2(x)')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, IsImplicit, Language: Visual Basic) (Syntax: 'x')
         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Double, Language: Visual Basic) (Syntax: 'x')
@@ -934,7 +957,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub Program.M2(ByRef a As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2(x)')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, IsImplicit, Language: Visual Basic) (Syntax: 'x')
         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: C, Language: Visual Basic) (Syntax: 'x')
@@ -973,7 +997,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub Program.M2(ByRef c As C)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2(x)')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument, IsImplicit, Language: Visual Basic) (Syntax: 'x')
         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Double, Language: Visual Basic) (Syntax: 'x')

@@ -25,7 +25,8 @@ class C
 ";
             string expectedOperationTree = @"
 IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic, Language: C#) (Syntax: 'c[d]')
-  Expression: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: C#) (Syntax: 'c')
+  Expression: 
+    IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: C#) (Syntax: 'c')
   Arguments(1):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd')
   ArgumentNames(0)
@@ -55,7 +56,8 @@ class C
 ";
             string expectedOperationTree = @"
 IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic, Language: C#) (Syntax: 'c[d]')
-  Expression: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: C#) (Syntax: 'c')
+  Expression: 
+    IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: C#) (Syntax: 'c')
   Arguments(1):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd')
   ArgumentNames(0)
@@ -86,7 +88,8 @@ class C
 ";
             string expectedOperationTree = @"
 IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic, Language: C#) (Syntax: 'c[d, ch]')
-  Expression: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: C#) (Syntax: 'c')
+  Expression: 
+    IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: C#) (Syntax: 'c')
   Arguments(2):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd')
       ILocalReferenceExpression: ch (OperationKind.LocalReferenceExpression, Type: System.Char, Language: C#) (Syntax: 'ch')
@@ -117,7 +120,8 @@ class C
 ";
             string expectedOperationTree = @"
 IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic, Language: C#) (Syntax: 'c[i: d, ch: e]')
-  Expression: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: C#) (Syntax: 'c')
+  Expression: 
+    IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: C#) (Syntax: 'c')
   Arguments(2):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd')
       IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'e')
@@ -148,7 +152,8 @@ class C
 ";
             string expectedOperationTree = @"
 IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic, Language: C#) (Syntax: 'c[i: d, ch: ref e]')
-  Expression: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: C#) (Syntax: 'c')
+  Expression: 
+    IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: C#) (Syntax: 'c')
   Arguments(2):
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd')
       IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'e')
@@ -183,7 +188,8 @@ class C
 ";
             string expectedOperationTree = @"
 IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic, Language: C#) (Syntax: 'd[i]')
-  Expression: IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd')
+  Expression: 
+    IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd')
   Arguments(1):
       IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i')
   ArgumentNames(0)
@@ -209,9 +215,11 @@ class C
 ";
             string expectedOperationTree = @"
 IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic, Language: C#) (Syntax: 'c.M2[i]')
-  Expression: IDynamicMemberReferenceExpression (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'c.M2')
+  Expression: 
+    IDynamicMemberReferenceExpression (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'c.M2')
       Type Arguments(0)
-      Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'c')
+      Instance Receiver: 
+        IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'c')
   Arguments(1):
       IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i')
   ArgumentNames(0)
@@ -239,8 +247,10 @@ class C
 ";
             string expectedOperationTree = @"
 IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic, Language: C#) (Syntax: 'c.M2[i]')
-  Expression: IFieldReferenceExpression: dynamic C.M2 (OperationKind.FieldReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'c.M2')
-      Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: C#) (Syntax: 'c')
+  Expression: 
+    IFieldReferenceExpression: dynamic C.M2 (OperationKind.FieldReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'c.M2')
+      Instance Receiver: 
+        IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: C#) (Syntax: 'c')
   Arguments(1):
       IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i')
   ArgumentNames(0)
@@ -270,7 +280,8 @@ class C
 ";
             string expectedOperationTree = @"
 IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic, Language: C#) (Syntax: 'c[ref i, c: d]')
-  Expression: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: C#) (Syntax: 'c')
+  Expression: 
+    IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: C#) (Syntax: 'c')
   Arguments(2):
       ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i')
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd')
@@ -313,12 +324,14 @@ class C
 ";
             string expectedOperationTree = @"
 IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic, IsInvalid, Language: C#) (Syntax: 'c[delegate { }, y]')
-  Expression: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: C#) (Syntax: 'c')
+  Expression: 
+    IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: C#) (Syntax: 'c')
   Arguments(2):
       IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: C#) (Syntax: 'delegate { }')
         IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, Language: C#) (Syntax: '{ }')
           IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit, Language: C#) (Syntax: '{ }')
-            ReturnedValue: null
+            ReturnedValue: 
+            null
       ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'y')
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -352,7 +365,8 @@ class C
 ";
             string expectedOperationTree = @"
 IPropertyReferenceExpression: System.Int32 C.this { } (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid, Language: C#) (Syntax: 'c[d]')
-  Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid, Language: C#) (Syntax: 'c')
+  Instance Receiver: 
+    IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid, Language: C#) (Syntax: 'c')
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid, Language: C#) (Syntax: 'd')
         IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid, Language: C#) (Syntax: 'd')

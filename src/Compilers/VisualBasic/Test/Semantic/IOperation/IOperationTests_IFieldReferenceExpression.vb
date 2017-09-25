@@ -28,7 +28,8 @@ End Class]]>.Value
 IOperation:  (OperationKind.None, Language: Visual Basic) (Syntax: 'Conditional(field)')
   Children(1):
       IFieldReferenceExpression: C.field As System.String (Static) (OperationKind.FieldReferenceExpression, Type: System.String, Constant: "field", Language: Visual Basic) (Syntax: 'field')
-        Instance Receiver: null
+        Instance Receiver: 
+        null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

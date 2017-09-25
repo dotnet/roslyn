@@ -27,9 +27,12 @@ public class C1
 ";
             string expectedOperationTree = @"
 IConditionalAccessExpression (OperationKind.ConditionalAccessExpression, Type: System.String, Language: C#) (Syntax: 'o?.ToString()')
-  Expression: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object, Language: C#) (Syntax: 'o')
-  WhenNotNull: IInvocationExpression (virtual System.String System.Object.ToString()) (OperationKind.InvocationExpression, Type: System.String, Language: C#) (Syntax: '.ToString()')
-      Instance Receiver: IConditionalAccessInstanceExpression (OperationKind.ConditionalAccessInstanceExpression, Type: System.Object, IsImplicit, Language: C#) (Syntax: 'o')
+  Expression: 
+    ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object, Language: C#) (Syntax: 'o')
+  WhenNotNull: 
+    IInvocationExpression (virtual System.String System.Object.ToString()) (OperationKind.InvocationExpression, Type: System.String, Language: C#) (Syntax: '.ToString()')
+      Instance Receiver: 
+        IConditionalAccessInstanceExpression (OperationKind.ConditionalAccessInstanceExpression, Type: System.Object, IsImplicit, Language: C#) (Syntax: 'o')
       Arguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -56,9 +59,12 @@ public class C1
 ";
             string expectedOperationTree = @"
 IConditionalAccessExpression (OperationKind.ConditionalAccessExpression, Type: System.Int32?, Language: C#) (Syntax: 'c1?.Prop1')
-  Expression: ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C1, Language: C#) (Syntax: 'c1')
-  WhenNotNull: IPropertyReferenceExpression: System.Int32 C1.Prop1 { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: C#) (Syntax: '.Prop1')
-      Instance Receiver: IConditionalAccessInstanceExpression (OperationKind.ConditionalAccessInstanceExpression, Type: C1, IsImplicit, Language: C#) (Syntax: 'c1')
+  Expression: 
+    ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C1, Language: C#) (Syntax: 'c1')
+  WhenNotNull: 
+    IPropertyReferenceExpression: System.Int32 C1.Prop1 { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: C#) (Syntax: '.Prop1')
+      Instance Receiver: 
+        IConditionalAccessInstanceExpression (OperationKind.ConditionalAccessInstanceExpression, Type: C1, IsImplicit, Language: C#) (Syntax: 'c1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

@@ -36,10 +36,14 @@ class C
 ";
             string expectedOperationTree = @"
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void, Language: C#) (Syntax: 't.MyEvent += Handler')
-  Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler, Language: C#) (Syntax: 't.MyEvent')
-      Instance Receiver: ILocalReferenceExpression: t (OperationKind.LocalReferenceExpression, Type: Test, Language: C#) (Syntax: 't')
-  Handler: IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: System.EventHandler, Language: C#) (Syntax: 'Handler')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: C#) (Syntax: 'Handler')
+  Event Reference: 
+    IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler, Language: C#) (Syntax: 't.MyEvent')
+      Instance Receiver: 
+        ILocalReferenceExpression: t (OperationKind.LocalReferenceExpression, Type: Test, Language: C#) (Syntax: 't')
+  Handler: 
+    IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: System.EventHandler, Language: C#) (Syntax: 'Handler')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: C#) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] { 
                 // file.cs(6,31): warning CS0067: The event 'Test.MyEvent' is never used
@@ -73,11 +77,15 @@ class C
 ";
             string expectedOperationTree = @"
 IEventAssignmentExpression (EventRemove)) (OperationKind.EventAssignmentExpression, Type: System.Void, Language: C#) (Syntax: 't.MyEvent -= null')
-  Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler, Language: C#) (Syntax: 't.MyEvent')
-      Instance Receiver: ILocalReferenceExpression: t (OperationKind.LocalReferenceExpression, Type: Test, Language: C#) (Syntax: 't')
-  Handler: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventHandler, Constant: null, IsImplicit, Language: C#) (Syntax: 'null')
+  Event Reference: 
+    IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler, Language: C#) (Syntax: 't.MyEvent')
+      Instance Receiver: 
+        ILocalReferenceExpression: t (OperationKind.LocalReferenceExpression, Type: Test, Language: C#) (Syntax: 't')
+  Handler: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventHandler, Constant: null, IsImplicit, Language: C#) (Syntax: 'null')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: C#) (Syntax: 'null')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: C#) (Syntax: 'null')
 ";
             var expectedDiagnostics = new[] { 
                 // file.cs(6,31): warning CS0067: The event 'Test.MyEvent' is never used
@@ -114,10 +122,14 @@ class C
 ";
             string expectedOperationTree = @"
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void, Language: C#) (Syntax: 'Test.MyEvent += Handler')
-  Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler, Language: C#) (Syntax: 'Test.MyEvent')
-      Instance Receiver: null
-  Handler: IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: System.EventHandler, Language: C#) (Syntax: 'Handler')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: C#) (Syntax: 'Handler')
+  Event Reference: 
+    IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler, Language: C#) (Syntax: 'Test.MyEvent')
+      Instance Receiver: 
+      null
+  Handler: 
+    IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: System.EventHandler, Language: C#) (Syntax: 'Handler')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: C#) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] { 
                 // file.cs(6,38): warning CS0067: The event 'Test.MyEvent' is never used
@@ -154,10 +166,14 @@ class C
 ";
             string expectedOperationTree = @"
 IEventAssignmentExpression (EventRemove)) (OperationKind.EventAssignmentExpression, Type: System.Void, Language: C#) (Syntax: 'Test.MyEvent -= Handler')
-  Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler, Language: C#) (Syntax: 'Test.MyEvent')
-      Instance Receiver: null
-  Handler: IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: System.EventHandler, Language: C#) (Syntax: 'Handler')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: C#) (Syntax: 'Handler')
+  Event Reference: 
+    IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler, Language: C#) (Syntax: 'Test.MyEvent')
+      Instance Receiver: 
+      null
+  Handler: 
+    IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: System.EventHandler, Language: C#) (Syntax: 'Handler')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: C#) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] { 
                 // file.cs(6,38): warning CS0067: The event 'Test.MyEvent' is never used
@@ -195,11 +211,15 @@ class C
 ";
             string expectedOperationTree = @"
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void, IsInvalid, Language: C#) (Syntax: 't.MyEvent += Handler')
-  Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler, IsInvalid, Language: C#) (Syntax: 't.MyEvent')
-      Instance Receiver: ILocalReferenceExpression: t (OperationKind.LocalReferenceExpression, Type: Test, IsInvalid, Language: C#) (Syntax: 't')
-  Handler: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventHandler, IsInvalid, IsImplicit, Language: C#) (Syntax: 'Handler')
+  Event Reference: 
+    IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler, IsInvalid, Language: C#) (Syntax: 't.MyEvent')
+      Instance Receiver: 
+        ILocalReferenceExpression: t (OperationKind.LocalReferenceExpression, Type: Test, IsInvalid, Language: C#) (Syntax: 't')
+  Handler: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventHandler, IsInvalid, IsImplicit, Language: C#) (Syntax: 'Handler')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IOperation:  (OperationKind.None, IsInvalid, Language: C#) (Syntax: 'Handler')
+      Operand: 
+        IOperation:  (OperationKind.None, IsInvalid, Language: C#) (Syntax: 'Handler')
           Children(1):
               IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsInvalid, IsImplicit, Language: C#) (Syntax: 'Handler')
 ";
@@ -242,10 +262,14 @@ class C
 ";
             string expectedOperationTree = @"
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void, IsInvalid, Language: C#) (Syntax: 't.MyEvent += Handler')
-  Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler, IsInvalid, Language: C#) (Syntax: 't.MyEvent')
-      Instance Receiver: null
-  Handler: IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: System.EventHandler, Language: C#) (Syntax: 'Handler')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: C#) (Syntax: 'Handler')
+  Event Reference: 
+    IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler, IsInvalid, Language: C#) (Syntax: 't.MyEvent')
+      Instance Receiver: 
+      null
+  Handler: 
+    IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: System.EventHandler, Language: C#) (Syntax: 'Handler')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: C#) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {                  
                 // file.cs(18,19): error CS0176: Member 'Test.MyEvent' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -286,10 +310,14 @@ class C
 ";
             string expectedOperationTree = @"
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void, IsInvalid, Language: C#) (Syntax: 'Test.MyEvent += Handler')
-  Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler, IsInvalid, Language: C#) (Syntax: 'Test.MyEvent')
-      Instance Receiver: IOperation:  (OperationKind.None, IsInvalid, Language: C#) (Syntax: 'Test')
-  Handler: IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: System.EventHandler, Language: C#) (Syntax: 'Handler')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: C#) (Syntax: 'Handler')
+  Event Reference: 
+    IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler, IsInvalid, Language: C#) (Syntax: 'Test.MyEvent')
+      Instance Receiver: 
+        IOperation:  (OperationKind.None, IsInvalid, Language: C#) (Syntax: 'Test')
+  Handler: 
+    IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: System.EventHandler, Language: C#) (Syntax: 'Handler')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: C#) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {                  
                 // file.cs(17,19): error CS0120: An object reference is required for the non-static field, method, or property 'Test.MyEvent'
@@ -326,10 +354,14 @@ class Test
 ";
             string expectedOperationTree = @"
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void, Language: C#) (Syntax: 'MyEvent += Handler')
-  Event Reference: IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler, Language: C#) (Syntax: 'MyEvent')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Test, IsImplicit, Language: C#) (Syntax: 'MyEvent')
-  Handler: IMethodReferenceExpression: void Test.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: System.EventHandler, Language: C#) (Syntax: 'Handler')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Test, IsImplicit, Language: C#) (Syntax: 'Handler')
+  Event Reference: 
+    IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler, Language: C#) (Syntax: 'MyEvent')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Test, IsImplicit, Language: C#) (Syntax: 'MyEvent')
+  Handler: 
+    IMethodReferenceExpression: void Test.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: System.EventHandler, Language: C#) (Syntax: 'Handler')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Test, IsImplicit, Language: C#) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {                  
                       // file.cs(6,31): warning CS0067: The event 'Test.MyEvent' is never used

@@ -75,11 +75,16 @@ End Module
 
             comp.VerifyOperationTree(nodes(0), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, Language: Visual Basic) (Syntax: 'x = x + 10')
-  Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid, Language: Visual Basic) (Syntax: 'x = x + 10')
-      Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2, Language: Visual Basic) (Syntax: 'x')
-      Right: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: B2, IsInvalid, Language: Visual Basic) (Syntax: 'x + 10')
-          Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2, Language: Visual Basic) (Syntax: 'x')
-          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid, Language: Visual Basic) (Syntax: '10')")
+  Expression: 
+    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid, Language: Visual Basic) (Syntax: 'x = x + 10')
+      Left: 
+        ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2, Language: Visual Basic) (Syntax: 'x')
+      Right: 
+        IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: B2, IsInvalid, Language: Visual Basic) (Syntax: 'x + 10')
+          Left: 
+            ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2, Language: Visual Basic) (Syntax: 'x')
+          Right: 
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid, Language: Visual Basic) (Syntax: '10')")
 
             ' x = x + y passes semantic analysis.
 
@@ -104,11 +109,16 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, Language: Vi
 
             comp.VerifyOperationTree(nodes(1), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'x = x + y')
-  Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, Language: Visual Basic) (Syntax: 'x = x + y')
-      Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2, Language: Visual Basic) (Syntax: 'x')
-      Right: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.BinaryOperatorExpression, Type: B2, Language: Visual Basic) (Syntax: 'x + y')
-          Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2, Language: Visual Basic) (Syntax: 'x')
-          Right: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: B2, Language: Visual Basic) (Syntax: 'y')")
+  Expression: 
+    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, Language: Visual Basic) (Syntax: 'x = x + y')
+      Left: 
+        ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2, Language: Visual Basic) (Syntax: 'x')
+      Right: 
+        IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.BinaryOperatorExpression, Type: B2, Language: Visual Basic) (Syntax: 'x + y')
+          Left: 
+            ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2, Language: Visual Basic) (Syntax: 'x')
+          Right: 
+            ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: B2, Language: Visual Basic) (Syntax: 'y')")
 
             ' -x fails semantic analysis and does not have an operator method, but the operand is available.
 
@@ -129,10 +139,14 @@ IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic)
 
             comp.VerifyOperationTree(nodes(2), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, Language: Visual Basic) (Syntax: 'x = -x')
-  Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid, Language: Visual Basic) (Syntax: 'x = -x')
-      Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2, Language: Visual Basic) (Syntax: 'x')
-      Right: IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: B2, IsInvalid, Language: Visual Basic) (Syntax: '-x')
-          Operand: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2, IsInvalid, Language: Visual Basic) (Syntax: 'x')")
+  Expression: 
+    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid, Language: Visual Basic) (Syntax: 'x = -x')
+      Left: 
+        ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2, Language: Visual Basic) (Syntax: 'x')
+      Right: 
+        IUnaryOperatorExpression (UnaryOperatorKind.Minus) (OperationKind.UnaryOperatorExpression, Type: B2, IsInvalid, Language: Visual Basic) (Syntax: '-x')
+          Operand: 
+            ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2, IsInvalid, Language: Visual Basic) (Syntax: 'x')")
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
@@ -186,10 +200,12 @@ End Module
 
             comp.VerifyOperationTree(nodes(0), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'x += y')
-  Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x += y')
-      Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
-      Right: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
-")
+  Expression: 
+    ICompoundAssignmentExpression (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x += y')
+      Left: 
+        ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
+      Right: 
+        ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')")
 
             ' a += b produces a compound assignment with an operator method add.
 
@@ -212,9 +228,12 @@ IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic)
 
             comp.VerifyOperationTree(nodes(1), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'a += b')
-  Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.CompoundAssignmentExpression, Type: B2, Language: Visual Basic) (Syntax: 'a += b')
-      Left: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: B2, Language: Visual Basic) (Syntax: 'a')
-      Right: ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: B2, Language: Visual Basic) (Syntax: 'b')")
+  Expression: 
+    ICompoundAssignmentExpression (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.CompoundAssignmentExpression, Type: B2, Language: Visual Basic) (Syntax: 'a += b')
+      Left: 
+        ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: B2, Language: Visual Basic) (Syntax: 'a')
+      Right: 
+        ILocalReferenceExpression: b (OperationKind.LocalReferenceExpression, Type: B2, Language: Visual Basic) (Syntax: 'b')")
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
@@ -232,19 +251,26 @@ End Class
 
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If x <> 0 T ... End If')
-  Condition: IBinaryOperatorExpression (BinaryOperatorKind.NotEquals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'x <> 0')
-      Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
-      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If x <> 0 T ... End If')
+  Condition: 
+    IBinaryOperatorExpression (BinaryOperatorKind.NotEquals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'x <> 0')
+      Left: 
+        IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
+      Right: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+  IfTrue: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If x <> 0 T ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'System.Console.Write(x)')
-        Expression: IInvocationExpression (Sub System.Console.Write(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Console.Write(x)')
-            Instance Receiver: null
+        Expression: 
+          IInvocationExpression (Sub System.Console.Write(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Console.Write(x)')
+            Instance Receiver: 
+            null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: 'x')
                   IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  IfFalse: null
+  IfFalse: 
+  null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -267,16 +293,24 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For i = 0 T ... Next')
   Locals: Local_1: i As System.Int32
-  LoopControlVariable: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i')
-  InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
-  LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For i = 0 T ... Next')
+  LoopControlVariable: 
+    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i')
+  InitialValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+  LimitValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
+  StepValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For i = 0 T ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For i = 0 T ... Next')
-  Body: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For i = 0 T ... Next')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For i = 0 T ... Next')
+  Body: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For i = 0 T ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'System.Console.Write(i)')
-        Expression: IInvocationExpression (Sub System.Console.Write(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Console.Write(i)')
-            Instance Receiver: null
+        Expression: 
+          IInvocationExpression (Sub System.Console.Write(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Console.Write(i)')
+            Instance Receiver: 
+            null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: 'i')
                   ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i')
@@ -338,12 +372,14 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
 
             comp.VerifyOperationTree(nodes(0), expectedOperationTree:=
 "IInvocationExpression (Sub Module1.Test1(ParamArray x As System.Int32())) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Test1(Nothing)')
-  Instance Receiver: null
+  Instance Receiver: 
+  null
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Language: Visual Basic) (Syntax: 'Nothing')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32(), Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
+          Operand: 
+            ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)")
 
@@ -355,7 +391,8 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
             IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Module1, IsImplicit, Language: Visual Basic) (Syntax: 'Test2')
       IObjectCreationExpression (Constructor: Sub System.Guid..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Guid, IsInvalid, Language: Visual Basic) (Syntax: 'New System.Guid()')
         Arguments(0)
-        Initializer: null
+        Initializer: 
+        null
       ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')")
 
             comp.VerifyOperationTree(nodes(2), expectedOperationTree:=
@@ -378,7 +415,8 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
             IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Module1, IsImplicit, Language: Visual Basic) (Syntax: 'Test2')
       IObjectCreationExpression (Constructor: Sub System.Guid..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Guid, IsInvalid, Language: Visual Basic) (Syntax: 'New System.Guid()')
         Arguments(0)
-        Initializer: null
+        Initializer: 
+        null
       IOperation:  (OperationKind.None, IsInvalid, Language: Visual Basic) (Syntax: 'AddressOf Main')
         Children(1):
             IOperation:  (OperationKind.None, IsInvalid, Language: Visual Basic) (Syntax: 'Main')
@@ -407,9 +445,12 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key a As ?>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {K ... essOf c1.S}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: 'Key .a = AddressOf c1.S')
-        Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: 'AddressOf c1.S')
+        Left: 
+          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'a')
+            Instance Receiver: 
+            null
+        Right: 
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: 'AddressOf c1.S')
             Children(1):
                 IOperation:  (OperationKind.None, IsInvalid, Language: Visual Basic) (Syntax: 'AddressOf c1.S')
                   Children(1):
@@ -539,13 +580,19 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If i = 0 Th ... End If')
-  Condition: IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'i = 0')
-      Left: IFieldReferenceExpression: C.i As System.Int32 (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i')
-          Instance Receiver: null
-      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If i = 0 Th ... End If')
+  Condition: 
+    IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'i = 0')
+      Left: 
+        IFieldReferenceExpression: C.i As System.Int32 (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i')
+          Instance Receiver: 
+          null
+      Right: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+  IfTrue: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If i = 0 Th ... End If')
       IEndStatement (OperationKind.None, Language: Visual Basic) (Syntax: 'End')
-  IfFalse: null
+  IfFalse: 
+  null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -590,13 +637,19 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If i = 0 Th ... End If')
-  Condition: IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'i = 0')
-      Left: IFieldReferenceExpression: C.i As System.Int32 (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i')
-          Instance Receiver: null
-      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If i = 0 Th ... End If')
+  Condition: 
+    IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'i = 0')
+      Left: 
+        IFieldReferenceExpression: C.i As System.Int32 (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i')
+          Instance Receiver: 
+          null
+      Right: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+  IfTrue: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If i = 0 Th ... End If')
       IStopStatement (OperationKind.None, Language: Visual Basic) (Syntax: 'Stop')
-  IfFalse: null
+  IfFalse: 
+  null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -622,14 +675,20 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ICatchClause (Exception type: System.Exception, Exception local: ex As System.Exception) (OperationKind.None, Language: Visual Basic) (Syntax: 'Catch ex As ...  Is Nothing')
-  Filter: IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'ex Is Nothing')
-      Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'ex')
+  Filter: 
+    IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'ex Is Nothing')
+      Left: 
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'ex')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand: ILocalReferenceExpression: ex (OperationKind.LocalReferenceExpression, Type: System.Exception, Language: Visual Basic) (Syntax: 'ex')
-      Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
+          Operand: 
+            ILocalReferenceExpression: ex (OperationKind.LocalReferenceExpression, Type: System.Exception, Language: Visual Basic) (Syntax: 'ex')
+      Right: 
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
-  Handler: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Catch ex As ...  Is Nothing')
+          Operand: 
+            ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
+  Handler: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Catch ex As ...  Is Nothing')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

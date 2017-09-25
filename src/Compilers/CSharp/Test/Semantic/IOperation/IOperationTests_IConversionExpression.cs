@@ -32,9 +32,11 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'd1 = o1')
   Variables: Local_1: dynamic d1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: dynamic, IsImplicit, Language: C#) (Syntax: 'o1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: dynamic, IsImplicit, Language: C#) (Syntax: 'o1')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: o1 (OperationKind.LocalReferenceExpression, Type: System.Object, Language: C#) (Syntax: 'o1')
+      Operand: 
+        ILocalReferenceExpression: o1 (OperationKind.LocalReferenceExpression, Type: System.Object, Language: C#) (Syntax: 'o1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -62,7 +64,8 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'o2 = o1')
   Variables: Local_1: System.Object o2
-  Initializer: ILocalReferenceExpression: o1 (OperationKind.LocalReferenceExpression, Type: System.Object, Language: C#) (Syntax: 'o1')
+  Initializer: 
+    ILocalReferenceExpression: o1 (OperationKind.LocalReferenceExpression, Type: System.Object, Language: C#) (Syntax: 'o1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -86,9 +89,11 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'd1 = f1')
   Variables: Local_1: System.Double d1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, IsImplicit, Language: C#) (Syntax: 'f1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, IsImplicit, Language: C#) (Syntax: 'f1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: f1 (OperationKind.LocalReferenceExpression, Type: System.Single, Language: C#) (Syntax: 'f1')
+      Operand: 
+        ILocalReferenceExpression: f1 (OperationKind.LocalReferenceExpression, Type: System.Single, Language: C#) (Syntax: 'f1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -113,9 +118,11 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'i1 = f1')
   Variables: Local_1: System.Int32 i1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit, Language: C#) (Syntax: 'f1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit, Language: C#) (Syntax: 'f1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: f1 (OperationKind.LocalReferenceExpression, Type: System.Single, IsInvalid, Language: C#) (Syntax: 'f1')
+      Operand: 
+        ILocalReferenceExpression: f1 (OperationKind.LocalReferenceExpression, Type: System.Single, IsInvalid, Language: C#) (Syntax: 'f1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'float' to 'int'. An explicit conversion exists (are you missing a cast?)
@@ -177,9 +184,11 @@ enum Enum1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'e1 = 0')
   Variables: Local_1: Enum1 e1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Enum1, Constant: 0, IsImplicit, Language: C#) (Syntax: '0')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Enum1, Constant: 0, IsImplicit, Language: C#) (Syntax: '0')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: '0')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'e1' is assigned but its value is never used
@@ -212,9 +221,11 @@ enum Enum1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'e1 = i1')
   Variables: Local_1: Enum1 e1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Enum1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'i1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Enum1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'i1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid, Language: C#) (Syntax: 'i1')
+      Operand: 
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid, Language: C#) (Syntax: 'i1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'int' to 'Program.Enum1'. An explicit conversion exists (are you missing a cast?)
@@ -245,9 +256,11 @@ enum Enum1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'e1 = 1')
   Variables: Local_1: Enum1 e1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Enum1, IsInvalid, IsImplicit, Language: C#) (Syntax: '1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Enum1, IsInvalid, IsImplicit, Language: C#) (Syntax: '1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, Language: C#) (Syntax: '1')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, Language: C#) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'int' to 'Program.Enum1'. An explicit conversion exists (are you missing a cast?)
@@ -310,16 +323,22 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'o = new obj ... Exception()')
   Variables: Local_1: System.Object o
-  Initializer: ICoalesceExpression (OperationKind.CoalesceExpression, Type: System.Object, Language: C#) (Syntax: 'new object( ... Exception()')
-      Expression: IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object, Language: C#) (Syntax: 'new object()')
+  Initializer: 
+    ICoalesceExpression (OperationKind.CoalesceExpression, Type: System.Object, Language: C#) (Syntax: 'new object( ... Exception()')
+      Expression: 
+        IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object, Language: C#) (Syntax: 'new object()')
           Arguments(0)
-          Initializer: null
-      WhenNull: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit, Language: C#) (Syntax: 'throw new Exception()')
+          Initializer: 
+          null
+      WhenNull: 
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit, Language: C#) (Syntax: 'throw new Exception()')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: IThrowExpression (OperationKind.ThrowExpression, Type: null, Language: C#) (Syntax: 'throw new Exception()')
+          Operand: 
+            IThrowExpression (OperationKind.ThrowExpression, Type: null, Language: C#) (Syntax: 'throw new Exception()')
               IObjectCreationExpression (Constructor: System.Exception..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Exception, Language: C#) (Syntax: 'new Exception()')
                 Arguments(0)
-                Initializer: null
+                Initializer: 
+                null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -388,9 +407,11 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 's1 = null')
   Variables: Local_1: System.String s1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit, Language: C#) (Syntax: 'null')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit, Language: C#) (Syntax: 'null')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: C#) (Syntax: 'null')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: C#) (Syntax: 'null')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 's1' is assigned but its value is never used
@@ -422,9 +443,11 @@ struct S1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 's1 = null')
   Variables: Local_1: S1? s1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: S1?, Constant: null, IsImplicit, Language: C#) (Syntax: 'null')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: S1?, Constant: null, IsImplicit, Language: C#) (Syntax: 'null')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: C#) (Syntax: 'null')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: C#) (Syntax: 'null')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 's1' is assigned but its value is never used
@@ -452,9 +475,11 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'i1 = null')
   Variables: Local_1: System.Int32 i1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit, Language: C#) (Syntax: 'null')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit, Language: C#) (Syntax: 'null')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid, Language: C#) (Syntax: 'null')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid, Language: C#) (Syntax: 'null')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0037: Cannot convert null to 'int' because it is a non-nullable value type
@@ -484,9 +509,11 @@ class S1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'i1 = default')
   Variables: Local_1: System.Int64 i1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 0, IsImplicit, Language: C#) (Syntax: 'default')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 0, IsImplicit, Language: C#) (Syntax: 'default')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: System.Int64, Constant: 0, Language: C#) (Syntax: 'default')
+      Operand: 
+        IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: System.Int64, Constant: 0, Language: C#) (Syntax: 'default')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i1' is assigned but its value is never used
@@ -517,9 +544,11 @@ class S1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'i1 = default(int)')
   Variables: Local_1: System.Int64 i1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 0, IsImplicit, Language: C#) (Syntax: 'default(int)')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 0, IsImplicit, Language: C#) (Syntax: 'default(int)')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: 'default(int)')
+      Operand: 
+        IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: 'default(int)')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i1' is assigned but its value is never used
@@ -552,7 +581,8 @@ class S1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'i1 = default(string)')
   Variables: Local_1: System.String i1
-  Initializer: IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: System.String, Constant: null, Language: C#) (Syntax: 'default(string)')
+  Initializer: 
+    IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: System.String, Constant: null, Language: C#) (Syntax: 'default(string)')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i1' is assigned but its value is never used
@@ -579,9 +609,11 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'i1 = 1')
   Variables: Local_1: System.Int32? i1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32?, IsImplicit, Language: C#) (Syntax: '1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32?, IsImplicit, Language: C#) (Syntax: '1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i1' is assigned but its value is never used
@@ -610,9 +642,11 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'l1 = i1')
   Variables: Local_1: System.Int64? l1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64?, IsImplicit, Language: C#) (Syntax: 'i1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64?, IsImplicit, Language: C#) (Syntax: 'i1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32?, Language: C#) (Syntax: 'i1')
+      Operand: 
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32?, Language: C#) (Syntax: 'i1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -637,9 +671,11 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'i2 = i1')
   Variables: Local_1: System.Int32? i2
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32?, IsImplicit, Language: C#) (Syntax: 'i1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32?, IsImplicit, Language: C#) (Syntax: 'i1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i1')
+      Operand: 
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -664,9 +700,11 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'i2 = i1')
   Variables: Local_1: System.Int32 i2
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit, Language: C#) (Syntax: 'i1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit, Language: C#) (Syntax: 'i1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32?, IsInvalid, Language: C#) (Syntax: 'i1')
+      Operand: 
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32?, IsInvalid, Language: C#) (Syntax: 'i1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'int?' to 'int'. An explicit conversion exists (are you missing a cast?)
@@ -697,14 +735,19 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'f1 = $""{1}""')
   Variables: Local_1: System.IFormattable f1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.IFormattable, IsImplicit, Language: C#) (Syntax: '$""{1}""')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.IFormattable, IsImplicit, Language: C#) (Syntax: '$""{1}""')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, Language: C#) (Syntax: '$""{1}""')
+      Operand: 
+        IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, Language: C#) (Syntax: '$""{1}""')
           Parts(1):
               IInterpolation (OperationKind.Interpolation, Language: C#) (Syntax: '{1}')
-                Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
-                Alignment: null
-                FormatString: null
+                Expression: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
+                Alignment: 
+                null
+                FormatString: 
+                null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -730,11 +773,14 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'o1 = new C1()')
   Variables: Local_1: System.Object o1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit, Language: C#) (Syntax: 'new C1()')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit, Language: C#) (Syntax: 'new C1()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IObjectCreationExpression (Constructor: C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1, Language: C#) (Syntax: 'new C1()')
+      Operand: 
+        IObjectCreationExpression (Constructor: C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1, Language: C#) (Syntax: 'new C1()')
           Arguments(0)
-          Initializer: null
+          Initializer: 
+          null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -760,11 +806,14 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'd1 = new C1()')
   Variables: Local_1: dynamic d1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: dynamic, IsImplicit, Language: C#) (Syntax: 'new C1()')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: dynamic, IsImplicit, Language: C#) (Syntax: 'new C1()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IObjectCreationExpression (Constructor: C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1, Language: C#) (Syntax: 'new C1()')
+      Operand: 
+        IObjectCreationExpression (Constructor: C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1, Language: C#) (Syntax: 'new C1()')
           Arguments(0)
-          Initializer: null
+          Initializer: 
+          null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -794,11 +843,14 @@ class C2 : C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'c1 = new C2()')
   Variables: Local_1: C1 c1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1, IsImplicit, Language: C#) (Syntax: 'new C2()')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1, IsImplicit, Language: C#) (Syntax: 'new C2()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IObjectCreationExpression (Constructor: C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, Language: C#) (Syntax: 'new C2()')
+      Operand: 
+        IObjectCreationExpression (Constructor: C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, Language: C#) (Syntax: 'new C2()')
           Arguments(0)
-          Initializer: null
+          Initializer: 
+          null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -828,11 +880,14 @@ class C2
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'c1 = new C2()')
   Variables: Local_1: C1 c1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'new C2()')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'new C2()')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IObjectCreationExpression (Constructor: C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, IsInvalid, Language: C#) (Syntax: 'new C2()')
+      Operand: 
+        IObjectCreationExpression (Constructor: C2..ctor()) (OperationKind.ObjectCreationExpression, Type: C2, IsInvalid, Language: C#) (Syntax: 'new C2()')
           Arguments(0)
-          Initializer: null
+          Initializer: 
+          null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'C2' to 'C1'
@@ -862,9 +917,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'c1 = new/*</bind>*/')
   Variables: Local_1: C1 c1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'new/*</bind>*/')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'new/*</bind>*/')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'new/*</bind>*/')
+      Operand: 
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'new/*</bind>*/')
           Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -902,11 +959,14 @@ class C1 : I1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'i1 = new C1()')
   Variables: Local_1: I1 i1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, IsImplicit, Language: C#) (Syntax: 'new C1()')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, IsImplicit, Language: C#) (Syntax: 'new C1()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IObjectCreationExpression (Constructor: C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1, Language: C#) (Syntax: 'new C1()')
+      Operand: 
+        IObjectCreationExpression (Constructor: C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1, Language: C#) (Syntax: 'new C1()')
           Arguments(0)
-          Initializer: null
+          Initializer: 
+          null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -936,11 +996,14 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'i1 = new C1()')
   Variables: Local_1: I1 i1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'new C1()')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'new C1()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IObjectCreationExpression (Constructor: C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1, IsInvalid, Language: C#) (Syntax: 'new C1()')
+      Operand: 
+        IObjectCreationExpression (Constructor: C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1, IsInvalid, Language: C#) (Syntax: 'new C1()')
           Arguments(0)
-          Initializer: null
+          Initializer: 
+          null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'C1' to 'I1'. An explicit conversion exists (are you missing a cast?)
@@ -974,9 +1037,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'i1 = new I1()')
   Variables: Local_1: C1 i1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'new I1()')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'new I1()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: I1, IsInvalid, Language: C#) (Syntax: 'new I1()')
+      Operand: 
+        IInvalidExpression (OperationKind.InvalidExpression, Type: I1, IsInvalid, Language: C#) (Syntax: 'new I1()')
           Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1016,9 +1081,11 @@ class C1 : I2
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'i1 = i2')
   Variables: Local_1: I1 i1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, IsImplicit, Language: C#) (Syntax: 'i2')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, IsImplicit, Language: C#) (Syntax: 'i2')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: i2 (OperationKind.LocalReferenceExpression, Type: I2, Language: C#) (Syntax: 'i2')
+      Operand: 
+        ILocalReferenceExpression: i2 (OperationKind.LocalReferenceExpression, Type: I2, Language: C#) (Syntax: 'i2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1053,9 +1120,11 @@ class C1 : I2
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'i1 = i2')
   Variables: Local_1: I1 i1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'i2')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'i2')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: i2 (OperationKind.LocalReferenceExpression, Type: I2, IsInvalid, Language: C#) (Syntax: 'i2')
+      Operand: 
+        ILocalReferenceExpression: i2 (OperationKind.LocalReferenceExpression, Type: I2, IsInvalid, Language: C#) (Syntax: 'i2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'I2' to 'I1'. An explicit conversion exists (are you missing a cast?)
@@ -1090,9 +1159,11 @@ class C2 : C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'c1arr = c2arr')
   Variables: Local_1: C1[] c1arr
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1[], IsImplicit, Language: C#) (Syntax: 'c2arr')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1[], IsImplicit, Language: C#) (Syntax: 'c2arr')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: c2arr (OperationKind.LocalReferenceExpression, Type: C2[], Language: C#) (Syntax: 'c2arr')
+      Operand: 
+        ILocalReferenceExpression: c2arr (OperationKind.LocalReferenceExpression, Type: C2[], Language: C#) (Syntax: 'c2arr')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1123,9 +1194,11 @@ class C2 : C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'c1arr = c2arr')
   Variables: Local_1: C1[][] c1arr
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1[][], IsInvalid, IsImplicit, Language: C#) (Syntax: 'c2arr')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1[][], IsInvalid, IsImplicit, Language: C#) (Syntax: 'c2arr')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: c2arr (OperationKind.LocalReferenceExpression, Type: C2[], IsInvalid, Language: C#) (Syntax: 'c2arr')
+      Operand: 
+        ILocalReferenceExpression: c2arr (OperationKind.LocalReferenceExpression, Type: C2[], IsInvalid, Language: C#) (Syntax: 'c2arr')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'C2[]' to 'C1[][]'
@@ -1160,9 +1233,11 @@ class C2
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'c1arr = c2arr')
   Variables: Local_1: C1[] c1arr
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1[], IsInvalid, IsImplicit, Language: C#) (Syntax: 'c2arr')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1[], IsInvalid, IsImplicit, Language: C#) (Syntax: 'c2arr')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: c2arr (OperationKind.LocalReferenceExpression, Type: C2[], IsInvalid, Language: C#) (Syntax: 'c2arr')
+      Operand: 
+        ILocalReferenceExpression: c2arr (OperationKind.LocalReferenceExpression, Type: C2[], IsInvalid, Language: C#) (Syntax: 'c2arr')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'C2[]' to 'C1[]'
@@ -1200,12 +1275,15 @@ struct S1 : I1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'i1arr = new S1[10]')
   Variables: Local_1: I1[] i1arr
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1[], IsInvalid, IsImplicit, Language: C#) (Syntax: 'new S1[10]')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1[], IsInvalid, IsImplicit, Language: C#) (Syntax: 'new S1[10]')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IArrayCreationExpression (Element Type: S1) (OperationKind.ArrayCreationExpression, Type: S1[], IsInvalid, Language: C#) (Syntax: 'new S1[10]')
+      Operand: 
+        IArrayCreationExpression (Element Type: S1) (OperationKind.ArrayCreationExpression, Type: S1[], IsInvalid, Language: C#) (Syntax: 'new S1[10]')
           Dimension Sizes(1):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid, Language: C#) (Syntax: '10')
-          Initializer: null
+          Initializer: 
+          null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'S1[]' to 'I1[]'
@@ -1235,12 +1313,15 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'a1 = new object[10]')
   Variables: Local_1: System.Array a1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Array, IsImplicit, Language: C#) (Syntax: 'new object[10]')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Array, IsImplicit, Language: C#) (Syntax: 'new object[10]')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IArrayCreationExpression (Element Type: System.Object) (OperationKind.ArrayCreationExpression, Type: System.Object[], Language: C#) (Syntax: 'new object[10]')
+      Operand: 
+        IArrayCreationExpression (Element Type: System.Object) (OperationKind.ArrayCreationExpression, Type: System.Object[], Language: C#) (Syntax: 'new object[10]')
           Dimension Sizes(1):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: C#) (Syntax: '10')
-          Initializer: null
+          Initializer: 
+          null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1266,12 +1347,15 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'a1 = new int[10][]')
   Variables: Local_1: System.Array a1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Array, IsImplicit, Language: C#) (Syntax: 'new int[10][]')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Array, IsImplicit, Language: C#) (Syntax: 'new int[10][]')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IArrayCreationExpression (Element Type: System.Int32[]) (OperationKind.ArrayCreationExpression, Type: System.Int32[][], Language: C#) (Syntax: 'new int[10][]')
+      Operand: 
+        IArrayCreationExpression (Element Type: System.Int32[]) (OperationKind.ArrayCreationExpression, Type: System.Int32[][], Language: C#) (Syntax: 'new int[10][]')
           Dimension Sizes(1):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: C#) (Syntax: '10')
-          Initializer: null
+          Initializer: 
+          null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1297,11 +1381,14 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'a1 = new object()')
   Variables: Local_1: System.Array a1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Array, IsInvalid, IsImplicit, Language: C#) (Syntax: 'new object()')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Array, IsInvalid, IsImplicit, Language: C#) (Syntax: 'new object()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object, IsInvalid, Language: C#) (Syntax: 'new object()')
+      Operand: 
+        IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object, IsInvalid, Language: C#) (Syntax: 'new object()')
           Arguments(0)
-          Initializer: null
+          Initializer: 
+          null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'object' to 'System.Array'. An explicit conversion exists (are you missing a cast?)
@@ -1331,12 +1418,15 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'a1 = new int[10]')
   Variables: Local_1: System.Collections.Generic.IList<System.Int32> a1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IList<System.Int32>, IsImplicit, Language: C#) (Syntax: 'new int[10]')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IList<System.Int32>, IsImplicit, Language: C#) (Syntax: 'new int[10]')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[], Language: C#) (Syntax: 'new int[10]')
+      Operand: 
+        IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[], Language: C#) (Syntax: 'new int[10]')
           Dimension Sizes(1):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: C#) (Syntax: '10')
-          Initializer: null
+          Initializer: 
+          null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1362,11 +1452,14 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'a1 = new object()')
   Variables: Local_1: System.Collections.Generic.IList<System.Int32> a1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IList<System.Int32>, IsInvalid, IsImplicit, Language: C#) (Syntax: 'new object()')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IList<System.Int32>, IsInvalid, IsImplicit, Language: C#) (Syntax: 'new object()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object, IsInvalid, Language: C#) (Syntax: 'new object()')
+      Operand: 
+        IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object, IsInvalid, Language: C#) (Syntax: 'new object()')
           Arguments(0)
-          Initializer: null
+          Initializer: 
+          null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'object' to 'System.Collections.Generic.IList<int>'. An explicit conversion exists (are you missing a cast?)
@@ -1402,9 +1495,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'd2 = d1')
   Variables: Local_1: System.Delegate d2
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Delegate, IsImplicit, Language: C#) (Syntax: 'd1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Delegate, IsImplicit, Language: C#) (Syntax: 'd1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: d1 (OperationKind.LocalReferenceExpression, Type: C1.DType, Language: C#) (Syntax: 'd1')
+      Operand: 
+        ILocalReferenceExpression: d1 (OperationKind.LocalReferenceExpression, Type: C1.DType, Language: C#) (Syntax: 'd1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1436,10 +1531,13 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'd2 = d1()')
   Variables: Local_1: System.Delegate d2
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Delegate, IsInvalid, IsImplicit, Language: C#) (Syntax: 'd1()')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Delegate, IsInvalid, IsImplicit, Language: C#) (Syntax: 'd1()')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IInvocationExpression (virtual void C1.DType.Invoke()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid, Language: C#) (Syntax: 'd1()')
-          Instance Receiver: ILocalReferenceExpression: d1 (OperationKind.LocalReferenceExpression, Type: C1.DType, IsInvalid, Language: C#) (Syntax: 'd1')
+      Operand: 
+        IInvocationExpression (virtual void C1.DType.Invoke()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid, Language: C#) (Syntax: 'd1()')
+          Instance Receiver: 
+            ILocalReferenceExpression: d1 (OperationKind.LocalReferenceExpression, Type: C1.DType, IsInvalid, Language: C#) (Syntax: 'd1')
           Arguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1510,8 +1608,10 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'd1 = M1')
   Variables: Local_1: Program.DType d1
-  Initializer: IMethodReferenceExpression: void Program.M1() (OperationKind.MethodReferenceExpression, Type: Program.DType, Language: C#) (Syntax: 'M1')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: C#) (Syntax: 'M1')
+  Initializer: 
+    IMethodReferenceExpression: void Program.M1() (OperationKind.MethodReferenceExpression, Type: Program.DType, Language: C#) (Syntax: 'M1')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: C#) (Syntax: 'M1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1535,9 +1635,11 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'd1 = M1')
   Variables: Local_1: Program.DType d1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.DType, IsInvalid, IsImplicit, Language: C#) (Syntax: 'M1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.DType, IsInvalid, IsImplicit, Language: C#) (Syntax: 'M1')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'M1')
+      Operand: 
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'M1')
           Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1569,12 +1671,15 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'd1 = () => { }')
   Variables: Local_1: Program.DType d1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.DType, IsImplicit, Language: C#) (Syntax: '() => { }')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.DType, IsImplicit, Language: C#) (Syntax: '() => { }')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, Language: C#) (Syntax: '() => { }')
+      Operand: 
+        IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, Language: C#) (Syntax: '() => { }')
           IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ }')
             IReturnStatement (OperationKind.ReturnStatement, IsImplicit, Language: C#) (Syntax: '{ }')
-              ReturnedValue: null
+              ReturnedValue: 
+              null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1599,9 +1704,11 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'd1 = (string s) => { }')
   Variables: Local_1: Program.DType d1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.DType, IsInvalid, IsImplicit, Language: C#) (Syntax: '(string s) => { }')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.DType, IsInvalid, IsImplicit, Language: C#) (Syntax: '(string s) => { }')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: C#) (Syntax: '(string s) => { }')
+      Operand: 
+        IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: C#) (Syntax: '(string s) => { }')
           IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid, Language: C#) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1632,15 +1739,19 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'd1 = () =>/*</bind>*/')
   Variables: Local_1: Program.DType d1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.DType, IsInvalid, IsImplicit, Language: C#) (Syntax: '() =>/*</bind>*/')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program.DType, IsInvalid, IsImplicit, Language: C#) (Syntax: '() =>/*</bind>*/')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: C#) (Syntax: '() =>/*</bind>*/')
+      Operand: 
+        IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: C#) (Syntax: '() =>/*</bind>*/')
           IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit, Language: C#) (Syntax: '')
             IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit, Language: C#) (Syntax: '')
-              Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid, Language: C#) (Syntax: '')
+              Expression: 
+                IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid, Language: C#) (Syntax: '')
                   Children(0)
             IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit, Language: C#) (Syntax: '')
-              ReturnedValue: null
+              ReturnedValue: 
+              null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ';'
@@ -1677,7 +1788,8 @@ IOperation:  (OperationKind.None, Language: C#) (Syntax: 'new Action(() => { })'
       IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, Language: C#) (Syntax: '() => { }')
         IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ }')
           IReturnStatement (OperationKind.ReturnStatement, IsImplicit, Language: C#) (Syntax: '{ }')
-            ReturnedValue: null
+            ReturnedValue: 
+            null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
             var a = new Action(() => { });
@@ -1709,11 +1821,14 @@ class C3 : C2
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'c1 = new C3()')
   Variables: Local_1: C1 c1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1, IsImplicit, Language: C#) (Syntax: 'new C3()')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1, IsImplicit, Language: C#) (Syntax: 'new C3()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IObjectCreationExpression (Constructor: C3..ctor()) (OperationKind.ObjectCreationExpression, Type: C3, Language: C#) (Syntax: 'new C3()')
+      Operand: 
+        IObjectCreationExpression (Constructor: C3..ctor()) (OperationKind.ObjectCreationExpression, Type: C3, Language: C#) (Syntax: 'new C3()')
           Arguments(0)
-          Initializer: null
+          Initializer: 
+          null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1754,9 +1869,11 @@ class C4 : C3
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'c1 = c2')
   Variables: Local_1: I1<C4> c1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1<C4>, IsImplicit, Language: C#) (Syntax: 'c2')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1<C4>, IsImplicit, Language: C#) (Syntax: 'c2')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: C2<C3>, Language: C#) (Syntax: 'c2')
+      Operand: 
+        ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: C2<C3>, Language: C#) (Syntax: 'c2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1797,9 +1914,11 @@ class C4 : C3
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'c1 = c2')
   Variables: Local_1: I1<C3> c1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1<C3>, IsInvalid, IsImplicit, Language: C#) (Syntax: 'c2')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1<C3>, IsInvalid, IsImplicit, Language: C#) (Syntax: 'c2')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: C2<C4>, IsInvalid, Language: C#) (Syntax: 'c2')
+      Operand: 
+        ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: C2<C4>, IsInvalid, Language: C#) (Syntax: 'c2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'C2<C4>' to 'I1<C3>'. An explicit conversion exists (are you missing a cast?)
@@ -1844,9 +1963,11 @@ class C4 : C3
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'c1 = c2')
   Variables: Local_1: I1<C3> c1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1<C3>, IsImplicit, Language: C#) (Syntax: 'c2')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1<C3>, IsImplicit, Language: C#) (Syntax: 'c2')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: C2<C4>, Language: C#) (Syntax: 'c2')
+      Operand: 
+        ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: C2<C4>, Language: C#) (Syntax: 'c2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1887,9 +2008,11 @@ class C4 : C3
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'c1 = c2')
   Variables: Local_1: I1<C4> c1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1<C4>, IsInvalid, IsImplicit, Language: C#) (Syntax: 'c2')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1<C4>, IsInvalid, IsImplicit, Language: C#) (Syntax: 'c2')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: C2<C3>, IsInvalid, Language: C#) (Syntax: 'c2')
+      Operand: 
+        ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: C2<C3>, IsInvalid, Language: C#) (Syntax: 'c2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'C2<C3>' to 'I1<C4>'. An explicit conversion exists (are you missing a cast?)
@@ -1919,11 +2042,14 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'list = new  ... t<string>()')
   Variables: Local_1: System.Collections.Generic.IList<System.String> list
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IList<System.String>, IsImplicit, Language: C#) (Syntax: 'new List<string>()')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IList<System.String>, IsImplicit, Language: C#) (Syntax: 'new List<string>()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.String>..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List<System.String>, Language: C#) (Syntax: 'new List<string>()')
+      Operand: 
+        IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.String>..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List<System.String>, Language: C#) (Syntax: 'new List<string>()')
           Arguments(0)
-          Initializer: null
+          Initializer: 
+          null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1953,9 +2079,11 @@ class C2 : C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'c1 = new T()')
   Variables: Local_1: C1 c1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1, IsImplicit, Language: C#) (Syntax: 'new T()')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1, IsImplicit, Language: C#) (Syntax: 'new T()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T, Language: C#) (Syntax: 'new T()')
+      Operand: 
+        ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T, Language: C#) (Syntax: 'new T()')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1985,9 +2113,11 @@ class C2 : C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'c1 = new T()')
   Variables: Local_1: C1 c1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'new T()')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'new T()')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T, IsInvalid, Language: C#) (Syntax: 'new T()')
+      Operand: 
+        ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T, IsInvalid, Language: C#) (Syntax: 'new T()')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'T' to 'C1'
@@ -2020,9 +2150,11 @@ class C1 : I1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'i1 = new T()')
   Variables: Local_1: I1 i1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, IsImplicit, Language: C#) (Syntax: 'new T()')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, IsImplicit, Language: C#) (Syntax: 'new T()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T, Language: C#) (Syntax: 'new T()')
+      Operand: 
+        ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T, Language: C#) (Syntax: 'new T()')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2051,9 +2183,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'i1 = new T()')
   Variables: Local_1: I1 i1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'new T()')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'new T()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T, IsInvalid, Language: C#) (Syntax: 'new T()')
+      Operand: 
+        ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T, IsInvalid, Language: C#) (Syntax: 'new T()')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'T' to 'I1'. An explicit conversion exists (are you missing a cast?)
@@ -2087,9 +2221,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'u = new T()')
   Variables: Local_1: U u
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: U, IsImplicit, Language: C#) (Syntax: 'new T()')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: U, IsImplicit, Language: C#) (Syntax: 'new T()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T, Language: C#) (Syntax: 'new T()')
+      Operand: 
+        ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T, Language: C#) (Syntax: 'new T()')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2119,9 +2255,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'u = new T()')
   Variables: Local_1: U u
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: U, IsInvalid, IsImplicit, Language: C#) (Syntax: 'new T()')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: U, IsInvalid, IsImplicit, Language: C#) (Syntax: 'new T()')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T, IsInvalid, Language: C#) (Syntax: 'new T()')
+      Operand: 
+        ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T, IsInvalid, Language: C#) (Syntax: 'new T()')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'T' to 'U'
@@ -2154,9 +2292,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 't = null')
   Variables: Local_1: T t
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: T, Constant: null, IsImplicit, Language: C#) (Syntax: 'null')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: T, Constant: null, IsImplicit, Language: C#) (Syntax: 'null')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: C#) (Syntax: 'null')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: C#) (Syntax: 'null')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 't' is assigned but its value is never used
@@ -2189,9 +2329,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 't = null')
   Variables: Local_1: T t
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: T, IsInvalid, IsImplicit, Language: C#) (Syntax: 'null')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: T, IsInvalid, IsImplicit, Language: C#) (Syntax: 'null')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid, Language: C#) (Syntax: 'null')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid, Language: C#) (Syntax: 'null')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
@@ -2221,9 +2363,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'o = i')
   Variables: Local_1: System.Object o
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit, Language: C#) (Syntax: 'i')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit, Language: C#) (Syntax: 'i')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i')
+      Operand: 
+        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2249,9 +2393,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'd = i')
   Variables: Local_1: dynamic d
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: dynamic, IsImplicit, Language: C#) (Syntax: 'i')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: dynamic, IsImplicit, Language: C#) (Syntax: 'i')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i')
+      Operand: 
+        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2278,11 +2424,14 @@ struct S1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'v1 = new S1()')
   Variables: Local_1: System.ValueType v1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.ValueType, IsImplicit, Language: C#) (Syntax: 'new S1()')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.ValueType, IsImplicit, Language: C#) (Syntax: 'new S1()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IObjectCreationExpression (Constructor: S1..ctor()) (OperationKind.ObjectCreationExpression, Type: S1, Language: C#) (Syntax: 'new S1()')
+      Operand: 
+        IObjectCreationExpression (Constructor: S1..ctor()) (OperationKind.ObjectCreationExpression, Type: S1, Language: C#) (Syntax: 'new S1()')
           Arguments(0)
-          Initializer: null
+          Initializer: 
+          null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2309,11 +2458,14 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'v1 = new C1()')
   Variables: Local_1: System.ValueType v1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.ValueType, IsInvalid, IsImplicit, Language: C#) (Syntax: 'new C1()')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.ValueType, IsInvalid, IsImplicit, Language: C#) (Syntax: 'new C1()')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IObjectCreationExpression (Constructor: C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1, IsInvalid, Language: C#) (Syntax: 'new C1()')
+      Operand: 
+        IObjectCreationExpression (Constructor: C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1, IsInvalid, Language: C#) (Syntax: 'new C1()')
           Arguments(0)
-          Initializer: null
+          Initializer: 
+          null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'C1' to 'System.ValueType'
@@ -2345,11 +2497,14 @@ struct S1 : I1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'i1 = new S1()')
   Variables: Local_1: I1 i1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, IsImplicit, Language: C#) (Syntax: 'new S1()')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, IsImplicit, Language: C#) (Syntax: 'new S1()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IObjectCreationExpression (Constructor: S1..ctor()) (OperationKind.ObjectCreationExpression, Type: S1, Language: C#) (Syntax: 'new S1()')
+      Operand: 
+        IObjectCreationExpression (Constructor: S1..ctor()) (OperationKind.ObjectCreationExpression, Type: S1, Language: C#) (Syntax: 'new S1()')
           Arguments(0)
-          Initializer: null
+          Initializer: 
+          null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2377,11 +2532,14 @@ struct S1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'i1 = new S1()')
   Variables: Local_1: I1 i1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'new S1()')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'new S1()')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IObjectCreationExpression (Constructor: S1..ctor()) (OperationKind.ObjectCreationExpression, Type: S1, IsInvalid, Language: C#) (Syntax: 'new S1()')
+      Operand: 
+        IObjectCreationExpression (Constructor: S1..ctor()) (OperationKind.ObjectCreationExpression, Type: S1, IsInvalid, Language: C#) (Syntax: 'new S1()')
           Arguments(0)
-          Initializer: null
+          Initializer: 
+          null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'S1' to 'I1'
@@ -2414,9 +2572,11 @@ struct S1 : I1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'i1 = s1')
   Variables: Local_1: I1 i1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, IsImplicit, Language: C#) (Syntax: 's1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, IsImplicit, Language: C#) (Syntax: 's1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: s1 (OperationKind.LocalReferenceExpression, Type: S1?, Language: C#) (Syntax: 's1')
+      Operand: 
+        ILocalReferenceExpression: s1 (OperationKind.LocalReferenceExpression, Type: S1?, Language: C#) (Syntax: 's1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2445,9 +2605,11 @@ struct S1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'i1 = s1')
   Variables: Local_1: I1 i1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, IsInvalid, IsImplicit, Language: C#) (Syntax: 's1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, IsInvalid, IsImplicit, Language: C#) (Syntax: 's1')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: s1 (OperationKind.LocalReferenceExpression, Type: S1?, IsInvalid, Language: C#) (Syntax: 's1')
+      Operand: 
+        ILocalReferenceExpression: s1 (OperationKind.LocalReferenceExpression, Type: S1?, IsInvalid, Language: C#) (Syntax: 's1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'S1?' to 'I1'
@@ -2483,10 +2645,13 @@ struct S1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'e = E1.E')
   Variables: Local_1: System.Enum e
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Enum, IsImplicit, Language: C#) (Syntax: 'E1.E')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Enum, IsImplicit, Language: C#) (Syntax: 'E1.E')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IFieldReferenceExpression: E1.E (Static) (OperationKind.FieldReferenceExpression, Type: E1, Constant: 0, Language: C#) (Syntax: 'E1.E')
-          Instance Receiver: null
+      Operand: 
+        IFieldReferenceExpression: E1.E (Static) (OperationKind.FieldReferenceExpression, Type: E1, Constant: 0, Language: C#) (Syntax: 'E1.E')
+          Instance Receiver: 
+          null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2518,9 +2683,11 @@ struct S1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'e = 1')
   Variables: Local_1: System.Enum e
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Enum, IsInvalid, IsImplicit, Language: C#) (Syntax: '1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Enum, IsInvalid, IsImplicit, Language: C#) (Syntax: '1')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, Language: C#) (Syntax: '1')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, Language: C#) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'int' to 'System.Enum'
@@ -2549,9 +2716,11 @@ class S1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 's1 = d1')
   Variables: Local_1: System.String s1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsImplicit, Language: C#) (Syntax: 'd1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsImplicit, Language: C#) (Syntax: 'd1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: d1 (OperationKind.LocalReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd1')
+      Operand: 
+        ILocalReferenceExpression: d1 (OperationKind.LocalReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2576,9 +2745,11 @@ class S1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'i1 = d1')
   Variables: Local_1: System.Int32 i1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit, Language: C#) (Syntax: 'd1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit, Language: C#) (Syntax: 'd1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: d1 (OperationKind.LocalReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd1')
+      Operand: 
+        ILocalReferenceExpression: d1 (OperationKind.LocalReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2603,9 +2774,11 @@ class S1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 's1 = i1')
   Variables: Local_1: System.SByte s1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.SByte, Constant: 1, IsImplicit, Language: C#) (Syntax: 'i1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.SByte, Constant: 1, IsImplicit, Language: C#) (Syntax: 'i1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: 'i1')
+      Operand: 
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: 'i1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 's1' is assigned but its value is never used
@@ -2634,9 +2807,11 @@ class S1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 's1 = i1')
   Variables: Local_1: System.SByte s1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.SByte, IsInvalid, IsImplicit, Language: C#) (Syntax: 'i1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.SByte, IsInvalid, IsImplicit, Language: C#) (Syntax: 'i1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 4096, IsInvalid, Language: C#) (Syntax: 'i1')
+      Operand: 
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 4096, IsInvalid, Language: C#) (Syntax: 'i1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0031: Constant value '4096' cannot be converted to a 'sbyte'
@@ -2665,9 +2840,11 @@ class S1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 's1 = i1')
   Variables: Local_1: System.SByte s1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.SByte, IsInvalid, IsImplicit, Language: C#) (Syntax: 'i1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.SByte, IsInvalid, IsImplicit, Language: C#) (Syntax: 'i1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid, Language: C#) (Syntax: 'i1')
+      Operand: 
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid, Language: C#) (Syntax: 'i1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'int' to 'sbyte'. An explicit conversion exists (are you missing a cast?)
@@ -2703,9 +2880,11 @@ class C2
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'c2 = this')
   Variables: Local_1: C2 c2
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: C2 C2.op_Implicit(C1 c1)) (OperationKind.ConversionExpression, Type: C2, IsImplicit, Language: C#) (Syntax: 'this')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: C2 C2.op_Implicit(C1 c1)) (OperationKind.ConversionExpression, Type: C2, IsImplicit, Language: C#) (Syntax: 'this')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C2 C2.op_Implicit(C1 c1))
-      Operand: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, Language: C#) (Syntax: 'this')
+      Operand: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, Language: C#) (Syntax: 'this')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2738,11 +2917,14 @@ class C2
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'c2 = i1')
   Variables: Local_1: C2 c2
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: C2 C2.op_Implicit(System.Int64 c1)) (OperationKind.ConversionExpression, Type: C2, IsImplicit, Language: C#) (Syntax: 'i1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: C2 C2.op_Implicit(System.Int64 c1)) (OperationKind.ConversionExpression, Type: C2, IsImplicit, Language: C#) (Syntax: 'i1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C2 C2.op_Implicit(System.Int64 c1))
-      Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit, Language: C#) (Syntax: 'i1')
+      Operand: 
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit, Language: C#) (Syntax: 'i1')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i1')
+          Operand: 
+            ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2783,13 +2965,17 @@ class C2
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'c2 = (int)this')
   Variables: Local_1: C2 c2
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: C2 C2.op_Implicit(System.Int64 c1)) (OperationKind.ConversionExpression, Type: C2, IsImplicit, Language: C#) (Syntax: '(int)this')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: C2 C2.op_Implicit(System.Int64 c1)) (OperationKind.ConversionExpression, Type: C2, IsImplicit, Language: C#) (Syntax: '(int)this')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C2 C2.op_Implicit(System.Int64 c1))
-      Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit, Language: C#) (Syntax: '(int)this')
+      Operand: 
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit, Language: C#) (Syntax: '(int)this')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperatorMethod: System.Int32 C1.op_Implicit(C1 c1)) (OperationKind.ConversionExpression, Type: System.Int32, Language: C#) (Syntax: '(int)this')
+          Operand: 
+            IConversionExpression (Explicit, TryCast: False, Unchecked) (OperatorMethod: System.Int32 C1.op_Implicit(C1 c1)) (OperationKind.ConversionExpression, Type: System.Int32, Language: C#) (Syntax: '(int)this')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 C1.op_Implicit(C1 c1))
-              Operand: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, Language: C#) (Syntax: 'this')
+              Operand: 
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, Language: C#) (Syntax: 'this')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i1' is assigned but its value is never used
@@ -2830,9 +3016,11 @@ class C2
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'c2 = this')
   Variables: Local_1: C2 c2
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C2, IsInvalid, IsImplicit, Language: C#) (Syntax: 'this')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C2, IsInvalid, IsImplicit, Language: C#) (Syntax: 'this')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid, Language: C#) (Syntax: 'this')
+      Operand: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid, Language: C#) (Syntax: 'this')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'C1' to 'C2'
@@ -2879,9 +3067,11 @@ class C3
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'c3 = this')
   Variables: Local_1: C3 c3
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: C3 C3.op_Implicit(C2 c2)) (OperationKind.ConversionExpression, Type: C3, IsImplicit, Language: C#) (Syntax: 'this')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: C3 C3.op_Implicit(C2 c2)) (OperationKind.ConversionExpression, Type: C3, IsImplicit, Language: C#) (Syntax: 'this')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C3 C3.op_Implicit(C2 c2))
-      Operand: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2, Language: C#) (Syntax: 'this')
+      Operand: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2, Language: C#) (Syntax: 'this')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2907,12 +3097,15 @@ class S1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'a = delegate { }')
   Variables: Local_1: System.Action a
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsImplicit, Language: C#) (Syntax: 'delegate { }')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsImplicit, Language: C#) (Syntax: 'delegate { }')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, Language: C#) (Syntax: 'delegate { }')
+      Operand: 
+        IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, Language: C#) (Syntax: 'delegate { }')
           IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ }')
             IReturnStatement (OperationKind.ReturnStatement, IsImplicit, Language: C#) (Syntax: '{ }')
-              ReturnedValue: null
+              ReturnedValue: 
+              null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2938,12 +3131,15 @@ class S1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'a = delegate(int i) { }')
   Variables: Local_1: System.Action<System.Int32> a
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action<System.Int32>, IsImplicit, Language: C#) (Syntax: 'delegate(int i) { }')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action<System.Int32>, IsImplicit, Language: C#) (Syntax: 'delegate(int i) { }')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, Language: C#) (Syntax: 'delegate(int i) { }')
+      Operand: 
+        IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, Language: C#) (Syntax: 'delegate(int i) { }')
           IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ }')
             IReturnStatement (OperationKind.ReturnStatement, IsImplicit, Language: C#) (Syntax: '{ }')
-              ReturnedValue: null
+              ReturnedValue: 
+              null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2969,9 +3165,11 @@ class S1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'a = delegate() { }')
   Variables: Local_1: System.Action<System.Int32> a
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action<System.Int32>, IsInvalid, IsImplicit, Language: C#) (Syntax: 'delegate() { }')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action<System.Int32>, IsInvalid, IsImplicit, Language: C#) (Syntax: 'delegate() { }')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: C#) (Syntax: 'delegate() { }')
+      Operand: 
+        IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: C#) (Syntax: 'delegate() { }')
           IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid, Language: C#) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -3002,9 +3200,11 @@ class S1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'v1 = null')
   Variables: Local_1: System.Void* v1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Void*, IsImplicit, Language: C#) (Syntax: 'null')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Void*, IsImplicit, Language: C#) (Syntax: 'null')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: C#) (Syntax: 'null')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: C#) (Syntax: 'null')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
@@ -3031,9 +3231,11 @@ class S1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'v1 = i1')
   Variables: Local_1: System.Void* v1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Void*, IsImplicit, Language: C#) (Syntax: 'i1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Void*, IsImplicit, Language: C#) (Syntax: 'i1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32*, Language: C#) (Syntax: 'i1')
+      Operand: 
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32*, Language: C#) (Syntax: 'i1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3061,9 +3263,11 @@ class S1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'i1 = v1')
   Variables: Local_1: System.Int32* i1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32*, IsInvalid, IsImplicit, Language: C#) (Syntax: 'v1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32*, IsInvalid, IsImplicit, Language: C#) (Syntax: 'v1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: v1 (OperationKind.LocalReferenceExpression, Type: System.Void*, IsInvalid, Language: C#) (Syntax: 'v1')
+      Operand: 
+        ILocalReferenceExpression: v1 (OperationKind.LocalReferenceExpression, Type: System.Void*, IsInvalid, Language: C#) (Syntax: 'v1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'void*' to 'int*'. An explicit conversion exists (are you missing a cast?)
@@ -3094,9 +3298,11 @@ class S1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'v1 = 0')
   Variables: Local_1: System.Void* v1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Void*, IsInvalid, IsImplicit, Language: C#) (Syntax: '0')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Void*, IsInvalid, IsImplicit, Language: C#) (Syntax: '0')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid, Language: C#) (Syntax: '0')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid, Language: C#) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'int' to 'void*'. An explicit conversion exists (are you missing a cast?)
@@ -3128,14 +3334,19 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'exp = num => num < 5')
   Variables: Local_1: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Boolean>> exp
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Boolean>>, IsImplicit, Language: C#) (Syntax: 'num => num < 5')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Boolean>>, IsImplicit, Language: C#) (Syntax: 'num => num < 5')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, Language: C#) (Syntax: 'num => num < 5')
+      Operand: 
+        IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, Language: C#) (Syntax: 'num => num < 5')
           IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit, Language: C#) (Syntax: 'num < 5')
             IReturnStatement (OperationKind.ReturnStatement, IsImplicit, Language: C#) (Syntax: 'num < 5')
-              ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: C#) (Syntax: 'num < 5')
-                  Left: IParameterReferenceExpression: num (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'num')
-                  Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5, Language: C#) (Syntax: '5')
+              ReturnedValue: 
+                IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: C#) (Syntax: 'num < 5')
+                  Left: 
+                    IParameterReferenceExpression: num (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'num')
+                  Right: 
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5, Language: C#) (Syntax: '5')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3203,12 +3414,15 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'exp = num =>/*</bind>*/')
   Variables: Local_1: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Boolean>> exp
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Boolean>>, IsInvalid, IsImplicit, Language: C#) (Syntax: 'num =>/*</bind>*/')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Boolean>>, IsInvalid, IsImplicit, Language: C#) (Syntax: 'num =>/*</bind>*/')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: C#) (Syntax: 'num =>/*</bind>*/')
+      Operand: 
+        IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: C#) (Syntax: 'num =>/*</bind>*/')
           IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit, Language: C#) (Syntax: '')
             IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit, Language: C#) (Syntax: '')
-              ReturnedValue: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid, Language: C#) (Syntax: '')
+              ReturnedValue: 
+                IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid, Language: C#) (Syntax: '')
                   Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -3237,9 +3451,11 @@ class C1
 ";
             string expectedOperationTree = @"
 IReturnStatement (OperationKind.ReturnStatement, Language: C#) (Syntax: 'return i;')
-  ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit, Language: C#) (Syntax: 'i')
+  ReturnedValue: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsImplicit, Language: C#) (Syntax: 'i')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i')
+      Operand: 
+        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3263,9 +3479,11 @@ class C1
 ";
             string expectedOperationTree = @"
 IReturnStatement (OperationKind.ReturnStatement, IsInvalid, Language: C#) (Syntax: 'return f;')
-  ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit, Language: C#) (Syntax: 'f')
+  ReturnedValue: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit, Language: C#) (Syntax: 'f')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: f (OperationKind.LocalReferenceExpression, Type: System.Single, IsInvalid, Language: C#) (Syntax: 'f')
+      Operand: 
+        ILocalReferenceExpression: f (OperationKind.LocalReferenceExpression, Type: System.Single, IsInvalid, Language: C#) (Syntax: 'f')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'float' to 'int'. An explicit conversion exists (are you missing a cast?)
@@ -3300,9 +3518,11 @@ namespace ConsoleApp1
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: C#) (Syntax: 'object o = null;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'o = null')
     Variables: Local_1: System.Object o
-    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit, Language: C#) (Syntax: 'null')
+    Initializer: 
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit, Language: C#) (Syntax: 'null')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-        Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: C#) (Syntax: 'null')
+        Operand: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: C#) (Syntax: 'null')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'o' is assigned but its value is never used
@@ -3333,9 +3553,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'i = (int)1')
   Variables: Local_1: System.Int32 i
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '(int)1')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '(int)1')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i' is assigned but its value is never used
@@ -3363,11 +3585,14 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'i = (int)1')
   Variables: Local_1: System.Int64 i
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 1, IsImplicit, Language: C#) (Syntax: '(int)1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 1, IsImplicit, Language: C#) (Syntax: '(int)1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '(int)1')
+      Operand: 
+        IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '(int)1')
           Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
+          Operand: 
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i' is assigned but its value is never used
@@ -3395,7 +3620,8 @@ class C1
             string expectedOperationTree = @"
 IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '(int)1.0')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 1, Language: C#) (Syntax: '1.0')
+  Operand: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 1, Language: C#) (Syntax: '1.0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i' is assigned but its value is never used
@@ -3422,11 +3648,14 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'i = (float)1.0')
   Variables: Local_1: System.Int32 i
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit, Language: C#) (Syntax: '(float)1.0')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit, Language: C#) (Syntax: '(float)1.0')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Single, Constant: 1, IsInvalid, Language: C#) (Syntax: '(float)1.0')
+      Operand: 
+        IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Single, Constant: 1, IsInvalid, Language: C#) (Syntax: '(float)1.0')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 1, IsInvalid, Language: C#) (Syntax: '1.0')
+          Operand: 
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 1, IsInvalid, Language: C#) (Syntax: '1.0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'float' to 'int'. An explicit conversion exists (are you missing a cast?)
@@ -3453,11 +3682,14 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'i = (int)/*</bind>*/')
   Variables: Local_1: System.Int64 i
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsInvalid, IsImplicit, Language: C#) (Syntax: '(int)/*</bind>*/')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, IsInvalid, IsImplicit, Language: C#) (Syntax: '(int)/*</bind>*/')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, Language: C#) (Syntax: '(int)/*</bind>*/')
+      Operand: 
+        IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, Language: C#) (Syntax: '(int)/*</bind>*/')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid, Language: C#) (Syntax: '')
+          Operand: 
+            IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid, Language: C#) (Syntax: '')
               Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -3490,9 +3722,11 @@ enum E1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'e1 = (E1)1')
   Variables: Local_1: E1 e1
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: E1, Constant: 1, Language: C#) (Syntax: '(E1)1')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: E1, Constant: 1, Language: C#) (Syntax: '(E1)1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'e1' is assigned but its value is never used
@@ -3524,10 +3758,13 @@ enum E1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'i = (int)E1.One')
   Variables: Local_1: System.Int32 i
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: '(int)E1.One')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: '(int)E1.One')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IFieldReferenceExpression: E1.One (Static) (OperationKind.FieldReferenceExpression, Type: E1, Constant: 0, Language: C#) (Syntax: 'E1.One')
-          Instance Receiver: null
+      Operand: 
+        IFieldReferenceExpression: E1.One (Static) (OperationKind.FieldReferenceExpression, Type: E1, Constant: 0, Language: C#) (Syntax: 'E1.One')
+          Instance Receiver: 
+          null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i' is assigned but its value is never used
@@ -3564,10 +3801,13 @@ enum E2
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'e2 = (E2)E1.One')
   Variables: Local_1: E2 e2
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: E2, Constant: 0, Language: C#) (Syntax: '(E2)E1.One')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: E2, Constant: 0, Language: C#) (Syntax: '(E2)E1.One')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IFieldReferenceExpression: E1.One (Static) (OperationKind.FieldReferenceExpression, Type: E1, Constant: 0, Language: C#) (Syntax: 'E1.One')
-          Instance Receiver: null
+      Operand: 
+        IFieldReferenceExpression: E1.One (Static) (OperationKind.FieldReferenceExpression, Type: E1, Constant: 0, Language: C#) (Syntax: 'E1.One')
+          Instance Receiver: 
+          null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'e2' is assigned but its value is never used
@@ -3607,10 +3847,13 @@ enum E2 : byte
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'e2 = (E2)E1.One')
   Variables: Local_1: E2 e2
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: E2, Constant: null, IsInvalid, Language: C#) (Syntax: '(E2)E1.One')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: E2, Constant: null, IsInvalid, Language: C#) (Syntax: '(E2)E1.One')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IFieldReferenceExpression: E1.One (Static) (OperationKind.FieldReferenceExpression, Type: E1, Constant: 1000, IsInvalid, Language: C#) (Syntax: 'E1.One')
-          Instance Receiver: null
+      Operand: 
+        IFieldReferenceExpression: E1.One (Static) (OperationKind.FieldReferenceExpression, Type: E1, Constant: 1000, IsInvalid, Language: C#) (Syntax: 'E1.One')
+          Instance Receiver: 
+          null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0221: Constant value '1000' cannot be converted to a 'E2' (use 'unchecked' syntax to override)
@@ -3641,9 +3884,11 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'i = (int?)l')
   Variables: Local_1: System.Int32? i
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32?, Language: C#) (Syntax: '(int?)l')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32?, Language: C#) (Syntax: '(int?)l')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: l (OperationKind.LocalReferenceExpression, Type: System.Int64?, Language: C#) (Syntax: 'l')
+      Operand: 
+        ILocalReferenceExpression: l (OperationKind.LocalReferenceExpression, Type: System.Int64?, Language: C#) (Syntax: 'l')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3667,9 +3912,11 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'i = (int)l')
   Variables: Local_1: System.Int32 i
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Language: C#) (Syntax: '(int)l')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Language: C#) (Syntax: '(int)l')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: l (OperationKind.LocalReferenceExpression, Type: System.Int64?, Language: C#) (Syntax: 'l')
+      Operand: 
+        ILocalReferenceExpression: l (OperationKind.LocalReferenceExpression, Type: System.Int64?, Language: C#) (Syntax: 'l')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3693,9 +3940,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 's = (string)o')
   Variables: Local_1: System.String s
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Language: C#) (Syntax: '(string)o')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Language: C#) (Syntax: '(string)o')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object, Language: C#) (Syntax: 'o')
+      Operand: 
+        ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object, Language: C#) (Syntax: 'o')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3719,9 +3968,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 's = (string)d')
   Variables: Local_1: System.String s
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Language: C#) (Syntax: '(string)d')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Language: C#) (Syntax: '(string)d')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd')
+      Operand: 
+        ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3749,9 +4000,11 @@ class C2 : C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'c2 = (C2)c1')
   Variables: Local_1: C2 c2
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C2, Language: C#) (Syntax: '(C2)c1')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C2, Language: C#) (Syntax: '(C2)c1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C1, Language: C#) (Syntax: 'c1')
+      Operand: 
+        ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C1, Language: C#) (Syntax: 'c1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3779,9 +4032,11 @@ class C2
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'c2 = (C2)c1')
   Variables: Local_1: C2 c2
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C2, IsInvalid, Language: C#) (Syntax: '(C2)c1')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C2, IsInvalid, Language: C#) (Syntax: '(C2)c1')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C1, IsInvalid, Language: C#) (Syntax: 'c1')
+      Operand: 
+        ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C1, IsInvalid, Language: C#) (Syntax: 'c1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0030: Cannot convert type 'C1' to 'C2'
@@ -3811,9 +4066,11 @@ class C1 : I1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'c1 = (C1)i1')
   Variables: Local_1: C1 c1
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1, Language: C#) (Syntax: '(C1)i1')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1, Language: C#) (Syntax: '(C1)i1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: I1, Language: C#) (Syntax: 'i1')
+      Operand: 
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: I1, Language: C#) (Syntax: 'i1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3839,9 +4096,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'c1 = (C1)i1')
   Variables: Local_1: C1 c1
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1, Language: C#) (Syntax: '(C1)i1')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1, Language: C#) (Syntax: '(C1)i1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: I1, Language: C#) (Syntax: 'i1')
+      Operand: 
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: I1, Language: C#) (Syntax: 'i1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3867,9 +4126,11 @@ sealed class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'c1 = (C1)i1')
   Variables: Local_1: C1 c1
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1, IsInvalid, Language: C#) (Syntax: '(C1)i1')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1, IsInvalid, Language: C#) (Syntax: '(C1)i1')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: I1, IsInvalid, Language: C#) (Syntax: 'i1')
+      Operand: 
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: I1, IsInvalid, Language: C#) (Syntax: 'i1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0030: Cannot convert type 'I1' to 'C1'
@@ -3901,9 +4162,11 @@ sealed class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'i2 = (I2)i1')
   Variables: Local_1: I2 i2
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I2, Language: C#) (Syntax: '(I2)i1')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I2, Language: C#) (Syntax: '(I2)i1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: I1, Language: C#) (Syntax: 'i1')
+      Operand: 
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: I1, Language: C#) (Syntax: 'i1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3928,9 +4191,11 @@ sealed class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'i2 = (I2)()')
   Variables: Local_1: I2 i2
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I2, IsInvalid, Language: C#) (Syntax: '(I2)()')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I2, IsInvalid, Language: C#) (Syntax: '(I2)()')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid, Language: C#) (Syntax: '')
+      Operand: 
+        IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid, Language: C#) (Syntax: '')
           Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -3961,9 +4226,11 @@ class C2 : C1 { }
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'c2arr = (C2[])c1arr')
   Variables: Local_1: C2[] c2arr
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C2[], Language: C#) (Syntax: '(C2[])c1arr')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C2[], Language: C#) (Syntax: '(C2[])c1arr')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: c1arr (OperationKind.LocalReferenceExpression, Type: C1[], Language: C#) (Syntax: 'c1arr')
+      Operand: 
+        ILocalReferenceExpression: c1arr (OperationKind.LocalReferenceExpression, Type: C1[], Language: C#) (Syntax: 'c1arr')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3989,9 +4256,11 @@ class C2 { }
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'c2arr = (C2[])c1arr')
   Variables: Local_1: C2[] c2arr
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C2[], IsInvalid, Language: C#) (Syntax: '(C2[])c1arr')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C2[], IsInvalid, Language: C#) (Syntax: '(C2[])c1arr')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: c1arr (OperationKind.LocalReferenceExpression, Type: C1[], IsInvalid, Language: C#) (Syntax: 'c1arr')
+      Operand: 
+        ILocalReferenceExpression: c1arr (OperationKind.LocalReferenceExpression, Type: C1[], IsInvalid, Language: C#) (Syntax: 'c1arr')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0030: Cannot convert type 'C1[]' to 'C2[]'
@@ -4019,9 +4288,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'c2arr = (C1[][])c1arr')
   Variables: Local_1: C1[][] c2arr
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1[][], IsInvalid, Language: C#) (Syntax: '(C1[][])c1arr')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1[][], IsInvalid, Language: C#) (Syntax: '(C1[][])c1arr')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: c1arr (OperationKind.LocalReferenceExpression, Type: C1[], IsInvalid, Language: C#) (Syntax: 'c1arr')
+      Operand: 
+        ILocalReferenceExpression: c1arr (OperationKind.LocalReferenceExpression, Type: C1[], IsInvalid, Language: C#) (Syntax: 'c1arr')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0030: Cannot convert type 'C1[]' to 'C1[][]'
@@ -4051,9 +4322,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'c2arr = (C1[])c1arr')
   Variables: Local_1: C1[] c2arr
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1[], Language: C#) (Syntax: '(C1[])c1arr')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1[], Language: C#) (Syntax: '(C1[])c1arr')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: c1arr (OperationKind.LocalReferenceExpression, Type: System.Array, Language: C#) (Syntax: 'c1arr')
+      Operand: 
+        ILocalReferenceExpression: c1arr (OperationKind.LocalReferenceExpression, Type: System.Array, Language: C#) (Syntax: 'c1arr')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4080,9 +4353,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'c1list = (I ... t<C1>)c1arr')
   Variables: Local_1: System.Collections.Generic.IList<C1> c1list
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IList<C1>, Language: C#) (Syntax: '(IList<C1>)c1arr')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IList<C1>, Language: C#) (Syntax: '(IList<C1>)c1arr')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: c1arr (OperationKind.LocalReferenceExpression, Type: C1[], Language: C#) (Syntax: 'c1arr')
+      Operand: 
+        ILocalReferenceExpression: c1arr (OperationKind.LocalReferenceExpression, Type: C1[], Language: C#) (Syntax: 'c1arr')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4109,9 +4384,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'c1list = (I ... t<C1>)c1arr')
   Variables: Local_1: System.Collections.Generic.IList<C1> c1list
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IList<C1>, IsInvalid, Language: C#) (Syntax: '(IList<C1>)c1arr')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IList<C1>, IsInvalid, Language: C#) (Syntax: '(IList<C1>)c1arr')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: c1arr (OperationKind.LocalReferenceExpression, Type: C1[][], IsInvalid, Language: C#) (Syntax: 'c1arr')
+      Operand: 
+        ILocalReferenceExpression: c1arr (OperationKind.LocalReferenceExpression, Type: C1[][], IsInvalid, Language: C#) (Syntax: 'c1arr')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0030: Cannot convert type 'C1[][]' to 'System.Collections.Generic.IList<C1>'
@@ -4142,9 +4419,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'c1arr = (C1[])c1List')
   Variables: Local_1: C1[] c1arr
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1[], Language: C#) (Syntax: '(C1[])c1List')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1[], Language: C#) (Syntax: '(C1[])c1List')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: c1List (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.IList<C1>, Language: C#) (Syntax: 'c1List')
+      Operand: 
+        ILocalReferenceExpression: c1List (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.IList<C1>, Language: C#) (Syntax: 'c1List')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4171,9 +4450,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'c1arr = (C1[][])c1List')
   Variables: Local_1: C1[][] c1arr
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1[][], IsInvalid, Language: C#) (Syntax: '(C1[][])c1List')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C1[][], IsInvalid, Language: C#) (Syntax: '(C1[][])c1List')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: c1List (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.IList<C1>, IsInvalid, Language: C#) (Syntax: 'c1List')
+      Operand: 
+        ILocalReferenceExpression: c1List (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.IList<C1>, IsInvalid, Language: C#) (Syntax: 'c1List')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0030: Cannot convert type 'System.Collections.Generic.IList<C1>' to 'C1[][]'
@@ -4203,9 +4484,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'a = (Action)d')
   Variables: Local_1: System.Action a
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, Language: C#) (Syntax: '(Action)d')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, Language: C#) (Syntax: '(Action)d')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Delegate, Language: C#) (Syntax: 'd')
+      Operand: 
+        ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: System.Delegate, Language: C#) (Syntax: 'd')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4245,9 +4528,11 @@ class C4 : C3
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'c1 = (I1<C4>)c2')
   Variables: Local_1: I1<C4> c1
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1<C4>, Language: C#) (Syntax: '(I1<C4>)c2')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1<C4>, Language: C#) (Syntax: '(I1<C4>)c2')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: C2<C3>, Language: C#) (Syntax: 'c2')
+      Operand: 
+        ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: C2<C3>, Language: C#) (Syntax: 'c2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4271,9 +4556,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'i = (int)o')
   Variables: Local_1: System.Int32 i
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Language: C#) (Syntax: '(int)o')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Language: C#) (Syntax: '(int)o')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object, Language: C#) (Syntax: 'o')
+      Operand: 
+        ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object, Language: C#) (Syntax: 'o')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4297,9 +4584,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'i = (int)d')
   Variables: Local_1: System.Int32 i
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Language: C#) (Syntax: '(int)d')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Language: C#) (Syntax: '(int)d')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd')
+      Operand: 
+        ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4325,9 +4614,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'i = (int)v')
   Variables: Local_1: System.Int32 i
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Language: C#) (Syntax: '(int)v')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Language: C#) (Syntax: '(int)v')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: v (OperationKind.LocalReferenceExpression, Type: System.ValueType, Language: C#) (Syntax: 'v')
+      Operand: 
+        ILocalReferenceExpression: v (OperationKind.LocalReferenceExpression, Type: System.ValueType, Language: C#) (Syntax: 'v')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4358,9 +4649,11 @@ enum E1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'e1 = (E1)e')
   Variables: Local_1: E1 e1
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: E1, Language: C#) (Syntax: '(E1)e')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: E1, Language: C#) (Syntax: '(E1)e')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.Enum, Language: C#) (Syntax: 'e')
+      Operand: 
+        ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.Enum, Language: C#) (Syntax: 'e')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4391,9 +4684,11 @@ enum E1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'e1 = (E1?)e')
   Variables: Local_1: E1? e1
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: E1?, Language: C#) (Syntax: '(E1?)e')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: E1?, Language: C#) (Syntax: '(E1?)e')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.Enum, Language: C#) (Syntax: 'e')
+      Operand: 
+        ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.Enum, Language: C#) (Syntax: 'e')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4424,11 +4719,14 @@ enum E1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'e1 = (E1?)e')
   Variables: Local_1: System.Int32? e1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32?, IsInvalid, IsImplicit, Language: C#) (Syntax: '(E1?)e')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32?, IsInvalid, IsImplicit, Language: C#) (Syntax: '(E1?)e')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: E1?, IsInvalid, Language: C#) (Syntax: '(E1?)e')
+      Operand: 
+        IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: E1?, IsInvalid, Language: C#) (Syntax: '(E1?)e')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.Enum, IsInvalid, Language: C#) (Syntax: 'e')
+          Operand: 
+            ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.Enum, IsInvalid, Language: C#) (Syntax: 'e')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'E1?' to 'int?'. An explicit conversion exists (are you missing a cast?)
@@ -4462,9 +4760,11 @@ struct S1 : I1 { }
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 's1 = (S1)i')
   Variables: Local_1: S1 s1
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: S1, Language: C#) (Syntax: '(S1)i')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: S1, Language: C#) (Syntax: '(S1)i')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: I1, Language: C#) (Syntax: 'i')
+      Operand: 
+        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: I1, Language: C#) (Syntax: 'i')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4494,9 +4794,11 @@ struct S1 { }
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 's1 = (S1)i')
   Variables: Local_1: S1 s1
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: S1, IsInvalid, Language: C#) (Syntax: '(S1)i')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: S1, IsInvalid, Language: C#) (Syntax: '(S1)i')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: I1, IsInvalid, Language: C#) (Syntax: 'i')
+      Operand: 
+        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: I1, IsInvalid, Language: C#) (Syntax: 'i')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0030: Cannot convert type 'I1' to 'S1'
@@ -4531,9 +4833,11 @@ struct S1 : I1 { }
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 's1List = (I ... <S1>)i1List')
   Variables: Local_1: System.Collections.Generic.IList<S1> s1List
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IList<S1>, Language: C#) (Syntax: '(IList<S1>)i1List')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IList<S1>, Language: C#) (Syntax: '(IList<S1>)i1List')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: i1List (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.IList<I1>, Language: C#) (Syntax: 'i1List')
+      Operand: 
+        ILocalReferenceExpression: i1List (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.IList<I1>, Language: C#) (Syntax: 'i1List')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4558,9 +4862,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 't = (T)u')
   Variables: Local_1: T t
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: T, Language: C#) (Syntax: '(T)u')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: T, Language: C#) (Syntax: '(T)u')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IParameterReferenceExpression: u (OperationKind.ParameterReferenceExpression, Type: U, Language: C#) (Syntax: 'u')
+      Operand: 
+        IParameterReferenceExpression: u (OperationKind.ParameterReferenceExpression, Type: U, Language: C#) (Syntax: 'u')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4585,9 +4891,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 't = (T)u')
   Variables: Local_1: T t
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: T, IsInvalid, Language: C#) (Syntax: '(T)u')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: T, IsInvalid, Language: C#) (Syntax: '(T)u')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IParameterReferenceExpression: u (OperationKind.ParameterReferenceExpression, Type: U, IsInvalid, Language: C#) (Syntax: 'u')
+      Operand: 
+        IParameterReferenceExpression: u (OperationKind.ParameterReferenceExpression, Type: U, IsInvalid, Language: C#) (Syntax: 'u')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0030: Cannot convert type 'U' to 'T'
@@ -4616,9 +4924,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 't = (T)i')
   Variables: Local_1: T t
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: T, Language: C#) (Syntax: '(T)i')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: T, Language: C#) (Syntax: '(T)i')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: I1, Language: C#) (Syntax: 'i')
+      Operand: 
+        IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: I1, Language: C#) (Syntax: 'i')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4643,9 +4953,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'i = (I1)t')
   Variables: Local_1: I1 i
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, Language: C#) (Syntax: '(I1)t')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, Language: C#) (Syntax: '(I1)t')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: T, Language: C#) (Syntax: 't')
+      Operand: 
+        IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: T, Language: C#) (Syntax: 't')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4673,9 +4985,11 @@ class C2 { }
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'c2 = (C2)c1')
   Variables: Local_1: C2 c2
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperatorMethod: C2 C1.op_Implicit(C1 c1)) (OperationKind.ConversionExpression, Type: C2, Language: C#) (Syntax: '(C2)c1')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperatorMethod: C2 C1.op_Implicit(C1 c1)) (OperationKind.ConversionExpression, Type: C2, Language: C#) (Syntax: '(C2)c1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C2 C1.op_Implicit(C1 c1))
-      Operand: ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C1, Language: C#) (Syntax: 'c1')
+      Operand: 
+        ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C1, Language: C#) (Syntax: 'c1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4703,9 +5017,11 @@ class C2 { }
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'c2 = (C2)c1')
   Variables: Local_1: C2 c2
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperatorMethod: C2 C1.op_Explicit(C1 c1)) (OperationKind.ConversionExpression, Type: C2, Language: C#) (Syntax: '(C2)c1')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperatorMethod: C2 C1.op_Explicit(C1 c1)) (OperationKind.ConversionExpression, Type: C2, Language: C#) (Syntax: '(C2)c1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C2 C1.op_Explicit(C1 c1))
-      Operand: ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C1, Language: C#) (Syntax: 'c1')
+      Operand: 
+        ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C1, Language: C#) (Syntax: 'c1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4735,11 +5051,14 @@ class C2 : I1 { }
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'i1 = (C2)c1')
   Variables: Local_1: I1 i1
-  Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, IsImplicit, Language: C#) (Syntax: '(C2)c1')
+  Initializer: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1, IsImplicit, Language: C#) (Syntax: '(C2)c1')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperatorMethod: C2 C1.op_Explicit(C1 c1)) (OperationKind.ConversionExpression, Type: C2, Language: C#) (Syntax: '(C2)c1')
+      Operand: 
+        IConversionExpression (Explicit, TryCast: False, Unchecked) (OperatorMethod: C2 C1.op_Explicit(C1 c1)) (OperationKind.ConversionExpression, Type: C2, Language: C#) (Syntax: '(C2)c1')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C2 C1.op_Explicit(C1 c1))
-          Operand: ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C1, Language: C#) (Syntax: 'c1')
+          Operand: 
+            ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C1, Language: C#) (Syntax: 'c1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4764,12 +5083,15 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'a = (Action)(() => { })')
   Variables: Local_1: System.Action a
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, Language: C#) (Syntax: '(Action)(() => { })')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, Language: C#) (Syntax: '(Action)(() => { })')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, Language: C#) (Syntax: '() => { }')
+      Operand: 
+        IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, Language: C#) (Syntax: '() => { }')
           IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ }')
             IReturnStatement (OperationKind.ReturnStatement, IsImplicit, Language: C#) (Syntax: '{ }')
-              ReturnedValue: null
+              ReturnedValue: 
+              null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4794,14 +5116,18 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'a = (Action)(() => 1)')
   Variables: Local_1: System.Action a
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid, Language: C#) (Syntax: '(Action)(() => 1)')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid, Language: C#) (Syntax: '(Action)(() => 1)')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: C#) (Syntax: '() => 1')
+      Operand: 
+        IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: C#) (Syntax: '() => 1')
           IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit, Language: C#) (Syntax: '1')
             IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit, Language: C#) (Syntax: '1')
-              Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, Language: C#) (Syntax: '1')
+              Expression: 
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, Language: C#) (Syntax: '1')
             IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit, Language: C#) (Syntax: '1')
-              ReturnedValue: null
+              ReturnedValue: 
+              null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
@@ -4830,9 +5156,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'a = (Action ...  s) => { })')
   Variables: Local_1: System.Action a
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid, Language: C#) (Syntax: '(Action)((s ...  s) => { })')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid, Language: C#) (Syntax: '(Action)((s ...  s) => { })')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: C#) (Syntax: '(string s) => { }')
+      Operand: 
+        IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: C#) (Syntax: '(string s) => { }')
           IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid, Language: C#) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -4864,10 +5192,12 @@ IOperation:  (OperationKind.None, Language: C#) (Syntax: 'new Action( ... () => 
   Children(1):
       IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, Language: C#) (Syntax: '(Action)(() => { })')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, Language: C#) (Syntax: '() => { }')
+        Operand: 
+          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, Language: C#) (Syntax: '() => { }')
             IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ }')
               IReturnStatement (OperationKind.ReturnStatement, IsImplicit, Language: C#) (Syntax: '{ }')
-                ReturnedValue: null
+                ReturnedValue: 
+                null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4894,12 +5224,15 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInva
   Children(1):
       IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid, Language: C#) (Syntax: '(Action)(() => 1)')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: C#) (Syntax: '() => 1')
+        Operand: 
+          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: C#) (Syntax: '() => 1')
             IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit, Language: C#) (Syntax: '1')
               IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit, Language: C#) (Syntax: '1')
-                Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, Language: C#) (Syntax: '1')
+                Expression: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, Language: C#) (Syntax: '1')
               IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit, Language: C#) (Syntax: '1')
-                ReturnedValue: null
+                ReturnedValue: 
+                null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
@@ -4930,7 +5263,8 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInva
   Children(1):
       IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid, Language: C#) (Syntax: '(Action)((s ...  s) => { })')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: C#) (Syntax: '(string s) => { }')
+        Operand: 
+          IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: C#) (Syntax: '(string s) => { }')
             IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid, Language: C#) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -4962,8 +5296,10 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'a = (Action)M2')
   Variables: Local_1: System.Action a
-  Initializer: IMethodReferenceExpression: void C1.M2() (OperationKind.MethodReferenceExpression, Type: System.Action, Language: C#) (Syntax: '(Action)M2')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsImplicit, Language: C#) (Syntax: 'M2')
+  Initializer: 
+    IMethodReferenceExpression: void C1.M2() (OperationKind.MethodReferenceExpression, Type: System.Action, Language: C#) (Syntax: '(Action)M2')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsImplicit, Language: C#) (Syntax: 'M2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4990,9 +5326,11 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'a = (Action)M2')
   Variables: Local_1: System.Action a
-  Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid, Language: C#) (Syntax: '(Action)M2')
+  Initializer: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid, Language: C#) (Syntax: '(Action)M2')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IOperation:  (OperationKind.None, IsInvalid, Language: C#) (Syntax: 'M2')
+      Operand: 
+        IOperation:  (OperationKind.None, IsInvalid, Language: C#) (Syntax: 'M2')
           Children(1):
               IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'M2')
 ";
@@ -5025,8 +5363,10 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'a = (Action)M2')
   Variables: Local_1: System.Action a
-  Initializer: IMethodReferenceExpression: System.Int32 C1.M2() (OperationKind.MethodReferenceExpression, Type: System.Action, IsInvalid, Language: C#) (Syntax: '(Action)M2')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'M2')
+  Initializer: 
+    IMethodReferenceExpression: System.Int32 C1.M2() (OperationKind.MethodReferenceExpression, Type: System.Action, IsInvalid, Language: C#) (Syntax: '(Action)M2')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'M2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0407: 'int C1.M2()' has the wrong return type
@@ -5060,10 +5400,12 @@ class C1
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'a = new Act ... (Action)M2)')
   Variables: Local_1: System.Action a
-  Initializer: IOperation:  (OperationKind.None, Language: C#) (Syntax: 'new Action((Action)M2)')
+  Initializer: 
+    IOperation:  (OperationKind.None, Language: C#) (Syntax: 'new Action((Action)M2)')
       Children(1):
           IMethodReferenceExpression: void C1.M2() (OperationKind.MethodReferenceExpression, Type: System.Action, Language: C#) (Syntax: '(Action)M2')
-            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsImplicit, Language: C#) (Syntax: 'M2')
+            Instance Receiver: 
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsImplicit, Language: C#) (Syntax: 'M2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -5092,7 +5434,8 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInva
   Children(1):
       IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid, Language: C#) (Syntax: '(Action)M2')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: IOperation:  (OperationKind.None, IsInvalid, Language: C#) (Syntax: 'M2')
+        Operand: 
+          IOperation:  (OperationKind.None, IsInvalid, Language: C#) (Syntax: 'M2')
             Children(1):
                 IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'M2')
 ";
@@ -5126,7 +5469,8 @@ class C1
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid, Language: C#) (Syntax: 'new Action((Action)M2)')
   Children(1):
       IMethodReferenceExpression: System.Int32 C1.M2() (OperationKind.MethodReferenceExpression, Type: System.Action, IsInvalid, Language: C#) (Syntax: '(Action)M2')
-        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'M2')
+        Instance Receiver: 
+          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1, IsInvalid, IsImplicit, Language: C#) (Syntax: 'M2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0407: 'int C1.M2()' has the wrong return type
@@ -5157,9 +5501,11 @@ class C1
 ";
             string expectedOperationTree = @"
 IReturnStatement (OperationKind.ReturnStatement, Language: C#) (Syntax: 'return (int)1.0;')
-  ReturnedValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '(int)1.0')
+  ReturnedValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '(int)1.0')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 1, Language: C#) (Syntax: '1.0')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 1, Language: C#) (Syntax: '1.0')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -5183,9 +5529,11 @@ class C1
 ";
             string expectedOperationTree = @"
 IReturnStatement (OperationKind.ReturnStatement, IsInvalid, Language: C#) (Syntax: 'return (int)"""";')
-  ReturnedValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, Language: C#) (Syntax: '(int)""""')
+  ReturnedValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, Language: C#) (Syntax: '(int)""""')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: """", IsInvalid, Language: C#) (Syntax: '""""')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: """", IsInvalid, Language: C#) (Syntax: '""""')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0030: Cannot convert type 'string' to 'int'
@@ -5213,9 +5561,11 @@ class C1
 ";
             string expectedOperationTree = @"
 IReturnStatement (OperationKind.ReturnStatement, IsInvalid, Language: C#) (Syntax: 'return (int);')
-  ReturnedValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, Language: C#) (Syntax: '(int)')
+  ReturnedValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, Language: C#) (Syntax: '(int)')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid, Language: C#) (Syntax: '')
+      Operand: 
+        IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid, Language: C#) (Syntax: '')
           Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -5250,9 +5600,11 @@ namespace ConsoleApp1
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: C#) (Syntax: 'object o = (object)null;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: C#) (Syntax: 'o = (object)null')
     Variables: Local_1: System.Object o
-    Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, Language: C#) (Syntax: '(object)null')
+    Initializer: 
+      IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, Language: C#) (Syntax: '(object)null')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-        Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: C#) (Syntax: 'null')
+        Operand: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: C#) (Syntax: 'null')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'o' is assigned but its value is never used

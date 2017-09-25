@@ -169,7 +169,8 @@ class C
 ";
             string expectedOperationTree = @"
 IInvocationExpression ( ? System.Int32.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'sizeof(M2()')
-  Instance Receiver: ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid, Language: C#) (Syntax: 'sizeof(M2')
+  Instance Receiver: 
+    ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid, Language: C#) (Syntax: 'sizeof(M2')
       TypeOperand: M2
   Arguments(0)
 ";

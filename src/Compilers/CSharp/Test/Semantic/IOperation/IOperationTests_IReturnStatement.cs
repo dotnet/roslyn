@@ -26,7 +26,8 @@ class C
 ";
             string expectedOperationTree = @"
 IReturnStatement (OperationKind.ReturnStatement, Language: C#) (Syntax: 'return;')
-  ReturnedValue: null
+  ReturnedValue: 
+  null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
             VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -47,7 +48,8 @@ class C
 ";
             string expectedOperationTree = @"
 IReturnStatement (OperationKind.ReturnStatement, Language: C#) (Syntax: 'return true;')
-  ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True, Language: C#) (Syntax: 'true')
+  ReturnedValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True, Language: C#) (Syntax: 'true')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -70,7 +72,8 @@ class C
 ";
             string expectedOperationTree = @"
 IReturnStatement (OperationKind.YieldReturnStatement, Language: C#) (Syntax: 'yield return 0;')
-  ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: '0')
+  ReturnedValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: '0')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -94,7 +97,8 @@ class C
 ";
             string expectedOperationTree = @"
 IReturnStatement (OperationKind.YieldBreakStatement, Language: C#) (Syntax: 'yield break;')
-  ReturnedValue: null
+  ReturnedValue: 
+  null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

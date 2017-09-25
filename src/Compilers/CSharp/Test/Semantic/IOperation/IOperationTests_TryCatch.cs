@@ -36,25 +36,38 @@ class C
 ";
             string expectedOperationTree = @"
 ITryStatement (OperationKind.None, Language: C#) (Syntax: 'try ... }')
-  Body: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ ... }')
+  Body: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: C#) (Syntax: 'i = 0;')
-        Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: C#) (Syntax: 'i = 0')
-            Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i')
-            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: '0')
+        Expression: 
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: C#) (Syntax: 'i = 0')
+            Left: 
+              IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i')
+            Right: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: '0')
   Catch clauses(1):
       ICatchClause (Exception type: System.Exception, Exception local: System.Exception ex) (OperationKind.None, Language: C#) (Syntax: 'catch (Exce ... }')
-        Filter: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: C#) (Syntax: 'i > 0')
-            Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i')
-            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: '0')
-        Handler: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ ... }')
+        Filter: 
+          IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: C#) (Syntax: 'i > 0')
+            Left: 
+              IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i')
+            Right: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: '0')
+        Handler: 
+          IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ ... }')
             IExpressionStatement (OperationKind.ExpressionStatement, Language: C#) (Syntax: 'throw ex;')
-              Expression: IThrowExpression (OperationKind.ThrowExpression, Type: System.Exception, Language: C#) (Syntax: 'throw ex;')
+              Expression: 
+                IThrowExpression (OperationKind.ThrowExpression, Type: System.Exception, Language: C#) (Syntax: 'throw ex;')
                   ILocalReferenceExpression: ex (OperationKind.LocalReferenceExpression, Type: System.Exception, Language: C#) (Syntax: 'ex')
-  Finally: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ ... }')
+  Finally: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: C#) (Syntax: 'i = 1;')
-        Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: C#) (Syntax: 'i = 1')
-            Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i')
-            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
+        Expression: 
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: C#) (Syntax: 'i = 1')
+            Left: 
+              IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i')
+            Right: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -90,25 +103,38 @@ class C
             string expectedOperationTree = @"
 IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ ... }')
   ITryStatement (OperationKind.None, Language: C#) (Syntax: 'try ... }')
-    Body: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ ... }')
+    Body: 
+      IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ ... }')
         IExpressionStatement (OperationKind.ExpressionStatement, Language: C#) (Syntax: 'i = 0;')
-          Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: C#) (Syntax: 'i = 0')
-              Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i')
-              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: '0')
+          Expression: 
+            ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: C#) (Syntax: 'i = 0')
+              Left: 
+                IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i')
+              Right: 
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: '0')
     Catch clauses(1):
         ICatchClause (Exception type: System.Exception, Exception local: System.Exception ex) (OperationKind.None, Language: C#) (Syntax: 'catch (Exce ... }')
-          Filter: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: C#) (Syntax: 'i > 0')
-              Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i')
-              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: '0')
-          Handler: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ ... }')
+          Filter: 
+            IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: C#) (Syntax: 'i > 0')
+              Left: 
+                IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i')
+              Right: 
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: '0')
+          Handler: 
+            IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ ... }')
               IExpressionStatement (OperationKind.ExpressionStatement, Language: C#) (Syntax: 'throw ex;')
-                Expression: IThrowExpression (OperationKind.ThrowExpression, Type: System.Exception, Language: C#) (Syntax: 'throw ex;')
+                Expression: 
+                  IThrowExpression (OperationKind.ThrowExpression, Type: System.Exception, Language: C#) (Syntax: 'throw ex;')
                     ILocalReferenceExpression: ex (OperationKind.LocalReferenceExpression, Type: System.Exception, Language: C#) (Syntax: 'ex')
-    Finally: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ ... }')
+    Finally: 
+      IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ ... }')
         IExpressionStatement (OperationKind.ExpressionStatement, Language: C#) (Syntax: 'i = 1;')
-          Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: C#) (Syntax: 'i = 1')
-              Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i')
-              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
+          Expression: 
+            ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: C#) (Syntax: 'i = 1')
+              Left: 
+                IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'i')
+              Right: 
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

@@ -26,23 +26,35 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For i As In ... Next')
   Locals: Local_1: i As System.Int32
-  LoopControlVariable: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i As Integer')
-  InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
-  LimitValue: IBinaryOperatorExpression (BinaryOperatorKind.Subtract, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'myarray.Length - 1')
-      Left: IPropertyReferenceExpression: ReadOnly Property System.Array.Length As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'myarray.Length')
-          Instance Receiver: ILocalReferenceExpression: myarray (OperationKind.LocalReferenceExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'myarray')
-      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For i As In ... Next')
+  LoopControlVariable: 
+    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i As Integer')
+  InitialValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+  LimitValue: 
+    IBinaryOperatorExpression (BinaryOperatorKind.Subtract, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'myarray.Length - 1')
+      Left: 
+        IPropertyReferenceExpression: ReadOnly Property System.Array.Length As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'myarray.Length')
+          Instance Receiver: 
+            ILocalReferenceExpression: myarray (OperationKind.LocalReferenceExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'myarray')
+      Right: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+  StepValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For i As In ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For i As In ... Next')
-  Body: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For i As In ... Next')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For i As In ... Next')
+  Body: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For i As In ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'System.Cons ... myarray(i))')
-        Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... myarray(i))')
-            Instance Receiver: null
+        Expression: 
+          IInvocationExpression (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... myarray(i))')
+            Instance Receiver: 
+            null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: 'myarray(i)')
                   IArrayElementReferenceExpression (OperationKind.None, Language: Visual Basic) (Syntax: 'myarray(i)')
-                    Array reference: ILocalReferenceExpression: myarray (OperationKind.LocalReferenceExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'myarray')
+                    Array reference: 
+                      ILocalReferenceExpression: myarray (OperationKind.LocalReferenceExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'myarray')
                     Indices(1):
                         ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -77,22 +89,32 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For i As In ... Next')
   Locals: Local_1: i As System.Int32
-  LoopControlVariable: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i As Integer')
-  InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
-  LimitValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '"1"')
+  LoopControlVariable: 
+    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i As Integer')
+  InitialValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+  LimitValue: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '"1"')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "1", Language: Visual Basic) (Syntax: '"1"')
-  StepValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 's')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "1", Language: Visual Basic) (Syntax: '"1"')
+  StepValue: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 's')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.Double, Language: Visual Basic) (Syntax: 's')
-  Body: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For i As In ... Next')
+      Operand: 
+        ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.Double, Language: Visual Basic) (Syntax: 's')
+  Body: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For i As In ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'System.Cons ... myarray(i))')
-        Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... myarray(i))')
-            Instance Receiver: null
+        Expression: 
+          IInvocationExpression (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... myarray(i))')
+            Instance Receiver: 
+            null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: 'myarray(i)')
                   IArrayElementReferenceExpression (OperationKind.None, Language: Visual Basic) (Syntax: 'myarray(i)')
-                    Array reference: ILocalReferenceExpression: myarray (OperationKind.LocalReferenceExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'myarray')
+                    Array reference: 
+                      ILocalReferenceExpression: myarray (OperationKind.LocalReferenceExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'myarray')
                     Indices(1):
                         ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -123,18 +145,27 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For i As Do ... Next')
   Locals: Local_1: i As System.Double
-  LoopControlVariable: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Double, Language: Visual Basic) (Syntax: 'i As Double')
-  InitialValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 2, Language: Visual Basic) (Syntax: '2')
+  LoopControlVariable: 
+    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Double, Language: Visual Basic) (Syntax: 'i As Double')
+  InitialValue: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 2, Language: Visual Basic) (Syntax: '2')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
-  LimitValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 0, Language: Visual Basic) (Syntax: '0')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+  LimitValue: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, Constant: 0, Language: Visual Basic) (Syntax: '0')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
-  StepValue: ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.Double, Language: Visual Basic) (Syntax: 's')
-  Body: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For i As Do ... Next')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+  StepValue: 
+    ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.Double, Language: Visual Basic) (Syntax: 's')
+  Body: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For i As Do ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'System.Cons ... riteLine(i)')
-        Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.Double)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... riteLine(i)')
-            Instance Receiver: null
+        Expression: 
+          IInvocationExpression (Sub System.Console.WriteLine(value As System.Double)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... riteLine(i)')
+            Instance Receiver: 
+            null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: 'i')
                   ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Double, Language: Visual Basic) (Syntax: 'i')
@@ -169,14 +200,21 @@ End Class
 
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For ctrlVar ... Next')
-  LoopControlVariable: ILocalReferenceExpression: ctrlVar (OperationKind.LocalReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'ctrlVar')
-  InitialValue: ILocalReferenceExpression: initValue (OperationKind.LocalReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'initValue')
-  LimitValue: ILocalReferenceExpression: limit (OperationKind.LocalReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'limit')
-  StepValue: ILocalReferenceExpression: stp (OperationKind.LocalReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'stp')
-  Body: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For ctrlVar ... Next')
+  LoopControlVariable: 
+    ILocalReferenceExpression: ctrlVar (OperationKind.LocalReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'ctrlVar')
+  InitialValue: 
+    ILocalReferenceExpression: initValue (OperationKind.LocalReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'initValue')
+  LimitValue: 
+    ILocalReferenceExpression: limit (OperationKind.LocalReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'limit')
+  StepValue: 
+    ILocalReferenceExpression: stp (OperationKind.LocalReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'stp')
+  Body: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For ctrlVar ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'System.Cons ... ne(ctrlVar)')
-        Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... ne(ctrlVar)')
-            Instance Receiver: null
+        Expression: 
+          IInvocationExpression (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... ne(ctrlVar)')
+            Instance Receiver: 
+            null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: 'ctrlVar')
                   ILocalReferenceExpression: ctrlVar (OperationKind.LocalReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'ctrlVar')
@@ -212,40 +250,64 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For AVarNam ... xt AVarName')
   Locals: Local_1: AVarName As System.Int32
-  LoopControlVariable: ILocalReferenceExpression: AVarName (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'AVarName')
-  InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
-  LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For AVarNam ... xt AVarName')
+  LoopControlVariable: 
+    ILocalReferenceExpression: AVarName (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'AVarName')
+  InitialValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+  LimitValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+  StepValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For AVarNam ... xt AVarName')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For AVarNam ... xt AVarName')
-  Body: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For AVarNam ... xt AVarName')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For AVarNam ... xt AVarName')
+  Body: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For AVarNam ... xt AVarName')
       IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For B = 1 T ... Next B')
         Locals: Local_1: B As System.Int32
-        LoopControlVariable: ILocalReferenceExpression: B (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'B')
-        InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
-        LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
-        StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For B = 1 T ... Next B')
+        LoopControlVariable: 
+          ILocalReferenceExpression: B (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'B')
+        InitialValue: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+        LimitValue: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+        StepValue: 
+          IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For B = 1 T ... Next B')
             Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For B = 1 T ... Next B')
-        Body: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For B = 1 T ... Next B')
+            Operand: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For B = 1 T ... Next B')
+        Body: 
+          IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For B = 1 T ... Next B')
             IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For C = 1 T ... Next C')
               Locals: Local_1: C As System.Int32
-              LoopControlVariable: ILocalReferenceExpression: C (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'C')
-              InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
-              LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
-              StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For C = 1 T ... Next C')
+              LoopControlVariable: 
+                ILocalReferenceExpression: C (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'C')
+              InitialValue: 
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+              LimitValue: 
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+              StepValue: 
+                IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For C = 1 T ... Next C')
                   Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For C = 1 T ... Next C')
-              Body: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For C = 1 T ... Next C')
+                  Operand: 
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For C = 1 T ... Next C')
+              Body: 
+                IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For C = 1 T ... Next C')
                   IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For D = 1 T ... Next D')
                     Locals: Local_1: D As System.Int32
-                    LoopControlVariable: ILocalReferenceExpression: D (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'D')
-                    InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
-                    LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
-                    StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For D = 1 T ... Next D')
+                    LoopControlVariable: 
+                      ILocalReferenceExpression: D (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'D')
+                    InitialValue: 
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+                    LimitValue: 
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+                    StepValue: 
+                      IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For D = 1 T ... Next D')
                         Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For D = 1 T ... Next D')
-                    Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For D = 1 T ... Next D')
+                        Operand: 
+                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For D = 1 T ... Next D')
+                    Body: 
+                      IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For D = 1 T ... Next D')
                     NextVariables(1):
                         ILocalReferenceExpression: D (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'D')
               NextVariables(1):
@@ -282,29 +344,46 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For I = 1 T ... Next')
   Locals: Local_1: I As System.Int32
-  LoopControlVariable: ILocalReferenceExpression: I (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'I')
-  InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
-  LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For I = 1 T ... Next')
+  LoopControlVariable: 
+    ILocalReferenceExpression: I (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'I')
+  InitialValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+  LimitValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+  StepValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For I = 1 T ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For I = 1 T ... Next')
-  Body: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For I = 1 T ... Next')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For I = 1 T ... Next')
+  Body: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For I = 1 T ... Next')
       IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For J = 1 T ... Next')
         Locals: Local_1: J As System.Int32
-        LoopControlVariable: ILocalReferenceExpression: J (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'J')
-        InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
-        LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
-        StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For J = 1 T ... Next')
+        LoopControlVariable: 
+          ILocalReferenceExpression: J (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'J')
+        InitialValue: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+        LimitValue: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+        StepValue: 
+          IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For J = 1 T ... Next')
             Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For J = 1 T ... Next')
-        Body: IBlockStatement (2 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For J = 1 T ... Next')
+            Operand: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For J = 1 T ... Next')
+        Body: 
+          IBlockStatement (2 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For J = 1 T ... Next')
             IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'I = 3')
-              Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'I = 3')
-                  Left: ILocalReferenceExpression: I (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'I')
-                  Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3, Language: Visual Basic) (Syntax: '3')
+              Expression: 
+                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'I = 3')
+                  Left: 
+                    ILocalReferenceExpression: I (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'I')
+                  Right: 
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3, Language: Visual Basic) (Syntax: '3')
             IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'System.Cons ... riteLine(I)')
-              Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... riteLine(I)')
-                  Instance Receiver: null
+              Expression: 
+                IInvocationExpression (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... riteLine(I)')
+                  Instance Receiver: 
+                  null
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: 'I')
                         ILocalReferenceExpression: I (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'I')
@@ -339,27 +418,43 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For I = 1 T ... Next')
   Locals: Local_1: I As System.Int32
-  LoopControlVariable: ILocalReferenceExpression: I (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'I')
-  InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
-  LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For I = 1 T ... Next')
+  LoopControlVariable: 
+    ILocalReferenceExpression: I (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'I')
+  InitialValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+  LimitValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+  StepValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For I = 1 T ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For I = 1 T ... Next')
-  Body: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For I = 1 T ... Next')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For I = 1 T ... Next')
+  Body: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For I = 1 T ... Next')
       IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For J = I + ... Next')
         Locals: Local_1: J As System.Int32
-        LoopControlVariable: ILocalReferenceExpression: J (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'J')
-        InitialValue: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'I + 1')
-            Left: ILocalReferenceExpression: I (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'I')
-            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
-        LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
-        StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For J = I + ... Next')
+        LoopControlVariable: 
+          ILocalReferenceExpression: J (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'J')
+        InitialValue: 
+          IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'I + 1')
+            Left: 
+              ILocalReferenceExpression: I (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'I')
+            Right: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+        LimitValue: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+        StepValue: 
+          IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For J = I + ... Next')
             Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For J = I + ... Next')
-        Body: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For J = I + ... Next')
+            Operand: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For J = I + ... Next')
+        Body: 
+          IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For J = I + ... Next')
             IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'System.Cons ... riteLine(J)')
-              Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... riteLine(J)')
-                  Instance Receiver: null
+              Expression: 
+                IInvocationExpression (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... riteLine(J)')
+                  Instance Receiver: 
+                  null
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: 'J')
                         ILocalReferenceExpression: J (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'J')
@@ -394,27 +489,41 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For I = 1 T ... Next')
   Locals: Local_1: I As System.Int32
-  LoopControlVariable: ILocalReferenceExpression: I (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'I')
-  InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
-  LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For I = 1 T ... Next')
+  LoopControlVariable: 
+    ILocalReferenceExpression: I (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'I')
+  InitialValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+  LimitValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+  StepValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For I = 1 T ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For I = 1 T ... Next')
-  Body: IBlockStatement (2 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For I = 1 T ... Next')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For I = 1 T ... Next')
+  Body: 
+    IBlockStatement (2 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For I = 1 T ... Next')
       IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For J = 1 T ... Next')
         Locals: Local_1: J As System.Int32
-        LoopControlVariable: ILocalReferenceExpression: J (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'J')
-        InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
-        LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
-        StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For J = 1 T ... Next')
+        LoopControlVariable: 
+          ILocalReferenceExpression: J (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'J')
+        InitialValue: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+        LimitValue: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+        StepValue: 
+          IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For J = 1 T ... Next')
             Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For J = 1 T ... Next')
-        Body: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For J = 1 T ... Next')
+            Operand: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For J = 1 T ... Next')
+        Body: 
+          IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For J = 1 T ... Next')
             IBranchStatement (BranchKind.Break, Label: exit) (OperationKind.BranchStatement, Language: Visual Basic) (Syntax: 'Exit For')
         NextVariables(0)
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'System.Cons ... riteLine(I)')
-        Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... riteLine(I)')
-            Instance Receiver: null
+        Expression: 
+          IInvocationExpression (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... riteLine(I)')
+            Instance Receiver: 
+            null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: 'I')
                   ILocalReferenceExpression: I (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'I')
@@ -448,15 +557,23 @@ End Enum
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For x As e1 ... Next')
   Locals: Local_1: x As e1
-  LoopControlVariable: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: e1, Language: Visual Basic) (Syntax: 'x As e1')
-  InitialValue: IFieldReferenceExpression: e1.a (Static) (OperationKind.FieldReferenceExpression, Type: e1, Constant: 0, Language: Visual Basic) (Syntax: 'e1.a')
-      Instance Receiver: null
-  LimitValue: IFieldReferenceExpression: e1.c (Static) (OperationKind.FieldReferenceExpression, Type: e1, Constant: 2, Language: Visual Basic) (Syntax: 'e1.c')
-      Instance Receiver: null
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: e1, Constant: 1, Language: Visual Basic) (Syntax: 'For x As e1 ... Next')
+  LoopControlVariable: 
+    ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: e1, Language: Visual Basic) (Syntax: 'x As e1')
+  InitialValue: 
+    IFieldReferenceExpression: e1.a (Static) (OperationKind.FieldReferenceExpression, Type: e1, Constant: 0, Language: Visual Basic) (Syntax: 'e1.a')
+      Instance Receiver: 
+      null
+  LimitValue: 
+    IFieldReferenceExpression: e1.c (Static) (OperationKind.FieldReferenceExpression, Type: e1, Constant: 2, Language: Visual Basic) (Syntax: 'e1.c')
+      Instance Receiver: 
+      null
+  StepValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: e1, Constant: 1, Language: Visual Basic) (Syntax: 'For x As e1 ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For x As e1 ... Next')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For x As e1 ... Next')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For x As e1 ... Next')
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For x As e1 ... Next')
   NextVariables(0)
 ]]>.Value
 
@@ -489,25 +606,36 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For i As In ... Next')
   Locals: Local_1: i As System.Int32
-  LoopControlVariable: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i As Integer')
-  InitialValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'P1(30 + i)')
+  LoopControlVariable: 
+    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i As Integer')
+  InitialValue: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'P1(30 + i)')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IPropertyReferenceExpression: Property MyClass1.P1(x As System.Int64) As System.Byte (OperationKind.PropertyReferenceExpression, Type: System.Byte, Language: Visual Basic) (Syntax: 'P1(30 + i)')
-          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MyClass1, IsImplicit, Language: Visual Basic) (Syntax: 'P1')
+      Operand: 
+        IPropertyReferenceExpression: Property MyClass1.P1(x As System.Int64) As System.Byte (OperationKind.PropertyReferenceExpression, Type: System.Byte, Language: Visual Basic) (Syntax: 'P1(30 + i)')
+          Instance Receiver: 
+            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: MyClass1, IsImplicit, Language: Visual Basic) (Syntax: 'P1')
           Arguments(1):
               IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Language: Visual Basic) (Syntax: '30 + i')
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int64, Language: Visual Basic) (Syntax: '30 + i')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '30 + i')
-                      Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 30, Language: Visual Basic) (Syntax: '30')
-                      Right: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i')
+                  Operand: 
+                    IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '30 + i')
+                      Left: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 30, Language: Visual Basic) (Syntax: '30')
+                      Right: 
+                        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 30, Language: Visual Basic) (Syntax: '30')
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For i As In ... Next')
+  LimitValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 30, Language: Visual Basic) (Syntax: '30')
+  StepValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For i As In ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For i As In ... Next')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For i As In ... Next')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For i As In ... Next')
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For i As In ... Next')
   NextVariables(0)
 ]]>.Value
 
@@ -534,16 +662,24 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For global_ ... Next')
   Locals: Local_1: global_x As System.Int32
-  LoopControlVariable: ILocalReferenceExpression: global_x (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'global_x As Integer')
-  InitialValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 20, Language: Visual Basic) (Syntax: 'global_y')
+  LoopControlVariable: 
+    ILocalReferenceExpression: global_x (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'global_x As Integer')
+  InitialValue: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 20, Language: Visual Basic) (Syntax: 'global_y')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IFieldReferenceExpression: MyClass1.global_y As System.Int64 (Static) (OperationKind.FieldReferenceExpression, Type: System.Int64, Constant: 20, Language: Visual Basic) (Syntax: 'global_y')
-          Instance Receiver: null
-  LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For global_ ... Next')
+      Operand: 
+        IFieldReferenceExpression: MyClass1.global_y As System.Int64 (Static) (OperationKind.FieldReferenceExpression, Type: System.Int64, Constant: 20, Language: Visual Basic) (Syntax: 'global_y')
+          Instance Receiver: 
+          null
+  LimitValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
+  StepValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For global_ ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For global_ ... Next')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For global_ ... Next')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For global_ ... Next')
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For global_ ... Next')
   NextVariables(0)
 ]]>.Value
 
@@ -566,13 +702,19 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For x As In ... o 10 : Next')
   Locals: Local_1: x As System.Int32
-  LoopControlVariable: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x As Integer')
-  InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
-  LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For x As In ... o 10 : Next')
+  LoopControlVariable: 
+    ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x As Integer')
+  InitialValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+  LimitValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
+  StepValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For x As In ... o 10 : Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For x As In ... o 10 : Next')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For x As In ... o 10 : Next')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For x As In ... o 10 : Next')
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For x As In ... o 10 : Next')
   NextVariables(0)
 ]]>.Value
 
@@ -596,13 +738,19 @@ End Class
 
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For Y = 1 T ... Next')
-  LoopControlVariable: ILocalReferenceExpression: Y (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'Y')
-  InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
-  LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For Y = 1 T ... Next')
+  LoopControlVariable: 
+    ILocalReferenceExpression: Y (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'Y')
+  InitialValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+  LimitValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+  StepValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For Y = 1 T ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For Y = 1 T ... Next')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For Y = 1 T ... Next')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For Y = 1 T ... Next')
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For Y = 1 T ... Next')
   NextVariables(0)
 ]]>.Value
 
@@ -634,13 +782,19 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For element ... Next')
   Locals: Local_1: element1 As System.Int32
-  LoopControlVariable: ILocalReferenceExpression: element1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'element1')
-  InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 23, Language: Visual Basic) (Syntax: '23')
-  LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 42, Language: Visual Basic) (Syntax: '42')
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For element ... Next')
+  LoopControlVariable: 
+    ILocalReferenceExpression: element1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'element1')
+  InitialValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 23, Language: Visual Basic) (Syntax: '23')
+  LimitValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 42, Language: Visual Basic) (Syntax: '42')
+  StepValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For element ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For element ... Next')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For element ... Next')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For element ... Next')
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For element ... Next')
   NextVariables(0)
 ]]>.Value
 
@@ -672,22 +826,35 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For i As In ... Next')
   Locals: Local_1: i As System.Int32
-  LoopControlVariable: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i As Integer')
-  InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
-  LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5, Language: Visual Basic) (Syntax: '5')
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For i As In ... Next')
+  LoopControlVariable: 
+    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i As Integer')
+  InitialValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+  LimitValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5, Language: Visual Basic) (Syntax: '5')
+  StepValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For i As In ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For i As In ... Next')
-  Body: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For i As In ... Next')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For i As In ... Next')
+  Body: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For i As In ... Next')
       IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If i Mod 2  ... End If')
-        Condition: IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'i Mod 2 = 0')
-            Left: IBinaryOperatorExpression (BinaryOperatorKind.Remainder, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i Mod 2')
-                Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i')
-                Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
-            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
-        IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If i Mod 2  ... End If')
+        Condition: 
+          IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'i Mod 2 = 0')
+            Left: 
+              IBinaryOperatorExpression (BinaryOperatorKind.Remainder, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i Mod 2')
+                Left: 
+                  ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'i')
+                Right: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+            Right: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+        IfTrue: 
+          IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If i Mod 2  ... End If')
             IBranchStatement (BranchKind.Continue, Label: continue) (OperationKind.BranchStatement, Language: Visual Basic) (Syntax: 'Continue For')
-        IfFalse: null
+        IfFalse: 
+        null
   NextVariables(0)
 ]]>.Value
 
@@ -715,14 +882,21 @@ End Module
 
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For X = 10  ... Next')
-  LoopControlVariable: IFieldReferenceExpression: M.X As System.Int32 (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'X')
-      Instance Receiver: null
-  InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
-  LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For X = 10  ... Next')
+  LoopControlVariable: 
+    IFieldReferenceExpression: M.X As System.Int32 (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'X')
+      Instance Receiver: 
+      null
+  InitialValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
+  LimitValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+  StepValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For X = 10  ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For X = 10  ... Next')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For X = 10  ... Next')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For X = 10  ... Next')
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For X = 10  ... Next')
   NextVariables(0)
 ]]>.Value
 
@@ -752,12 +926,18 @@ End Module
 
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, IsInvalid, Language: Visual Basic) (Syntax: 'For X = 10  ... Next')
-  LoopControlVariable: IFieldReferenceExpression: M.X As System.String (Static) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: 'X')
-      Instance Receiver: null
-  InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
-  LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
-  StepValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: 'For X = 10  ... Next')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid, Language: Visual Basic) (Syntax: 'For X = 10  ... Next')
+  LoopControlVariable: 
+    IFieldReferenceExpression: M.X As System.String (Static) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: 'X')
+      Instance Receiver: 
+      null
+  InitialValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
+  LimitValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+  StepValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: 'For X = 10  ... Next')
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid, Language: Visual Basic) (Syntax: 'For X = 10  ... Next')
   NextVariables(0)
 ]]>.Value
 
@@ -787,22 +967,34 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For A = 1 T ... Next B, A')
   Locals: Local_1: A As System.Int32
-  LoopControlVariable: ILocalReferenceExpression: A (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'A')
-  InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
-  LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For A = 1 T ... Next B, A')
+  LoopControlVariable: 
+    ILocalReferenceExpression: A (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'A')
+  InitialValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+  LimitValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+  StepValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For A = 1 T ... Next B, A')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For A = 1 T ... Next B, A')
-  Body: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For A = 1 T ... Next B, A')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For A = 1 T ... Next B, A')
+  Body: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For A = 1 T ... Next B, A')
       IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For B = A T ... Next B, A')
         Locals: Local_1: B As System.Int32
-        LoopControlVariable: ILocalReferenceExpression: B (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'B')
-        InitialValue: ILocalReferenceExpression: A (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'A')
-        LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
-        StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For B = A T ... Next B, A')
+        LoopControlVariable: 
+          ILocalReferenceExpression: B (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'B')
+        InitialValue: 
+          ILocalReferenceExpression: A (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'A')
+        LimitValue: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+        StepValue: 
+          IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For B = A T ... Next B, A')
             Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For B = A T ... Next B, A')
-        Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For B = A T ... Next B, A')
+            Operand: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For B = A T ... Next B, A')
+        Body: 
+          IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For B = A T ... Next B, A')
         NextVariables(2):
             ILocalReferenceExpression: B (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'B')
             ILocalReferenceExpression: A (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'A')
@@ -830,13 +1022,19 @@ End Structure
 
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
-  LoopControlVariable: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
-  InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12, Language: Visual Basic) (Syntax: '12')
-  LimitValue: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
+  LoopControlVariable: 
+    ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
+  InitialValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12, Language: Visual Basic) (Syntax: '12')
+  LimitValue: 
+    ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
+  StepValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
   NextVariables(0)
 ]]>.Value
 
@@ -859,17 +1057,25 @@ End Structure
 
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
-  LoopControlVariable: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'x')
-  InitialValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: '12')
+  LoopControlVariable: 
+    ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'x')
+  InitialValue: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: '12')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12, Language: Visual Basic) (Syntax: '12')
-  LimitValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'y')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12, Language: Visual Basic) (Syntax: '12')
+  LimitValue: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'y')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
+      Operand: 
+        ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
+  StepValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
   NextVariables(0)
 ]]>.Value
 
@@ -892,15 +1098,22 @@ End Structure
 
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
-  LoopControlVariable: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
-  InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12, Language: Visual Basic) (Syntax: '12')
-  LimitValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
+  LoopControlVariable: 
+    ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
+  InitialValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12, Language: Visual Basic) (Syntax: '12')
+  LimitValue: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'y')
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
+      Operand: 
+        ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'y')
+  StepValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
   NextVariables(0)
 ]]>.Value
 
@@ -923,15 +1136,22 @@ End Structure
 
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
-  LoopControlVariable: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'x')
-  InitialValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: '12')
+  LoopControlVariable: 
+    ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'x')
+  InitialValue: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: '12')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12, Language: Visual Basic) (Syntax: '12')
-  LimitValue: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'y')
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12, Language: Visual Basic) (Syntax: '12')
+  LimitValue: 
+    ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'y')
+  StepValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
   NextVariables(0)
 ]]>.Value
 
@@ -955,13 +1175,19 @@ End Structure
 
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
-  LoopControlVariable: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
-  InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12, Language: Visual Basic) (Syntax: '12')
-  LimitValue: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
-  StepValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 's')
+  LoopControlVariable: 
+    ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
+  InitialValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12, Language: Visual Basic) (Syntax: '12')
+  LimitValue: 
+    ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
+  StepValue: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 's')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 's')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
+      Operand: 
+        ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 's')
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
   NextVariables(0)
 ]]>.Value
 
@@ -985,15 +1211,22 @@ End Structure
 
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
-  LoopControlVariable: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'x')
-  InitialValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: '12')
+  LoopControlVariable: 
+    ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'x')
+  InitialValue: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: '12')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12, Language: Visual Basic) (Syntax: '12')
-  LimitValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'y')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12, Language: Visual Basic) (Syntax: '12')
+  LimitValue: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'y')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
-  StepValue: ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 's')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
+      Operand: 
+        ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
+  StepValue: 
+    ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 's')
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
   NextVariables(0)
 ]]>.Value
 
@@ -1017,15 +1250,22 @@ End Structure
 
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
-  LoopControlVariable: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
-  InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12, Language: Visual Basic) (Syntax: '12')
-  LimitValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
+  LoopControlVariable: 
+    ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
+  InitialValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12, Language: Visual Basic) (Syntax: '12')
+  LimitValue: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'y')
-  StepValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 's')
+      Operand: 
+        ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'y')
+  StepValue: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 's')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 's')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
+      Operand: 
+        ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 's')
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
   NextVariables(0)
 ]]>.Value
 
@@ -1049,13 +1289,19 @@ End Structure
 
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
-  LoopControlVariable: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'x')
-  InitialValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: '12')
+  LoopControlVariable: 
+    ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'x')
+  InitialValue: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: '12')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12, Language: Visual Basic) (Syntax: '12')
-  LimitValue: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'y')
-  StepValue: ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 's')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 12, Language: Visual Basic) (Syntax: '12')
+  LimitValue: 
+    ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 'y')
+  StepValue: 
+    ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.Nullable(Of System.Int32), Language: Visual Basic) (Syntax: 's')
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For x = 12  ... Next')
   NextVariables(0)
 ]]>.Value
 
@@ -1080,17 +1326,25 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For X = 0 T ... Next X')
-  LoopControlVariable: IFieldReferenceExpression: C.X As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'X')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: Visual Basic) (Syntax: 'X')
-  InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
-  LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For X = 0 T ... Next X')
+  LoopControlVariable: 
+    IFieldReferenceExpression: C.X As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'X')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: Visual Basic) (Syntax: 'X')
+  InitialValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+  LimitValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
+  StepValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For X = 0 T ... Next X')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For X = 0 T ... Next X')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For X = 0 T ... Next X')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For X = 0 T ... Next X')
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For X = 0 T ... Next X')
   NextVariables(1):
       IFieldReferenceExpression: C.X As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'X')
-        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: Visual Basic) (Syntax: 'X')
+        Instance Receiver: 
+          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: Visual Basic) (Syntax: 'X')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1116,17 +1370,25 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IForToLoopStatement (LoopKind.ForTo) (OperationKind.LoopStatement, Language: Visual Basic) (Syntax: 'For c.X = 0 ... Next c.X')
-  LoopControlVariable: IFieldReferenceExpression: C.X As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'c.X')
-      Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: Visual Basic) (Syntax: 'c')
-  InitialValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
-  LimitValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
-  StepValue: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For c.X = 0 ... Next c.X')
+  LoopControlVariable: 
+    IFieldReferenceExpression: C.X As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'c.X')
+      Instance Receiver: 
+        IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: Visual Basic) (Syntax: 'c')
+  InitialValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+  LimitValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
+  StepValue: 
+    IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: 'For c.X = 0 ... Next c.X')
       Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For c.X = 0 ... Next c.X')
-  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For c.X = 0 ... Next c.X')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'For c.X = 0 ... Next c.X')
+  Body: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'For c.X = 0 ... Next c.X')
   NextVariables(1):
       IFieldReferenceExpression: C.X As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'c.X')
-        Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: Visual Basic) (Syntax: 'c')
+        Instance Receiver: 
+          IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: Visual Basic) (Syntax: 'c')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

@@ -52,7 +52,8 @@ internal class Class
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, Language: C#) (Syntax: '$""Only text part""')
   Parts(1):
       IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: C#) (Syntax: 'Only text part')
-        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""Only text part"", Language: C#) (Syntax: 'Only text part')
+        Text: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""Only text part"", Language: C#) (Syntax: 'Only text part')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -78,9 +79,12 @@ internal class Class
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, Language: C#) (Syntax: '$""{1}""')
   Parts(1):
       IInterpolation (OperationKind.Interpolation, Language: C#) (Syntax: '{1}')
-        Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
-        Alignment: null
-        FormatString: null
+        Expression: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
+        Alignment: 
+        null
+        FormatString: 
+        null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -106,10 +110,13 @@ internal class Class
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, IsInvalid, Language: C#) (Syntax: '$""{}""')
   Parts(1):
       IInterpolation (OperationKind.Interpolation, IsInvalid, Language: C#) (Syntax: '{}')
-        Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid, Language: C#) (Syntax: '')
+        Expression: 
+          IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid, Language: C#) (Syntax: '')
             Children(0)
-        Alignment: null
-        FormatString: null
+        Alignment: 
+        null
+        FormatString: 
+        null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1733: Expected expression
@@ -139,17 +146,25 @@ internal class Class
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, Language: C#) (Syntax: '$""String {x ... nstant {1}""')
   Parts(4):
       IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: C#) (Syntax: 'String ')
-        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""String "", Language: C#) (Syntax: 'String ')
+        Text: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""String "", Language: C#) (Syntax: 'String ')
       IInterpolation (OperationKind.Interpolation, Language: C#) (Syntax: '{x}')
-        Expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'x')
-        Alignment: null
-        FormatString: null
+        Expression: 
+          IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'x')
+        Alignment: 
+        null
+        FormatString: 
+        null
       IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: C#) (Syntax: ' and constant ')
-        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "" and constant "", Language: C#) (Syntax: ' and constant ')
+        Text: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "" and constant "", Language: C#) (Syntax: ' and constant ')
       IInterpolation (OperationKind.Interpolation, Language: C#) (Syntax: '{1}')
-        Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
-        Alignment: null
-        FormatString: null
+        Expression: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
+        Alignment: 
+        null
+        FormatString: 
+        null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -178,25 +193,39 @@ internal class Class
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, Language: C#) (Syntax: '$""String {x ... nstant {1}""')
   Parts(6):
       IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: C#) (Syntax: 'String ')
-        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""String "", Language: C#) (Syntax: 'String ')
+        Text: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""String "", Language: C#) (Syntax: 'String ')
       IInterpolation (OperationKind.Interpolation, Language: C#) (Syntax: '{x,20}')
-        Expression: IFieldReferenceExpression: System.String Class.x (OperationKind.FieldReferenceExpression, Type: System.String, Language: C#) (Syntax: 'x')
-            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit, Language: C#) (Syntax: 'x')
-        Alignment: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, Language: C#) (Syntax: '20')
-        FormatString: null
+        Expression: 
+          IFieldReferenceExpression: System.String Class.x (OperationKind.FieldReferenceExpression, Type: System.String, Language: C#) (Syntax: 'x')
+            Instance Receiver: 
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit, Language: C#) (Syntax: 'x')
+        Alignment: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, Language: C#) (Syntax: '20')
+        FormatString: 
+        null
       IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: C#) (Syntax: ' and ')
-        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "" and "", Language: C#) (Syntax: ' and ')
+        Text: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "" and "", Language: C#) (Syntax: ' and ')
       IInterpolation (OperationKind.Interpolation, Language: C#) (Syntax: '{y:D3}')
-        Expression: IFieldReferenceExpression: System.Int32 Class.y (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'y')
-            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit, Language: C#) (Syntax: 'y')
-        Alignment: null
-        FormatString: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""D3"", Language: C#) (Syntax: ':D3')
+        Expression: 
+          IFieldReferenceExpression: System.Int32 Class.y (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'y')
+            Instance Receiver: 
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit, Language: C#) (Syntax: 'y')
+        Alignment: 
+        null
+        FormatString: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""D3"", Language: C#) (Syntax: ':D3')
       IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: C#) (Syntax: ' and constant ')
-        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "" and constant "", Language: C#) (Syntax: ' and constant ')
+        Text: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "" and constant "", Language: C#) (Syntax: ' and constant ')
       IInterpolation (OperationKind.Interpolation, Language: C#) (Syntax: '{1}')
-        Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
-        Alignment: null
-        FormatString: null
+        Expression: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
+        Alignment: 
+        null
+        FormatString: 
+        null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -225,13 +254,19 @@ internal class Class
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, Language: C#) (Syntax: '$""String {x,y:D3}""')
   Parts(2):
       IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: C#) (Syntax: 'String ')
-        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""String "", Language: C#) (Syntax: 'String ')
+        Text: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""String "", Language: C#) (Syntax: 'String ')
       IInterpolation (OperationKind.Interpolation, Language: C#) (Syntax: '{x,y:D3}')
-        Expression: IFieldReferenceExpression: System.String Class.x (OperationKind.FieldReferenceExpression, Type: System.String, Language: C#) (Syntax: 'x')
-            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit, Language: C#) (Syntax: 'x')
-        Alignment: IFieldReferenceExpression: System.Int32 Class.y (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: 'y')
-            Instance Receiver: null
-        FormatString: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""D3"", Language: C#) (Syntax: ':D3')
+        Expression: 
+          IFieldReferenceExpression: System.String Class.x (OperationKind.FieldReferenceExpression, Type: System.String, Language: C#) (Syntax: 'x')
+            Instance Receiver: 
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit, Language: C#) (Syntax: 'x')
+        Alignment: 
+          IFieldReferenceExpression: System.Int32 Class.y (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: 'y')
+            Instance Receiver: 
+            null
+        FormatString: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""D3"", Language: C#) (Syntax: ':D3')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -261,29 +296,42 @@ internal class Class
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, Language: C#) (Syntax: '$""String {x ... nstant {1}""')
   Parts(6):
       IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: C#) (Syntax: 'String ')
-        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""String "", Language: C#) (Syntax: 'String ')
+        Text: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""String "", Language: C#) (Syntax: 'String ')
       IInterpolation (OperationKind.Interpolation, Language: C#) (Syntax: '{x}')
-        Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.String, Language: C#) (Syntax: 'x')
-        Alignment: null
-        FormatString: null
+        Expression: 
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.String, Language: C#) (Syntax: 'x')
+        Alignment: 
+        null
+        FormatString: 
+        null
       IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: C#) (Syntax: ' and ')
-        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "" and "", Language: C#) (Syntax: ' and ')
+        Text: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "" and "", Language: C#) (Syntax: ' and ')
       IInterpolation (OperationKind.Interpolation, Language: C#) (Syntax: '{M2(y)}')
-        Expression: IInvocationExpression ( System.String Class.M2(System.Int32 z)) (OperationKind.InvocationExpression, Type: System.String, Language: C#) (Syntax: 'M2(y)')
-            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit, Language: C#) (Syntax: 'M2')
+        Expression: 
+          IInvocationExpression ( System.String Class.M2(System.Int32 z)) (OperationKind.InvocationExpression, Type: System.String, Language: C#) (Syntax: 'M2(y)')
+            Instance Receiver: 
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit, Language: C#) (Syntax: 'M2')
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument, Language: C#) (Syntax: 'y')
                   ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'y')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Alignment: null
-        FormatString: null
+        Alignment: 
+        null
+        FormatString: 
+        null
       IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: C#) (Syntax: ' and constant ')
-        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "" and constant "", Language: C#) (Syntax: ' and constant ')
+        Text: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "" and constant "", Language: C#) (Syntax: ' and constant ')
       IInterpolation (OperationKind.Interpolation, Language: C#) (Syntax: '{1}')
-        Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
-        Alignment: null
-        FormatString: null
+        Expression: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: C#) (Syntax: '1')
+        Alignment: 
+        null
+        FormatString: 
+        null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -313,22 +361,30 @@ internal class Class
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, Language: C#) (Syntax: '$""String {M2($""{y}"")}""')
   Parts(2):
       IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: C#) (Syntax: 'String ')
-        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""String "", Language: C#) (Syntax: 'String ')
+        Text: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""String "", Language: C#) (Syntax: 'String ')
       IInterpolation (OperationKind.Interpolation, Language: C#) (Syntax: '{M2($""{y}"")}')
-        Expression: IInvocationExpression ( System.Int32 Class.M2(System.String z)) (OperationKind.InvocationExpression, Type: System.Int32, Language: C#) (Syntax: 'M2($""{y}"")')
-            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit, Language: C#) (Syntax: 'M2')
+        Expression: 
+          IInvocationExpression ( System.Int32 Class.M2(System.String z)) (OperationKind.InvocationExpression, Type: System.Int32, Language: C#) (Syntax: 'M2($""{y}"")')
+            Instance Receiver: 
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit, Language: C#) (Syntax: 'M2')
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument, Language: C#) (Syntax: '$""{y}""')
                   IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, Language: C#) (Syntax: '$""{y}""')
                     Parts(1):
                         IInterpolation (OperationKind.Interpolation, Language: C#) (Syntax: '{y}')
-                          Expression: ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'y')
-                          Alignment: null
-                          FormatString: null
+                          Expression: 
+                            ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'y')
+                          Alignment: 
+                          null
+                          FormatString: 
+                          null
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Alignment: null
-        FormatString: null
+        Alignment: 
+        null
+        FormatString: 
+        null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -354,20 +410,28 @@ internal class Class
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, IsInvalid, Language: C#) (Syntax: '$""String {x ... nt {Class}""')
   Parts(4):
       IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: C#) (Syntax: 'String ')
-        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""String "", Language: C#) (Syntax: 'String ')
+        Text: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""String "", Language: C#) (Syntax: 'String ')
       IInterpolation (OperationKind.Interpolation, IsInvalid, Language: C#) (Syntax: '{x1}')
-        Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'x1')
+        Expression: 
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'x1')
             Children(0)
-        Alignment: null
-        FormatString: null
+        Alignment: 
+        null
+        FormatString: 
+        null
       IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: C#) (Syntax: ' and constant ')
-        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "" and constant "", Language: C#) (Syntax: ' and constant ')
+        Text: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "" and constant "", Language: C#) (Syntax: ' and constant ')
       IInterpolation (OperationKind.Interpolation, IsInvalid, Language: C#) (Syntax: '{Class}')
-        Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: Class, IsInvalid, IsImplicit, Language: C#) (Syntax: 'Class')
+        Expression: 
+          IInvalidExpression (OperationKind.InvalidExpression, Type: Class, IsInvalid, IsImplicit, Language: C#) (Syntax: 'Class')
             Children(1):
                 IOperation:  (OperationKind.None, IsInvalid, Language: C#) (Syntax: 'Class')
-        Alignment: null
-        FormatString: null
+        Alignment: 
+        null
+        FormatString: 
+        null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0103: The name 'x1' does not exist in the current context

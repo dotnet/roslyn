@@ -28,7 +28,8 @@ class Program
 ";
             string expectedOperationTree = @"
 IInvocationExpression ( ? ?.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'Console.WriteLine2()')
-  Instance Receiver: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'Console.WriteLine2')
+  Instance Receiver: 
+    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'Console.WriteLine2')
       Children(1):
           IOperation:  (OperationKind.None, Language: C#) (Syntax: 'Console')
   Arguments(0)
@@ -63,11 +64,13 @@ class Program
 ";
             string expectedOperationTree = @"
 IInvocationExpression ( void Program.F(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid, Language: C#) (Syntax: 'F(string.Empty)')
-  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: C#) (Syntax: 'F')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: C#) (Syntax: 'F')
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid, Language: C#) (Syntax: 'string.Empty')
         IFieldReferenceExpression: System.String System.String.Empty (Static) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid, Language: C#) (Syntax: 'string.Empty')
-          Instance Receiver: null
+          Instance Receiver: 
+          null
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -135,7 +138,8 @@ class Program
             string expectedOperationTree = @"
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'y = x.MissingField')
   Variables: Local_1: ? y
-  Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'x.MissingField')
+  Initializer: 
+    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'x.MissingField')
       Children(1):
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, Language: C#) (Syntax: 'x')
 ";
@@ -173,10 +177,13 @@ class Program
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid, Language: C#) (Syntax: 'string y = x.i1;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'y = x.i1')
     Variables: Local_1: System.String y
-    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit, Language: C#) (Syntax: 'x.i1')
+    Initializer: 
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit, Language: C#) (Syntax: 'x.i1')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: IFieldReferenceExpression: System.Int32 Program.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid, Language: C#) (Syntax: 'x.i1')
-            Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid, Language: C#) (Syntax: 'x')
+        Operand: 
+          IFieldReferenceExpression: System.Int32 Program.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid, Language: C#) (Syntax: 'x.i1')
+            Instance Receiver: 
+              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid, Language: C#) (Syntax: 'x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'int' to 'string'
@@ -215,10 +222,13 @@ class Program
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid, Language: C#) (Syntax: 'Program y = ... ogram)x.i1;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid, Language: C#) (Syntax: 'y = (Program)x.i1')
     Variables: Local_1: Program y
-    Initializer: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, IsInvalid, Language: C#) (Syntax: '(Program)x.i1')
+    Initializer: 
+      IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, IsInvalid, Language: C#) (Syntax: '(Program)x.i1')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: IFieldReferenceExpression: System.Int32 Program.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid, Language: C#) (Syntax: 'x.i1')
-            Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid, Language: C#) (Syntax: 'x')
+        Operand: 
+          IFieldReferenceExpression: System.Int32 Program.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid, Language: C#) (Syntax: 'x.i1')
+            Instance Receiver: 
+              ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid, Language: C#) (Syntax: 'x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0030: Cannot convert type 'int' to 'Program'
@@ -288,12 +298,17 @@ class Program
 ";
             string expectedOperationTree = @"
 IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'x + (y * args.Length)')
-  Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, Language: C#) (Syntax: 'x')
-  Right: IBinaryOperatorExpression (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'y * args.Length')
-      Left: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'y')
+  Left: 
+    ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, Language: C#) (Syntax: 'x')
+  Right: 
+    IBinaryOperatorExpression (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'y * args.Length')
+      Left: 
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'y')
           Children(0)
-      Right: IPropertyReferenceExpression: System.Int32 System.Array.Length { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'args.Length')
-          Instance Receiver: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String[], Language: C#) (Syntax: 'args')
+      Right: 
+        IPropertyReferenceExpression: System.Int32 System.Array.Length { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'args.Length')
+          Instance Receiver: 
+            IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String[], Language: C#) (Syntax: 'args')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0103: The name 'y' does not exist in the current context
@@ -364,8 +379,10 @@ class Program
 IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: C#) (Syntax: '() => F()')
   IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit, Language: C#) (Syntax: 'F()')
     IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit, Language: C#) (Syntax: 'F()')
-      Expression: IInvocationExpression (void Program.F()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid, Language: C#) (Syntax: 'F()')
-          Instance Receiver: null
+      Expression: 
+        IInvocationExpression (void Program.F()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid, Language: C#) (Syntax: 'F()')
+          Instance Receiver: 
+          null
           Arguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -395,7 +412,8 @@ class Program
 IFieldInitializer (Field: System.Int32 Program.x) (OperationKind.FieldInitializer, IsInvalid, Language: C#) (Syntax: '= Program')
   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit, Language: C#) (Syntax: 'Program')
     Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-    Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: Program, IsInvalid, IsImplicit, Language: C#) (Syntax: 'Program')
+    Operand: 
+      IInvalidExpression (OperationKind.InvalidExpression, Type: Program, IsInvalid, IsImplicit, Language: C#) (Syntax: 'Program')
         Children(1):
             IOperation:  (OperationKind.None, IsInvalid, Language: C#) (Syntax: 'Program')
 ";
@@ -431,16 +449,19 @@ IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsInvalid, Langu
         Element Values(1):
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit, Language: C#) (Syntax: '{ 1, 1 }')
               Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit, Language: C#) (Syntax: '{ 1, 1 }')
+              Operand: 
+                IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit, Language: C#) (Syntax: '{ 1, 1 }')
                   Children(1):
                       IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsInvalid, Language: C#) (Syntax: '{ 1, 1 }')
                         Element Values(2):
                             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, IsImplicit, Language: C#) (Syntax: '1')
                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                              Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, Language: C#) (Syntax: '1')
+                              Operand: 
+                                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, Language: C#) (Syntax: '1')
                             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, IsImplicit, Language: C#) (Syntax: '1')
                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                              Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, Language: C#) (Syntax: '1')
+                              Operand: 
+                                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, Language: C#) (Syntax: '1')
       IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, Language: C#) (Syntax: '{ 2, 2 }')
         Element Values(2):
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: C#) (Syntax: '2')
@@ -477,17 +498,20 @@ IArrayCreationExpression (Element Type: X) (OperationKind.ArrayCreationExpressio
       IInvalidExpression (OperationKind.InvalidExpression, Type: Program, IsInvalid, IsImplicit, Language: C#) (Syntax: 'Program')
         Children(1):
             IOperation:  (OperationKind.None, IsInvalid, Language: C#) (Syntax: 'Program')
-  Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid, Language: C#) (Syntax: '{ { 1 } }')
+  Initializer: 
+    IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid, Language: C#) (Syntax: '{ { 1 } }')
       Element Values(1):
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: X, IsInvalid, IsImplicit, Language: C#) (Syntax: '{ 1 }')
             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit, Language: C#) (Syntax: '{ 1 }')
+            Operand: 
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit, Language: C#) (Syntax: '{ 1 }')
                 Children(1):
                     IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid, Language: C#) (Syntax: '{ 1 }')
                       Element Values(1):
                           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, IsImplicit, Language: C#) (Syntax: '1')
                             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, Language: C#) (Syntax: '1')
+                            Operand: 
+                              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, Language: C#) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)

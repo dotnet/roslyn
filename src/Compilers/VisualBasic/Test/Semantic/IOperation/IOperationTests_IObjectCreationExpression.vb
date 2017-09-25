@@ -48,91 +48,130 @@ IBlockStatement (9 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: Visual Basic) (Syntax: 'Dim x1 = New F()')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 'x1')
       Variables: Local_1: x1 As F
-      Initializer: IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, Language: Visual Basic) (Syntax: 'New F()')
+      Initializer: 
+        IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, Language: Visual Basic) (Syntax: 'New F()')
           Arguments(0)
-          Initializer: null
+          Initializer: 
+          null
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: Visual Basic) (Syntax: 'Dim x2 = Ne ... .Field = 2}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 'x2')
       Variables: Local_1: x2 As F
-      Initializer: IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, Language: Visual Basic) (Syntax: 'New F() Wit ... .Field = 2}')
+      Initializer: 
+        IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, Language: Visual Basic) (Syntax: 'New F() Wit ... .Field = 2}')
           Arguments(0)
-          Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, Language: Visual Basic) (Syntax: 'With {.Field = 2}')
+          Initializer: 
+            IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, Language: Visual Basic) (Syntax: 'With {.Field = 2}')
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '.Field = 2')
-                    Left: IFieldReferenceExpression: F.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'Field')
-                        Instance Receiver: IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New F() Wit ... .Field = 2}')
-                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+                    Left: 
+                      IFieldReferenceExpression: F.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'Field')
+                        Instance Receiver: 
+                          IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New F() Wit ... .Field = 2}')
+                    Right: 
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: Visual Basic) (Syntax: 'Dim x3 = Ne ... erty1 = ""}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 'x3')
       Variables: Local_1: x3 As F
-      Initializer: IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, Language: Visual Basic) (Syntax: 'New F() Wit ... erty1 = ""}')
+      Initializer: 
+        IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, Language: Visual Basic) (Syntax: 'New F() Wit ... erty1 = ""}')
           Arguments(0)
-          Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, Language: Visual Basic) (Syntax: 'With {.Property1 = ""}')
+          Initializer: 
+            IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, Language: Visual Basic) (Syntax: 'With {.Property1 = ""}')
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, Language: Visual Basic) (Syntax: '.Property1 = ""')
-                    Left: IPropertyReferenceExpression: Property F.Property1 As System.String (OperationKind.PropertyReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'Property1')
-                        Instance Receiver: IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New F() Wit ... erty1 = ""}')
-                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", Language: Visual Basic) (Syntax: '""')
+                    Left: 
+                      IPropertyReferenceExpression: Property F.Property1 As System.String (OperationKind.PropertyReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'Property1')
+                        Instance Receiver: 
+                          IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New F() Wit ... erty1 = ""}')
+                    Right: 
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", Language: Visual Basic) (Syntax: '""')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: Visual Basic) (Syntax: 'Dim x4 = Ne ... .Field = 2}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 'x4')
       Variables: Local_1: x4 As F
-      Initializer: IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, Language: Visual Basic) (Syntax: 'New F() Wit ... .Field = 2}')
+      Initializer: 
+        IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, Language: Visual Basic) (Syntax: 'New F() Wit ... .Field = 2}')
           Arguments(0)
-          Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, Language: Visual Basic) (Syntax: 'With {.Prop ... .Field = 2}')
+          Initializer: 
+            IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, Language: Visual Basic) (Syntax: 'With {.Prop ... .Field = 2}')
               Initializers(2):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, Language: Visual Basic) (Syntax: '.Property1 = ""')
-                    Left: IPropertyReferenceExpression: Property F.Property1 As System.String (OperationKind.PropertyReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'Property1')
-                        Instance Receiver: IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New F() Wit ... .Field = 2}')
-                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", Language: Visual Basic) (Syntax: '""')
+                    Left: 
+                      IPropertyReferenceExpression: Property F.Property1 As System.String (OperationKind.PropertyReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'Property1')
+                        Instance Receiver: 
+                          IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New F() Wit ... .Field = 2}')
+                    Right: 
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", Language: Visual Basic) (Syntax: '""')
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '.Field = 2')
-                    Left: IFieldReferenceExpression: F.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'Field')
-                        Instance Receiver: IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New F() Wit ... .Field = 2}')
-                    Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+                    Left: 
+                      IFieldReferenceExpression: F.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'Field')
+                        Instance Receiver: 
+                          IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New F() Wit ... .Field = 2}')
+                    Right: 
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: Visual Basic) (Syntax: 'Dim x5 = Ne ... ld = True}}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 'x5')
       Variables: Local_1: x5 As F
-      Initializer: IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, Language: Visual Basic) (Syntax: 'New F() Wit ... ld = True}}')
+      Initializer: 
+        IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, Language: Visual Basic) (Syntax: 'New F() Wit ... ld = True}}')
           Arguments(0)
-          Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, Language: Visual Basic) (Syntax: 'With {.Prop ... ld = True}}')
+          Initializer: 
+            IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, Language: Visual Basic) (Syntax: 'With {.Prop ... ld = True}}')
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, Language: Visual Basic) (Syntax: '.Property2  ... eld = True}')
-                    Left: IPropertyReferenceExpression: Property F.Property2 As B (OperationKind.PropertyReferenceExpression, Type: B, Language: Visual Basic) (Syntax: 'Property2')
-                        Instance Receiver: IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New F() Wit ... ld = True}}')
-                    Right: IObjectCreationExpression (Constructor: Sub B..ctor()) (OperationKind.ObjectCreationExpression, Type: B, Language: Visual Basic) (Syntax: 'New B() Wit ... eld = True}')
+                    Left: 
+                      IPropertyReferenceExpression: Property F.Property2 As B (OperationKind.PropertyReferenceExpression, Type: B, Language: Visual Basic) (Syntax: 'Property2')
+                        Instance Receiver: 
+                          IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New F() Wit ... ld = True}}')
+                    Right: 
+                      IObjectCreationExpression (Constructor: Sub B..ctor()) (OperationKind.ObjectCreationExpression, Type: B, Language: Visual Basic) (Syntax: 'New B() Wit ... eld = True}')
                         Arguments(0)
-                        Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: B, Language: Visual Basic) (Syntax: 'With {.Field = True}')
+                        Initializer: 
+                          IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: B, Language: Visual Basic) (Syntax: 'With {.Field = True}')
                             Initializers(1):
                                 ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '.Field = True')
-                                  Left: IFieldReferenceExpression: B.Field As System.Boolean (OperationKind.FieldReferenceExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'Field')
-                                      Instance Receiver: IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New B() Wit ... eld = True}')
-                                  Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True, Language: Visual Basic) (Syntax: 'True')
+                                  Left: 
+                                    IFieldReferenceExpression: B.Field As System.Boolean (OperationKind.FieldReferenceExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'Field')
+                                      Instance Receiver: 
+                                        IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New B() Wit ... eld = True}')
+                                  Right: 
+                                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True, Language: Visual Basic) (Syntax: 'True')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid, Language: Visual Basic) (Syntax: 'Dim e1 = Ne ... perty2 = 1}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 'e1')
       Variables: Local_1: e1 As F
-      Initializer: IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, IsInvalid, Language: Visual Basic) (Syntax: 'New F() Wit ... perty2 = 1}')
+      Initializer: 
+        IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, IsInvalid, Language: Visual Basic) (Syntax: 'New F() Wit ... perty2 = 1}')
           Arguments(0)
-          Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, IsInvalid, Language: Visual Basic) (Syntax: 'With {.Property2 = 1}')
+          Initializer: 
+            IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, IsInvalid, Language: Visual Basic) (Syntax: 'With {.Property2 = 1}')
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, IsInvalid, Language: Visual Basic) (Syntax: '.Property2 = 1')
-                    Left: IPropertyReferenceExpression: Property F.Property2 As B (OperationKind.PropertyReferenceExpression, Type: B, Language: Visual Basic) (Syntax: 'Property2')
-                        Instance Receiver: IOperation:  (OperationKind.None, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: 'New F() Wit ... perty2 = 1}')
-                    Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: B, IsInvalid, Language: Visual Basic) (Syntax: '1')
+                    Left: 
+                      IPropertyReferenceExpression: Property F.Property2 As B (OperationKind.PropertyReferenceExpression, Type: B, Language: Visual Basic) (Syntax: 'Property2')
+                        Instance Receiver: 
+                          IOperation:  (OperationKind.None, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: 'New F() Wit ... perty2 = 1}')
+                    Right: 
+                      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: B, IsInvalid, Language: Visual Basic) (Syntax: '1')
                         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, Language: Visual Basic) (Syntax: '1')
+                        Operand: 
+                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, Language: Visual Basic) (Syntax: '1')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid, Language: Visual Basic) (Syntax: 'Dim e2 = Ne ... ) From {""}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 'e2')
       Variables: Local_1: e2 As F
-      Initializer: IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, IsInvalid, Language: Visual Basic) (Syntax: 'New F() From {""}')
+      Initializer: 
+        IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, IsInvalid, Language: Visual Basic) (Syntax: 'New F() From {""}')
           Arguments(0)
-          Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, IsInvalid, Language: Visual Basic) (Syntax: 'From {""}')
+          Initializer: 
+            IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, IsInvalid, Language: Visual Basic) (Syntax: 'From {""}')
               Initializers(1):
                   IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: '""')
                     Children(1):
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", IsInvalid, Language: Visual Basic) (Syntax: '""')
   ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'End Sub')
-    Statement: null
+    Statement: 
+    null
   IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'End Sub')
-    ReturnedValue: null
+    ReturnedValue: 
+    null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -165,7 +204,8 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of System.Int32)..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List(Of System.Int32), Language: Visual Basic) (Syntax: 'New List(Of ... , y, field}')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List(Of System.Int32), Language: Visual Basic) (Syntax: 'From {x, y, field}')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List(Of System.Int32), Language: Visual Basic) (Syntax: 'From {x, y, field}')
       Initializers(3):
           ICollectionElementInitializerExpression (AddMethod: Sub System.Collections.Generic.List(Of System.Int32).Add(item As System.Int32)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit, Language: Visual Basic) (Syntax: 'x')
             Arguments(1):
@@ -176,7 +216,8 @@ IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of S
           ICollectionElementInitializerExpression (AddMethod: Sub System.Collections.Generic.List(Of System.Int32).Add(item As System.Int32)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit, Language: Visual Basic) (Syntax: 'field')
             Arguments(1):
                 IFieldReferenceExpression: C.field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'field')
-                  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: Visual Basic) (Syntax: 'field')
+                  Instance Receiver: 
+                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: Visual Basic) (Syntax: 'field')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -203,17 +244,21 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of System.Collections.Generic.List(Of System.Int32))..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List(Of System.Collections.Generic.List(Of System.Int32)), Language: Visual Basic) (Syntax: 'New List(Of ... om {field}}')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List(Of System.Collections.Generic.List(Of System.Int32)), Language: Visual Basic) (Syntax: 'From {{x, y ... om {field}}')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List(Of System.Collections.Generic.List(Of System.Int32)), Language: Visual Basic) (Syntax: 'From {{x, y ... om {field}}')
       Initializers(2):
           ICollectionElementInitializerExpression (AddMethod: Sub System.Collections.Generic.List(Of System.Collections.Generic.List(Of System.Int32)).Add(item As System.Collections.Generic.List(Of System.Int32))) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit, Language: Visual Basic) (Syntax: '{x, y}.ToList')
             Arguments(1):
                 IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).ToList() As System.Collections.Generic.List(Of System.Int32)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.List(Of System.Int32), Language: Visual Basic) (Syntax: '{x, y}.ToList')
-                  Instance Receiver: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: '{x, y}')
+                  Instance Receiver: 
+                    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: '{x, y}')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                      Operand: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: '{x, y}')
+                      Operand: 
+                        IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: '{x, y}')
                           Dimension Sizes(1):
                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: '{x, y}')
-                          Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsImplicit, Language: Visual Basic) (Syntax: '{x, y}')
+                          Initializer: 
+                            IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsImplicit, Language: Visual Basic) (Syntax: '{x, y}')
                               Element Values(2):
                                   IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
                                   ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
@@ -222,12 +267,14 @@ IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of S
             Arguments(1):
                 IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of System.Int32)..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List(Of System.Int32), Language: Visual Basic) (Syntax: 'New List(Of ... rom {field}')
                   Arguments(0)
-                  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List(Of System.Int32), Language: Visual Basic) (Syntax: 'From {field}')
+                  Initializer: 
+                    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List(Of System.Int32), Language: Visual Basic) (Syntax: 'From {field}')
                       Initializers(1):
                           ICollectionElementInitializerExpression (AddMethod: Sub System.Collections.Generic.List(Of System.Int32).Add(item As System.Int32)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit, Language: Visual Basic) (Syntax: 'field')
                             Arguments(1):
                                 IFieldReferenceExpression: C.field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'field')
-                                  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: Visual Basic) (Syntax: 'field')
+                                  Instance Receiver: 
+                                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: Visual Basic) (Syntax: 'field')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -263,46 +310,66 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.ObjectCreationExpression, Type: [Class], Language: Visual Basic) (Syntax: 'New [Class] ... }')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: [Class], Language: Visual Basic) (Syntax: 'With {'BIND ... }')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: [Class], Language: Visual Basic) (Syntax: 'With {'BIND ... }')
       Initializers(4):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, Language: Visual Basic) (Syntax: '.X = x')
-            Left: IPropertyReferenceExpression: Property [Class].X As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'X')
-                Instance Receiver: IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New [Class] ... }')
-            Right: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
+            Left: 
+              IPropertyReferenceExpression: Property [Class].X As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'X')
+                Instance Receiver: 
+                  IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New [Class] ... }')
+            Right: 
+              IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, Language: Visual Basic) (Syntax: '.Y = {x, y, 3}')
-            Left: IPropertyReferenceExpression: Property [Class].Y As System.Int32() (OperationKind.PropertyReferenceExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'Y')
-                Instance Receiver: IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New [Class] ... }')
-            Right: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: '{x, y, 3}')
+            Left: 
+              IPropertyReferenceExpression: Property [Class].Y As System.Int32() (OperationKind.PropertyReferenceExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'Y')
+                Instance Receiver: 
+                  IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New [Class] ... }')
+            Right: 
+              IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: '{x, y, 3}')
                 Dimension Sizes(1):
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3, IsImplicit, Language: Visual Basic) (Syntax: '{x, y, 3}')
-                Initializer: IArrayInitializer (3 elements) (OperationKind.ArrayInitializer, IsImplicit, Language: Visual Basic) (Syntax: '{x, y, 3}')
+                Initializer: 
+                  IArrayInitializer (3 elements) (OperationKind.ArrayInitializer, IsImplicit, Language: Visual Basic) (Syntax: '{x, y, 3}')
                     Element Values(3):
                         IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
                         ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3, Language: Visual Basic) (Syntax: '3')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, Language: Visual Basic) (Syntax: '.Z = New Di ... om {{x, y}}')
-            Left: IPropertyReferenceExpression: Property [Class].Z As System.Collections.Generic.Dictionary(Of System.Int32, System.Int32) (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32), Language: Visual Basic) (Syntax: 'Z')
-                Instance Receiver: IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New [Class] ... }')
-            Right: IObjectCreationExpression (Constructor: Sub System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32), Language: Visual Basic) (Syntax: 'New Diction ... om {{x, y}}')
+            Left: 
+              IPropertyReferenceExpression: Property [Class].Z As System.Collections.Generic.Dictionary(Of System.Int32, System.Int32) (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32), Language: Visual Basic) (Syntax: 'Z')
+                Instance Receiver: 
+                  IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New [Class] ... }')
+            Right: 
+              IObjectCreationExpression (Constructor: Sub System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32), Language: Visual Basic) (Syntax: 'New Diction ... om {{x, y}}')
                 Arguments(0)
-                Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32), Language: Visual Basic) (Syntax: 'From {{x, y}}')
+                Initializer: 
+                  IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32), Language: Visual Basic) (Syntax: 'From {{x, y}}')
                     Initializers(1):
                         ICollectionElementInitializerExpression (AddMethod: Sub System.Collections.Generic.Dictionary(Of System.Int32, System.Int32).Add(key As System.Int32, value As System.Int32)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit, Language: Visual Basic) (Syntax: '{x, y}')
                           Arguments(2):
                               IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
                               ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, Language: Visual Basic) (Syntax: '.C = New [C ... .X = field}')
-            Left: IPropertyReferenceExpression: Property [Class].C As [Class] (OperationKind.PropertyReferenceExpression, Type: [Class], Language: Visual Basic) (Syntax: 'C')
-                Instance Receiver: IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New [Class] ... }')
-            Right: IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.ObjectCreationExpression, Type: [Class], Language: Visual Basic) (Syntax: 'New [Class] ... .X = field}')
+            Left: 
+              IPropertyReferenceExpression: Property [Class].C As [Class] (OperationKind.PropertyReferenceExpression, Type: [Class], Language: Visual Basic) (Syntax: 'C')
+                Instance Receiver: 
+                  IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New [Class] ... }')
+            Right: 
+              IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.ObjectCreationExpression, Type: [Class], Language: Visual Basic) (Syntax: 'New [Class] ... .X = field}')
                 Arguments(0)
-                Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: [Class], Language: Visual Basic) (Syntax: 'With {.X = field}')
+                Initializer: 
+                  IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: [Class], Language: Visual Basic) (Syntax: 'With {.X = field}')
                     Initializers(1):
                         ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, Language: Visual Basic) (Syntax: '.X = field')
-                          Left: IPropertyReferenceExpression: Property [Class].X As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'X')
-                              Instance Receiver: IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New [Class] ... .X = field}')
-                          Right: IFieldReferenceExpression: [Class].field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'field')
-                              Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class], IsImplicit, Language: Visual Basic) (Syntax: 'field')
+                          Left: 
+                            IPropertyReferenceExpression: Property [Class].X As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'X')
+                              Instance Receiver: 
+                                IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New [Class] ... .X = field}')
+                          Right: 
+                            IFieldReferenceExpression: [Class].field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'field')
+                              Instance Receiver: 
+                                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class], IsImplicit, Language: Visual Basic) (Syntax: 'field')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

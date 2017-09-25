@@ -49,7 +49,8 @@ End Class]]>.Value
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: Visual Basic) (Syntax: 'Dim t As (I ... r) = (1, 2)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 't')
     Variables: Local_1: t As (System.Int32, System.Int32)
-    Initializer: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32), Language: Visual Basic) (Syntax: '(1, 2)')
+    Initializer: 
+      ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32), Language: Visual Basic) (Syntax: '(1, 2)')
         Elements(2):
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
@@ -75,14 +76,17 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.UInt32, System.UInt32), Language: Visual Basic) (Syntax: '(1, 2)')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.UInt32), Language: Visual Basic) (Syntax: '(1, 2)')
+  Operand: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.UInt32), Language: Visual Basic) (Syntax: '(1, 2)')
       Elements(2):
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 1, Language: Visual Basic) (Syntax: '1')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+            Operand: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 2, Language: Visual Basic) (Syntax: '2')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+            Operand: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -106,16 +110,20 @@ End Class]]>.Value
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: Visual Basic) (Syntax: 'Dim t As (U ... r) = (1, 2)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 't')
     Variables: Local_1: t As (System.UInt32, System.UInt32)
-    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.UInt32, System.UInt32), Language: Visual Basic) (Syntax: '(1, 2)')
+    Initializer: 
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.UInt32, System.UInt32), Language: Visual Basic) (Syntax: '(1, 2)')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.UInt32), Language: Visual Basic) (Syntax: '(1, 2)')
+        Operand: 
+          ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.UInt32), Language: Visual Basic) (Syntax: '(1, 2)')
             Elements(2):
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 1, Language: Visual Basic) (Syntax: '1')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+                  Operand: 
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 2, Language: Visual Basic) (Syntax: '2')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+                  Operand: 
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -138,14 +146,17 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.UInt32, System.String), Language: Visual Basic) (Syntax: '(1, Nothing)')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.String), Language: Visual Basic) (Syntax: '(1, Nothing)')
+  Operand: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.String), Language: Visual Basic) (Syntax: '(1, Nothing)')
       Elements(2):
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 1, Language: Visual Basic) (Syntax: '1')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+            Operand: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
+            Operand: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -169,16 +180,20 @@ End Class]]>.Value
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: Visual Basic) (Syntax: 'Dim t As (U ... 1, Nothing)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 't')
     Variables: Local_1: t As (System.UInt32, System.String)
-    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.UInt32, System.String), Language: Visual Basic) (Syntax: '(1, Nothing)')
+    Initializer: 
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.UInt32, System.String), Language: Visual Basic) (Syntax: '(1, Nothing)')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.String), Language: Visual Basic) (Syntax: '(1, Nothing)')
+        Operand: 
+          ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.String), Language: Visual Basic) (Syntax: '(1, Nothing)')
             Elements(2):
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 1, Language: Visual Basic) (Syntax: '1')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+                  Operand: 
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
+                  Operand: 
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -228,7 +243,8 @@ End Class]]>.Value
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: Visual Basic) (Syntax: 'Dim t = (A:=1, B:=2)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 't')
     Variables: Local_1: t As (A As System.Int32, B As System.Int32)
-    Initializer: ITupleExpression (OperationKind.TupleExpression, Type: (A As System.Int32, B As System.Int32), Language: Visual Basic) (Syntax: '(A:=1, B:=2)')
+    Initializer: 
+      ITupleExpression (OperationKind.TupleExpression, Type: (A As System.Int32, B As System.Int32), Language: Visual Basic) (Syntax: '(A:=1, B:=2)')
         Elements(2):
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
@@ -255,7 +271,8 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (A As System.Int32, B As System.Int32), Language: Visual Basic) (Syntax: '(1, 2)')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32), Language: Visual Basic) (Syntax: '(1, 2)')
+  Operand: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32), Language: Visual Basic) (Syntax: '(1, 2)')
       Elements(2):
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
@@ -283,9 +300,11 @@ End Class]]>.Value
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: Visual Basic) (Syntax: 'Dim t As (A ... r) = (1, 2)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 't')
     Variables: Local_1: t As (A As System.Int32, B As System.Int32)
-    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (A As System.Int32, B As System.Int32), Language: Visual Basic) (Syntax: '(1, 2)')
+    Initializer: 
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (A As System.Int32, B As System.Int32), Language: Visual Basic) (Syntax: '(1, 2)')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32), Language: Visual Basic) (Syntax: '(1, 2)')
+        Operand: 
+          ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32), Language: Visual Basic) (Syntax: '(1, 2)')
             Elements(2):
                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
@@ -312,14 +331,17 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (A As System.Int16, B As System.String), Language: Visual Basic) (Syntax: '(A:=1, B:=Nothing)')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Operand: ITupleExpression (OperationKind.TupleExpression, Type: (A As System.Int16, B As System.String), Language: Visual Basic) (Syntax: '(A:=1, B:=Nothing)')
+  Operand: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (A As System.Int16, B As System.String), Language: Visual Basic) (Syntax: '(A:=1, B:=Nothing)')
       Elements(2):
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int16, Constant: 1, Language: Visual Basic) (Syntax: '1')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+            Operand: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
+            Operand: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -344,16 +366,20 @@ End Class]]>.Value
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: Visual Basic) (Syntax: 'Dim t As (A ... B:=Nothing)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 't')
     Variables: Local_1: t As (A As System.Int16, B As System.String)
-    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (A As System.Int16, B As System.String), Language: Visual Basic) (Syntax: '(A:=1, B:=Nothing)')
+    Initializer: 
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (A As System.Int16, B As System.String), Language: Visual Basic) (Syntax: '(A:=1, B:=Nothing)')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: ITupleExpression (OperationKind.TupleExpression, Type: (A As System.Int16, B As System.String), Language: Visual Basic) (Syntax: '(A:=1, B:=Nothing)')
+        Operand: 
+          ITupleExpression (OperationKind.TupleExpression, Type: (A As System.Int16, B As System.String), Language: Visual Basic) (Syntax: '(A:=1, B:=Nothing)')
             Elements(2):
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int16, Constant: 1, Language: Visual Basic) (Syntax: '1')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+                  Operand: 
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
+                  Operand: 
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -393,20 +419,24 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (A As System.Int16, B As System.String), Language: Visual Basic) (Syntax: '(New C(0), c1)')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, c1 As System.String), Language: Visual Basic) (Syntax: '(New C(0), c1)')
+  Operand: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, c1 As System.String), Language: Visual Basic) (Syntax: '(New C(0), c1)')
       Elements(2):
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function C.op_Implicit(c As C) As System.Int16) (OperationKind.ConversionExpression, Type: System.Int16, Language: Visual Basic) (Syntax: 'New C(0)')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Implicit(c As C) As System.Int16)
-            Operand: IObjectCreationExpression (Constructor: Sub C..ctor(x As System.Int32)) (OperationKind.ObjectCreationExpression, Type: C, Language: Visual Basic) (Syntax: 'New C(0)')
+            Operand: 
+              IObjectCreationExpression (Constructor: Sub C..ctor(x As System.Int32)) (OperationKind.ObjectCreationExpression, Type: C, Language: Visual Basic) (Syntax: 'New C(0)')
                 Arguments(1):
                     IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Language: Visual Basic) (Syntax: '0')
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Initializer: null
+                Initializer: 
+                null
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function C.op_Implicit(c As C) As System.String) (OperationKind.ConversionExpression, Type: System.String, Language: Visual Basic) (Syntax: 'c1')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Implicit(c As C) As System.String)
-            Operand: IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C, Language: Visual Basic) (Syntax: 'c1')
+            Operand: 
+              IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C, Language: Visual Basic) (Syntax: 'c1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -447,22 +477,27 @@ End Class]]>.Value
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: Visual Basic) (Syntax: 'Dim t As (A ... w C(0), c1)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 't')
     Variables: Local_1: t As (A As System.Int16, B As System.String)
-    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (A As System.Int16, B As System.String), Language: Visual Basic) (Syntax: '(New C(0), c1)')
+    Initializer: 
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (A As System.Int16, B As System.String), Language: Visual Basic) (Syntax: '(New C(0), c1)')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, c1 As System.String), Language: Visual Basic) (Syntax: '(New C(0), c1)')
+        Operand: 
+          ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, c1 As System.String), Language: Visual Basic) (Syntax: '(New C(0), c1)')
             Elements(2):
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function C.op_Implicit(c As C) As System.Int16) (OperationKind.ConversionExpression, Type: System.Int16, Language: Visual Basic) (Syntax: 'New C(0)')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Implicit(c As C) As System.Int16)
-                  Operand: IObjectCreationExpression (Constructor: Sub C..ctor(x As System.Int32)) (OperationKind.ObjectCreationExpression, Type: C, Language: Visual Basic) (Syntax: 'New C(0)')
+                  Operand: 
+                    IObjectCreationExpression (Constructor: Sub C..ctor(x As System.Int32)) (OperationKind.ObjectCreationExpression, Type: C, Language: Visual Basic) (Syntax: 'New C(0)')
                       Arguments(1):
                           IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Language: Visual Basic) (Syntax: '0')
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      Initializer: null
+                      Initializer: 
+                      null
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function C.op_Implicit(c As C) As System.String) (OperationKind.ConversionExpression, Type: System.String, Language: Visual Basic) (Syntax: 'c1')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Implicit(c As C) As System.String)
-                  Operand: IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C, Language: Visual Basic) (Syntax: 'c1')
+                  Operand: 
+                    IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C, Language: Visual Basic) (Syntax: 'c1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -498,14 +533,17 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function C.op_Implicit(x As (System.Int32, System.String)) As C) (OperationKind.ConversionExpression, Type: C, Language: Visual Basic) (Syntax: '(0, Nothing)')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Implicit(x As (System.Int32, System.String)) As C)
-  Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32, System.Object), Language: Visual Basic) (Syntax: '(0, Nothing)')
+  Operand: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32, System.Object), Language: Visual Basic) (Syntax: '(0, Nothing)')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Object), Language: Visual Basic) (Syntax: '(0, Nothing)')
+      Operand: 
+        ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Object), Language: Visual Basic) (Syntax: '(0, Nothing)')
           Elements(2):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
               IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
+                Operand: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -542,16 +580,20 @@ End Class]]>.Value
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: Visual Basic) (Syntax: 'Dim t As C  ... 0, Nothing)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 't')
     Variables: Local_1: t As C
-    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function C.op_Implicit(x As (System.Int32, System.String)) As C) (OperationKind.ConversionExpression, Type: C, Language: Visual Basic) (Syntax: '(0, Nothing)')
+    Initializer: 
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function C.op_Implicit(x As (System.Int32, System.String)) As C) (OperationKind.ConversionExpression, Type: C, Language: Visual Basic) (Syntax: '(0, Nothing)')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Implicit(x As (System.Int32, System.String)) As C)
-        Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32, System.Object), Language: Visual Basic) (Syntax: '(0, Nothing)')
+        Operand: 
+          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32, System.Object), Language: Visual Basic) (Syntax: '(0, Nothing)')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Object), Language: Visual Basic) (Syntax: '(0, Nothing)')
+            Operand: 
+              ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Object), Language: Visual Basic) (Syntax: '(0, Nothing)')
                 Elements(2):
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
                     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
+                      Operand: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -587,7 +629,8 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function C.op_Implicit(c As C) As (System.Int32, System.String)) (OperationKind.ConversionExpression, Type: (System.Int32, System.String), Language: Visual Basic) (Syntax: 'c1')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Implicit(c As C) As (System.Int32, System.String))
-  Operand: IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C, Language: Visual Basic) (Syntax: 'c1')
+  Operand: 
+    IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C, Language: Visual Basic) (Syntax: 'c1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -624,9 +667,11 @@ End Class]]>.Value
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: Visual Basic) (Syntax: 'Dim t As (I ... tring) = c1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 't')
     Variables: Local_1: t As (System.Int32, System.String)
-    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function C.op_Implicit(c As C) As (System.Int32, System.String)) (OperationKind.ConversionExpression, Type: (System.Int32, System.String), Language: Visual Basic) (Syntax: 'c1')
+    Initializer: 
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function C.op_Implicit(c As C) As (System.Int32, System.String)) (OperationKind.ConversionExpression, Type: (System.Int32, System.String), Language: Visual Basic) (Syntax: 'c1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Implicit(c As C) As (System.Int32, System.String))
-        Operand: IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C, Language: Visual Basic) (Syntax: 'c1')
+        Operand: 
+          IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C, Language: Visual Basic) (Syntax: 'c1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -666,16 +711,19 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, c1 As Syst
   Elements(2):
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int16, IsInvalid, Language: Visual Basic) (Syntax: 'New C(0)')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: IObjectCreationExpression (Constructor: Sub C..ctor(x As System.Int32)) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid, Language: Visual Basic) (Syntax: 'New C(0)')
+        Operand: 
+          IObjectCreationExpression (Constructor: Sub C..ctor(x As System.Int32)) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid, Language: Visual Basic) (Syntax: 'New C(0)')
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, IsInvalid, Language: Visual Basic) (Syntax: '0')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid, Language: Visual Basic) (Syntax: '0')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Initializer: null
+            Initializer: 
+            null
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function C.op_Implicit(c As C) As System.String) (OperationKind.ConversionExpression, Type: System.String, Language: Visual Basic) (Syntax: 'c1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Implicit(c As C) As System.String)
-        Operand: IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C, Language: Visual Basic) (Syntax: 'c1')
+        Operand: 
+          IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C, Language: Visual Basic) (Syntax: 'c1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -720,20 +768,24 @@ End Class
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid, Language: Visual Basic) (Syntax: 'Dim t As (S ... w C(0), c1)')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 't')
     Variables: Local_1: t As (System.Int16, System.String)
-    Initializer: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, c1 As System.String), IsInvalid, Language: Visual Basic) (Syntax: '(New C(0), c1)')
+    Initializer: 
+      ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, c1 As System.String), IsInvalid, Language: Visual Basic) (Syntax: '(New C(0), c1)')
         Elements(2):
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int16, IsInvalid, Language: Visual Basic) (Syntax: 'New C(0)')
               Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Operand: IObjectCreationExpression (Constructor: Sub C..ctor(x As System.Int32)) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid, Language: Visual Basic) (Syntax: 'New C(0)')
+              Operand: 
+                IObjectCreationExpression (Constructor: Sub C..ctor(x As System.Int32)) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid, Language: Visual Basic) (Syntax: 'New C(0)')
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, IsInvalid, Language: Visual Basic) (Syntax: '0')
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid, Language: Visual Basic) (Syntax: '0')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Initializer: null
+                  Initializer: 
+                  null
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function C.op_Implicit(c As C) As System.String) (OperationKind.ConversionExpression, Type: System.String, Language: Visual Basic) (Syntax: 'c1')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Implicit(c As C) As System.String)
-              Operand: IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C, Language: Visual Basic) (Syntax: 'c1')
+              Operand: 
+                IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C, Language: Visual Basic) (Syntax: 'c1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

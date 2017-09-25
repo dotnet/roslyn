@@ -25,8 +25,10 @@ ITupleExpression (OperationKind.TupleExpression, Type: (x As System.Int32, Syste
   Elements(2):
       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x + y')
-        Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
-        Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
+        Left: 
+          IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
+        Right: 
+          IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -51,15 +53,23 @@ End Class]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key Amount As System.Int32, Key Message As System.String>, Language: Visual Basic) (Syntax: 'New With {' ... }')
   Initializers(2):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'Key .Amount = x')
-        Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key Amount As System.Int32, Key Message As System.String>.Amount As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'Amount')
-            Instance Receiver: null
-        Right: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
+        Left: 
+          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key Amount As System.Int32, Key Message As System.String>.Amount As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'Amount')
+            Instance Receiver: 
+            null
+        Right: 
+          IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, Language: Visual Basic) (Syntax: 'Key .Messag ... "Hello" + y')
-        Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key Amount As System.Int32, Key Message As System.String>.Message As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'Message')
-            Instance Receiver: null
-        Right: IBinaryOperatorExpression (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperatorExpression, Type: System.String, Language: Visual Basic) (Syntax: '"Hello" + y')
-            Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello", Language: Visual Basic) (Syntax: '"Hello"')
-            Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'y')
+        Left: 
+          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key Amount As System.Int32, Key Message As System.String>.Message As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'Message')
+            Instance Receiver: 
+            null
+        Right: 
+          IBinaryOperatorExpression (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperatorExpression, Type: System.String, Language: Visual Basic) (Syntax: '"Hello" + y')
+            Left: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello", Language: Visual Basic) (Syntax: '"Hello"')
+            Right: 
+              IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'y')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -90,19 +100,25 @@ End Class
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable(Of System.String), Language: Visual Basic) (Syntax: 'From cust I ... t cust.Name')
-  Expression: IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of Customer).Select(Of System.String)(selector As System.Func(Of Customer, System.String)) As System.Collections.Generic.IEnumerable(Of System.String)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of System.String), IsImplicit, Language: Visual Basic) (Syntax: 'Select cust.Name')
-      Instance Receiver: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of Customer), Language: Visual Basic) (Syntax: 'cust In customers')
+  Expression: 
+    IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of Customer).Select(Of System.String)(selector As System.Func(Of Customer, System.String)) As System.Collections.Generic.IEnumerable(Of System.String)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of System.String), IsImplicit, Language: Visual Basic) (Syntax: 'Select cust.Name')
+      Instance Receiver: 
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of Customer), Language: Visual Basic) (Syntax: 'cust In customers')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand: IParameterReferenceExpression: customers (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.List(Of Customer), Language: Visual Basic) (Syntax: 'customers')
+          Operand: 
+            IParameterReferenceExpression: customers (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.List(Of Customer), Language: Visual Basic) (Syntax: 'customers')
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument, IsImplicit, Language: Visual Basic) (Syntax: 'cust.Name')
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of Customer, System.String), IsImplicit, Language: Visual Basic) (Syntax: 'cust.Name')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Operand: IAnonymousFunctionExpression (Symbol: Function (cust As Customer) As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit, Language: Visual Basic) (Syntax: 'cust.Name')
+              Operand: 
+                IAnonymousFunctionExpression (Symbol: Function (cust As Customer) As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit, Language: Visual Basic) (Syntax: 'cust.Name')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'cust.Name')
                     IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'cust.Name')
-                      ReturnedValue: IPropertyReferenceExpression: Property Customer.Name As System.String (OperationKind.PropertyReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'cust.Name')
-                          Instance Receiver: IParameterReferenceExpression: cust (OperationKind.ParameterReferenceExpression, Type: Customer, Language: Visual Basic) (Syntax: 'cust.Name')
+                      ReturnedValue: 
+                        IPropertyReferenceExpression: Property Customer.Name As System.String (OperationKind.PropertyReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'cust.Name')
+                          Instance Receiver: 
+                            IParameterReferenceExpression: cust (OperationKind.ParameterReferenceExpression, Type: Customer, Language: Visual Basic) (Syntax: 'cust.Name')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -132,13 +148,17 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'Aggregate y ... nto Count()')
-  Expression: IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Count() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsImplicit, Language: Visual Basic) (Syntax: 'Count()')
-      Instance Receiver: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 'y In New Integer() {x}')
+  Expression: 
+    IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Count() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsImplicit, Language: Visual Basic) (Syntax: 'Count()')
+      Instance Receiver: 
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 'y In New Integer() {x}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {x}')
+          Operand: 
+            IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {x}')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {x}')
-              Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, Language: Visual Basic) (Syntax: '{x}')
+              Initializer: 
+                IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, Language: Visual Basic) (Syntax: '{x}')
                   Element Values(1):
                       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
       Arguments(0)
@@ -170,20 +190,27 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'From y In x ... By y.Length')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-  Operand: ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Linq.IOrderedEnumerable(Of System.String), Language: Visual Basic) (Syntax: 'From y In x ... By y.Length')
-      Expression: IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.String).OrderBy(Of System.Int32)(keySelector As System.Func(Of System.String, System.Int32)) As System.Linq.IOrderedEnumerable(Of System.String)) (OperationKind.InvocationExpression, Type: System.Linq.IOrderedEnumerable(Of System.String), IsImplicit, Language: Visual Basic) (Syntax: 'y.Length')
-          Instance Receiver: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.String), Language: Visual Basic) (Syntax: 'y In x')
+  Operand: 
+    ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Linq.IOrderedEnumerable(Of System.String), Language: Visual Basic) (Syntax: 'From y In x ... By y.Length')
+      Expression: 
+        IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.String).OrderBy(Of System.Int32)(keySelector As System.Func(Of System.String, System.Int32)) As System.Linq.IOrderedEnumerable(Of System.String)) (OperationKind.InvocationExpression, Type: System.Linq.IOrderedEnumerable(Of System.String), IsImplicit, Language: Visual Basic) (Syntax: 'y.Length')
+          Instance Receiver: 
+            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.String), Language: Visual Basic) (Syntax: 'y In x')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-              Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String(), Language: Visual Basic) (Syntax: 'x')
+              Operand: 
+                IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String(), Language: Visual Basic) (Syntax: 'x')
           Arguments(1):
               IArgument (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument, IsImplicit, Language: Visual Basic) (Syntax: 'y.Length')
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String, System.Int32), IsImplicit, Language: Visual Basic) (Syntax: 'y.Length')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  Operand: IAnonymousFunctionExpression (Symbol: Function (y As System.String) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit, Language: Visual Basic) (Syntax: 'y.Length')
+                  Operand: 
+                    IAnonymousFunctionExpression (Symbol: Function (y As System.String) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit, Language: Visual Basic) (Syntax: 'y.Length')
                       IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'y.Length')
                         IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'y.Length')
-                          ReturnedValue: IPropertyReferenceExpression: ReadOnly Property System.String.Length As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y.Length')
-                              Instance Receiver: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'y.Length')
+                          ReturnedValue: 
+                            IPropertyReferenceExpression: ReadOnly Property System.String.Length As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y.Length')
+                              Instance Receiver: 
+                                IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'y.Length')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -213,18 +240,23 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>), Language: Visual Basic) (Syntax: 'From y In x ... nto Count()')
-  Expression: IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.String).GroupBy(Of <anonymous type: Key w As System.String(), Key z As System.String>, <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)(keySelector As System.Func(Of System.String, <anonymous type: Key w As System.String(), Key z As System.String>), resultSelector As System.Func(Of <anonymous type: Key w As System.String(), Key z As System.String>, System.Collections.Generic.IEnumerable(Of System.String), <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>), IsImplicit, Language: Visual Basic) (Syntax: 'Group By w  ... nto Count()')
-      Instance Receiver: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.String), Language: Visual Basic) (Syntax: 'y In x')
+  Expression: 
+    IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.String).GroupBy(Of <anonymous type: Key w As System.String(), Key z As System.String>, <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)(keySelector As System.Func(Of System.String, <anonymous type: Key w As System.String(), Key z As System.String>), resultSelector As System.Func(Of <anonymous type: Key w As System.String(), Key z As System.String>, System.Collections.Generic.IEnumerable(Of System.String), <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>), IsImplicit, Language: Visual Basic) (Syntax: 'Group By w  ... nto Count()')
+      Instance Receiver: 
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.String), Language: Visual Basic) (Syntax: 'y In x')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String(), Language: Visual Basic) (Syntax: 'x')
+          Operand: 
+            IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String(), Language: Visual Basic) (Syntax: 'x')
       Arguments(2):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument, IsImplicit, Language: Visual Basic) (Syntax: 'x')
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String, <anonymous type: Key w As System.String(), Key z As System.String>), IsImplicit, Language: Visual Basic) (Syntax: 'x')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Operand: IAnonymousFunctionExpression (Symbol: Function (y As System.String) As <anonymous type: Key w As System.String(), Key z As System.String>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit, Language: Visual Basic) (Syntax: 'x')
+              Operand: 
+                IAnonymousFunctionExpression (Symbol: Function (y As System.String) As <anonymous type: Key w As System.String(), Key z As System.String>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit, Language: Visual Basic) (Syntax: 'x')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'x')
                     IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'x')
-                      ReturnedValue: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String>, IsImplicit, Language: Visual Basic) (Syntax: 'Group By w  ... nto Count()')
+                      ReturnedValue: 
+                        IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String>, IsImplicit, Language: Visual Basic) (Syntax: 'Group By w  ... nto Count()')
                           Initializers(2):
                               IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String(), Language: Visual Basic) (Syntax: 'x')
                               IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'x')
@@ -233,17 +265,22 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, IsImplicit, Language: Visual Basic) (Syntax: 'Group By w  ... nto Count()')
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of <anonymous type: Key w As System.String(), Key z As System.String>, System.Collections.Generic.IEnumerable(Of System.String), <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>), IsImplicit, Language: Visual Basic) (Syntax: 'Group By w  ... nto Count()')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Operand: IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key w As System.String(), Key z As System.String>, $VB$ItAnonymous As System.Collections.Generic.IEnumerable(Of System.String)) As <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit, Language: Visual Basic) (Syntax: 'Group By w  ... nto Count()')
+              Operand: 
+                IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key w As System.String(), Key z As System.String>, $VB$ItAnonymous As System.Collections.Generic.IEnumerable(Of System.String)) As <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit, Language: Visual Basic) (Syntax: 'Group By w  ... nto Count()')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Group By w  ... nto Count()')
                     IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'Group By w  ... nto Count()')
-                      ReturnedValue: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>, IsImplicit, Language: Visual Basic) (Syntax: 'Group By w  ... nto Count()')
+                      ReturnedValue: 
+                        IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>, IsImplicit, Language: Visual Basic) (Syntax: 'Group By w  ... nto Count()')
                           Initializers(3):
                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key w As System.String(), Key z As System.String>.w As System.String() (OperationKind.PropertyReferenceExpression, Type: System.String(), Language: Visual Basic) (Syntax: 'Group By w  ... nto Count()')
-                                Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String>, Language: Visual Basic) (Syntax: 'Group By w  ... nto Count()')
+                                Instance Receiver: 
+                                  IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String>, Language: Visual Basic) (Syntax: 'Group By w  ... nto Count()')
                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key w As System.String(), Key z As System.String>.z As System.String (OperationKind.PropertyReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'Group By w  ... nto Count()')
-                                Instance Receiver: IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String>, Language: Visual Basic) (Syntax: 'Group By w  ... nto Count()')
+                                Instance Receiver: 
+                                  IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String>, Language: Visual Basic) (Syntax: 'Group By w  ... nto Count()')
                               IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.String).Count() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsImplicit, Language: Visual Basic) (Syntax: 'Count()')
-                                Instance Receiver: IParameterReferenceExpression: $VB$ItAnonymous (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.IEnumerable(Of System.String), IsImplicit, Language: Visual Basic) (Syntax: 'Group By w  ... nto Count()')
+                                Instance Receiver: 
+                                  IParameterReferenceExpression: $VB$ItAnonymous (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.IEnumerable(Of System.String), IsImplicit, Language: Visual Basic) (Syntax: 'Group By w  ... nto Count()')
                                 Arguments(0)
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -279,45 +316,64 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.ObjectCreationExpression, Type: [Class], Language: Visual Basic) (Syntax: 'New [Class] ... }')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: [Class], Language: Visual Basic) (Syntax: 'With {'BIND ... }')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: [Class], Language: Visual Basic) (Syntax: 'With {'BIND ... }')
       Initializers(4):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, Language: Visual Basic) (Syntax: '.X = x')
-            Left: IPropertyReferenceExpression: Property [Class].X As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'X')
-                Instance Receiver: IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New [Class] ... }')
-            Right: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
+            Left: 
+              IPropertyReferenceExpression: Property [Class].X As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'X')
+                Instance Receiver: 
+                  IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New [Class] ... }')
+            Right: 
+              IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, Language: Visual Basic) (Syntax: '.Y = {x, y, 3}')
-            Left: IPropertyReferenceExpression: Property [Class].Y As System.Int32() (OperationKind.PropertyReferenceExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'Y')
-                Instance Receiver: IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New [Class] ... }')
-            Right: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: '{x, y, 3}')
+            Left: 
+              IPropertyReferenceExpression: Property [Class].Y As System.Int32() (OperationKind.PropertyReferenceExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'Y')
+                Instance Receiver: 
+                  IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New [Class] ... }')
+            Right: 
+              IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: '{x, y, 3}')
                 Dimension Sizes(1):
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3, IsImplicit, Language: Visual Basic) (Syntax: '{x, y, 3}')
-                Initializer: IArrayInitializer (3 elements) (OperationKind.ArrayInitializer, IsImplicit, Language: Visual Basic) (Syntax: '{x, y, 3}')
+                Initializer: 
+                  IArrayInitializer (3 elements) (OperationKind.ArrayInitializer, IsImplicit, Language: Visual Basic) (Syntax: '{x, y, 3}')
                     Element Values(3):
                         IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
                         IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3, Language: Visual Basic) (Syntax: '3')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, Language: Visual Basic) (Syntax: '.Z = New Di ... om {{x, y}}')
-            Left: IPropertyReferenceExpression: Property [Class].Z As System.Collections.Generic.Dictionary(Of System.Int32, System.Int32) (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32), Language: Visual Basic) (Syntax: 'Z')
-                Instance Receiver: IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New [Class] ... }')
-            Right: IObjectCreationExpression (Constructor: Sub System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32), Language: Visual Basic) (Syntax: 'New Diction ... om {{x, y}}')
+            Left: 
+              IPropertyReferenceExpression: Property [Class].Z As System.Collections.Generic.Dictionary(Of System.Int32, System.Int32) (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32), Language: Visual Basic) (Syntax: 'Z')
+                Instance Receiver: 
+                  IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New [Class] ... }')
+            Right: 
+              IObjectCreationExpression (Constructor: Sub System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32), Language: Visual Basic) (Syntax: 'New Diction ... om {{x, y}}')
                 Arguments(0)
-                Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32), Language: Visual Basic) (Syntax: 'From {{x, y}}')
+                Initializer: 
+                  IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32), Language: Visual Basic) (Syntax: 'From {{x, y}}')
                     Initializers(1):
                         ICollectionElementInitializerExpression (AddMethod: Sub System.Collections.Generic.Dictionary(Of System.Int32, System.Int32).Add(key As System.Int32, value As System.Int32)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit, Language: Visual Basic) (Syntax: '{x, y}')
                           Arguments(2):
                               IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
                               IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, Language: Visual Basic) (Syntax: '.C = New [C ... th {.X = z}')
-            Left: IPropertyReferenceExpression: Property [Class].C As [Class] (OperationKind.PropertyReferenceExpression, Type: [Class], Language: Visual Basic) (Syntax: 'C')
-                Instance Receiver: IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New [Class] ... }')
-            Right: IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.ObjectCreationExpression, Type: [Class], Language: Visual Basic) (Syntax: 'New [Class] ... th {.X = z}')
+            Left: 
+              IPropertyReferenceExpression: Property [Class].C As [Class] (OperationKind.PropertyReferenceExpression, Type: [Class], Language: Visual Basic) (Syntax: 'C')
+                Instance Receiver: 
+                  IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New [Class] ... }')
+            Right: 
+              IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.ObjectCreationExpression, Type: [Class], Language: Visual Basic) (Syntax: 'New [Class] ... th {.X = z}')
                 Arguments(0)
-                Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: [Class], Language: Visual Basic) (Syntax: 'With {.X = z}')
+                Initializer: 
+                  IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: [Class], Language: Visual Basic) (Syntax: 'With {.X = z}')
                     Initializers(1):
                         ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, Language: Visual Basic) (Syntax: '.X = z')
-                          Left: IPropertyReferenceExpression: Property [Class].X As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'X')
-                              Instance Receiver: IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New [Class] ... th {.X = z}')
-                          Right: IParameterReferenceExpression: z (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'z')
+                          Left: 
+                            IPropertyReferenceExpression: Property [Class].X As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'X')
+                              Instance Receiver: 
+                                IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New [Class] ... th {.X = z}')
+                          Right: 
+                            IParameterReferenceExpression: z (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'z')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -342,15 +398,19 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventHandler, Language: Visual Basic) (Syntax: 'New EventHa ... nction() x)')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IAnonymousFunctionExpression (Symbol: Function () As System.Object) (OperationKind.AnonymousFunctionExpression, Type: null, Language: Visual Basic) (Syntax: 'Function() x')
+  Operand: 
+    IAnonymousFunctionExpression (Symbol: Function () As System.Object) (OperationKind.AnonymousFunctionExpression, Type: null, Language: Visual Basic) (Syntax: 'Function() x')
       IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsImplicit, Language: Visual Basic) (Syntax: 'Function() x')
         Locals: Local_1: <anonymous local> As System.Object
         IReturnStatement (OperationKind.ReturnStatement, IsImplicit, Language: Visual Basic) (Syntax: 'x')
-          ReturnedValue: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'x')
+          ReturnedValue: 
+            IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'x')
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit, Language: Visual Basic) (Syntax: 'Function() x')
-          Statement: null
+          Statement: 
+          null
         IReturnStatement (OperationKind.ReturnStatement, IsImplicit, Language: Visual Basic) (Syntax: 'Function() x')
-          ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object, IsImplicit, Language: Visual Basic) (Syntax: 'Function() x')
+          ReturnedValue: 
+            ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object, IsImplicit, Language: Visual Basic) (Syntax: 'Function() x')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -373,7 +433,8 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventHandler, Language: Visual Basic) (Syntax: 'New EventHa ... essOf Me.M)')
   Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IOperation:  (OperationKind.None, Language: Visual Basic) (Syntax: 'AddressOf Me.M')
+  Operand: 
+    IOperation:  (OperationKind.None, Language: Visual Basic) (Syntax: 'AddressOf Me.M')
       Children(1):
           IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class1, Language: Visual Basic) (Syntax: 'Me')
 ]]>.Value
@@ -443,10 +504,10 @@ Class Class1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-INameOfExpression (OperationKind.NameOfExpression, Type: System.String, Constant: null, IsInvalid) (Syntax: 'NameOf(x + y)')
-  IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: 'x + y')
-    Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
-    Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'y')
+INameOfExpression (OperationKind.NameOfExpression, Type: System.String, Constant: null, IsInvalid, Language: Visual Basic) (Syntax: 'NameOf(x + y)')
+  IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: 'x + y')
+    Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: 'x')
+    Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: 'y')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -473,11 +534,13 @@ End Class
 
             Dim expectedOperationTree = <![CDATA[
 IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'd(x)')
-  Expression: IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'd')
+  Expression: 
+    IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'd')
   Arguments(1):
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'x')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
+        Operand: 
+          IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
   ArgumentNames(0)
   ArgumentRefKinds: null
 ]]>.Value
@@ -502,9 +565,11 @@ End Class
 
             Dim expectedOperationTree = <![CDATA[
 IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'x.M(y)')
-  Expression: IDynamicMemberReferenceExpression (Member Name: "M", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'x.M')
+  Expression: 
+    IDynamicMemberReferenceExpression (Member Name: "M", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'x.M')
       Type Arguments(0)
-      Instance Receiver: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'x')
+      Instance Receiver: 
+        IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'x')
   Arguments(1):
       IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
   ArgumentNames(0)
@@ -531,11 +596,13 @@ End Class
 
             Dim expectedOperationTree = <![CDATA[
 IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'x(y)')
-  Expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'x')
+  Expression: 
+    IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'x')
   Arguments(1):
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'y')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
+        Operand: 
+          IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
   ArgumentNames(0)
   ArgumentRefKinds: null
 ]]>.Value
@@ -561,23 +628,35 @@ End Class]]>.Value
 IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, Language: Visual Basic) (Syntax: '$"String {x ... nstant {1}"')
   Parts(6):
       IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: Visual Basic) (Syntax: 'String ')
-        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ", Language: Visual Basic) (Syntax: 'String ')
+        Text: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ", Language: Visual Basic) (Syntax: 'String ')
       IInterpolation (OperationKind.Interpolation, Language: Visual Basic) (Syntax: '{x,20}')
-        Expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'x')
-        Alignment: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, Language: Visual Basic) (Syntax: '20')
-        FormatString: null
+        Expression: 
+          IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'x')
+        Alignment: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, Language: Visual Basic) (Syntax: '20')
+        FormatString: 
+        null
       IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: Visual Basic) (Syntax: ' and ')
-        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and ", Language: Visual Basic) (Syntax: ' and ')
+        Text: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and ", Language: Visual Basic) (Syntax: ' and ')
       IInterpolation (OperationKind.Interpolation, Language: Visual Basic) (Syntax: '{y:D3}')
-        Expression: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
-        Alignment: null
-        FormatString: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "D3", Language: Visual Basic) (Syntax: ':D3')
+        Expression: 
+          IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
+        Alignment: 
+        null
+        FormatString: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "D3", Language: Visual Basic) (Syntax: ':D3')
       IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: Visual Basic) (Syntax: ' and constant ')
-        Text: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and constant ", Language: Visual Basic) (Syntax: ' and constant ')
+        Text: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and constant ", Language: Visual Basic) (Syntax: ' and constant ')
       IInterpolation (OperationKind.Interpolation, Language: Visual Basic) (Syntax: '{1}')
-        Expression: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
-        Alignment: null
-        FormatString: null
+        Expression: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+        Alignment: 
+        null
+        FormatString: 
+        null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -599,12 +678,16 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'Mid(str, st ... ngth) = str')
-  Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Mid(str, st ... ngth) = str')
-      Left: IParameterReferenceExpression: str (OperationKind.ParameterReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'str')
-      Right: IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'Mid(str, st ... ngth) = str')
+  Expression: 
+    ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Mid(str, st ... ngth) = str')
+      Left: 
+        IParameterReferenceExpression: str (OperationKind.ParameterReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'str')
+      Right: 
+        IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'Mid(str, st ... ngth) = str')
           Children(4):
               IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.String, Language: Visual Basic) (Syntax: 'Mid(str, start, length)')
-                Operand: IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'str')
+                Operand: 
+                  IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'str')
               IParameterReferenceExpression: start (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'start')
               IParameterReferenceExpression: length (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'length')
               IParameterReferenceExpression: str (OperationKind.ParameterReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'str')
@@ -631,7 +714,8 @@ End Class]]>.Value
 IOperation:  (OperationKind.None, IsInvalid, Language: Visual Basic) (Syntax: 'Case x')
   Children(1):
       ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause, IsInvalid, Language: Visual Basic) (Syntax: 'x')
-        Value: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: 'x')
+        Value: 
+          IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -663,14 +747,20 @@ IOperation:  (OperationKind.None) (Syntax: 'ReDim intArray(x, x, x)')
         Children(4):
             ILocalReferenceExpression: intArray (OperationKind.LocalReferenceExpression, Type: System.Int32(,,), Language: Visual Basic) (Syntax: 'intArray')
             IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsImplicit, Language: Visual Basic) (Syntax: 'x')
-              Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
-              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'x')
+              Left: 
+                IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
+              Right: 
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'x')
             IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsImplicit, Language: Visual Basic) (Syntax: 'x')
-              Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
-              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'x')
+              Left: 
+                IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
+              Right: 
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'x')
             IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsImplicit, Language: Visual Basic) (Syntax: 'x')
-              Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
-              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'x')
+              Left: 
+                IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
+              Right: 
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -694,10 +784,13 @@ End Class]]>.Value
 IOperation:  (OperationKind.None, Language: Visual Basic) (Syntax: 'Erase x')
   Children(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32(), IsImplicit, Language: Visual Basic) (Syntax: 'x')
-        Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'x')
-        Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32(), Constant: null, IsImplicit, Language: Visual Basic) (Syntax: 'x')
+        Left: 
+          IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'x')
+        Right: 
+          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32(), Constant: null, IsImplicit, Language: Visual Basic) (Syntax: 'x')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsImplicit, Language: Visual Basic) (Syntax: 'Erase x')
+            Operand: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, IsImplicit, Language: Visual Basic) (Syntax: 'Erase x')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -748,7 +841,8 @@ IOperation:  (OperationKind.None, Language: Visual Basic) (Syntax: 'AddressOf x.
   Children(1):
       IDynamicMemberReferenceExpression (Member Name: "Method", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'x.Method')
         Type Arguments(0)
-        Instance Receiver: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'x')
+        Instance Receiver: 
+          IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -771,11 +865,14 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If x Then'B ... End If')
-  Condition: IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'x')
+  Condition: 
+    IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'x')
       Children(1):
           IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of System.Boolean), Language: Visual Basic) (Syntax: 'x')
-  IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If x Then'B ... End If')
-  IfFalse: null
+  IfTrue: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If x Then'B ... End If')
+  IfFalse: 
+  null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

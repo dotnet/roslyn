@@ -25,19 +25,24 @@ End Class]]>.Value
 IBlockStatement (5 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Public Sub  ... End Sub')
   IBranchStatement (BranchKind.GoTo, Label: Label) (OperationKind.BranchStatement, Language: Visual Basic) (Syntax: 'GoTo Label')
   ILabeledStatement (Label: Label) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'Label:')
-    Statement: null
+    Statement: 
+    null
   IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'Console.Wri ... lo World!")')
-    Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... lo World!")')
-        Instance Receiver: null
+    Expression: 
+      IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... lo World!")')
+        Instance Receiver: 
+        null
         Arguments(1):
             IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: '"Hello World!"')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!", Language: Visual Basic) (Syntax: '"Hello World!"')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'End Sub')
-    Statement: null
+    Statement: 
+    null
   IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'End Sub')
-    ReturnedValue: null
+    ReturnedValue: 
+    null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

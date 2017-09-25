@@ -426,7 +426,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IRelationalCaseClause (Relational operator kind: BinaryOperatorKind.LessThan) (CaseKind.Relational) (OperationKind.CaseClause, Language: Visual Basic) (Syntax: 'Is < j')
-  Value: IParameterReferenceExpression: j (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'j')
+  Value: 
+    IParameterReferenceExpression: j (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'j')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -451,8 +452,10 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IRangeCaseClause (CaseKind.Range) (OperationKind.CaseClause, Language: Visual Basic) (Syntax: 'min To max')
-  Min: IParameterReferenceExpression: min (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'min')
-  Max: IParameterReferenceExpression: max (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'max')
+  Min: 
+    IParameterReferenceExpression: min (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'min')
+  Max: 
+    IParameterReferenceExpression: max (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'max')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -634,31 +637,41 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (2 cases) (OperationKind.SwitchStatement, Language: Visual Basic) (Syntax: 'Select Case ... End Select')
-  Switch expression: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
+  Switch expression: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase, Language: Visual Basic) (Syntax: 'Case Functi ... e("Failed")')
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause, Language: Visual Basic) (Syntax: 'Function() 5')
-                Value: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'Function() 5')
+                Value: 
+                  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'Function() 5')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                    Operand: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Function <generated method>() As System.Int32, Language: Visual Basic) (Syntax: 'Function() 5')
+                    Operand: 
+                      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Function <generated method>() As System.Int32, Language: Visual Basic) (Syntax: 'Function() 5')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Operand: IAnonymousFunctionExpression (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, Language: Visual Basic) (Syntax: 'Function() 5')
+                        Operand: 
+                          IAnonymousFunctionExpression (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, Language: Visual Basic) (Syntax: 'Function() 5')
                             IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsImplicit, Language: Visual Basic) (Syntax: 'Function() 5')
                               Locals: Local_1: <anonymous local> As System.Int32
                               IReturnStatement (OperationKind.ReturnStatement, IsImplicit, Language: Visual Basic) (Syntax: '5')
-                                ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5, Language: Visual Basic) (Syntax: '5')
+                                ReturnedValue: 
+                                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5, Language: Visual Basic) (Syntax: '5')
                               ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit, Language: Visual Basic) (Syntax: 'Function() 5')
-                                Statement: null
+                                Statement: 
+                                null
                               IReturnStatement (OperationKind.ReturnStatement, IsImplicit, Language: Visual Basic) (Syntax: 'Function() 5')
-                                ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32, IsImplicit, Language: Visual Basic) (Syntax: 'Function() 5')
+                                ReturnedValue: 
+                                  ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32, IsImplicit, Language: Visual Basic) (Syntax: 'Function() 5')
           Body:
               IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Case Functi ... e("Failed")')
                 IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'System.Cons ... e("Failed")')
-                  Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... e("Failed")')
-                      Instance Receiver: null
+                  Expression: 
+                    IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... e("Failed")')
+                      Instance Receiver: 
+                      null
                       Arguments(1):
                           IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: '"Failed"')
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Failed", Language: Visual Basic) (Syntax: '"Failed"')
@@ -670,8 +683,10 @@ ISwitchStatement (2 cases) (OperationKind.SwitchStatement, Language: Visual Basi
           Body:
               IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Case Else ... Succeeded")')
                 IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'System.Cons ... Succeeded")')
-                  Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... Succeeded")')
-                      Instance Receiver: null
+                  Expression: 
+                    IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... Succeeded")')
+                      Instance Receiver: 
+                      null
                       Arguments(1):
                           IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: '"Succeeded"')
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Succeeded", Language: Visual Basic) (Syntax: '"Succeeded"')

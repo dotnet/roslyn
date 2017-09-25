@@ -131,7 +131,8 @@ class C
 ";
             string expectedOperationTree = @"
 IInvocationExpression ( ? System.Type.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'typeof(M2()')
-  Instance Receiver: ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid, Language: C#) (Syntax: 'typeof(M2')
+  Instance Receiver: 
+    ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid, Language: C#) (Syntax: 'typeof(M2')
       TypeOperand: M2
   Arguments(0)
 ";

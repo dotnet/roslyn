@@ -23,15 +23,23 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If count >  ... lue = count')
-  Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'count > 0')
-      Left: ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'count')
-      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If count >  ... lue = count')
+  Condition: 
+    IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'count > 0')
+      Left: 
+        ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'count')
+      Right: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+  IfTrue: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If count >  ... lue = count')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'returnValue = count')
-        Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue = count')
-            Left: ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue')
-            Right: ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'count')
-  IfFalse: null
+        Expression: 
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue = count')
+            Left: 
+              ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue')
+            Right: 
+              ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'count')
+  IfFalse: 
+  null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -56,15 +64,23 @@ End Module
 
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If count >  ... End If')
-  Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'count > 0')
-      Left: ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'count')
-      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If count >  ... End If')
+  Condition: 
+    IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'count > 0')
+      Left: 
+        ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'count')
+      Right: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+  IfTrue: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If count >  ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'returnValue = count')
-        Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue = count')
-            Left: ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue')
-            Right: ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'count')
-  IfFalse: null
+        Expression: 
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue = count')
+            Left: 
+              ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue')
+            Right: 
+              ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'count')
+  IfFalse: 
+  null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -86,23 +102,38 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If count >  ... ata - count')
-  Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'count > 10')
-      Left: ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'count')
-      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If count >  ... ata - count')
+  Condition: 
+    IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'count > 10')
+      Left: 
+        ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'count')
+      Right: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
+  IfTrue: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If count >  ... ata - count')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'data = data + count')
-        Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'data = data + count')
-            Left: ILocalReferenceExpression: data (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'data')
-            Right: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'data + count')
-                Left: ILocalReferenceExpression: data (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'data')
-                Right: ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'count')
-  IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Else data = data - count')
+        Expression: 
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'data = data + count')
+            Left: 
+              ILocalReferenceExpression: data (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'data')
+            Right: 
+              IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'data + count')
+                Left: 
+                  ILocalReferenceExpression: data (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'data')
+                Right: 
+                  ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'count')
+  IfFalse: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Else data = data - count')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'data = data - count')
-        Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'data = data - count')
-            Left: ILocalReferenceExpression: data (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'data')
-            Right: IBinaryOperatorExpression (BinaryOperatorKind.Subtract, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'data - count')
-                Left: ILocalReferenceExpression: data (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'data')
-                Right: ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'count')
+        Expression: 
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'data = data - count')
+            Left: 
+              ILocalReferenceExpression: data (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'data')
+            Right: 
+              IBinaryOperatorExpression (BinaryOperatorKind.Subtract, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'data - count')
+                Left: 
+                  ILocalReferenceExpression: data (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'data')
+                Right: 
+                  ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'count')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -125,21 +156,34 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If m > 10 T ... rnValue = n')
-  Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'm > 10')
-      Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'm')
-      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If m > 10 T ... rnValue = n')
+  Condition: 
+    IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'm > 10')
+      Left: 
+        ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'm')
+      Right: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
+  IfTrue: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If m > 10 T ... rnValue = n')
       IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If n > 20 T ... rnValue = n')
-        Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'n > 20')
-            Left: ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'n')
-            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, Language: Visual Basic) (Syntax: '20')
-        IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If n > 20 T ... rnValue = n')
+        Condition: 
+          IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'n > 20')
+            Left: 
+              ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'n')
+            Right: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, Language: Visual Basic) (Syntax: '20')
+        IfTrue: 
+          IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If n > 20 T ... rnValue = n')
             IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'returnValue = n')
-              Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue = n')
-                  Left: ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue')
-                  Right: ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'n')
-        IfFalse: null
-  IfFalse: null
+              Expression: 
+                ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue = n')
+                  Left: 
+                    ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue')
+                  Right: 
+                    ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'n')
+        IfFalse: 
+        null
+  IfFalse: 
+  null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -162,15 +206,23 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If 1 = 1 Th ... End If')
-  Condition: IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: True, Language: Visual Basic) (Syntax: '1 = 1')
-      Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
-      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If 1 = 1 Th ... End If')
+  Condition: 
+    IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: True, Language: Visual Basic) (Syntax: '1 = 1')
+      Left: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+      Right: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+  IfTrue: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If 1 = 1 Th ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'condition = True')
-        Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'condition = True')
-            Left: ILocalReferenceExpression: condition (OperationKind.LocalReferenceExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'condition')
-            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True, Language: Visual Basic) (Syntax: 'True')
-  IfFalse: null
+        Expression: 
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'condition = True')
+            Left: 
+              ILocalReferenceExpression: condition (OperationKind.LocalReferenceExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'condition')
+            Right: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True, Language: Visual Basic) (Syntax: 'True')
+  IfFalse: 
+  null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -193,13 +245,19 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If False Th ... End If')
-  Condition: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False, Language: Visual Basic) (Syntax: 'False')
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If False Th ... End If')
+  Condition: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False, Language: Visual Basic) (Syntax: 'False')
+  IfTrue: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If False Th ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'condition = False')
-        Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'condition = False')
-            Left: ILocalReferenceExpression: condition (OperationKind.LocalReferenceExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'condition')
-            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False, Language: Visual Basic) (Syntax: 'False')
-  IfFalse: null
+        Expression: 
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'condition = False')
+            Left: 
+              ILocalReferenceExpression: condition (OperationKind.LocalReferenceExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'condition')
+            Right: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False, Language: Visual Basic) (Syntax: 'False')
+  IfFalse: 
+  null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -222,20 +280,33 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If (m > 10  ... rnValue = n')
-  Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '(m > 10 And n > 20)')
-      Operand: IBinaryOperatorExpression (BinaryOperatorKind.And, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'm > 10 And n > 20')
-          Left: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'm > 10')
-              Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'm')
-              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
-          Right: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'n > 20')
-              Left: ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'n')
-              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, Language: Visual Basic) (Syntax: '20')
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If (m > 10  ... rnValue = n')
+  Condition: 
+    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '(m > 10 And n > 20)')
+      Operand: 
+        IBinaryOperatorExpression (BinaryOperatorKind.And, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'm > 10 And n > 20')
+          Left: 
+            IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'm > 10')
+              Left: 
+                ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'm')
+              Right: 
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
+          Right: 
+            IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'n > 20')
+              Left: 
+                ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'n')
+              Right: 
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, Language: Visual Basic) (Syntax: '20')
+  IfTrue: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If (m > 10  ... rnValue = n')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'returnValue = n')
-        Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue = n')
-            Left: ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue')
-            Right: ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'n')
-  IfFalse: null
+        Expression: 
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue = n')
+            Left: 
+              ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue')
+            Right: 
+              ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'n')
+  IfFalse: 
+  null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -261,20 +332,32 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If count >  ... End If')
-  Condition: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'count > 0')
-      Left: ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'count')
-      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If count >  ... End If')
+  Condition: 
+    IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'count > 0')
+      Left: 
+        ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'count')
+      Right: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+  IfTrue: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If count >  ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'returnValue = count')
-        Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue = count')
-            Left: ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue')
-            Right: ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'count')
-  IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Else ... nValue = -1')
+        Expression: 
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue = count')
+            Left: 
+              ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue')
+            Right: 
+              ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'count')
+  IfFalse: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Else ... nValue = -1')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'returnValue = -1')
-        Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue = -1')
-            Left: ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue')
-            Right: IUnaryOperatorExpression (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperatorExpression, Type: System.Int32, Constant: -1, Language: Visual Basic) (Syntax: '-1')
-                Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+        Expression: 
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue = -1')
+            Left: 
+              ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'returnValue')
+            Right: 
+              IUnaryOperatorExpression (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperatorExpression, Type: System.Int32, Constant: -1, Language: Visual Basic) (Syntax: '-1')
+                Operand: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -304,30 +387,46 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If (m > 10) ... End If')
-  Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '(m > 10)')
-      Operand: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'm > 10')
-          Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'm')
-          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If (m > 10) ... End If')
+  Condition: 
+    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '(m > 10)')
+      Operand: 
+        IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'm > 10')
+          Left: 
+            ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'm')
+          Right: 
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
+  IfTrue: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If (m > 10) ... End If')
       IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If (n > 20) ... End If')
-        Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '(n > 20)')
-            Operand: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'n > 20')
-                Left: ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'n')
-                Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, Language: Visual Basic) (Syntax: '20')
-        IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If (n > 20) ... End If')
+        Condition: 
+          IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '(n > 20)')
+            Operand: 
+              IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'n > 20')
+                Left: 
+                  ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'n')
+                Right: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, Language: Visual Basic) (Syntax: '20')
+        IfTrue: 
+          IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If (n > 20) ... End If')
             IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'Console.Wri ... "Result 1")')
-              Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... "Result 1")')
-                  Instance Receiver: null
+              Expression: 
+                IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... "Result 1")')
+                  Instance Receiver: 
+                  null
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: '"Result 1"')
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result 1", Language: Visual Basic) (Syntax: '"Result 1"')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        IfFalse: null
-  IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Else ... "Result 2")')
+        IfFalse: 
+        null
+  IfFalse: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Else ... "Result 2")')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'Console.Wri ... "Result 2")')
-        Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... "Result 2")')
-            Instance Receiver: null
+        Expression: 
+          IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... "Result 2")')
+            Instance Receiver: 
+            null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: '"Result 2"')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result 2", Language: Visual Basic) (Syntax: '"Result 2"')
@@ -362,35 +461,51 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If (m > 10) ... End If')
-  Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '(m > 10)')
-      Operand: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'm > 10')
-          Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'm')
-          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If (m > 10) ... End If')
+  Condition: 
+    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '(m > 10)')
+      Operand: 
+        IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'm > 10')
+          Left: 
+            ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'm')
+          Right: 
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
+  IfTrue: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If (m > 10) ... End If')
       IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If (n > 20) ... End If')
-        Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '(n > 20)')
-            Operand: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'n > 20')
-                Left: ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'n')
-                Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, Language: Visual Basic) (Syntax: '20')
-        IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If (n > 20) ... End If')
+        Condition: 
+          IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '(n > 20)')
+            Operand: 
+              IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'n > 20')
+                Left: 
+                  ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'n')
+                Right: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, Language: Visual Basic) (Syntax: '20')
+        IfTrue: 
+          IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If (n > 20) ... End If')
             IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'Console.Wri ... "Result 1")')
-              Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... "Result 1")')
-                  Instance Receiver: null
+              Expression: 
+                IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... "Result 1")')
+                  Instance Receiver: 
+                  null
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: '"Result 1"')
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result 1", Language: Visual Basic) (Syntax: '"Result 1"')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Else ... "Result 2")')
+        IfFalse: 
+          IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Else ... "Result 2")')
             IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'Console.Wri ... "Result 2")')
-              Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... "Result 2")')
-                  Instance Receiver: null
+              Expression: 
+                IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... "Result 2")')
+                  Instance Receiver: 
+                  null
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: '"Result 2"')
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result 2", Language: Visual Basic) (Syntax: '"Result 2"')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  IfFalse: null
+  IfFalse: 
+  null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -417,24 +532,36 @@ End Module
 
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If (m >= n  ... End If')
-  Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '(m >= n AndAlso m >= p)')
-      Operand: IBinaryOperatorExpression (BinaryOperatorKind.ConditionalAnd, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'm >= n AndAlso m >= p')
-          Left: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'm >= n')
-              Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'm')
-              Right: ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'n')
-          Right: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'm >= p')
-              Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'm')
-              Right: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'p')
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If (m >= n  ... End If')
+  Condition: 
+    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '(m >= n AndAlso m >= p)')
+      Operand: 
+        IBinaryOperatorExpression (BinaryOperatorKind.ConditionalAnd, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'm >= n AndAlso m >= p')
+          Left: 
+            IBinaryOperatorExpression (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'm >= n')
+              Left: 
+                ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'm')
+              Right: 
+                ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'n')
+          Right: 
+            IBinaryOperatorExpression (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'm >= p')
+              Left: 
+                ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'm')
+              Right: 
+                ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'p')
+  IfTrue: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If (m >= n  ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'Console.Wri ... r than m.")')
-        Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... r than m.")')
-            Instance Receiver: null
+        Expression: 
+          IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... r than m.")')
+            Instance Receiver: 
+            null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: '"Nothing Is ... er than m."')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Nothing Is larger than m.", Language: Visual Basic) (Syntax: '"Nothing Is ... er than m."')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  IfFalse: null
+  IfFalse: 
+  null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -463,37 +590,55 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If (m > 20) ... End If')
-  Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '(m > 20)')
-      Operand: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'm > 20')
-          Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'm')
-          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, Language: Visual Basic) (Syntax: '20')
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If (m > 20) ... End If')
+  Condition: 
+    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '(m > 20)')
+      Operand: 
+        IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'm > 20')
+          Left: 
+            ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'm')
+          Right: 
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, Language: Visual Basic) (Syntax: '20')
+  IfTrue: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If (m > 20) ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'Console.Wri ... ("Result1")')
-        Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... ("Result1")')
-            Instance Receiver: null
+        Expression: 
+          IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... ("Result1")')
+            Instance Receiver: 
+            null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: '"Result1"')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result1", Language: Visual Basic) (Syntax: '"Result1"')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  IfFalse: IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'ElseIf (n > ... ("Result2")')
-      Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '(n > 10)')
-          Operand: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'n > 10')
-              Left: ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'n')
-              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
-      IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'ElseIf (n > ... ("Result2")')
+  IfFalse: 
+    IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'ElseIf (n > ... ("Result2")')
+      Condition: 
+        IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '(n > 10)')
+          Operand: 
+            IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'n > 10')
+              Left: 
+                ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'n')
+              Right: 
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
+      IfTrue: 
+        IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'ElseIf (n > ... ("Result2")')
           IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'Console.Wri ... ("Result2")')
-            Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... ("Result2")')
-                Instance Receiver: null
+            Expression: 
+              IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... ("Result2")')
+                Instance Receiver: 
+                null
                 Arguments(1):
                     IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: '"Result2"')
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result2", Language: Visual Basic) (Syntax: '"Result2"')
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Else ... ("Result3")')
+      IfFalse: 
+        IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Else ... ("Result3")')
           IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'Console.Wri ... ("Result3")')
-            Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... ("Result3")')
-                Instance Receiver: null
+            Expression: 
+              IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... ("Result3")')
+                Instance Receiver: 
+                null
                 Arguments(1):
                     IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: '"Result3"')
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result3", Language: Visual Basic) (Syntax: '"Result3"')
@@ -520,38 +665,56 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If (m > 20) ... ("Result3")')
-  Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '(m > 20)')
-      Operand: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'm > 20')
-          Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'm')
-          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, Language: Visual Basic) (Syntax: '20')
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If (m > 20) ... ("Result3")')
+  Condition: 
+    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '(m > 20)')
+      Operand: 
+        IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'm > 20')
+          Left: 
+            ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'm')
+          Right: 
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, Language: Visual Basic) (Syntax: '20')
+  IfTrue: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If (m > 20) ... ("Result3")')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'System.Cons ... ("Result1")')
-        Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... ("Result1")')
-            Instance Receiver: null
+        Expression: 
+          IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... ("Result1")')
+            Instance Receiver: 
+            null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: '"Result1"')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result1", Language: Visual Basic) (Syntax: '"Result1"')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Else If (n  ... ("Result3")')
+  IfFalse: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Else If (n  ... ("Result3")')
       IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If (n > 10) ... ("Result3")')
-        Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '(n > 10)')
-            Operand: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'n > 10')
-                Left: ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'n')
-                Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
-        IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If (n > 10) ... ("Result3")')
+        Condition: 
+          IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '(n > 10)')
+            Operand: 
+              IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'n > 10')
+                Left: 
+                  ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'n')
+                Right: 
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: Visual Basic) (Syntax: '10')
+        IfTrue: 
+          IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If (n > 10) ... ("Result3")')
             IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'System.Cons ... ("Result2")')
-              Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... ("Result2")')
-                  Instance Receiver: null
+              Expression: 
+                IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... ("Result2")')
+                  Instance Receiver: 
+                  null
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: '"Result2"')
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result2", Language: Visual Basic) (Syntax: '"Result2"')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Else System ... ("Result3")')
+        IfFalse: 
+          IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Else System ... ("Result3")')
             IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'System.Cons ... ("Result3")')
-              Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... ("Result3")')
-                  Instance Receiver: null
+              Expression: 
+                IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'System.Cons ... ("Result3")')
+                  Instance Receiver: 
+                  null
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: '"Result3"')
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result3", Language: Visual Basic) (Syntax: '"Result3"')
@@ -584,20 +747,28 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, IsInvalid, Language: Visual Basic) (Syntax: 'If (m > 20) ... Else')
-  Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, IsInvalid, Language: Visual Basic) (Syntax: '(m > 20)')
-      Operand: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, IsInvalid, Language: Visual Basic) (Syntax: 'm > 20')
-          Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: 'm')
-          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, IsInvalid, Language: Visual Basic) (Syntax: '20')
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, Language: Visual Basic) (Syntax: 'If (m > 20) ... Else')
+  Condition: 
+    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, IsInvalid, Language: Visual Basic) (Syntax: '(m > 20)')
+      Operand: 
+        IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, IsInvalid, Language: Visual Basic) (Syntax: 'm > 20')
+          Left: 
+            ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: 'm')
+          Right: 
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, IsInvalid, Language: Visual Basic) (Syntax: '20')
+  IfTrue: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, Language: Visual Basic) (Syntax: 'If (m > 20) ... Else')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'Console.Wri ... ("Result1")')
-        Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... ("Result1")')
-            Instance Receiver: null
+        Expression: 
+          IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... ("Result1")')
+            Instance Receiver: 
+            null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: '"Result1"')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result1", Language: Visual Basic) (Syntax: '"Result1"')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  IfFalse: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Else')
+  IfFalse: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Else')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -625,21 +796,28 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, IsInvalid, Language: Visual Basic) (Syntax: 'If () Then' ... End If')
-  Condition: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, Language: Visual Basic) (Syntax: '()')
+  Condition: 
+    IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, Language: Visual Basic) (Syntax: '()')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '()')
-          Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid, Language: Visual Basic) (Syntax: '')
+      Operand: 
+        IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '()')
+          Operand: 
+            IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid, Language: Visual Basic) (Syntax: '')
               Children(0)
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, Language: Visual Basic) (Syntax: 'If () Then' ... End If')
+  IfTrue: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, Language: Visual Basic) (Syntax: 'If () Then' ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'Console.Wri ... ("Result1")')
-        Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... ("Result1")')
-            Instance Receiver: null
+        Expression: 
+          IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... ("Result1")')
+            Instance Receiver: 
+            null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: '"Result1"')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result1", Language: Visual Basic) (Syntax: '"Result1"')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  IfFalse: null
+  IfFalse: 
+  null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -668,12 +846,18 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If (m = 9)  ... End If')
-  Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '(m = 9)')
-      Operand: IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'm = 9')
-          Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'm')
-          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 9, Language: Visual Basic) (Syntax: '9')
-  IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If (m = 9)  ... End If')
-  IfFalse: IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Else')
+  Condition: 
+    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: '(m = 9)')
+      Operand: 
+        IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'm = 9')
+          Left: 
+            ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'm')
+          Right: 
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 9, Language: Visual Basic) (Syntax: '9')
+  IfTrue: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If (m = 9)  ... End If')
+  IfFalse: 
+    IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Else')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -703,17 +887,25 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If (True) T ... End If')
-  Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Constant: True, Language: Visual Basic) (Syntax: '(True)')
-      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True, Language: Visual Basic) (Syntax: 'True')
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If (True) T ... End If')
+  Condition: 
+    IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, Constant: True, Language: Visual Basic) (Syntax: '(True)')
+      Operand: 
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True, Language: Visual Basic) (Syntax: 'True')
+  IfTrue: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If (True) T ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'A()')
-        Expression: IInvocationExpression (Function Module1.A() As System.String) (OperationKind.InvocationExpression, Type: System.String, Language: Visual Basic) (Syntax: 'A()')
-            Instance Receiver: null
+        Expression: 
+          IInvocationExpression (Function Module1.A() As System.String) (OperationKind.InvocationExpression, Type: System.String, Language: Visual Basic) (Syntax: 'A()')
+            Instance Receiver: 
+            null
             Arguments(0)
-  IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Else ... B()')
+  IfFalse: 
+    IBlockStatement (1 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Else ... B()')
       IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'B()')
-        Expression: IInvocationExpression (Function Module1.B() As System.String) (OperationKind.InvocationExpression, Type: System.String, Language: Visual Basic) (Syntax: 'B()')
-            Instance Receiver: null
+        Expression: 
+          IInvocationExpression (Function Module1.B() As System.String) (OperationKind.InvocationExpression, Type: System.String, Language: Visual Basic) (Syntax: 'B()')
+            Instance Receiver: 
+            null
             Arguments(0)
 ]]>.Value
 

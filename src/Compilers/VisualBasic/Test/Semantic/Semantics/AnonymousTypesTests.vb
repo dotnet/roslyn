@@ -23,25 +23,40 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'New With {. ...  = .b + .a}')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>, Language: Visual Basic) (Syntax: 'New With {. ...  = .b + .a}')
+  Operand: 
+    IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>, Language: Visual Basic) (Syntax: 'New With {. ...  = .b + .a}')
       Initializers(3):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '.a = 1')
-            Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'a')
-                Instance Receiver: null
-            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+            Left: 
+              IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'a')
+                Instance Receiver: 
+                null
+            Right: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '.b = .a')
-            Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.b As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'b')
-                Instance Receiver: null
-            Right: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '.a')
-                Instance Receiver: null
+            Left: 
+              IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.b As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'b')
+                Instance Receiver: 
+                null
+            Right: 
+              IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '.a')
+                Instance Receiver: 
+                null
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '.c = .b + .a')
-            Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.c As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'c')
-                Instance Receiver: null
-            Right: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '.b + .a')
-                Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.b As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '.b')
-                    Instance Receiver: null
-                Right: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '.a')
-                    Instance Receiver: null
+            Left: 
+              IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.c As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'c')
+                Instance Receiver: 
+                null
+            Right: 
+              IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '.b + .a')
+                Left: 
+                  IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.b As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '.b')
+                    Instance Receiver: 
+                    null
+                Right: 
+                  IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '.a')
+                    Instance Receiver: 
+                    null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -62,18 +77,26 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, Language: Visual Basic) (Syntax: 'New With {. ... s, .b = .a}')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As ?, b As ?>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {. ... s, .b = .a}')
+  Operand: 
+    IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As ?, b As ?>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {. ... s, .b = .a}')
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.a = sss')
-            Left: IPropertyReferenceExpression: Property <anonymous type: a As ?, b As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'a')
-                Instance Receiver: null
-            Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: 'sss')
+            Left: 
+              IPropertyReferenceExpression: Property <anonymous type: a As ?, b As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'a')
+                Instance Receiver: 
+                null
+            Right: 
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: 'sss')
                 Children(0)
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, Language: Visual Basic) (Syntax: '.b = .a')
-            Left: IPropertyReferenceExpression: Property <anonymous type: a As ?, b As ?>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'b')
-                Instance Receiver: null
-            Right: IPropertyReferenceExpression: Property <anonymous type: a As ?, b As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: '.a')
-                Instance Receiver: null
+            Left: 
+              IPropertyReferenceExpression: Property <anonymous type: a As ?, b As ?>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'b')
+                Instance Receiver: 
+                null
+            Right: 
+              IPropertyReferenceExpression: Property <anonymous type: a As ?, b As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: '.a')
+                Instance Receiver: 
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -103,37 +126,50 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid, Language: Visual Basic) (Syntax: 'Dim v1 As O ... h {.a = tr}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 'v1')
       Variables: Local_1: v1 As System.Object
-      Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, Language: Visual Basic) (Syntax: 'New With {.a = tr}')
+      Initializer: 
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, Language: Visual Basic) (Syntax: 'New With {.a = tr}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.TypedReference>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {.a = tr}')
+          Operand: 
+            IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.TypedReference>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {.a = tr}')
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.TypedReference, IsInvalid, Language: Visual Basic) (Syntax: '.a = tr')
-                    Left: IPropertyReferenceExpression: Property <anonymous type: a As System.TypedReference>.a As System.TypedReference (Static) (OperationKind.PropertyReferenceExpression, Type: System.TypedReference, Language: Visual Basic) (Syntax: 'a')
-                        Instance Receiver: null
-                    Right: IParameterReferenceExpression: tr (OperationKind.ParameterReferenceExpression, Type: System.TypedReference, IsInvalid, Language: Visual Basic) (Syntax: 'tr')
+                    Left: 
+                      IPropertyReferenceExpression: Property <anonymous type: a As System.TypedReference>.a As System.TypedReference (Static) (OperationKind.PropertyReferenceExpression, Type: System.TypedReference, Language: Visual Basic) (Syntax: 'a')
+                        Instance Receiver: 
+                        null
+                    Right: 
+                      IParameterReferenceExpression: tr (OperationKind.ParameterReferenceExpression, Type: System.TypedReference, IsInvalid, Language: Visual Basic) (Syntax: 'tr')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid, Language: Visual Basic) (Syntax: 'Dim v2 As O ... a = {{tr}}}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 'v2')
       Variables: Local_1: v2 As System.Object
-      Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, Language: Visual Basic) (Syntax: 'New With {.a = {{tr}}}')
+      Initializer: 
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, Language: Visual Basic) (Syntax: 'New With {.a = {{tr}}}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.TypedReference(,)>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {.a = {{tr}}}')
+          Operand: 
+            IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.TypedReference(,)>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {.a = {{tr}}}')
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.TypedReference(,), IsInvalid, Language: Visual Basic) (Syntax: '.a = {{tr}}')
-                    Left: IPropertyReferenceExpression: Property <anonymous type: a As System.TypedReference(,)>.a As System.TypedReference(,) (Static) (OperationKind.PropertyReferenceExpression, Type: System.TypedReference(,), Language: Visual Basic) (Syntax: 'a')
-                        Instance Receiver: null
-                    Right: IArrayCreationExpression (Element Type: System.TypedReference) (OperationKind.ArrayCreationExpression, Type: System.TypedReference(,), IsInvalid, Language: Visual Basic) (Syntax: '{{tr}}')
+                    Left: 
+                      IPropertyReferenceExpression: Property <anonymous type: a As System.TypedReference(,)>.a As System.TypedReference(,) (Static) (OperationKind.PropertyReferenceExpression, Type: System.TypedReference(,), Language: Visual Basic) (Syntax: 'a')
+                        Instance Receiver: 
+                        null
+                    Right: 
+                      IArrayCreationExpression (Element Type: System.TypedReference) (OperationKind.ArrayCreationExpression, Type: System.TypedReference(,), IsInvalid, Language: Visual Basic) (Syntax: '{{tr}}')
                         Dimension Sizes(2):
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: '{{tr}}')
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: '{{tr}}')
-                        Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: '{{tr}}')
+                        Initializer: 
+                          IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: '{{tr}}')
                             Element Values(1):
                                 IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid, Language: Visual Basic) (Syntax: '{tr}')
                                   Element Values(1):
                                       IParameterReferenceExpression: tr (OperationKind.ParameterReferenceExpression, Type: System.TypedReference, IsInvalid, Language: Visual Basic) (Syntax: 'tr')
   ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'End Sub')
-    Statement: null
+    Statement: 
+    null
   IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'End Sub')
-    ReturnedValue: null
+    ReturnedValue: 
+    null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -165,18 +201,27 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.Int32, b As <anonymous type: c As ?>>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {. ...  {.c = .a}}')
   Initializers(2):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '.a = 1')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As <anonymous type: c As ?>>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'a')
-            Instance Receiver: null
-        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As <anonymous type: c As ?>>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'a')
+            Instance Receiver: 
+            null
+        Right: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: <anonymous type: c As ?>, IsInvalid, Language: Visual Basic) (Syntax: '.b = New With {.c = .a}')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As <anonymous type: c As ?>>.b As <anonymous type: c As ?> (Static) (OperationKind.PropertyReferenceExpression, Type: <anonymous type: c As ?>, Language: Visual Basic) (Syntax: 'b')
-            Instance Receiver: null
-        Right: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: c As ?>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {.c = .a}')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As <anonymous type: c As ?>>.b As <anonymous type: c As ?> (Static) (OperationKind.PropertyReferenceExpression, Type: <anonymous type: c As ?>, Language: Visual Basic) (Syntax: 'b')
+            Instance Receiver: 
+            null
+        Right: 
+          IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: c As ?>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {.c = .a}')
             Initializers(1):
                 ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.c = .a')
-                  Left: IPropertyReferenceExpression: Property <anonymous type: c As ?>.c As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'c')
-                      Instance Receiver: null
-                  Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.a')
+                  Left: 
+                    IPropertyReferenceExpression: Property <anonymous type: c As ?>.c As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'c')
+                      Instance Receiver: 
+                      null
+                  Right: 
+                    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.a')
                       Children(0)
 ]]>.Value
 
@@ -202,18 +247,26 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, Language: Visual Basic) (Syntax: 'New With {. ... c, .c = .b}')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: b As ?, c As ?>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {. ... c, .c = .b}')
+  Operand: 
+    IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: b As ?, c As ?>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {. ... c, .c = .b}')
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.b = .c')
-            Left: IPropertyReferenceExpression: Property <anonymous type: b As ?, c As ?>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'b')
-                Instance Receiver: null
-            Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.c')
+            Left: 
+              IPropertyReferenceExpression: Property <anonymous type: b As ?, c As ?>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'b')
+                Instance Receiver: 
+                null
+            Right: 
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.c')
                 Children(0)
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, Language: Visual Basic) (Syntax: '.c = .b')
-            Left: IPropertyReferenceExpression: Property <anonymous type: b As ?, c As ?>.c As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'c')
-                Instance Receiver: null
-            Right: IPropertyReferenceExpression: Property <anonymous type: b As ?, c As ?>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: '.b')
-                Instance Receiver: null
+            Left: 
+              IPropertyReferenceExpression: Property <anonymous type: b As ?, c As ?>.c As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'c')
+                Instance Receiver: 
+                null
+            Right: 
+              IPropertyReferenceExpression: Property <anonymous type: b As ?, c As ?>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: '.b')
+                Instance Receiver: 
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -238,17 +291,24 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, Language: Visual Basic) (Syntax: 'New With {. ... .c, .c = 1}')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: b As ?, c As System.Int32>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {. ... .c, .c = 1}')
+  Operand: 
+    IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: b As ?, c As System.Int32>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {. ... .c, .c = 1}')
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.b = .c')
-            Left: IPropertyReferenceExpression: Property <anonymous type: b As ?, c As System.Int32>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'b')
-                Instance Receiver: null
-            Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.c')
+            Left: 
+              IPropertyReferenceExpression: Property <anonymous type: b As ?, c As System.Int32>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'b')
+                Instance Receiver: 
+                null
+            Right: 
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.c')
                 Children(0)
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '.c = 1')
-            Left: IPropertyReferenceExpression: Property <anonymous type: b As ?, c As System.Int32>.c As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'c')
-                Instance Receiver: null
-            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+            Left: 
+              IPropertyReferenceExpression: Property <anonymous type: b As ?, c As System.Int32>.c As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'c')
+                Instance Receiver: 
+                null
+            Right: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -274,9 +334,12 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As ?>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {. ... ToString()}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.a = .ToString()')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.ToString()')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'a')
+            Instance Receiver: 
+            null
+        Right: 
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.ToString()')
             Children(1):
                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.ToString')
                   Children(0)
@@ -305,9 +368,12 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As ?>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {. ... , Nothing)}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.a = .Refer ... g, Nothing)')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.ReferenceE ... g, Nothing)')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'a')
+            Instance Receiver: 
+            null
+        Right: 
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.ReferenceE ... g, Nothing)')
             Children(3):
                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.ReferenceEquals')
                   Children(0)
@@ -343,9 +409,12 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As ?>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {.a = .EM()}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.a = .EM()')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.EM()')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'a')
+            Instance Receiver: 
+            null
+        Right: 
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.EM()')
             Children(1):
                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.EM')
                   Children(0)
@@ -374,9 +443,12 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As ?>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {.a = .New()}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.a = .New()')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.New()')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'a')
+            Instance Receiver: 
+            null
+        Right: 
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.New()')
             Children(1):
                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.New')
                   Children(0)
@@ -407,12 +479,16 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As ?>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {. ...  SubName()}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: '.a = SubName()')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: 'SubName()')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'a')
+            Instance Receiver: 
+            null
+        Right: 
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: 'SubName()')
             Children(1):
                 IInvocationExpression (Sub ModuleA.SubName()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid, Language: Visual Basic) (Syntax: 'SubName()')
-                  Instance Receiver: null
+                  Instance Receiver: 
+                  null
                   Arguments(0)
 ]]>.Value
 
@@ -439,14 +515,21 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.Int32, b As System.Int32>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {. ... f Integer)}')
   Initializers(2):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '.a = 1')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'a')
-            Instance Receiver: null
-        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'a')
+            Instance Receiver: 
+            null
+        Right: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: '.b = .a(Of Integer)')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32>.b As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'b')
-            Instance Receiver: null
-        Right: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: '.a(Of Integer)')
-            Instance Receiver: null
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32>.b As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'b')
+            Instance Receiver: 
+            null
+        Right: 
+          IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: '.a(Of Integer)')
+            Instance Receiver: 
+            null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -472,9 +555,12 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As ?>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {.a = .}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.a = .')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'a')
+            Instance Receiver: 
+            null
+        Right: 
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.')
             Children(0)
 ]]>.Value
 
@@ -501,11 +587,15 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.Object>, Language: Visual Basic) (Syntax: 'New With {.a = Nothing}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Object, Constant: null, Language: Visual Basic) (Syntax: '.a = Nothing')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Object>.a As System.Object (Static) (OperationKind.PropertyReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As System.Object>.a As System.Object (Static) (OperationKind.PropertyReferenceExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'a')
+            Instance Receiver: 
+            null
+        Right: 
+          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
+            Operand: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null, Language: Visual Basic) (Syntax: 'Nothing')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -533,9 +623,11 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: $0 As System.Int32>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {N ... f Integer)}')
   Initializers(1):
       IInvocationExpression ( Function AM.A.F(Of System.Int32)() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: 'New A().F(Of Integer)')
-        Instance Receiver: IObjectCreationExpression (Constructor: Sub AM.A..ctor()) (OperationKind.ObjectCreationExpression, Type: AM.A, IsInvalid, Language: Visual Basic) (Syntax: 'New A()')
+        Instance Receiver: 
+          IObjectCreationExpression (Constructor: Sub AM.A..ctor()) (OperationKind.ObjectCreationExpression, Type: AM.A, IsInvalid, Language: Visual Basic) (Syntax: 'New A()')
             Arguments(0)
-            Initializer: null
+            Initializer: 
+            null
         Arguments(0)
 ]]>.Value
 
@@ -639,19 +731,23 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid, Language: Visual Basic) (Syntax: 'Dim err = N ...  {<a/>.<_>}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 'err')
       Variables: Local_1: err As <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>
-      Initializer: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {<a/>.<_>}')
+      Initializer: 
+        IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {<a/>.<_>}')
           Initializers(1):
               IOperation:  (OperationKind.None, IsInvalid, Language: Visual Basic) (Syntax: '<a/>.<_>')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: Visual Basic) (Syntax: 'Dim ok = Ne ... {<a/>.<__>}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 'ok')
       Variables: Local_1: ok As <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>
-      Initializer: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>, Language: Visual Basic) (Syntax: 'New With {<a/>.<__>}')
+      Initializer: 
+        IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>, Language: Visual Basic) (Syntax: 'New With {<a/>.<__>}')
           Initializers(1):
               IOperation:  (OperationKind.None, Language: Visual Basic) (Syntax: '<a/>.<__>')
   ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'End Sub')
-    Statement: null
+    Statement: 
+    null
   IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'End Sub')
-    ReturnedValue: null
+    ReturnedValue: 
+    null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -678,8 +774,10 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: $0 As System.Int32>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {a * 2}')
   Initializers(1):
       IBinaryOperatorExpression (BinaryOperatorKind.Multiply, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: 'a * 2')
-        Left: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: 'a')
-        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsInvalid, Language: Visual Basic) (Syntax: '2')
+        Left: 
+          ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: 'a')
+        Right: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsInvalid, Language: Visual Basic) (Syntax: '2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -706,9 +804,12 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.Int32, a As System.Int32>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {.a = 1, a}')
   Initializers(2):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '.a = 1')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, a As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'a')
-            Instance Receiver: null
-        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, a As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'a')
+            Instance Receiver: 
+            null
+        Right: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
       ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: 'a')
 ]]>.Value
 
@@ -739,9 +840,11 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: FLD As System.Int32, FLD As System.Int32>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {a ... D, a.FLD()}')
   Initializers(2):
       IPropertyReferenceExpression: Property ModuleA.S.FLD As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'a.FLD')
-        Instance Receiver: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: ModuleA.S, Language: Visual Basic) (Syntax: 'a')
+        Instance Receiver: 
+          ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: ModuleA.S, Language: Visual Basic) (Syntax: 'a')
       IPropertyReferenceExpression: Property ModuleA.S.FLD As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: 'a.FLD()')
-        Instance Receiver: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: ModuleA.S, IsInvalid, Language: Visual Basic) (Syntax: 'a')
+        Instance Receiver: 
+          ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: ModuleA.S, IsInvalid, Language: Visual Basic) (Syntax: 'a')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -769,11 +872,15 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: x As System.Int32, x As System.Int32>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {.x = 1, a!x}')
   Initializers(2):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '.x = 1')
-        Left: IPropertyReferenceExpression: Property <anonymous type: x As System.Int32, x As System.Int32>.x As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
-            Instance Receiver: null
-        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: x As System.Int32, x As System.Int32>.x As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
+            Instance Receiver: 
+            null
+        Right: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
       IPropertyReferenceExpression: Property System.Collections.Generic.Dictionary(Of System.String, System.Int32).Item(key As System.String) As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: 'a!x')
-        Instance Receiver: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), IsInvalid, Language: Visual Basic) (Syntax: 'a')
+        Instance Receiver: 
+          ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), IsInvalid, Language: Visual Basic) (Syntax: 'a')
         Arguments(1):
             IArgument (ArgumentKind.Explicit, Matching Parameter: key) (OperationKind.Argument, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: 'x')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "x", IsInvalid, Language: Visual Basic) (Syntax: 'x')
@@ -807,9 +914,12 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key a As ?>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {K ... ddressOf S}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: 'Key .a = AddressOf S')
-        Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: 'AddressOf S')
+        Left: 
+          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?, Language: Visual Basic) (Syntax: 'a')
+            Instance Receiver: 
+            null
+        Right: 
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: 'AddressOf S')
             Children(1):
                 IOperation:  (OperationKind.None, IsInvalid, Language: Visual Basic) (Syntax: 'AddressOf S')
                   Children(1):
@@ -848,27 +958,40 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key x As System.String, Key a As System.String>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {' ... ).Invoke()}')
   Initializers(2):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, Constant: "--value--", Language: Visual Basic) (Syntax: 'Key .x = "--value--"')
-        Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.String, Key a As System.String>.x As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'x')
-            Instance Receiver: null
-        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "--value--", Language: Visual Basic) (Syntax: '"--value--"')
+        Left: 
+          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.String, Key a As System.String>.x As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'x')
+            Instance Receiver: 
+            null
+        Right: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "--value--", Language: Visual Basic) (Syntax: '"--value--"')
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: 'Key .a = Di ... )).Invoke()')
-        Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.String, Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: 'DirectCast( ... )).Invoke()')
-            Instance Receiver: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid, Language: Visual Basic) (Syntax: 'DirectCast( ... Of String))')
+        Left: 
+          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.String, Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'a')
+            Instance Receiver: 
+            null
+        Right: 
+          IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: 'DirectCast( ... )).Invoke()')
+            Instance Receiver: 
+              IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid, Language: Visual Basic) (Syntax: 'DirectCast( ... Of String))')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: Visual Basic) (Syntax: 'Function()  ... nd Function')
+                Operand: 
+                  IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: Visual Basic) (Syntax: 'Function()  ... nd Function')
                     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: 'Function()  ... nd Function')
                       Locals: Local_1: <anonymous local> As System.String
                       IReturnStatement (OperationKind.ReturnStatement, IsInvalid, Language: Visual Basic) (Syntax: 'Return .x.ToString()')
-                        ReturnedValue: IInvocationExpression (virtual Function System.String.ToString() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: '.x.ToString()')
-                            Instance Receiver: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.String, Key a As System.String>.x As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: '.x')
-                                Instance Receiver: null
+                        ReturnedValue: 
+                          IInvocationExpression (virtual Function System.String.ToString() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: '.x.ToString()')
+                            Instance Receiver: 
+                              IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.String, Key a As System.String>.x As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: '.x')
+                                Instance Receiver: 
+                                null
                             Arguments(0)
                       ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'End Function')
-                        Statement: null
+                        Statement: 
+                        null
                       IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'End Function')
-                        ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'End Function')
+                        ReturnedValue: 
+                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
 
@@ -901,18 +1024,25 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key a As System.String>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {' ... ).Invoke()}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: 'Key .a = Di ... )).Invoke()')
-        Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: 'DirectCast( ... )).Invoke()')
-            Instance Receiver: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid, Language: Visual Basic) (Syntax: 'DirectCast( ... Of String))')
+        Left: 
+          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'a')
+            Instance Receiver: 
+            null
+        Right: 
+          IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: 'DirectCast( ... )).Invoke()')
+            Instance Receiver: 
+              IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid, Language: Visual Basic) (Syntax: 'DirectCast( ... Of String))')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: Visual Basic) (Syntax: 'Function()  ... nd Function')
+                Operand: 
+                  IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: Visual Basic) (Syntax: 'Function()  ... nd Function')
                     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: 'Function()  ... nd Function')
                       Locals: Local_1: <anonymous local> As System.String
                       IReturnStatement (OperationKind.ReturnStatement, IsInvalid, Language: Visual Basic) (Syntax: 'Return .a.ToString()')
-                        ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: '.a.ToString()')
+                        ReturnedValue: 
+                          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: '.a.ToString()')
                             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.a.ToString()')
+                            Operand: 
+                              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.a.ToString()')
                                 Children(1):
                                     IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: '.a.ToString')
                                       Children(1):
@@ -921,9 +1051,11 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                                                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.a')
                                                   Children(0)
                       ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'End Function')
-                        Statement: null
+                        Statement: 
+                        null
                       IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'End Function')
-                        ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'End Function')
+                        ReturnedValue: 
+                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
 
@@ -956,18 +1088,25 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key a As System.String>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {' ... ).Invoke()}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: 'Key .a = Di ... )).Invoke()')
-        Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: 'DirectCast( ... )).Invoke()')
-            Instance Receiver: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid, Language: Visual Basic) (Syntax: 'DirectCast( ... Of String))')
+        Left: 
+          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'a')
+            Instance Receiver: 
+            null
+        Right: 
+          IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: 'DirectCast( ... )).Invoke()')
+            Instance Receiver: 
+              IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid, Language: Visual Basic) (Syntax: 'DirectCast( ... Of String))')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: Visual Basic) (Syntax: 'Function()  ... nd Function')
+                Operand: 
+                  IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: Visual Basic) (Syntax: 'Function()  ... nd Function')
                     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: 'Function()  ... nd Function')
                       Locals: Local_1: <anonymous local> As System.String
                       IReturnStatement (OperationKind.ReturnStatement, IsInvalid, Language: Visual Basic) (Syntax: 'Return .x.ToString()')
-                        ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: '.x.ToString()')
+                        ReturnedValue: 
+                          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: '.x.ToString()')
                             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.x.ToString()')
+                            Operand: 
+                              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.x.ToString()')
                                 Children(1):
                                     IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: '.x.ToString')
                                       Children(1):
@@ -976,9 +1115,11 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                                                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.x')
                                                   Children(0)
                       ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'End Function')
-                        Statement: null
+                        Statement: 
+                        null
                       IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'End Function')
-                        ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'End Function')
+                        ReturnedValue: 
+                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
 
@@ -1013,25 +1154,35 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key a As System.String>, IsInvalid, Language: Visual Basic) (Syntax: 'New With {' ... ).Invoke()}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: 'Key .a = Di ... )).Invoke()')
-        Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: 'DirectCast( ... )).Invoke()')
-            Instance Receiver: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid, Language: Visual Basic) (Syntax: 'DirectCast( ... Of String))')
+        Left: 
+          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'a')
+            Instance Receiver: 
+            null
+        Right: 
+          IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: 'DirectCast( ... )).Invoke()')
+            Instance Receiver: 
+              IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid, Language: Visual Basic) (Syntax: 'DirectCast( ... Of String))')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: Visual Basic) (Syntax: 'Function()  ... nd Function')
+                Operand: 
+                  IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: Visual Basic) (Syntax: 'Function()  ... nd Function')
                     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: 'Function()  ... nd Function')
                       Locals: Local_1: <anonymous local> As System.String
                       IReturnStatement (OperationKind.ReturnStatement, IsInvalid, Language: Visual Basic) (Syntax: 'Return Dire ... )).Invoke()')
-                        ReturnedValue: IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: 'DirectCast( ... )).Invoke()')
-                            Instance Receiver: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid, Language: Visual Basic) (Syntax: 'DirectCast( ... Of String))')
+                        ReturnedValue: 
+                          IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: 'DirectCast( ... )).Invoke()')
+                            Instance Receiver: 
+                              IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid, Language: Visual Basic) (Syntax: 'DirectCast( ... Of String))')
                                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                Operand: IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: Visual Basic) (Syntax: 'Function()  ... nd Function')
+                                Operand: 
+                                  IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: Visual Basic) (Syntax: 'Function()  ... nd Function')
                                     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: 'Function()  ... nd Function')
                                       Locals: Local_1: <anonymous local> As System.String
                                       IReturnStatement (OperationKind.ReturnStatement, IsInvalid, Language: Visual Basic) (Syntax: 'Return .x.ToString()')
-                                        ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: '.x.ToString()')
+                                        ReturnedValue: 
+                                          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: '.x.ToString()')
                                             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                            Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.x.ToString()')
+                                            Operand: 
+                                              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.x.ToString()')
                                                 Children(1):
                                                     IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: '.x.ToString')
                                                       Children(1):
@@ -1040,14 +1191,18 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                                                                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: '.x')
                                                                   Children(0)
                                       ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'End Function')
-                                        Statement: null
+                                        Statement: 
+                                        null
                                       IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'End Function')
-                                        ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'End Function')
+                                        ReturnedValue: 
+                                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'End Function')
                             Arguments(0)
                       ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'End Function')
-                        Statement: null
+                        Statement: 
+                        null
                       IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'End Function')
-                        ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'End Function')
+                        ReturnedValue: 
+                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
 
@@ -1076,9 +1231,12 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Default As System.String>, Language: Visual Basic) (Syntax: 'New With {. ... t = "Test"}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, Constant: "Test", Language: Visual Basic) (Syntax: '.Default = "Test"')
-        Left: IPropertyReferenceExpression: Property <anonymous type: Default As System.String>.Default As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'Default')
-            Instance Receiver: null
-        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Test", Language: Visual Basic) (Syntax: '"Test"')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: Default As System.String>.Default As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'Default')
+            Instance Receiver: 
+            null
+        Right: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Test", Language: Visual Basic) (Syntax: '"Test"')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1136,7 +1294,8 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Language: Visual Basic) (Syntax: 'New With {x2}')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: x2 As T>, Language: Visual Basic) (Syntax: 'New With {x2}')
+  Operand: 
+    IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: x2 As T>, Language: Visual Basic) (Syntax: 'New With {x2}')
       Initializers(1):
           ILocalReferenceExpression: x2 (OperationKind.LocalReferenceExpression, Type: T, Language: Visual Basic) (Syntax: 'x2')
 ]]>.Value

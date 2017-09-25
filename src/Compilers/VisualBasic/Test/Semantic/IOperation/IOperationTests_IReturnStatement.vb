@@ -21,7 +21,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'Return')
-  ReturnedValue: null
+  ReturnedValue: 
+  null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -41,7 +42,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'Return True')
-  ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True, Language: Visual Basic) (Syntax: 'True')
+  ReturnedValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True, Language: Visual Basic) (Syntax: 'True')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -61,7 +63,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IReturnStatement (OperationKind.YieldReturnStatement, Language: Visual Basic) (Syntax: 'Yield 0')
-  ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+  ReturnedValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -82,7 +85,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'Return')
-  ReturnedValue: null
+  ReturnedValue: 
+  null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

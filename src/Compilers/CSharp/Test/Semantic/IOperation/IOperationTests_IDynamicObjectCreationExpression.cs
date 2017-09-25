@@ -32,7 +32,8 @@ IDynamicObjectCreationExpression (OperationKind.DynamicObjectCreationExpression,
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd')
   ArgumentNames(0)
   ArgumentRefKinds(0)
-  Initializer: null
+  Initializer: 
+  null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -66,7 +67,8 @@ IDynamicObjectCreationExpression (OperationKind.DynamicObjectCreationExpression,
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd')
   ArgumentNames(0)
   ArgumentRefKinds(0)
-  Initializer: null
+  Initializer: 
+  null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -102,7 +104,8 @@ IDynamicObjectCreationExpression (OperationKind.DynamicObjectCreationExpression,
       ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: System.Char, Language: C#) (Syntax: 'c')
   ArgumentNames(0)
   ArgumentRefKinds(0)
-  Initializer: null
+  Initializer: 
+  null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -139,7 +142,8 @@ IDynamicObjectCreationExpression (OperationKind.DynamicObjectCreationExpression,
     ""i""
     ""c""
   ArgumentRefKinds(0)
-  Initializer: null
+  Initializer: 
+  null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -176,7 +180,8 @@ IDynamicObjectCreationExpression (OperationKind.DynamicObjectCreationExpression,
     Ref
     Out
     None
-  Initializer: null
+  Initializer: 
+  null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -208,12 +213,16 @@ IDynamicObjectCreationExpression (OperationKind.DynamicObjectCreationExpression,
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd')
   ArgumentNames(0)
   ArgumentRefKinds(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C, Language: C#) (Syntax: '{ X = 0 }')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C, Language: C#) (Syntax: '{ X = 0 }')
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: C#) (Syntax: 'X = 0')
-            Left: IFieldReferenceExpression: System.Int32 C.X (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'X')
-                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, Language: C#) (Syntax: 'X')
-            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: '0')
+            Left: 
+              IFieldReferenceExpression: System.Int32 C.X (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'X')
+                Instance Receiver: 
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, Language: C#) (Syntax: 'X')
+            Right: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: '0')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -255,12 +264,16 @@ IDynamicObjectCreationExpression (OperationKind.DynamicObjectCreationExpression,
   ArgumentRefKinds(2):
     Ref
     None
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C, Language: C#) (Syntax: '{ X = 0 }')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C, Language: C#) (Syntax: '{ X = 0 }')
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: C#) (Syntax: 'X = 0')
-            Left: IFieldReferenceExpression: System.Int32 C.X (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'X')
-                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, Language: C#) (Syntax: 'X')
-            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: '0')
+            Left: 
+              IFieldReferenceExpression: System.Int32 C.X (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: C#) (Syntax: 'X')
+                Instance Receiver: 
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, Language: C#) (Syntax: 'X')
+            Right: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: C#) (Syntax: '0')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -293,11 +306,13 @@ IDynamicObjectCreationExpression (OperationKind.DynamicObjectCreationExpression,
       IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, Language: C#) (Syntax: 'delegate { }')
         IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, Language: C#) (Syntax: '{ }')
           IReturnStatement (OperationKind.ReturnStatement, IsInvalid, IsImplicit, Language: C#) (Syntax: '{ }')
-            ReturnedValue: null
+            ReturnedValue: 
+            null
       ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'y')
   ArgumentNames(0)
   ArgumentRefKinds(0)
-  Initializer: null
+  Initializer: 
+  null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
