@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitArrayCreationExpression(IArrayCreationExpression operation, object argument)
         {
-            return new ArrayCreationExpression(operation.ElementType, VisitArray(operation.DimensionSizes), Visit(operation.Initializer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ArrayCreationExpression(VisitArray(operation.DimensionSizes), Visit(operation.Initializer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitArrayInitializer(IArrayInitializer operation, object argument)

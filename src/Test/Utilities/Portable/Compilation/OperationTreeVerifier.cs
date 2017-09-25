@@ -1187,7 +1187,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitArrayCreationExpression(IArrayCreationExpression operation)
         {
             LogString(nameof(IArrayCreationExpression));
-            LogString($" (Element Type: {operation.ElementType?.ToTestDisplayString()})");
             LogCommonPropertiesAndNewLine(operation);
 
             VisitArray(operation.DimensionSizes, "Dimension Sizes", logElementCount: true);
