@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
     {
         private static readonly ImmutableArray<string> AddParameterFixableDiagnosticIds =
             GenerateConstructorDiagnosticIds.AllDiagnosticIds.Union(
-            GenerateMethodDiagnosticIds.FixableDiagnosticIds).ToImmutableArray();
+            GenerateMethodDiagnosticIds.FixableDiagnosticIds).Union(
+            Enumerable.Repeat("CS1593", 1)). // C# Delegate 'Action' does not take 1 arguments
+            ToImmutableArray();
 
         public override ImmutableArray<string> FixableDiagnosticIds => AddParameterFixableDiagnosticIds;
 

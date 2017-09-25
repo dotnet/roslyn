@@ -670,5 +670,345 @@ class C1
     }
 }");
         }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocationLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C1
+{
+    void M1()
+    {
+        int Local() => 1;
+        [|Local|](2);
+    }
+}",
+@"
+class C1
+{
+    void M1()
+    {
+        int Local(int v) => 1;
+        Local(2);
+    }
+}");
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocationLambda1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+class C1
+{
+    void M1()
+    {
+        Action a = () => { };
+        [|a|](2);
+    }
+}",
+@"
+using System;
+class C1
+{
+    void M1()
+    {
+        Action a = (int v) => { };
+        a(2);
+    }
+}");
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocationStaticMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C1
+{
+    static void M1()
+    {
+    }
+    void M2()
+    {
+        [|M1|](1);
+    }
+}",
+@"
+class C1
+{
+    static void M1(int v)
+    {
+    }
+    void M2()
+    {
+        M1(1);
+    }
+}");
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocationExtensionMethod()
+        {
+            await TestAsync(
+@"
+static class Extensions
+{
+    public static void ExtensionM1(this object o)
+    {
+    }
+}
+class C1
+{
+    void M1()
+    {
+        new object().[|ExtensionM1|](1);
+    }
+}",
+@"
+static class Extensions
+{
+    public static void ExtensionM1(this object o, int v)
+    {
+    }
+}
+class C1
+{
+    void M1()
+    {
+        new object().ExtensionM1(1);
+    }
+}", null);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocationOverride()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Base
+{
+    protected virtual void M1() { }
+}
+class C1 : Base
+{
+    protected override void M1() { }
+    void M2()
+    {
+        [|M1|](1);
+    }
+}",
+@"
+class Base
+{
+    protected virtual void M1() { }
+}
+class C1 : Base
+{
+    protected override void M1(int v) { }
+    void M2()
+    {
+        M1(1);
+    }
+}");
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocationExplicitInterface()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+interface I1
+{
+    void M1();
+}
+class C1 : I1
+{
+    void I1.M1() { }
+    void M2()
+    {
+        ((I1)this).[|M1|](1);
+    }
+}",
+@"
+interface I1
+{
+    void M1(int v);
+}
+class C1 : I1
+{
+    void I1.M1() { }
+    void M2()
+    {
+        ((I1)this).M1(1);
+    }
+}");
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocationImplicitInterface()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+interface I1
+{
+    void M1();
+}
+class C1 : I1
+{
+    public void M1() { }
+    void M2()
+    {
+        [|M1|](1);
+    }
+}",
+@"
+interface I1
+{
+    void M1();
+}
+class C1 : I1
+{
+    public void M1(int v) { }
+    void M2()
+    {
+        M1(1);
+    }
+}");
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocationGenericMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C1
+{
+    void M1<T>(T arg) { }
+    void M2()
+    {
+        [|M1|](1, 2);
+    }
+}",
+@"
+class C1
+{
+    void M1<T>(int v, T arg) { }
+    void M2()
+    {
+        M1(1, 2);
+    }
+}");
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocationRecursion()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C1
+{
+    void M1()
+    {
+        [|M1|](1);
+    }
+}",
+@"
+class C1
+{
+    void M1(int v)
+    {
+        M1(1);
+    }
+}");
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocationOverloads1()
+        {
+            var code =
+@"
+class C1
+{
+    void M1(string s) { }
+    void M1(int i) { }
+    void M2()
+    {
+        [|M1|](1, 2);
+    }
+}";
+            var fix0 =
+@"
+class C1
+{
+    void M1(string s) { }
+    void M1(int i, int v) { }
+    void M2()
+    {
+        M1(1, 2);
+    }
+}";
+            var fix1 =
+@"
+class C1
+{
+    void M1(int v, string s) { }
+    void M1(int i) { }
+    void M2()
+    {
+        M1(1, 2);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, fix0, 0);
+            await TestInRegularAndScriptAsync(code, fix1, 1);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocationOverloads2()
+        {
+            var code =
+@"
+class C1
+{
+    void M1(string s1, string s2) { }
+    void M1(string s) { }
+    void M1(int i) { }
+    void M2()
+    {
+        M1(1, [|2|]);
+    }
+}";
+            var fix0 =
+@"
+class C1
+{
+    void M1(string s1, string s2) { }
+    void M1(string s) { }
+    void M1(int i, int v) { }
+    void M2()
+    {
+        M1(1, 2);
+    }
+}";
+                using (var workspace = CreateWorkspaceFromOptions(code, default))
+            {
+                var actions = await GetCodeActionsAsync(workspace, default);
+                Assert.True(actions.Length == 1);
+            }
+            await TestInRegularAndScriptAsync(code, fix0, 0);
+        }
     }
 }

@@ -86,10 +86,28 @@ namespace Microsoft.CodeAnalysis.AddParameter
             {
                 return;
             }
+
             var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
             var candidates = symbolInfo.CandidateSymbols.OfType<IMethodSymbol>().ToImmutableArray();
-            var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
+            if (candidates.Length == 0)
+            {
+                // Invocation might be on an delegate. We try to find the declaration of the delegate.
+                // This only fixes the declaration but not the delegate type. This ode is for test purposes only and will likely be removed.
+                var localSymobol = symbolInfo.Symbol as ILocalSymbol;
+                var localVariableDeclarationSyntax = localSymobol?.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
+                if (localVariableDeclarationSyntax != null)
+                {
+                    var initializer = syntaxFacts.GetInitializerOfVariableDeclarator(localVariableDeclarationSyntax);
+                    if (initializer != null)
+                    {
+                        var functionDefinition = syntaxFacts.GetValueOfEqualsValueClause(initializer);
+                        symbolInfo = semanticModel.GetSymbolInfo(functionDefinition, cancellationToken);
+                        candidates = symbolInfo.Symbol is IMethodSymbol methodSymbol ? ImmutableArray.Create<IMethodSymbol>(methodSymbol) : candidates;
+                    }
+                }
+            }
 
+            var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
             var argumentInsertPositionInMethodCandidates = GetArgumentInsertPositionForMethodCandidates(argumentOpt, semanticModel, syntaxFacts, arguments, candidates);
             RegisterFixForMethodOverloads(context, arguments, argumentInsertPositionInMethodCandidates);
         }
@@ -211,6 +229,11 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var insertionIndex = isNamedArgument
                 ? existingParameters.Count
                 : argumentList.IndexOf(argument);
+
+            if (method.IsExtensionMethod)
+            {
+                insertionIndex++;
+            }
 
             AddParameter(
                 syntaxFacts, editor, methodDeclaration, argument,
