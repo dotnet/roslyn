@@ -7,6 +7,8 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ExtractInterface
 Imports Microsoft.CodeAnalysis.ExtractInterface
+Imports Microsoft.VisualStudio.Text.UI.Commanding
+Imports Microsoft.VisualStudio.Text.UI.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractInterface
     Public Class ExtractInterfaceTests
@@ -1285,10 +1287,10 @@ End Namespace
                 Dim nextHandler =
                     Function()
                         delegatedToNext = True
-                        Return CommandState.Unavailable
+                        Return CommandState.CommandIsUnavailable
                     End Function
 
-                Dim state = handler.GetCommandState(New Commands.ExtractInterfaceCommandArgs(textView, textView.TextBuffer), nextHandler)
+                Dim state = handler.GetCommandState(New ExtractInterfaceCommandArgs(textView, textView.TextBuffer), nextHandler)
                 Assert.True(delegatedToNext)
                 Assert.False(state.IsAvailable)
             End Using

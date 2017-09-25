@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ExtractMethod
 Imports Microsoft.VisualStudio.Text.Operations
+Imports Microsoft.VisualStudio.Text.UI.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
     Partial Public Class ExtractMethodTests
@@ -3386,15 +3387,8 @@ End Namespace"
                         workspace.GetService(Of IEditorOperationsFactoryService)(),
                         workspace.GetService(Of IInlineRenameService)(),
                         workspace.GetService(Of Host.IWaitIndicator)())
-                    Dim delegatedToNext = False
-                    Dim nextHandler =
-                    Function()
-                        delegatedToNext = True
-                        Return CommandState.Unavailable
-                    End Function
 
-                    Dim state = handler.GetCommandState(New Commands.ExtractMethodCommandArgs(textView, textView.TextBuffer), nextHandler)
-                    Assert.True(delegatedToNext)
+                    Dim state = handler.GetCommandState(New ExtractMethodCommandArgs(textView, textView.TextBuffer))
                     Assert.False(state.IsAvailable)
                 End Using
             End Sub

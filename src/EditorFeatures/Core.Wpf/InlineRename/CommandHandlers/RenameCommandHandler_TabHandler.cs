@@ -2,16 +2,17 @@
 
 using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal partial class RenameCommandHandler :
-        ICommandHandler<TabKeyCommandArgs>,
-        ICommandHandler<BackTabKeyCommandArgs>
+        ILegacyCommandHandler<TabKeyCommandArgs>,
+        ILegacyCommandHandler<BackTabKeyCommandArgs>
     {
         public CommandState GetCommandState(TabKeyCommandArgs args, Func<CommandState> nextHandler)
         {

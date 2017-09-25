@@ -56,6 +56,7 @@ Microsoft.CodeAnalysis.OperationKind.AnonymousObjectCreationExpression = 287 -> 
 Microsoft.CodeAnalysis.OperationKind.Argument = 1031 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.ArrayCreationExpression = 276 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.ArrayInitializer = 1029 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.AwaitExpression = 279 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.BinaryOperatorExpression = 270 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.BlockStatement = 2 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.BranchStatement = 8 -> Microsoft.CodeAnalysis.OperationKind
@@ -208,6 +209,8 @@ Microsoft.CodeAnalysis.Semantics.IArrayInitializer.ElementValues.get -> System.C
 Microsoft.CodeAnalysis.Semantics.IAssignmentExpression
 Microsoft.CodeAnalysis.Semantics.IAssignmentExpression.Target.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IAssignmentExpression.Value.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IAwaitExpression
+Microsoft.CodeAnalysis.Semantics.IAwaitExpression.Expression.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression
 Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression.IsChecked.get -> bool
 Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression.IsCompareText.get -> bool
@@ -497,6 +500,7 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitAnonymousObjectCr
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitArgument(Microsoft.CodeAnalysis.Semantics.IArgument operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitArrayCreationExpression(Microsoft.CodeAnalysis.Semantics.IArrayCreationExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitArrayInitializer(Microsoft.CodeAnalysis.Semantics.IArrayInitializer operation) -> void
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitAwaitExpression(Microsoft.CodeAnalysis.Semantics.IAwaitExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitBinaryOperatorExpression(Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitBlockStatement(Microsoft.CodeAnalysis.Semantics.IBlockStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitBranchStatement(Microsoft.CodeAnalysis.Semantics.IBranchStatement operation) -> void
@@ -580,6 +584,7 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.Vi
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitArgument(Microsoft.CodeAnalysis.Semantics.IArgument operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitArrayCreationExpression(Microsoft.CodeAnalysis.Semantics.IArrayCreationExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitArrayInitializer(Microsoft.CodeAnalysis.Semantics.IArrayInitializer operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitAwaitExpression(Microsoft.CodeAnalysis.Semantics.IAwaitExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitBinaryOperatorExpression(Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitBlockStatement(Microsoft.CodeAnalysis.Semantics.IBlockStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitBranchStatement(Microsoft.CodeAnalysis.Semantics.IBranchStatement operation, TArgument argument) -> TResult

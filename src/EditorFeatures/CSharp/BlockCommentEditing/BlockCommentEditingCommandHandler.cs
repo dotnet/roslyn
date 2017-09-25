@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
 {
-    [ExportCommandHandler(nameof(BlockCommentEditingCommandHandler), ContentTypeNames.CSharpContentType)]
+    [ExportLegacyCommandHandler(nameof(BlockCommentEditingCommandHandler), ContentTypeNames.CSharpContentType)]
     [Order(After = PredefinedCommandHandlerNames.Completion)]
     internal class BlockCommentEditingCommandHandler : AbstractBlockCommentEditingCommandHandler
     {

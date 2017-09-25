@@ -971,7 +971,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var lhs = node.Left;
 
-            Debug.Assert(node.RefKind == RefKind.None || (lhs as BoundLocal)?.LocalSymbol.RefKind == RefKind.Ref,
+            Debug.Assert(node.RefKind == RefKind.None || lhs is BoundLocal local &&
+                         (local.LocalSymbol.RefKind == node.RefKind ||
+                          local.LocalSymbol.RefKind == RefKind.RefReadOnly),
                                 "only ref locals can be a target of a ref assignment");
             
             switch (lhs.Kind)
@@ -1034,6 +1036,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     throw ExceptionUtilities.UnexpectedValue(lhs.Kind);
             }
         }
+
         private static bool IsIndirectOrInstanceFieldAssignment(BoundAssignmentOperator node)
         {
             var lhs = node.Left;

@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Notification
@@ -13,6 +12,7 @@ Imports Microsoft.CodeAnalysis.SymbolMapping
 Imports Microsoft.VisualStudio.Language.CallHierarchy
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.UI.Commanding.Commands
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
 
         Friend Function GetRoot() As CallHierarchyItem
             Dim args = New ViewCallHierarchyCommandArgs(_textView, _subjectBuffer)
-            _commandHandler.ExecuteCommand(args, Sub() Exit Sub)
+            _commandHandler.ExecuteCommand(args)
             Return _presenter.PresentedRoot
         End Function
 

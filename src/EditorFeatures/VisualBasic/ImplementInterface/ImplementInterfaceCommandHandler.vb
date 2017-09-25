@@ -9,7 +9,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementInterface
-    <ExportCommandHandler("ImplementInterfaceCommandHandler", ContentTypeNames.VisualBasicContentType)>
+    <ExportLegacyCommandHandler("ImplementInterfaceCommandHandler", ContentTypeNames.VisualBasicContentType)>
     <Order(Before:=PredefinedCommandHandlerNames.EndConstruct)>
     <Order(After:=PredefinedCommandHandlerNames.Completion)>
     Friend Class ImplementInterfaceCommandHandler

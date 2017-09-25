@@ -2,11 +2,13 @@
 
 using System;
 using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
     internal partial class EventHookupCommandHandler :
-        ICommandHandler<EscapeKeyCommandArgs>
+        ILegacyCommandHandler<EscapeKeyCommandArgs>
     {
         public void ExecuteCommand(EscapeKeyCommandArgs args, Action nextHandler)
         {

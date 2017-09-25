@@ -1,23 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
     /// <summary>
     /// This interface is implemented by a class that implements at least one strongly-typed
-    /// ICommandHandler&lt;T&gt;. When implementing a strongly-typed ICommandHandler, you should MEF
+    /// <see cref="ILegacyCommandHandler{T}"/>;. When implementing a strongly-typed <see cref="ILegacyCommandHandler"/>, you should MEF
     /// export this base interface.
     /// </summary>
-    internal interface ICommandHandler
+    internal interface ILegacyCommandHandler
     {
     }
 
     /// <summary>
     /// Implement to handle a command before it is processed by the editor. To export this, export
-    /// the non-generic ICommandHandler.
+    /// the non-generic <see cref="ILegacyCommandHandler"/>.
     /// </summary>
-    internal interface ICommandHandler<T> : ICommandHandler where T : CommandArgs
+    internal interface ILegacyCommandHandler<T> : ILegacyCommandHandler where T : CommandArgs
     {
         /// <summary>
         /// Called to determine the state of the command.

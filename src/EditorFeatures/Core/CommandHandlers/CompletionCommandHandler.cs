@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
     [Export]
-    [ExportCommandHandler(PredefinedCommandHandlerNames.Completion, ContentTypeNames.RoslynContentType)]
+    [ExportLegacyCommandHandler(PredefinedCommandHandlerNames.Completion, ContentTypeNames.RoslynContentType)]
     [Order(After = PredefinedCommandHandlerNames.SignatureHelp,
            Before = PredefinedCommandHandlerNames.DocumentationComments)]
     internal sealed class CompletionCommandHandler : AbstractCompletionCommandHandler

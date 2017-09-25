@@ -1,7 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
@@ -22,9 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     /// doesn't process the command.
     /// </summary>
     internal abstract class AbstractIntelliSenseCommandHandler :
-        ICommandHandler<EscapeKeyCommandArgs>,
-        ICommandHandler<UpKeyCommandArgs>,
-        ICommandHandler<DownKeyCommandArgs>
+        ILegacyCommandHandler<EscapeKeyCommandArgs>,
+        ILegacyCommandHandler<UpKeyCommandArgs>,
+        ILegacyCommandHandler<DownKeyCommandArgs>
     {
         private readonly CompletionCommandHandler _completionCommandHandler;
         private readonly SignatureHelpCommandHandler _signatureHelpCommandHandler;

@@ -7,6 +7,8 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EncapsulateField
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Text.Operations
+Imports Microsoft.VisualStudio.Text.UI.Commanding
+Imports Microsoft.VisualStudio.Text.UI.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
     Public Class EncapsulateFieldCommandHandlerTests
@@ -156,10 +158,10 @@ End Class
                 Dim nextHandler =
                     Function()
                         delegatedToNext = True
-                        Return CommandState.Unavailable
+                        Return CommandState.CommandIsUnavailable
                     End Function
 
-                Dim state = handler.GetCommandState(New Commands.EncapsulateFieldCommandArgs(textView, textView.TextBuffer), nextHandler)
+                Dim state = handler.GetCommandState(New EncapsulateFieldCommandArgs(textView, textView.TextBuffer), nextHandler)
                 Assert.True(delegatedToNext)
                 Assert.False(state.IsAvailable)
             End Using

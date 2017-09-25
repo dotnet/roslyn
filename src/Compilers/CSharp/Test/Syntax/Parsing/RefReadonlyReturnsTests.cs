@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Xunit;
 using System.Linq;
@@ -138,9 +138,6 @@ class Program
 ";
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (7,9): error CS1073: Unexpected token 'ref'
-                //         ref readonly int local = ref (new int[1])[0];
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(7, 9),
                 // (9,10): error CS1073: Unexpected token 'ref'
                 //         (ref readonly int, ref readonly int Alice)? t = null;
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(9, 10),

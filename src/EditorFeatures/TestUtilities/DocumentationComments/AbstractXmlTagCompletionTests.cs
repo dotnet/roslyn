@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
 {
     public abstract class AbstractXmlTagCompletionTests
     {
-        internal abstract ICommandHandler<TypeCharCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistory);
+        internal abstract ILegacyCommandHandler<TypeCharCommandArgs> CreateCommandHandler(ITextUndoHistoryRegistry undoHistory);
         protected abstract TestWorkspace CreateTestWorkspace(string initialMarkup);
 
         public void Verify(string initialMarkup, string expectedMarkup, char typeChar)

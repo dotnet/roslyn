@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
     /// Because we are explicitly asking the user to tab, so we should handle the tab command before
     /// Automatic Completion.
     /// </summary>
-    [ExportCommandHandler(PredefinedCommandHandlerNames.EventHookup, ContentTypeNames.CSharpContentType)]
+    [ExportLegacyCommandHandler(PredefinedCommandHandlerNames.EventHookup, ContentTypeNames.CSharpContentType)]
     [Order(Before = PredefinedCommandHandlerNames.AutomaticCompletion)]
     internal partial class EventHookupCommandHandler : ForegroundThreadAffinitizedObject
     {

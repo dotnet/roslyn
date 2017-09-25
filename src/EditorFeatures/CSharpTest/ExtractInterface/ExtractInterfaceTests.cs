@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractInterface;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1084,10 +1086,10 @@ class $$Test<T, U>
                 CommandState nextHandler()
                 {
                     delegatedToNext = true;
-                    return CommandState.Unavailable;
-                }
+                    return CommandState.CommandIsUnavailable;
+                };
 
-                var state = handler.GetCommandState(new Commands.ExtractInterfaceCommandArgs(textView, textView.TextBuffer), nextHandler);
+                var state = handler.GetCommandState(new ExtractInterfaceCommandArgs(textView, textView.TextBuffer), nextHandler);
                 Assert.True(delegatedToNext);
                 Assert.False(state.IsAvailable);
             }
