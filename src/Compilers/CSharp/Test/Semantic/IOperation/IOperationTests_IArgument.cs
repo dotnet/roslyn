@@ -2373,7 +2373,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(1);')
       Instance Receiver: null
       Arguments(1):
           IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'M2(1)')
-            IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'M2(1)')
+            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'M2(1)')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(1)')
               Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(1)')
@@ -2406,7 +2406,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(0, 1);')
       Instance Receiver: null
       Arguments(1):
           IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'M2(0, 1)')
-            IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'M2(0, 1)')
+            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'M2(0, 1)')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(0, 1)')
               Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(0, 1)')
@@ -2565,7 +2565,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'new P(1);')
   Expression: IObjectCreationExpression (Constructor: P..ctor(params System.Int32[] array)) (OperationKind.ObjectCreationExpression, Type: P) (Syntax: 'new P(1)')
       Arguments(1):
           IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'new P(1)')
-            IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new P(1)')
+            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new P(1)')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'new P(1)')
               Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'new P(1)')
@@ -2598,7 +2598,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'new P(0, 1);'
   Expression: IObjectCreationExpression (Constructor: P..ctor(params System.Int32[] array)) (OperationKind.ObjectCreationExpression, Type: P) (Syntax: 'new P(0, 1)')
       Arguments(1):
           IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'new P(0, 1)')
-            IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new P(0, 1)')
+            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new P(0, 1)')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'new P(0, 1)')
               Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'new P(0, 1)')
@@ -2656,7 +2656,7 @@ IPropertyReferenceExpression: System.Int32 P.this[params System.Int32[] array] {
   Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1):
       IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'this[1]')
-        IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'this[1]')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'this[1]')
           Dimension Sizes(1):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'this[1]')
           Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'this[1]')
@@ -2688,7 +2688,7 @@ IPropertyReferenceExpression: System.Int32 P.this[params System.Int32[] array] {
   Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1):
       IArgument (ArgumentKind.ParamArray, Matching Parameter: array) (OperationKind.Argument) (Syntax: 'this[0, 1]')
-        IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'this[0, 1]')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'this[0, 1]')
           Dimension Sizes(1):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'this[0, 1]')
           Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'this[0, 1]')

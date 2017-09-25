@@ -1117,7 +1117,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(1)')
       Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M2')
       Arguments(1):
           IArgument (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'M2(1)')
-            IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'M2(1)')
+            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'M2(1)')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(1)')
               Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(1)')
@@ -1150,7 +1150,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(0, 1)')
       Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M2')
       Arguments(1):
           IArgument (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'M2(0, 1)')
-            IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'M2(0, 1)')
+            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'M2(0, 1)')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(0, 1)')
               Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(0, 1)')
@@ -1290,7 +1290,7 @@ End Class]]>.Value
 IObjectCreationExpression (Constructor: Sub Program..ctor(ParamArray a As System.Int32())) (OperationKind.ObjectCreationExpression, Type: Program) (Syntax: 'New Program(1)')
   Arguments(1):
       IArgument (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'Program')
-        IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'Program')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'Program')
           Dimension Sizes(1):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'Program')
           Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'Program')
@@ -1322,7 +1322,7 @@ End Class]]>.Value
 IObjectCreationExpression (Constructor: Sub Program..ctor(ParamArray a As System.Int32())) (OperationKind.ObjectCreationExpression, Type: Program) (Syntax: 'new Program(0, 1)')
   Arguments(1):
       IArgument (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'Program')
-        IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'Program')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'Program')
           Dimension Sizes(1):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'Program')
           Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'Program')
@@ -1352,7 +1352,7 @@ End Module]]>.Value
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a(0 To  ...  As Integer')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a(0 To 20)')
     Variables: Local_1: a As System.Int32()
-    Initializer: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'a(0 To 20)')
+    Initializer: IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'a(0 To 20)')
         Dimension Sizes(1):
             IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 21) (Syntax: '0 To 20')
               Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
