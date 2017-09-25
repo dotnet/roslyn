@@ -1280,6 +1280,410 @@ class Program
         }
 
         [Fact()]
+        public void RefLikeObjInitializers()
+        {
+            var text = @"
+    using System;
+
+    class Program
+    {
+        static void Main()
+        {
+        }
+
+        static S2 Test1()
+        {
+            S1 outer = default;
+            S1 inner = stackalloc int[1];
+
+            // error
+            return new S2() { Field1 = outer, Field2 = inner };
+        }
+
+        static S2 Test2()
+        {
+            S1 outer = default;
+            S1 inner = stackalloc int[1];
+
+            S2 result;
+
+            // error
+            result = new S2() { Field1 = inner, Field2 = outer };
+
+            return result;
+        }
+
+        static S2 Test3()
+        {
+            S1 outer = default;
+            S1 inner = stackalloc int[1];
+
+            return new S2() { Field1 = outer, Field2 = outer };
+        }
+
+        public ref struct S1
+        {
+            public static implicit operator S1(Span<int> o) => default;
+        }
+
+        public ref struct S2
+        {
+            public S1 Field1;
+            public S1 Field2;
+        }
+    }
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (16,47): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //             return new S2() { Field1 = outer, Field2 = inner };
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "Field2 = inner").WithArguments("inner").WithLocation(16, 47),
+                // (27,33): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //             result = new S2() { Field1 = inner, Field2 = outer };
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "Field1 = inner").WithArguments("inner").WithLocation(27, 33)
+            );
+        }
+
+        [Fact()]
+        public void RefLikeObjInitializers1()
+        {
+            var text = @"
+    using System;
+
+    class Program
+    {
+        static void Main()
+        {
+        }
+
+        static S2 Test1()
+        {
+            S1 outer = default;
+            S1 inner = stackalloc int[1];
+
+            var x1 = new S2() { Field1 = outer, Field2 = inner };
+
+            // error
+            return x1;
+        }
+
+        static S2 Test2()
+        {
+            S1 outer = default;
+            S1 inner = stackalloc int[1];
+
+            var x2 = new S2() { Field1 = inner, Field2 = outer };
+
+            // error
+            return x2;
+        }
+
+        static S2 Test3()
+        {
+            S1 outer = default;
+            S1 inner = stackalloc int[1];
+
+            var x3 = new S2() { Field1 = outer, Field2 = outer };
+
+            // ok
+            return x3;
+        }
+
+        public ref struct S1
+        {
+            public static implicit operator S1(Span<int> o) => default;
+        }
+
+        public ref struct S2
+        {
+            public S1 Field1;
+            public S1 Field2;
+        }
+    }
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (18,20): error CS8352: Cannot use local 'x1' in this context because it may expose referenced variables outside of their declaration scope
+                //             return x1;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x1").WithArguments("x1").WithLocation(18, 20),
+                // (29,20): error CS8352: Cannot use local 'x2' in this context because it may expose referenced variables outside of their declaration scope
+                //             return x2;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x2").WithArguments("x2").WithLocation(29, 20)
+            );
+        }
+
+        [Fact()]
+        public void RefLikeObjInitializersIndexer()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+    }
+
+    static S2 Test1()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        // error
+        return new S2() { [inner] = outer, Field2 = outer };
+    }
+
+    static S2 Test2()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        // error
+        return new S2() { [outer] = inner, Field2 = outer };
+    }
+
+    static S2 Test3()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        return new S2() { [outer] = outer, Field2 = outer };
+    }
+
+    public ref struct S1
+    {
+        public static implicit operator S1(Span<int> o) => default;
+    }
+
+    public ref struct S2
+    {
+        private S1 field;
+
+        public S1 this[S1 i]
+        {
+            get
+            {
+                return i;
+            }
+            set
+            {
+                field = i;
+            }
+        }
+
+        public S1 Field2;
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (16,28): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //         return new S2() { [inner] = outer, Field2 = outer };
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(16, 28),
+                // (25,27): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //         return new S2() { [outer] = inner, Field2 = outer };
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "[outer] = inner").WithArguments("inner").WithLocation(25, 27)
+                );
+        }
+
+        [Fact()]
+        public void RefLikeObjInitializersIndexer1()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+    }
+
+    static S2 Test1()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        var x1 =  new S2() { [inner] = outer, Field2 = outer };
+
+        // error
+        return x1;
+    }
+
+    static S2 Test2()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        S2 result;
+
+        // error
+        result = new S2() { [outer] = inner, Field2 = outer };
+
+        return result;
+    }
+
+    static S2 Test3()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        var x3 = new S2() { [outer] = outer, Field2 = outer };
+
+        // ok
+        return x3;
+    }
+
+    public ref struct S1
+    {
+        public static implicit operator S1(Span<int> o) => default;
+    }
+
+    public ref struct S2
+    {
+        private S1 field;
+
+        public S1 this[S1 i]
+        {
+            get
+            {
+                return i;
+            }
+            set
+            {
+                field = i;
+            }
+        }
+
+        public S1 Field2;
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (18,16): error CS8352: Cannot use local 'x1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return x1;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x1").WithArguments("x1").WithLocation(18, 16),
+                // (29,29): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //         result = new S2() { [outer] = inner, Field2 = outer };
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "[outer] = inner").WithArguments("inner").WithLocation(29, 29)
+                );
+        }
+
+        [Fact()]
+        public void RefLikeObjInitializersNested()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+    }
+
+    static S2 Nested1()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        return new S2() { Field2 = {[inner] = outer} };
+    }
+
+    static S2 Nested2()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        var x = new S2() { Field2 = {[inner] = outer } };
+
+        return x;
+    }
+
+    static S2 Nested3()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        return new S2() { Field2 = {[outer] = inner} };
+    }
+
+    static S2 Nested4()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        var x = new S2() { Field2 = {[outer] = outer } };
+
+        return x;  //ok
+    }
+
+    public ref struct S2
+    {
+        public S3 Field2;
+    }
+
+    public ref struct S3
+    {
+        private S1 field;
+
+        public S1 this[S1 i]
+        {
+            get
+            {
+                return i;
+            }
+            set
+            {
+                field = i;
+            }
+        }
+
+        public S1 Field2;
+    }
+
+    public ref struct S1
+    {
+        public static implicit operator S1(Span<int> o) => default;
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (15,38): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //         return new S2() { Field2 = {[inner] = outer} };
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(15, 38),
+                // (25,16): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         return x;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(25, 16),
+                // (33,37): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //         return new S2() { Field2 = {[outer] = inner} };
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "[outer] = inner").WithArguments("inner").WithLocation(33, 37),
+                // (67,19): warning CS0649: Field 'Program.S3.Field2' is never assigned to, and will always have its default value 
+                //         public S1 Field2;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field2").WithArguments("Program.S3.Field2", "").WithLocation(67, 19)
+                );
+        }
+
+        [Fact()]
+        public void RefLikeColInitializer()
+        {
+            var text = @"
+using System;
+using System.Collections.Generic;
+
+// X cannot be a ref-like type since it must implement IEnumerable
+// that significantly reduces the number of scenarios that coudl be applicable to ref-like types
+class X : List<int>
+{
+    void Add(Span<int> x, int y) { }
+
+    static void Main()
+    {
+        Span<int> inner = stackalloc int[1];
+
+        var z = new X { { inner, 12 } };
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics();
+        }
+
+        [Fact()]
         public void RefLikeEscapeMixingDelegate()
         {
             var text = @"

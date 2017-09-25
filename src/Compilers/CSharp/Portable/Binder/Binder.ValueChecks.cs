@@ -2091,6 +2091,12 @@ moreArguments:
                         scopeOfTheContainingExpression,
                         isRefEscape: false);
 
+                    var initializerOpt = objectCreation.InitializerExpressionOpt;
+                    if (initializerOpt != null)
+                    {
+                        escape = Math.Max(escape, GetValEscape(initializerOpt, scopeOfTheContainingExpression));
+                    }
+
                     return escape;
 
                 case BoundKind.UnaryOperator:
@@ -2132,9 +2138,65 @@ moreArguments:
                 case BoundKind.RangeVariable:
                     return GetValEscape(((BoundRangeVariable)expr).Value, scopeOfTheContainingExpression);
 
+                case BoundKind.ObjectInitializerExpression:
+                    var initExpr = (BoundObjectInitializerExpression)expr;
+                    return GetValEscapeOfObjectInitializer(initExpr, scopeOfTheContainingExpression);
+
+                case BoundKind.CollectionInitializerExpression:
+                    var colExpr = (BoundCollectionInitializerExpression)expr;
+                    return GetValEscape(colExpr.Initializers, scopeOfTheContainingExpression);
+
+                case BoundKind.CollectionElementInitializer:
+                    var colElement = (BoundCollectionElementInitializer)expr;
+                    return GetValEscape(colElement.Arguments, scopeOfTheContainingExpression);
+                                
+                case BoundKind.ObjectInitializerMember:
+                    // this node generally makes no sense outside of the context of containing initializer
+                    // however binder uses it as a placeholder when binding assignments inside an object initializer
+                    // just say it does not escape anywhere, so that we do not get false errors.
+                    return scopeOfTheContainingExpression;
+
+                case BoundKind.ImplicitReceiver:
+                    // binder uses this as a placeholder when binding members inside an object initializer
+                    // just say it does not escape anywhere, so that we do not get false errors.
+                    return scopeOfTheContainingExpression;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue($"{expr.Kind} expression of {expr.Type} type");
             }
+        }
+
+        private static uint GetValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, uint scopeOfTheContainingExpression)
+        {
+            var result = Binder.ExternalScope;
+            foreach (var expression in initExpr.Initializers)
+            {
+                if (expression.Kind == BoundKind.AssignmentOperator)
+                {
+                    var assignment = (BoundAssignmentOperator)expression;
+                    result = Math.Max(result, GetValEscape(assignment.Right, scopeOfTheContainingExpression));
+
+                    var left = (BoundObjectInitializerMember)assignment.Left;
+                    result = Math.Max(result, GetValEscape(left.Arguments, scopeOfTheContainingExpression));
+                }
+                else
+                {
+                    result = Math.Max(result, GetValEscape(expression, scopeOfTheContainingExpression));
+                }
+            }
+
+            return result;
+        }
+
+        private static uint GetValEscape(ImmutableArray<BoundExpression> expressions, uint scopeOfTheContainingExpression)
+        {
+            var result = Binder.ExternalScope;
+            foreach (var expression in expressions)
+            {
+                result = Math.Max(result, GetValEscape(expression, scopeOfTheContainingExpression));
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -2300,6 +2362,19 @@ moreArguments:
                         diagnostics,
                         isRefEscape: false);
 
+                    var initializerExpr = objectCreation.InitializerExpressionOpt;
+                    if (initializerExpr != null)
+                    {
+                        escape = escape && 
+                            CheckValEscape(
+                                initializerExpr.Syntax, 
+                                initializerExpr, 
+                                escapeFrom, 
+                                escapeTo, 
+                                checkingReceiver:false, 
+                                diagnostics:diagnostics);
+                    }
+
                     return escape;
 
                 case BoundKind.UnaryOperator:
@@ -2344,6 +2419,22 @@ moreArguments:
                 case BoundKind.RangeVariable:  
                     var variableValue = ((BoundRangeVariable)expr).Value;
                     return CheckValEscape(variableValue.Syntax, variableValue, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+
+                case BoundKind.ObjectInitializerExpression:
+                    var initExpr = (BoundObjectInitializerExpression)expr;
+                    return CheckValEscapeOfObjectInitializer(initExpr, escapeFrom, escapeTo, diagnostics);
+
+                // this would be correct implementation for CollectionInitializerExpression 
+                // however it is unclear if it is reachable since the initialized type must implement IEnumerable
+                case BoundKind.CollectionInitializerExpression:
+                    var colExpr = (BoundCollectionInitializerExpression)expr;
+                    return CheckValEscape(colExpr.Initializers, escapeFrom, escapeTo, diagnostics);
+
+                // this would be correct implementation for CollectionElementInitializer 
+                // however it is unclear if it is reachable since the initialized type must implement IEnumerable
+                case BoundKind.CollectionElementInitializer:
+                    var colElement = (BoundCollectionElementInitializer)expr;
+                    return CheckValEscape(colElement.Arguments, escapeFrom, escapeTo, diagnostics);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue($"{expr.Kind} expression of {expr.Type} type");
@@ -2441,11 +2532,7 @@ moreArguments:
 //                case BoundKind.EventAssignmentOperator:
 //                case BoundKind.Attribute:
 //                case BoundKind.FixedLocalCollectionInitializer:
-//                case BoundKind.ObjectInitializerExpression:
-//                case BoundKind.ObjectInitializerMember:
 //                case BoundKind.DynamicObjectInitializerMember:
-//                case BoundKind.CollectionInitializerExpression:
-//                case BoundKind.CollectionElementInitializer:
 //                case BoundKind.DynamicCollectionElementInitializer:
 //                case BoundKind.ImplicitReceiver:
 //                case BoundKind.FieldInitializer:
@@ -2488,6 +2575,49 @@ moreArguments:
 
                 #endregion
             }
+        }
+
+        private static bool CheckValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, uint escapeFrom, uint escapeTo, DiagnosticBag diagnostics)
+        {
+            foreach (var expression in initExpr.Initializers)
+            {
+                if (expression.Kind == BoundKind.AssignmentOperator)
+                {
+                    var assignment = (BoundAssignmentOperator)expression;
+                    if (!CheckValEscape(expression.Syntax, assignment.Right, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics))
+                    {
+                        return false;
+                    }
+
+                    var left = (BoundObjectInitializerMember)assignment.Left;
+                    if (!CheckValEscape(left.Arguments, escapeFrom, escapeTo, diagnostics: diagnostics))
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (!CheckValEscape(expression.Syntax, expression, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private static bool CheckValEscape(ImmutableArray<BoundExpression> expressions, uint escapeFrom, uint escapeTo, DiagnosticBag diagnostics)
+        {
+            foreach (var expression in expressions)
+            {
+                if (!CheckValEscape(expression.Syntax, expression, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
