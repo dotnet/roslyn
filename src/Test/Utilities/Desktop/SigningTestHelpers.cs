@@ -32,12 +32,12 @@ namespace Roslyn.Test.Utilities
 
         internal static readonly ImmutableArray<byte> PublicKey = ImmutableArray.Create(TestResources.General.snPublicKey);
 
-        internal static object KeyInstallLock = new object();
+        internal static object s_keyInstalledLock = new object();
 
         // Modifies machine wide state.
         internal unsafe static void InstallKey()
         {
-            lock (KeyInstallLock)
+            lock (s_keyInstalledLock)
             {
                 if (!s_keyInstalled)
                 {

@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Security.Cryptography;
 using Microsoft.Cci;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -33,6 +36,25 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, CommonMessageProvider messageProvider);
 
+        internal StrongNameKeys CommonParseKeys(StrongNameFileSystem fileSystem, string keyFilePath, ImmutableArray<string> keyFileSearchPaths, CommonMessageProvider messageProvider) {
+            try
+            {
+                string resolvedKeyFile = fileSystem.ResolveStrongNameKeyFile(keyFilePath, keyFileSearchPaths);
+                if (resolvedKeyFile == null)
+                {
+                    var message = $"{keyFilePath}: {CodeAnalysisResources.FileNotFound}";
+                    return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, message));
+                }
+
+                Debug.Assert(PathUtilities.IsAbsolute(resolvedKeyFile));
+                var fileContent = ImmutableArray.Create(fileSystem.ReadAllBytes(resolvedKeyFile));
+                return StrongNameKeys.CreateHelper(fileContent, keyFilePath);
+            }
+            catch (Exception ex)
+            {
+                return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, ex.Message));
+            }
+        }
         internal virtual void SignStream(StrongNameKeys keys, Stream inputStream, Stream outputStream)
         {
             throw new NotSupportedException();

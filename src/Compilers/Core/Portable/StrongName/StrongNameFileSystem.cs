@@ -59,12 +59,5 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(fullPath == null || PathUtilities.IsAbsolute(fullPath));
             return File.Exists(fullPath);
         }
-
-        public override bool Equals(object obj)
-        {
-            return object.ReferenceEquals(this, obj);
-        }
-
-        public override int GetHashCode() => 0;
     }
 }

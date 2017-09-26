@@ -40,25 +40,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!string.IsNullOrEmpty(keyFilePath))
             {
-                try
-                {
-                    string resolvedKeyFile = FileSystem.ResolveStrongNameKeyFile(keyFilePath, _keyFileSearchPaths);
-                    if (resolvedKeyFile == null)
-                    {
-                        var message = $"{keyFilePath}: {CodeAnalysisResources.FileNotFound}";
-                        return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, message));
-                    }
-
-                    Debug.Assert(PathUtilities.IsAbsolute(resolvedKeyFile));
-                    var fileContent = ImmutableArray.Create(FileSystem.ReadAllBytes(resolvedKeyFile));
-                    return StrongNameKeys.CreateHelper(fileContent, keyFilePath);
-                }
-                catch (Exception ex)
-                {
-                    return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, ex.Message));
-                }
-                // it turns out that we don't need IClrStrongName to retrieve a key file,
-                // so there's no need for a catch of ClrStrongNameMissingException in this case
+                return CommonParseKeys(FileSystem, keyFilePath, _keyFileSearchPaths, messageProvider);
             }
 
             return new StrongNameKeys(keyPair, publicKey, null, container, keyFilePath);
@@ -76,15 +58,13 @@ namespace Microsoft.CodeAnalysis
 
         public override bool Equals(object obj)
         {
-            if (obj is null || GetType() != obj.GetType())
+            if (!(obj is PortableStrongNameProvider other))
             {
                 return false;
             }
 
-            var other = (PortableStrongNameProvider)obj;
             return FileSystem == other.FileSystem &&
                 _keyFileSearchPaths.SequenceEqual(other._keyFileSearchPaths);
-                    
         }
     }
 }
