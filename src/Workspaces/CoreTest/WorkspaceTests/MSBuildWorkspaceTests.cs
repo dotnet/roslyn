@@ -24,13 +24,12 @@ using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 using static Microsoft.CodeAnalysis.UnitTests.SolutionGeneration;
-using Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class MSBuildWorkspaceTests : MSBuildWorkspaceTestBase
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCreateMSBuildWorkspace()
         {
             var workspace = MSBuildWorkspace.Create();
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.NotNull(workspace.Services.TextFactory);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_SingleProjectSolution()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_MultiProjectSolution()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -92,7 +91,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 { @"CSharpProject\Program.cs", GetResourceText("CSharpProject_CSharpClass.cs") },
                 { @"CSharpProject\PortableProject.csproj", GetResourceText("CSharpProject_PortableProject.csproj") },
                 { @"CSharpProject\CSharpClass.cs", GetResourceText("CSharpProject_CSharpClass.cs") }
-});
+            });
 
             CreateFiles(files);
 
@@ -102,7 +101,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void Test_SharedMetadataReferences()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -135,7 +134,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(546171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546171")]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace), WorkItem(546171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546171")]
         public void Test_SharedMetadataReferencesWithAliases()
         {
             var projPath1 = @"CSharpProject\CSharpProject_ExternAlias.csproj";
@@ -197,7 +196,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [WorkItem(552981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552981")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_DuplicateProjectGuids()
         {
             CreateFiles(GetSolutionWithDuplicatedGuidFiles());
@@ -205,13 +204,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("DuplicatedGuids.sln")).Result;
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         [WorkItem(831379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/831379")]
-        public void GetCompilationWithCircularProjectReferences()
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        public async Task GetCompilationWithCircularProjectReferences()
         {
             CreateFiles(GetSolutionWithCircularProjectReferences());
 
-            var solution = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("CircularSolution.sln")).Result;
+            var solutionFilePath = GetSolutionFileName("CircularSolution.sln");
+            var solution = await MSBuildWorkspace.Create().OpenSolutionAsync(solutionFilePath);
 
             // Verify we can get compilations for both projects
             var projects = solution.Projects.ToArray();
@@ -220,15 +220,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(projects[0].ProjectReferences.Any(r => r.ProjectId == projects[1].Id) ||
                         projects[1].ProjectReferences.Any(r => r.ProjectId == projects[0].Id));
 
-            var compilation1 = projects[0].GetCompilationAsync().Result;
-            var compilation2 = projects[1].GetCompilationAsync().Result;
+            var compilation1 = await projects[0].GetCompilationAsync();
+            var compilation2 = await projects[1].GetCompilationAsync();
 
             // Exactly one of them should have a compilation to the other. Which one it is, is unspecced
             Assert.True(compilation1.References.OfType<CompilationReference>().Any(c => c.Compilation == compilation2) ||
                         compilation2.References.OfType<CompilationReference>().Any(c => c.Compilation == compilation1));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOutputFilePaths()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCrossLanguageReferencesUsesInMemoryGeneratedMetadata()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCrossLanguageReferencesWithOutOfDateMetadataOnDiskUsesInMemoryGeneratedMetadata()
         {
             PrepareCrossLanguageProjectWithEmittedMetadata();
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestInternalsVisibleToSigned()
         {
             var solution = Solution(
@@ -317,7 +317,7 @@ class C1
             Assert.Equal(Enumerable.Empty<Diagnostic>(), diagnostics);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestVersions()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -360,7 +360,7 @@ class C1
             Assert.Equal(true, solution3.Version.TestOnly_IsNewerThan(solution2.Version));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_LoadMetadataForReferencedProjects()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -378,7 +378,7 @@ class C1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_CSharp_WithoutPrefer32BitAndConsoleApplication()
         {
@@ -390,7 +390,7 @@ class C1
             Assert.Equal(Platform.AnyCpu32BitPreferred, compilation.Options.Platform);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_CSharp_WithoutPrefer32BitAndLibrary()
         {
@@ -404,7 +404,7 @@ class C1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_CSharp_WithPrefer32BitAndConsoleApplication()
         {
@@ -416,7 +416,7 @@ class C1
             Assert.Equal(Platform.AnyCpu32BitPreferred, compilation.Options.Platform);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_CSharp_WithPrefer32BitAndLibrary()
         {
@@ -429,7 +429,7 @@ class C1
             Assert.Equal(Platform.AnyCpu, compilation.Options.Platform);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_CSharp_WithPrefer32BitAndWinMDObj()
         {
@@ -442,7 +442,7 @@ class C1
             Assert.Equal(Platform.AnyCpu, compilation.Options.Platform);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_CSharp_WithoutOutputPath()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -452,7 +452,7 @@ class C1
             Assert.NotEmpty(project.OutputFilePath);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_CSharp_WithoutAssemblyName()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -462,7 +462,7 @@ class C1
             Assert.NotEmpty(project.OutputFilePath);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_CSharp_WithoutCSharpTargetsImported_Succeeds()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -473,7 +473,7 @@ class C1
             var documents = project.Documents.ToList();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_CSharp_WithoutCSharpTargetsImported_DocumentsArePickedUp()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -484,7 +484,7 @@ class C1
             Assert.True(project.Documents.ToList().Any());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_VisualBasic_WithoutVBTargetsImported_Succeeds()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -494,7 +494,7 @@ class C1
             var documents = project.Documents.ToList();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_VisualBasic_WithoutVBTargetsImported_DocumentsArePickedUp()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -506,7 +506,7 @@ class C1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_VisualBasic_WithoutPrefer32BitAndConsoleApplication()
         {
@@ -518,7 +518,7 @@ class C1
             Assert.Equal(Platform.AnyCpu32BitPreferred, compilation.Options.Platform);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_VisualBasic_WithoutPrefer32BitAndLibrary()
         {
@@ -532,7 +532,7 @@ class C1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_VisualBasic_WithPrefer32BitAndConsoleApplication()
         {
@@ -544,7 +544,7 @@ class C1
             Assert.Equal(Platform.AnyCpu32BitPreferred, compilation.Options.Platform);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_VisualBasic_WithPrefer32BitAndLibrary()
         {
@@ -557,7 +557,7 @@ class C1
             Assert.Equal(Platform.AnyCpu, compilation.Options.Platform);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(739043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739043")]
         public void TestOpenProject_VisualBasic_WithPrefer32BitAndWinMDObj()
         {
@@ -570,7 +570,7 @@ class C1
             Assert.Equal(Platform.AnyCpu, compilation.Options.Platform);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_VisualBasic_WithoutOutputPath()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -581,7 +581,7 @@ class C1
             Assert.NotEmpty(project.OutputFilePath);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_VisualBasic_WithLanguageVersion15_3()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -591,18 +591,18 @@ class C1
             Assert.Equal(VB.LanguageVersion.VisualBasic15_3, ((VB.VisualBasicParseOptions)project.ParseOptions).LanguageVersion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_VisualBasic_WithLatestLanguageVersion()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
                 .ReplaceFileElement(@"VisualBasicProject\VisualBasicProject.vbproj", "LangVersion", "Latest"));
 
             var project = MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj")).Result;
-            Assert.Equal(VB.LanguageVersion.Latest.MapSpecifiedToEffectiveVersion(), ((VB.VisualBasicParseOptions)project.ParseOptions).LanguageVersion);
+            Assert.Equal(VB.LanguageVersionFacts.MapSpecifiedToEffectiveVersion(VB.LanguageVersion.Latest), ((VB.VisualBasicParseOptions)project.ParseOptions).LanguageVersion);
             Assert.Equal(VB.LanguageVersion.Latest, ((VB.VisualBasicParseOptions)project.ParseOptions).SpecifiedLanguageVersion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_VisualBasic_WithoutAssemblyName()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -613,7 +613,7 @@ class C1
             Assert.NotEmpty(project.OutputFilePath);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task Test_Respect_ReferenceOutputassembly_Flag()
         {
             const string top = @"VisualBasicProject_Circular_Top.vbproj";
@@ -627,7 +627,7 @@ class C1
             Assert.Empty(project.ProjectReferences);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/15102"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/15102"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithXaml()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -656,7 +656,7 @@ class C1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestMetadataReferenceHasBadHintPath()
         {
             // prove that even with bad hint path for metadata reference the workspace can succeed at finding the correct metadata reference.
@@ -670,7 +670,7 @@ class C1
             Assert.NotNull(csharpLib);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(531631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531631")]
         public void TestOpenProject_AssemblyNameIsPath()
         {
@@ -686,7 +686,7 @@ class C1
             Assert.Equal(expectedOutputPath, Path.GetDirectoryName(project.OutputFilePath));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(531631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531631")]
         public void TestOpenProject_AssemblyNameIsPath2()
         {
@@ -701,7 +701,7 @@ class C1
             Assert.Equal(expectedOutputPath, Path.GetDirectoryName(Path.GetFullPath(project.OutputFilePath)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithDuplicateFile()
         {
             // Verify that we don't throw in this case
@@ -713,7 +713,7 @@ class C1
             var documents = project.Documents.ToList();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithInvalidFileExtension()
         {
             // make sure the file does in fact exist, but with an unrecognized extension
@@ -732,7 +732,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_ProjectFileExtensionAssociatedWithUnknownLanguage()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -752,7 +752,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithAssociatedLanguageExtension1()
         {
             // make a CSharp solution with a project file having the incorrect extension 'vbproj', and then load it using the overload the lets us
@@ -769,7 +769,7 @@ class C1
             Assert.Equal(0, diagnostics.Count);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithAssociatedLanguageExtension2_IgnoreCase()
         {
             // make a CSharp solution with a project file having the incorrect extension 'anyproj', and then load it using the overload the lets us
@@ -788,7 +788,7 @@ class C1
             Assert.Equal(0, diagnostics.Count);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_WithNonExistentSolutionFile_Fails()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -799,7 +799,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_WithInvalidSolutionFile_Fails()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -810,7 +810,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_WithTemporaryLockedFile_SucceedsWithoutFailureEvent()
         {
             // when skipped we should see a diagnostic for the invalid project
@@ -852,7 +852,7 @@ class C1
             Assert.Equal(false, failed);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_WithLockedFile_FailsWithFailureEvent()
         {
             // when skipped we should see a diagnostic for the invalid project
@@ -886,7 +886,7 @@ class C1
         }
 
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_WithInvalidProjectPath_SkipTrue_SucceedsWithFailureEvent()
         {
             // when skipped we should see a diagnostic for the invalid project
@@ -908,7 +908,7 @@ class C1
         }
 
         [WorkItem(985906, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/985906")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void HandleSolutionProjectTypeSolutionFolder()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -922,7 +922,7 @@ class C1
             var sol = ws.OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln")).Result;
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_WithInvalidProjectPath_SkipFalse_Fails()
         {
             // when not skipped we should get an exception for the invalid project
@@ -939,7 +939,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_WithNonExistentProject_SkipTrue_SucceedsWithFailureEvent()
         {
             // when skipped we should see a diagnostic for the non-existent project
@@ -960,7 +960,7 @@ class C1
             Assert.Equal(1, diagnostics.Count);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_WithNonExistentProject_SkipFalse_Fails()
         {
             // when skipped we should see an exception for the non-existent project
@@ -977,7 +977,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_WithUnrecognizedProjectFileExtension_Fails()
         {
             // proves that for solution open, project type guid and extension are both necessary
@@ -989,7 +989,7 @@ class C1
             Assert.Equal(0, solution.ProjectIds.Count);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_WithUnrecognizedProjectTypeGuidButRecognizedExtension_Succeeds()
         {
             // proves that if project type guid is not recognized, a known project file extension is all we need.
@@ -1000,7 +1000,7 @@ class C1
             Assert.Equal(1, solution.ProjectIds.Count);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_WithUnrecognizedProjectTypeGuidAndUnrecognizedExtension_WithSkipTrue_SucceedsWithFailureEvent()
         {
             // proves that if both project type guid and file extension are unrecognized, then project is skipped.
@@ -1022,7 +1022,7 @@ class C1
             Assert.Equal(0, solution.ProjectIds.Count);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_WithUnrecognizedProjectTypeGuidAndUnrecognizedExtension_WithSkipFalse_Fails()
         {
             // proves that if both project type guid and file extension are unrecognized, then open project fails.
@@ -1047,7 +1047,7 @@ class C1
 
         private HostServices _hostServicesWithoutCSharp = MefHostServices.Create(MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp")));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
         public void TestOpenSolution_WithMissingLanguageLibraries_WithSkipFalse_Throws()
         {
@@ -1068,7 +1068,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
         public void TestOpenSolution_WithMissingLanguageLibraries_WithSkipTrue_SucceedsWithDiagnostic()
         {
@@ -1093,7 +1093,7 @@ class C1
             Assert.Equal(expected, dx[0].Message);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
         public void TestOpenProject_WithMissingLanguageLibraries_Throws()
         {
@@ -1112,7 +1112,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithInvalidFilePath_Fails()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -1123,7 +1123,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithNonExistentProjectFile_Fails()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -1134,7 +1134,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithInvalidProjectReference_SkipTrue_SucceedsWithEvent()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1155,7 +1155,7 @@ class C1
             Assert.Equal(1, project.AllProjectReferences.Count); // dangling project reference 
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithInvalidProjectReference_SkipFalse_Fails()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1169,7 +1169,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithNonExistentProjectReference_SkipTrue_SucceedsWithEvent()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1190,7 +1190,7 @@ class C1
             Assert.Equal(1, project.AllProjectReferences.Count); // dangling project reference 
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithNonExistentProjectReference_SkipFalse_Fails()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1204,7 +1204,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_SkipTrue_SucceedsWithEvent()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1226,7 +1226,7 @@ class C1
             Assert.Equal(1, project.AllProjectReferences.Count); // dangling project reference 
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_SkipFalse_Fails()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1241,7 +1241,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_WithMetadata_SkipTrue_SucceedsByLoadingMetadata()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1262,7 +1262,7 @@ class C1
             Assert.Equal(true, metaRefs.Any(r => r is PortableExecutableReference && ((PortableExecutableReference)r).Display.Contains("CSharpProject.dll")));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_WithMetadata_SkipFalse_SucceedsByLoadingMetadata()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1286,7 +1286,7 @@ class C1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_BadMsbuildProject_SkipTrue_SucceedsWithDanglingProjectReference()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1307,7 +1307,7 @@ class C1
             Assert.Equal(1, ws.Diagnostics.Count);
         }
 
-        [Fact(Skip = "https://roslyn.codeplex.com/workitem/451"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "https://roslyn.codeplex.com/workitem/451"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithReferencedProject_LoadMetadata_ExistingMetadata_Succeeds()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1327,7 +1327,7 @@ class C1
             Assert.Equal(true, metaRefs.Any(r => r is PortableExecutableReference && ((PortableExecutableReference)r).Display.Contains("CSharpProject.dll")));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithReferencedProject_LoadMetadata_NonExistentMetadata_LoadsProjectInstead()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -1346,7 +1346,7 @@ class C1
             Assert.False(metaRefs.Any(r => r.Properties.Aliases.Contains("CSharpProject")));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_UpdateExistingReferences()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1374,11 +1374,11 @@ class C1
         }
 
         [ConditionalFact(typeof(Framework35Installed))]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(528984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528984")]
         public void TestOpenProject_AddVBDefaultReferences()
         {
-            string projectFile = "VisualBasicProject_VisualBasicProject_3_5.vbproj";
+            var projectFile = "VisualBasicProject_VisualBasicProject_3_5.vbproj";
             CreateFiles(projectFile, "VisualBasicProject_VisualBasicClass.vb");
 
             // keep metadata reference from holding files open
@@ -1389,182 +1389,182 @@ class C1
             var diagnostics = compilation.GetDiagnostics();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TTestCompilationOptions_CSharp_DebugType_Full()
         {
             CreateCSharpFilesWith("DebugType", "full");
             AssertCSParseOptions(0, options => options.Errors.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_CSharp_DebugType_None()
         {
             CreateCSharpFilesWith("DebugType", "none");
             AssertCSParseOptions(0, options => options.Errors.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_CSharp_DebugType_PDBOnly()
         {
             CreateCSharpFilesWith("DebugType", "pdbonly");
             AssertCSParseOptions(0, options => options.Errors.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_CSharp_DebugType_Portable()
         {
             CreateCSharpFilesWith("DebugType", "portable");
             AssertCSParseOptions(0, options => options.Errors.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_CSharp_DebugType_Embedded()
         {
             CreateCSharpFilesWith("DebugType", "embedded");
             AssertCSParseOptions(0, options => options.Errors.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_CSharp_OutputKind_DynamicallyLinkedLibrary()
         {
             CreateCSharpFilesWith("OutputType", "Library");
             AssertCSCompilationOptions(OutputKind.DynamicallyLinkedLibrary, options => options.OutputKind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_CSharp_OutputKind_ConsoleApplication()
         {
             CreateCSharpFilesWith("OutputType", "Exe");
             AssertCSCompilationOptions(OutputKind.ConsoleApplication, options => options.OutputKind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_CSharp_OutputKind_WindowsApplication()
         {
             CreateCSharpFilesWith("OutputType", "WinExe");
             AssertCSCompilationOptions(OutputKind.WindowsApplication, options => options.OutputKind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_CSharp_OutputKind_NetModule()
         {
             CreateCSharpFilesWith("OutputType", "Module");
             AssertCSCompilationOptions(OutputKind.NetModule, options => options.OutputKind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_CSharp_OptimizationLevel_Release()
         {
             CreateCSharpFilesWith("Optimize", "True");
             AssertCSCompilationOptions(OptimizationLevel.Release, options => options.OptimizationLevel);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_CSharp_OptimizationLevel_Debug()
         {
             CreateCSharpFilesWith("Optimize", "False");
             AssertCSCompilationOptions(OptimizationLevel.Debug, options => options.OptimizationLevel);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_CSharp_MainFileName()
         {
             CreateCSharpFilesWith("StartupObject", "Foo");
             AssertCSCompilationOptions("Foo", options => options.MainTypeName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_CSharp_AssemblyOriginatorKeyFile_SignAssembly_Missing()
         {
             CreateCSharpFiles();
             AssertCSCompilationOptions(null, options => options.CryptoKeyFile);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_CSharp_AssemblyOriginatorKeyFile_SignAssembly_False()
         {
             CreateCSharpFilesWith("SignAssembly", "false");
             AssertCSCompilationOptions(null, options => options.CryptoKeyFile);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_CSharp_AssemblyOriginatorKeyFile_SignAssembly_True()
         {
             CreateCSharpFilesWith("SignAssembly", "true");
             AssertCSCompilationOptions("snKey.snk", options => Path.GetFileName(options.CryptoKeyFile));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_CSharp_AssemblyOriginatorKeyFile_DelaySign_False()
         {
             CreateCSharpFilesWith("DelaySign", "false");
             AssertCSCompilationOptions(null, options => options.DelaySign);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_CSharp_AssemblyOriginatorKeyFile_DelaySign_True()
         {
             CreateCSharpFilesWith("DelaySign", "true");
             AssertCSCompilationOptions(true, options => options.DelaySign);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_CSharp_CheckOverflow_True()
         {
             CreateCSharpFilesWith("CheckForOverflowUnderflow", "true");
             AssertCSCompilationOptions(true, options => options.CheckOverflow);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_CSharp_CheckOverflow_False()
         {
             CreateCSharpFilesWith("CheckForOverflowUnderflow", "false");
             AssertCSCompilationOptions(false, options => options.CheckOverflow);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestParseOptions_CSharp_Compatibility_ECMA1()
         {
             CreateCSharpFilesWith("LangVersion", "ISO-1");
             AssertCSParseOptions(Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp1, options => options.LanguageVersion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestParseOptions_CSharp_Compatibility_ECMA2()
         {
             CreateCSharpFilesWith("LangVersion", "ISO-2");
             AssertCSParseOptions(Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp2, options => options.LanguageVersion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestParseOptions_CSharp_Compatibility_None()
         {
             CreateCSharpFilesWith("LangVersion", "3");
             AssertCSParseOptions(Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp3, options => options.LanguageVersion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestParseOptions_CSharp_LanguageVersion_Latest()
         {
             CreateCSharpFiles();
             AssertCSParseOptions(Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7, options => options.LanguageVersion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestParseOptions_CSharp_PreprocessorSymbols()
         {
             CreateCSharpFilesWith("DefineConstants", "DEBUG;TRACE;X;Y");
             AssertCSParseOptions("DEBUG,TRACE,X,Y", options => string.Join(",", options.PreprocessorSymbolNames));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestConfigurationDebug()
         {
             CreateCSharpFiles();
             AssertCSParseOptions("DEBUG,TRACE", options => string.Join(",", options.PreprocessorSymbolNames));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestConfigurationRelease()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -1578,42 +1578,42 @@ class C1
             Assert.True(options.PreprocessorSymbolNames.Any(name => name == "TRACE"), "TRACE symbol expected");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_DebugType_Full()
         {
             CreateVBFilesWith("DebugType", "full");
             AssertVBParseOptions(0, options => options.Errors.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_DebugType_None()
         {
             CreateVBFilesWith("DebugType", "none");
             AssertVBParseOptions(0, options => options.Errors.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_DebugType_PDBOnly()
         {
             CreateVBFilesWith("DebugType", "pdbonly");
             AssertVBParseOptions(0, options => options.Errors.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_DebugType_Portable()
         {
             CreateVBFilesWith("DebugType", "portable");
             AssertVBParseOptions(0, options => options.Errors.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_DebugType_Embedded()
         {
             CreateVBFilesWith("DebugType", "embedded");
             AssertVBParseOptions(0, options => options.Errors.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_VBRuntime_Embed()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1621,35 +1621,35 @@ class C1
             AssertVBCompilationOptions(true, options => options.EmbedVbCoreRuntime);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_OutputKind_DynamicallyLinkedLibrary()
         {
             CreateVBFilesWith("OutputType", "Library");
             AssertVBCompilationOptions(OutputKind.DynamicallyLinkedLibrary, options => options.OutputKind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_OutputKind_ConsoleApplication()
         {
             CreateVBFilesWith("OutputType", "Exe");
             AssertVBCompilationOptions(OutputKind.ConsoleApplication, options => options.OutputKind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_OutputKind_WindowsApplication()
         {
             CreateVBFilesWith("OutputType", "WinExe");
             AssertVBCompilationOptions(OutputKind.WindowsApplication, options => options.OutputKind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_OutputKind_NetModule()
         {
             CreateVBFilesWith("OutputType", "Module");
             AssertVBCompilationOptions(OutputKind.NetModule, options => options.OutputKind);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_RootNamespace()
         {
             CreateVBFilesWith("RootNamespace", "Foo.Bar");
@@ -1657,98 +1657,102 @@ class C1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_OptionStrict_On()
         {
             CreateVBFilesWith("OptionStrict", "On");
-            AssertVBCompilationOptions(Microsoft.CodeAnalysis.VisualBasic.OptionStrict.On, options => options.OptionStrict);
+            AssertVBCompilationOptions(VB.OptionStrict.On, options => options.OptionStrict);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_OptionStrict_Off()
         {
             CreateVBFilesWith("OptionStrict", "Off");
-            AssertVBCompilationOptions(Microsoft.CodeAnalysis.VisualBasic.OptionStrict.Off, options => options.OptionStrict);
+
+            // The VBC MSBuild task specifies '/optionstrict:custom' rather than '/optionstrict-'
+            // See https://github.com/dotnet/roslyn/blob/58f44c39048032c6b823ddeedddd20fa589912f5/src/Compilers/Core/MSBuildTask/Vbc.cs#L390-L418 for details.
+
+            AssertVBCompilationOptions(VB.OptionStrict.Custom, options => options.OptionStrict);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_OptionStrict_Custom()
         {
             CreateVBFilesWith("OptionStrictType", "Custom");
-            AssertVBCompilationOptions(Microsoft.CodeAnalysis.VisualBasic.OptionStrict.Custom, options => options.OptionStrict);
+            AssertVBCompilationOptions(VB.OptionStrict.Custom, options => options.OptionStrict);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_OptionInfer_True()
         {
             CreateVBFilesWith("OptionInfer", "On");
             AssertVBCompilationOptions(true, options => options.OptionInfer);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_OptionInfer_False()
         {
             CreateVBFilesWith("OptionInfer", "Off");
             AssertVBCompilationOptions(false, options => options.OptionInfer);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_OptionExplicit_True()
         {
             CreateVBFilesWith("OptionExplicit", "On");
             AssertVBCompilationOptions(true, options => options.OptionExplicit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_OptionExplicit_False()
         {
             CreateVBFilesWith("OptionExplicit", "Off");
             AssertVBCompilationOptions(false, options => options.OptionExplicit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_OptionCompareText_True()
         {
             CreateVBFilesWith("OptionCompare", "Text");
             AssertVBCompilationOptions(true, options => options.OptionCompareText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_OptionCompareText_False()
         {
             CreateVBFilesWith("OptionCompare", "Binary");
             AssertVBCompilationOptions(false, options => options.OptionCompareText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_OptionRemoveIntegerOverflowChecks_True()
         {
             CreateVBFilesWith("RemoveIntegerChecks", "true");
             AssertVBCompilationOptions(false, options => options.CheckOverflow);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_OptionRemoveIntegerOverflowChecks_False()
         {
             CreateVBFilesWith("RemoveIntegerChecks", "false");
             AssertVBCompilationOptions(true, options => options.CheckOverflow);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_OptionAssemblyOriginatorKeyFile_SignAssemblyFalse()
         {
             CreateVBFilesWith("SignAssembly", "false");
             AssertVBCompilationOptions(null, options => options.CryptoKeyFile);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestCompilationOptions_VisualBasic_GlobalImports()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
 
             var sol = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
             var project = sol.GetProjectsByName("VisualBasicProject").FirstOrDefault();
-            var options = (Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions)project.CompilationOptions;
+            var options = (VB.VisualBasicCompilationOptions)project.CompilationOptions;
             var imports = options.GlobalImports;
             AssertEx.Equal(new[]
             {
@@ -1761,7 +1765,7 @@ class C1
             }, imports.Select(i => i.Name));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestParseOptions_VisualBasic_PreprocessorSymbols()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1769,7 +1773,7 @@ class C1
 
             var sol = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
             var project = sol.GetProjectsByName("VisualBasicProject").FirstOrDefault();
-            var options = (Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions)project.ParseOptions;
+            var options = (VB.VisualBasicParseOptions)project.ParseOptions;
             var defines = new List<KeyValuePair<string, object>>(options.PreprocessorSymbols);
             defines.Sort((x, y) => x.Key.CompareTo(y.Key));
 
@@ -1791,7 +1795,7 @@ class C1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void Test_VisualBasic_ConditionalAttributeEmitted()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1800,7 +1804,7 @@ class C1
 
             var sol = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
             var project = sol.GetProjectsByName("VisualBasicProject").FirstOrDefault();
-            var options = (Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions)project.ParseOptions;
+            var options = (VB.VisualBasicParseOptions)project.ParseOptions;
             Assert.Equal(true, options.PreprocessorSymbolNames.Contains("EnableMyAttribute"));
 
             var compilation = project.GetCompilationAsync().Result;
@@ -1814,7 +1818,7 @@ class C1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void Test_VisualBasic_ConditionalAttributeNotEmitted()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1822,7 +1826,7 @@ class C1
 
             var sol = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
             var project = sol.GetProjectsByName("VisualBasicProject").FirstOrDefault();
-            var options = (Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions)project.ParseOptions;
+            var options = (VB.VisualBasicParseOptions)project.ParseOptions;
             Assert.Equal(false, options.PreprocessorSymbolNames.Contains("EnableMyAttribute"));
 
             var compilation = project.GetCompilationAsync().Result;
@@ -1836,7 +1840,7 @@ class C1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void Test_CSharp_ConditionalAttributeEmitted()
         {
             CreateFiles(this.GetSimpleCSharpSolutionFiles()
@@ -1859,7 +1863,7 @@ class C1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void Test_CSharp_ConditionalAttributeNotEmitted()
         {
             CreateFiles(this.GetSimpleCSharpSolutionFiles()
@@ -1880,7 +1884,7 @@ class C1
             Assert.Equal(false, attrs.Any(ad => ad.AttributeClass.Name == "MyAttr"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_CSharp_WithLinkedDocument()
         {
             var fooText = GetResourceText(@"OtherStuff_Foo.cs");
@@ -1904,7 +1908,7 @@ class C1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestAddDocumentAsync()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -1945,7 +1949,7 @@ class C1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestUpdateDocumentAsync()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -1976,7 +1980,7 @@ class C1
             Assert.Equal(originalText.ToString(), document.GetTextAsync().Result.ToString());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestRemoveDocumentAsync()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2001,7 +2005,7 @@ class C1
             Assert.Equal(originalText.ToString(), document.GetTextAsync().Result.ToString());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestApplyChanges_UpdateDocumentText()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2027,7 +2031,7 @@ class C1
             Assert.Equal(newText.ToString(), textOnDisk);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestApplyChanges_AddDocument()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2053,7 +2057,7 @@ class C1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestApplyChanges_NotSupportedChangesFail()
         {
             var csharpProjPath = @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj";
@@ -2083,7 +2087,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestWorkspaceChangedEvent()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2115,7 +2119,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestWorkspaceChangedWeakEvent()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2153,7 +2157,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestSemanticVersionCS()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -2189,7 +2193,7 @@ class C1
             var csdoc8 = AssertSemanticVersionChanged(csdoc7, csdoc7.GetTextAsync().Result.Replace(literal7.Span, "100"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestSemanticVersionVB()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -2226,7 +2230,7 @@ class C1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(529276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529276"), WorkItem(12086, "DevDiv_Projects/Roslyn")]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace), WorkItem(529276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529276"), WorkItem(12086, "DevDiv_Projects/Roslyn")]
         public void TestOpenProject_LoadMetadataForReferenceProjects_NoMetadata()
         {
             var projPath = @"CSharpProject\CSharpProject_ProjectReference.csproj";
@@ -2251,8 +2255,8 @@ class C1
         }
 
         [WorkItem(918072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/918072")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestAnalyzerReferenceLoadStandalone()
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        public async Task TestAnalyzerReferenceLoadStandalone()
         {
             var projPaths = new[] { @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj", @"AnalyzerSolution\VisualBasicProject_AnalyzerReference.vbproj" };
             var files = GetAnalyzerReferenceSolutionFiles();
@@ -2264,7 +2268,7 @@ class C1
                 foreach (var projectPath in projPaths)
                 {
                     var projectFullPath = Path.Combine(this.SolutionDirectory.Path, projectPath);
-                    var proj = ws.OpenProjectAsync(projectFullPath).Result;
+                    var proj = await ws.OpenProjectAsync(projectFullPath);
                     Assert.Equal(1, proj.AnalyzerReferences.Count);
                     var analyzerReference = proj.AnalyzerReferences.First() as AnalyzerFileReference;
                     Assert.NotNull(analyzerReference);
@@ -2277,7 +2281,7 @@ class C1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestAdditionalFilesStandalone()
         {
             var projPaths = new[] { @"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj", @"AnalyzerSolution\VisualBasicProject_AnalyzerReference.vbproj" };
@@ -2300,7 +2304,7 @@ class C1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestLoadTextSync()
         {
             var files = GetAnalyzerReferenceSolutionFiles();
@@ -2324,7 +2328,7 @@ class C1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestGetTextSynchronously()
         {
             var files = GetAnalyzerReferenceSolutionFiles();
@@ -2346,7 +2350,8 @@ class C1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(546171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546171")]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [WorkItem(546171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546171")]
         public void TestCSharpExternAlias()
         {
             var projPath = @"CSharpProject\CSharpProject_ExternAlias.csproj";
@@ -2368,7 +2373,8 @@ class C1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(530337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530337")]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [WorkItem(530337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530337")]
         public void TestProjectReferenceWithExternAlias()
         {
             var files = GetProjectReferenceSolutionFiles();
@@ -2384,7 +2390,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestProjectReferenceWithReferenceOutputAssemblyFalse()
         {
             var files = GetProjectReferenceSolutionFiles();
@@ -2435,7 +2441,7 @@ class C1
             return document.ToString();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestProjectReferenceWithNoGuid()
         {
             var files = GetProjectReferenceSolutionFiles();
@@ -2458,7 +2464,7 @@ class C1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(5668, "https://github.com/dotnet/roslyn/issues/5668")]
         public void TestOpenProject_MetadataReferenceHasDocComments()
         {
@@ -2476,7 +2482,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_CSharp_HasSourceDocComments()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2495,7 +2501,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_VisualBasic_HasSourceDocComments()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -2515,7 +2521,7 @@ class C1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_CrossLanguageSkeletonReferenceHasDocComments()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -2543,7 +2549,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithProjectFileLocked()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2560,7 +2566,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_WithNonExistentProjectFile()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2574,7 +2580,7 @@ class C1
                 });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_WithNonExistentSolutionFile()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2588,7 +2594,7 @@ class C1
             });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenSolution_SolutionFileHasEmptyLinesAndWhitespaceOnlyLines()
         {
             var files = new FileSet(new Dictionary<string, object>
@@ -2605,7 +2611,7 @@ class C1
             var project = solution.Projects.First();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(531543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531543")]
         public void TestOpenSolution_SolutionFileHasEmptyLineBetweenProjectBlock()
         {
@@ -2619,7 +2625,7 @@ class C1
             var solution = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
         }
 
-        [Fact(Skip = "531283"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact(Skip = "531283"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(531283, "DevDiv")]
         public void TestOpenSolution_SolutionFileHasMissingEndProject()
         {
@@ -2637,7 +2643,7 @@ class C1
             var solution3 = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution3.sln")).Result;
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(792912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792912")]
         public void TestOpenSolution_WithDuplicatedGuidsBecomeSelfReferential()
         {
@@ -2662,7 +2668,7 @@ class C1
             Assert.Equal(0, libraryProject.AllProjectReferences.Count);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(792912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792912")]
         public void TestOpenSolution_WithDuplicatedGuidsBecomeCircularReferential()
         {
@@ -2692,7 +2698,7 @@ class C1
             Assert.Equal(0, library2Project.AllProjectReferences.Count);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public void MSBuildProjectShouldHandleCodePageProperty()
         {
@@ -2717,7 +2723,7 @@ class C1
             Assert.Equal("//\u00E2\u20AC\u0153".Length, text.Length);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public void MSBuildProjectShouldHandleInvalidCodePageProperty()
         {
@@ -2736,7 +2742,7 @@ class C1
             Assert.Equal(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true), project.Documents.First(d => d.Name == "class1.cs").GetTextAsync().Result.Encoding);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public void MSBuildProjectShouldHandleInvalidCodePageProperty2()
         {
@@ -2755,7 +2761,7 @@ class C1
             Assert.Equal(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true), project.Documents.First(d => d.Name == "class1.cs").GetTextAsync().Result.Encoding);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public void MSBuildProjectShouldHandleDefaultCodePageProperty()
         {
@@ -2776,7 +2782,7 @@ class C1
         }
 
         [WorkItem(981208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981208")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void DisposeMSBuildWorkspaceAndServicesCollected()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2870,7 +2876,7 @@ class C { }";
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestAddRemoveMetadataReference_GAC()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2899,7 +2905,7 @@ class C { }";
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestAddRemoveMetadataReference_ReferenceAssembly()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -2933,7 +2939,7 @@ class C { }";
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestAddRemoveMetadataReference_NonGACorRefAssembly()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -2965,7 +2971,7 @@ class C { }";
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestAddRemoveAnalyzerReference()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -2995,7 +3001,7 @@ class C { }";
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestAddRemoveProjectReference()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -3027,7 +3033,7 @@ class C { }";
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(1101040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1101040")]
         public void TestOpenProject_BadLink()
         {
@@ -3040,7 +3046,7 @@ class C { }";
             Assert.Equal(3, docs.Count);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_BadElement()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3055,7 +3061,7 @@ class C { }";
             Assert.Equal(0, proj.DocumentIds.Count);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_BadTaskImport()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3070,7 +3076,7 @@ class C { }";
             Assert.Equal(0, proj.DocumentIds.Count);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenSolution_BadTaskImport()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3086,7 +3092,7 @@ class C { }";
             Assert.Equal(0, solution.Projects.First().DocumentIds.Count);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_MsbuildError()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3099,7 +3105,7 @@ class C { }";
             Assert.True(ws.Diagnostics[0].Message.StartsWith("Msbuild failed"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_WildcardsWithLink()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3113,7 +3119,7 @@ class C { }";
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public void TestOpenProject_CommandLineArgsHaveNoErrors()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());

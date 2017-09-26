@@ -84,7 +84,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             commandLineArgs = FixPlatform(commandLineArgs);
 
-            var outputFilePath = this.GetAbsolutePath(project.ReadPropertyString("TargetPath"));
+            var outputFilePath = project.ReadPropertyString("TargetPath");
+            if (!string.IsNullOrWhiteSpace(outputFilePath))
+            {
+                outputFilePath = this.GetAbsolutePath(outputFilePath);
+            }
 
             var docs = this.GetDocumentsFromModel(project)
                 .Where(s => !IsTemporaryGeneratedFile(s.ItemSpec))

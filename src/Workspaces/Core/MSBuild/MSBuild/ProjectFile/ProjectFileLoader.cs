@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 { "BuildProjectReferences", "false" },
                 { "ProvideCommandLineArgs", "true" }, // retrieve the command-line arguments to the compiler
                 { "SkipCompilerExecution", "true" }, // don't actually run the compiler
+                { "ContinueOnError", "ErrorAndContinue" }
             };
 
             try

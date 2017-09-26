@@ -323,10 +323,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             if (projectFileInfo.ErrorMessage != null)
             {
                 ReportFailure(ReportMode.Log, GetMsbuildFailedMessage(projectFilePath, projectFileInfo.ErrorMessage));
-
-                // if we failed during load there won't be any project file info, so bail early with empty project.
-                loadedProjects.Add(CreateEmptyProjectInfo(projectId, projectFilePath, loader.Language));
-                return projectId;
             }
 
             var outputFilePath = projectFileInfo.OutputFilePath;
@@ -352,7 +348,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var analyzerLoader = analyzerService.GetLoader();
             foreach (var path in commandLineArgs.AnalyzerReferences.Select(r => r.FilePath))
             {
-                analyzerLoader.AddDependencyLocation(path);
+                if (File.Exists(path))
+                {
+                    analyzerLoader.AddDependencyLocation(path);
+                }
             }
 
             var analyzerReferences = commandLineArgs.ResolveAnalyzerReferences(analyzerLoader);
@@ -402,7 +401,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 projectId, projectFilePath, projectFileInfo.ProjectReferences, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
 
             // add metadata references for project refs converted to metadata refs
-            metadataReferences = metadataReferences.Concat(resolvedReferences.MetadataReferences);
+            metadataReferences = metadataReferences.Concat(resolvedReferences.MetadataReferences)
+                .Where(m => !(m is UnresolvedMetadataReference));
 
             // if the project file loader couldn't figure out an assembly name, make one using the project's file path.
             var assemblyName = commandLineArgs.CompilationName;

@@ -75,7 +75,11 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
             commandLineArgs = FixPlatform(commandLineArgs);
 
-            var outputFilePath = this.GetAbsolutePath(project.ReadPropertyString("TargetPath"));
+            var outputFilePath = project.ReadPropertyString("TargetPath");
+            if (!string.IsNullOrWhiteSpace(outputFilePath))
+            {
+                outputFilePath = this.GetAbsolutePath(outputFilePath);
+            }
 
             var docs = this.GetDocumentsFromModel(project)
                 .Where(s => !IsTemporaryGeneratedFile(s.ItemSpec))
@@ -104,12 +108,12 @@ namespace Microsoft.CodeAnalysis.VisualBasic
             {
                 var arg = commandLineArgs[i];
 
-                if (platform != null && arg.StartsWith("/platform:", StringComparison.OrdinalIgnoreCase))
+                if (platform == null && arg.StartsWith("/platform:", StringComparison.OrdinalIgnoreCase))
                 {
                     platform = arg.Substring("/platform:".Length);
                     platformIndex = i;
                 }
-                else if (target != null && arg.StartsWith("/target:", StringComparison.OrdinalIgnoreCase))
+                else if (target == null && arg.StartsWith("/target:", StringComparison.OrdinalIgnoreCase))
                 {
                     target = arg.Substring("/target:".Length);
                 }
