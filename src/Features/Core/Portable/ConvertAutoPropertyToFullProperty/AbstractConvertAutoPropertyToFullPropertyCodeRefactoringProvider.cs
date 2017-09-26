@@ -96,8 +96,12 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 DeclarationModifiers.From(propertySymbol),
                 propertySymbol.Type, fieldName,
                 initializer: GetInitializerValue(property));
-            var containingType = GetTypeBlock(
-                propertySymbol.ContainingType.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax(cancellationToken));
+
+            //var containingType = GetTypeBlock(
+            //    propertySymbol.ContainingType.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax(cancellationToken));
+            var containingType = propertySymbol.ContainingType.DeclaringSyntaxReferences
+                    .Select(r => GetTypeBlock(r.GetSyntax(cancellationToken)))
+                    .Single(d => property.Ancestors().Contains(d));
             editor.ReplaceNode(containingType, (currentTypeDecl, _)
                 => CodeGenerator.AddFieldDeclaration(currentTypeDecl, newField, workspace)
                 .WithAdditionalAnnotations(Formatter.Annotation));
