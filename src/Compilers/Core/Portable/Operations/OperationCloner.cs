@@ -300,9 +300,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LiteralExpression(((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        internal override IOperation VisitAwaitExpression(IAwaitExpression operation, object argument)
+        public override IOperation VisitAwaitExpression(IAwaitExpression operation, object argument)
         {
-            return new AwaitExpression(Visit(operation.AwaitedValue), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new AwaitExpression(Visit(operation.Expression), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitNameOfExpression(INameOfExpression operation, object argument)
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitArrayCreationExpression(IArrayCreationExpression operation, object argument)
         {
-            return new ArrayCreationExpression(operation.ElementType, VisitArray(operation.DimensionSizes), Visit(operation.Initializer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ArrayCreationExpression(VisitArray(operation.DimensionSizes), Visit(operation.Initializer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitArrayInitializer(IArrayInitializer operation, object argument)
