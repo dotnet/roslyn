@@ -115,11 +115,12 @@ function Process-Arguments() {
 }
 
 function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$parallel = $true) {
-    # Because we override the C#/VB toolset to build against our LKG package, it is important
-    # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
-    # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
+    if (!$dotnet) {
+        $dotnet, $sdkDir = Ensure-SdkInPathAndData
+    }
+
     # MSBuildAdditionalCommandLineArgs=
-    $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /nodeReuse:false /consoleloggerparameters:Verbosity=minimal;summary /p:Configuration=$buildConfiguration";
+    $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /consoleloggerparameters:Verbosity=minimal;summary /p:Configuration=$buildConfiguration";
 
     if ($parallel) {
         $args += " /m"
@@ -142,7 +143,23 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$pa
     }
 
     $args += " $buildArgs"
-    Exec-Console $msbuild $args
+    if ($PSVersionTable.Platform -eq "Unix") {
+        $args = "--no-restore $args"
+        $argsNoPublish = $args -replace "/t:Publish",""
+        if ($args -eq $argsNoPublish) {
+            Exec-Console $dotnet "build $args"
+        }
+        else {
+            Exec-Console $dotnet "publish $argsNoPublish"
+        }
+    }
+    else {
+        # Because we override the C#/VB toolset to build against our LKG package, it is important
+        # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
+        # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
+        $args += " /nodeReuse:false"
+        Exec-Console $msbuild $args
+    }
 }
 
 # Create a bootstrap build of the compiler.  Returns the directory where the bootstrap buil 
@@ -167,7 +184,12 @@ function Make-BootstrapBuild() {
 }
 
 function Build-Artifacts() { 
-    Run-MSBuild "Roslyn.sln /p:DeployExtension=false"
+    if ($PSVersionTable.Platform -eq "Unix") {
+        Run-MSBuild "CrossPlatform.sln"
+    }
+    else {
+        Run-MSBuild "Roslyn.sln /p:DeployExtension=false"
+    }
 
     if ($testDesktop) { 
         Run-MSBuild "src\Samples\Samples.sln /p:DeployExtension=false"
@@ -287,9 +309,17 @@ function Test-PerfRun() {
 }
 
 function Test-XUnitCoreClr() { 
+    if (!$dotnet) {
+        $dotnet, $sdkDir = Ensure-SdkInPathAndData
+    }
 
     $unitDir = Join-Path $configDir "UnitTests"
-    $runtimeIdentifier = "win7-x64"
+    if ($PSVersionTable.Platform -eq "Unix") {
+        $runtimeIdentifier = "ubuntu.14.04-x64"
+    }
+    else {
+        $runtimeIdentifier = "win7-x64"
+    }
     $tf = "netcoreapp2.0"
     $logDir = Join-Path $unitDir "xUnitResults"
     Create-Directory $logDir 
@@ -545,7 +575,9 @@ try {
 
     Process-Arguments
 
-    $msbuild, $msbuildDir = Ensure-MSBuildAndDir -msbuildDir $msbuildDir
+    if ($PSVersionTable.Platform -ne "Unix") {
+        $msbuild, $msbuildDir = Ensure-MSBuildAndDir -msbuildDir $msbuildDir
+    }
     $dotnet, $sdkDir = Ensure-SdkInPathAndData
     $buildConfiguration = if ($release) { "Release" } else { "Debug" }
     $configDir = Join-Path $binariesDIr $buildConfiguration
@@ -568,7 +600,7 @@ try {
 
     if ($restore) { 
         Write-Host "Running restore"
-        Restore-All -msbuildDir $msbuildDir 
+        Restore-All -msbuildDir $msbuildDir -dotnet $dotnet
     }
 
     if ($bootstrap) {
