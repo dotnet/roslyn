@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1185,13 +1185,13 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic, Language: C#) (Syntax: 'd1.N<S>()')
+IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'd1.N<S>()')
   Expression: 
-    IDynamicMemberReferenceExpression (Member Name: ""N"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd1.N<S>')
+    IDynamicMemberReferenceExpression (Member Name: ""N"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd1.N<S>')
       Type Arguments(1):
         Symbol: S
       Instance Receiver: 
-        ILocalReferenceExpression: d1 (OperationKind.LocalReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd1')
+        ILocalReferenceExpression: d1 (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd1')
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -1251,16 +1251,16 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic, IsInvalid, Language: C#) (Syntax: 'd.Goo(Syste ... riteLine())')
+IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic, IsInvalid) (Syntax: 'd.Goo(Syste ... riteLine())')
   Expression: 
-    IDynamicMemberReferenceExpression (Member Name: ""Goo"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd.Goo')
+    IDynamicMemberReferenceExpression (Member Name: ""Goo"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Goo')
       Type Arguments(0)
       Instance Receiver: 
-        IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd')
+        IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
   Arguments(1):
-      IInvocationExpression (void System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid, Language: C#) (Syntax: 'System.Cons ... WriteLine()')
+      IInvocationExpression (void System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'System.Cons ... WriteLine()')
         Instance Receiver: 
-        null
+          null
         Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -1299,12 +1299,12 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void C.Goo()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid, Language: C#) (Syntax: 'c.Goo(d)')
+IInvocationExpression ( void C.Goo()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'c.Goo(d)')
   Instance Receiver: 
-    IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: C#) (Syntax: 'c')
+    IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
   Arguments(1):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, Language: C#) (Syntax: 'd')
-        IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, Language: C#) (Syntax: 'd')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: 'd')
+        IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1340,18 +1340,18 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( ? C.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'c.Goo<short>(d, d)')
+IInvocationExpression ( ? C.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'c.Goo<short>(d, d)')
   Instance Receiver: 
-    IOperation:  (OperationKind.None, IsInvalid, Language: C#) (Syntax: 'c.Goo<short>')
+    IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'c.Goo<short>')
       Children(1):
-          IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid, Language: C#) (Syntax: 'c')
+          IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
   Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid, Language: C#) (Syntax: 'd')
-        IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid, Language: C#) (Syntax: 'd')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'd')
+        IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid, Language: C#) (Syntax: 'd')
-        IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid, Language: C#) (Syntax: 'd')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'd')
+        IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1390,12 +1390,12 @@ class A
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( ? A.B.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'M(d)')
+IInvocationExpression ( ? A.B.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'M(d)')
   Instance Receiver: 
-    IOperation:  (OperationKind.None, IsInvalid, Language: C#) (Syntax: 'M')
+    IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M')
   Arguments(1):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid, Language: C#) (Syntax: 'd')
-        ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic, IsInvalid, Language: C#) (Syntax: 'd')
+      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'd')
+        ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";

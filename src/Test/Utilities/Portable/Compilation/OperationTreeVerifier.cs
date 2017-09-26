@@ -95,11 +95,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 LogString(", IsImplicit");
             }
 
-            // Language
-            if (!string.IsNullOrWhiteSpace(operation.Language))
-            {
-                LogString(", Language: "+ operation.Language);
-            }
 
             LogString(")");
 
@@ -245,8 +240,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             if (operation == null)
             {
+                Indent();
                 LogString("null");
                 LogNewLine();
+                Unindent();
                 return;
             }
 
@@ -261,6 +258,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 Unindent();
             }
+            Assert.True(operation.Syntax.Language == operation.Language);
         }
 
         private void Visit(IOperation operation, string header)
@@ -324,14 +322,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private void VisitChildren(IOperation operation)
         {
             var children = operation.Children.WhereNotNull().ToImmutableArray();
-            if (!children.IsEmpty|| operation.Kind != OperationKind.None)
+            if (!children.IsEmpty || operation.Kind != OperationKind.None)
             {
                 VisitArray(children, "Children", logElementCount: true);
             }
         }
 
         private void VisitArray<T>(ImmutableArray<T> list, string header, bool logElementCount, bool logNullForDefault = false)
-            where T: IOperation
+            where T : IOperation
         {
             VisitArrayCommon(list, header, logElementCount, logNullForDefault, VisitOperationArrayElement);
         }

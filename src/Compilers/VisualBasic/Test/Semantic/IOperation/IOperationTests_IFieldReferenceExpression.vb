@@ -25,11 +25,11 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None, Language: Visual Basic) (Syntax: 'Conditional(field)')
+IOperation:  (OperationKind.None) (Syntax: 'Conditional(field)')
   Children(1):
-      IFieldReferenceExpression: C.field As System.String (Static) (OperationKind.FieldReferenceExpression, Type: System.String, Constant: "field", Language: Visual Basic) (Syntax: 'field')
+      IFieldReferenceExpression: C.field As System.String (Static) (OperationKind.FieldReferenceExpression, Type: System.String, Constant: "field") (Syntax: 'field')
         Instance Receiver: 
-        null
+          null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

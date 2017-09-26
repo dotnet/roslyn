@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -21,24 +21,24 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (3 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Sub Method( ... End Sub')
-  IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If 1 > 2 Th ... End If')
+IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Sub Method( ... End Sub')
+  IIfStatement (OperationKind.IfStatement) (Syntax: 'If 1 > 2 Th ... End If')
     Condition: 
-      IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False, Language: Visual Basic) (Syntax: '1 > 2')
+      IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
         Left: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: 
-      IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If 1 > 2 Th ... End If')
+      IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
     IfFalse: 
-    null
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'End Sub')
+      null
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
     Statement: 
-    null
-  IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'End Sub')
+      null
+  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
     ReturnedValue: 
-    null
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -58,24 +58,24 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (3 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Sub New()'B ... End Sub')
-  IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If 1 > 2 Th ... End If')
+IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Sub New()'B ... End Sub')
+  IIfStatement (OperationKind.IfStatement) (Syntax: 'If 1 > 2 Th ... End If')
     Condition: 
-      IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False, Language: Visual Basic) (Syntax: '1 > 2')
+      IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
         Left: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: 
-      IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If 1 > 2 Th ... End If')
+      IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
     IfFalse: 
-    null
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'End Sub')
+      null
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
     Statement: 
-    null
-  IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'End Sub')
+      null
+  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
     ReturnedValue: 
-    null
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -97,28 +97,28 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Function Me ... nd Function')
+IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function Me ... nd Function')
   Locals: Local_1: Method As System.Boolean
-  IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If 1 > 2 Th ... End If')
+  IIfStatement (OperationKind.IfStatement) (Syntax: 'If 1 > 2 Th ... End If')
     Condition: 
-      IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False, Language: Visual Basic) (Syntax: '1 > 2')
+      IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
         Left: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: 
-      IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If 1 > 2 Th ... End If')
+      IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
     IfFalse: 
-    null
-  IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'Return True')
+      null
+  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return True')
     ReturnedValue: 
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True, Language: Visual Basic) (Syntax: 'True')
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'End Function')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
     Statement: 
-    null
-  IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'End Function')
+      null
+  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
     ReturnedValue: 
-      ILocalReferenceExpression: Method (OperationKind.LocalReferenceExpression, Type: System.Boolean, Language: Visual Basic) (Syntax: 'End Function')
+      ILocalReferenceExpression: Method (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'End Function')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -140,25 +140,25 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Get'BIND:"G ... End Get')
+IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Get'BIND:"G ... End Get')
   Locals: Local_1: Prop As System.Int32
-  IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If 1 > 2 Th ... End If')
+  IIfStatement (OperationKind.IfStatement) (Syntax: 'If 1 > 2 Th ... End If')
     Condition: 
-      IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False, Language: Visual Basic) (Syntax: '1 > 2')
+      IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
         Left: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: 
-      IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If 1 > 2 Th ... End If')
+      IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
     IfFalse: 
-    null
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'End Get')
+      null
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Get')
     Statement: 
-    null
-  IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'End Get')
+      null
+  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Get')
     ReturnedValue: 
-      ILocalReferenceExpression: Prop (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'End Get')
+      ILocalReferenceExpression: Prop (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Get')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -184,24 +184,24 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (3 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Set(Value A ... End Set')
-  IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If 1 > 2 Th ... End If')
+IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Set(Value A ... End Set')
+  IIfStatement (OperationKind.IfStatement) (Syntax: 'If 1 > 2 Th ... End If')
     Condition: 
-      IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False, Language: Visual Basic) (Syntax: '1 > 2')
+      IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
         Left: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: 
-      IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If 1 > 2 Th ... End If')
+      IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
     IfFalse: 
-    null
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'End Set')
+      null
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Set')
     Statement: 
-    null
-  IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'End Set')
+      null
+  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Set')
     ReturnedValue: 
-    null
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -231,24 +231,24 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (3 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'AddHandler( ...  AddHandler')
-  IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If 1 > 2 Th ... End If')
+IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'AddHandler( ...  AddHandler')
+  IIfStatement (OperationKind.IfStatement) (Syntax: 'If 1 > 2 Th ... End If')
     Condition: 
-      IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False, Language: Visual Basic) (Syntax: '1 > 2')
+      IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
         Left: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: 
-      IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If 1 > 2 Th ... End If')
+      IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
     IfFalse: 
-    null
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'End AddHandler')
+      null
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End AddHandler')
     Statement: 
-    null
-  IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'End AddHandler')
+      null
+  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End AddHandler')
     ReturnedValue: 
-    null
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -278,24 +278,24 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (3 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'RemoveHandl ... moveHandler')
-  IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If 1 > 2 Th ... End If')
+IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'RemoveHandl ... moveHandler')
+  IIfStatement (OperationKind.IfStatement) (Syntax: 'If 1 > 2 Th ... End If')
     Condition: 
-      IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False, Language: Visual Basic) (Syntax: '1 > 2')
+      IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
         Left: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: 
-      IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If 1 > 2 Th ... End If')
+      IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
     IfFalse: 
-    null
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'End RemoveHandler')
+      null
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End RemoveHandler')
     Statement: 
-    null
-  IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'End RemoveHandler')
+      null
+  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End RemoveHandler')
     ReturnedValue: 
-    null
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -325,24 +325,24 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (3 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'RaiseEvent( ...  RaiseEvent')
-  IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If 1 > 2 Th ... End If')
+IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'RaiseEvent( ...  RaiseEvent')
+  IIfStatement (OperationKind.IfStatement) (Syntax: 'If 1 > 2 Th ... End If')
     Condition: 
-      IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False, Language: Visual Basic) (Syntax: '1 > 2')
+      IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
         Left: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: 
-      IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If 1 > 2 Th ... End If')
+      IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
     IfFalse: 
-    null
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'End RaiseEvent')
+      null
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End RaiseEvent')
     Statement: 
-    null
-  IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'End RaiseEvent')
+      null
+  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End RaiseEvent')
     ReturnedValue: 
-    null
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -364,28 +364,28 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Public Shar ... nd Operator')
+IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Public Shar ... nd Operator')
   Locals: Local_1: <anonymous local> As System.Int32
-  IIfStatement (OperationKind.IfStatement, Language: Visual Basic) (Syntax: 'If 1 > 2 Th ... End If')
+  IIfStatement (OperationKind.IfStatement) (Syntax: 'If 1 > 2 Th ... End If')
     Condition: 
-      IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False, Language: Visual Basic) (Syntax: '1 > 2')
+      IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
         Left: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
     IfTrue: 
-      IBlockStatement (0 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'If 1 > 2 Th ... End If')
+      IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
     IfFalse: 
-    null
-  IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'Return 0')
+      null
+  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return 0')
     ReturnedValue: 
-      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'End Operator')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Operator')
     Statement: 
-    null
-  IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'End Operator')
+      null
+  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Operator')
     ReturnedValue: 
-      ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'End Operator')
+      ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Operator')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

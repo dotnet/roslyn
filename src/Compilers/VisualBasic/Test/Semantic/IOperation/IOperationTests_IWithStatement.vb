@@ -27,29 +27,29 @@ Class D
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IWithStatement (OperationKind.None, Language: Visual Basic) (Syntax: 'With c'BIND ... End With')
+IWithStatement (OperationKind.None) (Syntax: 'With c'BIND ... End With')
   Value: 
-    IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: Visual Basic) (Syntax: 'c')
+    IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
   Body: 
-    IBlockStatement (2 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'With c'BIND ... End With')
-      IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: '.I = 0')
+    IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'With c'BIND ... End With')
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '.I = 0')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '.I = 0')
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.I = 0')
             Left: 
-              IFieldReferenceExpression: C.I As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '.I')
+              IFieldReferenceExpression: C.I As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: '.I')
                 Instance Receiver: 
-                  IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'c')
+                  IOperation:  (OperationKind.None, IsImplicit) (Syntax: 'c')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
-      IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: '.J = 0')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+      IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '.J = 0')
         Expression: 
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '.J = 0')
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.J = 0')
             Left: 
-              IFieldReferenceExpression: C.J As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '.J')
+              IFieldReferenceExpression: C.J As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: '.J')
                 Instance Receiver: 
-                  IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'c')
+                  IOperation:  (OperationKind.None, IsImplicit) (Syntax: 'c')
             Right: 
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -76,36 +76,36 @@ Class D
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (3 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Private Sub ... End Sub')
-  IWithStatement (OperationKind.None, Language: Visual Basic) (Syntax: 'With c ... End With')
+IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Private Sub ... End Sub')
+  IWithStatement (OperationKind.None) (Syntax: 'With c ... End With')
     Value: 
-      IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, Language: Visual Basic) (Syntax: 'c')
+      IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
     Body: 
-      IBlockStatement (2 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'With c ... End With')
-        IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: '.I = 0')
+      IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'With c ... End With')
+        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '.I = 0')
           Expression: 
-            ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '.I = 0')
+            ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.I = 0')
               Left: 
-                IFieldReferenceExpression: C.I As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '.I')
+                IFieldReferenceExpression: C.I As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: '.I')
                   Instance Receiver: 
-                    IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'c')
+                    IOperation:  (OperationKind.None, IsImplicit) (Syntax: 'c')
               Right: 
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
-        IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: '.J = 0')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+        IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '.J = 0')
           Expression: 
-            ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '.J = 0')
+            ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.J = 0')
               Left: 
-                IFieldReferenceExpression: C.J As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: '.J')
+                IFieldReferenceExpression: C.J As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: '.J')
                   Instance Receiver: 
-                    IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'c')
+                    IOperation:  (OperationKind.None, IsImplicit) (Syntax: 'c')
               Right: 
-                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'End Sub')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
     Statement: 
-    null
-  IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'End Sub')
+      null
+  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
     ReturnedValue: 
-    null
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

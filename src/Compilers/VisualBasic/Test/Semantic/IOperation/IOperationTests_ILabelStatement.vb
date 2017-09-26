@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -22,27 +22,27 @@ Label:  Console.WriteLine("Hello World!")
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (5 statements) (OperationKind.BlockStatement, Language: Visual Basic) (Syntax: 'Public Sub  ... End Sub')
-  IBranchStatement (BranchKind.GoTo, Label: Label) (OperationKind.BranchStatement, Language: Visual Basic) (Syntax: 'GoTo Label')
-  ILabeledStatement (Label: Label) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'Label:')
+IBlockStatement (5 statements) (OperationKind.BlockStatement) (Syntax: 'Public Sub  ... End Sub')
+  IBranchStatement (BranchKind.GoTo, Label: Label) (OperationKind.BranchStatement) (Syntax: 'GoTo Label')
+  ILabeledStatement (Label: Label) (OperationKind.LabeledStatement) (Syntax: 'Label:')
     Statement: 
-    null
-  IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'Console.Wri ... lo World!")')
+      null
+  IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... lo World!")')
     Expression: 
-      IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Console.Wri ... lo World!")')
+      IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... lo World!")')
         Instance Receiver: 
-        null
+          null
         Arguments(1):
-            IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Language: Visual Basic) (Syntax: '"Hello World!"')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!", Language: Visual Basic) (Syntax: '"Hello World!"')
+            IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Hello World!"')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!") (Syntax: '"Hello World!"')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, Language: Visual Basic) (Syntax: 'End Sub')
+  ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
     Statement: 
-    null
-  IReturnStatement (OperationKind.ReturnStatement, Language: Visual Basic) (Syntax: 'End Sub')
+      null
+  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
     ReturnedValue: 
-    null
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

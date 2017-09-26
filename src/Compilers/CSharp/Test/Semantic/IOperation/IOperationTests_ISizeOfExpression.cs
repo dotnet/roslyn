@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -25,7 +25,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, Constant: 4, Language: C#) (Syntax: 'sizeof(int)')
+ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, Constant: 4) (Syntax: 'sizeof(int)')
   TypeOperand: System.Int32
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -49,7 +49,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid, Language: C#) (Syntax: 'sizeof(C)')
+ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid) (Syntax: 'sizeof(C)')
   TypeOperand: C
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -80,7 +80,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, Language: C#) (Syntax: 'sizeof(void**)')
+ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32) (Syntax: 'sizeof(void**)')
   TypeOperand: System.Void**
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -104,7 +104,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid, Language: C#) (Syntax: 'sizeof(UndefinedType)')
+ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid) (Syntax: 'sizeof(UndefinedType)')
   TypeOperand: UndefinedType
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -135,7 +135,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid, Language: C#) (Syntax: 'sizeof(i)')
+ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid) (Syntax: 'sizeof(i)')
   TypeOperand: i
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -168,9 +168,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( ? System.Int32.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'sizeof(M2()')
+IInvocationExpression ( ? System.Int32.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'sizeof(M2()')
   Instance Receiver: 
-    ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid, Language: C#) (Syntax: 'sizeof(M2')
+    ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid) (Syntax: 'sizeof(M2')
       TypeOperand: M2
   Arguments(0)
 ";
@@ -211,7 +211,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid, Language: C#) (Syntax: 'sizeof()')
+ISizeOfExpression (OperationKind.SizeOfExpression, Type: System.Int32, IsInvalid) (Syntax: 'sizeof()')
   TypeOperand: ?
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {

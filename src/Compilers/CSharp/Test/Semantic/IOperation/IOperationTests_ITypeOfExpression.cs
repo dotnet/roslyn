@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -24,7 +24,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, Language: C#) (Syntax: 'typeof(int)')
+ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type) (Syntax: 'typeof(int)')
   TypeOperand: System.Int32
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -48,7 +48,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, Language: C#) (Syntax: 'typeof(C)')
+ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type) (Syntax: 'typeof(C)')
   TypeOperand: C
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -72,7 +72,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid, Language: C#) (Syntax: 'typeof(UndefinedType)')
+ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'typeof(UndefinedType)')
   TypeOperand: UndefinedType
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -100,7 +100,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid, Language: C#) (Syntax: 'typeof(t)')
+ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'typeof(t)')
   TypeOperand: t
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -130,9 +130,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( ? System.Type.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid, Language: C#) (Syntax: 'typeof(M2()')
+IInvocationExpression ( ? System.Type.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'typeof(M2()')
   Instance Receiver: 
-    ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid, Language: C#) (Syntax: 'typeof(M2')
+    ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'typeof(M2')
       TypeOperand: M2
   Arguments(0)
 ";
@@ -170,7 +170,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid, Language: C#) (Syntax: 'typeof()')
+ITypeOfExpression (OperationKind.TypeOfExpression, Type: System.Type, IsInvalid) (Syntax: 'typeof()')
   TypeOperand: ?
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -22,7 +22,7 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, Language: Visual Basic) (Syntax: '$""')
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""')
   Parts(0)
 ]]>.Value
 
@@ -44,11 +44,11 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, Language: Visual Basic) (Syntax: '$"Only text part"')
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"Only text part"')
   Parts(1):
-      IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: Visual Basic) (Syntax: 'Only text part')
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'Only text part')
         Text: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Only text part", Language: Visual Basic) (Syntax: 'Only text part')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Only text part") (Syntax: 'Only text part')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -69,15 +69,15 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, Language: Visual Basic) (Syntax: '$"{1}"')
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"{1}"')
   Parts(1):
-      IInterpolation (OperationKind.Interpolation, Language: Visual Basic) (Syntax: '{1}')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
         Expression: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Alignment: 
-        null
+          null
         FormatString: 
-        null
+          null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -98,16 +98,16 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: '$"{}"')
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, IsInvalid) (Syntax: '$"{}"')
   Parts(1):
-      IInterpolation (OperationKind.Interpolation, IsInvalid, Language: Visual Basic) (Syntax: '{}')
+      IInterpolation (OperationKind.Interpolation, IsInvalid) (Syntax: '{}')
         Expression: 
-          IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid, Language: Visual Basic) (Syntax: '')
+          IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
             Children(0)
         Alignment: 
-        null
+          null
         FormatString: 
-        null
+          null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -132,28 +132,28 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, Language: Visual Basic) (Syntax: '$"String {x ... nstant {1}"')
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x ... nstant {1}"')
   Parts(4):
-      IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: Visual Basic) (Syntax: 'String ')
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
         Text: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ", Language: Visual Basic) (Syntax: 'String ')
-      IInterpolation (OperationKind.Interpolation, Language: Visual Basic) (Syntax: '{x}')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{x}')
         Expression: 
-          IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'x')
+          IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
         Alignment: 
-        null
+          null
         FormatString: 
-        null
-      IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: Visual Basic) (Syntax: ' and constant ')
+          null
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and constant ')
         Text: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and constant ", Language: Visual Basic) (Syntax: ' and constant ')
-      IInterpolation (OperationKind.Interpolation, Language: Visual Basic) (Syntax: '{1}')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and constant ") (Syntax: ' and constant ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
         Expression: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Alignment: 
-        null
+          null
         FormatString: 
-        null
+          null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -177,42 +177,42 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, Language: Visual Basic) (Syntax: '$"String {x ... nstant {1}"')
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x ... nstant {1}"')
   Parts(6):
-      IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: Visual Basic) (Syntax: 'String ')
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
         Text: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ", Language: Visual Basic) (Syntax: 'String ')
-      IInterpolation (OperationKind.Interpolation, Language: Visual Basic) (Syntax: '{x,20}')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{x,20}')
         Expression: 
-          IFieldReferenceExpression: [Class].x As System.String (OperationKind.FieldReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'x')
+          IFieldReferenceExpression: [Class].x As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'x')
             Instance Receiver: 
-              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class], IsImplicit, Language: Visual Basic) (Syntax: 'x')
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class], IsImplicit) (Syntax: 'x')
         Alignment: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, Language: Visual Basic) (Syntax: '20')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
         FormatString: 
-        null
-      IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: Visual Basic) (Syntax: ' and ')
+          null
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and ')
         Text: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and ", Language: Visual Basic) (Syntax: ' and ')
-      IInterpolation (OperationKind.Interpolation, Language: Visual Basic) (Syntax: '{y:D3}')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and ") (Syntax: ' and ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{y:D3}')
         Expression: 
-          IFieldReferenceExpression: [Class].y As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
+          IFieldReferenceExpression: [Class].y As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'y')
             Instance Receiver: 
-              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class], IsImplicit, Language: Visual Basic) (Syntax: 'y')
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class], IsImplicit) (Syntax: 'y')
         Alignment: 
-        null
+          null
         FormatString: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "D3", Language: Visual Basic) (Syntax: ':D3')
-      IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: Visual Basic) (Syntax: ' and constant ')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "D3") (Syntax: ':D3')
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and constant ')
         Text: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and constant ", Language: Visual Basic) (Syntax: ' and constant ')
-      IInterpolation (OperationKind.Interpolation, Language: Visual Basic) (Syntax: '{1}')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and constant ") (Syntax: ' and constant ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
         Expression: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Alignment: 
-        null
+          null
         FormatString: 
-        null
+          null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -235,20 +235,20 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, Language: Visual Basic) (Syntax: '$"String {x,20:D3}"')
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x,20:D3}"')
   Parts(2):
-      IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: Visual Basic) (Syntax: 'String ')
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
         Text: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ", Language: Visual Basic) (Syntax: 'String ')
-      IInterpolation (OperationKind.Interpolation, Language: Visual Basic) (Syntax: '{x,20:D3}')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{x,20:D3}')
         Expression: 
-          IFieldReferenceExpression: [Class].x As System.String (OperationKind.FieldReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'x')
+          IFieldReferenceExpression: [Class].x As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'x')
             Instance Receiver: 
-              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class], IsImplicit, Language: Visual Basic) (Syntax: 'x')
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class], IsImplicit) (Syntax: 'x')
         Alignment: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, Language: Visual Basic) (Syntax: '20')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
         FormatString: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "D3", Language: Visual Basic) (Syntax: ':D3')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "D3") (Syntax: ':D3')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -275,45 +275,45 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, Language: Visual Basic) (Syntax: '$"String {x ... nstant {1}"')
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x ... nstant {1}"')
   Parts(6):
-      IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: Visual Basic) (Syntax: 'String ')
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
         Text: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ", Language: Visual Basic) (Syntax: 'String ')
-      IInterpolation (OperationKind.Interpolation, Language: Visual Basic) (Syntax: '{x}')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{x}')
         Expression: 
-          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.String, Language: Visual Basic) (Syntax: 'x')
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'x')
         Alignment: 
-        null
+          null
         FormatString: 
-        null
-      IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: Visual Basic) (Syntax: ' and ')
+          null
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and ')
         Text: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and ", Language: Visual Basic) (Syntax: ' and ')
-      IInterpolation (OperationKind.Interpolation, Language: Visual Basic) (Syntax: '{M2(y)}')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and ") (Syntax: ' and ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{M2(y)}')
         Expression: 
-          IInvocationExpression ( Function [Class].M2(z As System.Int32) As System.String) (OperationKind.InvocationExpression, Type: System.String, Language: Visual Basic) (Syntax: 'M2(y)')
+          IInvocationExpression ( Function [Class].M2(z As System.Int32) As System.String) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'M2(y)')
             Instance Receiver: 
-              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class], IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class], IsImplicit) (Syntax: 'M2')
             Arguments(1):
-                IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument, Language: Visual Basic) (Syntax: 'y')
-                  ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
+                IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: 'y')
+                  ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Alignment: 
-        null
+          null
         FormatString: 
-        null
-      IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: Visual Basic) (Syntax: ' and constant ')
+          null
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and constant ')
         Text: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and constant ", Language: Visual Basic) (Syntax: ' and constant ')
-      IInterpolation (OperationKind.Interpolation, Language: Visual Basic) (Syntax: '{1}')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and constant ") (Syntax: ' and constant ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
         Expression: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
         Alignment: 
-        null
+          null
         FormatString: 
-        null
+          null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -340,33 +340,33 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, Language: Visual Basic) (Syntax: '$"String {M2($"{y}")}"')
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {M2($"{y}")}"')
   Parts(2):
-      IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: Visual Basic) (Syntax: 'String ')
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
         Text: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ", Language: Visual Basic) (Syntax: 'String ')
-      IInterpolation (OperationKind.Interpolation, Language: Visual Basic) (Syntax: '{M2($"{y}")}')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
+      IInterpolation (OperationKind.Interpolation) (Syntax: '{M2($"{y}")}')
         Expression: 
-          IInvocationExpression ( Function [Class].M2(z As System.String) As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'M2($"{y}")')
+          IInvocationExpression ( Function [Class].M2(z As System.String) As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'M2($"{y}")')
             Instance Receiver: 
-              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class], IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: [Class], IsImplicit) (Syntax: 'M2')
             Arguments(1):
-                IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument, Language: Visual Basic) (Syntax: '$"{y}"')
-                  IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, Language: Visual Basic) (Syntax: '$"{y}"')
+                IArgument (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument) (Syntax: '$"{y}"')
+                  IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"{y}"')
                     Parts(1):
-                        IInterpolation (OperationKind.Interpolation, Language: Visual Basic) (Syntax: '{y}')
+                        IInterpolation (OperationKind.Interpolation) (Syntax: '{y}')
                           Expression: 
-                            ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'y')
+                            ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
                           Alignment: 
-                          null
+                            null
                           FormatString: 
-                          null
+                            null
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Alignment: 
-        null
+          null
         FormatString: 
-        null
+          null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -387,29 +387,29 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, IsInvalid, Language: Visual Basic) (Syntax: '$"String {x ...  {[Class]}"')
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, IsInvalid) (Syntax: '$"String {x ...  {[Class]}"')
   Parts(4):
-      IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: Visual Basic) (Syntax: 'String ')
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
         Text: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ", Language: Visual Basic) (Syntax: 'String ')
-      IInterpolation (OperationKind.Interpolation, IsInvalid, Language: Visual Basic) (Syntax: '{x1}')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
+      IInterpolation (OperationKind.Interpolation, IsInvalid) (Syntax: '{x1}')
         Expression: 
-          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: 'x1')
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x1')
             Children(0)
         Alignment: 
-        null
+          null
         FormatString: 
-        null
-      IInterpolatedStringText (OperationKind.InterpolatedStringText, Language: Visual Basic) (Syntax: ' and constant ')
+          null
+      IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and constant ')
         Text: 
-          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and constant ", Language: Visual Basic) (Syntax: ' and constant ')
-      IInterpolation (OperationKind.Interpolation, IsInvalid, Language: Visual Basic) (Syntax: '{[Class]}')
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: " and constant ") (Syntax: ' and constant ')
+      IInterpolation (OperationKind.Interpolation, IsInvalid) (Syntax: '{[Class]}')
         Expression: 
-          IOperation:  (OperationKind.None, IsInvalid, Language: Visual Basic) (Syntax: '[Class]')
+          IOperation:  (OperationKind.None, IsInvalid) (Syntax: '[Class]')
         Alignment: 
-        null
+          null
         FormatString: 
-        null
+          null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
