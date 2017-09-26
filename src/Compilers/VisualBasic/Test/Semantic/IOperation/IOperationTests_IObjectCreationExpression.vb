@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -254,7 +254,7 @@ IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of S
                     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: '{x, y}')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                       Operand: 
-                        IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: '{x, y}')
+                        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: '{x, y}')
                           Dimension Sizes(1):
                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: '{x, y}')
                           Initializer: 
@@ -326,7 +326,7 @@ IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.Obje
                 Instance Receiver: 
                   IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New [Class] ... }')
             Right: 
-              IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: '{x, y, 3}')
+              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: '{x, y, 3}')
                 Dimension Sizes(1):
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3, IsImplicit, Language: Visual Basic) (Syntax: '{x, y, 3}')
                 Initializer: 

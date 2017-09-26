@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -493,7 +493,7 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationExpression (Element Type: X) (OperationKind.ArrayCreationExpression, Type: X[], IsInvalid, Language: C#) (Syntax: 'new X[Program] { { 1 } }')
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: X[], IsInvalid, Language: C#) (Syntax: 'new X[Program] { { 1 } }')
   Dimension Sizes(1):
       IInvalidExpression (OperationKind.InvalidExpression, Type: Program, IsInvalid, IsImplicit, Language: C#) (Syntax: 'Program')
         Children(1):

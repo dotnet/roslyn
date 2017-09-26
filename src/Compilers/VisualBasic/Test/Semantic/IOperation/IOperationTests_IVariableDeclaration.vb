@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Semantics
@@ -537,7 +537,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 'i1(2)')
     Variables: Local_1: i1 As System.Int32()
     Initializer: 
-      IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'i1(2)')
+      IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'i1(2)')
         Dimension Sizes(1):
             IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 3, IsImplicit, Language: Visual Basic) (Syntax: '2')
               Left: 

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -612,7 +612,7 @@ IInvocationExpression ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.ParamArray, Matching Parameter: y) (OperationKind.Argument, IsImplicit, Language: Visual Basic) (Syntax: 'M2(1, 2, 3)')
-        IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsImplicit, Language: Visual Basic) (Syntax: 'M2(1, 2, 3)')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsImplicit, Language: Visual Basic) (Syntax: 'M2(1, 2, 3)')
           Dimension Sizes(1):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: 'M2(1, 2, 3)')
           Initializer: 
@@ -655,7 +655,7 @@ IInvocationExpression ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IArgument (ArgumentKind.ParamArray, Matching Parameter: y) (OperationKind.Argument, IsImplicit, Language: Visual Basic) (Syntax: 'M2(1)')
-        IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsImplicit, Language: Visual Basic) (Syntax: 'M2(1)')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsImplicit, Language: Visual Basic) (Syntax: 'M2(1)')
           Dimension Sizes(1):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsImplicit, Language: Visual Basic) (Syntax: 'M2(1)')
           Initializer: 
@@ -1149,8 +1149,8 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument) (Syntax: '1')
-  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Language: Visual Basic) (Syntax: '1')
+  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -1173,17 +1173,20 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(1)')
-  Expression: IInvocationExpression ( Sub Program.M2(ParamArray a As System.Int32())) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M2')
+IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'M2(1)')
+  Expression: 
+    IInvocationExpression ( Sub Program.M2(ParamArray a As System.Int32())) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2(1)')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
       Arguments(1):
-          IArgument (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'M2(1)')
-            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'M2(1)')
+          IArgument (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument, IsImplicit, Language: Visual Basic) (Syntax: 'M2(1)')
+            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsImplicit, Language: Visual Basic) (Syntax: 'M2(1)')
               Dimension Sizes(1):
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'M2(1)')
-              Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(1)')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'M2(1)')
+              Initializer: 
+                IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsImplicit, Language: Visual Basic) (Syntax: 'M2(1)')
                   Element Values(1):
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -1206,18 +1209,21 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(0, 1)')
-  Expression: IInvocationExpression ( Sub Program.M2(ParamArray a As System.Int32())) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(0, 1)')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M2')
+IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'M2(0, 1)')
+  Expression: 
+    IInvocationExpression ( Sub Program.M2(ParamArray a As System.Int32())) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2(0, 1)')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
       Arguments(1):
-          IArgument (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'M2(0, 1)')
-            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'M2(0, 1)')
+          IArgument (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument, IsImplicit, Language: Visual Basic) (Syntax: 'M2(0, 1)')
+            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsImplicit, Language: Visual Basic) (Syntax: 'M2(0, 1)')
               Dimension Sizes(1):
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'M2(0, 1)')
-              Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'M2(0, 1)')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: 'M2(0, 1)')
+              Initializer: 
+                IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsImplicit, Language: Visual Basic) (Syntax: 'M2(0, 1)')
                   Element Values(2):
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -1240,20 +1246,22 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'M2(1, , 2)')
-  Expression: IInvocationExpression ( Sub Program.M2(a As System.Int32, [b As System.Int32 = 0], [c As System.Int32 = 0])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1, , 2)')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M2')
+IExpressionStatement (OperationKind.ExpressionStatement, Language: Visual Basic) (Syntax: 'M2(1, , 2)')
+  Expression: 
+    IInvocationExpression ( Sub Program.M2(a As System.Int32, [b As System.Int32 = 0], [c As System.Int32 = 0])) (OperationKind.InvocationExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'M2(1, , 2)')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
       Arguments(3):
-          IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument) (Syntax: '1')
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+          IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Language: Visual Basic) (Syntax: '1')
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgument (ArgumentKind.DefaultValue, Matching Parameter: b) (OperationKind.Argument) (Syntax: 'M2')
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'M2')
+          IArgument (ArgumentKind.DefaultValue, Matching Parameter: b) (OperationKind.Argument, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          IArgument (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument) (Syntax: '2')
-            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+          IArgument (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument, Language: Visual Basic) (Syntax: '2')
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, Language: Visual Basic) (Syntax: '2')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -1276,8 +1284,8 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArgument (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument) (Syntax: 'b:=1')
-  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+IArgument (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Language: Visual Basic) (Syntax: 'b:=1')
+  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -1300,8 +1308,8 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'a:=1')
-  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Language: Visual Basic) (Syntax: 'a:=1')
+  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -1324,8 +1332,8 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument) (Syntax: '1')
-  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+IArgument (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Language: Visual Basic) (Syntax: '1')
+  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ]]>.Value
@@ -1348,18 +1356,20 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationExpression (Constructor: Sub Program..ctor(ParamArray a As System.Int32())) (OperationKind.ObjectCreationExpression, Type: Program) (Syntax: 'New Program(1)')
+IObjectCreationExpression (Constructor: Sub Program..ctor(ParamArray a As System.Int32())) (OperationKind.ObjectCreationExpression, Type: Program, Language: Visual Basic) (Syntax: 'New Program(1)')
   Arguments(1):
-      IArgument (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'Program')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'Program')
+      IArgument (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument, IsImplicit, Language: Visual Basic) (Syntax: 'Program')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsImplicit, Language: Visual Basic) (Syntax: 'Program')
           Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'Program')
-          Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: 'Program')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'Program')
+          Initializer: 
+            IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsImplicit, Language: Visual Basic) (Syntax: 'Program')
               Element Values(1):
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Initializer: null
+  Initializer: 
+  null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1380,19 +1390,21 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IObjectCreationExpression (Constructor: Sub Program..ctor(ParamArray a As System.Int32())) (OperationKind.ObjectCreationExpression, Type: Program) (Syntax: 'new Program(0, 1)')
+IObjectCreationExpression (Constructor: Sub Program..ctor(ParamArray a As System.Int32())) (OperationKind.ObjectCreationExpression, Type: Program, Language: Visual Basic) (Syntax: 'new Program(0, 1)')
   Arguments(1):
-      IArgument (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument) (Syntax: 'Program')
-        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'Program')
+      IArgument (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument, IsImplicit, Language: Visual Basic) (Syntax: 'Program')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsImplicit, Language: Visual Basic) (Syntax: 'Program')
           Dimension Sizes(1):
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'Program')
-          Initializer: IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: 'Program')
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: 'Program')
+          Initializer: 
+            IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsImplicit, Language: Visual Basic) (Syntax: 'Program')
               Element Values(2):
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, Language: Visual Basic) (Syntax: '0')
+                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, Language: Visual Basic) (Syntax: '1')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Initializer: null
+  Initializer: 
+  null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1410,15 +1422,19 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a(0 To  ...  As Integer')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a(0 To 20)')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, Language: Visual Basic) (Syntax: 'Dim a(0 To  ...  As Integer')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language: Visual Basic) (Syntax: 'a(0 To 20)')
     Variables: Local_1: a As System.Int32()
-    Initializer: IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'a(0 To 20)')
+    Initializer: 
+      IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'a(0 To 20)')
         Dimension Sizes(1):
-            IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 21) (Syntax: '0 To 20')
-              Left: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
-              Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '0 To 20')
-        Initializer: null
+            IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 21, IsImplicit, Language: Visual Basic) (Syntax: '0 To 20')
+              Left: 
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, Language: Visual Basic) (Syntax: '20')
+              Right: 
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: '0 To 20')
+        Initializer: 
+        null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

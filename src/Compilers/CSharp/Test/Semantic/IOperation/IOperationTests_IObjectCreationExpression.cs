@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -265,7 +265,7 @@ IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.C
                         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit, Language: C#) (Syntax: 'new[] { x, y }')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
-                            IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[], Language: C#) (Syntax: 'new[] { x, y }')
+                            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[], Language: C#) (Syntax: 'new[] { x, y }')
                               Dimension Sizes(1):
                                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: C#) (Syntax: 'new[] { x, y }')
                               Initializer: 

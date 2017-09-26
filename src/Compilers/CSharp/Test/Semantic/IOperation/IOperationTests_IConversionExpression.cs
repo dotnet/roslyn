@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -1279,7 +1279,7 @@ IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: I1[], IsInvalid, IsImplicit, Language: C#) (Syntax: 'new S1[10]')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        IArrayCreationExpression (Element Type: S1) (OperationKind.ArrayCreationExpression, Type: S1[], IsInvalid, Language: C#) (Syntax: 'new S1[10]')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: S1[], IsInvalid, Language: C#) (Syntax: 'new S1[10]')
           Dimension Sizes(1):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, IsInvalid, Language: C#) (Syntax: '10')
           Initializer: 
@@ -1317,7 +1317,7 @@ IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language:
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Array, IsImplicit, Language: C#) (Syntax: 'new object[10]')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        IArrayCreationExpression (Element Type: System.Object) (OperationKind.ArrayCreationExpression, Type: System.Object[], Language: C#) (Syntax: 'new object[10]')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Object[], Language: C#) (Syntax: 'new object[10]')
           Dimension Sizes(1):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: C#) (Syntax: '10')
           Initializer: 
@@ -1351,7 +1351,7 @@ IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language:
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Array, IsImplicit, Language: C#) (Syntax: 'new int[10][]')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        IArrayCreationExpression (Element Type: System.Int32[]) (OperationKind.ArrayCreationExpression, Type: System.Int32[][], Language: C#) (Syntax: 'new int[10][]')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[][], Language: C#) (Syntax: 'new int[10][]')
           Dimension Sizes(1):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: C#) (Syntax: '10')
           Initializer: 
@@ -1422,7 +1422,7 @@ IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, Language:
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IList<System.Int32>, IsImplicit, Language: C#) (Syntax: 'new int[10]')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[], Language: C#) (Syntax: 'new int[10]')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[], Language: C#) (Syntax: 'new int[10]')
           Dimension Sizes(1):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10, Language: C#) (Syntax: '10')
           Initializer: 

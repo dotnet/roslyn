@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -234,8 +234,8 @@ ILocalFunctionStatement (Symbol: System.Threading.Tasks.Task<System.Int32> Local
   IBlockStatement (2 statements) (OperationKind.BlockStatement, Language: C#) (Syntax: '{ ... }')
     IExpressionStatement (OperationKind.ExpressionStatement, Language: C#) (Syntax: 'await Task.Delay(0);')
       Expression: 
-        IAwaitExpression (OperationKind.None, Language: C#) (Syntax: 'await Task.Delay(0)')
-          AwaitedValue: 
+        IAwaitExpression (OperationKind.AwaitExpression, Type: System.Void, Language: C#) (Syntax: 'await Task.Delay(0)')
+          Expression: 
             IInvocationExpression (System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(System.Int32 millisecondsDelay)) (OperationKind.InvocationExpression, Type: System.Threading.Tasks.Task, Language: C#) (Syntax: 'Task.Delay(0)')
               Instance Receiver: 
               null

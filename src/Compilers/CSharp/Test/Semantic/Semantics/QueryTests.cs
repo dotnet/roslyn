@@ -1837,7 +1837,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: ?, Is
                     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit, Language: C#) (Syntax: 'new int[] { 1 }')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                       Operand: 
-                        IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[], Language: C#) (Syntax: 'new int[] { 1 }')
+                        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[], Language: C#) (Syntax: 'new int[] { 1 }')
                           Dimension Sizes(1):
                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: C#) (Syntax: 'new int[] { 1 }')
                           Initializer: 
@@ -4183,7 +4183,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>, IsImplicit, Language: C#) (Syntax: 'from a in new[] { 1 }')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
-                IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[], Language: C#) (Syntax: 'new[] { 1 }')
+                IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[], Language: C#) (Syntax: 'new[] { 1 }')
                   Dimension Sizes(1):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: C#) (Syntax: 'new[] { 1 }')
                   Initializer: 

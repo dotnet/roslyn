@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -400,7 +400,7 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IArrayCreationExpression (Element Type: X) (OperationKind.ArrayCreationExpression, Type: X(), IsInvalid, Language: Visual Basic) (Syntax: 'New X(Program - 1) {{1}}')
+IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: X(), IsInvalid, Language: Visual Basic) (Syntax: 'New X(Program - 1) {{1}}')
   Dimension Sizes(1):
       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: 'Program - 1')
         Left: 

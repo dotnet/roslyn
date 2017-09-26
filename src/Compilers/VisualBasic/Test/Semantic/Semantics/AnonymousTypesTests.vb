@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -154,7 +154,7 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
                         Instance Receiver: 
                         null
                     Right: 
-                      IArrayCreationExpression (Element Type: System.TypedReference) (OperationKind.ArrayCreationExpression, Type: System.TypedReference(,), IsInvalid, Language: Visual Basic) (Syntax: '{{tr}}')
+                      IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.TypedReference(,), IsInvalid, Language: Visual Basic) (Syntax: '{{tr}}')
                         Dimension Sizes(2):
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: '{{tr}}')
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit, Language: Visual Basic) (Syntax: '{{tr}}')

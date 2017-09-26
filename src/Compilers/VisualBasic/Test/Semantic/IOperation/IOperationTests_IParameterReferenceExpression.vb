@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -154,7 +154,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 'y In New Integer() {x}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {x}')
+            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {x}')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {x}')
               Initializer: 
@@ -332,7 +332,7 @@ IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.Obje
                 Instance Receiver: 
                   IOperation:  (OperationKind.None, IsImplicit, Language: Visual Basic) (Syntax: 'New [Class] ... }')
             Right: 
-              IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: '{x, y, 3}')
+              IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: '{x, y, 3}')
                 Dimension Sizes(1):
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3, IsImplicit, Language: Visual Basic) (Syntax: '{x, y, 3}')
                 Initializer: 
@@ -506,8 +506,10 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 INameOfExpression (OperationKind.NameOfExpression, Type: System.String, Constant: null, IsInvalid, Language: Visual Basic) (Syntax: 'NameOf(x + y)')
   IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: 'x + y')
-    Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: 'x')
-    Right: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: 'y')
+    Left: 
+      IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: 'x')
+    Right: 
+      IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: 'y')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -741,7 +743,7 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None) (Syntax: 'ReDim intArray(x, x, x)')
+IOperation:  (OperationKind.None, Language: Visual Basic) (Syntax: 'ReDim intArray(x, x, x)')
   Children(1):
       IOperation:  (OperationKind.None, Language: Visual Basic) (Syntax: 'intArray(x, x, x)')
         Children(4):

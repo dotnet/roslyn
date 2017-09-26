@@ -5695,7 +5695,7 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's1 In New Integer() {1}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
-                IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1}')
+                IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1}')
                   Dimension Sizes(1):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {1}')
                   Initializer: 
@@ -5759,7 +5759,7 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's1 In New Integer() {1}')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
-                    IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1}')
+                    IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1}')
                       Dimension Sizes(1):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {1}')
                       Initializer: 
@@ -5855,7 +5855,7 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
                         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's1 In New Integer() {3}')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                           Operand: 
-                            IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {3}')
+                            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {3}')
                               Dimension Sizes(1):
                                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {3}')
                               Initializer: 
@@ -7476,7 +7476,7 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's1 In New I ... er() {1, 3}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
-                IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1, 3}')
+                IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1, 3}')
                   Dimension Sizes(1):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {1, 3}')
                   Initializer: 
@@ -7489,7 +7489,7 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's2 In New I ... er() {2, 3}')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
-                    IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {2, 3}')
+                    IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {2, 3}')
                       Dimension Sizes(1):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {2, 3}')
                       Initializer: 
@@ -7574,7 +7574,7 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's1 In New Integer() {1}')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
-                    IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1}')
+                    IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1}')
                       Dimension Sizes(1):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {1}')
                       Initializer: 
@@ -7586,7 +7586,7 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
                     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's2 In New I ... er() {2, 3}')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                       Operand: 
-                        IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {2, 3}')
+                        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {2, 3}')
                           Dimension Sizes(1):
                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {2, 3}')
                           Initializer: 
@@ -7641,7 +7641,7 @@ IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.Conve
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's3 In New I ... er() {4, 5}')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
-                    IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {4, 5}')
+                    IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {4, 5}')
                       Dimension Sizes(1):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {4, 5}')
                       Initializer: 
@@ -8824,7 +8824,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's1 In New I ... 3, 4, 2, 3}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer ... 3, 4, 2, 3}')
+            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer ... 3, 4, 2, 3}')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer ... 3, 4, 2, 3}')
               Initializer: 
@@ -8897,7 +8897,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's1 In New I ... 3, 4, 2, 3}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer ... 3, 4, 2, 3}')
+            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer ... 3, 4, 2, 3}')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer ... 3, 4, 2, 3}')
               Initializer: 
@@ -8976,7 +8976,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's1 In New I ... 3, 4, 2, 3}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer ... 3, 4, 2, 3}')
+            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer ... 3, 4, 2, 3}')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer ... 3, 4, 2, 3}')
               Initializer: 
@@ -9063,7 +9063,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's1 In New I ... 3, 4, 2, 3}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer ... 3, 4, 2, 3}')
+            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer ... 3, 4, 2, 3}')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer ... 3, 4, 2, 3}')
               Initializer: 
@@ -9197,7 +9197,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's1 In New I ... er() {1, 2}')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
-                    IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1, 2}')
+                    IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1, 2}')
                       Dimension Sizes(1):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {1, 2}')
                       Initializer: 
@@ -9252,7 +9252,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's1 In New I ... er() {1, 2}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
-                IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1, 2}')
+                IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1, 2}')
                   Dimension Sizes(1):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {1, 2}')
                   Initializer: 
@@ -9892,7 +9892,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's1 In New I ... er() {1, 3}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1, 3}')
+            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1, 3}')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {1, 3}')
               Initializer: 
@@ -9905,7 +9905,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's2 In New I ... er() {2, 3}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
-                IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {2, 3}')
+                IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {2, 3}')
                   Dimension Sizes(1):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {2, 3}')
                   Initializer: 
@@ -9995,7 +9995,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's1 In New Integer() {1}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
-                IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1}')
+                IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1}')
                   Dimension Sizes(1):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {1}')
                   Initializer: 
@@ -10007,7 +10007,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's2 In New I ... er() {2, 3}')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
-                    IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {2, 3}')
+                    IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {2, 3}')
                       Dimension Sizes(1):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {2, 3}')
                       Initializer: 
@@ -10062,7 +10062,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's3 In New I ... er() {4, 5}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
-                IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {4, 5}')
+                IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {4, 5}')
                   Dimension Sizes(1):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {4, 5}')
                   Initializer: 
@@ -10177,7 +10177,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's1 In New Integer() {1}')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
-                    IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1}')
+                    IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1}')
                       Dimension Sizes(1):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {1}')
                       Initializer: 
@@ -10193,7 +10193,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's2 In New Integer() {1}')
                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                               Operand: 
-                                IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1}')
+                                IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1}')
                                   Dimension Sizes(1):
                                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {1}')
                                   Initializer: 
@@ -10205,7 +10205,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's3 In New Integer() {1}')
                                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                   Operand: 
-                                    IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1}')
+                                    IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1}')
                                       Dimension Sizes(1):
                                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {1}')
                                       Initializer: 
@@ -10255,7 +10255,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 's4 In New Integer() {1}')
                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                               Operand: 
-                                IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1}')
+                                IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1}')
                                   Dimension Sizes(1):
                                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {1}')
                                   Initializer: 
@@ -11438,7 +11438,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 'y In New In ... er() {3, 4}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {3, 4}')
+            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {3, 4}')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {3, 4}')
               Initializer: 
@@ -11546,7 +11546,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 'x In New In ... er() {3, 4}')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
-                    IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {3, 4}')
+                    IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {3, 4}')
                       Dimension Sizes(1):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {3, 4}')
                       Initializer: 
@@ -11566,7 +11566,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 'y In New In ... er() {1, 3}')
                                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                   Operand: 
-                                    IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1, 3}')
+                                    IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1, 3}')
                                       Dimension Sizes(1):
                                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {1, 3}')
                                       Initializer: 
@@ -11669,7 +11669,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 'x In New Integer() {1}')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                   Operand: 
-                    IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1}')
+                    IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1}')
                       Dimension Sizes(1):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {1}')
                       Initializer: 
@@ -11688,7 +11688,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 'y In New Integer() {2}')
                                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                   Operand: 
-                                    IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {2}')
+                                    IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {2}')
                                       Dimension Sizes(1):
                                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {2}')
                                       Initializer: 
@@ -11723,7 +11723,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 'z In New Integer() {3}')
                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                               Operand: 
-                                IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {3}')
+                                IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {3}')
                                   Dimension Sizes(1):
                                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {3}')
                                   Initializer: 
@@ -11807,7 +11807,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 'x In New In ... er() {3, 4}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
               Operand: 
-                IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {3, 4}')
+                IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {3, 4}')
                   Dimension Sizes(1):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {3, 4}')
                   Initializer: 
@@ -11870,7 +11870,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                                                             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 'x In New Integer() {1}')
                                                                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                                                               Operand: 
-                                                                                IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1}')
+                                                                                IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {1}')
                                                                                   Dimension Sizes(1):
                                                                                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {1}')
                                                                                   Initializer: 
@@ -11889,7 +11889,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                                                                             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 'y In New Integer() {2}')
                                                                                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                                                                               Operand: 
-                                                                                                IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {2}')
+                                                                                                IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {2}')
                                                                                                   Dimension Sizes(1):
                                                                                                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {2}')
                                                                                                   Initializer: 
@@ -11924,7 +11924,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                                                                         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), Language: Visual Basic) (Syntax: 'z In New Integer() {3}')
                                                                                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                                                                                           Operand: 
-                                                                                            IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {3}')
+                                                                                            IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer() {3}')
                                                                                               Dimension Sizes(1):
                                                                                                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: Visual Basic) (Syntax: 'New Integer() {3}')
                                                                                               Initializer: 

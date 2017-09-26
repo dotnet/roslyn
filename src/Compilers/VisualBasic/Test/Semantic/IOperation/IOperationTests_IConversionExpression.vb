@@ -1280,7 +1280,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Array, Language: Visual Basic) (Syntax: 'New Integer(1) {}')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer(1) {}')
+          IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), Language: Visual Basic) (Syntax: 'New Integer(1) {}')
             Dimension Sizes(1):
                 IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: '1')
                   Left: 
@@ -1318,7 +1318,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Array, Language: Visual Basic) (Syntax: 'New Integer(1)() {}')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IArrayCreationExpression (Element Type: System.Int32()) (OperationKind.ArrayCreationExpression, Type: System.Int32()(), Language: Visual Basic) (Syntax: 'New Integer(1)() {}')
+          IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()(), Language: Visual Basic) (Syntax: 'New Integer(1)() {}')
             Dimension Sizes(1):
                 IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: '1')
                   Left: 
@@ -1810,7 +1810,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Language: Visual Basic) (Syntax: 'New Char(1) {}')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IArrayCreationExpression (Element Type: System.Char) (OperationKind.ArrayCreationExpression, Type: System.Char(), Language: Visual Basic) (Syntax: 'New Char(1) {}')
+          IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Char(), Language: Visual Basic) (Syntax: 'New Char(1) {}')
             Dimension Sizes(1):
                 IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2, IsImplicit, Language: Visual Basic) (Syntax: '1')
                   Left: 

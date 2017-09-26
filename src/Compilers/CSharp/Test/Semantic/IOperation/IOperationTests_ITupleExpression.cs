@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -1042,7 +1042,7 @@ IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement, Language:
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit, Language: C#) (Syntax: 'new Point[] ... int(0, 1) }')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        IArrayCreationExpression (Element Type: Point) (OperationKind.ArrayCreationExpression, Type: Point[], Language: C#) (Syntax: 'new Point[] ... int(0, 1) }')
+        IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: Point[], Language: C#) (Syntax: 'new Point[] ... int(0, 1) }')
           Dimension Sizes(1):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit, Language: C#) (Syntax: 'new Point[] ... int(0, 1) }')
           Initializer: 

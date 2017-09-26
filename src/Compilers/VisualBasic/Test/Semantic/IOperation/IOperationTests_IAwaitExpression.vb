@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -27,9 +27,11 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IAwaitExpression (OperationKind.AwaitExpression, Type: System.Void) (Syntax: 'Await M2()')
-  Expression: IInvocationExpression ( Function C.M2() As System.Threading.Tasks.Task) (OperationKind.InvocationExpression, Type: System.Threading.Tasks.Task) (Syntax: 'M2()')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'M2')
+IAwaitExpression (OperationKind.AwaitExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Await M2()')
+  Expression: 
+    IInvocationExpression ( Function C.M2() As System.Threading.Tasks.Task) (OperationKind.InvocationExpression, Type: System.Threading.Tasks.Task, Language: Visual Basic) (Syntax: 'M2()')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit, Language: Visual Basic) (Syntax: 'M2')
       Arguments(0)
 ]]>.Value
 
@@ -52,8 +54,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IAwaitExpression (OperationKind.AwaitExpression, Type: System.Void) (Syntax: 'Await t')
-  Expression: IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: System.Threading.Tasks.Task) (Syntax: 't')
+IAwaitExpression (OperationKind.AwaitExpression, Type: System.Void, Language: Visual Basic) (Syntax: 'Await t')
+  Expression: 
+    IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: System.Threading.Tasks.Task, Language: Visual Basic) (Syntax: 't')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -76,8 +79,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IAwaitExpression (OperationKind.AwaitExpression, Type: System.Int32) (Syntax: 'Await t')
-  Expression: IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: System.Threading.Tasks.Task(Of System.Int32)) (Syntax: 't')
+IAwaitExpression (OperationKind.AwaitExpression, Type: System.Int32, Language: Visual Basic) (Syntax: 'Await t')
+  Expression: 
+    IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: System.Threading.Tasks.Task(Of System.Int32), Language: Visual Basic) (Syntax: 't')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -99,8 +103,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IAwaitExpression (OperationKind.AwaitExpression, Type: System.Void, IsInvalid) (Syntax: 'Await UndefinedTask')
-  Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'UndefinedTask')
+IAwaitExpression (OperationKind.AwaitExpression, Type: System.Void, IsInvalid, Language: Visual Basic) (Syntax: 'Await UndefinedTask')
+  Expression: 
+    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: 'UndefinedTask')
       Children(0)
 ]]>.Value
 
@@ -127,8 +132,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IAwaitExpression (OperationKind.AwaitExpression, Type: System.Void, IsInvalid) (Syntax: 'Await i')
-  Expression: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
+IAwaitExpression (OperationKind.AwaitExpression, Type: System.Void, IsInvalid, Language: Visual Basic) (Syntax: 'Await i')
+  Expression: 
+    IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid, Language: Visual Basic) (Syntax: 'i')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -154,8 +160,9 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IAwaitExpression (OperationKind.AwaitExpression, Type: System.Void, IsInvalid) (Syntax: 'Await')
-  Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+IAwaitExpression (OperationKind.AwaitExpression, Type: System.Void, IsInvalid, Language: Visual Basic) (Syntax: 'Await')
+  Expression: 
+    IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid, Language: Visual Basic) (Syntax: '')
       Children(0)
 ]]>.Value
 
@@ -182,12 +189,13 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Await t')
-  Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Await t')
+IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, Language: Visual Basic) (Syntax: 'Await t')
+  Expression: 
+    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: 'Await t')
       Children(2):
-          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Await')
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, Language: Visual Basic) (Syntax: 'Await')
             Children(0)
-          IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: System.Threading.Tasks.Task, IsInvalid) (Syntax: 't')
+          IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: System.Threading.Tasks.Task, IsInvalid, Language: Visual Basic) (Syntax: 't')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
