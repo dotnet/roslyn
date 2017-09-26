@@ -260,10 +260,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     }
 ";
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // (31,30): error CS8526: Cannot use local 'sp' in this context because it may expose referenced variables outside of their declaration scope
+                // (31,30): error CS8352: Cannot use local 'sp' in this context because it may expose referenced variables outside of their declaration scope
                 //             return ref Test1(sp);
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "sp").WithArguments("sp").WithLocation(31, 30),
-                // (31,24): error CS8521: Cannot use a result of 'Program.Test1(Program.S1)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                // (31,24): error CS8347: Cannot use a result of 'Program.Test1(Program.S1)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //             return ref Test1(sp);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "Test1(sp)").WithArguments("Program.Test1(Program.S1)", "arg").WithLocation(31, 24),
                 // (28,13): warning CS1717: Assignment made to same variable; did you mean to assign something else?
@@ -548,9 +548,9 @@ class Program
 
     }
 
-    static ref int ReturnsRef()
+    static ref int ReturnsRefTest()
     {
-        return ref ReturnsRef1(out var _ );
+        return ref ReturnsRef1(out var _);
     }
 
     static ref int ReturnsRef1(out int x)
@@ -562,11 +562,57 @@ class Program
 ";
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
                 // (12,36): error CS8156: An expression cannot be used in this context because it may not be returned by reference
-                //         return ref ReturnsRef1(out var _ );
+                //         return ref ReturnsRef1(out var _);
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "var _").WithLocation(12, 36),
                 // (12,20): error CS8347: Cannot use a result of 'Program.ReturnsRef1(out int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         return ref ReturnsRef1(out var _ );
-                Diagnostic(ErrorCode.ERR_EscapeCall, "ReturnsRef1(out var _ )").WithArguments("Program.ReturnsRef1(out int)", "x").WithLocation(12, 20)
+                //         return ref ReturnsRef1(out var _);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "ReturnsRef1(out var _)").WithArguments("Program.ReturnsRef1(out int)", "x").WithLocation(12, 20)
+                );
+        }
+
+        [Fact()]
+        public void OrdinaryLocalAndOutRef()
+        {
+            var text = @"
+
+class Program
+{
+    static void Main()
+    {
+
+    }
+
+    static ref int ReturnsRefTest1()
+    {       
+        return ref ReturnsRef(out var z);
+    }
+
+    static ref int ReturnsRefTest2()
+    {   int z;
+        return ref ReturnsRef(out z);
+    }
+
+
+    static ref int ReturnsRef(out int x)
+    {
+        x = 42;
+        return ref x;
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (12,35): error CS8168: Cannot return local 'z' by reference because it is not a ref local
+                //         return ref ReturnsRef(out var z);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "var z").WithArguments("z").WithLocation(12, 35),
+                // (12,20): error CS8347: Cannot use a result of 'Program.ReturnsRef(out int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return ref ReturnsRef(out var z);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "ReturnsRef(out var z)").WithArguments("Program.ReturnsRef(out int)", "x").WithLocation(12, 20),
+                // (17,35): error CS8168: Cannot return local 'z' by reference because it is not a ref local
+                //         return ref ReturnsRef(out z);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "z").WithArguments("z").WithLocation(17, 35),
+                // (17,20): error CS8347: Cannot use a result of 'Program.ReturnsRef(out int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return ref ReturnsRef(out z);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "ReturnsRef(out z)").WithArguments("Program.ReturnsRef(out int)", "x").WithLocation(17, 20)
                 );
         }
 
@@ -603,6 +649,7 @@ class Program
 
     static void Test3()
     {
+        // error
         ReturnsSpan(out var _ ) = stackalloc int[1];
     }
 
@@ -617,9 +664,97 @@ class Program
                 // (23,13): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //         s = stackalloc int[1];
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(23, 13),
-                // (31,35): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                // (32,35): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //         ReturnsSpan(out var _ ) = stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(31, 35)
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(32, 35)
+                );
+        }
+
+        [Fact()]
+        public void OrdinaryLocalAndOutSpan()
+        {
+            var text = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+
+    }
+
+    static Span<int> Test1()
+    {
+        var s = ReturnsSpan(out var z);
+
+        // ok
+        return s;
+    }
+
+    static Span<int> Test2()
+    {
+        ref var r = ref ReturnsSpan(out var z);
+
+        // error
+        r = stackalloc int[1];
+
+        // ok
+        return r;
+    }
+
+    static void Test3()
+    {
+        ReturnsSpan(out var z) = stackalloc int[1];
+    }
+
+    static Span<int> Test4()
+    {
+        Span<int> s;
+        var r = ReturnsSpan(out s);
+
+        // ok
+        return r;
+    }
+
+    static Span<int> Test5()
+    {
+        Span<int> s;
+        ref var r = ref ReturnsSpan(out s);
+
+        // error
+        r = stackalloc int[1];
+
+        // ok
+        return r;
+    }
+
+    static void Test6()
+    {
+        Span<int> s;
+
+        // error
+        ReturnsSpan(out s) = stackalloc int[1];
+    }
+
+    static ref Span<int> ReturnsSpan(out Span<int> x)
+    {
+        x = default;
+        return ref x;
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (23,13): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         r = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(23, 13),
+                // (31,34): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         ReturnsSpan(out var z) = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(31, 34),
+                // (49,13): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         r = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(49, 13),
+                // (60,30): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         ReturnsSpan(out s) = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(60, 30)
                 );
         }
 
