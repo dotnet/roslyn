@@ -14,6 +14,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         private const string IL_KEYWORD_MODOPT = "modopt";
         private const string IL_KEYWORD_MODREQ = "modreq";
 
+        private void VisitFieldType(IFieldSymbol symbol)
+        {
+            var fieldSymbol = symbol as FieldSymbol;
+            if ((object)fieldSymbol == null)
+            {
+                symbol.Type.Accept(this.NotFirstVisitor);
+            }
+            else
+            {
+                VisitTypeSymbolWithAnnotations(fieldSymbol.Type);
+            }
+        }
+
         public override void VisitField(IFieldSymbol symbol)
         {
             AddAccessibilityIfRequired(symbol);
@@ -24,17 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.isFirstSymbolVisited &&
                 !IsEnumMember(symbol))
             {
-                var fieldSymbol = symbol as FieldSymbol;
-
-                if ((object)fieldSymbol == null)
-                {
-                symbol.Type.Accept(this.NotFirstVisitor);
-                }
-                else
-                {
-                    VisitTypeSymbolWithAnnotations(fieldSymbol.Type);
-                }
-
+                VisitFieldType(symbol);
                 AddSpace();
 
                 AddCustomModifiersIfRequired(symbol.CustomModifiers);

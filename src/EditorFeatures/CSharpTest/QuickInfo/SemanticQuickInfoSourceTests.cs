@@ -2200,6 +2200,26 @@ var y = $$x;",
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullableReference()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp8),
+@"class A<T>
+{
+}
+class B
+{
+    static void M()
+    {
+        A<B?>? x = null!;
+        var y = x;
+        $$y.ToString();
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) A<B?>? y"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NestedInGeneric()
         {
             await TestInMethodAsync(
