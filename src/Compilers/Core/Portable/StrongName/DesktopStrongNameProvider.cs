@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis
             if (FileSystem != other.FileSystem)
             {
                 return false;
-            } 
+            }
             if (!_keyFileSearchPaths.SequenceEqual(other._keyFileSearchPaths, StringComparer.Ordinal))
             {
                 return false;
