@@ -115,10 +115,6 @@ function Process-Arguments() {
 }
 
 function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$parallel = $true) {
-    if (!$dotnet) {
-        $dotnet, $sdkDir = Ensure-SdkInPathAndData
-    }
-
     # MSBuildAdditionalCommandLineArgs=
     $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /consoleloggerparameters:Verbosity=minimal;summary /p:Configuration=$buildConfiguration";
 
@@ -143,7 +139,7 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "", [switch]$pa
     }
 
     $args += " $buildArgs"
-    if ($PSVersionTable.Platform -eq "Unix") {
+    if (Is-Unix) {
         $args = "--no-restore $args"
         $argsNoPublish = $args -replace "/t:Publish",""
         if ($args -eq $argsNoPublish) {
@@ -184,7 +180,7 @@ function Make-BootstrapBuild() {
 }
 
 function Build-Artifacts() { 
-    if ($PSVersionTable.Platform -eq "Unix") {
+    if (Is-Unix) {
         Run-MSBuild "CrossPlatform.sln"
     }
     else {
@@ -309,12 +305,8 @@ function Test-PerfRun() {
 }
 
 function Test-XUnitCoreClr() { 
-    if (!$dotnet) {
-        $dotnet, $sdkDir = Ensure-SdkInPathAndData
-    }
-
     $unitDir = Join-Path $configDir "UnitTests"
-    if ($PSVersionTable.Platform -eq "Unix") {
+    if (Is-Unix) {
         $runtimeIdentifier = "ubuntu.14.04-x64"
     }
     else {
@@ -575,7 +567,7 @@ try {
 
     Process-Arguments
 
-    if ($PSVersionTable.Platform -ne "Unix") {
+    if (!(Is-Unix)) {
         $msbuild, $msbuildDir = Ensure-MSBuildAndDir -msbuildDir $msbuildDir
     }
     $dotnet, $sdkDir = Ensure-SdkInPathAndData

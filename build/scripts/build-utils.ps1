@@ -107,6 +107,11 @@ function Exec-Script([string]$script, [string]$scriptArgs = "") {
     Exec-Command "powershell" "-noprofile -executionPolicy RemoteSigned -file `"$script`" $scriptArgs"
 }
 
+# True if we are running on Linux or MacOS
+function Is-Unix() {
+    return $PSVersionTable.PSEdition -eq "Core" -and $PSVersionTable.Platform -eq "Unix"
+}
+
 # Ensure that NuGet is installed and return the path to the 
 # executable to use.
 function Ensure-NuGet() {
@@ -137,8 +142,7 @@ function Ensure-NuGet() {
 # SDK.
 function Ensure-SdkInPathAndData() { 
     $sdkVersion = Get-ToolVersion "dotnetSdk"
-
-    if ($PSVersionTable.Platform -eq "Unix") {
+    if (Is-Unix) {
         $dotnetName = "dotnet"
     }
     else {
@@ -180,7 +184,7 @@ function Ensure-SdkInPathAndData() {
         Create-Directory $cliDir
         Create-Directory $toolsDir
         $webClient = New-Object -TypeName "System.Net.WebClient"
-        if ($PSVersionTable.Platform -eq "Unix") {
+        if (Is-Unix) {
             $destFile = Join-Path $toolsDir "dotnet-install.sh"
             $webClient.DownloadFile("https://dot.net/v1/dotnet-install.sh", $destFile)
             # AppImage mucks with LD_LIBRARY_PATH and causes the install to fail
@@ -202,8 +206,8 @@ function Ensure-SdkInPathAndData() {
 
     ${env:PATH} = "$cliDir$pathSep${env:PATH}"
     $sdkPath = Join-Path $cliDir "sdk\$sdkVersion"
-    Write-Host $dotnetExe
-    Write-Host $sdkPath
+    Write-Output $dotnetExe
+    Write-Output $sdkPath
     return
 }
 
@@ -494,7 +498,7 @@ function Restore-Packages-Dotnet([string]$dotnet = "", [string]$project = "") {
 
 # Restore all of the projects that the repo consumes
 function Restore-All([string]$msbuildDir = "", [string]$dotnet = "") {
-    if ($PSVersionTable.Platform -eq "Unix") {
+    if (Is-Unix) {
         Restore-Packages-Dotnet -dotnet $dotnet
     }
     else {
