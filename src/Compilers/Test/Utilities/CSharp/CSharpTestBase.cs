@@ -1260,7 +1260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             var comp = CreateCompilation(
                 text,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
-                options: options ?? TestOptions.ReleaseExe,
+                options: options,
                 parseOptions: parseOptions);
 
 
