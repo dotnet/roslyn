@@ -1334,9 +1334,9 @@ abstract class TestClass
 }";
 
             var comp = CreateStandardCompilation(text).VerifyDiagnostics(
-                // (5,17): error CS0663: 'TestClass' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref'
+                // (5,17): error CS0663: 'TestClass' cannot define an overloaded method that differs only on parameter modifiers 'ref readonly' and 'ref'
                 //     public void Method(ref readonly int x) { }
-                Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("TestClass", "method", "in", "ref").WithLocation(5, 17));
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("TestClass", "method", "ref readonly", "ref").WithLocation(5, 17));
         }
 
         [Fact]
@@ -1351,9 +1351,9 @@ abstract class TestClass
 }";
 
             var comp = CreateStandardCompilation(text).VerifyDiagnostics(
-                // (5,17): error CS0663: 'TestClass' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'out'
+                // (5,17): error CS0663: 'TestClass' cannot define an overloaded method that differs only on parameter modifiers 'ref readonly' and 'out'
                 //     public void Method(ref readonly int x) { }
-                Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("TestClass", "method", "in", "out").WithLocation(5, 17));
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("TestClass", "method", "ref readonly", "out").WithLocation(5, 17));
         }
     }
 }

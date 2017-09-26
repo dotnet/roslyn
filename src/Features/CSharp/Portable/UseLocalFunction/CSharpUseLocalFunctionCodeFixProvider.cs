@@ -120,8 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             var invokeMethod = delegateType.DelegateInvokeMethod;
 
-            var returnType = invokeMethod.ReturnsVoid
-                ? s_voidType
+            var returnType = invokeMethod.ReturnsByRef ? invokeMethod.ReturnType.GenerateRefTypeSyntax()
+                : invokeMethod.ReturnsByRefReadonly ? invokeMethod.ReturnType.GenerateRefReadOnlyTypeSyntax()
                 : invokeMethod.ReturnType.GenerateTypeSyntax();
 
             var identifier = localDeclaration.Declaration.Variables[0].Identifier;

@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 // 1) Verify that the range of method kinds doesn't fall outside the bounds of the
                 // method kind mask.
-                var methodKinds = EnumExtensions.GetValues<MethodKind>();
+                var methodKinds = EnumUtilities.GetValues<MethodKind>();
                 var maxMethodKind = (int)System.Linq.Enumerable.Aggregate(methodKinds, (m1, m2) => m1 | m2);
                 Debug.Assert((maxMethodKind & MethodKindMask) == maxMethodKind);
             }
@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal PEParameterSymbol ReturnTypeParameter => Signature.ReturnParam;
 
-        internal override RefKind RefKind => Signature.ReturnParam.RefKind;
+        public override RefKind RefKind => Signature.ReturnParam.RefKind;
 
         public override TypeSymbol ReturnType => Signature.ReturnParam.Type;
 

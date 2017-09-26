@@ -90,8 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
 
-            var returnType = method.ReturnsByRef
-                ? method.ReturnType.GenerateRefTypeSyntax()
+            var returnType = method.ReturnsByRef ? method.ReturnType.GenerateRefTypeSyntax()
+                : method.ReturnsByRefReadonly ? method.ReturnType.GenerateRefReadOnlyTypeSyntax()
                 : method.ReturnType.GenerateTypeSyntax();
 
             var methodDeclaration = SyntaxFactory.MethodDeclaration(

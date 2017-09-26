@@ -76,13 +76,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 // 1) Verify that the range of well known attributes doesn't fall outside the bounds of
                 // the attribute completion and data mask.
-                var attributeFlags = EnumExtensions.GetValues<WellKnownAttributeFlags>();
+                var attributeFlags = EnumUtilities.GetValues<WellKnownAttributeFlags>();
                 var maxAttributeFlag = (int)System.Linq.Enumerable.Aggregate(attributeFlags, (f1, f2) => f1 | f2);
                 Debug.Assert((maxAttributeFlag & WellKnownAttributeDataMask) == maxAttributeFlag);
 
                 // 2) Verify that the range of ref kinds doesn't fall outside the bounds of
                 // the ref kind mask.
-                var refKinds = EnumExtensions.GetValues<RefKind>();
+                var refKinds = EnumUtilities.GetValues<RefKind>();
                 var maxRefKind = (int)System.Linq.Enumerable.Aggregate(refKinds, (r1, r2) => r1 | r2);
                 Debug.Assert((maxRefKind & RefKindMask) == maxRefKind);
             }

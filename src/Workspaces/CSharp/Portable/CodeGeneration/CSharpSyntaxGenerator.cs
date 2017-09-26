@@ -120,17 +120,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 initializer != null ? SyntaxFactory.EqualsValueClause((ExpressionSyntax)initializer) : null);
         }
 
-        private static SyntaxTokenList GetParameterModifiers(RefKind refKind)
+        internal static SyntaxTokenList GetParameterModifiers(RefKind refKind)
         {
             switch (refKind)
             {
                 case RefKind.None:
-                default:
-                    return default;
+                    return new SyntaxTokenList();
                 case RefKind.Out:
                     return SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.OutKeyword));
                 case RefKind.Ref:
                     return SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword));
+                case RefKind.RefReadOnly:
+                    return SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(refKind);
+            }
+        }
+
+        internal static SyntaxToken GetArgumentModifiers(RefKind refKind)
+        {
+            switch (refKind)
+            {
+                case RefKind.None:
+                case RefKind.RefReadOnly:
+                    return default;
+                case RefKind.Out:
+                    return SyntaxFactory.Token(SyntaxKind.OutKeyword);
+                case RefKind.Ref:
+                    return SyntaxFactory.Token(SyntaxKind.RefKeyword);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(refKind);
             }
         }
 
@@ -1486,7 +1505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return this.Isolate(declaration, d =>
             {
                 var tokens = GetModifierTokens(d);
-                GetAccessibilityAndModifiers(tokens, out var tmp, out var modifiers);
+                GetAccessibilityAndModifiers(tokens, out _, out var modifiers);
                 var newTokens = Merge(tokens, AsModifierList(accessibility, modifiers));
                 return SetModifierTokens(d, newTokens);
             });
@@ -1783,10 +1802,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 list = list.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
             }
 
-            // partial must be last
+            // partial and ref must be last
             if (modifiers.IsPartial)
             {
                 list = list.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword));
+            }
+
+            if (modifiers.IsRef)
+            {
+                list = list.Add(SyntaxFactory.Token(SyntaxKind.RefKeyword));
             }
 
             return list;
@@ -1886,6 +1910,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                     case SyntaxKind.PartialKeyword:
                         modifiers = modifiers | DeclarationModifiers.Partial;
+                        break;
+
+                    case SyntaxKind.RefKeyword:
+                        modifiers = modifiers | DeclarationModifiers.Ref;
                         break;
                 }
             }
@@ -4005,8 +4033,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return SyntaxFactory.Argument(
                 nameOpt == null ? null : SyntaxFactory.NameColon(nameOpt),
-                refKind == RefKind.Ref ? SyntaxFactory.Token(SyntaxKind.RefKeyword) :
-                refKind == RefKind.Out ? SyntaxFactory.Token(SyntaxKind.OutKeyword) : default,
+                GetArgumentModifiers(refKind),
                 (ExpressionSyntax)expression);
         }
 

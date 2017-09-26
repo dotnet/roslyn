@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override RefKind RefKind => _refKind;
+        public override RefKind RefKind => _refKind;
         
         internal void ComputeReturnType()
         {

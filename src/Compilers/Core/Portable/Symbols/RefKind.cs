@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis
         Out = 2,
 
         /// <summary>
-        /// Indicates a "ref readonly" or an "in" parameter.
+        /// Indicates a "ref readonly" parameter.
         /// </summary>
         RefReadOnly = 3,
     }
@@ -38,8 +39,8 @@ namespace Microsoft.CodeAnalysis
             {
                 case RefKind.Out: return "out";
                 case RefKind.Ref: return "ref";
-                case RefKind.RefReadOnly: return "in";
-                default: throw new ArgumentException($"Invalid RefKind for parameters: {kind}");
+                case RefKind.RefReadOnly: return "ref readonly";
+                default: throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis
             {
                 case RefKind.Out: return "out";
                 case RefKind.Ref: return "ref";
-                default: throw new ArgumentException($"Invalid RefKind for arguments: {kind}");
+                default: throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 
@@ -60,7 +61,8 @@ namespace Microsoft.CodeAnalysis
                 case RefKind.Out: return "out ";
                 case RefKind.Ref: return "ref ";
                 case RefKind.RefReadOnly: return "ref readonly ";
-                default: return string.Empty;
+                case RefKind.None: return string.Empty;
+                default: throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
     }

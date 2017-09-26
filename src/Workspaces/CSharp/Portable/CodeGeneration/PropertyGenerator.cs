@@ -109,9 +109,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static TypeSyntax GeneratePropertyType(IPropertySymbol property)
         {
-            return property.ReturnsByRef
-                            ? property.Type.GenerateRefTypeSyntax()
-                            : property.Type.GenerateTypeSyntax();
+            return property.ReturnsByRef ? property.Type.GenerateRefTypeSyntax()
+                : property.ReturnsByRefReadonly ? property.Type.GenerateRefReadOnlyTypeSyntax()
+                : property.Type.GenerateTypeSyntax();
         }
 
         private static MemberDeclarationSyntax GeneratePropertyDeclaration(
