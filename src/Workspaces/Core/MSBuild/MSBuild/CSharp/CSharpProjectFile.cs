@@ -73,7 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var commandLineArgs = this.GetCommandLineArgsFromModel(project)
                 .Select(item => item.ItemSpec)
-                .Where(item => item.StartsWith("/"))
                 .ToImmutableArray();
 
             if (commandLineArgs.Length == 0)
