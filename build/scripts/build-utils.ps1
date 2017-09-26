@@ -413,7 +413,7 @@ function Restore-Project([string]$fileName, [string]$nuget, [string]$msbuildDir)
 }
 
 # Restore all of the projects that the repo consumes
-function Restore-Packages([string]$msbuildDir = "", [string]$project = "") {
+function Restore-Packages([string]$msbuildDir = "", [string]$project = "", [string]$bootstrap = $false) {
     $nuget = Ensure-NuGet
     if ($msbuildDir -eq "") {
         $msbuildDir = Get-MSBuildDir
@@ -434,6 +434,10 @@ function Restore-Packages([string]$msbuildDir = "", [string]$project = "") {
             "Templates:src\Setup\Templates\Templates.sln",
             "DevDivInsertionFiles:src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.sln")
 
+        if ($bootstrap) {
+            $all += "Bootstrap Toolset:build\ToolsetPackages\BootstrapToolset.csproj"
+        }
+
         foreach ($cur in $all) {
             $both = $cur.Split(':')
             Write-Host "Restoring $($both[0])"
@@ -443,7 +447,7 @@ function Restore-Packages([string]$msbuildDir = "", [string]$project = "") {
 }
 
 # Restore all of the projects that the repo consumes
-function Restore-All([string]$msbuildDir = "") {
-    Restore-Packages -msbuildDir $msbuildDir
+function Restore-All([string]$msbuildDir = "", [string]$bootstrap = $false) {
+    Restore-Packages -msbuildDir $msbuildDir -bootstrap $bootstrap
 }
 

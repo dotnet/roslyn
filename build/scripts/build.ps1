@@ -568,7 +568,7 @@ try {
 
     if ($restore) { 
         Write-Host "Running restore"
-        Restore-All -msbuildDir $msbuildDir 
+        Restore-All -msbuildDir $msbuildDir -bootstrap $bootstrap
     }
 
     if ($bootstrap) {
