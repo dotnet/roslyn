@@ -1204,9 +1204,7 @@ public class Z
             var options = TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultPortableProvider);
             var other = CreateStandardCompilation(s, options: options);
 
-            var outStrm = new MemoryStream();
-            var success = other.Emit(outStrm);
-            Assert.True(success.Success);
+            var outStrm = other.EmitToStream();
 
             ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyFileAttribute, legacyStrongName: false);
         }
@@ -1220,9 +1218,7 @@ public class Z
             var options = TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider);
             var other = CreateStandardCompilation(s, options: options);
 
-            var outStrm = new MemoryStream();
-            var success = other.Emit(outStrm);
-            Assert.True(success.Success);
+            var outStrm = other.EmitToStream();
 
             ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyFileAttribute, legacyStrongName: true);
         }
@@ -1235,9 +1231,7 @@ public class Z
             var options = TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider);
             var other = CreateStandardCompilation(s, options: options);
 
-            var outStrm = new MemoryStream();
-            var success = other.Emit(outStrm);
-            Assert.True(success.Success);
+            var outStrm = other.EmitToStream();
 
             ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyNameAttribute, legacyStrongName: true);
         }
@@ -1289,11 +1283,7 @@ public class Z
             var options = TestOptions.ReleaseModule.WithCryptoKeyFile(PublicKeyFile).WithStrongNameProvider(s_defaultPortableProvider);
             var other = CreateStandardCompilation(s, options: options);
 
-            var outStrm = new MemoryStream();
-            var success = other.Emit(outStrm);
-            outStrm.Position = 0;
-
-            Assert.True(success.Success);
+            var outStrm = other.EmitToStream();
             Assert.False(IsStreamSigned(outStrm));
         }
 
@@ -1305,11 +1295,7 @@ public class Z
             var options = TestOptions.ReleaseModule.WithCryptoKeyFile(PublicKeyFile).WithStrongNameProvider(s_defaultDesktopProvider);
             var other = CreateStandardCompilation(s, options: options);
 
-            var outStrm = new MemoryStream();
-            var success = other.Emit(outStrm);
-            outStrm.Position = 0;
-
-            Assert.True(success.Success);
+            var outStrm = other.EmitToStream();
             Assert.False(IsStreamSigned(outStrm));
         }
 
