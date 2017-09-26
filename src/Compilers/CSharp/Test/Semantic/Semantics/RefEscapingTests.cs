@@ -2386,5 +2386,415 @@ class Program
 }
 ");
         }
+
+        [Fact]
+        public void DeconstructionAssignmentToGlobal()
+        {
+            var text = @"
+using System;
+
+public class C
+{
+    public void M(ref Span<int> global)
+    {
+        Span<int> local = stackalloc int[10];
+        (global, global) = global;
+        (global, global) = local; // error 1
+        (global, local) = local; // error 2
+        (local, local) = local;
+        (global, _) = local; // error 3
+        (local, _) = local; // error 4
+        (global, _) = global;
+    }
+    public static void Main()
+    {
+    }
+}
+public static class Extensions
+{
+    public static void Deconstruct(this Span<int> self, out Span<int> x, out Span<int> y)
+    {
+        throw null;
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (10,28): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
+                //         (global, global) = local; // error 1
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(10, 28),
+                // (11,27): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
+                //         (global, local) = local; // error 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(11, 27),
+                // (13,23): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
+                //         (global, _) = local; // error 3
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(13, 23),
+                // (14,22): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
+                //         (local, _) = local; // error 4
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(14, 22),
+                // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1)
+            );
+        }
+
+        [Fact]
+        public void DeconstructionAssignmentToRefMethods()
+        {
+            var text = @"
+using System;
+
+public class C
+{
+    public void M(ref Span<int> global)
+    {
+        Span<int> local = stackalloc int[10];
+        (M(), M()) = local;
+    }
+    public static void Main() => throw null;
+    public ref Span<int> M() => throw null;
+}
+public static class Extensions
+{
+    public static void Deconstruct(this Span<int> self, out Span<int> x, out Span<int> y) => throw null;
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (9,22): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
+                //         (M(), M()) = local;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(9, 22),
+                // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1)
+            );
+        }
+
+        [Fact]
+        public void DeconstructionAssignmentWithRefExtension()
+        {
+            var text = @"
+using System;
+
+public class C
+{
+    public void M(ref Span<int> global)
+    {
+        (global, global) = global;
+    }
+    public static void Main() => throw null;
+}
+public static class Extensions
+{
+    public static void Deconstruct(ref this Span<int> self, out Span<int> x, out Span<int> y) => throw null;
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (8,9): error CS1510: A ref or out value must be an assignable variable
+                //         (global, global) = global;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(global, global) = global").WithLocation(8, 9),
+                // (8,28): error CS8129: No suitable Deconstruct instance or extension method was found for type 'Span<int>', with 2 out parameters and a void return type.
+                //         (global, global) = global;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "global").WithArguments("System.Span<int>", "2").WithLocation(8, 28),
+                // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1)
+            );
+        }
+
+        [Fact]
+        public void DeconstructionAssignmentWithRefReadonlyExtension()
+        {
+            var text = @"
+using System;
+
+public class C
+{
+    public void M(ref Span<int> global)
+    {
+        Span<int> local = stackalloc int[10];
+        (global, global) = global;
+        (global, global) = local;
+    }
+    public static void Main() => throw null;
+}
+public static class Extensions
+{
+    public static void Deconstruct(ref readonly this Span<int> self, out Span<int> x, out Span<int> y) => throw null;
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (10,28): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
+                //         (global, global) = local;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(10, 28),
+                // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1)
+            );
+        }
+
+        [Fact]
+        public void DeconstructionAssignmentWithReturnValue()
+        {
+            var text = @"
+using System;
+
+public class C
+{
+    public void M(ref Span<int> global)
+    {
+        var t = ((global, global) = global);
+    }
+    public static void Main() => throw null;
+}
+public static class Extensions
+{
+    public static void Deconstruct(this Span<int> self, out Span<int> x, out Span<int> y) => throw null;
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (8,19): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         var t = ((global, global) = global);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(8, 19),
+                // (8,27): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         var t = ((global, global) = global);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(8, 27),
+                // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1)
+            );
+        }
+
+        [Fact]
+        public void DeconstructionAssignmentOfTuple()
+        {
+            var text = @"
+using System;
+
+public class C
+{
+    public void M(ref Span<int> global)
+    {
+        Span<int> local = stackalloc int[10];
+        (global, global) = (local, local);
+    }
+    public static void Main() => throw null;
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (9,29): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         (global, global) = (local, local);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(9, 29),
+                // (9,36): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         (global, global) = (local, local);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(9, 36)
+            );
+        }
+
+        [Fact]
+        public void DeconstructionAssignmentOfRefLikeTuple()
+        {
+            var text = @"
+using System;
+
+public class C
+{
+    public void M(ref Span<int> global)
+    {
+        Span<int> local = stackalloc int[10];
+        (global, global) = (local, local);
+    }
+    public static void Main() => throw null;
+}
+namespace System
+{
+    // Note: there is no way to make a ValueTuple type that will hold Spans and still be recognized as well-known type for tuples
+    public ref struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (9,29): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         (global, global) = (local, local);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(9, 29),
+                // (9,36): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         (global, global) = (local, local);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(9, 36)
+            );
+        }
+
+        [Fact]
+        public void DeconstructionAssignmentToOuter()
+        {
+            var text = @"
+using System;
+
+public class C
+{
+    public void M()
+    {
+        Span<int> outer = stackalloc int[10];
+
+        {
+            Span<int> local = stackalloc int[10]; // both stackallocs have the same escape scope
+            (outer, outer) = outer;
+            (outer, outer) = local;
+            (outer, local) = local;
+            (local, local) = local;
+        }
+    }
+    public static void Main() => throw null;
+}
+public static class Extensions
+{
+    public static void Deconstruct(this Span<int> self, out Span<int> x, out Span<int> y) => throw null;
+}
+";
+
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1)
+            );
+        }
+
+        [Fact]
+        public void DeconstructionDeclaration()
+        {
+            var text = @"
+using System;
+
+public class C
+{
+    public void M(ref Span<int> global)
+    {
+        Span<int> local = stackalloc int[10];
+        var (local1, local2) = local;
+        global = local1;
+        global = local2;
+
+        var (local3, local4) = global;
+        global = local3;
+        global = local4;
+    }
+    public static void Main() => throw null;
+}
+public static class Extensions
+{
+    public static void Deconstruct(this Span<int> self, out Span<int> x, out Span<int> y) => throw null;
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (10,18): error CS8352: Cannot use local 'local1' in this context because it may expose referenced variables outside of their declaration scope
+                //         global = local1;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local1").WithArguments("local1").WithLocation(10, 18),
+                // (11,18): error CS8352: Cannot use local 'local2' in this context because it may expose referenced variables outside of their declaration scope
+                //         global = local2;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local2").WithArguments("local2").WithLocation(11, 18),
+                // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void RefLikeForeach()
+        {
+            var text = @"
+using System;
+
+public class C
+{
+    public void M(ref S global)
+    {
+        S localCollection = stackalloc int[10];
+        foreach (var local in localCollection)
+        {
+            global = local;
+        }
+    }
+    public static void Main() => throw null;
+}
+
+public ref struct S
+{
+    public S GetEnumerator() => throw null;
+    public bool MoveNext() => throw null;
+    public S Current => throw null;
+    public static implicit operator S(Span<int> s) => throw null;
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (11,22): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
+                //             global = local;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(11, 22)
+                );
+        }
+
+        [Fact]
+        public void RefLikeDeconstructionForeach()
+        {
+            var text = @"
+using System;
+
+public class C
+{
+    public void M(ref S global)
+    {
+        S localCollection = stackalloc int[10];
+        foreach (var (local1, local2) in localCollection)
+        {
+            global = local1; // error 1
+            global = local2; // error 2
+        }
+    }
+    public static void Main() => throw null;
+}
+
+public ref struct S
+{
+    public S GetEnumerator() => throw null;
+    public bool MoveNext() => throw null;
+    public S Current => throw null;
+    public static implicit operator S(Span<int> s) => throw null;
+    public void Deconstruct(out S s1, out S s2) => throw null;
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (11,22): error CS8352: Cannot use local 'local1' in this context because it may expose referenced variables outside of their declaration scope
+                //             global = local1; // error 1
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local1").WithArguments("local1").WithLocation(11, 22),
+                // (12,22): error CS8352: Cannot use local 'local2' in this context because it may expose referenced variables outside of their declaration scope
+                //             global = local2; // error 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local2").WithArguments("local2").WithLocation(12, 22)
+                );
+        }
     }
 }

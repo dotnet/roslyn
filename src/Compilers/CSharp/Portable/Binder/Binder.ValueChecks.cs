@@ -1958,6 +1958,27 @@ moreArguments:
             return false;
         }
 
+        internal static uint GetBroadestValEscape(BoundTupleExpression expr, uint scopeOfTheContainingExpression)
+        {
+            uint broadest = scopeOfTheContainingExpression;
+            foreach (var element in expr.Arguments)
+            {
+                uint valEscape;
+                if (element.Kind == BoundKind.TupleLiteral)
+                {
+                    valEscape = GetBroadestValEscape((BoundTupleExpression)element, scopeOfTheContainingExpression);
+                }
+                else
+                {
+                    valEscape = GetValEscape(element, scopeOfTheContainingExpression);
+                }
+
+                broadest = Math.Min(broadest, valEscape);
+            }
+
+            return broadest;
+        }
+
         /// <summary>
         /// Computes the widest scope depth to which the given expression can escape by value.
         /// 
@@ -1990,6 +2011,8 @@ moreArguments:
                 case BoundKind.DefaultExpression:
                 case BoundKind.Parameter:
                 case BoundKind.ThisReference:
+                case BoundKind.TupleLiteral:
+                case BoundKind.ConvertedTupleLiteral:
                     // always returnable
                     return Binder.ExternalScope;
 
@@ -2003,6 +2026,9 @@ moreArguments:
                 case BoundKind.DiscardExpression:
                     // same as uninitialized local
                     return Binder.ExternalScope;
+
+                case BoundKind.DeconstructValuePlaceholder:
+                    return ((BoundDeconstructValuePlaceholder)expr).ValEscape;
 
                 case BoundKind.Local:
                     return ((BoundLocal)expr).LocalSymbol.ValEscapeScope;
@@ -2237,6 +2263,8 @@ moreArguments:
                 case BoundKind.DefaultExpression:
                 case BoundKind.Parameter:
                 case BoundKind.ThisReference:
+                case BoundKind.TupleLiteral:
+                case BoundKind.ConvertedTupleLiteral:
                     // always returnable
                     return true;
 
@@ -2247,6 +2275,15 @@ moreArguments:
 
                 case BoundKind.DiscardExpression:
                     // same as uninitialized local
+                    return true;
+
+                case BoundKind.DeconstructValuePlaceholder:
+                    var placeholder = (BoundDeconstructValuePlaceholder)expr;
+                    if (placeholder.ValEscape > escapeTo)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, placeholder.Syntax);
+                        return false;
+                    }
                     return true;
 
                 case BoundKind.Local:
@@ -2463,8 +2500,6 @@ moreArguments:
 //                case BoundKind.NameOfOperator:
 //                case BoundKind.InterpolatedString:
 //                case BoundKind.StringInsert:
-//                case BoundKind.TupleLiteral:
-//                case BoundKind.ConvertedTupleLiteral:
 //                case BoundKind.DynamicIndexerAccess:
 //                case BoundKind.Lambda:
 //                case BoundKind.DynamicObjectCreationExpression:
@@ -2541,7 +2576,6 @@ moreArguments:
 //                case BoundKind.DeclarationPattern:
 //                case BoundKind.ConstantPattern:
 //                case BoundKind.WildcardPattern:
-//                case BoundKind.DeconstructValuePlaceholder:
 
                 #endregion
 
