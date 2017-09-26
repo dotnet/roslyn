@@ -788,6 +788,9 @@
 
   <Node Name="BoundPatternSwitchStatement" Base="BoundStatement">
     <Field Name="Expression" Type="BoundExpression"/>
+    
+    <!-- SomeValueMatched is true if some case label would always match. -->
+    <Field Name="SomeLabelAlwaysMatches" Type="bool"/>
 
     <!-- Locals declared immediately within the switch block. -->
     <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>

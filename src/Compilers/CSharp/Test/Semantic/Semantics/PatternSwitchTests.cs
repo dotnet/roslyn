@@ -363,9 +363,12 @@ public class X : List<string>
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (8,18): error CS8121: An expression of type string cannot be handled by a pattern of type int.
+                // (8,18): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'int'.
                 //             case int i: // error: type mismatch.
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("string", "int").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("string", "int").WithLocation(8, 18),
+                // (9,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(9, 17)
                 );
         }
 
@@ -552,7 +555,7 @@ null";
             case bool b: // error: subsumed
                 break; // unreachable
             default: //ok
-                break; // always considered reachable
+                break; // unreachable because a single case handles all input
         }
     }
 }";
@@ -563,7 +566,10 @@ null";
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "bool b").WithLocation(10, 18),
                 // (11,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17),
+                // (13,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable because a single case handles all input
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 17)
                 );
         }
 
@@ -3057,13 +3063,13 @@ class Program
             case System.IComparable c:
                 break;
             case 2: // error: subsumed
-                break; // unreachable
+                break; // unreachable (1)
             case int n: // error: subsumed
-                break; // unreachable
+                break; // unreachable (2)
             case var i: // error: subsumed
-                break; // unreachable
+                break; // unreachable (3)
             default:
-                break; // ok; default case is always considered reachable
+                break; // unreachable, because `var i` would catch all
         }
     }
 }
@@ -3080,14 +3086,17 @@ class Program
                 //             case var i: // error: subsumed
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var i").WithLocation(16, 18),
                 // (13,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
+                //                 break; // unreachable (1)
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 17),
                 // (15,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
+                //                 break; // unreachable (2)
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(15, 17),
                 // (17,17): warning CS0162: Unreachable code detected
-                //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(17, 17)
+                //                 break; // unreachable (3)
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(17, 17),
+                // (19,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable, because `var i` would catch all
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(19, 17)
                 );
         }
 
@@ -3107,7 +3116,7 @@ class Program
             case System.ValueTuple<int, int> x: // error: subsumed
                 break; // unreachable
             default:
-                break; // ok; default case is always considered reachable
+                break; // unreachable because a single case handles all input
         }
     }
 }
@@ -3120,8 +3129,11 @@ class Program
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "System.ValueTuple<int, int> x").WithLocation(10, 18),
                 // (11,17): warning CS0162: Unreachable code detected
                 //                 break; // unreachable
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
-                );
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17),
+                // (13,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable because a single case handles all input
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 17)
+               );
         }
 
         [Fact]
