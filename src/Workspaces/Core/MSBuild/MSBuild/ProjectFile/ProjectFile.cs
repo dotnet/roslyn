@@ -49,11 +49,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             get { return _errorMessage; }
         }
 
-        public string GetPropertyValue(string name)
-        {
-            return _loadedProject.GetPropertyValue(name);
-        }
-
         public abstract SourceCodeKind GetSourceCodeKind(string documentFileName);
         public abstract string GetDocumentExtension(SourceCodeKind kind);
         public abstract Task<ProjectFileInfo> GetProjectFileInfoAsync(CancellationToken cancellationToken);
@@ -70,21 +65,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        protected async Task<BuildInfo> BuildAsync(string taskName, MSB.Framework.ITaskHost taskHost, CancellationToken cancellationToken)
+        protected async Task<BuildInfo> BuildAsync(CancellationToken cancellationToken)
         {
             // create a project instance to be executed by build engine.
             // The executed project will hold the final model of the project after execution via msbuild.
             var executedProject = _loadedProject.CreateProjectInstance();
 
-            if (!executedProject.Targets.ContainsKey("Compile"))
+            if (!executedProject.Targets.ContainsKey("Compile") &&
+                !executedProject.Targets.ContainsKey("CoreCompile"))
             {
+                // TODO: Add error message when project does not contain appropriate targets
                 return new BuildInfo(executedProject, null);
             }
-
-            var hostServices = new MSB.Execution.HostServices();
-
-            // connect the host "callback" object with the host services, so we get called back with the exact inputs to the compiler task.
-            hostServices.RegisterHostObject(_loadedProject.FullPath, "CoreCompile", taskName, taskHost);
 
             var buildParameters = new MSB.Execution.BuildParameters(_loadedProject.ProjectCollection);
 
@@ -93,7 +85,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var errorLogger = new ErrorLogger(errorBuilder) { Verbosity = MSB.Framework.LoggerVerbosity.Normal };
             buildParameters.Loggers = new MSB.Framework.ILogger[] { errorLogger };
 
-            var buildRequestData = new MSB.Execution.BuildRequestData(executedProject, new string[] { "Compile" }, hostServices);
+            var buildRequestData = new MSB.Execution.BuildRequestData(executedProject, new string[] { "Compile", "CoreCompile" });
 
             var result = await this.BuildAsync(buildParameters, buildRequestData, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
 
@@ -230,18 +222,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return Path.GetDirectoryName(this.GetAbsolutePath(targetPath));
         }
 
-        protected virtual string GetAssemblyName()
-        {
-            var assemblyName = _loadedProject.GetPropertyValue("AssemblyName");
-
-            if (string.IsNullOrEmpty(assemblyName))
-            {
-                assemblyName = Path.GetFileNameWithoutExtension(_loadedProject.FullPath);
-            }
-
-            return PathUtilities.GetFileName(assemblyName);
-        }
-
         protected static bool IsProjectReferenceOutputAssembly(MSB.Framework.ITaskItem item)
         {
             return item.GetMetadata("ReferenceOutputAssembly") == "true";
@@ -277,10 +257,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             return executedProject
                 .GetItems("ProjectReference")
-                .Where(i => !string.Equals(
-                    i.GetMetadataValue("ReferenceOutputAssembly"),
-                    bool.FalseString,
-                    StringComparison.OrdinalIgnoreCase))
+                .Where(i => !string.Equals(i.GetMetadataValue("ReferenceOutputAssembly"), bool.FalseString, StringComparison.OrdinalIgnoreCase))
                 .Select(CreateProjectFileReference);
         }
 
@@ -293,6 +270,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 path: reference.EvaluatedInclude,
                 aliases: ImmutableArray<string>.Empty);
         }
+
+        protected abstract IEnumerable<MSB.Framework.ITaskItem> GetCommandLineArgsFromModel(MSB.Execution.ProjectInstance executedProject);
 
         protected virtual IEnumerable<MSB.Framework.ITaskItem> GetDocumentsFromModel(MSB.Execution.ProjectInstance executedProject)
         {
@@ -326,7 +305,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         protected string GetItemString(MSB.Execution.ProjectInstance executedProject, string itemType)
         {
-            string text = "";
+            var text = "";
+
             foreach (var item in executedProject.GetItems(itemType))
             {
                 if (text.Length > 0)
@@ -338,122 +318,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             return text;
-        }
-
-        protected string ReadPropertyString(MSB.Execution.ProjectInstance executedProject, string propertyName)
-        {
-            return this.ReadPropertyString(executedProject, propertyName, propertyName);
-        }
-
-        protected string ReadPropertyString(MSB.Execution.ProjectInstance executedProject, string executedPropertyName, string evaluatedPropertyName)
-        {
-            var executedProperty = executedProject.GetProperty(executedPropertyName);
-            if (executedProperty != null)
-            {
-                return executedProperty.EvaluatedValue;
-            }
-
-            var evaluatedProperty = _loadedProject.GetProperty(evaluatedPropertyName);
-            if (evaluatedProperty != null)
-            {
-                return evaluatedProperty.EvaluatedValue;
-            }
-
-            return null;
-        }
-
-        protected bool ReadPropertyBool(MSB.Execution.ProjectInstance executedProject, string propertyName)
-        {
-            return ConvertToBool(ReadPropertyString(executedProject, propertyName));
-        }
-
-        protected bool ReadPropertyBool(MSB.Execution.ProjectInstance executedProject, string executedPropertyName, string evaluatedPropertyName)
-        {
-            return ConvertToBool(ReadPropertyString(executedProject, executedPropertyName, evaluatedPropertyName));
-        }
-
-        private static bool ConvertToBool(string value)
-        {
-            return value != null && (string.Equals("true", value, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals("On", value, StringComparison.OrdinalIgnoreCase));
-        }
-
-        protected int ReadPropertyInt(MSB.Execution.ProjectInstance executedProject, string propertyName)
-        {
-            return ConvertToInt(ReadPropertyString(executedProject, propertyName));
-        }
-
-        protected int ReadPropertyInt(MSB.Execution.ProjectInstance executedProject, string executedPropertyName, string evaluatedPropertyName)
-        {
-            return ConvertToInt(ReadPropertyString(executedProject, executedPropertyName, evaluatedPropertyName));
-        }
-
-        private static int ConvertToInt(string value)
-        {
-            if (value == null)
-            {
-                return 0;
-            }
-            else
-            {
-                int.TryParse(value, out var result);
-                return result;
-            }
-        }
-
-        protected ulong ReadPropertyULong(MSB.Execution.ProjectInstance executedProject, string propertyName)
-        {
-            return ConvertToULong(ReadPropertyString(executedProject, propertyName));
-        }
-
-        protected ulong ReadPropertyULong(MSB.Execution.ProjectInstance executedProject, string executedPropertyName, string evaluatedPropertyName)
-        {
-            return ConvertToULong(this.ReadPropertyString(executedProject, executedPropertyName, evaluatedPropertyName));
-        }
-
-        private static ulong ConvertToULong(string value)
-        {
-            if (value == null)
-            {
-                return 0;
-            }
-            else
-            {
-                ulong.TryParse(value, out var result);
-                return result;
-            }
-        }
-
-        protected TEnum? ReadPropertyEnum<TEnum>(MSB.Execution.ProjectInstance executedProject, string propertyName)
-            where TEnum : struct
-        {
-            return ConvertToEnum<TEnum>(ReadPropertyString(executedProject, propertyName));
-        }
-
-        protected TEnum? ReadPropertyEnum<TEnum>(MSB.Execution.ProjectInstance executedProject, string executedPropertyName, string evaluatedPropertyName)
-            where TEnum : struct
-        {
-            return ConvertToEnum<TEnum>(ReadPropertyString(executedProject, executedPropertyName, evaluatedPropertyName));
-        }
-
-        private static TEnum? ConvertToEnum<TEnum>(string value)
-            where TEnum : struct
-        {
-            if (value == null)
-            {
-                return null;
-            }
-            else
-            {
-                if (Enum.TryParse<TEnum>(value, out var result))
-                {
-                    return result;
-                }
-                else
-                {
-                    return null;
-                }
-            }
         }
 
         /// <summary>
@@ -528,11 +392,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        protected string GetReferenceFilePath(MSB.Execution.ProjectItemInstance projectItem)
-        {
-            return GetAbsolutePath(projectItem.EvaluatedInclude);
-        }
-
         public void AddDocument(string filePath, string logicalPath = null)
         {
             var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, filePath);
@@ -585,7 +444,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
                 else // other location -- need hint to find correct assembly
                 {
-                    string relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, peRef.FilePath);
+                    var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, peRef.FilePath);
                     var fileName = Path.GetFileNameWithoutExtension(peRef.FilePath);
                     metadata.Add("HintPath", relativePath);
                     _loadedProject.AddItem("Reference", fileName, metadata);
@@ -655,7 +514,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // check for file path match
             if (item == null)
             {
-                string relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, filePath);
+                var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, filePath);
 
                 item = references.FirstOrDefault(it => PathUtilities.PathsEqual(it.EvaluatedInclude, filePath)
                                                     || PathUtilities.PathsEqual(it.EvaluatedInclude, relativePath)
@@ -692,13 +551,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 metadata.Add("Aliases", string.Join(",", reference.Aliases));
             }
 
-            string relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, reference.Path);
+            var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, reference.Path);
             _loadedProject.AddItem("ProjectReference", relativePath, metadata);
         }
 
         public void RemoveProjectReference(string projectName, string projectFilePath)
         {
-            string relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, projectFilePath);
+            var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, projectFilePath);
             var item = FindProjectReferenceItem(projectName, projectFilePath);
             if (item != null)
             {
@@ -709,7 +568,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private MSB.Evaluation.ProjectItem FindProjectReferenceItem(string projectName, string projectFilePath)
         {
             var references = _loadedProject.GetItems("ProjectReference");
-            string relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, projectFilePath);
+            var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, projectFilePath);
 
             MSB.Evaluation.ProjectItem item = null;
 
@@ -730,7 +589,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (reference is AnalyzerFileReference fileRef)
             {
-                string relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, fileRef.FullPath);
+                var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, fileRef.FullPath);
                 _loadedProject.AddItem("Analyzer", relativePath);
             }
         }
@@ -739,7 +598,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (reference is AnalyzerFileReference fileRef)
             {
-                string relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, fileRef.FullPath);
+                var relativePath = PathUtilities.GetRelativePath(_loadedProject.DirectoryPath, fileRef.FullPath);
 
                 var analyzers = _loadedProject.GetItems("Analyzer");
                 var item = analyzers.FirstOrDefault(it => PathUtilities.PathsEqual(it.EvaluatedInclude, relativePath)

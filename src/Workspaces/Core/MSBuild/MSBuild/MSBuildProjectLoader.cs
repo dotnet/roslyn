@@ -323,11 +323,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
             if (projectFileInfo.ErrorMessage != null)
             {
                 ReportFailure(ReportMode.Log, GetMsbuildFailedMessage(projectFilePath, projectFileInfo.ErrorMessage));
+
+                // if we failed during load there won't be any project file info, so bail early with empty project.
+                loadedProjects.Add(CreateEmptyProjectInfo(projectId, projectFilePath, loader.Language));
+                return projectId;
             }
 
             var projectDirectory = Path.GetDirectoryName(projectFilePath);
-            var outputFilePath = projectFileInfo.OutputFilePath;
-            var outputDirectory = Path.GetDirectoryName(outputFilePath);
 
             var version = GetProjectVersion(projectFilePath);
 
@@ -421,7 +423,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     .WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray<string>.Empty, projectDirectory))
                     // TODO: https://github.com/dotnet/roslyn/issues/4967
                     .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(ImmutableArray<string>.Empty, projectDirectory)))
-                    .WithStrongNameProvider(new DesktopStrongNameProvider(ImmutableArray.Create(projectDirectory, outputFilePath)))
+                    .WithStrongNameProvider(new DesktopStrongNameProvider(commandLineArgs.KeyFileSearchPaths))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
 
             loadedProjects.Add(
@@ -432,7 +434,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     assemblyName,
                     loader.Language,
                     projectFilePath,
-                    outputFilePath,
+                    outputFilePath: Path.Combine(commandLineArgs.OutputDirectory, commandLineArgs.OutputFileName),
                     compilationOptions: compOptions,
                     parseOptions: parseOptions,
                     documents: docs,

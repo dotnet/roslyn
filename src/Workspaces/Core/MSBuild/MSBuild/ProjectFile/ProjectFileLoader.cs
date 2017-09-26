@@ -53,9 +53,16 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private static async Task<LoadedProjectInfo> LoadProjectAsync(string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
         {
-            var properties = new Dictionary<string, string>(globalProperties ?? ImmutableDictionary<string, string>.Empty);
-            properties["DesignTimeBuild"] = "true"; // this will tell msbuild to not build the dependent projects
-            properties["BuildingInsideVisualStudio"] = "true"; // this will force CoreCompile task to execute even if all inputs and outputs are up to date
+            globalProperties = globalProperties ?? ImmutableDictionary<string, string>.Empty;
+
+            var properties = new Dictionary<string, string>(globalProperties)
+            {
+                { "DesignTimeBuild", "true" }, // this will tell msbuild to not build the dependent projects
+                { "BuildingInsideVisualStudio", "true" }, // this will force CoreCompile task to execute even if all inputs and outputs are up to date
+                { "BuildProjectReferences", "false" },
+                { "ProvideCommandLineArgs", "true" }, // retrieve the command-line arguments to the compiler
+                { "SkipCompilerExecution", "true" }, // don't actually run the compiler
+            };
 
             try
             {
@@ -89,7 +96,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var buffer = new byte[1024];
             using (var stream = FileUtilities.OpenAsyncRead(path))
             {
-                int bytesRead = 0;
+                var bytesRead = 0;
                 do
                 {
                     bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
