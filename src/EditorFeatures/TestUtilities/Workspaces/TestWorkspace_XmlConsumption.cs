@@ -499,10 +499,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     {
                         strongNameProvider = new DesktopStrongNameProvider();
                     }
-                    else if (type == typeof(SigningTestHelpers.VirtualizedStrongNameProvider))
-                    {
-                        strongNameProvider = new SigningTestHelpers.VirtualizedStrongNameProvider();
-                    }
                     else
                     {
                         strongNameProvider = (StrongNameProvider)Activator.CreateInstance(type);
