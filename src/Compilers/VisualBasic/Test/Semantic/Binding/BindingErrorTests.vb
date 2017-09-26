@@ -8118,7 +8118,7 @@ BC30518: Overload resolution failed because no accessible 'sub1' can be called w
         <file name="a.vb">
 Option Strict On
 Option Infer On
-
+Imports System
 Imports System.Threading.Tasks
 
 Public Module Program
