@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Roslyn.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
+Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ChangeSignature
     Public Class ReorderParametersViewModelTests
@@ -355,6 +356,26 @@ class MyClass
                 Dim viewModel = New ChangeSignatureDialogViewModel(New TestNotificationService(), ParameterConfiguration.Create(symbol.GetParameters().ToList(), symbol.IsExtensionMethod()), symbol, workspace.ExportProvider.GetExport(Of ClassificationTypeMap)().Value)
                 Return New ChangeSignatureViewModelTestState(viewModel, symbol.GetParameters())
             End Using
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Async Function TestRefKindsDisplayedCorrectly() As Tasks.Task
+            Dim includedInTest = {RefKind.None, RefKind.Ref, RefKind.Out, RefKind.RefReadOnly}
+            Assert.Equal(includedInTest, EnumUtilities.GetValues(Of RefKind)())
+
+            Dim markup = <Text><![CDATA[
+class Test
+{
+    private void Method$$(int p1, ref int p2, ref readonly int p3, out int p4) { }
+}"]]></Text>
+
+            Dim state = Await GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            VerifyOpeningState(state.ViewModel, "private void Method(int p1, ref int p2, ref readonly int p3, out int p4)")
+
+            Assert.Equal("", state.ViewModel.AllParameters(0).Modifier)
+            Assert.Equal("ref", state.ViewModel.AllParameters(1).Modifier)
+            Assert.Equal("ref readonly", state.ViewModel.AllParameters(2).Modifier)
+            Assert.Equal("out", state.ViewModel.AllParameters(3).Modifier)
         End Function
     End Class
 End Namespace
