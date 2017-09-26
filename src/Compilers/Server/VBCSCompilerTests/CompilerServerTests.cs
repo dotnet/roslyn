@@ -242,7 +242,7 @@ End Module")
 
         #endregion
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public async Task FallbackToCsc()
         {
             // Verify csc will fall back to command line when server fails to process
@@ -254,7 +254,7 @@ End Module")
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public async Task CscFallBackOutputNoUtf8()
         {
             // Verify csc will fall back to command line when server fails to process
@@ -269,7 +269,7 @@ End Module")
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public async Task CscFallBackOutputUtf8()
         {
             var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
@@ -290,7 +290,7 @@ End Module")
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public async Task VbcFallbackNoUtf8()
         {
             var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText("♕").Path;
@@ -313,7 +313,7 @@ End Module")
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public async Task VbcFallbackUtf8()
         {
             var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText("♕").Path;
@@ -336,7 +336,7 @@ End Module")
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public async Task FallbackToVbc()
         {
             using (var serverData = ServerUtil.CreateServerFailsConnection())
@@ -347,7 +347,7 @@ End Module")
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task HelloWorldCS()
         {
@@ -375,7 +375,7 @@ End Module")
         /// The test should pass on x86 or amd64, but can only fail on
         /// amd64.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Platformx86MscorlibCsc()
         {
@@ -391,7 +391,7 @@ End Module")
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Platformx86MscorlibVbc()
         {
@@ -422,7 +422,7 @@ End Module")
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task HelloWorldVB()
         {
@@ -452,7 +452,7 @@ End Module")
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task CompileErrorsCS()
         {
@@ -479,7 +479,7 @@ class Hello
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task CompileErrorsVB()
         {
@@ -508,7 +508,7 @@ End Class"}};
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MissingFileErrorCS()
         {
@@ -525,7 +525,7 @@ End Class"}};
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MissingReferenceErrorCS()
         {
@@ -543,7 +543,7 @@ End Class"}};
         }
 
         [WorkItem(546067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546067")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task InvalidMetadataFileErrorCS()
         {
@@ -583,7 +583,7 @@ End Class"}};
             }
         }
 
-        [Fact, WorkItem(761131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761131")]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem(761131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761131")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MissingReferenceErrorVB()
         {
@@ -612,7 +612,7 @@ End Module"}};
         }
 
         [WorkItem(546067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546067")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task InvalidMetadataFileErrorVB()
         {
@@ -764,7 +764,7 @@ End Module
             GC.KeepAlive(rootDirectory);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         [WorkItem(723280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/723280")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task ReferenceCachingCS()
@@ -946,7 +946,7 @@ End Module";
 
         [WorkItem(997372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/997372")]
         [WorkItem(761326, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761326")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MultipleSimultaneousCompiles()
         {
@@ -974,7 +974,7 @@ End Module";
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task UseLibVariableCS()
         {
@@ -1022,7 +1022,7 @@ class Hello
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task UseLibVariableVB()
         {
@@ -1074,7 +1074,7 @@ End Module
         }
 
         [WorkItem(545446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_Off_Shared()
         {
@@ -1096,7 +1096,7 @@ End Module
         }
 
         [WorkItem(545446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_Off_Share()
         {
@@ -1145,7 +1145,7 @@ End Module
         }
 
         [WorkItem(545446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_On_Shared_VB()
         {
@@ -1227,7 +1227,7 @@ class Program
         }
 
         [WorkItem(979588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/979588")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public async Task Utf8OutputInRspFileCsc()
         {
             using (var serverData = ServerUtil.CreateServer())
@@ -1250,7 +1250,7 @@ class Program
         }
 
         [WorkItem(979588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/979588")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public async Task Utf8OutputInRspFileVbc()
         {
             using (var serverData = ServerUtil.CreateServer())
@@ -1343,7 +1343,7 @@ class Program
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         [WorkItem(1024619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024619")]
         public async Task Bug1024619_02()
         {

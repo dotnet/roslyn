@@ -368,7 +368,7 @@ class Hello
             Assert.Equal(CommonCompiler.Succeeded, result);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public async Task ShutdownRequestDirect()
         {
             using (var serverData = ServerUtil.CreateServer())
