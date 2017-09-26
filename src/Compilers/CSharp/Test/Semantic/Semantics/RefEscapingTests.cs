@@ -2796,5 +2796,64 @@ public ref struct S
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "local2").WithArguments("local2").WithLocation(12, 22)
                 );
         }
+
+        [Fact]
+        [WorkItem(22361, "https://github.com/dotnet/roslyn/issues/")]
+        public void RefLikeOutVarFromLocal()
+        {
+            var text = @"
+using System;
+
+public class C
+{
+    public void M(ref S global)
+    {
+        S local1 = stackalloc int[10];
+        local1.M(out S local2); // we'd want this to succeed, but determine the safe-to-escape scope for local2 based on the invocation that declared it
+        local1 = local2; // then this would be allowed
+        global = local2; // and this would fail
+    }
+    public static void Main() => throw null;
+}
+
+public ref struct S
+{
+    public static implicit operator S(Span<int> s) => throw null;
+    public void M(out S s) => throw null;
+}
+";
+            // Tracking issue: https://github.com/dotnet/roslyn/issues/22361
+
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (9,9): error CS8352: Cannot use local 'local1' in this context because it may expose referenced variables outside of their declaration scope
+                //         local1.M(out S local2);
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local1").WithArguments("local1").WithLocation(9, 9)
+                );
+        }
+
+        [Fact]
+        public void RefLikeOutVarFromGlobal()
+        {
+            var text = @"
+using System;
+
+public class C
+{
+    public void M(ref S global)
+    {
+        global.M(out S local2);
+        global = local2;
+    }
+    public static void Main() => throw null;
+}
+
+public ref struct S
+{
+    public static implicit operator S(Span<int> s) => throw null;
+    public void M(out S s) => throw null;
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics();
+        }
     }
 }
