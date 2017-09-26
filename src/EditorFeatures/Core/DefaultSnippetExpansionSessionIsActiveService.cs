@@ -9,9 +9,9 @@ using Microsoft.VisualStudio.Text.Editor;
 namespace Microsoft.CodeAnalysis.Snippets
 {
     [Shared]
-    [ExportWorkspaceService(typeof(ISnippetExpansionSessionIsActiveService), ServiceLayer.Default)]
-    internal class DefaultSnippetExpansionSessionIsActiveService : ISnippetExpansionSessionIsActiveService
+    [ExportWorkspaceService(typeof(ICaretIsInSnippetExpansionFieldService), ServiceLayer.Default)]
+    internal class DefaultSnippetExpansionSessionIsActiveService : ICaretIsInSnippetExpansionFieldService
     {
-        public bool SnippetsAreActive(ITextView textView) => false;
+        public bool CaretIsInSnippetExpansionField(ITextView textView) => false;
     }
 }

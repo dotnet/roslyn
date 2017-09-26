@@ -213,8 +213,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 ? workspace.Options.WithDebuggerCompletionOptions()
                 : workspace.Options;
 
-            var service = workspace.Services.GetService<ISnippetExpansionSessionIsActiveService>();
-            if (service.SnippetsAreActive(TextView))
+            var service = workspace.Services.GetService<ICaretIsInSnippetExpansionFieldService>();
+            if (service.CaretIsInSnippetExpansionField(TextView))
             {
                 options = options.WithChangedOption(CompletionControllerOptions.TextEditorSnipppetsAreActive, true);
             }
