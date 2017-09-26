@@ -2365,16 +2365,12 @@ class Program
             // also OK
             (true ? ref local : ref local) = (false ? global : local);
         }
-
-        public static void Main()
-        {
-        }
     }
 ";
             var comp = CreateCompilationWithMscorlibAndSpan(text);
             comp.VerifyDiagnostics();
 
-            var compiled = CompileAndVerify(comp,expectedOutput: "", verify: false);
+            var compiled = CompileAndVerify(comp, verify: false);
             compiled.VerifyIL("C.M(ref System.Span<int>)", @"
 {
   // Code size        8 (0x8)
