@@ -247,13 +247,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
             /// </summary>
             public bool ProjectAlreadyReferencesProject(ProjectId fromProject, ProjectId targetProject)
             {
-                if ( !_projectAlreadyReferencesProjectResultCache.TryGetValue(fromProject, out var fromProjectMemo))
+                if (!_projectAlreadyReferencesProjectResultCache.TryGetValue(fromProject, out var fromProjectMemo))
                 {
                     fromProjectMemo = new Dictionary<ProjectId, bool>();
                     _projectAlreadyReferencesProjectResultCache.Add(fromProject, fromProjectMemo);
                 }
 
-                if ( !fromProjectMemo.TryGetValue(targetProject, out var answer))
+                if (!fromProjectMemo.TryGetValue(targetProject, out var answer))
                 {
                     answer =
                         _projectIdToProjectInfoMap.TryGetValue(fromProject, out var info) &&
@@ -329,6 +329,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 return projectId;
             }
 
+            var outputFilePath = projectFileInfo.OutputFilePath;
             var projectDirectory = Path.GetDirectoryName(projectFilePath);
 
             var version = GetProjectVersion(projectFilePath);
@@ -434,7 +435,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     assemblyName,
                     loader.Language,
                     projectFilePath,
-                    outputFilePath: Path.Combine(commandLineArgs.OutputDirectory, commandLineArgs.OutputFileName),
+                    outputFilePath,
                     compilationOptions: compOptions,
                     parseOptions: parseOptions,
                     documents: docs,

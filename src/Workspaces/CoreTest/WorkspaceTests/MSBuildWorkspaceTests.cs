@@ -753,22 +753,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestOpenProject_WithAssociatedLanguageExtension()
-        {
-            CreateFiles(GetSimpleCSharpSolutionFiles());
-            var ws = MSBuildWorkspace.Create();
-
-            // convince workspace that csharp projects are really visual basic (should cause lots of syntax errors)
-            ws.AssociateFileExtensionWithLanguage("csproj", LanguageNames.VisualBasic);
-
-            var project = ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj")).Result;
-            var document = project.Documents.First();
-            var tree = document.GetSyntaxTreeAsync().Result;
-            Assert.NotEqual(0, tree.GetDiagnostics().Count());
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestOpenProject_WithAssociatedLanguageExtension2()
+        public void TestOpenProject_WithAssociatedLanguageExtension1()
         {
             // make a CSharp solution with a project file having the incorrect extension 'vbproj', and then load it using the overload the lets us
             // specify the language directly, instead of inferring from the extension
@@ -785,7 +770,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestOpenProject_WithAssociatedLanguageExtension3_IgnoreCase()
+        public void TestOpenProject_WithAssociatedLanguageExtension2_IgnoreCase()
         {
             // make a CSharp solution with a project file having the incorrect extension 'anyproj', and then load it using the overload the lets us
             // specify the language directly, instead of inferring from the extension
@@ -1689,7 +1674,7 @@ class C1
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestCompilationOptions_VisualBasic_OptionStrict_Custom()
         {
-            CreateVBFilesWith("OptionStrict", "Custom");
+            CreateVBFilesWith("OptionStrictType", "Custom");
             AssertVBCompilationOptions(Microsoft.CodeAnalysis.VisualBasic.OptionStrict.Custom, options => options.OptionStrict);
         }
 

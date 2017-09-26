@@ -16,6 +16,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Compilers\Core\MSBuildTask\MSBuildTask.csproj" />
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
     <ProjectReference Include="..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj" />
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
@@ -49,6 +50,12 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="$(OutputPath)\..\..\Exes\csc\net46\csc.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="$(OutputPath)\..\..\Exes\vbc\net46\vbc.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="..\..\Compilers\Core\MSBuildTask\Microsoft.Managed.Core.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

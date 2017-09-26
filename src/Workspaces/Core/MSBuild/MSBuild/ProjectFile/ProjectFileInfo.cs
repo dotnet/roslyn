@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
     internal sealed class ProjectFileInfo
     {
         /// <summary>
+        /// The path to the output file this project generates.
+        /// </summary>
+        public string OutputFilePath { get; }
+
+        /// <summary>
         /// The command line args used to compile the project.
         /// </summary>
         public IReadOnlyList<string> CommandLineArgs { get; }
@@ -37,12 +42,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public string ErrorMessage { get; }
 
         public ProjectFileInfo(
+            string outputFilePath,
             IEnumerable<string> commandLineArgs,
             IEnumerable<DocumentFileInfo> documents,
             IEnumerable<DocumentFileInfo> additionalDocuments,
             IEnumerable<ProjectFileReference> projectReferences,
             string errorMessage)
         {
+            this.OutputFilePath = outputFilePath;
             this.CommandLineArgs = commandLineArgs.ToImmutableArrayOrEmpty();
             this.Documents = documents.ToImmutableReadOnlyListOrEmpty();
             this.AdditionalDocuments = additionalDocuments.ToImmutableArrayOrEmpty();

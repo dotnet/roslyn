@@ -210,18 +210,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return taskSource.Task;
         }
 
-        protected virtual string GetOutputDirectory()
-        {
-            var targetPath = _loadedProject.GetPropertyValue("TargetPath");
-
-            if (string.IsNullOrEmpty(targetPath))
-            {
-                targetPath = _loadedProject.DirectoryPath;
-            }
-
-            return Path.GetDirectoryName(this.GetAbsolutePath(targetPath));
-        }
-
         protected static bool IsProjectReferenceOutputAssembly(MSB.Framework.ITaskItem item)
         {
             return item.GetMetadata("ReferenceOutputAssembly") == "true";
