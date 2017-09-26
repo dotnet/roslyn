@@ -31,27 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Body);
     }
 
-    partial class BoundMethodGroup
-    {
-        protected override ImmutableArray<BoundNode> Children
-        {
-            get
-            {
-                var builder = ImmutableArray.CreateBuilder<BoundNode>();
-                if (InstanceOpt != null)
-                {
-                    builder.Add(InstanceOpt);
-                }
-                if (ReceiverOpt != null && ReceiverOpt != InstanceOpt)
-                {
-                    builder.Add(ReceiverOpt);
-                }
-
-                return builder.ToImmutable();
-            }
-        }
-    }
-
     partial class BoundPointerIndirectionOperator
     {
         protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Operand);

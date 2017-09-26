@@ -3124,25 +3124,19 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal abstract partial class BaseMethodReferenceExpression : MemberReferenceExpression, IMethodReferenceExpression
     {
         public BaseMethodReferenceExpression(IMethodSymbol method, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(null, OperationKind.MethodReferenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
+            base(method, OperationKind.MethodReferenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Method = method;
             IsVirtual = isVirtual;
         }
         /// <summary>
         /// Referenced method.
         /// </summary>
-        public IMethodSymbol Method { get; }
+        public IMethodSymbol Method => (IMethodSymbol)Member;
 
         /// <summary>
         /// Indicates whether the reference uses virtual semantics.
         /// </summary>
         public bool IsVirtual { get; }
-
-        /// <summary>
-        /// Referenced member.
-        /// </summary>
-        public override ISymbol Member => Method;
 
         public override IEnumerable<IOperation> Children
         {
