@@ -970,7 +970,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Check if the given expression is known to *always* match, or *always* fail against the given pattern.
         /// Return true for known match, false for known fail, and null otherwise. Used for the "is pattern" expression.
         /// </summary>
-        private bool? CheckRefutations(BoundExpression expression, BoundPattern pattern)
+        private static bool? CheckRefutations(BoundExpression expression, BoundPattern pattern)
         {
             Debug.Assert(expression != null);
             switch (pattern.Kind)
