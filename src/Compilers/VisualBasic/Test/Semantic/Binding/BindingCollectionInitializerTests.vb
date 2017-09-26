@@ -391,7 +391,7 @@ IBlockStatement (6 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String) (Syntax: '.a = "goo"')
                     Left: IFieldReferenceExpression: C2.a As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'a')
-                        Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C2() Wi ... .a = "goo"}')
+                        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2) (Syntax: 'New C2() Wi ... .a = "goo"}')
                     Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo") (Syntax: '"goo"')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim b As Ne ... lo World!"}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b')
@@ -422,7 +422,7 @@ IBlockStatement (6 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid) (Syntax: '.a = "goo"')
                     Left: IFieldReferenceExpression: C2.a As System.String (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'a')
-                        Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() Wi ... .a = "goo"}')
+                        Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2, IsInvalid) (Syntax: 'New C2() Wi ... .a = "goo"}')
                     Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "goo", IsInvalid) (Syntax: '"goo"')
   ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
     Statement: null
@@ -702,13 +702,13 @@ IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitia
         Children(2):
             IOperation:  (OperationKind.None, IsInvalid) (Syntax: '"Hello World!"')
               Children(1):
-                  IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() Fr ... r element"}')
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2, IsInvalid) (Syntax: 'New C2() Fr ... r element"}')
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Hello World!", IsInvalid) (Syntax: '"Hello World!"')
       IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: '"Errors wil ... er element"')
         Children(2):
             IOperation:  (OperationKind.None, IsInvalid) (Syntax: '"Errors wil ... er element"')
               Children(1):
-                  IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() Fr ... r element"}')
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C2, IsInvalid) (Syntax: 'New C2() Fr ... r element"}')
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Errors will be shown for each initializer element", IsInvalid) (Syntax: '"Errors wil ... er element"')
 ]]>.Value
 
@@ -1112,7 +1112,7 @@ IObjectCreationExpression (Constructor: Sub System.Collections.Generic.Dictionar
             Children(2):
                 IOperation:  (OperationKind.None, IsInvalid) (Syntax: '{1}')
                   Children(1):
-                      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New Diction ...  From {{1}}')
+                      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), IsInvalid) (Syntax: 'New Diction ...  From {{1}}')
                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ]]>.Value
 
