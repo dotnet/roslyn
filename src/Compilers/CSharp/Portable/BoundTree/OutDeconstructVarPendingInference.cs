@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(Placeholder is null);
 
+            // The val escape scope for this placeholder won't be used, so defaulting to narrowest scope
             Placeholder = new BoundDeconstructValuePlaceholder(this.Syntax, binder.LocalScopeDepth, type, hasErrors: this.HasErrors || !success);
             return Placeholder;
         }
