@@ -307,7 +307,7 @@ function Test-PerfRun() {
 function Test-XUnitCoreClr() { 
     $unitDir = Join-Path $configDir "UnitTests"
     if (Is-Unix) {
-        $runtimeIdentifier = "ubuntu.14.04-x64"
+        $runtimeIdentifier = Get-DotnetRID $dotnet
     }
     else {
         $runtimeIdentifier = "win7-x64"

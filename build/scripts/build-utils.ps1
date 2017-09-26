@@ -327,6 +327,11 @@ function Get-PackageDir([string]$name, [string]$version = "") {
     return $p
 }
 
+# Return the RID of the provided dotnet executable
+function Get-DotnetRID([string]$dotnet) {
+    return (Exec-Block { & $dotnet "--info" } | Where-Object {$_.Contains("RID:")} | Foreach-Object {$_.Split(":")[1].Trim()} | Select-Object -Index 0)
+}
+
 # The intent of this script is to locate and return the path to the MSBuild directory that
 # we should use for bulid operations.  The preference order for MSBuild to use is as 
 # follows:
