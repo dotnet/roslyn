@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using System.Linq;
 using Xunit;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {

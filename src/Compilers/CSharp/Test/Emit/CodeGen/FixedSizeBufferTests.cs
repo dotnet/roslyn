@@ -9,6 +9,7 @@ using Roslyn.Test.Utilities;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Xunit;
+using Microsoft.CodeAnalysis.Test.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System.Linq;
+using Microsoft.CodeAnalysis.Test.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {

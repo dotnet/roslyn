@@ -9,6 +9,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using System.Collections.Generic;
 using System;
+using Microsoft.CodeAnalysis.Test.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {

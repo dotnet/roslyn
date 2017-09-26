@@ -7,6 +7,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Test.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
