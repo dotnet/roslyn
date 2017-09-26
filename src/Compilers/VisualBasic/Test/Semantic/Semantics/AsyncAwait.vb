@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Imports Roslyn.Test.Utilities
 Imports System.Collections.ObjectModel
+Imports Microsoft.CodeAnalysis.Test.Extensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 

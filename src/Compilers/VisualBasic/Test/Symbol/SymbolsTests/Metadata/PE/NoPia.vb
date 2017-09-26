@@ -5,6 +5,7 @@ Imports CompilationCreationTestHelpers
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.Test.Extensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
     Public Class NoPia

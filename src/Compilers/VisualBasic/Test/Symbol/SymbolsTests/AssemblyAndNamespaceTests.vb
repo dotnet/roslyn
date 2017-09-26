@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.Test.Extensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
