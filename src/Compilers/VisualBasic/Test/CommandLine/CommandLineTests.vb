@@ -134,7 +134,7 @@ Public Class C
     End Sub
 End Class"
 
-            Dim fileName = "a.cs"
+            Dim fileName = "a.vb"
             Dim dir = Temp.CreateDirectory()
             Dim file = dir.CreateFile(fileName)
             file.WriteAllText(source)
