@@ -9598,6 +9598,7 @@ class C
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
+        [WorkItem(21935, "https://github.com/dotnet/roslyn/issues/21935")]
         public void PdbPathNotEmittedWitoutPdb()
         {
             var dir = Temp.CreateDirectory();
