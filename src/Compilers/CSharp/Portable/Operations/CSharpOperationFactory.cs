@@ -1387,9 +1387,26 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
             else
             {
-                // we can get here if someone asked about 1 variable declarator on multi local declaration
-                Debug.Assert(boundLocalDeclaration.Syntax.Kind() == SyntaxKind.VariableDeclarator);
-                return CreateVariableDeclaration(boundLocalDeclaration, boundLocalDeclaration.Syntax);
+                var declarator = (VariableDeclaratorSyntax)boundLocalDeclaration.Syntax;
+                var declaration = CreateVariableDeclaration(boundLocalDeclaration, declarator);
+
+                // if declaration has multiple declarator, then always return declaration
+                if (((VariableDeclarationSyntax)declarator.Parent)?.Variables.Count > 1)
+                {
+                    return declaration;
+                }
+
+                // special case for forloop where we want to inject statement rather than using variable decls direclty.
+                if (declarator.Parent?.Parent.IsKind(SyntaxKind.ForStatement) == true)
+                {
+                    ITypeSymbol type = null;
+                    Optional<object> constantValue = default(Optional<object>);
+                    bool isImplicit = false;
+                    return new VariableDeclarationStatement(ImmutableArray.Create(declaration), _semanticModel, declarator, type, constantValue, isImplicit);
+                }
+
+                // we can get here if someone asked about 1 variable declarator on multi local declaration or fixed/using statements
+                return declaration;
             }
         }
 
