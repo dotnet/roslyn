@@ -2011,10 +2011,16 @@ moreArguments:
                 case BoundKind.DefaultExpression:
                 case BoundKind.Parameter:
                 case BoundKind.ThisReference:
-                case BoundKind.TupleLiteral:
-                case BoundKind.ConvertedTupleLiteral:
                     // always returnable
                     return Binder.ExternalScope;
+
+                case BoundKind.TupleLiteral:
+                    var tupleLiteral = (BoundTupleLiteral)expr;
+                    return GetTupleValEscape(tupleLiteral.Arguments, scopeOfTheContainingExpression);
+
+                case BoundKind.ConvertedTupleLiteral:
+                    var convertedTupleLiteral = (BoundConvertedTupleLiteral)expr;
+                    return GetTupleValEscape(convertedTupleLiteral.Arguments, scopeOfTheContainingExpression);
 
                 case BoundKind.MakeRefOperator:
                 case BoundKind.RefValueOperator:
@@ -2192,6 +2198,17 @@ moreArguments:
             }
         }
 
+        private static uint GetTupleValEscape(ImmutableArray<BoundExpression> elements, uint scopeOfTheContainingExpression)
+        {
+            uint narrowestScope = scopeOfTheContainingExpression;
+            foreach (var element in elements)
+            {
+                narrowestScope = Math.Max(narrowestScope, GetValEscape(element, scopeOfTheContainingExpression));
+            }
+
+            return narrowestScope;
+        }
+
         private static uint GetValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, uint scopeOfTheContainingExpression)
         {
             var result = Binder.ExternalScope;
@@ -2263,10 +2280,16 @@ moreArguments:
                 case BoundKind.DefaultExpression:
                 case BoundKind.Parameter:
                 case BoundKind.ThisReference:
-                case BoundKind.TupleLiteral:
-                case BoundKind.ConvertedTupleLiteral:
                     // always returnable
                     return true;
+
+                case BoundKind.TupleLiteral:
+                    var tupleLiteral = (BoundTupleLiteral)expr;
+                    return CheckTupleValEscape(tupleLiteral.Arguments, escapeFrom, escapeTo, diagnostics);
+
+                case BoundKind.ConvertedTupleLiteral:
+                    var convertedTupleLiteral = (BoundConvertedTupleLiteral)expr;
+                    return CheckTupleValEscape(convertedTupleLiteral.Arguments, escapeFrom, escapeTo, diagnostics);
 
                 case BoundKind.MakeRefOperator:
                 case BoundKind.RefValueOperator:
@@ -2609,6 +2632,19 @@ moreArguments:
 
                 #endregion
             }
+        }
+
+        private static bool CheckTupleValEscape(ImmutableArray<BoundExpression> elements, uint escapeFrom, uint escapeTo, DiagnosticBag diagnostics)
+        {
+            foreach (var element in elements)
+            {
+                if (!CheckValEscape(element.Syntax, element, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static bool CheckValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, uint escapeFrom, uint escapeTo, DiagnosticBag diagnostics)

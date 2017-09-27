@@ -2583,10 +2583,21 @@ public class C
     {
         Span<int> local = stackalloc int[10];
         string s;
+        C c;
+
         (global, global) = (local, local); // error 1
+
         (global, s) = (local, """"); // error 2
+        (global, s) = (local, null); // error 3
+
+        (local, s) = (global, """"); // error 4
+        (local, s) = (global, null); // error 5
+
+        (c, s) = (local, """"); // error 6
+        (c, s) = (local, null);
     }
     public static void Main() => throw null;
+    public static implicit operator C(Span<int> s) => throw null;
 }
 namespace System
 {
@@ -2604,58 +2615,27 @@ namespace System
 }
 ";
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // (10,29): error CS0306: The type 'Span<int>' may not be used as a type argument
+                // (12,29): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (global, global) = (local, local); // error 1
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(10, 29),
-                // (10,36): error CS0306: The type 'Span<int>' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(12, 29),
+                // (12,36): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (global, global) = (local, local); // error 1
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(10, 36),
-                // (11,24): error CS0306: The type 'Span<int>' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(12, 36),
+                // (14,24): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (global, s) = (local, ""); // error 2
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(11, 24)
-            );
-        }
-
-        [Fact]
-        public void DeconstructionAssignmentOfTypelessTuple()
-        {
-            var text = @"
-using System;
-
-public class C
-{
-    public void M(ref Span<int> global)
-    {
-        Span<int> local = stackalloc int[10];
-        Span<int> local2 = stackalloc int[10];
-        string s;
-        (global, s) = (local, null); // error 1
-        (local2, s) = (local, null); // error 2
-    }
-    public static void Main() => throw null;
-}
-namespace System
-{
-    public struct ValueTuple<T1, T2>
-    {
-        public T1 Item1;
-        public T2 Item2;
-
-        public ValueTuple(T1 item1, T2 item2)
-        {
-            this.Item1 = item1;
-            this.Item2 = item2;
-        }
-    }
-}
-";
-            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // (11,24): error CS0306: The type 'Span<int>' may not be used as a type argument
-                //         (global, s) = (local, null); // error 1
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(11, 24),
-                // (12,24): error CS0306: The type 'Span<int>' may not be used as a type argument
-                //         (local2, s) = (local, null); // error 2
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(12, 24)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(14, 24),
+                // (15,24): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         (global, s) = (local, null); // error 3
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(15, 24),
+                // (17,23): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         (local, s) = (global, ""); // error 4
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(17, 23),
+                // (18,23): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         (local, s) = (global, null); // error 5
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(18, 23),
+                // (20,19): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         (c, s) = (local, ""); // error 6
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(20, 19)
             );
         }
 
@@ -2670,9 +2650,22 @@ public class C
     public void M(ref Span<int> global)
     {
         Span<int> local = stackalloc int[10];
-        (global, global) = (local, local); // error
+        String s;
+        C c;
+
+        (global, global) = (local, local); // error 1
+
+        (global, s) = (local, """"); // error 2
+        (global, s) = (local, null); // error 3
+
+        (local, s) = (global, """"); // error 4
+        (local, s) = (global, null); // error 5
+
+        (c, s) = (local, """"); // error 6
+        (c, s) = (local, null);
     }
     public static void Main() => throw null;
+    public static implicit operator C(Span<int> s) => throw null;
 }
 namespace System
 {
@@ -2691,12 +2684,39 @@ namespace System
 }
 ";
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // (9,29): error CS0306: The type 'Span<int>' may not be used as a type argument
-                //         (global, global) = (local, local); // error
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(9, 29),
-                // (9,36): error CS0306: The type 'Span<int>' may not be used as a type argument
-                //         (global, global) = (local, local); // error
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(9, 36)
+                // (12,29): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         (global, global) = (local, local); // error 1
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(12, 29),
+                // (12,36): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         (global, global) = (local, local); // error 1
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(12, 36),
+                // (12,29): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
+                //         (global, global) = (local, local); // error 1
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(12, 29),
+                // (14,24): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         (global, s) = (local, ""); // error 2
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(14, 24),
+                // (14,24): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
+                //         (global, s) = (local, ""); // error 2
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(14, 24),
+                // (15,24): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         (global, s) = (local, null); // error 3
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(15, 24),
+                // (15,24): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
+                //         (global, s) = (local, null); // error 3
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(15, 24),
+                // (17,23): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         (local, s) = (global, ""); // error 4
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(17, 23),
+                // (18,23): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         (local, s) = (global, null); // error 5
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(18, 23),
+                // (20,19): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         (c, s) = (local, ""); // error 6
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(20, 19),
+                // (20,19): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
+                //         (c, s) = (local, ""); // error 6
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(20, 19)
             );
         }
 
