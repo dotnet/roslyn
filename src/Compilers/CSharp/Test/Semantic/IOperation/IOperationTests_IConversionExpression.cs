@@ -3038,7 +3038,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Action<stri ... jectAction;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'Action<stri ... jectAction;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'stringActio ... bjectAction')
     Variables: Local_1: System.Action<System.String> stringAction
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action<System.String>) (Syntax: 'objectAction')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
@@ -3066,7 +3066,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Action<int> ... jectAction;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Action<int> ... jectAction;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'intAction = objectAction')
     Variables: Local_1: System.Action<System.Int32> intAction
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action<System.Int32>, IsInvalid) (Syntax: 'objectAction')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -4705,8 +4705,8 @@ IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.Conve
             public static IOperation IVariableDeclarationStatementSelector(IOperation operation) =>
                 ((IVariableDeclarationStatement)operation).Declarations.Single().Initializer;
 
-            public static IConversionExpression IVariableDeclarationSelector(IOperation operation) =>
-                (IConversionExpression)((IVariableDeclaration)operation).Initializer;
+            public static IOperation IVariableDeclarationSelector(IOperation operation) =>
+                ((IVariableDeclaration)operation).Initializer;
 
             public static IOperation IReturnDeclarationStatementSelector(IOperation operation) =>
                 ((IReturnStatement)operation).ReturnedValue;

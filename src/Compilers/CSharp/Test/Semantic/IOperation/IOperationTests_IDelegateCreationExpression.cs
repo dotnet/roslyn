@@ -24,7 +24,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Action a = () => { };')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'Action a = () => { };')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a = () => { }')
     Variables: Local_1: System.Action a
     Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: '() => { }')
         Target: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => { }')
@@ -35,6 +35,31 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DelegateCreationExpression_ImplicitLambdaConversion_InitializerBindingReturnsJustAnonymousFunction()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        Action a = /*<bind>*/() => { }/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => { }')
+  IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
+    IReturnStatement (OperationKind.ReturnStatement) (Syntax: '{ }')
+      ReturnedValue: null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<LambdaExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -53,7 +78,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Action a = () => 1;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Action a = () => 1;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'a = () => 1')
     Variables: Local_1: System.Action a
     Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: '() => 1')
         Target: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() => 1')
@@ -88,7 +113,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Action a =  ...  i) => { };')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Action a =  ...  i) => { };')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'a = (int i) => { }')
     Variables: Local_1: System.Action a
     Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: '(int i) => { }')
         Target: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '(int i) => { }')
@@ -205,7 +230,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Action a =  ... gate() { };')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'Action a =  ... gate() { };')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a = delegate() { }')
     Variables: Local_1: System.Action a
     Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'delegate() { }')
         Target: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'delegate() { }')
@@ -234,7 +259,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Action a =  ... eturn 1; };')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Action a =  ... eturn 1; };')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'a = delegat ... return 1; }')
     Variables: Local_1: System.Action a
     Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: 'delegate() { return 1; }')
         Target: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'delegate() { return 1; }')
@@ -267,7 +292,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Action a =  ... int i) { };')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Action a =  ... int i) { };')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'a = delegate(int i) { }')
     Variables: Local_1: System.Action a
     Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: 'delegate(int i) { }')
         Target: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'delegate(int i) { }')
@@ -292,35 +317,6 @@ class Program
 {
     void Main()
     {
-        Action a = /*<bind>*/M1/*</bind>*/;
-    }
-    void M1() { }
-}
-";
-
-            // Currently, GetOperation returns a straight BoundMethodGroup for the IdentifierNameSyntax. We can't directly
-            // convert a BoundMethodGroup to an IDelegateCreationExpression, so this returns OperationKind.None. When Heejae's
-            // rewrite of GetOperation is complete, this should return the IDelegateCreationExpression.
-            string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'M1')
-  Children(1):
-      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M1')
-";
-            var expectedDiagnostics = DiagnosticDescription.None;
-
-            VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void DelegateCreationExpression_ImplicitMethodBinding_FullTree()
-        {
-            string source = @"
-using System;
-class Program
-{
-    void Main()
-    {
         /*<bind>*/Action a = M1;/*</bind>*/
     }
     void M1() { }
@@ -328,7 +324,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Action a = M1;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'Action a = M1;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a = M1')
     Variables: Local_1: System.Action a
     Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'M1')
         Target: IMethodReferenceExpression: void Program.M1() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'M1')
@@ -341,7 +337,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void DelegateCreationExpression_ImplicitMethodBinding_InvalidIdentifier()
+        public void DelegateCreationExpression_ImplicitMethodBinding_InitializerBindingReturnsJustMethodReference()
         {
             string source = @"
 using System;
@@ -351,29 +347,22 @@ class Program
     {
         Action a = /*<bind>*/M1/*</bind>*/;
     }
+    void M1() { }
 }
 ";
 
-            // Currently, GetOperation returns a straight BoundMethodGroup for the IdentifierNameSyntax. We can't directly
-            // convert a BoundMethodGroup to an IDelegateCreationExpression, so this returns OperationKind.None. When Heejae's
-            // rewrite of GetOperation is complete, this should return the IDelegateCreationExpression.
             string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M1')
-  Children(0)
+IMethodReferenceExpression: void Program.M1() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'M1')
+  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M1')
 ";
-            var expectedDiagnostics = new DiagnosticDescription[]
-            {
-                // CS0103: The name 'M1' does not exist in the current context
-                //         Action a = /*<bind>*/M1/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(7, 30)
-            };
+            var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void DelegateCreationExpression_ImplicitMethodBinding_InvalidIdentifer_FullTree()
+        public void DelegateCreationExpression_ImplicitMethodBinding_InvalidIdentifer()
         {
             string source = @"
 using System;
@@ -387,7 +376,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Action a = M1;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Action a = M1;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'a = M1')
     Variables: Local_1: System.Action a
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: 'M1')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -405,7 +394,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void DelegateCreationExpression_ImplicitMethodBinding_InvalidReturnType()
+        public void DelegateCreationExpression_ImplicitMethodBinding_InvalidIdentifier_InitializerBindingReturnsJustInvalidExpression()
         {
             string source = @"
 using System;
@@ -415,23 +404,18 @@ class Program
     {
         Action a = /*<bind>*/M1/*</bind>*/;
     }
-    int M1() => 1;
 }
 ";
 
-            // Currently, GetOperation returns a straight BoundMethodGroup for the IdentifierNameSyntax. We can't directly
-            // convert a BoundMethodGroup to an IDelegateCreationExpression, so this returns OperationKind.None. When Heejae's
-            // rewrite of GetOperation is complete, this should return the IDelegateCreationExpression.
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
-  Children(1):
-      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
+IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'M1')
+  Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
-                // CS0407: 'int Program.M1()' has the wrong return type
+                // CS0103: The name 'M1' does not exist in the current context
                 //         Action a = /*<bind>*/M1/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "int").WithLocation(7, 30)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(7, 30)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -439,7 +423,7 @@ IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void DelegateCreationExpression_ImplicitMethodBinding_InvalidReturnType_FullTree()
+        public void DelegateCreationExpression_ImplicitMethodBinding_InvalidReturnType()
         {
             string source = @"
 using System;
@@ -454,7 +438,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Action a = M1;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Action a = M1;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'a = M1')
     Variables: Local_1: System.Action a
     Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: 'M1')
         Target: IMethodReferenceExpression: System.Int32 Program.M1() (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'M1')
@@ -471,7 +455,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void DelegateCreationExpression_ImplicitMethodBinding_InvalidArgumentType()
+        public void DelegateCreationExpression_ImplicitMethodBinding_InvalidReturnType_InitializerBindingReturnsJustMethodReference()
         {
             string source = @"
 using System;
@@ -481,23 +465,19 @@ class Program
     {
         Action a = /*<bind>*/M1/*</bind>*/;
     }
-    void M1(object o) { }
+    int M1() => 1;
 }
 ";
 
-            // Currently, GetOperation returns a straight BoundMethodGroup for the IdentifierNameSyntax. We can't directly
-            // convert a BoundMethodGroup to an IDelegateCreationExpression, so this returns OperationKind.None. When Heejae's
-            // rewrite of GetOperation is complete, this should return the IDelegateCreationExpression.
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
-  Children(1):
-      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
+IMethodReferenceExpression: System.Int32 Program.M1() (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'M1')
+  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
-                // CS0123: No overload for 'M1' matches delegate 'Action'
+                // CS0407: 'int Program.M1()' has the wrong return type
                 //         Action a = /*<bind>*/M1/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M1").WithArguments("M1", "System.Action").WithLocation(7, 30)
+                Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "int").WithLocation(7, 30)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -505,7 +485,7 @@ IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void DelegateCreationExpression_ImplicitMethodBinding_InvalidArgumentType_FullTree()
+        public void DelegateCreationExpression_ImplicitMethodBinding_InvalidArgumentType()
         {
             string source = @"
 using System;
@@ -520,7 +500,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Action a = M1;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Action a = M1;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'a = M1')
     Variables: Local_1: System.Action a
     Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: 'M1')
         Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
@@ -534,6 +514,37 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DelegateCreationExpression_ImplicitMethodBinding_InvalidArgumentType_InitializerBindingReturnsJustMethodReference()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        Action a = /*<bind>*/M1/*</bind>*/;
+    }
+    void M1(object o) { }
+}
+";
+
+            string expectedOperationTree = @"
+IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
+  Children(1):
+      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                // CS0123: No overload for 'M1' matches delegate 'Action'
+                //         Action a = /*<bind>*/M1/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M1").WithArguments("M1", "System.Action").WithLocation(7, 30)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1384,6 +1395,38 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        public void DelegateCreationExpression_ExplicitDelegateConstructorAndExplicitMethodBindingConversion_InvalidConstructorArgument()
+        {
+            string source = @"
+using System;
+class Program
+{
+    void Main()
+    {
+        Action<int> a = /*<bind>*/new Action<int>((Action)M1)/*</bind>*/;
+    }
+
+    void M1() { }
+}
+";
+            string expectedOperationTree = @"
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action<System.Int32>, IsInvalid) (Syntax: 'new Action< ... (Action)M1)')
+  Children(1):
+      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M1')
+        Target: IMethodReferenceExpression: void Program.M1() (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'M1')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0123: No overload for 'Action' matches delegate 'Action<int>'
+                //         Action<int> a = /*<bind>*/new Action<int>((Action)M1)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new Action<int>((Action)M1)").WithArguments("Action", "System.Action<int>").WithLocation(7, 35)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void ConversionExpression_Implicit_ReferenceLambdaToDelegateConversion_InvalidSyntax()
         {
             string source = @"
@@ -1397,17 +1440,16 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'DType /*<bi ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'DType /*<bi ... *</bind>*/;')
-    Variables: Local_1: Program.DType d1
-    Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Program.DType, IsInvalid) (Syntax: '() =>/*</bind>*/')
-        Target: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() =>/*</bind>*/')
-            IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '')
-              IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
-                Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
-                    Children(0)
-              IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '')
-                ReturnedValue: null
+IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'd1 = () =>/*</bind>*/')
+  Variables: Local_1: Program.DType d1
+  Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Program.DType, IsInvalid) (Syntax: '() =>/*</bind>*/')
+      Target: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() =>/*</bind>*/')
+          IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '')
+            IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
+              Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+                  Children(0)
+            IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '')
+              ReturnedValue: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ';'
@@ -1437,7 +1479,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Action<int> a = M1;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Action<int> a = M1;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'a = M1')
     Variables: Local_1: System.Action<System.Int32> a
     Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action<System.Int32>, IsInvalid) (Syntax: 'M1')
         Target: IMethodReferenceExpression: void Program.M1(System.Object o) (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'M1')
@@ -1470,7 +1512,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Action<int> a = M1;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'Action<int> a = M1;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a = M1')
     Variables: Local_1: System.Action<System.Int32> a
     Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action<System.Int32>) (Syntax: 'M1')
         Target: IMethodReferenceExpression: void Program.M1(System.Int32 i) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'M1')

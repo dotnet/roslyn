@@ -151,10 +151,8 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, IsInvalid) (Syntax: 'x.i1')
-  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IFieldReferenceExpression: Program.i1 As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x.i1')
-      Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
+IFieldReferenceExpression: Program.i1 As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'x.i1')
+  Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -279,20 +277,19 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Function <generated method>() As ?, IsInvalid) (Syntax: 'Function() F()')
-  Target: IAnonymousFunctionExpression (Symbol: Function () As ?) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function() F()')
-      IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Function() F()')
-        Locals: Local_1: <anonymous local> As ?
-        IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'F()')
-          ReturnedValue: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'F()')
-              Children(1):
-                  IInvocationExpression (Sub Program.F()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'F()')
-                    Instance Receiver: null
-                    Arguments(0)
-        ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'Function() F()')
-          Statement: null
-        IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Function() F()')
-          ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: ?, IsInvalid) (Syntax: 'Function() F()')
+IAnonymousFunctionExpression (Symbol: Function () As ?) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function() F()')
+  IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Function() F()')
+    Locals: Local_1: <anonymous local> As ?
+    IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'F()')
+      ReturnedValue: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'F()')
+          Children(1):
+              IInvocationExpression (Sub Program.F()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'F()')
+                Instance Receiver: null
+                Arguments(0)
+    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'Function() F()')
+      Statement: null
+    IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Function() F()')
+      ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: ?, IsInvalid) (Syntax: 'Function() F()')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

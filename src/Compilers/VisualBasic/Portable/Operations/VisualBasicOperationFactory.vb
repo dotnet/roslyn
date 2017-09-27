@@ -589,7 +589,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
             Dim type As ITypeSymbol = boundConversion.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundConversion.ConstantValueOpt)
-            Dim isImplicit As Boolean = boundConversion.WasCompilerGenerated
+            Dim isImplicit As Boolean = boundConversion.WasCompilerGenerated OrElse Not boundConversion.ExplicitCastInCode
 
             Dim conversionInformation = CreateConversionOperation(boundConversion.Operand, boundConversion.ConversionKind, boundConversion.Syntax)
             Dim methodSymbol As MethodSymbol = conversionInformation.methodSymbol
@@ -659,7 +659,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim syntax As SyntaxNode = boundDelegateCreationExpression.Syntax
             Dim type As ITypeSymbol = boundDelegateCreationExpression.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundDelegateCreationExpression.ConstantValueOpt)
-            Dim isImplicit As Boolean = boundDelegateCreationExpression.WasCompilerGenerated
+            Dim isImplicit As Boolean = boundDelegateCreationExpression.WasCompilerGenerated OrElse boundDelegateCreationExpression.Syntax.Kind() = SyntaxKind.AddressOfExpression
 
             Dim target As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() CreateBoundDelegateCreationExpressionChildOperation(boundDelegateCreationExpression))
 

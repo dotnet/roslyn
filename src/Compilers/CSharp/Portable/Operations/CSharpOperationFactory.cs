@@ -680,7 +680,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IOperation CreateBoundConversionOperation(BoundConversion boundConversion)
         {
-            bool isCompilerGenerated = boundConversion.WasCompilerGenerated;
+            bool isImplicit = boundConversion.WasCompilerGenerated || !boundConversion.ExplicitCastInCode;
             if (boundConversion.ConversionKind == CSharp.ConversionKind.MethodGroup)
             {
                 Lazy<IOperation> target = new Lazy<IOperation>(() =>
@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 SyntaxNode syntax = boundConversion.Syntax;
                 ITypeSymbol type = boundConversion.Type;
                 Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
-                return new LazyDelegateCreationExpression(target, _semanticModel, syntax, type, constantValue, isCompilerGenerated);
+                return new LazyDelegateCreationExpression(target, _semanticModel, syntax, type, constantValue, isImplicit);
             }
             else
             {
@@ -720,16 +720,17 @@ namespace Microsoft.CodeAnalysis.Semantics
                      boundConversion.Operand.Kind == BoundKind.MethodGroup) &&
                     boundConversion.Type.IsDelegateType())
                 {
-                    return new LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isCompilerGenerated);
+                    return new LazyDelegateCreationExpression(operand, _semanticModel, syntax, type, constantValue, isImplicit);
                 }
-
-                Conversion conversion = boundConversion.Conversion;
-                bool isExplicitCastInCode = boundConversion.ExplicitCastInCode;
-                bool isTryCast = false;
-                // Checked conversions only matter if the conversion is a Numeric conversion. Don't have true unless the conversion is actually numeric.
-                bool isChecked = conversion.IsNumeric && boundConversion.Checked;
-                bool isImplicit = isCompilerGenerated || !isExplicitCastInCode;
-                return new LazyCSharpConversionExpression(operand, conversion, isExplicitCastInCode, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
+                else
+                {
+                    Conversion conversion = boundConversion.Conversion;
+                    bool isExplicitCastInCode = boundConversion.ExplicitCastInCode;
+                    bool isTryCast = false;
+                    // Checked conversions only matter if the conversion is a Numeric conversion. Don't have true unless the conversion is actually numeric.
+                    bool isChecked = conversion.IsNumeric && boundConversion.Checked;
+                    return new LazyCSharpConversionExpression(operand, conversion, isExplicitCastInCode, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit);
+                }
             }
         }
 

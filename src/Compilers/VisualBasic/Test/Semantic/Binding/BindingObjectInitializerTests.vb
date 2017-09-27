@@ -1162,7 +1162,61 @@ IObjectCreationExpression (Constructor: Sub C1..ctor()) (OperationKind.ObjectCre
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source.Value, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub ObjectInitializerCaptureFieldForLambda_JustFunctionBindingReturnsOnlyAnonymousFunctionExpression()
+            Dim source =
+<compilation name="ObjectInitializerCaptureFieldForLambda">
+    <file name="a.vb">
+Imports System
+
+Class C1
+    Public Field As Integer = 42
+    Public Field2 As Func(Of Integer)
+End Class
+
+Class C1(Of T)
+    Public Field As T
+End Class
+
+Class C2
+    Public Shared Sub Main()
+        Dim y as new C1()
+        y.Field = 23
+
+        Dim x As New C1 With {.Field2 = Function() As Integer'BIND:"Function() As Integer"
+                                            Return .Field
+                                        End Function}
+        x.Field = 42
+        Console.WriteLine(x.Field2.Invoke())
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            CompileAndVerify(source, <![CDATA[
+42
+]]>)
+
+            Dim expectedOperationTree = <![CDATA[
+IAnonymousFunctionExpression (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function()  ... nd Function')
+  IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function()  ... nd Function')
+    Locals: Local_1: <anonymous local> As System.Int32
+    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return .Field')
+      ReturnedValue: IFieldReferenceExpression: C1.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: '.Field')
+          Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1 With ... d Function}')
+    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
+      Statement: null
+    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
+      ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Function')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineLambdaExpressionSyntax)(source.Value, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
         Public Sub ObjectInitializerUsedInFieldInitializers()
@@ -1534,18 +1588,16 @@ Class C2
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'New scen2 W ... .Scen2 = 5}')
-  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IObjectCreationExpression (Constructor: Sub scen2..ctor()) (OperationKind.ObjectCreationExpression, Type: scen2) (Syntax: 'New scen2 W ... .Scen2 = 5}')
-      Arguments(0)
-      Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: scen2) (Syntax: 'With {.Scen2 = 5}')
-          Initializers(1):
-              ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void) (Syntax: '.Scen2 = 5')
-                Left: IPropertyReferenceExpression: Property scen2.Scen2 As System.Int16 (OperationKind.PropertyReferenceExpression, Type: System.Int16) (Syntax: 'Scen2')
-                    Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New scen2 W ... .Scen2 = 5}')
-                Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int16, Constant: 5) (Syntax: '5')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+IObjectCreationExpression (Constructor: Sub scen2..ctor()) (OperationKind.ObjectCreationExpression, Type: scen2) (Syntax: 'New scen2 W ... .Scen2 = 5}')
+  Arguments(0)
+  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: scen2) (Syntax: 'With {.Scen2 = 5}')
+      Initializers(1):
+          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void) (Syntax: '.Scen2 = 5')
+            Left: IPropertyReferenceExpression: Property scen2.Scen2 As System.Int16 (OperationKind.PropertyReferenceExpression, Type: System.Int16) (Syntax: 'Scen2')
+                Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New scen2 W ... .Scen2 = 5}')
+            Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int16, Constant: 5) (Syntax: '5')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

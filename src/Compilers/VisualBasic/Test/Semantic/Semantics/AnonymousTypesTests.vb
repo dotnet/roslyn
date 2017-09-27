@@ -21,27 +21,25 @@ Module ModuleA
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'New With {. ...  = .b + .a}')
-  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>) (Syntax: 'New With {. ...  = .b + .a}')
-      Initializers(3):
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1) (Syntax: '.a = 1')
-            Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'a')
-                Instance Receiver: null
-            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.b = .a')
-            Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.b As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'b')
+IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>) (Syntax: 'New With {. ...  = .b + .a}')
+  Initializers(3):
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1) (Syntax: '.a = 1')
+        Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'a')
+            Instance Receiver: null
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.b = .a')
+        Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.b As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'b')
+            Instance Receiver: null
+        Right: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.a')
+            Instance Receiver: null
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.c = .b + .a')
+        Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.c As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'c')
+            Instance Receiver: null
+        Right: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '.b + .a')
+            Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.b As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.b')
                 Instance Receiver: null
             Right: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.a')
                 Instance Receiver: null
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.c = .b + .a')
-            Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.c As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'c')
-                Instance Receiver: null
-            Right: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '.b + .a')
-                Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.b As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.b')
-                    Instance Receiver: null
-                Right: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.a')
-                    Instance Receiver: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -60,20 +58,18 @@ Module ModuleA
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New With {. ... s, .b = .a}')
-  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As ?, b As ?>, IsInvalid) (Syntax: 'New With {. ... s, .b = .a}')
-      Initializers(2):
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.a = sss')
-            Left: IPropertyReferenceExpression: Property <anonymous type: a As ?, b As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
-                Instance Receiver: null
-            Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'sss')
-                Children(0)
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?) (Syntax: '.b = .a')
-            Left: IPropertyReferenceExpression: Property <anonymous type: a As ?, b As ?>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'b')
-                Instance Receiver: null
-            Right: IPropertyReferenceExpression: Property <anonymous type: a As ?, b As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: '.a')
-                Instance Receiver: null
+IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As ?, b As ?>, IsInvalid) (Syntax: 'New With {. ... s, .b = .a}')
+  Initializers(2):
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.a = sss')
+        Left: IPropertyReferenceExpression: Property <anonymous type: a As ?, b As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
+            Instance Receiver: null
+        Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'sss')
+            Children(0)
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?) (Syntax: '.b = .a')
+        Left: IPropertyReferenceExpression: Property <anonymous type: a As ?, b As ?>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'b')
+            Instance Receiver: null
+        Right: IPropertyReferenceExpression: Property <anonymous type: a As ?, b As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: '.a')
+            Instance Receiver: null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -200,20 +196,18 @@ Module ModuleA
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New With {. ... c, .c = .b}')
-  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: b As ?, c As ?>, IsInvalid) (Syntax: 'New With {. ... c, .c = .b}')
-      Initializers(2):
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.b = .c')
-            Left: IPropertyReferenceExpression: Property <anonymous type: b As ?, c As ?>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'b')
-                Instance Receiver: null
-            Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.c')
-                Children(0)
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?) (Syntax: '.c = .b')
-            Left: IPropertyReferenceExpression: Property <anonymous type: b As ?, c As ?>.c As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'c')
-                Instance Receiver: null
-            Right: IPropertyReferenceExpression: Property <anonymous type: b As ?, c As ?>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: '.b')
-                Instance Receiver: null
+IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: b As ?, c As ?>, IsInvalid) (Syntax: 'New With {. ... c, .c = .b}')
+  Initializers(2):
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.b = .c')
+        Left: IPropertyReferenceExpression: Property <anonymous type: b As ?, c As ?>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'b')
+            Instance Receiver: null
+        Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.c')
+            Children(0)
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?) (Syntax: '.c = .b')
+        Left: IPropertyReferenceExpression: Property <anonymous type: b As ?, c As ?>.c As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'c')
+            Instance Receiver: null
+        Right: IPropertyReferenceExpression: Property <anonymous type: b As ?, c As ?>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: '.b')
+            Instance Receiver: null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -236,19 +230,17 @@ Module ModuleA
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New With {. ... .c, .c = 1}')
-  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: b As ?, c As System.Int32>, IsInvalid) (Syntax: 'New With {. ... .c, .c = 1}')
-      Initializers(2):
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.b = .c')
-            Left: IPropertyReferenceExpression: Property <anonymous type: b As ?, c As System.Int32>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'b')
-                Instance Receiver: null
-            Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.c')
-                Children(0)
-          ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1) (Syntax: '.c = 1')
-            Left: IPropertyReferenceExpression: Property <anonymous type: b As ?, c As System.Int32>.c As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'c')
-                Instance Receiver: null
-            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: b As ?, c As System.Int32>, IsInvalid) (Syntax: 'New With {. ... .c, .c = 1}')
+  Initializers(2):
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.b = .c')
+        Left: IPropertyReferenceExpression: Property <anonymous type: b As ?, c As System.Int32>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'b')
+            Instance Receiver: null
+        Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.c')
+            Children(0)
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1) (Syntax: '.c = 1')
+        Left: IPropertyReferenceExpression: Property <anonymous type: b As ?, c As System.Int32>.c As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'c')
+            Instance Receiver: null
+        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1129,11 +1121,9 @@ Module S1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'New With {x2}')
-  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: x2 As T>) (Syntax: 'New With {x2}')
-      Initializers(1):
-          ILocalReferenceExpression: x2 (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'x2')
+IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: x2 As T>) (Syntax: 'New With {x2}')
+  Initializers(1):
+      ILocalReferenceExpression: x2 (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'x2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
