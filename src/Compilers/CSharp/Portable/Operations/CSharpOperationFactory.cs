@@ -1402,7 +1402,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                     ITypeSymbol type = null;
                     Optional<object> constantValue = default(Optional<object>);
                     bool isImplicit = false;
-                    return new VariableDeclarationStatement(ImmutableArray.Create(declaration), _semanticModel, declarator, type, constantValue, isImplicit);
+                    return new VariableDeclarationStatement(ImmutableArray.Create(declaration), _semanticModel, declarator.Parent, type, constantValue, isImplicit);
                 }
 
                 // we can get here if someone asked about 1 variable declarator on multi local declaration or fixed/using statements
