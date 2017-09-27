@@ -917,7 +917,7 @@ End Module";
 
                 // Run the EXE and verify it prints the desired output.
                 var exeFile = GetResultFile(compilationDir, exeFileName);
-                RunCompilerOutput(exeFile, "{prefix} Hello number {i}\r\n");
+                RunCompilerOutput(exeFile, $"{prefix} Hello number {i}\r\n");
                 return exeFile;
             });
         }
