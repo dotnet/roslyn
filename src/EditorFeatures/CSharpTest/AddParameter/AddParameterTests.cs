@@ -698,6 +698,7 @@ class C1
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [Trait("TODO", "Fix broken")]
         public async Task TestInvocationLambda1()
         {
             await TestInRegularAndScriptAsync(
@@ -721,6 +722,7 @@ class C1
         a(2);
     }
 }");
+            //Should be Action<int> a = (int v) => { };
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -904,13 +906,13 @@ class C1
 @"
 class C1
 {
-    void M1<T>(int v, T arg) { }
+    void M1<T>(T arg, int v) { }
     void M2()
     {
         M1(1, 2);
     }
 }");
-            //Should fix to either: void M1<T>(T arg, int v) { } or void M1<T>(T arg, T v) { }
+            //Should fix to: void M1<T>(T arg, T v) { }
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1129,7 +1131,7 @@ class C1
 @"
 class C1
 {
-    void M1<T>(int v, T i) { }
+    void M1<T>(T i, bool v) { }
     void M2()
     {
         M1<int, bool>(1, true);

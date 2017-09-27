@@ -557,6 +557,11 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 return type.IsReferenceType || type.IsNullable();
             }
 
+            if (type.Kind == SymbolKind.TypeParameter)
+            {
+                return true;
+            }
+
             return false;
         }
 
