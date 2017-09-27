@@ -626,9 +626,7 @@ class Test
 ";
             await VerifyItemExistsAsync(markup, "test");
         }
-<<<<<<< HEAD
 
-<<<<<<< HEAD
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void DisabledByOption()
         {
@@ -651,6 +649,7 @@ class Test
             {
                 workspace.Options = originalOptions;
             }
+        }
 
         [WorkItem(19409, "https://github.com/dotnet/roslyn/issues/19409")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -665,7 +664,17 @@ class Test
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "test");
+            var workspace = WorkspaceFixture.GetWorkspace();
+            var originalOptions = workspace.Options;
+            workspace.Options = originalOptions.WithChangedOption(CompletionControllerOptions.TextEditorSnipppetsAreActive, true);
+            try
+            {
+                await VerifyItemExistsAsync(markup, "test");
+            }
+            finally
+            {
+                workspace.Options = originalOptions;
+            }
 
         }
     }
