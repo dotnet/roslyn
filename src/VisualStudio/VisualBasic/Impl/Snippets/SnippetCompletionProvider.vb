@@ -12,7 +12,6 @@ Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.VisualStudio.Editor
 Imports Microsoft.VisualStudio.Text
@@ -54,8 +53,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)()
             Dim isPossibleTupleContext = syntaxFacts.IsPossibleTupleContext(syntaxTree, position, cancellationToken)
 
-            Dim trivia = syntaxTree.FindTriviaToLeft(position, cancellationToken)
-            If (trivia.IsKind(SyntaxKind.CommentTrivia, SyntaxKind.DocumentationCommentTrivia)) Then
+            If (IsInNonUserCode(syntaxTree, position, cancellationToken)) Then
                 Return
             End If
 
