@@ -147,7 +147,7 @@ End Module")
             }
         }
 
-        private static (T result, string Output) UseTextWriter<T>(Encoding encoding, Func<TextWriter, T> func)
+        private static (T Result, string Output) UseTextWriter<T>(Encoding encoding, Func<TextWriter, T> func)
         {
             MemoryStream memoryStream;
             TextWriter writer;

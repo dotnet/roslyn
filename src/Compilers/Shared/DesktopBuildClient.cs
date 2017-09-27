@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             // Register encodings for console
             // https://github.com/dotnet/roslyn/issues/10785 
-            // TODO(ashauck): Determine if this can go into desktop as well
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 #endif
             var client = new DesktopBuildClient(language, compileFunc, analyzerAssemblyLoader);
