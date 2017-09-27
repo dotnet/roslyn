@@ -1435,7 +1435,7 @@ public class C {}";
 
         [WorkItem(531195, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531195")]
         [Fact()]
-        public void SignModuleKeyFileCmdLine_1_Bypass()
+        public void SignModuleKeyFileCmdLine_1_Legacy()
         {
             var x = s_keyPairFile;
             string s = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""", x, @""")] public class C {}");

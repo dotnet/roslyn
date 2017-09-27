@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, CommonMessageProvider messageProvider);
 
-        internal StrongNameKeys CommonParseKeys(StrongNameFileSystem fileSystem, string keyFilePath, ImmutableArray<string> keyFileSearchPaths, CommonMessageProvider messageProvider)
+        internal StrongNameKeys CommonCreateKeys(StrongNameFileSystem fileSystem, string keyFilePath, ImmutableArray<string> keyFileSearchPaths, CommonMessageProvider messageProvider)
         {
             try
             {

@@ -17,14 +17,6 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal abstract class ErrorLogger
     {
-        private class NullErrorLogger : ErrorLogger
-        {
-            public override void LogDiagnostic(Diagnostic diagnostic)
-            {
-            }
-        }
-
-        public static ErrorLogger Null = new NullErrorLogger();
         public abstract void LogDiagnostic(Diagnostic diagnostic);
     }
 

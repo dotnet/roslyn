@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!string.IsNullOrEmpty(keyFilePath))
             {
-                return CommonParseKeys(FileSystem, keyFilePath, _keyFileSearchPaths, messageProvider);
+                return CommonCreateKeys(FileSystem, keyFilePath, _keyFileSearchPaths, messageProvider);
             }
             else if (!string.IsNullOrEmpty(keyContainerName))
             {

@@ -8,7 +8,7 @@ using System.Reflection.Metadata;
 using System.Security.Cryptography;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
-using static Roslyn.Utilities.IncrementalHashExtensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {

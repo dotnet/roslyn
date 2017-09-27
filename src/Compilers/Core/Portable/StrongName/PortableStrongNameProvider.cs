@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!string.IsNullOrEmpty(keyFilePath))
             {
-                return CommonParseKeys(FileSystem, keyFilePath, _keyFileSearchPaths, messageProvider);
+                return CommonCreateKeys(FileSystem, keyFilePath, _keyFileSearchPaths, messageProvider);
             }
 
             return new StrongNameKeys(keyPair, publicKey, null, container, keyFilePath);

@@ -5843,7 +5843,7 @@ public class C
             file.WriteAllText(source);
 
             var cmd = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "a.cs", "/keyfile:key.snk", });
-            var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), ErrorLogger.Null);
+            var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), NullErrorLogger.Instance);
 
             Assert.Equal(comp.Options.StrongNameProvider.GetType(), typeof(PortableStrongNameProvider));
         }
@@ -5865,7 +5865,7 @@ public class C
             file.WriteAllText(source);
 
             var cmd = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "a.cs", "/keycontainer:bbb", });
-            var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), ErrorLogger.Null);
+            var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), NullErrorLogger.Instance);
 
             Assert.Equal(comp.Options.StrongNameProvider.GetType(), typeof(DesktopStrongNameProvider));
         }
@@ -5887,7 +5887,7 @@ public class C
             file.WriteAllText(source);
 
             var cmd = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "a.cs", "/keyFile:key.snk", "/features:UseLegacyStrongNameProvider" });
-            var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), ErrorLogger.Null);
+            var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), NullErrorLogger.Instance);
 
             Assert.Equal(comp.Options.StrongNameProvider.GetType(), typeof(DesktopStrongNameProvider));
         }
