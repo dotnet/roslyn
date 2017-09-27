@@ -3,16 +3,15 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.Notification
-Imports Microsoft.CodeAnalysis.ChangeSignature
 Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Roslyn.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
+Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ChangeSignature

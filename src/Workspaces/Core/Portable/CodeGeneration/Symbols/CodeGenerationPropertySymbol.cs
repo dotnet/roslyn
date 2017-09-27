@@ -64,55 +64,19 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
             => visitor.VisitProperty(this);
 
-        public bool IsReadOnly
-        {
-            get
-            {
-                return this.GetMethod != null && this.SetMethod == null;
-            }
-        }
+        public bool IsReadOnly => this.GetMethod != null && this.SetMethod == null;
 
-        public bool IsWriteOnly
-        {
-            get
-            {
-                return this.GetMethod == null && this.SetMethod != null;
-            }
-        }
+        public bool IsWriteOnly => this.GetMethod == null && this.SetMethod != null;
 
         public new IPropertySymbol OriginalDefinition => this;
 
-        public RefKind RefKind
-        {
-            get
-            {
-                return this._refKind;
-            }
-        }
+        public RefKind RefKind => this._refKind;
 
-        public bool ReturnsByRef
-        {
-            get
-            {
-                return this._refKind == RefKind.Ref;
-            }
-        }
+        public bool ReturnsByRef => this._refKind == RefKind.Ref;
 
-        public bool ReturnsByRefReadonly
-        {
-            get
-            {
-                return this._refKind == RefKind.RefReadOnly;
-            }
-        }
+        public bool ReturnsByRefReadonly => this._refKind == RefKind.RefReadOnly;
 
-        public IPropertySymbol OverriddenProperty
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public IPropertySymbol OverriddenProperty => null;
 
         public bool IsWithEvents => false;
 

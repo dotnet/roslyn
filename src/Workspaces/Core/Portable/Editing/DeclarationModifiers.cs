@@ -60,75 +60,33 @@ namespace Microsoft.CodeAnalysis.Editing
                 isConst: field != null && field.IsConst);
         }
 
-        public bool IsStatic
-        {
-            get { return (_modifiers & Modifiers.Static) != 0; }
-        }
+        public bool IsStatic => (_modifiers & Modifiers.Static) != 0;
 
-        public bool IsAbstract
-        {
-            get { return (_modifiers & Modifiers.Abstract) != 0; }
-        }
+        public bool IsAbstract => (_modifiers & Modifiers.Abstract) != 0;
 
-        public bool IsNew
-        {
-            get { return (_modifiers & Modifiers.New) != 0; }
-        }
+        public bool IsNew => (_modifiers & Modifiers.New) != 0;
 
-        public bool IsUnsafe
-        {
-            get { return (_modifiers & Modifiers.Unsafe) != 0; }
-        }
+        public bool IsUnsafe => (_modifiers & Modifiers.Unsafe) != 0;
 
-        public bool IsReadOnly
-        {
-            get { return (_modifiers & Modifiers.ReadOnly) != 0; }
-        }
+        public bool IsReadOnly => (_modifiers & Modifiers.ReadOnly) != 0;
 
-        public bool IsVirtual
-        {
-            get { return (_modifiers & Modifiers.Virtual) != 0; }
-        }
+        public bool IsVirtual => (_modifiers & Modifiers.Virtual) != 0;
 
-        public bool IsOverride
-        {
-            get { return (_modifiers & Modifiers.Override) != 0; }
-        }
+        public bool IsOverride => (_modifiers & Modifiers.Override) != 0;
 
-        public bool IsSealed
-        {
-            get { return (_modifiers & Modifiers.Sealed) != 0; }
-        }
+        public bool IsSealed => (_modifiers & Modifiers.Sealed) != 0;
 
-        public bool IsConst
-        {
-            get { return (_modifiers & Modifiers.Const) != 0; }
-        }
+        public bool IsConst => (_modifiers & Modifiers.Const) != 0;
 
-        public bool IsWithEvents
-        {
-            get { return (_modifiers & Modifiers.WithEvents) != 0; }
-        }
+        public bool IsWithEvents => (_modifiers & Modifiers.WithEvents) != 0;
 
-        public bool IsPartial
-        {
-            get { return (_modifiers & Modifiers.Partial) != 0; }
-        }
+        public bool IsPartial => (_modifiers & Modifiers.Partial) != 0;
 
-        public bool IsAsync
-        {
-            get { return (_modifiers & Modifiers.Async) != 0; }
-        }
+        public bool IsAsync => (_modifiers & Modifiers.Async) != 0;
 
-        public bool IsWriteOnly
-        {
-            get { return (_modifiers & Modifiers.WriteOnly) != 0; }
-        }
+        public bool IsWriteOnly => (_modifiers & Modifiers.WriteOnly) != 0;
 
-        public bool IsRef
-        {
-            get { return (_modifiers & Modifiers.Ref) != 0; }
-        }
+        public bool IsRef => (_modifiers & Modifiers.Ref) != 0;
 
         public DeclarationModifiers WithIsStatic(bool isStatic)
         {
