@@ -124,8 +124,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
             var switchLocation = diagnostic.AdditionalLocations[0];
             var switchNode = switchLocation.FindNode(cancellationToken);
-            var internalMethod = typeof(SemanticModel).GetTypeInfo().GetDeclaredMethod("GetOperationInternal");
-            var switchStatement = (ISwitchOperation)internalMethod.Invoke(model, new object[] { switchNode, cancellationToken });
+            var switchStatement = (ISwitchOperation)model.GetOperation(switchNode, cancellationToken);
             var enumType = switchStatement.Value.Type;
 
             var generator = editor.Generator;

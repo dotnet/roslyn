@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var syntax = statement.Syntax;
             foreach (var coalesceNode in syntax.DescendantNodes().OfType<TBinaryExpressionSyntax>())
             {
-                var operation = GetOperation(semanticModel, coalesceNode, cancellationToken);
+                var operation = semanticModel.GetOperation(coalesceNode, cancellationToken);
                 if (operation is ICoalesceOperation coalesceExpression)
                 {
                     if (IsParameterReference(coalesceExpression.Value, parameter) &&

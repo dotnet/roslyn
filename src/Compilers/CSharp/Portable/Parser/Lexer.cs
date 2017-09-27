@@ -901,17 +901,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return;
             }
 
-            string requiredFeature = feature.RequiredFeature();
-            if (requiredFeature != null)
-            {
-                if (!options.IsFeatureEnabled(feature))
-                {
-                    this.AddError(ErrorCode.ERR_FeatureIsExperimental, feature.Localize(), requiredFeature);
-                }
-
-                return;
-            }
-
             LanguageVersion availableVersion = this.Options.LanguageVersion;
             var requiredVersion = feature.RequiredVersion();
             if (availableVersion >= requiredVersion) return;
