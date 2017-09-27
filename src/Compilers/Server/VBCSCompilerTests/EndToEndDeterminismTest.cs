@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                         CompilerServerUnitTests.CSharpCompilerClientExecutable,
                         finalFlags,
                         currentDirectory: tempDir);
-                    if (result.exitCode != 0)
+                    if (result.ExitCode != 0)
                     {
-                        AssertEx.Fail($"Deterministic compile failed \n stdout:  { result.output }");
+                        AssertEx.Fail($"Deterministic compile failed \n stdout:  { result.Output }");
                     }
                     await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
                 }

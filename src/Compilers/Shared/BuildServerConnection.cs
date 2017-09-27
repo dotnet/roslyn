@@ -468,7 +468,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 var remoteOwner = remotePipeSecurity.GetOwner(typeof(SecurityIdentifier));
                 return currentOwner.Equals(remoteOwner);
 #else
-                // TODO(portable vbcscompiler): Implement this.
+                // TODO(portable vbcscompiler, https://github.com/dotnet/roslyn/issues/9696)
+                // We should implement a cross-platform secure IPC mechanism.
                 // NamedPipeServerStream exposes GetImpersonationUserName,
                 // which the underlying linux APIs exist for client streams too,
                 // but it's not exposed.

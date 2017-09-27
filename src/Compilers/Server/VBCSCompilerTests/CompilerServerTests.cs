@@ -147,7 +147,7 @@ End Module")
             }
         }
 
-        private static (T result, string output) UseTextWriter<T>(Encoding encoding, Func<TextWriter, T> func)
+        private static (T result, string Output) UseTextWriter<T>(Encoding encoding, Func<TextWriter, T> func)
         {
             MemoryStream memoryStream;
             TextWriter writer;
@@ -173,7 +173,7 @@ End Module")
             }
         }
 
-        internal static (int exitCode, string output) RunCommandLineCompiler(
+        internal static (int ExitCode, string Output) RunCommandLineCompiler(
             RequestLanguage language,
             string argumentsSingle,
             TempDirectory currentDirectory,
@@ -216,27 +216,27 @@ End Module")
             return new DisposableFile(Path.Combine(directory.Path, resultFileName));
         }
 
-        private static ProcessResult RunCompilerOutput(TempFile file)
+        private static void RunCompilerOutput(TempFile file, string expectedOutput)
         {
-            return ProcessUtilities.Run(file.Path, "", Path.GetDirectoryName(file.Path));
+#if NET46
+            var result = ProcessUtilities.Run(file.Path, "", Path.GetDirectoryName(file.Path));
+            Assert.Equal(expectedOutput, result.Output);
+#endif
         }
 
-        private static void VerifyResult((int exitCode, string output) result)
+        private static void VerifyResult((int ExitCode, string Output) result)
         {
-            Assert.Equal("", result.output);
-            Assert.Equal(0, result.exitCode);
+            Assert.Equal("", result.Output);
+            Assert.Equal(0, result.ExitCode);
         }
 
-        private void VerifyResultAndOutput((int exitCode, string output) result, TempDirectory path, string expectedOutput)
+        private void VerifyResultAndOutput((int ExitCode, string Output) result, TempDirectory path, string expectedOutput)
         {
             using (var resultFile = GetResultFile(path, "hello.exe"))
             {
                 VerifyResult(result);
 
-#if NET46
-                var runningResult = RunCompilerOutput(resultFile);
-                Assert.Equal(expectedOutput, runningResult.Output);
-#endif
+                RunCompilerOutput(resultFile, expectedOutput);
             }
         }
 
@@ -263,8 +263,8 @@ End Module")
                 var files = new Dictionary<string, string> { { "hello.cs", "♕" } };
 
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, files, redirectEncoding: Encoding.ASCII, shouldRunOnServer: false);
-                Assert.Equal(result.exitCode, 1);
-                Assert.Equal("hello.cs(1,1): error CS1056: Unexpected character '?'", result.output.Trim());
+                Assert.Equal(result.ExitCode, 1);
+                Assert.Equal("hello.cs(1,1): error CS1056: Unexpected character '?'", result.Output.Trim());
                 await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
             }
         }
@@ -284,8 +284,8 @@ End Module")
                     shouldRunOnServer: false);
 
                 Assert.Equal("test.cs(1,1): error CS1056: Unexpected character '♕'".Trim(),
-                    result.output.Trim().Replace(srcFile, "test.cs"));
-                Assert.Equal(1, result.exitCode);
+                    result.Output.Trim().Replace(srcFile, "test.cs"));
+                Assert.Equal(1, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
             }
         }
@@ -304,11 +304,11 @@ End Module")
                     redirectEncoding: Encoding.ASCII,
                     shouldRunOnServer: false);
 
-                Assert.Equal(result.exitCode, 1);
+                Assert.Equal(result.ExitCode, 1);
                 Assert.Equal(@"test.vb(1) : error BC30037: Character is not valid.
 
 ?
-~", result.output.Trim().Replace(srcFile, "test.vb"));
+~", result.Output.Trim().Replace(srcFile, "test.vb"));
                 await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
             }
         }
@@ -330,8 +330,8 @@ End Module")
                 Assert.Equal(@"test.vb(1) : error BC30037: Character is not valid.
 
 ♕
-~", result.output.Trim().Replace(srcFile, "test.vb"));
-                Assert.Equal(1, result.exitCode);
+~", result.Output.Trim().Replace(srcFile, "test.vb"));
+                Assert.Equal(1, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
             }
         }
@@ -471,9 +471,9 @@ class Hello
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} hello.cs", _tempDirectory, files);
 
                 // Should output errors, but not create output file.
-                Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.output, StringComparison.Ordinal);
-                Assert.Contains("hello.cs(5,42): error CS1002: ; expected\r\n", result.output, StringComparison.Ordinal);
-                Assert.Equal(1, result.exitCode);
+                Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
+                Assert.Contains("hello.cs(5,42): error CS1002: ; expected\r\n", result.Output, StringComparison.Ordinal);
+                Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
@@ -499,10 +499,10 @@ End Class"}};
                 var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /vbruntime* hellovb.vb", _tempDirectory, files);
 
                 // Should output errors, but not create output file.
-                Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.output, StringComparison.Ordinal);
-                Assert.Contains("hellovb.vb(3) : error BC30625: 'Module' statement must end with a matching 'End Module'.\r\n", result.output, StringComparison.Ordinal);
-                Assert.Contains("hellovb.vb(7) : error BC30460: 'End Class' must be preceded by a matching 'Class'.\r\n", result.output, StringComparison.Ordinal);
-                Assert.Equal(1, result.exitCode);
+                Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
+                Assert.Contains("hellovb.vb(3) : error BC30625: 'Module' statement must end with a matching 'End Module'.\r\n", result.Output, StringComparison.Ordinal);
+                Assert.Contains("hellovb.vb(7) : error BC30460: 'End Class' must be preceded by a matching 'Class'.\r\n", result.Output, StringComparison.Ordinal);
+                Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
@@ -517,9 +517,9 @@ End Class"}};
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} missingfile.cs", _tempDirectory);
 
                 // Should output errors, but not create output file.
-                Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.output, StringComparison.Ordinal);
-                Assert.Contains("error CS2001: Source file", result.output, StringComparison.Ordinal);
-                Assert.Equal(1, result.exitCode);
+                Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
+                Assert.Contains("error CS2001: Source file", result.Output, StringComparison.Ordinal);
+                Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "missingfile.exe")));
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
@@ -534,9 +534,9 @@ End Class"}};
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /r:missing.dll hello.cs", _tempDirectory, s_helloWorldSrcCs);
 
                 // Should output errors, but not create output file.
-                Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.output, StringComparison.Ordinal);
-                Assert.Contains("error CS0006: Metadata file", result.output, StringComparison.Ordinal);
-                Assert.Equal(1, result.exitCode);
+                Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
+                Assert.Contains("error CS0006: Metadata file", result.Output, StringComparison.Ordinal);
+                Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
@@ -558,9 +558,9 @@ End Class"}};
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /r:Lib.cs app.cs", _tempDirectory, files);
 
                 // Should output errors, but not create output file.
-                Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.output, StringComparison.Ordinal);
-                Assert.Contains("error CS0009: Metadata file", result.output, StringComparison.Ordinal);
-                Assert.Equal(1, result.exitCode);
+                Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
+                Assert.Contains("error CS0009: Metadata file", result.Output, StringComparison.Ordinal);
+                Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "app.exe")));
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
@@ -575,9 +575,9 @@ End Class"}};
                 var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /vbruntime* missingfile.vb", _tempDirectory);
 
                 // Should output errors, but not create output file.
-                Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.output, StringComparison.Ordinal);
-                Assert.Contains("error BC2001", result.output, StringComparison.Ordinal);
-                Assert.Equal(1, result.exitCode);
+                Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
+                Assert.Contains("error BC2001", result.Output, StringComparison.Ordinal);
+                Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "missingfile.exe")));
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
@@ -604,8 +604,8 @@ End Module"}};
                 var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo /vbruntime* /r:missing.dll hellovb.vb", _tempDirectory, files);
 
                 // Should output errors, but not create output file.
-                Assert.Contains("error BC2017: could not find library", result.output, StringComparison.Ordinal);
-                Assert.Equal(1, result.exitCode);
+                Assert.Contains("error BC2017: could not find library", result.Output, StringComparison.Ordinal);
+                Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hellovb.exe")));
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
@@ -632,8 +632,8 @@ End Module"}};
                 var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo /vbruntime* /r:Lib.vb app.vb", _tempDirectory, files);
 
                 // Should output errors, but not create output file.
-                Assert.Contains("error BC31519", result.output, StringComparison.Ordinal);
-                Assert.Equal(1, result.exitCode);
+                Assert.Contains("error BC31519", result.Output, StringComparison.Ordinal);
+                Assert.Equal(1, result.ExitCode);
                 Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "app.exe")));
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
@@ -663,8 +663,8 @@ End Class
             using (var tmpFile = GetResultFile(rootDirectory, "lib.dll"))
             {
                 var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"src1.vb /shared:{serverData.PipeName} /nologo /t:library /out:lib.dll", rootDirectory, files);
-                Assert.Equal("", result.output);
-                Assert.Equal(0, result.exitCode);
+                Assert.Equal("", result.Output);
+                Assert.Equal(0, result.ExitCode);
 
                 using (var hello1_file = GetResultFile(rootDirectory, "hello1.exe"))
                 {
@@ -679,14 +679,11 @@ Module Module1
 End Module
 "}};
                     result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"hello1.vb /shared:{serverData.PipeName} /nologo /vbruntime* /r:lib.dll /out:hello1.exe", rootDirectory, files);
-                    Assert.Equal("", result.output);
-                    Assert.Equal(0, result.exitCode);
+                    Assert.Equal("", result.Output);
+                    Assert.Equal(0, result.ExitCode);
 
-#if NET46
                     // Run hello1.exe.
-                    var runningResult = RunCompilerOutput(hello1_file);
-                    Assert.Equal("Hello1 from library1\r\n", runningResult.Output);
-#endif
+                    RunCompilerOutput(hello1_file, "Hello1 from library1\r\n");
 
                     using (var hello2_file = GetResultFile(rootDirectory, "hello2.exe"))
                     {
@@ -701,14 +698,11 @@ End Sub
 End Module
 "}};
                         result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"hello2.vb /shared:{serverData.PipeName} /nologo /vbruntime* /r:lib.dll /out:hello2.exe", rootDirectory, files);
-                        Assert.Equal("", result.output);
-                        Assert.Equal(0, result.exitCode);
+                        Assert.Equal("", result.Output);
+                        Assert.Equal(0, result.ExitCode);
 
-#if NET46
                         // Run hello2.exe.
-                        runningResult = RunCompilerOutput(hello2_file);
-                        Assert.Equal("Hello2 from library1\r\n", runningResult.Output);
-#endif
+                        RunCompilerOutput(hello2_file, "Hello2 from library1\r\n");
 
                         // Change DLL "lib.dll" to something new.
                         files =
@@ -726,8 +720,8 @@ End Class
 "}};
 
                         result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"src2.vb /shared:{serverData.PipeName} /nologo /t:library /out:lib.dll", rootDirectory, files);
-                        Assert.Equal("", result.output);
-                        Assert.Equal(0, result.exitCode);
+                        Assert.Equal("", result.Output);
+                        Assert.Equal(0, result.ExitCode);
 
                         using (var hello3_file = GetResultFile(rootDirectory, "hello3.exe"))
                         {
@@ -742,18 +736,14 @@ Module Module1
 End Module
 "}};
                             result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"hello3.vb /shared:{serverData.PipeName} /nologo /vbruntime* /r:lib.dll /out:hello3.exe", rootDirectory, files);
-                            Assert.Equal("", result.output);
-                            Assert.Equal(0, result.exitCode);
+                            Assert.Equal("", result.Output);
+                            Assert.Equal(0, result.ExitCode);
 
-#if NET46
                             // Run hello3.exe. Should work.
-                            runningResult = RunCompilerOutput(hello3_file);
-                            Assert.Equal("Hello3 from library3\r\n", runningResult.Output);
+                            RunCompilerOutput(hello3_file, "Hello3 from library3\r\n");
 
                             // Run hello2.exe one more time. Should have different output than before from updated library.
-                            runningResult = RunCompilerOutput(hello2_file);
-                            Assert.Equal("Hello2 from library2\r\n", runningResult.Output);
-#endif
+                            RunCompilerOutput(hello2_file, "Hello2 from library2\r\n");
                         }
                     }
                 }
@@ -786,8 +776,8 @@ public class Library
 }"}};
 
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"src1.cs /shared:{serverData.PipeName} /nologo /t:library /out:lib.dll", rootDirectory, files);
-                Assert.Equal("", result.output);
-                Assert.Equal(0, result.exitCode);
+                Assert.Equal("", result.Output);
+                Assert.Equal(0, result.ExitCode);
 
                 using (var hello1_file = GetResultFile(rootDirectory, "hello1.exe"))
                 {
@@ -801,14 +791,11 @@ class Hello
     { Console.WriteLine(""Hello1 from {0}"", Library.GetString()); }
 }"}};
                     result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"hello1.cs /shared:{serverData.PipeName} /nologo /r:lib.dll /out:hello1.exe", rootDirectory, files);
-                    Assert.Equal("", result.output);
-                    Assert.Equal(0, result.exitCode);
+                    Assert.Equal("", result.Output);
+                    Assert.Equal(0, result.ExitCode);
 
-#if NET46
                     // Run hello1.exe.
-                    var runningResult = RunCompilerOutput(hello1_file);
-                    Assert.Equal("Hello1 from library1\r\n", runningResult.Output);
-#endif
+                    RunCompilerOutput(hello1_file, "Hello1 from library1\r\n");
 
                     using (var hello2_file = GetResultFile(rootDirectory, "hello2.exe"))
                     {
@@ -824,14 +811,11 @@ class Hello
     { Console.WriteLine(""Hello2 from {0}"", Library.GetString()); }
 }"}};
                         result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"hello2.cs /shared:{serverData.PipeName} /nologo /r:lib.dll /out:hello2.exe", rootDirectory, files);
-                        Assert.Equal("", result.output);
-                        Assert.Equal(0, result.exitCode);
+                        Assert.Equal("", result.Output);
+                        Assert.Equal(0, result.ExitCode);
 
-#if NET46
                         // Run hello2.exe.
-                        runningResult = RunCompilerOutput(hello2exe);
-                        Assert.Equal("Hello2 from library1\r\n", runningResult.Output);
-#endif
+                        RunCompilerOutput(hello2exe, "Hello2 from library1\r\n");
 
                         // Change DLL "lib.dll" to something new.
                         files =
@@ -848,8 +832,8 @@ public class Library
 }"}};
 
                         result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"src2.cs /shared:{serverData.PipeName} /nologo /t:library /out:lib.dll", rootDirectory, files);
-                        Assert.Equal("", result.output);
-                        Assert.Equal(0, result.exitCode);
+                        Assert.Equal("", result.Output);
+                        Assert.Equal(0, result.ExitCode);
 
                         using (var hello3_file = GetResultFile(rootDirectory, "hello3.exe"))
                         {
@@ -863,18 +847,14 @@ class Hello
     { Console.WriteLine(""Hello3 from {0}"", Library.GetString2()); }
 }"}};
                             result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"hello3.cs /shared:{serverData.PipeName} /nologo /r:lib.dll /out:hello3.exe", rootDirectory, files);
-                            Assert.Equal("", result.output);
-                            Assert.Equal(0, result.exitCode);
+                            Assert.Equal("", result.Output);
+                            Assert.Equal(0, result.ExitCode);
 
-#if NET46
                             // Run hello3.exe. Should work.
-                            runningResult = RunCompilerOutput(hello3_file);
-                            Assert.Equal("Hello3 from library3\r\n", runningResult.Output);
+                            RunCompilerOutput(hello3_file, "Hello3 from library3\r\n");
 
                             // Run hello2.exe one more time. Should have different output than before from updated library.
-                            runningResult = RunCompilerOutput(hello2_file);
-                            Assert.Equal("Hello2 from library2\r\n", runningResult.Output);
-#endif
+                            RunCompilerOutput(hello2_file, "Hello2 from library2\r\n");
                         }
                     }
                 }
@@ -932,14 +912,11 @@ End Module";
             {
                 var result = RunCommandLineCompiler(language, string.Join(" ", arguments), compilationDir, filesInDirectory: filesInDirectory);
 
-                Assert.Equal(0, result.exitCode);
+                Assert.Equal(0, result.ExitCode);
 
                 // Run the EXE and verify it prints the desired output.
                 var exeFile = GetResultFile(compilationDir, exeFileName);
-#if NET46
-                var exeResult = RunCompilerOutput(exeFile);
-                Assert.Equal($"{prefix} Hello number {i}\r\n", exeResult.Output);
-#endif
+                RunCompilerOutput(exeFile, "{prefix} Hello number {i}\r\n");
                 return exeFile;
             });
         }
@@ -997,8 +974,8 @@ public class Library
                                                     $"src1.cs /shared:{serverData.PipeName} /nologo /t:library /out:" + Path.Combine(libDirectory.Path, "lib.dll"),
                                                     _tempDirectory, files);
 
-                Assert.Equal("", result.output);
-                Assert.Equal(0, result.exitCode);
+                Assert.Equal("", result.Output);
+                Assert.Equal(0, result.ExitCode);
 
                 Temp.AddFile(GetResultFile(libDirectory, "lib.dll"));
 
@@ -1014,8 +991,8 @@ class Hello
                 result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"hello1.cs /shared:{serverData.PipeName} /nologo /r:lib.dll /out:hello1.exe", _tempDirectory, files,
                                                 additionalEnvironmentVars: new Dictionary<string, string>() { { "LIB", libDirectory.Path } });
 
-                Assert.Equal("", result.output);
-                Assert.Equal(0, result.exitCode);
+                Assert.Equal("", result.Output);
+                Assert.Equal(0, result.ExitCode);
 
                 var resultFile = Temp.AddFile(GetResultFile(_tempDirectory, "hello1.exe"));
                 await serverData.Verify(connections: 2, completed: 2).ConfigureAwait(true);
@@ -1047,8 +1024,8 @@ End Class
                                                     $"src1.vb /shared:{serverData.PipeName} /vbruntime* /nologo /t:library /out:" + Path.Combine(libDirectory.Path, "lib.dll"),
                                                     _tempDirectory, files);
 
-                Assert.Equal("", result.output);
-                Assert.Equal(0, result.exitCode);
+                Assert.Equal("", result.Output);
+                Assert.Equal(0, result.ExitCode);
 
                 Temp.AddFile(GetResultFile(libDirectory, "lib.dll"));
 
@@ -1065,8 +1042,8 @@ End Module
                 result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"hello1.vb /shared:{serverData.PipeName} /nologo /vbruntime* /r:lib.dll /out:hello1.exe", _tempDirectory, files,
                                                 additionalEnvironmentVars: new Dictionary<string, string>() { { "LIB", libDirectory.Path } });
 
-                Assert.Equal("", result.output);
-                Assert.Equal(0, result.exitCode);
+                Assert.Equal("", result.Output);
+                Assert.Equal(0, result.ExitCode);
 
                 var resultFile = Temp.AddFile(GetResultFile(_tempDirectory, "hello1.exe"));
                 await serverData.Verify(connections: 2, completed: 2).ConfigureAwait(true);
@@ -1089,8 +1066,8 @@ End Module
                     redirectEncoding: Encoding.ASCII);
 
                 Assert.Equal("test.cs(1,1): error CS1056: Unexpected character '?'".Trim(),
-                    result.output.Trim());
-                Assert.Equal(1, result.exitCode);
+                    result.Output.Trim());
+                Assert.Equal(1, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
@@ -1116,8 +1093,8 @@ End Module
 ?
 ~
 ".Trim(),
-                            result.output.Trim().Replace(srcFile, "SRC.VB"));
-                Assert.Equal(1, result.exitCode);
+                            result.Output.Trim().Replace(srcFile, "SRC.VB"));
+                Assert.Equal(1, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
@@ -1138,8 +1115,8 @@ End Module
                     redirectEncoding: UTF8Encoding);
 
                 Assert.Equal("test.cs(1,1): error CS1056: Unexpected character '♕'".Trim(),
-                    result.output.Trim());
-                Assert.Equal(1, result.exitCode);
+                    result.Output.Trim());
+                Assert.Equal(1, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
@@ -1164,8 +1141,8 @@ End Module
 ♕
 ~
 ".Trim(),
-                            result.output.Trim().Replace(srcFile, "SRC.VB"));
-                Assert.Equal(1, result.exitCode);
+                            result.Output.Trim().Replace(srcFile, "SRC.VB"));
+                Assert.Equal(1, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
@@ -1197,8 +1174,8 @@ End Module
                                                     $"ref_mscorlib2.cs /shared:{serverData.PipeName} /nologo /nostdlib /noconfig /t:library /r:mscorlib20.dll",
                                                     _tempDirectory, files);
 
-                Assert.Equal("", result.output);
-                Assert.Equal(0, result.exitCode);
+                Assert.Equal("", result.Output);
+                Assert.Equal(0, result.ExitCode);
 
                 Temp.AddFile(GetResultFile(_tempDirectory, "ref_mscorlib2.dll"));
 
@@ -1220,8 +1197,8 @@ class Program
                                                 $"main.cs /shared:{serverData.PipeName} /nologo /nostdlib /noconfig /r:mscorlib40.dll /r:ref_mscorlib2.dll",
                                                 _tempDirectory, files);
 
-                Assert.Equal("", result.output);
-                Assert.Equal(0, result.exitCode);
+                Assert.Equal("", result.Output);
+                Assert.Equal(0, result.ExitCode);
                 await serverData.Verify(connections: 2, completed: 2).ConfigureAwait(true);
             }
         }
@@ -1243,8 +1220,8 @@ class Program
                     redirectEncoding: UTF8Encoding);
 
                 Assert.Equal("test.cs(1,1): error CS1056: Unexpected character '♕'",
-                    result.output.Trim());
-                Assert.Equal(1, result.exitCode);
+                    result.Output.Trim());
+                Assert.Equal(1, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
@@ -1268,8 +1245,8 @@ class Program
                 Assert.Equal(@"src.vb(1) : error BC30037: Character is not valid.
 
 ♕
-~", result.output.Trim().Replace(srcFile, "src.vb"));
-                Assert.Equal(1, result.exitCode);
+~", result.Output.Trim().Replace(srcFile, "src.vb"));
+                Assert.Equal(1, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
@@ -1279,8 +1256,8 @@ class Program
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive", _tempDirectory, shouldRunOnServer: false);
 
-            Assert.Equal(1, result.exitCode);
-            Assert.Equal("Missing argument for '/keepalive' option.", result.output.Trim());
+            Assert.Equal(1, result.ExitCode);
+            Assert.Equal("Missing argument for '/keepalive' option.", result.Output.Trim());
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
@@ -1288,8 +1265,8 @@ class Program
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:goo", _tempDirectory, shouldRunOnServer: false);
 
-            Assert.Equal(1, result.exitCode);
-            Assert.Equal("Argument to '/keepalive' option is not a 32-bit integer.", result.output.Trim());
+            Assert.Equal(1, result.ExitCode);
+            Assert.Equal("Argument to '/keepalive' option is not a 32-bit integer.", result.Output.Trim());
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
@@ -1297,8 +1274,8 @@ class Program
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:-100", _tempDirectory, shouldRunOnServer: false);
 
-            Assert.Equal(1, result.exitCode);
-            Assert.Equal("Arguments to '/keepalive' option below -1 are invalid.", result.output.Trim());
+            Assert.Equal(1, result.ExitCode);
+            Assert.Equal("Arguments to '/keepalive' option below -1 are invalid.", result.Output.Trim());
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
@@ -1306,8 +1283,8 @@ class Program
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:9999999999", _tempDirectory, shouldRunOnServer: false);
 
-            Assert.Equal(1, result.exitCode);
-            Assert.Equal("Argument to '/keepalive' option is not a 32-bit integer.", result.output.Trim());
+            Assert.Equal(1, result.ExitCode);
+            Assert.Equal("Argument to '/keepalive' option is not a 32-bit integer.", result.Output.Trim());
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
@@ -1327,7 +1304,7 @@ class Program
                     _tempDirectory,
                     additionalEnvironmentVars: new Dictionary<string, string> { { "TMP", tmp } });
 
-                Assert.Equal(0, result.exitCode);
+                Assert.Equal(0, result.ExitCode);
 
                 Directory.Delete(tmp);
 
@@ -1337,8 +1314,8 @@ class Program
                     _tempDirectory,
                     shouldRunOnServer: false);
 
-                Assert.Equal("", result.output.Trim());
-                Assert.Equal(0, result.exitCode);
+                Assert.Equal("", result.Output.Trim());
+                Assert.Equal(0, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
@@ -1360,8 +1337,8 @@ class Program
                     _tempDirectory,
                     additionalEnvironmentVars: new Dictionary<string, string> { { "TMP", tmp } });
 
-                Assert.Equal("", result.output.Trim());
-                Assert.Equal(0, result.exitCode);
+                Assert.Equal("", result.Output.Trim());
+                Assert.Equal(0, result.ExitCode);
 
                 Directory.Delete(tmp);
 
@@ -1370,8 +1347,8 @@ class Program
                     $"/shared:{serverData.PipeName} /nologo /t:library {srcFile}",
                     _tempDirectory);
 
-                Assert.Equal("", result.output.Trim());
-                Assert.Equal(0, result.exitCode);
+                Assert.Equal("", result.Output.Trim());
+                Assert.Equal(0, result.ExitCode);
                 await serverData.Verify(connections: 2, completed: 2).ConfigureAwait(true);
             }
         }
