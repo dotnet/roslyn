@@ -1163,7 +1163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return operation != null ? OperationTreeVerifier.GetOperationTree(compilation, operation) : null;
         }
 
-        protected static string GetOperationTreeForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null)
+        protected static string GetOperationTreeForTest<TSyntaxNode>(string testSrc, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null)
             where TSyntaxNode : SyntaxNode
         {
             var compilation = CreateStandardCompilation(testSrc, new[] { SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
@@ -1182,7 +1182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         protected static void VerifyOperationTreeForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null)
             where TSyntaxNode : SyntaxNode
         {
-            var actualOperationTree = GetOperationTreeForTest<TSyntaxNode>(testSrc, expectedOperationTree, compilationOptions, parseOptions);
+            var actualOperationTree = GetOperationTreeForTest<TSyntaxNode>(testSrc, compilationOptions, parseOptions);
             OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
         }
 

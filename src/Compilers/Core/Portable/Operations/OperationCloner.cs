@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitTryStatement(ITryStatement operation, object argument)
         {
-            return new TryStatement(Visit(operation.Body), VisitArray(operation.Catches), Visit(operation.FinallyHandler), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new TryStatement(Visit(operation.Body), VisitArray(operation.Catches), Visit(operation.Finally), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitCatchClause(ICatchClause operation, object argument)

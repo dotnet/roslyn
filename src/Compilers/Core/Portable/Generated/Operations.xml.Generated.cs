@@ -4352,7 +4352,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         protected abstract IBlockStatement BodyImpl { get; }
         protected abstract ImmutableArray<ICatchClause> CatchesImpl { get; }
-        protected abstract IBlockStatement FinallyHandlerImpl { get; }
+        protected abstract IBlockStatement FinallyImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -4362,7 +4362,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 {
                     yield return catche;
                 }
-                yield return FinallyHandler;
+                yield return Finally;
             }
         }
         /// <summary>
@@ -4376,7 +4376,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Finally handler of the try.
         /// </summary>
-        public IBlockStatement FinallyHandler => Operation.SetParentOperation(FinallyHandlerImpl, this);
+        public IBlockStatement Finally => Operation.SetParentOperation(FinallyImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitTryStatement(this);
@@ -4397,12 +4397,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             BodyImpl = body;
             CatchesImpl = catches;
-            FinallyHandlerImpl = finallyHandler;
+            FinallyImpl = finallyHandler;
         }
 
         protected override IBlockStatement BodyImpl { get; }
         protected override ImmutableArray<ICatchClause> CatchesImpl { get; }
-        protected override IBlockStatement FinallyHandlerImpl { get; }
+        protected override IBlockStatement FinallyImpl { get; }
     }
 
     /// <summary>
@@ -4425,7 +4425,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         protected override ImmutableArray<ICatchClause> CatchesImpl => _lazyCatches.Value;
 
-        protected override IBlockStatement FinallyHandlerImpl => _lazyFinallyHandler.Value;
+        protected override IBlockStatement FinallyImpl => _lazyFinallyHandler.Value;
     }
 
     /// <summary>

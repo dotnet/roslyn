@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -366,7 +366,7 @@ class C
 ITryStatement (OperationKind.TryStatement) (Syntax: 'try ... }')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
   Catch clauses(1):
-      ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'catch ... }')
+      ICatchClause (Exception type: null) (OperationKind.CatchClause) (Syntax: 'catch ... }')
         ExceptionDeclarationOrExpression: null
         Filter: null
         Handler: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
@@ -686,7 +686,7 @@ IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/22299")]
+        [Fact]
         public void TryCatch_GetOperationForCatchFilterClause()
         {
             string source = @"
@@ -705,20 +705,44 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
-Filter: IBinaryOperatorExpression (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's != null')
-  Left: IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 's')
-  Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null) (Syntax: 'null')
-      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
-";
-            var expectedDiagnostics = DiagnosticDescription.None;
-
-            VerifyOperationTreeAndDiagnosticsForTest<CatchFilterClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            // GetOperation returns null for CatchFilterClauseSyntax
+            Assert.Null(GetOperationTreeForTest<CatchFilterClauseSyntax>(source));
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/22299")]
+        [Fact]
+        public void TryCatch_GetOperationForCatchFilterClauseExpression()
+        {
+            string source = @"
+using System;
+
+class C
+{
+    static void M(string s)
+    {
+        try
+        {
+        }
+        catch (Exception) when (/*<bind>*/s != null/*</bind>*/)
+        {
+        }
+    }
+}
+";
+            string expectedOperationTree = @"
+IBinaryOperatorExpression (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's != null')
+  Left: IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 's')
+  Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null) (Syntax: 'null')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void TryCatch_GetOperationForFinallyClause()
         {
             string source = @"
@@ -738,20 +762,8 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
-Finally: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-    IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(s);')
-      Expression: IInvocationExpression (void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(s)')
-          Instance Receiver: null
-          Arguments(1):
-              IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 's')
-                IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 's')
-                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-";
-            var expectedDiagnostics = DiagnosticDescription.None;
-
-            VerifyOperationTreeAndDiagnosticsForTest<FinallyClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            // GetOperation returns null for FinallyClauseSyntax
+            Assert.Null(GetOperationTreeForTest<FinallyClauseSyntax>(source));
         }
     }
 }

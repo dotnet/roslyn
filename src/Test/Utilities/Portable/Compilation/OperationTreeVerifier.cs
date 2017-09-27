@@ -564,13 +564,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.Body, "Body");
             VisitArray(operation.Catches, "Catch clauses", logElementCount: true);
-            Visit(operation.FinallyHandler, "Finally");
+            Visit(operation.Finally, "Finally");
         }
 
         public override void VisitCatchClause(ICatchClause operation)
         {
             LogString(nameof(ICatchClause));
-            LogString($" (Exception type: {operation.ExceptionType?.ToTestDisplayString()})");
+            var exceptionTypeStr = operation.ExceptionType != null ? operation.ExceptionType.ToTestDisplayString() : "null";
+            LogString($" (Exception type: {exceptionTypeStr})");
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.ExceptionDeclarationOrExpression, "ExceptionDeclarationOrExpression");

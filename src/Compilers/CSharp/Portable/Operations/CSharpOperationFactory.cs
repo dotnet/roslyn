@@ -306,11 +306,6 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IOperation CreateBoundLocalOperation(BoundLocal boundLocal)
         {
-            if (boundLocal.Syntax.Kind() == SyntaxKind.CatchDeclaration)
-            {
-                return CreateVariableDeclaration(boundLocal);
-            }
-
             ILocalSymbol local = boundLocal.LocalSymbol;
             bool isDeclaration = boundLocal.IsDeclaration;
             SyntaxNode syntax = boundLocal.Syntax;
@@ -1288,8 +1283,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private ICatchClause CreateBoundCatchBlockOperation(BoundCatchBlock boundCatchBlock)
         {
-            Lazy<IOperation> expressionDeclarationOrExpression = new Lazy<IOperation>(() => boundCatchBlock.ExceptionSourceOpt != null ? Create(boundCatchBlock.ExceptionSourceOpt) : null);
-            ITypeSymbol exceptionType = boundCatchBlock.ExceptionTypeOpt ?? ((CSharpCompilation)_semanticModel.Compilation).GetWellKnownType(WellKnownType.System_Exception);
+            var exceptionSourceOpt = (BoundLocal)boundCatchBlock.ExceptionSourceOpt;
+            Lazy<IOperation> expressionDeclarationOrExpression = new Lazy<IOperation>(() => exceptionSourceOpt != null ? CreateVariableDeclaration(exceptionSourceOpt) : null);
+            ITypeSymbol exceptionType = boundCatchBlock.ExceptionTypeOpt;
             Lazy<IOperation> filter = new Lazy<IOperation>(() => Create(boundCatchBlock.ExceptionFilterOpt));
             Lazy<IBlockStatement> handler = new Lazy<IBlockStatement>(() => (IBlockStatement)Create(boundCatchBlock.Body));
             SyntaxNode syntax = boundCatchBlock.Syntax;

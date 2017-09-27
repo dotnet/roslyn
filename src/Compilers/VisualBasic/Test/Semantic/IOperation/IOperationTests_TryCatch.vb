@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -319,7 +319,7 @@ BC30205: End of statement expected.
 Imports System
 Class C
     Private Shared Sub M()
-        Dim e As Exception = Nothing
+        Dim e As IO.IOException = Nothing
         Try'BIND:"Try"
         Catch e
         End Try
@@ -330,10 +330,8 @@ End Class]]>.Value
 ITryStatement (OperationKind.TryStatement) (Syntax: 'Try'BIND:"T ... End Try')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Try'BIND:"T ... End Try')
   Catch clauses(1):
-      ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'Catch e')
-        ExceptionDeclarationOrExpression: IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'e')
-            Variables: Local_1: e As System.Exception
-            Initializer: null
+      ICatchClause (Exception type: System.IO.IOException) (OperationKind.CatchClause) (Syntax: 'Catch e')
+        ExceptionDeclarationOrExpression: ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.IO.IOException) (Syntax: 'e')
         Filter: null
         Handler: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Catch e')
   Finally: null
@@ -350,7 +348,7 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'Try'BIND:"T ... End Try')
             Dim source = <![CDATA[
 Imports System
 Class C
-    Private Shared Sub M(e As Exception)
+    Private Shared Sub M(e As IO.IOException)
         Try'BIND:"Try"
         Catch e
         End Try
@@ -361,8 +359,8 @@ End Class]]>.Value
 ITryStatement (OperationKind.TryStatement) (Syntax: 'Try'BIND:"T ... End Try')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Try'BIND:"T ... End Try')
   Catch clauses(1):
-      ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'Catch e')
-        ExceptionDeclarationOrExpression: IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: System.Exception) (Syntax: 'e')
+      ICatchClause (Exception type: System.IO.IOException) (OperationKind.CatchClause) (Syntax: 'Catch e')
+        ExceptionDeclarationOrExpression: IParameterReferenceExpression: e (OperationKind.ParameterReferenceExpression, Type: System.IO.IOException) (Syntax: 'e')
         Filter: null
         Handler: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Catch e')
   Finally: null
@@ -379,7 +377,7 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'Try'BIND:"T ... End Try')
             Dim source = <![CDATA[
 Imports System
 Class C
-    Private e As Exception = Nothing
+    Private e As IO.IOException = Nothing
 
     Private Sub M()
         Try 'BIND:"Try"'BIND:"Try 'BIND:"Try""
@@ -392,8 +390,8 @@ End Class]]>.Value
 ITryStatement (OperationKind.TryStatement, IsInvalid) (Syntax: 'Try 'BIND:" ... End Try')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Try 'BIND:" ... End Try')
   Catch clauses(1):
-      ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause, IsInvalid) (Syntax: 'Catch e')
-        ExceptionDeclarationOrExpression: IFieldReferenceExpression: C.e As System.Exception (OperationKind.FieldReferenceExpression, Type: System.Exception, IsInvalid) (Syntax: 'e')
+      ICatchClause (Exception type: System.IO.IOException) (OperationKind.CatchClause, IsInvalid) (Syntax: 'Catch e')
+        ExceptionDeclarationOrExpression: IFieldReferenceExpression: C.e As System.IO.IOException (OperationKind.FieldReferenceExpression, Type: System.IO.IOException, IsInvalid) (Syntax: 'e')
             Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsInvalid) (Syntax: 'e')
         Filter: null
         Handler: IBlockStatement (0 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Catch e')
@@ -797,6 +795,55 @@ IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
+        Public Sub TryCatch_GetOperationForCatchFilterClause()
+            Dim source = <![CDATA[
+Imports System
+Class C
+    Private Shared Sub M()
+        Try
+        Catch e As IO.IOException When e.Message IsNot Nothing'BIND:"When e.Message IsNot Nothing"
+        End Try
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+]]>.Value
+
+            ' GetOperation return Nothing for CatchFilterClauseSyntax
+            Assert.Null(GetOperationTreeForTest(Of CatchFilterClauseSyntax)(source).operation)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub TryCatch_GetOperationForCatchFilterClauseExpression()
+            Dim source = <![CDATA[
+Imports System
+Class C
+    Private Shared Sub M()
+        Try
+        Catch e As IO.IOException When e.Message IsNot Nothing'BIND:"e.Message IsNot Nothing"
+        End Try
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IBinaryOperatorExpression (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'e.Message IsNot Nothing')
+  Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'e.Message')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+      Operand: IPropertyReferenceExpression: ReadOnly Property System.Exception.Message As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'e.Message')
+          Instance Receiver: ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.IO.IOException) (Syntax: 'e')
+  Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'Nothing')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of BinaryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
         Public Sub TryCatch_GetOperationForCatchStatement()
             Dim source = <![CDATA[
 Imports System
@@ -831,6 +878,23 @@ End Class]]>.Value
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
+        Public Sub TryCatch_GetOperationForEndTryStatement()
+            Dim source = <![CDATA[
+Imports System
+Class C
+    Private Shared Sub M()
+        Try
+        Catch e As IO.IOException When e.Message IsNot Nothing
+        End Try'BIND:"End Try"
+    End Sub
+End Class]]>.Value
+
+            ' GetOperation returns Nothing for End Try statement
+            Assert.Null(GetOperationTreeForTest(Of EndBlockStatementSyntax)(source).operation)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
         Public Sub TryCatch_GetOperationForFinallyStatement()
             Dim source = <![CDATA[
 Imports System
@@ -845,6 +909,98 @@ End Class]]>.Value
 
             ' GetOperation returns Nothing for FinallyStatementSyntax
             Assert.Null(GetOperationTreeForTest(Of FinallyStatementSyntax)(source).operation)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub TryCatch_GetOperationForStatementInTryBlock()
+            Dim source = <![CDATA[
+Imports System
+Class C
+    Private Shared Sub M(s As String)
+        Try
+            Console.WriteLine(s)'BIND:"Console.WriteLine(s)"
+        Catch e As IO.IOException
+        End Try
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(s)')
+  Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(s)')
+      Instance Receiver: null
+      Arguments(1):
+          IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 's')
+            IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 's')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ExpressionStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub TryCatch_GetOperationForStatementInCatchBlock()
+            Dim source = <![CDATA[
+Imports System
+Class C
+    Private Shared Sub M()
+        Try
+        Catch e As IO.IOException
+            Console.WriteLine(e)'BIND:"Console.WriteLine(e)"
+        End Try
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(e)')
+  Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(e)')
+      Instance Receiver: null
+      Arguments(1):
+          IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'e')
+            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'e')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+              Operand: ILocalReferenceExpression: e (OperationKind.LocalReferenceExpression, Type: System.IO.IOException) (Syntax: 'e')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ExpressionStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub TryCatch_GetOperationForStatementInFinallyBlock()
+            Dim source = <![CDATA[
+Imports System
+Class C
+    Private Shared Sub M(s As String)
+        Try
+        Finally
+            Console.WriteLine(s)'BIND:"Console.WriteLine(s)"
+        End Try
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(s)')
+  Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(s)')
+      Instance Receiver: null
+      Arguments(1):
+          IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 's')
+            IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 's')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ExpressionStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
     End Class

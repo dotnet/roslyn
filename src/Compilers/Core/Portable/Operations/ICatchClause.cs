@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// 1. Declaration for the local catch variable bound to the caught exception (C# and VB) OR
         /// 2. Null, indicating no declaration or expression (C# and VB)
         /// 3. Reference to an existing local or parameter (VB) OR
-        /// 4. An error expression (VB)
+        /// 4. Other expression for error scenarios (VB)
         /// </summary>
         IOperation ExceptionDeclarationOrExpression { get; }
 

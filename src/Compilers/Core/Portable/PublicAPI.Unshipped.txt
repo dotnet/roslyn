@@ -421,7 +421,7 @@ Microsoft.CodeAnalysis.Semantics.ITranslatedQueryExpression.Expression.get -> Mi
 Microsoft.CodeAnalysis.Semantics.ITryStatement
 Microsoft.CodeAnalysis.Semantics.ITryStatement.Body.get -> Microsoft.CodeAnalysis.Semantics.IBlockStatement
 Microsoft.CodeAnalysis.Semantics.ITryStatement.Catches.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.ICatchClause>
-Microsoft.CodeAnalysis.Semantics.ITryStatement.FinallyHandler.get -> Microsoft.CodeAnalysis.Semantics.IBlockStatement
+Microsoft.CodeAnalysis.Semantics.ITryStatement.Finally.get -> Microsoft.CodeAnalysis.Semantics.IBlockStatement
 Microsoft.CodeAnalysis.Semantics.ITupleExpression
 Microsoft.CodeAnalysis.Semantics.ITupleExpression.Elements.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.ITypeOfExpression
