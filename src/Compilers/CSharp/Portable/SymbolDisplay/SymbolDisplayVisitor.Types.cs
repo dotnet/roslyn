@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class SymbolDisplayVisitor
     {
-        void VisitTypeSymbolWithAnnotations(TypeSymbolWithAnnotations type)
+        private void VisitTypeSymbolWithAnnotations(TypeSymbolWithAnnotations type)
         {
             Debug.Assert(this.NotFirstVisitor is SymbolDisplayVisitor);
 
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitArrayType(symbol, isNullable: false);
         }
 
-        void VisitArrayType(IArrayTypeSymbol symbol, bool isNullable)
+        private void VisitArrayType(IArrayTypeSymbol symbol, bool isNullable)
         {
             if (TryAddAlias(symbol, builder))
             {
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddSpace();
                 }
 
-                element.Type.Accept(this.NotFirstVisitor);
+                VisitFieldType(element);
                 if (!element.IsImplicitlyDeclared)
                 {
                     AddSpace();
