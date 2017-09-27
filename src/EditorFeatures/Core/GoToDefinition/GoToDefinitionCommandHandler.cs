@@ -2,20 +2,21 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.GoToDefinition,
+    [ExportLegacyCommandHandler(PredefinedCommandHandlerNames.GoToDefinition,
        ContentTypeNames.RoslynContentType)]
     internal class GoToDefinitionCommandHandler :
-        ICommandHandler<GoToDefinitionCommandArgs>
+        ILegacyCommandHandler<GoToDefinitionCommandArgs>
     {
         private readonly IWaitIndicator _waitIndicator;
 
@@ -36,8 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         {
             var (document, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
             return service != null
-                ? CommandState.Available
-                : CommandState.Unavailable;
+                ? CommandState.CommandIsAvailable
+                : CommandState.CommandIsUnavailable;
         }
 
         public void ExecuteCommand(GoToDefinitionCommandArgs args, Action nextHandler)

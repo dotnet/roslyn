@@ -216,10 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
                 {
                     case DocumentationCommentDeferredContent docComment:
                         {
-                            var documentationCommentBlock = (TextBlock)docComment.Create();
-                            var actualText = documentationCommentBlock.Text;
-
-                            Assert.Equal(expectedText, actualText);
+                            Assert.Equal(expectedText, docComment.DocumentationComment);
                         }
                         break;
 

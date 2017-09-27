@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
+Imports Microsoft.VisualStudio.Text.UI.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Public Class FindReferencesCommandHandlerTests
@@ -44,8 +45,7 @@ class C
 
                 Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)
                 commandHandler.ExecuteCommand(
-                    New FindReferencesCommandArgs(view, textBuffer), Sub()
-                                                                     End Sub)
+                    New FindReferencesCommandArgs(view, textBuffer))
 
                 ' Wait for the find refs to be done.
                 Await waiter.CreateWaitTask()

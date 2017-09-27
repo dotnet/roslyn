@@ -2,7 +2,6 @@
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -11,6 +10,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
     /// abstract line ender command handler
     /// </summary>
     internal abstract class AbstractAutomaticLineEnderCommandHandler :
-        ICommandHandler<AutomaticLineEnderCommandArgs>
+        ILegacyCommandHandler<AutomaticLineEnderCommandArgs>
     {
         private readonly IWaitIndicator _waitIndicator;
         private readonly ITextUndoHistoryRegistry _undoRegistry;
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
         public CommandState GetCommandState(AutomaticLineEnderCommandArgs args, Func<CommandState> nextHandler)
         {
-            return CommandState.Available;
+            return CommandState.CommandIsAvailable;
         }
 
         public void ExecuteCommand(AutomaticLineEnderCommandArgs args, Action nextHandler)

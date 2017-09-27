@@ -1,13 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementAbstractClass
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Operations
+Imports Microsoft.VisualStudio.Text.UI.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementAbstractClass
     Public Class ImplementAbstractClassCommandHandlerTests
@@ -200,7 +200,7 @@ End Class</text>
 
             view.Caret.MoveTo(New SnapshotPoint(snapshot, cursorPosition))
 
-            Dim commandHandler As ICommandHandler(Of ReturnKeyCommandArgs) =
+            Dim commandHandler As ILegacyCommandHandler(Of ReturnKeyCommandArgs) =
                 New ImplementAbstractClassCommandHandler(workspace.GetService(Of IEditorOperationsFactoryService))
             commandHandler.ExecuteCommand(New ReturnKeyCommandArgs(view, view.TextBuffer), nextHandler)
 

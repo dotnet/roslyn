@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent.SmartIndentProvider),
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification.ForegroundNotificationService),
                 typeof(Microsoft.CodeAnalysis.Editor.UnitTests.TestOptionsServiceFactory),
+                typeof(Implementation.Classification.ClassificationTypeFormatDefinitions), // to include EditorFeatures.Wpf
                 typeof(DefaultSymbolMappingService),
                 typeof(TestWaitIndicator),
                 typeof(TestExtensionErrorHandler),

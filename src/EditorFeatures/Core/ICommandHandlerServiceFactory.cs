@@ -7,8 +7,8 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface ICommandHandlerServiceFactory
     {
-        ICommandHandlerService GetService(ITextView textView);
-        ICommandHandlerService GetService(ITextBuffer textBuffer);
+        ILegacyCommandHandlerService GetService(ITextView textView);
+        ILegacyCommandHandlerService GetService(ITextBuffer textBuffer);
         void Initialize(string contentTypeName);
     }
 }

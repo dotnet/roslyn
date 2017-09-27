@@ -35,6 +35,7 @@
     <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\ServiceHub.csproj" />
     <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj" />
     <ProjectReference Include="..\Core\EditorFeatures.csproj" />
+    <ProjectReference Include="..\Core.Wpf\EditorFeatures.Wpf.csproj" />
     <ProjectReference Include="..\CSharp\CSharpEditorFeatures.csproj" />
     <ProjectReference Include="..\Text\TextEditorFeatures.csproj" />
     <ProjectReference Include="..\VisualBasic\BasicEditorFeatures.vbproj" />

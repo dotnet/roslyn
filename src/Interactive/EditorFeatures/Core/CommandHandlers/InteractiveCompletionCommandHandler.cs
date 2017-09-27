@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.InteractiveWindow.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.Completion, PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName)]
+    [ExportLegacyCommandHandler(PredefinedCommandHandlerNames.Completion, PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName)]
     [Order(After = PredefinedCommandHandlerNames.SignatureHelp)]
     internal sealed class InteractiveCompletionCommandHandler : AbstractCompletionCommandHandler
     {

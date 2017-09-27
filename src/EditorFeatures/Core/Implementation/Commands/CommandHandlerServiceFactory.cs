@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Commands
     [Export(typeof(ICommandHandlerServiceFactory))]
     internal class CommandHandlerServiceFactory : ICommandHandlerServiceFactory
     {
-        private readonly IEnumerable<Lazy<ICommandHandler, OrderableContentTypeMetadata>> _commandHandlers;
+        private readonly IEnumerable<Lazy<ILegacyCommandHandler, OrderableContentTypeMetadata>> _commandHandlers;
 
         [ImportingConstructor]
         public CommandHandlerServiceFactory(
-            [ImportMany] IEnumerable<Lazy<ICommandHandler, OrderableContentTypeMetadata>> commandHandlers)
+            [ImportMany] IEnumerable<Lazy<ILegacyCommandHandler, OrderableContentTypeMetadata>> commandHandlers)
         {
             Contract.ThrowIfNull(commandHandlers);
 
@@ -67,12 +67,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Commands
             return new CommandHandlerService(handlers);
         }
 
-        ICommandHandlerService ICommandHandlerServiceFactory.GetService(ITextView textView)
+        ILegacyCommandHandlerService ICommandHandlerServiceFactory.GetService(ITextView textView)
         {
             return CreateCollectionForView(textView);
         }
 
-        ICommandHandlerService ICommandHandlerServiceFactory.GetService(ITextBuffer textBuffer)
+        ILegacyCommandHandlerService ICommandHandlerServiceFactory.GetService(ITextBuffer textBuffer)
         {
             return CreateCollectionForBuffer(textBuffer);
         }

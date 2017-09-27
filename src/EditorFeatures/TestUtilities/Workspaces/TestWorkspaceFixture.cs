@@ -64,7 +64,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public void CloseTextView()
         {
-            GetWorkspace().Documents.Single().CloseTextView();
+            // The standard use for TestWorkspaceFixture is to call this method in the test's dispose to make sure it's ready to be used for
+            // the next test. But some tests in a test class won't use it, so _workspace might still be null.
+            _workspace?.Documents.Single().CloseTextView();
 
             // The editor caches TextFormattingRunProperties instances for better perf, but since things like
             // Brushes are DispatcherObjects, they are tied to the thread they are created on. Since we're going

@@ -19,27 +19,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // caret to stay where it started at. So we store the caret position here and
             // restore it afterwards.
             private readonly EventHandler<CaretPositionChangedEventArgs> _caretPositionChangedHandler;
-            private readonly IList<Tuple<IWpfTextView, IMappingPoint>> _caretPositions;
+            private readonly IList<Tuple<ITextView, IMappingPoint>> _caretPositions;
             private readonly ITextBuffer _subjectBuffer;
-            private readonly ITextBufferAssociatedViewService _visibilityService;
+            private readonly ITextBufferAssociatedViewService _associatedViewService;
 
             private bool _caretChanged;
 
-            public CaretPositionRestorer(ITextBuffer subjectBuffer, ITextBufferAssociatedViewService visibilityService)
+            public CaretPositionRestorer(ITextBuffer subjectBuffer, ITextBufferAssociatedViewService associatedViewService)
             {
-                Contract.ThrowIfNull(visibilityService);
+                Contract.ThrowIfNull(associatedViewService);
                 _subjectBuffer = subjectBuffer;
                 _caretPositionChangedHandler = (s, e) => _caretChanged = true;
-                _visibilityService = visibilityService;
+                _associatedViewService = associatedViewService;
 
                 _caretPositions = GetCaretPositions();
             }
 
-            private IList<Tuple<IWpfTextView, IMappingPoint>> GetCaretPositions()
+            private IList<Tuple<ITextView, IMappingPoint>> GetCaretPositions()
             {
                 // Currently, only do this if there's a single view 
-                var views = _visibilityService.GetAssociatedTextViews(_subjectBuffer);
-                var result = new List<Tuple<IWpfTextView, IMappingPoint>>();
+                var views = _associatedViewService.GetAssociatedTextViews(_subjectBuffer);
+                var result = new List<Tuple<ITextView, IMappingPoint>>();
 
                 foreach (var view in views)
                 {

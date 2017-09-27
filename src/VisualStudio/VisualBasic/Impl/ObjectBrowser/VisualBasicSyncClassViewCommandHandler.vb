@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassView
 Imports Microsoft.VisualStudio.Shell
+Imports Microsoft.VisualStudio.Text.UI.Commanding
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
     <ExportCommandHandler(PredefinedCommandHandlerNames.ClassView, ContentTypeNames.VisualBasicContentType)>
