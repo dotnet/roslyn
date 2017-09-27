@@ -669,7 +669,7 @@ class Test
             workspace.Options = originalOptions.WithChangedOption(CompletionControllerOptions.TextEditorSnipppetsAreActive, true);
             try
             {
-                await VerifyItemExistsAsync(markup, "test");
+                await VerifyNoItemsExistAsync(markup);
             }
             finally
             {
