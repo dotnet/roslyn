@@ -264,6 +264,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             return builder.ToImmutableAndFree();
         }
 
+        private IOperation CreateVariableDeclaration(BoundLocalDeclaration boundNode)
+        {
+            return _cache.GetOrAdd(boundNode, n => CreateVariableDeclarationInternal((BoundLocalDeclaration)n, n.Syntax));
+        }
+
         private IPlaceholderExpression CreateBoundDeconstructValuePlaceholderOperation(BoundDeconstructValuePlaceholder boundDeconstructValuePlaceholder)
         {
             SyntaxNode syntax = boundDeconstructValuePlaceholder.Syntax;
@@ -1375,45 +1380,46 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IOperation CreateBoundLocalDeclarationOperation(BoundLocalDeclaration boundLocalDeclaration)
         {
-            if (boundLocalDeclaration.Syntax.Kind() == SyntaxKind.LocalDeclarationStatement)
+            SyntaxNode varStatement;
+            SyntaxNode vardeclaration;
+
+            if (boundLocalDeclaration.Syntax is LocalDeclarationStatementSyntax statement)
             {
-                LocalDeclarationStatementSyntax statement = (LocalDeclarationStatementSyntax)boundLocalDeclaration.Syntax;
-                VariableDeclaratorSyntax variableDeclarator = statement.Declaration.Variables.First();
-                Lazy<ImmutableArray<IVariableDeclaration>> declarations = new Lazy<ImmutableArray<IVariableDeclaration>>(() => ImmutableArray.Create(CreateVariableDeclaration(boundLocalDeclaration, variableDeclarator)));
-                ITypeSymbol type = null;
-                Optional<object> constantValue = default(Optional<object>);
-                bool isImplicit = boundLocalDeclaration.WasCompilerGenerated;
-                return new LazyVariableDeclarationStatement(declarations, _semanticModel, statement, type, constantValue, isImplicit);
+                // this happen for simple int i = 0;
+                // var statement points to LocalDeclarationStatementSyntax
+                varStatement = statement;
+
+                // var declaration points to VariableDeclaratorSyntax
+                vardeclaration = statement.Declaration.Variables.First();
+            }
+            else if (boundLocalDeclaration.Syntax is VariableDeclaratorSyntax declarator)
+            {
+                // this happen for 'for loop' initializer
+                // var statement points to VariableDeclarationSyntax
+                varStatement = declarator.Parent;
+
+                // var declaration points to VariableDeclaratorSyntax
+                vardeclaration = declarator;
             }
             else
             {
-                var declarator = (VariableDeclaratorSyntax)boundLocalDeclaration.Syntax;
-                var declaration = CreateVariableDeclaration(boundLocalDeclaration, declarator);
+                Debug.Fail("when can this happen?");
 
-                // if declaration has multiple declarator, then always return declaration
-                if (((VariableDeclarationSyntax)declarator.Parent)?.Variables.Count > 1)
-                {
-                    return declaration;
-                }
-
-                // special case for forloop where we want to inject statement rather than using variable decls direclty.
-                if (declarator.Parent?.Parent.IsKind(SyntaxKind.ForStatement) == true)
-                {
-                    ITypeSymbol type = null;
-                    Optional<object> constantValue = default(Optional<object>);
-                    bool isImplicit = false;
-                    return new VariableDeclarationStatement(ImmutableArray.Create(declaration), _semanticModel, declarator.Parent, type, constantValue, isImplicit);
-                }
-
-                // we can get here if someone asked about 1 variable declarator on multi local declaration or fixed/using statements
-                return declaration;
+                // otherwise, they points to whatever bound nodes are pointing to.
+                varStatement = vardeclaration = boundLocalDeclaration.Syntax;
             }
+
+            Lazy<ImmutableArray<IVariableDeclaration>> declarations = new Lazy<ImmutableArray<IVariableDeclaration>>(() => ImmutableArray.Create(CreateVariableDeclarationInternal(boundLocalDeclaration, vardeclaration)));
+            ITypeSymbol type = null;
+            Optional<object> constantValue = default(Optional<object>);
+            bool isImplicit = boundLocalDeclaration.WasCompilerGenerated;
+            return new LazyVariableDeclarationStatement(declarations, _semanticModel, varStatement, type, constantValue, isImplicit);
         }
 
         private IVariableDeclarationStatement CreateBoundMultipleLocalDeclarationsOperation(BoundMultipleLocalDeclarations boundMultipleLocalDeclarations)
         {
             Lazy<ImmutableArray<IVariableDeclaration>> declarations = new Lazy<ImmutableArray<IVariableDeclaration>>(() =>
-                boundMultipleLocalDeclarations.LocalDeclarations.SelectAsArray(declaration => (IVariableDeclaration)Create(declaration)));
+                boundMultipleLocalDeclarations.LocalDeclarations.SelectAsArray(declaration => (IVariableDeclaration)CreateVariableDeclaration(declaration)));
             SyntaxNode syntax = boundMultipleLocalDeclarations.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
