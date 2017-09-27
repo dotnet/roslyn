@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             Lazy<IOperation> instance = new Lazy<IOperation>(() => new InstanceReferenceExpression(
                 semanticModel: _semanticModel,
                 syntax: boundObjectInitializerMember.Syntax,
-                type: boundObjectInitializerMember.MemberSymbol.ContainingType,
+                type: boundObjectInitializerMember.ReceiverType,
                 constantValue: default(Optional<object>),
                 isImplicit: boundObjectInitializerMember.WasCompilerGenerated));
 
@@ -768,14 +768,13 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IArrayCreationExpression CreateBoundArrayCreationOperation(BoundArrayCreation boundArrayCreation)
         {
-            ITypeSymbol elementType = GetArrayCreationElementType(boundArrayCreation);
             Lazy<ImmutableArray<IOperation>> dimensionSizes = new Lazy<ImmutableArray<IOperation>>(() => boundArrayCreation.Bounds.SelectAsArray(n => Create(n)));
             Lazy<IArrayInitializer> initializer = new Lazy<IArrayInitializer>(() => (IArrayInitializer)Create(boundArrayCreation.InitializerOpt));
             SyntaxNode syntax = boundArrayCreation.Syntax;
             ITypeSymbol type = boundArrayCreation.Type;
             Optional<object> constantValue = ConvertToOptional(boundArrayCreation.ConstantValue);
             bool isImplicit = boundArrayCreation.WasCompilerGenerated;
-            return new LazyArrayCreationExpression(elementType, dimensionSizes, initializer, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyArrayCreationExpression(dimensionSizes, initializer, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IArrayInitializer CreateBoundArrayInitializationOperation(BoundArrayInitialization boundArrayInitialization)
@@ -856,7 +855,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundCompoundAssignmentOperator.Operator.Kind);
             Lazy<IOperation> target = new Lazy<IOperation>(() => Create(boundCompoundAssignmentOperator.Left));
             Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundCompoundAssignmentOperator.Right));
-            bool isLifted = boundCompoundAssignmentOperator.Type.IsNullableType();
+            bool isLifted = boundCompoundAssignmentOperator.Operator.Kind.IsLifted();
             bool isChecked = boundCompoundAssignmentOperator.Operator.Kind.IsChecked();
             bool usesOperatorMethod = (boundCompoundAssignmentOperator.Operator.Kind & CSharp.BinaryOperatorKind.TypeMask) == CSharp.BinaryOperatorKind.UserDefined;
             IMethodSymbol operatorMethod = boundCompoundAssignmentOperator.Operator.Method;
@@ -973,7 +972,24 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IArrayElementReferenceExpression CreateBoundArrayAccessOperation(BoundArrayAccess boundArrayAccess)
         {
-            Lazy<IOperation> arrayReference = new Lazy<IOperation>(() => Create(boundArrayAccess.Expression));
+            // The compiler will dedupe the boundArrayAccess.Expression between different array references. Some example code:
+            //
+            // class C
+            // {
+            //     int[] a;
+
+            //     static void Main()
+            //     {
+            //         // Compiler dedupes the array access receiver for [0] and [1]
+            //         var a = new C { a = { [0] = 1, [1] = 2 } };
+            //     }
+            // }
+            //
+            // In order to prevent parent pointer from having an issue with this, we intentionally create a new IOperation node every time
+            // we encounter an array access. Since we create from the top down, it should be impossible for us to see the node in
+            // boundArrayAccess.Expression before seeing the boundArrayAccess itself, so this should not create any other parent pointer
+            // issues.
+            Lazy<IOperation> arrayReference = new Lazy<IOperation>(() => CreateInternal(boundArrayAccess.Expression));
             Lazy<ImmutableArray<IOperation>> indices = new Lazy<ImmutableArray<IOperation>>(() => boundArrayAccess.Indices.SelectAsArray(n => Create(n)));
             SyntaxNode syntax = boundArrayAccess.Syntax;
             ITypeSymbol type = boundArrayAccess.Type;

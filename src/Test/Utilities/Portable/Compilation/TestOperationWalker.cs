@@ -213,12 +213,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitWithStatement(operation);
         }
 
-        internal override void VisitStopStatement(IStopStatement operation)
+        public override void VisitStopStatement(IStopStatement operation)
         {
             base.VisitStopStatement(operation);
         }
 
-        internal override void VisitEndStatement(IEndStatement operation)
+        public override void VisitEndStatement(IEndStatement operation)
         {
             base.VisitEndStatement(operation);
         }
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitLiteralExpression(operation);
         }
 
-        internal override void VisitAwaitExpression(IAwaitExpression operation)
+        public override void VisitAwaitExpression(IAwaitExpression operation)
         {
             base.VisitAwaitExpression(operation);
         }
@@ -527,8 +527,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitArrayCreationExpression(IArrayCreationExpression operation)
         {
-            var elementType = operation.ElementType;
-
             base.VisitArrayCreationExpression(operation);
         }
 

@@ -2471,5 +2471,118 @@ class Program
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
+        [Fact]
+        public void RefConditionalOperatorInValConditional()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        S1 local1 = 1;
+        S1 local2 = 2;
+
+        bool condition = false;
+
+        (condition ? 
+            condition ? ref local1 : ref local2 : 
+            condition ? ref local1 : ref local2).Mutate();
+
+        // must print '2', the above mutaiton is applied to an rvalue.
+        System.Console.WriteLine(local2.field);
+
+        (false ? 
+            condition ? ref local1 : ref local2 : 
+            condition ? ref local1 : ref local2).Mutate();
+
+        // must print '2', the above mutaiton is applied to an rvalue.
+        System.Console.WriteLine(local2.field);
+
+        (false ? 
+            false ? ref local1 : ref local2 : 
+            false ? ref local1 : ref local2).Mutate();
+
+        // must print '2', the above mutaiton is applied to an rvalue.
+        System.Console.WriteLine(local2.field);
+    }
+
+    struct S1
+    {
+        public int field;
+
+        public static implicit operator S1(int arg) => new S1 {field = arg };
+        
+        public void Mutate()
+        {
+            field = 42;
+        }
+    }
+
+}
+";
+            string expectedOutput = @"2
+2
+2";
+            var verify = CompileAndVerify(source, expectedOutput: expectedOutput);
+
+            verify.VerifyIL("Program.Main",
+@"
+{
+  // Code size      101 (0x65)
+  .maxstack  1
+  .locals init (Program.S1 V_0, //local1
+                Program.S1 V_1, //local2
+                bool V_2, //condition
+                Program.S1 V_3)
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""Program.S1 Program.S1.op_Implicit(int)""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.2
+  IL_0008:  call       ""Program.S1 Program.S1.op_Implicit(int)""
+  IL_000d:  stloc.1
+  IL_000e:  ldc.i4.0
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.2
+  IL_0011:  brtrue.s   IL_001c
+  IL_0013:  ldloc.2
+  IL_0014:  brtrue.s   IL_0019
+  IL_0016:  ldloc.1
+  IL_0017:  br.s       IL_0023
+  IL_0019:  ldloc.0
+  IL_001a:  br.s       IL_0023
+  IL_001c:  ldloc.2
+  IL_001d:  brtrue.s   IL_0022
+  IL_001f:  ldloc.1
+  IL_0020:  br.s       IL_0023
+  IL_0022:  ldloc.0
+  IL_0023:  stloc.3
+  IL_0024:  ldloca.s   V_3
+  IL_0026:  call       ""void Program.S1.Mutate()""
+  IL_002b:  ldloc.1
+  IL_002c:  ldfld      ""int Program.S1.field""
+  IL_0031:  call       ""void System.Console.WriteLine(int)""
+  IL_0036:  ldloc.2
+  IL_0037:  brtrue.s   IL_003c
+  IL_0039:  ldloc.1
+  IL_003a:  br.s       IL_003d
+  IL_003c:  ldloc.0
+  IL_003d:  stloc.3
+  IL_003e:  ldloca.s   V_3
+  IL_0040:  call       ""void Program.S1.Mutate()""
+  IL_0045:  ldloc.1
+  IL_0046:  ldfld      ""int Program.S1.field""
+  IL_004b:  call       ""void System.Console.WriteLine(int)""
+  IL_0050:  ldloc.1
+  IL_0051:  stloc.3
+  IL_0052:  ldloca.s   V_3
+  IL_0054:  call       ""void Program.S1.Mutate()""
+  IL_0059:  ldloc.1
+  IL_005a:  ldfld      ""int Program.S1.field""
+  IL_005f:  call       ""void System.Console.WriteLine(int)""
+  IL_0064:  ret
+}");
+        }
     }
 }

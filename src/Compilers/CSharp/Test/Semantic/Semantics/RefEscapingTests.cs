@@ -260,10 +260,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     }
 ";
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // (31,30): error CS8526: Cannot use local 'sp' in this context because it may expose referenced variables outside of their declaration scope
+                // (31,30): error CS8352: Cannot use local 'sp' in this context because it may expose referenced variables outside of their declaration scope
                 //             return ref Test1(sp);
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "sp").WithArguments("sp").WithLocation(31, 30),
-                // (31,24): error CS8521: Cannot use a result of 'Program.Test1(Program.S1)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                // (31,24): error CS8347: Cannot use a result of 'Program.Test1(Program.S1)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //             return ref Test1(sp);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "Test1(sp)").WithArguments("Program.Test1(Program.S1)", "arg").WithLocation(31, 24),
                 // (28,13): warning CS1717: Assignment made to same variable; did you mean to assign something else?
@@ -348,6 +348,414 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 //                 x = MayWrap(inner);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(inner)").WithArguments("Program.MayWrap(System.Span<int>)", "arg").WithLocation(18, 21)
             );
+        }
+
+        [Fact()]
+        public void RefLikeScopeEscapeVararg()
+        {
+            var text = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+        Span<int> outer = default;
+
+        S1 x = MayWrap(__arglist(outer));
+
+        {
+            Span<int> inner = stackalloc int[1];
+
+            // valid
+            x = MayWrap(__arglist(outer));
+
+            // error
+            x = MayWrap(__arglist(inner));
+        }
+    }
+
+    static S1 MayWrap(__arglist)
+    {
+        return default;
+    }
+
+    ref struct S1
+    {
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (18,35): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //             x = MayWrap(__arglist(inner));
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(18, 35),
+                // (18,17): error CS8347: Cannot use a result of 'Program.MayWrap(__arglist)' in this context because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //             x = MayWrap(__arglist(inner));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(__arglist(inner))").WithArguments("Program.MayWrap(__arglist)", "__arglist").WithLocation(18, 17)
+            );
+        }
+
+        [Fact()]
+        public void RefScopeEscapeVararg()
+        {
+            var text = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+
+    }    
+
+    static ref int ReturnsRef()
+    {
+        int local = 42;
+
+        // OK (also in 7.0)
+        // __refvalue is not ref-returnable, so ref varargs can't come back
+        return ref ReturnsRef1(__arglist(ref local));
+    }
+
+    static ref int ReturnsRef1(__arglist)
+    {
+        var ai = new ArgIterator(__arglist);
+
+        // ERROR here. __refvalue is not ref-returnable
+        return ref __refvalue(ai.GetNextArg(), int);
+    }
+
+    static ref int ReturnsRefSpan()
+    {
+        Span<int> local = stackalloc int[1];
+        
+        // error here;
+        return ref ReturnsRef1(__arglist(ref local));
+    }
+
+    static ref int ReturnsRefSpan1(__arglist)
+    {
+        var ai = new ArgIterator(__arglist);
+
+        // this is ok
+        return ref __refvalue(ai.GetNextArg(), Span<int>)[0];
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (24,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+                //         return ref __refvalue(ai.GetNextArg(), int);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "__refvalue(ai.GetNextArg(), int)").WithLocation(24, 20),
+                // (32,46): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
+                //         return ref ReturnsRef1(__arglist(ref local));
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(32, 46),
+                // (32,20): error CS8347: Cannot use a result of 'Program.ReturnsRef1(__arglist)' in this context because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //         return ref ReturnsRef1(__arglist(ref local));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "ReturnsRef1(__arglist(ref local))").WithArguments("Program.ReturnsRef1(__arglist)", "__arglist").WithLocation(32, 20)
+            );
+        }
+
+        [Fact()]
+        public void ThrowExpression()
+        {
+            var text = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+
+    }    
+
+    static ref int M1() => throw null;
+
+    static ref readonly int M2() => throw null;
+
+    static ref Span<int> M3() => throw null;
+
+    static ref readonly Span<int> M4() => throw null;
+
+    static Span<int> M5() => throw null;
+
+    static Span<int> M6() => M5().Length !=0 ? M5() : throw null;
+
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics();
+        }
+
+
+        [Fact()]
+        public void UserDefinedLogical()
+        {
+            var text = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+    }
+
+    S1 Test()
+    {
+        S1 global = default;
+        S1 local = stackalloc int[100];
+
+        // ok
+        local = global && local;
+        local = local && local;
+
+        // ok
+        global = global && global;
+
+        // error
+        global = local && global;
+
+        // error
+        return global || local;
+    }
+}
+
+ref struct S1
+{
+    public static implicit operator S1(Span<int> o) => default;
+
+    public static bool operator true(S1 o) => true;
+    public static bool operator false(S1 o) => false;
+
+    public static S1 operator &(S1 x, S1 y) => x;
+    public static S1 operator |(S1 x, S1 y) => x;
+}
+
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (22,18): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
+                //         global = local && global;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(22, 18),
+                // (25,26): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
+                //         return global || local;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(25, 26)
+             );
+        }
+
+        [Fact()]
+        public void DiscardExpressionRef()
+        {
+            var text = @"
+
+class Program
+{
+    static void Main()
+    {
+
+    }
+
+    static ref int ReturnsRefTest()
+    {
+        return ref ReturnsRef1(out var _);
+    }
+
+    static ref int ReturnsRef1(out int x)
+    {
+        x = 42;
+        return ref x;
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (12,36): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+                //         return ref ReturnsRef1(out var _);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "var _").WithLocation(12, 36),
+                // (12,20): error CS8347: Cannot use a result of 'Program.ReturnsRef1(out int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return ref ReturnsRef1(out var _);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "ReturnsRef1(out var _)").WithArguments("Program.ReturnsRef1(out int)", "x").WithLocation(12, 20)
+                );
+        }
+
+        [Fact()]
+        public void OrdinaryLocalAndOutRef()
+        {
+            var text = @"
+
+class Program
+{
+    static void Main()
+    {
+
+    }
+
+    static ref int ReturnsRefTest1()
+    {       
+        return ref ReturnsRef(out var z);
+    }
+
+    static ref int ReturnsRefTest2()
+    {   int z;
+        return ref ReturnsRef(out z);
+    }
+
+
+    static ref int ReturnsRef(out int x)
+    {
+        x = 42;
+        return ref x;
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (12,35): error CS8168: Cannot return local 'z' by reference because it is not a ref local
+                //         return ref ReturnsRef(out var z);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "var z").WithArguments("z").WithLocation(12, 35),
+                // (12,20): error CS8347: Cannot use a result of 'Program.ReturnsRef(out int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return ref ReturnsRef(out var z);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "ReturnsRef(out var z)").WithArguments("Program.ReturnsRef(out int)", "x").WithLocation(12, 20),
+                // (17,35): error CS8168: Cannot return local 'z' by reference because it is not a ref local
+                //         return ref ReturnsRef(out z);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "z").WithArguments("z").WithLocation(17, 35),
+                // (17,20): error CS8347: Cannot use a result of 'Program.ReturnsRef(out int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return ref ReturnsRef(out z);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "ReturnsRef(out z)").WithArguments("Program.ReturnsRef(out int)", "x").WithLocation(17, 20)
+                );
+        }
+
+        [Fact()]
+        public void DiscardExpressionSpan()
+        {
+            var text = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+
+    }
+
+    static Span<int> Test1()
+    {
+        var s = ReturnsSpan(out var _);
+
+        // ok
+        return s;
+    }
+
+    static Span<int> Test2()
+    {
+        ref var s = ref ReturnsSpan(out var _);
+
+        // error
+        s = stackalloc int[1];
+
+        // ok
+        return s;
+    }
+
+    static void Test3()
+    {
+        // error
+        ReturnsSpan(out var _ ) = stackalloc int[1];
+    }
+
+    static ref Span<int> ReturnsSpan(out Span<int> x)
+    {
+        x = default;
+        return ref x;
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (23,13): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         s = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(23, 13),
+                // (32,35): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         ReturnsSpan(out var _ ) = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(32, 35)
+                );
+        }
+
+        [Fact()]
+        public void OrdinaryLocalAndOutSpan()
+        {
+            var text = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+
+    }
+
+    static Span<int> Test1()
+    {
+        var s = ReturnsSpan(out var z);
+
+        // ok
+        return s;
+    }
+
+    static Span<int> Test2()
+    {
+        ref var r = ref ReturnsSpan(out var z);
+
+        // error
+        r = stackalloc int[1];
+
+        // ok
+        return r;
+    }
+
+    static void Test3()
+    {
+        ReturnsSpan(out var z) = stackalloc int[1];
+    }
+
+    static Span<int> Test4()
+    {
+        Span<int> s;
+        var r = ReturnsSpan(out s);
+
+        // ok
+        return r;
+    }
+
+    static Span<int> Test5()
+    {
+        Span<int> s;
+        ref var r = ref ReturnsSpan(out s);
+
+        // error
+        r = stackalloc int[1];
+
+        // ok
+        return r;
+    }
+
+    static void Test6()
+    {
+        Span<int> s;
+
+        // error
+        ReturnsSpan(out s) = stackalloc int[1];
+    }
+
+    static ref Span<int> ReturnsSpan(out Span<int> x)
+    {
+        x = default;
+        return ref x;
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (23,13): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         r = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(23, 13),
+                // (31,34): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         ReturnsSpan(out var z) = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(31, 34),
+                // (49,13): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         r = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(49, 13),
+                // (60,30): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //         ReturnsSpan(out s) = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(60, 30)
+                );
         }
 
         [Fact()]
@@ -497,27 +905,24 @@ class Program
 }
 ";
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
-                // (20,32): error CS8526: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                // (20,32): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //             x[0] = MayWrap(ref inner).Slice(1)[0];
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(20, 32),
-                // (20,20): error CS8521: Cannot use a result of 'Program.MayWrap(ref Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                // (20,20): error CS8347: Cannot use a result of 'Program.MayWrap(ref Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //             x[0] = MayWrap(ref inner).Slice(1)[0];
                 Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref inner)").WithArguments("Program.MayWrap(ref System.Span<int>)", "arg").WithLocation(20, 20),
-                // (25,32): error CS8526: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                // (25,32): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //             x[x] = MayWrap(ref inner).Slice(1)[0];
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(25, 32),
-                // (25,20): error CS8521: Cannot use a result of 'Program.MayWrap(ref Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                // (25,20): error CS8347: Cannot use a result of 'Program.MayWrap(ref Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //             x[x] = MayWrap(ref inner).Slice(1)[0];
                 Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref inner)").WithArguments("Program.MayWrap(ref System.Span<int>)", "arg").WithLocation(25, 20),
-                // (28,50): error CS8526: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                // (28,50): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //             x.ReturnsRefArg(ref x) = MayWrap(ref inner).Slice(1)[0];
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(28, 50),
-                // (28,38): error CS8521: Cannot use a result of 'Program.MayWrap(ref Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
+                // (28,38): error CS8347: Cannot use a result of 'Program.MayWrap(ref Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //             x.ReturnsRefArg(ref x) = MayWrap(ref inner).Slice(1)[0];
-                Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref inner)").WithArguments("Program.MayWrap(ref System.Span<int>)", "arg").WithLocation(28, 38),
-                // (43,56): error CS8166: Cannot return a parameter by reference 'arg' because it is not a ref or out parameter
-                //         public ref S1 ReturnsRefArg(ref S1 arg) => ref arg;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "arg").WithArguments("arg").WithLocation(43, 56)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(ref inner)").WithArguments("Program.MayWrap(ref System.Span<int>)", "arg").WithLocation(28, 38)
             );
         }
 
@@ -717,6 +1122,80 @@ class Program
                 // (23,13): error CS8524: This combination of arguments to 'Program.MayAssign(ref Span<int>, ref Program.S1)' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
                 //             MayAssign(ref inner, ref rOuter);
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign(ref inner, ref rOuter)").WithArguments("Program.MayAssign(ref System.Span<int>, ref Program.S1)", "arg1").WithLocation(23, 13)
+            );
+        }
+
+        [Fact()]
+        public void RefLikeEscapeMixingCallVararg()
+        {
+            var text = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+    }
+
+    void Test1()
+    {
+        S1 rOuter = default;
+
+        Span<int> inner = stackalloc int[1];
+        S1 rInner = MayWrap(ref inner);
+
+        // valid
+        MayAssign2(__arglist(ref rOuter, ref rOuter));
+
+        // error
+        MayAssign2(__arglist(ref rOuter, ref rInner));
+
+        // error
+        MayAssign1(__arglist(ref inner, ref rOuter));
+    }
+
+    static void MayAssign1(__arglist)
+    {
+        var ai = new ArgIterator(__arglist);
+
+        ref var arg1 = ref __refvalue(ai.GetNextArg(), Span<int>);
+        ref var arg2 = ref __refvalue(ai.GetNextArg(), S1);
+
+        arg2 = MayWrap(ref arg1);
+    }
+
+    static void MayAssign2(__arglist)
+    {
+        var ai = new ArgIterator(__arglist);
+
+        ref var arg1 = ref __refvalue(ai.GetNextArg(), S1);
+        ref var arg2 = ref __refvalue(ai.GetNextArg(), S1);
+
+        arg1 = arg2;
+    }
+
+    static S1 MayWrap(ref Span<int> arg)
+    {
+        return default;
+    }
+
+    ref struct S1
+    {
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (20,46): error CS8352: Cannot use local 'rInner' in this context because it may expose referenced variables outside of their declaration scope
+                //         MayAssign2(__arglist(ref rOuter, ref rInner));
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "rInner").WithArguments("rInner").WithLocation(20, 46),
+                // (20,9): error CS8350: This combination of arguments to 'Program.MayAssign2(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //         MayAssign2(__arglist(ref rOuter, ref rInner));
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign2(__arglist(ref rOuter, ref rInner))").WithArguments("Program.MayAssign2(__arglist)", "__arglist").WithLocation(20, 9),
+                // (23,34): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //         MayAssign1(__arglist(ref inner, ref rOuter));
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(23, 34),
+                // (23,9): error CS8350: This combination of arguments to 'Program.MayAssign1(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //         MayAssign1(__arglist(ref inner, ref rOuter));
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign1(__arglist(ref inner, ref rOuter))").WithArguments("Program.MayAssign1(__arglist)", "__arglist").WithLocation(23, 9)
             );
         }
 
@@ -933,6 +1412,410 @@ class Program
                 //             MayAssignDel2(ref inner, ref rOuter);
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssignDel2(ref inner, ref rOuter)").WithArguments("Program.D2.Invoke(ref System.Span<int>, ref Program.S1)", "arg1").WithLocation(29, 13)
             );
+        }
+
+        [Fact()]
+        public void RefLikeObjInitializers()
+        {
+            var text = @"
+    using System;
+
+    class Program
+    {
+        static void Main()
+        {
+        }
+
+        static S2 Test1()
+        {
+            S1 outer = default;
+            S1 inner = stackalloc int[1];
+
+            // error
+            return new S2() { Field1 = outer, Field2 = inner };
+        }
+
+        static S2 Test2()
+        {
+            S1 outer = default;
+            S1 inner = stackalloc int[1];
+
+            S2 result;
+
+            // error
+            result = new S2() { Field1 = inner, Field2 = outer };
+
+            return result;
+        }
+
+        static S2 Test3()
+        {
+            S1 outer = default;
+            S1 inner = stackalloc int[1];
+
+            return new S2() { Field1 = outer, Field2 = outer };
+        }
+
+        public ref struct S1
+        {
+            public static implicit operator S1(Span<int> o) => default;
+        }
+
+        public ref struct S2
+        {
+            public S1 Field1;
+            public S1 Field2;
+        }
+    }
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (16,47): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //             return new S2() { Field1 = outer, Field2 = inner };
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "Field2 = inner").WithArguments("inner").WithLocation(16, 47),
+                // (27,33): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //             result = new S2() { Field1 = inner, Field2 = outer };
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "Field1 = inner").WithArguments("inner").WithLocation(27, 33)
+            );
+        }
+
+        [Fact()]
+        public void RefLikeObjInitializers1()
+        {
+            var text = @"
+    using System;
+
+    class Program
+    {
+        static void Main()
+        {
+        }
+
+        static S2 Test1()
+        {
+            S1 outer = default;
+            S1 inner = stackalloc int[1];
+
+            var x1 = new S2() { Field1 = outer, Field2 = inner };
+
+            // error
+            return x1;
+        }
+
+        static S2 Test2()
+        {
+            S1 outer = default;
+            S1 inner = stackalloc int[1];
+
+            var x2 = new S2() { Field1 = inner, Field2 = outer };
+
+            // error
+            return x2;
+        }
+
+        static S2 Test3()
+        {
+            S1 outer = default;
+            S1 inner = stackalloc int[1];
+
+            var x3 = new S2() { Field1 = outer, Field2 = outer };
+
+            // ok
+            return x3;
+        }
+
+        public ref struct S1
+        {
+            public static implicit operator S1(Span<int> o) => default;
+        }
+
+        public ref struct S2
+        {
+            public S1 Field1;
+            public S1 Field2;
+        }
+    }
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (18,20): error CS8352: Cannot use local 'x1' in this context because it may expose referenced variables outside of their declaration scope
+                //             return x1;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x1").WithArguments("x1").WithLocation(18, 20),
+                // (29,20): error CS8352: Cannot use local 'x2' in this context because it may expose referenced variables outside of their declaration scope
+                //             return x2;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x2").WithArguments("x2").WithLocation(29, 20)
+            );
+        }
+
+        [Fact()]
+        public void RefLikeObjInitializersIndexer()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+    }
+
+    static S2 Test1()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        // error
+        return new S2() { [inner] = outer, Field2 = outer };
+    }
+
+    static S2 Test2()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        // error
+        return new S2() { [outer] = inner, Field2 = outer };
+    }
+
+    static S2 Test3()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        return new S2() { [outer] = outer, Field2 = outer };
+    }
+
+    public ref struct S1
+    {
+        public static implicit operator S1(Span<int> o) => default;
+    }
+
+    public ref struct S2
+    {
+        private S1 field;
+
+        public S1 this[S1 i]
+        {
+            get
+            {
+                return i;
+            }
+            set
+            {
+                field = i;
+            }
+        }
+
+        public S1 Field2;
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (16,28): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //         return new S2() { [inner] = outer, Field2 = outer };
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(16, 28),
+                // (25,27): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //         return new S2() { [outer] = inner, Field2 = outer };
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "[outer] = inner").WithArguments("inner").WithLocation(25, 27)
+                );
+        }
+
+        [Fact()]
+        public void RefLikeObjInitializersIndexer1()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+    }
+
+    static S2 Test1()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        var x1 =  new S2() { [inner] = outer, Field2 = outer };
+
+        // error
+        return x1;
+    }
+
+    static S2 Test2()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        S2 result;
+
+        // error
+        result = new S2() { [outer] = inner, Field2 = outer };
+
+        return result;
+    }
+
+    static S2 Test3()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        var x3 = new S2() { [outer] = outer, Field2 = outer };
+
+        // ok
+        return x3;
+    }
+
+    public ref struct S1
+    {
+        public static implicit operator S1(Span<int> o) => default;
+    }
+
+    public ref struct S2
+    {
+        private S1 field;
+
+        public S1 this[S1 i]
+        {
+            get
+            {
+                return i;
+            }
+            set
+            {
+                field = i;
+            }
+        }
+
+        public S1 Field2;
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (18,16): error CS8352: Cannot use local 'x1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return x1;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x1").WithArguments("x1").WithLocation(18, 16),
+                // (29,29): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //         result = new S2() { [outer] = inner, Field2 = outer };
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "[outer] = inner").WithArguments("inner").WithLocation(29, 29)
+                );
+        }
+
+        [Fact()]
+        public void RefLikeObjInitializersNested()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+    }
+
+    static S2 Nested1()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        return new S2() { Field2 = {[inner] = outer} };
+    }
+
+    static S2 Nested2()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        var x = new S2() { Field2 = {[inner] = outer } };
+
+        return x;
+    }
+
+    static S2 Nested3()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        return new S2() { Field2 = {[outer] = inner} };
+    }
+
+    static S2 Nested4()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        var x = new S2() { Field2 = {[outer] = outer } };
+
+        return x;  //ok
+    }
+
+    public ref struct S2
+    {
+        public S3 Field2;
+    }
+
+    public ref struct S3
+    {
+        private S1 field;
+
+        public S1 this[S1 i]
+        {
+            get
+            {
+                return i;
+            }
+            set
+            {
+                field = i;
+            }
+        }
+
+        public S1 Field2;
+    }
+
+    public ref struct S1
+    {
+        public static implicit operator S1(Span<int> o) => default;
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+                // (15,38): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //         return new S2() { Field2 = {[inner] = outer} };
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(15, 38),
+                // (25,16): error CS8352: Cannot use local 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         return x;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "x").WithArguments("x").WithLocation(25, 16),
+                // (33,37): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //         return new S2() { Field2 = {[outer] = inner} };
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "[outer] = inner").WithArguments("inner").WithLocation(33, 37),
+                // (67,19): warning CS0649: Field 'Program.S3.Field2' is never assigned to, and will always have its default value 
+                //         public S1 Field2;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field2").WithArguments("Program.S3.Field2", "").WithLocation(67, 19)
+                );
+        }
+
+        [Fact()]
+        public void RefLikeColInitializer()
+        {
+            var text = @"
+using System;
+using System.Collections.Generic;
+
+// X cannot be a ref-like type since it must implement IEnumerable
+// that significantly reduces the number of scenarios that coudl be applicable to ref-like types
+class X : List<int>
+{
+    void Add(Span<int> x, int y) { }
+
+    static void Main()
+    {
+        Span<int> inner = stackalloc int[1];
+
+        var z = new X { { inner, 12 } };
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics();
         }
 
         [Fact()]

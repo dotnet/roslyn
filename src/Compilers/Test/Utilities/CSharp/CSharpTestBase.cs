@@ -1163,51 +1163,69 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return operation != null ? OperationTreeVerifier.GetOperationTree(compilation, operation) : null;
         }
 
-        protected static string GetOperationTreeForTest<TSyntaxNode>(string testSrc, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null)
+        protected static string GetOperationTreeForTest<TSyntaxNode>(
+            string testSrc,
+            CSharpCompilationOptions compilationOptions = null,
+            CSharpParseOptions parseOptions = null,
+            bool useLatestFrameworkReferences = false)
             where TSyntaxNode : SyntaxNode
         {
-            var compilation = CreateStandardCompilation(testSrc, new[] { SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
+            var defaultRefs = useLatestFrameworkReferences ? s_latestOperationReferences : s_defaultOperationReferences;
+            var compilation = CreateStandardCompilation(testSrc, defaultRefs, options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
             return GetOperationTreeForTest<TSyntaxNode>(compilation);
         }
 
-        protected static void VerifyOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, Action<IOperation, Compilation, SyntaxNode> AdditionalOperationTreeVerifier = null)
+        protected static void VerifyOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null)
             where TSyntaxNode : SyntaxNode
         {
             var (actualOperation, syntaxNode) = GetOperationAndSyntaxForTest<TSyntaxNode>(compilation);
             var actualOperationTree = GetOperationTreeForTest(compilation, actualOperation);
             OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
-            AdditionalOperationTreeVerifier?.Invoke(actualOperation, compilation, syntaxNode);
+            additionalOperationTreeVerifier?.Invoke(actualOperation, compilation, syntaxNode);
         }
 
-        protected static void VerifyOperationTreeForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null)
+        protected static void VerifyOperationTreeForTest<TSyntaxNode>(
+            string testSrc,
+            string expectedOperationTree,
+            CSharpCompilationOptions compilationOptions = null,
+            CSharpParseOptions parseOptions = null,
+            bool useLatestFrameworkReferences = false)
             where TSyntaxNode : SyntaxNode
         {
-            var actualOperationTree = GetOperationTreeForTest<TSyntaxNode>(testSrc, compilationOptions, parseOptions);
+            var actualOperationTree = GetOperationTreeForTest<TSyntaxNode>(testSrc, compilationOptions, parseOptions, useLatestFrameworkReferences);
             OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
         }
 
-        protected static void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, DiagnosticDescription[] expectedDiagnostics, Action<IOperation, Compilation, SyntaxNode> AdditionalOperationTreeVerifier = null)
+        protected static void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
+            CSharpCompilation compilation,
+            string expectedOperationTree,
+            DiagnosticDescription[] expectedDiagnostics,
+            Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null)
             where TSyntaxNode : SyntaxNode
         {
             var actualDiagnostics = compilation.GetDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Hidden);
             actualDiagnostics.Verify(expectedDiagnostics);
-            VerifyOperationTreeForTest<TSyntaxNode>(compilation, expectedOperationTree, AdditionalOperationTreeVerifier);
+            VerifyOperationTreeForTest<TSyntaxNode>(compilation, expectedOperationTree, additionalOperationTreeVerifier);
         }
 
         private static readonly MetadataReference[] s_defaultOperationReferences = new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef };
+        private static readonly MetadataReference[] s_latestOperationReferences = new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef_v46 };
 
-        protected static void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(string testSrc,
+        protected static void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
+            string testSrc,
             string expectedOperationTree,
             DiagnosticDescription[] expectedDiagnostics,
             CSharpCompilationOptions compilationOptions = null,
             CSharpParseOptions parseOptions = null,
             MetadataReference[] additionalReferences = null,
-            Action<IOperation, Compilation, SyntaxNode> AdditionalOperationTreeVerifier = null)
+            Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null,
+            bool useLatestFrameworkReferences = false)
             where TSyntaxNode : SyntaxNode
         {
-            var references = additionalReferences == null ? s_defaultOperationReferences : additionalReferences.Concat(s_defaultOperationReferences);
+            var defaultRefs = useLatestFrameworkReferences ? s_latestOperationReferences : s_defaultOperationReferences;
+            var references = additionalReferences == null ? defaultRefs : additionalReferences.Concat(defaultRefs);
             var compilation = CreateStandardCompilation(testSrc, references, sourceFileName: "file.cs", options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
-            VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier);
+            VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier);
         }
 
         protected static MetadataReference VerifyOperationTreeAndDiagnosticsForTestWithIL<TSyntaxNode>(string testSrc,
@@ -1217,11 +1235,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions compilationOptions = null,
             CSharpParseOptions parseOptions = null,
             MetadataReference[] additionalReferences = null,
-            Action<IOperation, Compilation, SyntaxNode> AdditionalOperationTreeVerifier = null)
+            Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null,
+            bool useLatestFrameworkReferences = false)
             where TSyntaxNode : SyntaxNode
         {
             var ilReference = CreateMetadataReferenceFromIlSource(ilSource);
-            VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(testSrc, expectedOperationTree, expectedDiagnostics, compilationOptions, parseOptions, new[] { ilReference }, AdditionalOperationTreeVerifier);
+            VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(testSrc, expectedOperationTree, expectedDiagnostics, compilationOptions, parseOptions, new[] { ilReference }, additionalOperationTreeVerifier, useLatestFrameworkReferences);
             return ilReference;
         }
 
