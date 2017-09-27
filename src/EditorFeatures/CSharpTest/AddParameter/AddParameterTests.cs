@@ -888,6 +888,7 @@ class C1 : I1
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [Trait("TODO", "Fix broken")]
         public async Task TestInvocationGenericMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -909,6 +910,7 @@ class C1
         M1(1, 2);
     }
 }");
+            //Should fix to either: void M1<T>(T arg, int v) { } or void M1<T>(T arg, T v) { }
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1010,5 +1012,243 @@ class C1
             }
             await TestInRegularAndScriptAsync(code, fix0, 0);
         }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocationTuple1()
+        {
+            var code =
+@"
+class C1
+{
+    void M1((int, int) t1)
+    {
+    }
+    void M2()
+    {
+        [|M1|]((0, 0), (1, ""1""));
+    }
+}";
+            var fix0 =
+    @"
+class C1
+{
+    void M1((int, int) t1, (int, string) p)
+    {
+    }
+    void M2()
+    {
+        M1((0, 0), (1, ""1""));
+    }
+}";
+            await TestInRegularAndScriptAsync(code, fix0, 0);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocationTuple2()
+        {
+            var code =
+@"
+class C1
+{
+    void M1((int, int) t1)
+    {
+    }
+    void M2()
+    {
+        var tup = (1, ""1"");
+        [|M1|]((0, 0), tup);
+    }
+}";
+            var fix0 =
+    @"
+class C1
+{
+    void M1((int, int) t1, (int, string) tup)
+    {
+    }
+    void M2()
+    {
+        var tup = (1, ""1"");
+        M1((0, 0), tup);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, fix0, 0);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocationTuple3()
+        {
+            var code =
+@"
+class C1
+{
+    void M1((int, int) t1)
+    {
+    }
+    void M2()
+    {
+        var tup = (i: 1, s: ""1"");
+        [|M1|]((0, 0), tup);
+    }
+}";
+            var fix0 =
+    @"
+class C1
+{
+    void M1((int, int) t1, (int i, string s) tup)
+    {
+    }
+    void M2()
+    {
+        var tup = (i: 1, s: ""1"");
+        M1((0, 0), tup);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, fix0, 0);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [Trait("TODO", "Fix broken")]
+        public async Task TestInvocationCS0305()
+        {
+            var code =
+@"
+class C1
+{
+    void M1<T>(T i) { }
+    void M2()
+    {
+        [|M1|]<int, bool>(1, true);
+    }
+}";
+            var fix0 =
+@"
+class C1
+{
+    void M1<T>(int v, T i) { }
+    void M2()
+    {
+        M1<int, bool>(1, true);
+    }
+}";
+            // Should be void M1<T, T1>(T i, T1 v) { }
+            await TestInRegularAndScriptAsync(code, fix0, 0);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [Trait("TODO", "Fix broken")]
+        public async Task TestInvocationCS0308()
+        {
+            var code =
+@"
+class C1
+{
+    void M1(int i) { }
+    void M2()
+    {
+        [|M1<bool>|](1, true);
+    }
+}";
+            var fix0 =
+@"
+class C1
+{
+    void M1(int i, bool v) { }
+    void M2()
+    {
+        M1<bool>(1, true);
+    }
+}";
+            // Should be void M1<T>(int i, T v) { }
+            await TestInRegularAndScriptAsync(code, fix0, 0);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [Trait("TODO", "Fix missing")]
+        public async Task TestInvocationCS0539()
+        {
+            var code =
+@"
+interface I1
+{
+    void M1();
+}
+class C1 : I1
+{
+        void I1.M1() { }
+        void I1.[|M1|](int i) { }
+}";
+            // Should apply argument to interface method: void M1(int i);
+            await TestMissingAsync(code);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [Trait("TODO", "Fix missing")]
+        public async Task TestInvocationCS1503()
+        {
+            var code =
+@"
+    class C1
+    {
+        void M1(int i1, int i2) { }
+        void M1(double d) { }
+        void M2()
+        {
+            M1([|1.0|], 1);
+        }
+    }
+";
+            //Should fix second overload to void M1(double d, int v) { }
+            await TestMissingAsync(code);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [Trait("TODO", "Fix missing")]
+        public async Task TestInvocationCS1660()
+        {
+            var code =
+@"
+    class C1
+    {
+        void M1(int i1, int i2) { }
+        void M1(System.Action a) { }
+        void M2()
+        {
+            M1([|()=> { }|], 1);
+        }
+    }
+";
+            //Should fix second overload to void M1(System.Action a, int v) { }
+            await TestMissingAsync(code);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [Trait("TODO", "Fix missing")]
+        public async Task TestInvocationCS1739()
+        {
+            var code =
+@"
+    class C1
+    {
+        void M1(int i1) { }
+        void M2()
+        {
+            M1([|i2|]: 1);
+        }
+    }
+";
+            // Should fix to: void M1(int i1, int i2) { }
+            await TestMissingAsync(code);
+        }
+
     }
 }
