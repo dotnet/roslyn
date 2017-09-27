@@ -806,5 +806,13 @@ $$");
             await VerifyKeywordWithRefsAsync(AddInsideMethod(
 @" D1 lambda = () => $$"));
         }
+
+        [WorkItem(22253, "https://github.com/dotnet/roslyn/issues/22253")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInLocalMethod()
+        {
+            await VerifyKeywordWithRefsAsync(AddInsideMethod(
+@" void Goo(int test, $$) "));
+        }
     }
 }

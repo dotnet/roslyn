@@ -19,7 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return
                 node.IsParentKind(SyntaxKind.MethodDeclaration) ||
                 node.IsParentKind(SyntaxKind.ConstructorDeclaration) ||
-                node.IsParentKind(SyntaxKind.DelegateDeclaration);
+                node.IsParentKind(SyntaxKind.DelegateDeclaration) ||
+                node.IsParentKind(SyntaxKind.LocalFunctionStatement);
         }
     }
 }
