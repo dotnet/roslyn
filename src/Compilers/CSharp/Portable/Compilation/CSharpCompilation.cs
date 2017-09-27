@@ -3090,12 +3090,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override bool IsIOperationFeatureEnabled()
-        {
-            var options = (CSharpParseOptions)this.SyntaxTrees.FirstOrDefault()?.Options;
-            return options?.IsFeatureEnabled(MessageID.IDS_FeatureIOperation) ?? false;
-        }
-
         private class SymbolSearcher
         {
             private readonly Dictionary<Declaration, NamespaceOrTypeSymbol> _cache;
