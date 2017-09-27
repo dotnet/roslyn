@@ -2472,6 +2472,186 @@ class Program
         }
 
         [Fact]
+        public void RefReadonlyConditional()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+
+struct S
+{
+    public int X;
+    public S(int x) => X = x;
+
+    public void Mutate() => X++;
+}
+
+class C
+{
+    static void Main()
+    {
+        S local1 = new S(0);
+        S local2 = new S(0);
+        Console.WriteLine(local1.X);
+        Console.WriteLine(local2.X);
+
+        bool condition = false;
+
+        (condition ? ref local1 : ref local2).Mutate();
+        Console.WriteLine(local1.X);
+        Console.WriteLine(local2.X);
+
+        (condition ? ref local1 : ref local2).X = 0;
+        Console.WriteLine(local1.X);
+        Console.WriteLine(local2.X);
+
+        ref readonly S ro1 = ref local1;
+        ref readonly S ro2 = ref local2;
+
+        (condition ? ref local1 : ref ro2).Mutate();
+        Console.WriteLine(local1.X);
+        Console.WriteLine(local2.X);
+
+        (condition ? ref ro1 : ref local2).Mutate();
+        Console.WriteLine(local1.X);
+        Console.WriteLine(local2.X);
+
+        (!condition ? ref local1 : ref ro2).Mutate();
+        Console.WriteLine(local1.X);
+        Console.WriteLine(local2.X);
+
+        (!condition ? ref ro1 : ref local2).Mutate();
+        Console.WriteLine(local1.X);
+        Console.WriteLine(local2.X);
+    }
+}", expectedOutput: @"0
+0
+0
+1
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size      290 (0x122)
+  .maxstack  3
+  .locals init (S V_0, //local1
+                S V_1, //local2
+                S& V_2, //ro1
+                S& V_3, //ro2
+                S V_4)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.0
+  IL_0003:  call       ""S..ctor(int)""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldc.i4.0
+  IL_000b:  call       ""S..ctor(int)""
+  IL_0010:  ldloc.0
+  IL_0011:  ldfld      ""int S.X""
+  IL_0016:  call       ""void System.Console.WriteLine(int)""
+  IL_001b:  ldloc.1
+  IL_001c:  ldfld      ""int S.X""
+  IL_0021:  call       ""void System.Console.WriteLine(int)""
+  IL_0026:  ldc.i4.0
+  IL_0027:  dup
+  IL_0028:  brtrue.s   IL_002e
+  IL_002a:  ldloca.s   V_1
+  IL_002c:  br.s       IL_0030
+  IL_002e:  ldloca.s   V_0
+  IL_0030:  call       ""void S.Mutate()""
+  IL_0035:  ldloc.0
+  IL_0036:  ldfld      ""int S.X""
+  IL_003b:  call       ""void System.Console.WriteLine(int)""
+  IL_0040:  ldloc.1
+  IL_0041:  ldfld      ""int S.X""
+  IL_0046:  call       ""void System.Console.WriteLine(int)""
+  IL_004b:  dup
+  IL_004c:  brtrue.s   IL_0052
+  IL_004e:  ldloca.s   V_1
+  IL_0050:  br.s       IL_0054
+  IL_0052:  ldloca.s   V_0
+  IL_0054:  ldc.i4.0
+  IL_0055:  stfld      ""int S.X""
+  IL_005a:  ldloc.0
+  IL_005b:  ldfld      ""int S.X""
+  IL_0060:  call       ""void System.Console.WriteLine(int)""
+  IL_0065:  ldloc.1
+  IL_0066:  ldfld      ""int S.X""
+  IL_006b:  call       ""void System.Console.WriteLine(int)""
+  IL_0070:  ldloca.s   V_0
+  IL_0072:  stloc.2
+  IL_0073:  ldloca.s   V_1
+  IL_0075:  stloc.3
+  IL_0076:  dup
+  IL_0077:  brtrue.s   IL_0081
+  IL_0079:  ldloc.3
+  IL_007a:  ldobj      ""S""
+  IL_007f:  br.s       IL_0082
+  IL_0081:  ldloc.0
+  IL_0082:  stloc.s    V_4
+  IL_0084:  ldloca.s   V_4
+  IL_0086:  call       ""void S.Mutate()""
+  IL_008b:  ldloc.0
+  IL_008c:  ldfld      ""int S.X""
+  IL_0091:  call       ""void System.Console.WriteLine(int)""
+  IL_0096:  ldloc.1
+  IL_0097:  ldfld      ""int S.X""
+  IL_009c:  call       ""void System.Console.WriteLine(int)""
+  IL_00a1:  dup
+  IL_00a2:  brtrue.s   IL_00a7
+  IL_00a4:  ldloc.1
+  IL_00a5:  br.s       IL_00ad
+  IL_00a7:  ldloc.2
+  IL_00a8:  ldobj      ""S""
+  IL_00ad:  stloc.s    V_4
+  IL_00af:  ldloca.s   V_4
+  IL_00b1:  call       ""void S.Mutate()""
+  IL_00b6:  ldloc.0
+  IL_00b7:  ldfld      ""int S.X""
+  IL_00bc:  call       ""void System.Console.WriteLine(int)""
+  IL_00c1:  ldloc.1
+  IL_00c2:  ldfld      ""int S.X""
+  IL_00c7:  call       ""void System.Console.WriteLine(int)""
+  IL_00cc:  dup
+  IL_00cd:  brfalse.s  IL_00d7
+  IL_00cf:  ldloc.3
+  IL_00d0:  ldobj      ""S""
+  IL_00d5:  br.s       IL_00d8
+  IL_00d7:  ldloc.0
+  IL_00d8:  stloc.s    V_4
+  IL_00da:  ldloca.s   V_4
+  IL_00dc:  call       ""void S.Mutate()""
+  IL_00e1:  ldloc.0
+  IL_00e2:  ldfld      ""int S.X""
+  IL_00e7:  call       ""void System.Console.WriteLine(int)""
+  IL_00ec:  ldloc.1
+  IL_00ed:  ldfld      ""int S.X""
+  IL_00f2:  call       ""void System.Console.WriteLine(int)""
+  IL_00f7:  brfalse.s  IL_00fc
+  IL_00f9:  ldloc.1
+  IL_00fa:  br.s       IL_0102
+  IL_00fc:  ldloc.2
+  IL_00fd:  ldobj      ""S""
+  IL_0102:  stloc.s    V_4
+  IL_0104:  ldloca.s   V_4
+  IL_0106:  call       ""void S.Mutate()""
+  IL_010b:  ldloc.0
+  IL_010c:  ldfld      ""int S.X""
+  IL_0111:  call       ""void System.Console.WriteLine(int)""
+  IL_0116:  ldloc.1
+  IL_0117:  ldfld      ""int S.X""
+  IL_011c:  call       ""void System.Console.WriteLine(int)""
+  IL_0121:  ret
+}");
+        }
+
+        [Fact]
         public void RefConditionalOperatorInValConditional()
         {
             var source = @"
