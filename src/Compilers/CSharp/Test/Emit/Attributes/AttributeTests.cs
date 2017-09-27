@@ -897,8 +897,6 @@ class C
                 Assert.Equal(2, parameters.Length);
                 Assert.Equal(0, parameters[0].GetAttributes().Length);
                 Assert.Equal(0, parameters[1].GetAttributes().Length);
-                Assert.Equal(0, parameters[0].GetSynthesizedAttributes().Length);
-                Assert.Equal(0, parameters[1].GetSynthesizedAttributes().Length);
 
                 // BeginInvoke method: Has parameter attributes from delegate declaration parameters syntax
                 var beginInvokeMethod = (MethodSymbol)delegateType.GetMember("BeginInvoke");

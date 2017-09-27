@@ -147,6 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ArrayCreation,
         ArrayInitialization,
         StackAllocArrayCreation,
+        ConvertedStackAllocExpression,
         FieldAccess,
         HoistedFieldAccess,
         PropertyAccess,
@@ -1234,7 +1235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundConditionalOperator : BoundExpression
     {
-        public BoundConditionalOperator(SyntaxNode syntax, BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors = false)
+        public BoundConditionalOperator(SyntaxNode syntax, bool isByRef, BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.ConditionalOperator, syntax, type, hasErrors || condition.HasErrors() || consequence.HasErrors() || alternative.HasErrors())
         {
 
@@ -1243,12 +1244,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(alternative != null, "Field 'alternative' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
+            this.IsByRef = isByRef;
             this.Condition = condition;
             this.Consequence = consequence;
             this.Alternative = alternative;
             this.ConstantValueOpt = constantValueOpt;
         }
 
+
+        public bool IsByRef { get; }
 
         public BoundExpression Condition { get; }
 
@@ -1263,11 +1267,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitConditionalOperator(this);
         }
 
-        public BoundConditionalOperator Update(BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ConstantValue constantValueOpt, TypeSymbol type)
+        public BoundConditionalOperator Update(bool isByRef, BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ConstantValue constantValueOpt, TypeSymbol type)
         {
-            if (condition != this.Condition || consequence != this.Consequence || alternative != this.Alternative || constantValueOpt != this.ConstantValueOpt || type != this.Type)
+            if (isByRef != this.IsByRef || condition != this.Condition || consequence != this.Consequence || alternative != this.Alternative || constantValueOpt != this.ConstantValueOpt || type != this.Type)
             {
-                var result = new BoundConditionalOperator(this.Syntax, condition, consequence, alternative, constantValueOpt, type, this.HasErrors);
+                var result = new BoundConditionalOperator(this.Syntax, isByRef, condition, consequence, alternative, constantValueOpt, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -4765,11 +4769,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundObjectInitializerMember : BoundExpression
     {
-        public BoundObjectInitializerMember(SyntaxNode syntax, Symbol memberSymbol, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, LookupResultKind resultKind, Binder binderOpt, TypeSymbol type, bool hasErrors = false)
+        public BoundObjectInitializerMember(SyntaxNode syntax, Symbol memberSymbol, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, LookupResultKind resultKind, TypeSymbol receiverType, Binder binderOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.ObjectInitializerMember, syntax, type, hasErrors || arguments.HasErrors())
         {
 
             Debug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(receiverType != null, "Field 'receiverType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.MemberSymbol = memberSymbol;
@@ -4779,6 +4784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Expanded = expanded;
             this.ArgsToParamsOpt = argsToParamsOpt;
             this._ResultKind = resultKind;
+            this.ReceiverType = receiverType;
             this.BinderOpt = binderOpt;
         }
 
@@ -4798,6 +4804,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly LookupResultKind _ResultKind;
         public override LookupResultKind ResultKind { get { return _ResultKind;} }
 
+        public TypeSymbol ReceiverType { get; }
+
         public Binder BinderOpt { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
@@ -4805,11 +4813,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitObjectInitializerMember(this);
         }
 
-        public BoundObjectInitializerMember Update(Symbol memberSymbol, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, LookupResultKind resultKind, Binder binderOpt, TypeSymbol type)
+        public BoundObjectInitializerMember Update(Symbol memberSymbol, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, LookupResultKind resultKind, TypeSymbol receiverType, Binder binderOpt, TypeSymbol type)
         {
-            if (memberSymbol != this.MemberSymbol || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || resultKind != this.ResultKind || binderOpt != this.BinderOpt || type != this.Type)
+            if (memberSymbol != this.MemberSymbol || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || resultKind != this.ResultKind || receiverType != this.ReceiverType || binderOpt != this.BinderOpt || type != this.Type)
             {
-                var result = new BoundObjectInitializerMember(this.Syntax, memberSymbol, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, resultKind, binderOpt, type, this.HasErrors);
+                var result = new BoundObjectInitializerMember(this.Syntax, memberSymbol, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, resultKind, receiverType, binderOpt, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -5229,18 +5237,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundStackAllocArrayCreation : BoundExpression
+    internal partial class BoundStackAllocArrayCreation : BoundExpression
     {
-        public BoundStackAllocArrayCreation(SyntaxNode syntax, BoundExpression count, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.StackAllocArrayCreation, syntax, type, hasErrors || count.HasErrors())
+        protected BoundStackAllocArrayCreation(BoundKind kind, SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, TypeSymbol type, bool hasErrors = false)
+            : base(kind, syntax, type, hasErrors)
         {
 
+            Debug.Assert(elementType != null, "Field 'elementType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(count != null, "Field 'count' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
+            this.ElementType = elementType;
             this.Count = count;
         }
 
+        public BoundStackAllocArrayCreation(SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.StackAllocArrayCreation, syntax, type, hasErrors || count.HasErrors())
+        {
+
+            Debug.Assert(elementType != null, "Field 'elementType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(count != null, "Field 'count' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.ElementType = elementType;
+            this.Count = count;
+        }
+
+
+        public TypeSymbol ElementType { get; }
 
         public BoundExpression Count { get; }
 
@@ -5249,11 +5271,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitStackAllocArrayCreation(this);
         }
 
-        public BoundStackAllocArrayCreation Update(BoundExpression count, TypeSymbol type)
+        public BoundStackAllocArrayCreation Update(TypeSymbol elementType, BoundExpression count, TypeSymbol type)
         {
-            if (count != this.Count || type != this.Type)
+            if (elementType != this.ElementType || count != this.Count || type != this.Type)
             {
-                var result = new BoundStackAllocArrayCreation(this.Syntax, count, type, this.HasErrors);
+                var result = new BoundStackAllocArrayCreation(this.Syntax, elementType, count, type, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundConvertedStackAllocExpression : BoundStackAllocArrayCreation
+    {
+        public BoundConvertedStackAllocExpression(SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ConvertedStackAllocExpression, syntax, elementType, count, type, hasErrors || count.HasErrors())
+        {
+
+            Debug.Assert(elementType != null, "Field 'elementType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(count != null, "Field 'count' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+        }
+
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitConvertedStackAllocExpression(this);
+        }
+
+        public new BoundConvertedStackAllocExpression Update(TypeSymbol elementType, BoundExpression count, TypeSymbol type)
+        {
+            if (elementType != this.ElementType || count != this.Count || type != this.Type)
+            {
+                var result = new BoundConvertedStackAllocExpression(this.Syntax, elementType, count, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -6351,6 +6403,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitArrayInitialization(node as BoundArrayInitialization, arg);
                 case BoundKind.StackAllocArrayCreation: 
                     return VisitStackAllocArrayCreation(node as BoundStackAllocArrayCreation, arg);
+                case BoundKind.ConvertedStackAllocExpression: 
+                    return VisitConvertedStackAllocExpression(node as BoundConvertedStackAllocExpression, arg);
                 case BoundKind.FieldAccess: 
                     return VisitFieldAccess(node as BoundFieldAccess, arg);
                 case BoundKind.HoistedFieldAccess: 
@@ -6908,6 +6962,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node, arg);
         }
         public virtual R VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
+        public virtual R VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -7508,6 +7566,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
         {
             return this.DefaultVisit(node);
         }
@@ -8260,6 +8322,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.Count);
             return null;
         }
+        public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
+        {
+            this.Visit(node.Count);
+            return null;
+        }
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
             this.Visit(node.ReceiverOpt);
@@ -8534,7 +8601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = (BoundExpression)this.Visit(node.Consequence);
             BoundExpression alternative = (BoundExpression)this.Visit(node.Alternative);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(condition, consequence, alternative, node.ConstantValueOpt, type);
+            return node.Update(node.IsByRef, condition, consequence, alternative, node.ConstantValueOpt, type);
         }
         public override BoundNode VisitArrayAccess(BoundArrayAccess node)
         {
@@ -9044,8 +9111,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitObjectInitializerMember(BoundObjectInitializerMember node)
         {
             ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
+            TypeSymbol receiverType = this.VisitType(node.ReceiverType);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.MemberSymbol, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, node.BinderOpt, type);
+            return node.Update(node.MemberSymbol, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, receiverType, node.BinderOpt, type);
         }
         public override BoundNode VisitDynamicObjectInitializerMember(BoundDynamicObjectInitializerMember node)
         {
@@ -9115,8 +9183,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
         {
             BoundExpression count = (BoundExpression)this.Visit(node.Count);
+            TypeSymbol elementType = this.VisitType(node.ElementType);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(count, type);
+            return node.Update(elementType, count, type);
+        }
+        public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
+        {
+            BoundExpression count = (BoundExpression)this.Visit(node.Count);
+            TypeSymbol elementType = this.VisitType(node.ElementType);
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(elementType, count, type);
         }
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
@@ -9532,6 +9608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new TreeDumperNode("conditionalOperator", null, new TreeDumperNode[]
             {
+                new TreeDumperNode("isByRef", node.IsByRef, null),
                 new TreeDumperNode("condition", null, new TreeDumperNode[] { Visit(node.Condition, null) }),
                 new TreeDumperNode("consequence", null, new TreeDumperNode[] { Visit(node.Consequence, null) }),
                 new TreeDumperNode("alternative", null, new TreeDumperNode[] { Visit(node.Alternative, null) }),
@@ -10449,6 +10526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("expanded", node.Expanded, null),
                 new TreeDumperNode("argsToParamsOpt", node.ArgsToParamsOpt, null),
                 new TreeDumperNode("resultKind", node.ResultKind, null),
+                new TreeDumperNode("receiverType", node.ReceiverType, null),
                 new TreeDumperNode("binderOpt", node.BinderOpt, null),
                 new TreeDumperNode("type", node.Type, null)
             }
@@ -10567,6 +10645,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new TreeDumperNode("stackAllocArrayCreation", null, new TreeDumperNode[]
             {
+                new TreeDumperNode("elementType", node.ElementType, null),
+                new TreeDumperNode("count", null, new TreeDumperNode[] { Visit(node.Count, null) }),
+                new TreeDumperNode("type", node.Type, null)
+            }
+            );
+        }
+        public override TreeDumperNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node, object arg)
+        {
+            return new TreeDumperNode("convertedStackAllocExpression", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("elementType", node.ElementType, null),
                 new TreeDumperNode("count", null, new TreeDumperNode[] { Visit(node.Count, null) }),
                 new TreeDumperNode("type", node.Type, null)
             }

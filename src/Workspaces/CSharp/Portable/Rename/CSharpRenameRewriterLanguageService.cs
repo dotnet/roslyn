@@ -352,9 +352,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         ? newToken.ValueText.Substring(0, newToken.ValueText.IndexOf('_') + 1)
                         : null;
 
-                    if (symbols.Count() == 1)
+                    if (symbols.Length == 1)
                     {
-                        var symbol = symbols.Single();
+                        var symbol = symbols[0];
 
                         if (symbol.IsConstructor())
                         {

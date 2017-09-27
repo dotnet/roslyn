@@ -8643,6 +8643,31 @@ End Module
                 result.Output.Trim())
         End Sub
 
+        <ConditionalFact(GetType(WindowsOnly))>
+        <WorkItem(21935, "https://github.com/dotnet/roslyn/issues/21935")>
+        Public Sub PdbPathNotEmittedWitoutPdb()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim src = MakeTrivialExe(directory:=dir.Path)
+            Dim args = {"/nologo", src, "/out:a.exe", "/debug-"}
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+
+            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path, args)
+            Dim exitCode = vbc.Run(outWriter)
+            Assert.Equal(0, exitCode)
+
+            Dim exePath = Path.Combine(dir.Path, "a.exe")
+            Assert.True(File.Exists(exePath))
+            Using peStream = File.OpenRead(exePath)
+                Using peReader = New PEReader(peStream)
+                    Dim debugDirectory = peReader.PEHeaders.PEHeader.DebugTableDirectory
+                    Assert.Equal(0, debugDirectory.Size)
+                    Assert.Equal(0, debugDirectory.RelativeVirtualAddress)
+                End Using
+            End Using
+        End Sub
+
+
         Private Function MakeTrivialExe(Optional directory As String = Nothing) As String
             Return Temp.CreateFile(directory:=directory, prefix:="", extension:=".vb").WriteAllText("
 Class Program

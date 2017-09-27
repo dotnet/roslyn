@@ -58,12 +58,10 @@ namespace Microsoft.CodeAnalysis
 
         // Statements that occur only in Visual Basic.
 
-        // https://github.com/dotnet/roslyn/issues/21297
-        // /// <summary>Indicates an <see cref="IStopStatement"/>.</summary>
-        // StopStatement = 0x50,
-        // https://github.com/dotnet/roslyn/issues/22004
-        // /// <summary>Indicates an <see cref="IEndStatement"/>.</summary>
-        // EndStatement = 0x51,
+        /// <summary>Indicates an <see cref="IStopStatement"/>.</summary>
+        StopStatement = 0x50,
+        /// <summary>Indicates an <see cref="IEndStatement"/>.</summary>
+        EndStatement = 0x51,
         // https://github.com/dotnet/roslyn/issues/22005
         // /// <summary>Indicates an <see cref="IWithStatement"/>.</summary>
         // WithStatement = 0x52,
@@ -114,9 +112,8 @@ namespace Microsoft.CodeAnalysis
         InstanceReferenceExpression = 0x115,
         /// <summary>Indicates an <see cref="IIsTypeExpression"/>.</summary>
         IsTypeExpression = 0x116,
-        // https://github.com/dotnet/roslyn/issues/22007
-        // /// <summary>Indicates an <see cref="IAwaitExpression"/>.</summary>
-        // AwaitExpression = 0x117,
+        /// <summary>Indicates an <see cref="IAwaitExpression"/>.</summary>
+        AwaitExpression = 0x117,
         /// <summary>Indicates an <see cref="ISimpleAssignmentExpression"/>.</summary>
         SimpleAssignmentExpression = 0x118,
         /// <summary>Indicates an <see cref="ICompoundAssignmentExpression"/>.</summary>
@@ -151,17 +148,17 @@ namespace Microsoft.CodeAnalysis
         DynamicInvocationExpression = 0x127,
         /// <summary>Indicates an <see cref="IDynamicIndexerAccessExpression"/>.</summary>
         DynamicIndexerAccessExpression = 0x128,
+        /// <summary>Indicates an <see cref="ITranslatedQueryExpression"/>.</summary>
+        TranslatedQueryExpression = 0x129,
 
         // Expressions that occur only in C#.
 
         /// <summary>Indicates an <see cref="IDefaultValueExpression"/>.</summary>
         DefaultValueExpression = 0x200,
-        // https://github.com/dotnet/roslyn/issues/22003
-        // /// <summary>Indicates an <see cref="ITypeOfExpression"/>.</summary>
-        // TypeOfExpression = 0x201,
-        // https://github.com/dotnet/roslyn/issues/21296
-        // /// <summary>Indicates an <see cref="ISizeOfExpression"/>.</summary>
-        // SizeOfExpression = 0x202,
+        /// <summary>Indicates an <see cref="ITypeOfExpression"/>.</summary>
+        TypeOfExpression = 0x201,
+        /// <summary>Indicates an <see cref="ISizeOfExpression"/>.</summary>
+        SizeOfExpression = 0x202,
         /// <summary>Indicates an <see cref="IAddressOfExpression"/>.</summary>
         AddressOfExpression = 0x203,
         // <summary>Indicates an <see cref="IPointerIndirectionReferenceExpression"/>.</summary>
@@ -181,7 +178,9 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>Indicates an <see cref="IOmittedArgumentExpression"/>.</summary>
         OmittedArgumentExpression = 0x300,
+
         // 0x301 was removed, and is available for use.
+
         // https://github.com/dotnet/roslyn/issues/21294
         // /// <summary>Indicates an <see cref="IPlaceholderExpression"/>.</summary>
         // PlaceholderExpression = 0x302,

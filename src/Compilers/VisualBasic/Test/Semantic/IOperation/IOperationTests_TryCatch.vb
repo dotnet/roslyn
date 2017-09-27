@@ -34,7 +34,7 @@ ITryStatement (OperationKind.None) (Syntax: 'Try'BIND:"T ... End Try')
             Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   Catch clauses(1):
-      ICatchClause (Exception type: , Exception local: ex As System.Exception) (OperationKind.None) (Syntax: 'Catch ex As ... Throw ex')
+      ICatchClause (Exception type: System.Exception, Exception local: ex As System.Exception) (OperationKind.None) (Syntax: 'Catch ex As ... Throw ex')
         Filter: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i > 0')
             Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
             Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -81,7 +81,7 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Private 
               Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
               Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
     Catch clauses(1):
-        ICatchClause (Exception type: , Exception local: ex As System.Exception) (OperationKind.None) (Syntax: 'Catch ex As ... Throw ex')
+        ICatchClause (Exception type: System.Exception, Exception local: ex As System.Exception) (OperationKind.None) (Syntax: 'Catch ex As ... Throw ex')
           Filter: IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'i > 0')
               Left: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'i')
               Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')

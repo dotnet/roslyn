@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -10,6 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    [CompilerTrait(CompilerFeature.IOperation)]
     public partial class IOperationTests : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -139,30 +140,6 @@ public class C
             var model = compilation.GetSemanticModel(tree);
 
             VerifyParentOperations(model);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void TestSizeOfExpression()
-        {
-            string source = @"
-using System;
-
-class C
-{
-    void M(int i)
-    {
-        i = /*<bind>*/sizeof(int)/*</bind>*/;
-    }
-}
-";
-            string expectedOperationTree = @"
-ISizeOfExpression (OperationKind.None, Constant: 4) (Syntax: 'sizeof(int)')
-  TypeOperand: System.Int32
-";
-            var expectedDiagnostics = DiagnosticDescription.None;
-
-            VerifyOperationTreeAndDiagnosticsForTest<SizeOfExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
     }
 }

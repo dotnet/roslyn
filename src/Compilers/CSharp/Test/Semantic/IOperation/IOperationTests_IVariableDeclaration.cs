@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -26,7 +26,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i1;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'int i1;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: System.Int32 i1
     Initializer: null
 ";
@@ -54,7 +54,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i1 = 1;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'int i1 = 1;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = 1')
     Variables: Local_1: System.Int32 i1
     Initializer: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
@@ -82,7 +82,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int i1 = ;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'int i1 = ;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 = ')
     Variables: Local_1: System.Int32 i1
     Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
         Children(0)
@@ -139,12 +139,12 @@ class Program
 {
     static void Main(string[] args)
     {
-        /*<bind>*/int i1 = 2, i2 = 2/*</bind>*/;
+        /*<bind>*/int i1 = 2, i2 = 2;/*</bind>*/
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i1 = 2, ... *</bind>*/;')
+IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i1 = 2, i2 = 2;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = 2')
     Variables: Local_1: System.Int32 i1
     Initializer: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -161,7 +161,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(6, 31)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -173,12 +173,12 @@ class Program
 {
     static void Main(string[] args)
     {
-        /*<bind>*/int i1 = , i2 = 2/*</bind>*/;
+        /*<bind>*/int i1 = , i2 = 2;/*</bind>*/
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int i1 = ,  ... *</bind>*/;')
+IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int i1 = , i2 = 2;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 = ')
     Variables: Local_1: System.Int32 i1
     Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
@@ -196,7 +196,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(6, 30)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -208,12 +208,12 @@ class Program
 {
     static void Main(string[] args)
     {
-        /*<bind>*/int i,/*</bind>*/;
+        /*<bind>*/int i,;/*</bind>*/
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int i,/*</bind>*/;')
+IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int i,;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i')
     Variables: Local_1: System.Int32 i
     Initializer: null
@@ -224,13 +224,13 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1001: Identifier expected
                 //         /*<bind>*/int i,/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(6, 36),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(6, 25),
                 // CS0168: The variable 'i' is declared but never used
                 //         /*<bind>*/int i,/*</bind>*/;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "i").WithArguments("i").WithLocation(6, 23)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -242,15 +242,15 @@ class Program
 {
     static void Main(string[] args)
     {
-        /*<bind>*/int i = GetInt()/*</bind>*/;
+        /*<bind>*/int i = GetInt();/*</bind>*/
     }
 
     static int GetInt() => 1;
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = Get ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'int i = Get ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = GetInt();')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = GetInt()')
     Variables: Local_1: System.Int32 i
     Initializer: IInvocationExpression (System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'GetInt()')
         Instance Receiver: null
@@ -258,7 +258,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -270,14 +270,14 @@ class Program
 {
     static void Main(string[] args)
     {
-        /*<bind>*/int i = GetInt(), j = GetInt()/*</bind>*/;
+        /*<bind>*/int i = GetInt(), j = GetInt();/*</bind>*/
     }
 
     static int GetInt() => 1;
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = Get ... *</bind>*/;')
+IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = Get ... = GetInt();')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = GetInt()')
     Variables: Local_1: System.Int32 i
     Initializer: IInvocationExpression (System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'GetInt()')
@@ -291,7 +291,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -304,21 +304,21 @@ class Program
     static void Main(string[] args)
     {
         int i = 1;
-        /*<bind>*/int i1 = i/*</bind>*/;
+        /*<bind>*/int i1 = i;/*</bind>*/
     }
 
     static int GetInt() => 1;
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i1 = i/*</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'int i1 = i/*</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i1 = i;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = i')
     Variables: Local_1: System.Int32 i1
     Initializer: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -331,14 +331,14 @@ class Program
     static void Main(string[] args)
     {
         int i = 1;
-        /*<bind>*/int i1 = i, i2 = i1/*</bind>*/;
+        /*<bind>*/int i1 = i, i2 = i1;/*</bind>*/
     }
 
     static int GetInt() => 1;
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i1 = i, ... *</bind>*/;')
+IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i1 = i, i2 = i1;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = i')
     Variables: Local_1: System.Int32 i1
     Initializer: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -348,7 +348,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -360,13 +360,13 @@ class Program
 {
     static void Main(string[] args)
     {
-        /*<bind>*/int[2, 3] a/*</bind>*/;
+        /*<bind>*/int[2, 3] a;/*</bind>*/
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int[2, 3] a/*</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'int[2, 3] a/*</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int[2, 3] a;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: System.Int32[,] a
     Initializer: null
 ";
@@ -382,7 +382,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "a").WithArguments("a").WithLocation(6, 29)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -394,12 +394,12 @@ class Program
 {
     static void Main(string[] args)
     {
-        /*<bind>*/int[2, 3] a, b/*</bind>*/;
+        /*<bind>*/int[2, 3] a, b;/*</bind>*/
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int[2, 3] a ... *</bind>*/;')
+IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int[2, 3] a, b;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: System.Int32[,] a
     Initializer: null
@@ -422,7 +422,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "b").WithArguments("b").WithLocation(6, 32)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         #endregion
@@ -1450,7 +1450,7 @@ class Program
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'const int i1 = 1;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'const int i1 = 1;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = 1')
     Variables: Local_1: System.Int32 i1
     Initializer: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
@@ -1509,24 +1509,24 @@ class Program
 {
     static void Main(string[] args)
     {
-        const /*<bind>*/int i1 = /*</bind>*/;
+        /*<bind>*/const int i1 = ;/*</bind>*/
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const /*<bi ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'const /*<bi ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const int i1 = ;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 = ')
     Variables: Local_1: System.Int32 i1
     Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
         Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ';'
-                //         const /*<bind>*/int i1 = /*</bind>*/;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 45)
+                //         /*<bind>*/const int i1 = ;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 34)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1538,17 +1538,17 @@ class Program
 {
     static void Main(string[] args)
     {
-        const /*<bind>*/int i1 = , i2 = /*</bind>*/;
+        /*<bind>*/const int i1 = , i2 = ;/*</bind>*/
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const /*<bi ... *</bind>*/;')
+IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const int i1 = , i2 = ;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 = ')
     Variables: Local_1: System.Int32 i1
     Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
         Children(0)
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i2 = /*</bind>*/')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i2 = ')
     Variables: Local_1: System.Int32 i2
     Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
         Children(0)
@@ -1559,10 +1559,10 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(6, 34),
                 // CS1525: Invalid expression term ';'
                 //         const /*<bind>*/int i1 = , i2 = /*</bind>*/;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 52)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 41)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1574,13 +1574,13 @@ class Program
 {
     static void Main(string[] args)
     {
-        const /*<bind>*/int i1/*</bind>*/;
+        /*<bind>*/const int i1;/*</bind>*/
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const /*<bi ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'const /*<bi ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const int i1;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
     Variables: Local_1: System.Int32 i1
     Initializer: null
 ";
@@ -1593,7 +1593,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "i1").WithArguments("i1").WithLocation(6, 29)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1605,12 +1605,12 @@ class Program
 {
     static void Main(string[] args)
     {
-        const /*<bind>*/int i1, i2/*</bind>*/;
+        /*<bind>*/const int i1, i2;/*</bind>*/
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const /*<bi ... *</bind>*/;')
+IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const int i1, i2;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
     Variables: Local_1: System.Int32 i1
     Initializer: null
@@ -1633,7 +1633,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "i2").WithArguments("i2").WithLocation(6, 33)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1645,12 +1645,12 @@ class Program
 {
     static void Main(string[] args)
     {
-        const /*<bind>*/int i1,/*</bind>*/;
+        /*<bind>*/const int i1,;/*</bind>*/
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const /*<bi ... *</bind>*/;')
+IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const int i1,;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
     Variables: Local_1: System.Int32 i1
     Initializer: null
@@ -1664,16 +1664,16 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_ConstValueRequired, "i1").WithLocation(6, 29),
                 // CS1001: Identifier expected
                 //         const /*<bind>*/int i1,/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(6, 43),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(6, 32),
                 // CS0145: A const field requires a value to be provided
                 //         const /*<bind>*/int i1,/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ConstValueRequired, ";").WithLocation(6, 43),
+                Diagnostic(ErrorCode.ERR_ConstValueRequired, ";").WithLocation(6, 32),
                 // CS0168: The variable 'i1' is declared but never used
                 //         const /*<bind>*/int i1,/*</bind>*/;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "i1").WithArguments("i1").WithLocation(6, 29)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1685,15 +1685,15 @@ class Program
 {
     static void Main(string[] args)
     {
-        const /*<bind>*/int i1 = GetInt()/*</bind>*/;
+        /*<bind>*/const int i1 = GetInt();/*</bind>*/
     }
 
     static int GetInt() => 1;
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const /*<bi ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'const /*<bi ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const int i1 = GetInt();')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 = GetInt()')
     Variables: Local_1: System.Int32 i1
     Initializer: IInvocationExpression (System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'GetInt()')
         Instance Receiver: null
@@ -1705,7 +1705,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "GetInt()").WithArguments("i1").WithLocation(6, 34)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1717,14 +1717,14 @@ class Program
 {
     static void Main(string[] args)
     {
-        const /*<bind>*/int i1 = GetInt(), i2 = GetInt()/*</bind>*/;
+        /*<bind>*/const int i1 = GetInt(), i2 = GetInt();/*</bind>*/
     }
 
     static int GetInt() => 1;
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const /*<bi ... *</bind>*/;')
+IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const int i ... = GetInt();')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 = GetInt()')
     Variables: Local_1: System.Int32 i1
     Initializer: IInvocationExpression (System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'GetInt()')
@@ -1745,7 +1745,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "GetInt()").WithArguments("i2").WithLocation(6, 49)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1758,15 +1758,15 @@ class Program
     static void Main(string[] args)
     {
         const int i = 1;
-        const /*<bind>*/int i1 = i/*</bind>*/;
+        /*<bind>*/const int i1 = i;/*</bind>*/
     }
 
     static int GetInt() => 1;
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'const /*<bi ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'const /*<bi ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'const int i1 = i;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = i')
     Variables: Local_1: System.Int32 i1
     Initializer: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i')
 ";
@@ -1776,7 +1776,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i1").WithArguments("i1").WithLocation(7, 29)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1789,14 +1789,14 @@ class Program
     static void Main(string[] args)
     {
         const int i = 1;
-        const /*<bind>*/int i1 = i, i2 = i1/*</bind>*/;
+        /*<bind>*/const int i1 = i, i2 = i1;/*</bind>*/
     }
 
     static int GetInt() => 1;
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'const /*<bi ... *</bind>*/;')
+IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'const int i ... i, i2 = i1;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = i')
     Variables: Local_1: System.Int32 i1
     Initializer: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i')
@@ -1810,7 +1810,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(7, 37)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         #endregion

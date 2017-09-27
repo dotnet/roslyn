@@ -260,6 +260,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal static ImmutableArray<Conversion> PointerToIntegerUnderlying = ImmutableArray.Create(PointerToInteger);
         }
 
+        internal static Conversion MakeStackAllocToPointerType(Conversion underlyingConversion)
+        {
+            return new Conversion(ConversionKind.StackAllocToPointerType, ImmutableArray.Create(underlyingConversion));
+        }
+
+        internal static Conversion MakeStackAllocToSpanType(Conversion underlyingConversion)
+        {
+            return new Conversion(ConversionKind.StackAllocToSpanType, ImmutableArray.Create(underlyingConversion));
+        }
 
         internal static Conversion MakeNullableConversion(ConversionKind kind, Conversion nestedConversion)
         {
@@ -446,6 +455,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return Kind == ConversionKind.Identity;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the conversion is a stackalloc conversion.
+        /// </summary>
+        public bool IsStackAlloc
+        {
+            get
+            {
+                return Kind == ConversionKind.StackAllocToPointerType || Kind == ConversionKind.StackAllocToSpanType;
             }
         }
 

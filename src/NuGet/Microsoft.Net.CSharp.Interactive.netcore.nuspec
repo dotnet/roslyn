@@ -4,11 +4,17 @@
     <id>Microsoft.Net.CSharp.Interactive.netcore</id>
     <summary>
       CoreCLR-compatible version of csi.exe.
+    </summary>
+    <description>
+      CoreCLR-compatible version of csi.exe.
 
       Supported Platforms:
       - .NET Core (NETCoreApp1.0)
-    </summary>
-    <description>$commitPathMessage$</description>
+
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
+    </description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>

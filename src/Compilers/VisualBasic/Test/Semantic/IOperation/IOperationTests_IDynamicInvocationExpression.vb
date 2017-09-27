@@ -201,6 +201,8 @@ End Class]]>.Value
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(d)')
   Children(2):
       IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M2')
+        Children(1):
+            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsInvalid) (Syntax: 'M2')
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
 ]]>.Value
 
@@ -415,6 +417,8 @@ End Class]]>.Value
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'c(c, d)')
   Children(3):
       IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'c')
+        Children(1):
+            IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
       IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
       IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
 ]]>.Value

@@ -399,7 +399,7 @@
   <Node Name="BoundConditionalOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
+    <Field Name="IsByRef" Type="bool"/>
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Consequence" Type="BoundExpression"/>
     <Field Name="Alternative" Type="BoundExpression"/>
@@ -1322,6 +1322,9 @@
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+
+    <!-- Used by IOperation to reconstruct the receiver for this expression. -->
+    <Field Name="ReceiverType" Type="TypeSymbol" Null="disallow"/>
     
     <!-- BinderOpt is a temporary solution for IOperation implementation and should probably be removed in the future -->
     <!-- Tracked by https://github.com/dotnet/roslyn/issues/20787 -->
@@ -1436,9 +1439,13 @@
   </Node>
 
   <Node Name="BoundStackAllocArrayCreation" Base="BoundExpression">
+    <Field Name="ElementType" Type="TypeSymbol" Null="disallow"/>
+    <Field Name="Count" Type="BoundExpression"/>
+  </Node>
+
+  <Node Name="BoundConvertedStackAllocExpression" Base="BoundStackAllocArrayCreation">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="Count" Type="BoundExpression"/>
   </Node>
 
   <Node Name="BoundFieldAccess" Base="BoundExpression">

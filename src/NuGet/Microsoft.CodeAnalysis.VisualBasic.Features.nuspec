@@ -5,7 +5,13 @@
     <summary>
       .NET Compiler Platform ("Roslyn") support for creating Visual Basic editing experiences.
     </summary>
-    <description>$commitPathMessage$</description>
+    <description>
+      .NET Compiler Platform ("Roslyn") support for creating Visual Basic editing experiences.
+
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
+    </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Features" version="$version$" />
       <dependency id="Microsoft.CodeAnalysis.VisualBasic.Workspaces" version="$version$" />
