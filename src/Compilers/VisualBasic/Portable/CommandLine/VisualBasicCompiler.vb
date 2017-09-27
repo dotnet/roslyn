@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim searchPaths = Arguments.KeyFileSearchPaths
 
             Dim fallback =
-                (result.Feature("BypassStrongName") <> Nothing) Or
+                (result.Feature("UseLegacyStrongNameProvider") <> Nothing) Or
                 (result.Options.CryptoKeyContainer <> Nothing)
 
             Return result.WithOptions(

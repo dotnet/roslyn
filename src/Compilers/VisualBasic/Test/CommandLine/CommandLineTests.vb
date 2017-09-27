@@ -94,7 +94,7 @@ End Class
             Dim src As String = Temp.CreateFile().WriteAllText(<text>
 Module Module1
     Sub Main()
-    
+
     End Sub
 End Module
 </text>.Value).Path
@@ -158,7 +158,7 @@ End Class"
             Dim file = dir.CreateFile(fileName)
             file.WriteAllText(source)
 
-            Dim cmd = New MockVisualBasicCompiler(dir.Path, {"/nologo", "a.vb", "/features:BypassStrongName"})
+            Dim cmd = New MockVisualBasicCompiler(dir.Path, {"/nologo", "a.vb", "/features:UseLegacyStrongNameProvider"})
             Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), ErrorLogger.Null)
 
             Assert.True(TypeOf comp.Options.StrongNameProvider Is DesktopStrongNameProvider)
@@ -645,9 +645,9 @@ a.vb
         <Fact>
         Public Sub BadWin32Resource()
             Dim source = Temp.CreateFile(prefix:="", extension:=".vb").WriteAllText("
-Module Test 
-    Sub Main() 
-    End Sub 
+Module Test
+    Sub Main()
+    End Sub
 End Module").Path
             Dim badres = Temp.CreateFile().WriteAllBytes(New Byte() {0, 0}).Path
 
@@ -1503,7 +1503,7 @@ End Module").Path
             parsedArgs.Errors.Verify()
             Assert.Equal("Unicode (UTF-8)", parsedArgs.Encoding.EncodingName)
 
-            ' errors 
+            ' errors
             parsedArgs = DefaultParse({"/codepage:0", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadCodepage).WithArguments("0"))
 
@@ -1580,7 +1580,7 @@ End Module").Path
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("main", ":<class>"))
             Assert.Null(parsedArgs.CompilationOptions.MainTypeName) ' EDMAURER Dev11 accepts and MainTypeName is " "
 
-            ' errors 
+            ' errors
             parsedArgs = DefaultParse({"/maiN:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("main", ":<class>"))
 
@@ -2739,7 +2739,7 @@ End Module").Path
 
             Dim src = dir.CreateFile("a.vb")
             src.WriteAllText("
-Class C 
+Class C
   Public Shared Sub Main()
   End Sub
 End Class")
@@ -2772,7 +2772,7 @@ End Class")
 
             Dim src = dir.CreateFile("a.vb")
             src.WriteAllText("
-Class C 
+Class C
   Public Shared Sub Main()
   End Sub
 End Class")
@@ -4024,13 +4024,13 @@ End Class
             Assert.Equal(Nothing, parsedArgs.CompilationOptions.CryptoKeyContainer)
             Assert.Equal(Nothing, parsedArgs.CompilationOptions.CryptoKeyFile)
 
-            ' keyfile/keycontainer conflicts 
+            ' keyfile/keycontainer conflicts
             parsedArgs = DefaultParse({"/keycontainer:a", "/keyfile:b", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(Nothing, parsedArgs.CompilationOptions.CryptoKeyContainer)
             Assert.Equal("b", parsedArgs.CompilationOptions.CryptoKeyFile)
 
-            ' keyfile/keycontainer conflicts 
+            ' keyfile/keycontainer conflicts
             parsedArgs = DefaultParse({"/keyfile:b", "/keycontainer:a", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("a", parsedArgs.CompilationOptions.CryptoKeyContainer)
@@ -4074,7 +4074,7 @@ End Class
             parsedArgs.Errors.Verify()
             Assert.Equal(CodeAnalysis.Platform.AnyCpu, parsedArgs.CompilationOptions.Platform)
 
-            ' test missing 
+            ' test missing
             parsedArgs = DefaultParse({"/platform:", "a.vb"}, _baseDirectory)
             Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("platform", ":<string>"))
             parsedArgs = DefaultParse({"/platform", "a.vb"}, _baseDirectory)
@@ -4141,7 +4141,7 @@ End Class
             parsedArgs = DefaultParse({"/platform:x86", "a.vb"}, _baseDirectory)
             Assert.Equal(0, parsedArgs.EmitOptions.FileAlignment)
 
-            ' test missing 
+            ' test missing
             parsedArgs = DefaultParse({"/filealign:", "a.vb"}, _baseDirectory)
             Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("filealign", ":<number>"))
 
@@ -4233,7 +4233,7 @@ End Class
             parsedArgs = DefaultParse({"/platform:x86", "a.vb"}, _baseDirectory)
             Assert.Equal(CType(0, ULong), parsedArgs.EmitOptions.BaseAddress)
 
-            ' test missing 
+            ' test missing
             parsedArgs = DefaultParse({"/baseaddress:", "a.vb"}, _baseDirectory)
             Verify(parsedArgs.Errors, Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("baseaddress", ":<number>"))
 
@@ -4506,7 +4506,7 @@ End Class
 
             output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /preferreduilang:en /nostdlib /r:mscorlib.dll /vbruntime- /sdkpath:c:folder /t:library " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
             AssertOutput(
-    <text> 
+    <text>
 vbc : error BC2017: could not find library 'mscorlib.dll'
 </text>, output)
 
@@ -5172,7 +5172,7 @@ End Class
 
             ' The case with /warnaserror and /nowarn:1 (expect success)
             ' Note that even though the command line option has a warning, it is not going to become an error
-            ' in order to avoid the halt of compilation. 
+            ' in order to avoid the halt of compilation.
             exitCode = GetExitCode(source.Value, "c.vb", {"/warnaserror", "/nowarn:1"})
             Assert.Equal(0, exitCode)
         End Sub
@@ -5214,15 +5214,15 @@ Copyright (C) Microsoft Corporation. All rights reserved.
 PATH(5) : warning BC42024: Unused local variable: 'x'.
 
         Dim x As Integer
-            ~           
+            ~
 PATH(6) : warning BC42024: Unused local variable: 'yy'.
 
         Dim yy As Integer
-            ~~           
+            ~~
 PATH(7) : warning BC42099: Unused local constant: 'zzz'.
 
         Const zzz As Long = 0
-              ~~~            
+              ~~~
 PATH(11) : warning BC42105: Function 'goo' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
 
     End Function
@@ -5279,7 +5279,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.
 PATH(9) : error BC36640: Instance of restricted type 'ArgIterator' cannot be used in a lambda expression.
 
         Dim d As delegateType = AddressOf a.Goo
-                                          ~    
+                                          ~
 </file>
 
             Dim fileName = "a.vb"
@@ -5312,11 +5312,11 @@ Copyright (C) Microsoft Corporation. All rights reserved.
 PATH(3) : error BC30201: Expression expected.
 
       Dim x As Integer = "a            b"c ' There is a tab in the string.
-                         ~                                                 
+                         ~
 PATH(3) : error BC30004: Character constant must contain exactly one character.
 
       Dim x As Integer = "a            b"c ' There is a tab in the string.
-                         ~~~~~~~~~~~~~~~~~                       
+                         ~~~~~~~~~~~~~~~~~
 </file>
 
             Dim fileName = "a.vb"
@@ -5366,7 +5366,7 @@ PATH(5) : error BC36593: Expression of type 'Integer()' is not queryable. Make s
                 3, 33, 333
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
                 } Select el
-~~~~~~~~~~~~~~~~~          
+~~~~~~~~~~~~~~~~~
 </file>
 
             Dim fileName = "a.vb"
@@ -5754,7 +5754,7 @@ End Module
 a.vb(1) : error BC30203: Identifier expected.
 
 Class ??
-      ~                           
+      ~
     </result>.Value.Replace(vbLf, vbCrLf).Trim()
             Dim actual = Regex.Replace(output, "^.*a.vb", "a.vb", RegexOptions.Multiline).Trim()
 
@@ -6184,13 +6184,13 @@ Imports System
 
 Module Module1
     Sub Main()
-        Dim x As Integer    
+        Dim x As Integer
     End Sub
 End Module
 </text>.Value).Path
 
             Dim rsp As String = Temp.CreateFile().WriteAllText(<text>
-/warnaserror                                                               
+/warnaserror
 </text>.Value).Path
 
             ' Checks the base case without /noconfig (expect to see error)
@@ -6238,7 +6238,7 @@ End Module
 </text>.Value).Path
 
             Dim rsp As String = Temp.CreateFile().WriteAllText(<text>
-/noconfig                                        
+/noconfig
 </text>.Value).Path
 
             ' Checks the case with /noconfig inside the response file (expect to see warning)
@@ -6272,7 +6272,7 @@ End Module
 </text>.Value).Path
 
             Dim rsp As String = Temp.CreateFile().WriteAllText(<text>
-/NOCONFIG       
+/NOCONFIG
 </text>.Value).Path
 
             ' Checks the case with /noconfig inside the response file (expect to see warning)
@@ -6886,43 +6886,43 @@ End Class
             Dim expected =
     file.Path & "(4) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
         Goo(0)
-        ~~~   
+        ~~~
 c:\temp\a\1.vb(10) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
         Goo(1)
-        ~~~   
+        ~~~
 C:\b.vb(20) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
         Goo(2)
-        ~~~   
+        ~~~
 C:\B.vb(30) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
         Goo(3)
-        ~~~   
+        ~~~
 " & Path.GetFullPath(Path.Combine(dir.Path, "..\b.vb")) & "(40) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
         Goo(4)
-        ~~~   
+        ~~~
 " & Path.GetFullPath(Path.Combine(dir.Path, "..\b.vb")) & "(50) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
         Goo(5)
-        ~~~   
+        ~~~
 C:\X.vb(60) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
         Goo(6)
-        ~~~   
+        ~~~
 C:\x.vb(70) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
         Goo(7)
-        ~~~   
+        ~~~
       (90) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
         Goo(9)
-        ~~~   
+        ~~~
 C:\*.vb(100) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
         Goo(10)
-        ~~~    
+        ~~~
 (110) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
         Goo(11)
-        ~~~    
+        ~~~
 " & file.Path & "(35) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
         Goo(12)
-        ~~~    
+        ~~~
 ***(140) : error BC30451: 'Goo' is not declared. It may be inaccessible due to its protection level.
         Goo(14)
-        ~~~    
+        ~~~
 "
             AssertOutput(expected.Replace(vbCrLf, vbLf), outWriter.ToString())
             CleanupAllGeneratedFiles(file.Path)
@@ -8142,7 +8142,7 @@ Dummy File Line 1!
     String.Format(<text>
 AdditionalFile.txt(1) : warning AdditionalFileDiagnostic: Additional File Diagnostic: AdditionalFile
 Additional File Line 1!
-~~~~~~~~~~             
+~~~~~~~~~~
 vbc : warning AdditionalFileDiagnostic: Additional File Diagnostic: {0}
 vbc : warning AdditionalFileDiagnostic: Additional File Diagnostic: AdditionalFile
 vbc : warning AdditionalFileDiagnostic: Additional File Diagnostic: DummyFile
@@ -8242,7 +8242,7 @@ End Class
             parseCore("a,b", New String() {"a", "b"})
             parseCore("""a,b""", New String() {"a,b"})
 
-            ' This is an intentional deviation from the native compiler.  BCL docs on MSDN, MSBuild and the C# compiler 
+            ' This is an intentional deviation from the native compiler.  BCL docs on MSDN, MSBuild and the C# compiler
             ' treat a semicolon as a separator.  VB compiler was the lone holdout here.  Rather than deviate we decided
             ' to unify the behavior.
             parseCore("a;b", New String() {"a", "b"})

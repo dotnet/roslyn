@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var searchPaths = Arguments.KeyFileSearchPaths;
 
             bool fallback =
-                (compilation.Feature("BypassStrongName") != null) ||
+                (compilation.Feature("UseLegacyStrongNameProvider") != null) ||
                 (compilation.Options.CryptoKeyContainer != null);
 
             return compilation.WithOptions(
@@ -214,12 +214,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///   1) The name with which the assembly should be output.
         ///   2) The path of the assembly/module file.
         ///   3) The path of the pdb file.
-        /// 
+        ///
         /// When csc produces an executable, but the name of the resulting assembly
         /// is not specified using the "/out" switch, the name is taken from the name
         /// of the file (note: file, not class) containing the assembly entrypoint
         /// (as determined by binding and the "/main" switch).
-        /// 
+        ///
         /// For example, if the command is "csc /target:exe a.cs b.cs" and b.cs contains the
         /// entrypoint, then csc will produce "b.exe" and "b.pdb" in the output directory,
         /// with assembly name "b" and module name "b.exe" embedded in the file.
