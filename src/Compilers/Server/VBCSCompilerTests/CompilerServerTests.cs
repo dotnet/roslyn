@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class CompilerServerUnitTests : TestBase
     {
-        internal static RequestLanguage CSharpCompilerClientExecutable = RequestLanguage.CSharpCompile;
+        internal static readonly RequestLanguage CSharpCompilerClientExecutable = RequestLanguage.CSharpCompile;
 
-        internal static RequestLanguage BasicCompilerClientExecutable = RequestLanguage.VisualBasicCompile;
+        internal static readonly RequestLanguage BasicCompilerClientExecutable = RequestLanguage.VisualBasicCompile;
 
-        internal static UTF8Encoding UTF8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+        internal static readonly UTF8Encoding UTF8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
         private static readonly KeyValuePair<string, string>[] s_helloWorldSrcCs =
         {
@@ -359,13 +359,14 @@ End Module")
             }
         }
 
-        [Fact(Skip = "CompilerServerExecutable no longer exists for this test")]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(946954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946954")]
         public void CompilerBinariesAreNotX86()
         {
-            string CompilerServerExecutable = null;
+            var basePath = Path.GetDirectoryName(typeof(CompilerServerUnitTests).Assembly.Location);
+            var compilerServerExecutable = Path.Combine(basePath, "VBCSCompiler.exe");
             Assert.NotEqual(ProcessorArchitecture.X86,
-                AssemblyName.GetAssemblyName(CompilerServerExecutable).ProcessorArchitecture);
+                AssemblyName.GetAssemblyName(compilerServerExecutable).ProcessorArchitecture);
         }
 
         /// <summary>
@@ -1354,13 +1355,14 @@ class Program
         }
 
         [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=406649")]
-        [Fact(Skip = "CompilerServerExecutable no longer exists for this test")]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void MissingCompilerAssembly_CompilerServer()
         {
-            string CompilerServerExecutable = null;
+            var basePath = Path.GetDirectoryName(typeof(CompilerServerUnitTests).Assembly.Location);
+            var compilerServerExecutable = Path.Combine(basePath, "VBCSCompiler.exe");
             var dir = Temp.CreateDirectory();
             var workingDirectory = dir.Path;
-            var serverExe = dir.CopyFile(CompilerServerExecutable).Path;
+            var serverExe = dir.CopyFile(compilerServerExecutable).Path;
             dir.CopyFile(typeof(System.Collections.Immutable.ImmutableArray).Assembly.Location);
 
             // Missing Microsoft.CodeAnalysis.dll launching server.
