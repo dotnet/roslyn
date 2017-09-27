@@ -979,6 +979,49 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
+        Public Sub DelegateCreationExpression_DelegateCreationLambdaArgument_MultipleArgumentsToConstructor()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module M1
+    Sub Method1()
+        Dim a As Action = New Action(Sub() Console.WriteLine(), 1)'BIND:"Dim a As Action = New Action(Sub() Console.WriteLine(), 1)"
+    End Sub
+
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... eLine(), 1)')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
+    Variables: Local_1: a As System.Action
+    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'New Action( ... eLine(), 1)')
+        Children(2):
+            IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sub <generated method>(), IsInvalid) (Syntax: 'Sub() Conso ... WriteLine()')
+              Target: IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub() Conso ... WriteLine()')
+                  IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub() Conso ... WriteLine()')
+                    IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub() Conso ... WriteLine()')
+                      IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine()')
+                        Expression: IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine()')
+                            Instance Receiver: null
+                            Arguments(0)
+                    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'Sub() Conso ... WriteLine()')
+                      Statement: null
+                    IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Sub() Conso ... WriteLine()')
+                      ReturnedValue: null
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC32008: Delegate 'Action' requires an 'AddressOf' expression or lambda expression as the only argument to its constructor.
+        Dim a As Action = New Action(Sub() Console.WriteLine(), 1)'BIND:"Dim a As Action = New Action(Sub() Console.WriteLine(), 1)"
+                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
         Public Sub DelegateCreationExpression_DelegateCreationLambdaArgument_ArgumentRelaxation()
             Dim source = <![CDATA[
 Option Strict On
@@ -2018,6 +2061,46 @@ IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.Conve
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
+        Public Sub DelegateCreationExpression_DelegateCreationAdressOfArgument_MultipleArgumentsToConstructor()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module M1
+    Sub Method1()
+        Dim a As Action = New Action(AddressOf Method2, 1)'BIND:"Dim a As Action = New Action(AddressOf Method2, 1)"
+    End Sub
+
+    Sub Method2()
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... Method2, 1)')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
+    Variables: Local_1: a As System.Action
+    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'New Action( ... Method2, 1)')
+        Children(2):
+            IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'AddressOf Method2')
+              Children(1):
+                  IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
+                    Children(1):
+                        IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
+                          Children(1):
+                              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: ConsoleApp2.M1, IsInvalid) (Syntax: 'Method2')
+            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC32008: Delegate 'Action' requires an 'AddressOf' expression or lambda expression as the only argument to its constructor.
+        Dim a As Action = New Action(AddressOf Method2, 1)'BIND:"Dim a As Action = New Action(AddressOf Method2, 1)"
+                                    ~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
         Public Sub DelegateCreationExpression_DelegateCreationAddressOfArgument_ReturnRelaxation()
             Dim source = <![CDATA[
 Option Strict On
@@ -2139,6 +2222,103 @@ BC31143: Method 'Public Sub Method2()' does not have a signature compatible with
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+#End Region
+
+#Region "Anonymous Delegates"
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ImplicitAnonymousDelegateConversion()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module M1
+    Sub Method1()
+        Dim a = Sub()'BIND:"Dim a = Sub()"
+                End Sub
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a = Sub ... End Sub')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
+    Variables: Local_1: a As Sub <generated method>()
+    Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sub <generated method>()) (Syntax: 'Sub()'BIND: ... End Sub')
+        Target: IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
+            IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'Sub()'BIND: ... End Sub')
+              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+                Statement: null
+              IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+                ReturnedValue: null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ImplicitAnonymousDelegateConversion_JustInitializerReturnsOnlyLambda()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module M1
+    Sub Method1()
+        Dim a = Sub()'BIND:"Sub()"
+                End Sub
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
+  IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'Sub()'BIND: ... End Sub')
+    ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
+      Statement: null
+    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+      ReturnedValue: null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineLambdaExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ImplicitAnonymousDelegateConversion_SingleLineLambda()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module M1
+    Sub Method1()
+        Dim a = Sub() Console.WriteLine()'BIND:"Dim a = Sub() Console.WriteLine()"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim a = Sub ... WriteLine()')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
+    Variables: Local_1: a As Sub <generated method>()
+    Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sub <generated method>()) (Syntax: 'Sub() Conso ... WriteLine()')
+        Target: IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Sub() Conso ... WriteLine()')
+            IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Sub() Conso ... WriteLine()')
+              IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Sub() Conso ... WriteLine()')
+                IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine()')
+                  Expression: IInvocationExpression (Sub System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine()')
+                      Instance Receiver: null
+                      Arguments(0)
+              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'Sub() Conso ... WriteLine()')
+                Statement: null
+              IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Sub() Conso ... WriteLine()')
+                ReturnedValue: null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
 #End Region

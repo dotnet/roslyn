@@ -684,9 +684,15 @@ namespace Microsoft.CodeAnalysis.Semantics
             if (boundConversion.ConversionKind == CSharp.ConversionKind.MethodGroup)
             {
                 Lazy<IOperation> target = new Lazy<IOperation>(() =>
-                    CreateBoundMethodGroupSingleMethodOperation((BoundMethodGroup)boundConversion.Operand,
-                                                                boundConversion.SymbolOpt,
-                                                                boundConversion.SuppressVirtualCalls));
+                    // If the conversion has errors, we cannot guarantee that the BoundMethodGroup was successfully resolved, even if it does
+                    // not have any errors. An example of this is when there are multiple candidate methods, but none of them are a match
+                    // to the type expected by the conversion. So, if the conversion has any errors, we don't construct an IMethodReferenceExpression,
+                    // but instead simply delegate to the standard CSharpOperationFactoryBehavior
+                    boundConversion.HasErrors ?
+                        Create(boundConversion.Operand) :
+                        CreateBoundMethodGroupSingleMethodOperation((BoundMethodGroup)boundConversion.Operand,
+                                                                    boundConversion.SymbolOpt,
+                                                                    boundConversion.SuppressVirtualCalls));
                 SyntaxNode syntax = boundConversion.Syntax;
                 ITypeSymbol type = boundConversion.Type;
                 Optional<object> constantValue = ConvertToOptional(boundConversion.ConstantValue);
