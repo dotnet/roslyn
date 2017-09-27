@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -95,13 +94,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             DeconstructionVariable locals = BindDeconstructionVariables(left, diagnostics, ref declaration, ref expression);
             Debug.Assert(locals.HasNestedVariables);
 
-            BoundExpression boundRight = rightPlaceholder ?? BindValue(right, diagnostics, BindValueKind.RValue);
-            boundRight = FixTupleLiteral(locals.NestedVariables, boundRight, deconstruction, diagnostics);
+            var deconstructionDiagnostics = new DiagnosticBag();
+            BoundExpression boundRight = rightPlaceholder ?? BindValue(right, deconstructionDiagnostics, BindValueKind.RValue);
+            if (!deconstructionDiagnostics.HasAnyErrors())
+            {
+                boundRight = FixTupleLiteral(locals.NestedVariables, boundRight, deconstruction, deconstructionDiagnostics);
+            }
 
             bool resultIsUsed = resultIsUsedOverride || IsDeconstructionResultUsed(left);
-            var assignment = BindDeconstructionAssignment(deconstruction, left, boundRight, locals.NestedVariables, resultIsUsed, diagnostics);
+            var assignment = BindDeconstructionAssignment(deconstruction, left, boundRight, locals.NestedVariables, resultIsUsed, deconstructionDiagnostics);
             DeconstructionVariable.FreeDeconstructionVariables(locals.NestedVariables);
 
+            diagnostics.AddRange(deconstructionDiagnostics);
             return assignment;
         }
 
@@ -143,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             FailRemainingInferencesAndSetValEscape(checkedVariables, diagnostics, rightEscape);
 
-            var lhsTuple = DeconstructionVariablesAsTuple(left, checkedVariables, diagnostics, ignoreDiagnosticsFromTuple: hasErrors || !resultIsUsed);
+            var lhsTuple = DeconstructionVariablesAsTuple(left, checkedVariables, diagnostics, ignoreDiagnosticsFromTuple: diagnostics.HasAnyErrors() || !resultIsUsed);
             TypeSymbol returnType = hasErrors ? CreateErrorType() : lhsTuple.Type;
 
             uint leftEscape = GetBroadestValEscape(lhsTuple, this.LocalScopeDepth);
@@ -453,6 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int rightLength = rhsLiteral.Arguments.Length;
 
             var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(leftLength);
+            var locationsBuilder = ArrayBuilder<Location>.GetInstance(leftLength);
             for (int i = 0; i < rightLength; i++)
             {
                 BoundExpression element = rhsLiteral.Arguments[i];
@@ -493,29 +498,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 typesBuilder.Add(mergedType);
+                locationsBuilder.Add(element.Syntax.Location);
             }
 
             if (typesBuilder.Any(t => t == null))
             {
                 typesBuilder.Free();
+                locationsBuilder.Free();
                 return null;
             }
 
             // The tuple created here is not identical to the one created by
             // DeconstructionVariablesAsTuple. It represents a smaller
             // tree of types used for figuring out natural types in tuple literal.
-            // Therefore, we do not check constraints here as it would report errors
-            // that are already reported later. DeconstructionVariablesAsTuple
-            // constructs the final tuple type and checks constraints.
             return TupleTypeSymbol.Create(
                 locationOpt: null,
                 elementTypes: typesBuilder.ToImmutableAndFree(),
-                elementLocations: default(ImmutableArray<Location>),
+                elementLocations: locationsBuilder.ToImmutableAndFree(),
                 elementNames: default(ImmutableArray<string>),
                 compilation: compilation,
                 diagnostics: diagnostics,
-                shouldCheckConstraints: false,
-                errorPositions: default(ImmutableArray<bool>));
+                shouldCheckConstraints: true,
+                errorPositions: default(ImmutableArray<bool>),
+                syntax: syntax);
         }
 
         private BoundTupleLiteral DeconstructionVariablesAsTuple(CSharpSyntaxNode syntax, ArrayBuilder<DeconstructionVariable> variables,
