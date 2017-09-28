@@ -86,13 +86,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // 1) Verify that the range of method kinds doesn't fall outside the bounds of the
                 // method kind mask.
-                var methodKinds = EnumExtensions.GetValues<MethodKind>();
+                var methodKinds = EnumUtilities.GetValues<MethodKind>();
                 var maxMethodKind = (int)methodKinds.Aggregate((m1, m2) => m1 | m2);
                 Debug.Assert((maxMethodKind & MethodKindMask) == maxMethodKind);
 
                 // 2) Verify that the range of declaration modifiers doesn't fall outside the bounds of
                 // the declaration modifier mask.
-                var declarationModifiers = EnumExtensions.GetValues<DeclarationModifiers>();
+                var declarationModifiers = EnumUtilities.GetValues<DeclarationModifiers>();
                 var maxDeclarationModifier = (int)declarationModifiers.Aggregate((d1, d2) => d1 | d2);
                 Debug.Assert((maxDeclarationModifier & DeclarationModifiersMask) == maxDeclarationModifier);
             }

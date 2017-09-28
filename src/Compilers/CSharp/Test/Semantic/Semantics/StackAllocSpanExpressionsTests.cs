@@ -304,6 +304,29 @@ class Test
         }
 
         [Fact]
+        public void ConditionalExpressionOnSpan_Nested()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+class Test
+{
+    bool N() => true;
+
+    void M()
+    {
+        var x = N()
+            ? N()
+                ? stackalloc int [1]
+                : stackalloc int [2]
+            : N()
+                ? stackalloc int[3]
+                : N()
+                    ? stackalloc int[4]
+                    : stackalloc int[5];
+    }
+}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void BooleanOperatorOnSpan_NoTargetTyping()
         {
             CreateCompilationWithMscorlibAndSpan(@"
@@ -340,6 +363,22 @@ class Test
                 // (7,23): error CS8107: Feature 'ref structs' is not available in C# 7. Please use language version 7.2 or greater.
                 //         Span<int> x = stackalloc int[10];
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc int[10]").WithArguments("ref structs", "7.2").WithLocation(7, 23));
+        }
+
+        [Fact]
+        public void StackAllocSyntaxProducesUnsafeErrorInSafeCode()
+        {
+            CreateStandardCompilation(@"
+class Test
+{
+    void M()
+    {
+        var x = stackalloc int[10];
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var x = stackalloc int[10];
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int[10]").WithLocation(6, 17));
         }
 
         [Fact]
@@ -507,6 +546,111 @@ unsafe public class Test
                 //         Invoke(stackalloc int [10]);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(7, 16)
             );
+        }
+
+        [Fact]
+        public void StackAllocWithDynamic()
+        {
+            CreateStandardCompilation(@"
+class Program
+{
+    static void Main()
+    {
+        var d = stackalloc dynamic[10];
+    }
+}").VerifyDiagnostics(
+                // (6,33): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
+                //         var d = stackalloc dynamic[10];
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(6, 28));
+        }
+
+        [Fact]
+        public void StackAllocWithDynamicSpan()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Program
+{
+    static void Main()
+    {
+        Span<dynamic> d = stackalloc dynamic[10];
+    }
+}").VerifyDiagnostics(
+                // (7,38): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
+                //         Span<dynamic> d = stackalloc dynamic[10];
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(7, 38));
+        }
+
+        [Fact]
+        public void StackAllocAsArgument()
+        {
+            CreateStandardCompilation(@"
+class Program
+{
+    static void N(object p) { }
+
+    static void Main()
+    {
+        N(stackalloc int[10]);
+    }
+}").VerifyDiagnostics(
+                // (8,11): error CS1525: Invalid expression term 'stackalloc'
+                //         N(stackalloc int[10]);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(8, 11));
+        }
+
+        [Fact]
+        public void StackAllocInParenthesis()
+        {
+            CreateStandardCompilation(@"
+class Program
+{
+    static void Main()
+    {
+        var x = (stackalloc int[10]);
+    }
+}").VerifyDiagnostics(
+                // (6,18): error CS1525: Invalid expression term 'stackalloc'
+                //         var x = (stackalloc int[10]);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 18));
+        }
+
+        [Fact]
+        public void StackAllocInNullConditionalOperator()
+        {
+            CreateStandardCompilation(@"
+class Program
+{
+    static void Main()
+    {
+        var x = stackalloc int[1] ?? stackalloc int[2];
+    }
+}").VerifyDiagnostics(
+                // (6,17): error CS1525: Invalid expression term 'stackalloc'
+                //         var x = stackalloc int[1] ?? stackalloc int[2];
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 17),
+                // (6,38): error CS1525: Invalid expression term 'stackalloc'
+                //         var x = stackalloc int[1] ?? stackalloc int[2];
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 38));
+        }
+
+        [Fact]
+        public void StackAllocInCastAndConditionalOperator()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    public void Method()
+    {
+        Test value = true ? new Test() : (Test)stackalloc int[10];
+    }
+    
+    public static explicit operator Test(Span<int> value) 
+    {
+        return new Test();
+    }
+}", TestOptions.ReleaseDll).VerifyDiagnostics();
         }
     }
 }

@@ -1563,5 +1563,24 @@ public readonly struct S1
 }");
         }
 
+        [Fact]
+        public void RefReadOnlyOptionalParameters()
+        {
+            CompileAndVerify(@"
+using System;
+class Program
+{
+    static void Print(ref readonly int p = 5)
+    {
+        Console.Write(p);
+    }
+    static void Main()
+    {
+        Print();
+        Console.Write(""-"");
+        Print(9);
+    }
+}", expectedOutput: "5-9");
+        }
     }
 }

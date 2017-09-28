@@ -520,7 +520,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IEndStatement (OperationKind.None) (Syntax: 'End')
+IEndStatement (OperationKind.EndStatement) (Syntax: 'End')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -548,7 +548,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If i = 0 Th ... End If')
           Instance Receiver: null
       Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If i = 0 Th ... End If')
-      IEndStatement (OperationKind.None) (Syntax: 'End')
+      IEndStatement (OperationKind.EndStatement) (Syntax: 'End')
   IfFalse: null
 ]]>.Value
 
@@ -571,7 +571,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IStopStatement (OperationKind.None) (Syntax: 'Stop')
+IStopStatement (OperationKind.StopStatement) (Syntax: 'Stop')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -599,7 +599,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If i = 0 Th ... End If')
           Instance Receiver: null
       Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If i = 0 Th ... End If')
-      IStopStatement (OperationKind.None) (Syntax: 'Stop')
+      IStopStatement (OperationKind.StopStatement) (Syntax: 'Stop')
   IfFalse: null
 ]]>.Value
 
