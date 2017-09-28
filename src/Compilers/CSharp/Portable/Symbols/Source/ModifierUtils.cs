@@ -31,12 +31,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers allowedModifiers,
             Location errorLocation,
             DiagnosticBag diagnostics,
-            SyntaxTokenList? modifierTokensOpt,
+            SyntaxTokenList modifierTokens,
             out bool modifierErrors)
         {
             modifierErrors = false;
             DeclarationModifiers errorModifiers = modifiers & ~allowedModifiers;
             DeclarationModifiers result = modifiers & allowedModifiers;
+
+            // Check if partial is allowed, but misplaced
+            if ((modifiers & DeclarationModifiers.Partial & allowedModifiers) != 0)
+            {
+                if (modifierTokens.Any() && modifierTokens.Last().Kind() != SyntaxKind.PartialKeyword)
+                {
+                    ReportPartialError(errorLocation, diagnostics, modifierTokens);
+                }
+            }
+
             while (errorModifiers != DeclarationModifiers.None)
             {
                 DeclarationModifiers oneError = errorModifiers & ~(errorModifiers - 1);
@@ -47,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case DeclarationModifiers.Partial:
                         // Provide a specialized error message in the case of partial.
-                        ReportPartialError(errorLocation, diagnostics, modifierTokensOpt);
+                        ReportPartialError(errorLocation, diagnostics, modifierTokens);
                         break;
 
                     default:
@@ -73,17 +83,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        private static void ReportPartialError(Location errorLocation, DiagnosticBag diagnostics, SyntaxTokenList? modifierTokensOpt)
+        private static void ReportPartialError(Location errorLocation, DiagnosticBag diagnostics, SyntaxTokenList modifierTokens)
         {
-            if (modifierTokensOpt != null)
+            // If we can find the 'partial' token, report it on that.
+            var partialToken = modifierTokens.FirstOrDefault(SyntaxKind.PartialKeyword);
+            if (partialToken != default)
             {
-                // If we can find the 'partial' token, report it on that.
-                var partialToken = modifierTokensOpt.Value.FirstOrNullable(t => t.Kind() == SyntaxKind.PartialKeyword);
-                if (partialToken != null)
-                {
-                    diagnostics.Add(ErrorCode.ERR_PartialMisplaced, partialToken.Value.GetLocation());
-                    return;
-                }
+                diagnostics.Add(ErrorCode.ERR_PartialMisplaced, partialToken.GetLocation());
+                return;
             }
 
             diagnostics.Add(ErrorCode.ERR_PartialMisplaced, errorLocation);

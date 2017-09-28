@@ -13,6 +13,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 {
     public class ParserRegressionTests : CSharpTestBase
     {
+        [Fact]
+        public void PartialLocationInModifierList()
+        {
+            var comp = CreateStandardCompilation(@"
+class Program
+{
+    partial abstract class A {}
+    partial abstract class A {}
+
+    partial partial class B {}
+    partial partial class B {}
+
+    partial abstract struct S {}
+    partial abstract struct S {}
+}");
+            comp.VerifyDiagnostics();
+        }
+
         [WorkItem(540005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540005")]
         [Fact]
         public void c01()
