@@ -528,4 +528,7 @@
   <data name="Separate_using_directive_groups" xml:space="preserve">
     <value>Separate using directive groups</value>
   </data>
+  <data name="Show_name_suggestions" xml:space="preserve">
+    <value>Show name s_uggestions</value>
+  </data>
 </root>

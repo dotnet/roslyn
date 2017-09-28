@@ -211,6 +211,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return Create(DirectCast(boundNode, BoundAnonymousTypeFieldInitializer).Value)
                 Case BoundKind.AnonymousTypePropertyAccess
                     Return CreateBoundAnonymousTypePropertyAccessOperation(DirectCast(boundNode, BoundAnonymousTypePropertyAccess))
+                Case BoundKind.WithLValueExpressionPlaceholder
+                    Return CreateBoundWithLValueExpressionPlaceholder(DirectCast(boundNode, BoundWithLValueExpressionPlaceholder))
+                Case BoundKind.WithRValueExpressionPlaceholder
+                    Return CreateBoundWithRValueExpressionPlaceholder(DirectCast(boundNode, BoundWithRValueExpressionPlaceholder))
                 Case BoundKind.QueryExpression
                     Return CreateBoundQueryExpressionOperation(DirectCast(boundNode, BoundQueryExpression))
                 Case BoundKind.QueryClause
@@ -834,6 +838,22 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundPropertyAccess.ConstantValueOpt)
             Dim isImplicit As Boolean = boundPropertyAccess.WasCompilerGenerated
             Return New LazyPropertyReferenceExpression([property], instance, [property], argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundWithLValueExpressionPlaceholder(boundWithLValueExpressionPlaceholder As BoundWithLValueExpressionPlaceholder) As IInstanceReferenceExpression
+            Dim syntax As SyntaxNode = boundWithLValueExpressionPlaceholder.Syntax
+            Dim type As ITypeSymbol = boundWithLValueExpressionPlaceholder.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundWithLValueExpressionPlaceholder.ConstantValueOpt)
+            Dim isImplicit As Boolean = boundWithLValueExpressionPlaceholder.WasCompilerGenerated
+            Return New InstanceReferenceExpression(_semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundWithRValueExpressionPlaceholder(boundWithRValueExpressionPlaceholder As BoundWithRValueExpressionPlaceholder) As IInstanceReferenceExpression
+            Dim syntax As SyntaxNode = boundWithRValueExpressionPlaceholder.Syntax
+            Dim type As ITypeSymbol = boundWithRValueExpressionPlaceholder.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundWithRValueExpressionPlaceholder.ConstantValueOpt)
+            Dim isImplicit As Boolean = boundWithRValueExpressionPlaceholder.WasCompilerGenerated
+            Return New InstanceReferenceExpression(_semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundEventAccessOperation(boundEventAccess As BoundEventAccess) As IEventReferenceExpression
