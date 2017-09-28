@@ -759,14 +759,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.NotAValue, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(receiver), CreateErrorType());
             }
-            else if (receiver.Type.SpecialType == SpecialType.System_Void)
+            else
             {
-                if (!receiver.HasAnyErrors && !node.HasErrors)
+                if (receiver.Type.SpecialType == SpecialType.System_Void)
                 {
-                    diagnostics.Add(ErrorCode.ERR_QueryNoProvider, node.Location, "void", methodName);
-                }
+                    if (!receiver.HasAnyErrors && !node.HasErrors)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_QueryNoProvider, node.Location, "void", methodName);
+                    }
 
-                receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.NotAValue, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(receiver), CreateErrorType());
+                    receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.NotAValue, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(receiver), CreateErrorType());
+                }
+                else if (ultimateReceiver.Kind == BoundKind.TypeExpression)
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadSKunknown, ultimateReceiver.Syntax.Location, ultimateReceiver.Syntax, MessageID.IDS_SK_TYPE.Localize());
+                    receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.NotAValue, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(receiver), CreateErrorType());
+                }
             }
 
             return (BoundCall)MakeInvocationExpression(
