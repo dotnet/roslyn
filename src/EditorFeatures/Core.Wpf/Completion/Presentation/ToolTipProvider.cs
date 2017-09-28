@@ -28,16 +28,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
     internal class ToolTipProvider : IUIElementProvider<VSCompletion, ICompletionSession>
     {
         private readonly ClassificationTypeMap _typeMap;
+        private readonly IClassificationFormatMap _formatMap;
 
         // The textblock containing "..." that will be displayed until the actual completion 
         // description has been computed.
         private readonly TextBlock _defaultTextBlock;
 
         [ImportingConstructor]
-        public ToolTipProvider(ClassificationTypeMap typeMap)
+        public ToolTipProvider(ClassificationTypeMap typeMap, IClassificationFormatMapService classificationFormatMapService)
         {
             _typeMap = typeMap;
-            _defaultTextBlock = new TaggedText(TextTags.Text, "...").ToTextBlock(typeMap);
+            _formatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
+            _defaultTextBlock = new TaggedText(TextTags.Text, "...").ToTextBlock(_formatMap, typeMap);
         }
 
         public UIElement GetUIElement(VSCompletion itemToRender, ICompletionSession context, UIElementType elementType)
@@ -90,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 }
 
                 var description = obj.Result;
-                this.Content = GetTextBlock(description.TaggedParts, _toolTipProvider._typeMap);
+                this.Content = GetTextBlock(description.TaggedParts);
 
                 // The editor will pull AutomationProperties.Name from our UIElement and expose
                 // it to automation.
@@ -129,16 +131,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 return text;
             }
 
-            private static TextBlock GetTextBlock(ImmutableArray<TaggedText> parts, ClassificationTypeMap typeMap)
+            private TextBlock GetTextBlock(ImmutableArray<TaggedText> parts)
             {
                 var result = new TextBlock() { TextWrapping = TextWrapping.Wrap };
 
-                var formatMap = typeMap.ClassificationFormatMapService.GetClassificationFormatMap("tooltip");
-                result.SetDefaultTextProperties(formatMap);
+                result.SetDefaultTextProperties(_toolTipProvider._formatMap);
 
                 foreach (var part in parts)
                 {
-                    result.Inlines.Add(GetRun(part, formatMap, typeMap));
+                    result.Inlines.Add(GetRun(part, _toolTipProvider._formatMap, _toolTipProvider._typeMap));
                 }
 
                 return result;

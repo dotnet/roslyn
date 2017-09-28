@@ -8,6 +8,7 @@ using System.Windows;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 {
@@ -15,18 +16,22 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
     class ClassifiableDeferredContentConverter : IDeferredQuickInfoContentToFrameworkElementConverter
     {
         private readonly ClassificationTypeMap _typeMap;
+        private readonly IClassificationFormatMapService _classificationFormatMapService;
 
         [ImportingConstructor]
         public ClassifiableDeferredContentConverter(
-            ClassificationTypeMap typeMap)
+            ClassificationTypeMap typeMap,
+            IClassificationFormatMapService classificationFormatMapService)
         {
             _typeMap = typeMap;
+            _classificationFormatMapService = classificationFormatMapService;
         }
 
         public FrameworkElement CreateFrameworkElement(IDeferredQuickInfoContent deferredContent, DeferredContentFrameworkElementFactory factory)
         {
             var classifiableContent = (ClassifiableDeferredContent)deferredContent;
-            var classifiedTextBlock = classifiableContent.ClassifiableContent.ToTextBlock(_typeMap);
+            var formatMap = _classificationFormatMapService.GetClassificationFormatMap("tooltip");
+            var classifiedTextBlock = classifiableContent.ClassifiableContent.ToTextBlock(formatMap, _typeMap);
 
             if (classifiedTextBlock.Inlines.Count == 0)
             {

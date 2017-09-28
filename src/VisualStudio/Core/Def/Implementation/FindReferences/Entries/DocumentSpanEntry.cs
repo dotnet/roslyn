@@ -70,6 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     cs => new ClassifiedText(cs.ClassificationType, _sourceText.ToString(cs.TextSpan)));
 
                 var inlines = classifiedTexts.ToInlines(
+                    Presenter.ClassificationFormatMap,
                     Presenter.TypeMap,
                     runCallback: (run, classifiedText, position) =>
                     {

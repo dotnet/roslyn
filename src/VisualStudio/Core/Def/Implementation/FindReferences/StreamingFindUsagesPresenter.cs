@@ -36,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         public readonly IContentTypeRegistryService ContentTypeRegistryService;
         public readonly ClassificationTypeMap TypeMap;
         public readonly IEditorFormatMapService FormatMapService;
+        public readonly IClassificationFormatMap ClassificationFormatMap;
         public readonly DeferredContentFrameworkElementFactory DeferredContentFrameworkElementFactory;
 
         private readonly IFindAllReferencesService _vsFindAllReferencesService;
@@ -53,7 +54,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             IContentTypeRegistryService contentTypeRegistryService,
             DeferredContentFrameworkElementFactory frameworkElementFactory,
             ClassificationTypeMap typeMap,
-            IEditorFormatMapService formatMapService)
+            IEditorFormatMapService formatMapService,
+            IClassificationFormatMapService classificationFormatMapService)
         {
             _workspace = workspace;
             _serviceProvider = serviceProvider;
@@ -64,6 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             TextEditorFactoryService = textEditorFactoryService;
             TypeMap = typeMap;
             FormatMapService = formatMapService;
+            ClassificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
 
             _vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService(typeof(SVsFindAllReferences));
         }

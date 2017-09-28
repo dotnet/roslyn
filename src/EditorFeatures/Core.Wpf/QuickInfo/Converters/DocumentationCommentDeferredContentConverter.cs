@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Converters
 {
@@ -16,11 +17,13 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Converters
     internal sealed class DocumentationCommentDeferredContentConverter : IDeferredQuickInfoContentToFrameworkElementConverter
     {
         private readonly ClassificationTypeMap _typeMap;
+        private readonly IClassificationFormatMapService _classificationFormatMapService;
 
         [ImportingConstructor]
-        public DocumentationCommentDeferredContentConverter(ClassificationTypeMap typeMap)
+        public DocumentationCommentDeferredContentConverter(ClassificationTypeMap typeMap, IClassificationFormatMapService classificationFormatMapService)
         {
             _typeMap = typeMap;
+            _classificationFormatMapService = classificationFormatMapService;
         }
 
         public FrameworkElement CreateFrameworkElement(IDeferredQuickInfoContent deferredContent, DeferredContentFrameworkElementFactory factory)
@@ -32,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Converters
                 TextWrapping = TextWrapping.Wrap
             };
 
-            var formatMap = _typeMap.ClassificationFormatMapService.GetClassificationFormatMap("tooltip");
+            var formatMap = _classificationFormatMapService.GetClassificationFormatMap("tooltip");
             documentationTextBlock.SetDefaultTextProperties(formatMap);
 
             // If we have already computed the symbol documentation by now, update
