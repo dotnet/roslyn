@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //by default it is safe to escape
             uint escapeScope = Binder.ExternalScope;
 
-            ArrayBuilder<bool> refReadOnlyParametersMatchedWithArgs = null;
+            ArrayBuilder<bool> inParametersMatchedWithArgs = null;
 
             if (!argsOpt.IsDefault)
             {
@@ -983,7 +983,7 @@ moreArguments:
                         goto moreArguments;
                     }
 
-                    RefKind effectiveRefKind = GetEffectiveRefKind(argIndex, argRefKindsOpt, parameters, argsToParamsOpt, ref refReadOnlyParametersMatchedWithArgs);
+                    RefKind effectiveRefKind = GetEffectiveRefKind(argIndex, argRefKindsOpt, parameters, argsToParamsOpt, ref inParametersMatchedWithArgs);
 
                     // ref escape scope is the narrowest of 
                     // - ref escape of all byref arguments
@@ -1001,7 +1001,7 @@ moreArguments:
                     if (escapeScope >= scopeOfTheContainingExpression)
                     {
                         // no longer needed
-                        refReadOnlyParametersMatchedWithArgs?.Free();
+                        inParametersMatchedWithArgs?.Free();
 
                         // can't get any worse
                         return escapeScope;
@@ -1010,11 +1010,11 @@ moreArguments:
             }
 
             // handle omitted optional "in" parameters if there are any
-            ParameterSymbol unmatchedRefReadOnlyParameter = TryGetUnmatchedRefReadOnlyParameterAndFreeMatchedArgs(parameters, ref refReadOnlyParametersMatchedWithArgs);
+            ParameterSymbol unmatchedInParameter = TryGetunmatchedInParameterAndFreeMatchedArgs(parameters, ref inParametersMatchedWithArgs);
 
             // unmatched "in" parameter is the same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
             //                                                    its val escape is ExternalScope                   (does not affect overal result)
-            if (unmatchedRefReadOnlyParameter != null && isRefEscape)
+            if (unmatchedInParameter != null && isRefEscape)
             {
                 return scopeOfTheContainingExpression;
             }
@@ -1063,7 +1063,7 @@ moreArguments:
                 receiverOpt = null;
             }
 
-            ArrayBuilder<bool> refReadOnlyParametersMatchedWithArgs = null;
+            ArrayBuilder<bool> inParametersMatchedWithArgs = null;
 
             if (!argsOpt.IsDefault)
             {
@@ -1088,7 +1088,7 @@ moreArguments:
                         goto moreArguments;
                     }
 
-                    RefKind effectiveRefKind = GetEffectiveRefKind(argIndex, argRefKindsOpt, parameters, argsToParamsOpt, ref refReadOnlyParametersMatchedWithArgs);
+                    RefKind effectiveRefKind = GetEffectiveRefKind(argIndex, argRefKindsOpt, parameters, argsToParamsOpt, ref inParametersMatchedWithArgs);
 
                     // ref escape scope is the narrowest of 
                     // - ref escape of all byref arguments
@@ -1103,7 +1103,7 @@ moreArguments:
                     if (!valid)
                     {
                         // no longer needed
-                        refReadOnlyParametersMatchedWithArgs?.Free();
+                        inParametersMatchedWithArgs?.Free();
 
                         ErrorCode errorCode = GetStandardCallEscapeError(checkingReceiver);
 
@@ -1125,13 +1125,13 @@ moreArguments:
             }
 
             // handle omitted optional "in" parameters if there are any
-            ParameterSymbol unmatchedRefReadOnlyParameter = TryGetUnmatchedRefReadOnlyParameterAndFreeMatchedArgs(parameters, ref refReadOnlyParametersMatchedWithArgs);
+            ParameterSymbol unmatchedInParameter = TryGetunmatchedInParameterAndFreeMatchedArgs(parameters, ref inParametersMatchedWithArgs);
 
             // unmatched "in" parameter is the same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
             //                                                    its val escape is ExternalScope                   (does not affect overal result)
-            if (unmatchedRefReadOnlyParameter != null && isRefEscape)
+            if (unmatchedInParameter != null && isRefEscape)
             {
-                Error(diagnostics, GetStandardCallEscapeError(checkingReceiver), syntax, symbol, unmatchedRefReadOnlyParameter.Name);
+                Error(diagnostics, GetStandardCallEscapeError(checkingReceiver), syntax, symbol, unmatchedInParameter.Name);
                 return false;
             }
 
@@ -1284,7 +1284,7 @@ moreArguments:
             ImmutableArray<RefKind> argRefKindsOpt, 
             ImmutableArray<ParameterSymbol> parameters, 
             ImmutableArray<int> argsToParamsOpt, 
-            ref ArrayBuilder<bool> refReadOnlyParametersMatchedWithArgs)
+            ref ArrayBuilder<bool> inParametersMatchedWithArgs)
         {
             var effectiveRefKind = argRefKindsOpt.IsDefault ? RefKind.None : argRefKindsOpt[argIndex];
             if (effectiveRefKind == RefKind.None && argIndex < parameters.Length)
@@ -1294,8 +1294,8 @@ moreArguments:
                 if (parameters[paramIndex].RefKind == RefKind.In)
                 {
                     effectiveRefKind = RefKind.In;
-                    refReadOnlyParametersMatchedWithArgs = refReadOnlyParametersMatchedWithArgs ?? ArrayBuilder<bool>.GetInstance(parameters.Length, fillWithValue: false);
-                    refReadOnlyParametersMatchedWithArgs[paramIndex] = true;
+                    inParametersMatchedWithArgs = inParametersMatchedWithArgs ?? ArrayBuilder<bool>.GetInstance(parameters.Length, fillWithValue: false);
+                    inParametersMatchedWithArgs[paramIndex] = true;
                 }
             }
 
@@ -1307,7 +1307,7 @@ moreArguments:
         /// That indicates an optional "in" parameter. We treat it as an RValue passed by reference via a temporary.
         /// The effective scope of such variable is the immediately containing scope.
         /// </summary>
-        private static ParameterSymbol TryGetUnmatchedRefReadOnlyParameterAndFreeMatchedArgs(ImmutableArray<ParameterSymbol> parameters, ref ArrayBuilder<bool> refReadOnlyParametersMatchedWithArgs)
+        private static ParameterSymbol TryGetunmatchedInParameterAndFreeMatchedArgs(ImmutableArray<ParameterSymbol> parameters, ref ArrayBuilder<bool> inParametersMatchedWithArgs)
         {
             try
             {
@@ -1322,7 +1322,7 @@ moreArguments:
                         }
 
                         if (parameter.RefKind == RefKind.In &&
-                            refReadOnlyParametersMatchedWithArgs?[i] != true &&
+                            inParametersMatchedWithArgs?[i] != true &&
                             parameter.Type.IsByRefLikeType == false)
                         {
                             return parameter;
@@ -1334,9 +1334,9 @@ moreArguments:
             }
             finally
             {
-                refReadOnlyParametersMatchedWithArgs?.Free();
+                inParametersMatchedWithArgs?.Free();
                 // make sure noone uses it after.
-                refReadOnlyParametersMatchedWithArgs = null;
+                inParametersMatchedWithArgs = null;
             }
         }
 
