@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)declType != null)
                 {
-                    return new BoundLocal(syntax, localSymbol, isDeclaration: true, constantValueOpt: null, type: declType.TypeSymbol, hasErrors: hasErrors);
+                    return new BoundLocal(syntax, localSymbol, isDeclaration: true, constantValueOpt: null, isNullableUnknown: false, type: declType.TypeSymbol, hasErrors: hasErrors);
                 }
 
                 return new DeconstructionVariablePendingInference(syntax, localSymbol, receiverOpt: null);

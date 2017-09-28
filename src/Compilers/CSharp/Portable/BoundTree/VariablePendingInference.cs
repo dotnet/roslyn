@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     localSymbol.SetTypeSymbol(TypeSymbolWithAnnotations.Create(type));
-                    return new BoundLocal(this.Syntax, localSymbol, isDeclaration: true, constantValueOpt: null, type: type, hasErrors: this.HasErrors || inferenceFailed);
+                    return new BoundLocal(this.Syntax, localSymbol, isDeclaration: true, constantValueOpt: null, isNullableUnknown: false, type: type, hasErrors: this.HasErrors || inferenceFailed);
 
                 case SymbolKind.Field:
                     var fieldSymbol = (GlobalExpressionVariable)this.VariableSymbol;

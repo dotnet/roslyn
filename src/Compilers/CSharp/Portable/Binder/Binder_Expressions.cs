@@ -1498,8 +1498,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var localSymbol = (LocalSymbol)symbol;
                         Location localSymbolLocation = localSymbol.Locations[0];
-
                         TypeSymbol type;
+                        bool isNullableUnknown;
+
                         if (node.SyntaxTree == localSymbolLocation.SourceTree &&
                             node.SpanStart < localSymbolLocation.SourceSpan.Start)
                         {
@@ -1562,6 +1563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             type = new ExtendedErrorTypeSymbol(
                                 this.Compilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true);
+                            isNullableUnknown = true;
                         }
                         else if ((localSymbol as SourceLocalSymbol)?.IsVar == true && localSymbol.ForbiddenZone?.Contains(node) == true)
                         {
@@ -1577,10 +1579,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics.Add(localSymbol.ForbiddenDiagnostic, node.Location, node);
                             type = new ExtendedErrorTypeSymbol(
                                 this.Compilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true);
+                            isNullableUnknown = true;
                         }
                         else
                         {
                             type = localSymbol.Type.TypeSymbol;
+                            isNullableUnknown = false;
                             if (IsBadLocalOrParameterCapture(localSymbol, localSymbol.RefKind))
                             {
                                 Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUseLocal, node, localSymbol);
@@ -1589,7 +1593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var constantValueOpt = localSymbol.IsConst && this.EnclosingNameofArgument == null && !type.IsErrorType()
                             ? localSymbol.GetConstantValue(node, this.LocalInProgress, diagnostics) : null;
-                        return new BoundLocal(node, localSymbol, constantValueOpt, type, hasErrors: isError);
+                        return new BoundLocal(node, localSymbol, isDeclaration: false, constantValueOpt: constantValueOpt, isNullableUnknown: isNullableUnknown, type: type, hasErrors: isError);
                     }
 
                 case SymbolKind.Parameter:
@@ -2363,7 +2367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType.TypeSymbol, diagnostics, typeSyntax);
 
-                return new BoundLocal(declarationExpression, localSymbol, isDeclaration:true, constantValueOpt: null, type: declType.TypeSymbol);
+                return new BoundLocal(declarationExpression, localSymbol, isDeclaration:true, constantValueOpt: null, isNullableUnknown: false, type: declType.TypeSymbol);
             }
 
             // Is this a field?
