@@ -152,16 +152,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // patternMatches is true if the input expression is unconditionally matched by the pattern, false if it never matches, null otherwise.
                 // While subsumption would produce an error for an unreachable pattern based on the input's type, this is used for reachability (warnings),
                 // and takes the input value into account.
-                bool? patternMatches =
-                    labelSyntax.Kind() == SyntaxKind.DefaultSwitchLabel ? null :
+                bool? patternMatches;
+                if (labelSyntax.Kind() == SyntaxKind.DefaultSwitchLabel)
+                {
+                    patternMatches = null;
+                }
+                else if (boundLabel.Pattern.Kind == BoundKind.WildcardPattern)
+                {
                     // wildcard pattern matches anything
-                    boundLabel.Pattern.Kind == BoundKind.WildcardPattern ? true :
+                    patternMatches = true;
+                }
+                else if (boundLabel.Pattern is BoundDeclarationPattern d)
+                {
                     // `var x` matches anything
                     // `Type x` matches anything of a subtype of `Type` except null
-                    boundLabel.Pattern is BoundDeclarationPattern d ? (d.IsVar ? true : inputMatchesType(d.DeclaredType.Type)) :
+                    patternMatches = d.IsVar ? true : inputMatchesType(d.DeclaredType.Type);
+                }
+                else if (boundLabel.Pattern is BoundConstantPattern p)
+                {
                     // `case 2` matches the input `2`
-                    boundLabel.Pattern is BoundConstantPattern p ? SwitchGoverningExpression.ConstantValue?.Equals(p.ConstantValue) :
-                    null;
+                    patternMatches = SwitchGoverningExpression.ConstantValue?.Equals(p.ConstantValue);
+                }
+                else
+                {
+                    patternMatches = null;
+                }
 
                 bool labelIsReachable = isNotSubsumed && !someCaseMatches && patternMatches != false;
                 boundLabel = boundLabel.Update(boundLabel.Label, boundLabel.Pattern, boundLabel.Guard, labelIsReachable);

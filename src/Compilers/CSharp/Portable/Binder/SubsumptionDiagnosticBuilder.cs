@@ -72,7 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Since the pattern was not subsumed, we should be able to add it to the decision tree
                         throw ExceptionUtilities.Unreachable;
-                        //return false;
                     }
                 }
 
