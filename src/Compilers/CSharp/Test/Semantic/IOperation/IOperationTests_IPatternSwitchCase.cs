@@ -526,9 +526,12 @@ IPatternCaseClause (Label Symbol: case X y:) (CaseKind.Pattern) (OperationKind.C
   Guard Expression: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS8121: An expression of type 'int?' cannot be handled by a pattern of type 'X'.
+                // file.cs(9,28): error CS8121: An expression of type 'int?' cannot be handled by a pattern of type 'X'.
                 //             /*<bind>*/case X y:/*</bind>*/
-                Diagnostic(ErrorCode.ERR_PatternWrongType, "X").WithArguments("int?", "X").WithLocation(9, 28)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "X").WithArguments("int?", "X").WithLocation(9, 28),
+                // file.cs(10,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);

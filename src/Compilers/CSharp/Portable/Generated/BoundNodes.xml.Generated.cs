@@ -2805,7 +2805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundPatternSwitchStatement : BoundStatement
     {
-        public BoundPatternSwitchStatement(SyntaxNode syntax, BoundExpression expression, ImmutableArray<LocalSymbol> innerLocals, ImmutableArray<LocalFunctionSymbol> innerLocalFunctions, ImmutableArray<BoundPatternSwitchSection> switchSections, BoundPatternSwitchLabel defaultLabel, GeneratedLabelSymbol breakLabel, PatternSwitchBinder binder, bool isComplete, bool hasErrors = false)
+        public BoundPatternSwitchStatement(SyntaxNode syntax, BoundExpression expression, bool someLabelAlwaysMatches, ImmutableArray<LocalSymbol> innerLocals, ImmutableArray<LocalFunctionSymbol> innerLocalFunctions, ImmutableArray<BoundPatternSwitchSection> switchSections, BoundPatternSwitchLabel defaultLabel, GeneratedLabelSymbol breakLabel, PatternSwitchBinder binder, bool isComplete, bool hasErrors = false)
             : base(BoundKind.PatternSwitchStatement, syntax, hasErrors || expression.HasErrors() || switchSections.HasErrors() || defaultLabel.HasErrors())
         {
 
@@ -2817,6 +2817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(binder != null, "Field 'binder' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Expression = expression;
+            this.SomeLabelAlwaysMatches = someLabelAlwaysMatches;
             this.InnerLocals = innerLocals;
             this.InnerLocalFunctions = innerLocalFunctions;
             this.SwitchSections = switchSections;
@@ -2828,6 +2829,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public BoundExpression Expression { get; }
+
+        public bool SomeLabelAlwaysMatches { get; }
 
         public ImmutableArray<LocalSymbol> InnerLocals { get; }
 
@@ -2848,11 +2851,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitPatternSwitchStatement(this);
         }
 
-        public BoundPatternSwitchStatement Update(BoundExpression expression, ImmutableArray<LocalSymbol> innerLocals, ImmutableArray<LocalFunctionSymbol> innerLocalFunctions, ImmutableArray<BoundPatternSwitchSection> switchSections, BoundPatternSwitchLabel defaultLabel, GeneratedLabelSymbol breakLabel, PatternSwitchBinder binder, bool isComplete)
+        public BoundPatternSwitchStatement Update(BoundExpression expression, bool someLabelAlwaysMatches, ImmutableArray<LocalSymbol> innerLocals, ImmutableArray<LocalFunctionSymbol> innerLocalFunctions, ImmutableArray<BoundPatternSwitchSection> switchSections, BoundPatternSwitchLabel defaultLabel, GeneratedLabelSymbol breakLabel, PatternSwitchBinder binder, bool isComplete)
         {
-            if (expression != this.Expression || innerLocals != this.InnerLocals || innerLocalFunctions != this.InnerLocalFunctions || switchSections != this.SwitchSections || defaultLabel != this.DefaultLabel || breakLabel != this.BreakLabel || binder != this.Binder || isComplete != this.IsComplete)
+            if (expression != this.Expression || someLabelAlwaysMatches != this.SomeLabelAlwaysMatches || innerLocals != this.InnerLocals || innerLocalFunctions != this.InnerLocalFunctions || switchSections != this.SwitchSections || defaultLabel != this.DefaultLabel || breakLabel != this.BreakLabel || binder != this.Binder || isComplete != this.IsComplete)
             {
-                var result = new BoundPatternSwitchStatement(this.Syntax, expression, innerLocals, innerLocalFunctions, switchSections, defaultLabel, breakLabel, binder, isComplete, this.HasErrors);
+                var result = new BoundPatternSwitchStatement(this.Syntax, expression, someLabelAlwaysMatches, innerLocals, innerLocalFunctions, switchSections, defaultLabel, breakLabel, binder, isComplete, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -8831,7 +8834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             ImmutableArray<BoundPatternSwitchSection> switchSections = (ImmutableArray<BoundPatternSwitchSection>)this.VisitList(node.SwitchSections);
             BoundPatternSwitchLabel defaultLabel = (BoundPatternSwitchLabel)this.Visit(node.DefaultLabel);
-            return node.Update(expression, node.InnerLocals, node.InnerLocalFunctions, switchSections, defaultLabel, node.BreakLabel, node.Binder, node.IsComplete);
+            return node.Update(expression, node.SomeLabelAlwaysMatches, node.InnerLocals, node.InnerLocalFunctions, switchSections, defaultLabel, node.BreakLabel, node.Binder, node.IsComplete);
         }
         public override BoundNode VisitPatternSwitchSection(BoundPatternSwitchSection node)
         {
@@ -10007,6 +10010,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("patternSwitchStatement", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
+                new TreeDumperNode("someLabelAlwaysMatches", node.SomeLabelAlwaysMatches, null),
                 new TreeDumperNode("innerLocals", node.InnerLocals, null),
                 new TreeDumperNode("innerLocalFunctions", node.InnerLocalFunctions, null),
                 new TreeDumperNode("switchSections", null, from x in node.SwitchSections select Visit(x, null)),
