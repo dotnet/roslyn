@@ -99,27 +99,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReadonlyRef = RefersToLocation | RValue,
 
             /// <summary>
+            /// Expression can be the operand of an address-of operation (&amp;).
+            /// Same as ReadonlyRef. The difference is just for error reporting.
+            /// </summary>
+            AddressOf = ReadonlyRef + 1,
+
+            /// <summary>
+            /// Expression is the receiver of a fixed buffer field access
+            /// Same as ReadonlyRef. The difference is just for error reporting.
+            /// </summary>
+            FixedReceiver = ReadonlyRef + 2,
+
+            /// <summary>
             /// Expression is passed as a ref or out parameter or assigned to a byref variable.
             /// </summary>
             RefOrOut = RefersToLocation | RValue | Assignable,
 
             /// <summary>
-            /// Expression can be the operand of an address-of operation (&amp;).
-            /// Same as RefOrOut. The difference is just for error reporting.
-            /// </summary>
-            AddressOf = RefOrOut + 1,
-
-            /// <summary>
-            /// Expression is the receiver of a fixed buffer field access
-            /// Same as RefOrOut. The difference is just for error reporting.
-            /// </summary>
-            FixedReceiver = RefOrOut + 2,
-
-            /// <summary>
             /// Expression is returned by an ordinary r/w reference.
             /// Same as RefOrOut. The difference is just for error reporting.
             /// </summary>
-            RefReturn = RefOrOut + 3,
+            RefReturn = RefOrOut + 1,
         }
 
         private static bool RequiresRValueOnly(BindValueKind kind)

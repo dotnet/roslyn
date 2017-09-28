@@ -3123,6 +3123,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "x").WithArguments("x"));
         }
 
+        [WorkItem(22306, "https://github.com/dotnet/roslyn/issues/22306")]
         [Fact]
         public void AddressOfExpressionKinds_ReadOnlyLocal()
         {
@@ -3142,17 +3143,17 @@ unsafe class C
 
         foreach (int y in new int[1])
         {
-            p = &y; //CS0459
+            p = &y; 
         }
 
         using (S s = new S())
         {
-            S* sp = &s; //CS0459
+            S* sp = &s; 
         }
 
         fixed (int* a = &array[0])
         {
-            int** pp = &a; //CS0459
+            int** pp = &a; 
         }
     }
 }
@@ -3165,19 +3166,11 @@ struct S : System.IDisposable
             CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (13,14): error CS0211: Cannot take the address of the given expression
                 //         p = &x; //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "x"),
-                // (17,18): error CS0459: Cannot take the address of a read-only local variable
-                //             p = &y; //CS0459
-                Diagnostic(ErrorCode.ERR_AddrOnReadOnlyLocal, "y"),
-                // (22,22): error CS0459: Cannot take the address of a read-only local variable
-                //             S* sp = &s; //CS0459
-                Diagnostic(ErrorCode.ERR_AddrOnReadOnlyLocal, "s"),
-                // (27,25): error CS0459: Cannot take the address of a read-only local variable
-                //             int** pp = &a; //CS0459
-                Diagnostic(ErrorCode.ERR_AddrOnReadOnlyLocal, "a"),
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "x").WithLocation(13, 14),
                 // (6,11): warning CS0649: Field 'C.array' is never assigned to, and will always have its default value null
                 //     int[] array;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "array").WithArguments("C.array", "null"));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "array").WithArguments("C.array", "null").WithLocation(6, 11)
+                );
         }
 
         [Fact]
@@ -3839,6 +3832,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "p1 = &x").WithArguments("int*"));
         }
 
+        [WorkItem(22306, "https://github.com/dotnet/roslyn/issues/22306")]
         [WorkItem(544537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544537")]
         [Fact]
         public void AddressOfStaticReadonlyFieldInsideFixed()
@@ -3855,10 +3849,7 @@ public class Test
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (8,27): error CS0211: Cannot take the address of the given expression
-                //         fixed (int* v1 = &R1) { }
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "R1"));
+            CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         #endregion AddressOf diagnostics

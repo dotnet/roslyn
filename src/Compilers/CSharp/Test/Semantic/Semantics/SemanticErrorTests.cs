@@ -10260,6 +10260,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "h1a").WithArguments("H1<A>.implicit operator G1<A>(H1<A>)", "H0.implicit operator G0(H0)", "H1<A>", "G0"));
         }
 
+        [WorkItem(22306, "https://github.com/dotnet/roslyn/issues/22306")]
         [Fact]
         public void CS0459ERR_AddrOnReadOnlyLocal()
         {
@@ -10283,13 +10284,7 @@ class A
     private int _i = 0;
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (9,23): error CS0459: Cannot take the address of a read-only local variable
-                //             int *j = &i;  // CS0459
-                Diagnostic(ErrorCode.ERR_AddrOnReadOnlyLocal, "i"),
-                // (14,24): error CS0459: Cannot take the address of a read-only local variable
-                //             int **j = &i;  // CS0459
-                Diagnostic(ErrorCode.ERR_AddrOnReadOnlyLocal, "i"));
+            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
