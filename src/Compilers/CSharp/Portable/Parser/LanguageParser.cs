@@ -435,7 +435,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.SealedKeyword:
                 case SyntaxKind.StaticKeyword:
                 case SyntaxKind.UnsafeKeyword:
-                case SyntaxKind.RefKeyword:
                 case SyntaxKind.OpenBracketToken:
                     return true;
                 default:
@@ -1142,6 +1141,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return DeclarationModifiers.Partial;
                 case SyntaxKind.AsyncKeyword:
                     return DeclarationModifiers.Async;
+                case SyntaxKind.RefKeyword:
+                    return DeclarationModifiers.Ref;
                 case SyntaxKind.IdentifierToken:
                     switch (contextualKind)
                     {
@@ -1206,6 +1207,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         }
 
                         break;
+
+                    case DeclarationModifiers.Ref:
+                        // 'ref' is only a modifier if used on a ref struct
+                        // it must be either immediately before the 'struct'
+                        // keyword, or immediately before 'partial struct' if
+                        // this is a partial ref struct declaration
+                        {
+                            var next = PeekToken(1);
+                            if (next.Kind == SyntaxKind.StructKeyword ||
+                                (next.ContextualKind == SyntaxKind.PartialKeyword &&
+                                 PeekToken(2).Kind == SyntaxKind.StructKeyword))
+                            {
+                                modTok = this.EatToken();
+                                modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureRefStructs);
+                            }
+                            else
+                            {
+                                return;
+                            }
+                            break;
+                        }
+
                     case DeclarationModifiers.Async:
                         if (!ShouldAsyncBeTreatedAsModifier(parsingStatementNotDeclaration: false))
                         {
@@ -1355,8 +1378,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
             switch (this.PeekToken(1).Kind)
             {
-                case SyntaxKind.RefKeyword:
-                    return this.PeekToken(2).Kind == SyntaxKind.StructKeyword;
                 case SyntaxKind.StructKeyword:
                 case SyntaxKind.ClassKeyword:
                 case SyntaxKind.InterfaceKeyword:
@@ -1436,7 +1457,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     CheckForVersionSpecificModifiers(modifiers, SyntaxKind.ReadOnlyKeyword, MessageID.IDS_FeatureReadOnlyStructs);
                     return this.ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
 
-                case SyntaxKind.RefKeyword:
                 case SyntaxKind.InterfaceKeyword:
                     return this.ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
 
@@ -1469,18 +1489,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ClassKeyword ||
                 this.CurrentToken.Kind == SyntaxKind.StructKeyword ||
-                this.CurrentToken.Kind == SyntaxKind.InterfaceKeyword ||
-                (this.CurrentToken.Kind == SyntaxKind.RefKeyword && PeekToken(1).Kind == SyntaxKind.StructKeyword));
+                this.CurrentToken.Kind == SyntaxKind.InterfaceKeyword);
 
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
-
-            if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
-            {
-                var refKeyword = this.EatToken();
-                refKeyword = CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefStructs);
-                modifiers.Add(refKeyword);
-            }
 
             var classOrStructOrInterface = this.EatToken();
             var saveTerm = _termState;
@@ -1968,8 +1980,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.InterfaceKeyword:
                 case SyntaxKind.StructKeyword:
                     return true;
-                case SyntaxKind.RefKeyword:
-                    return PeekToken(1).Kind == SyntaxKind.StructKeyword;
                 default:
                     return false;
             }
