@@ -170,12 +170,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new WithStatement(Visit(operation.Body), Visit(operation.Value), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        internal override IOperation VisitStopStatement(IStopStatement operation, object argument)
+        public override IOperation VisitStopStatement(IStopStatement operation, object argument)
         {
             return new StopStatement(((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        internal override IOperation VisitEndStatement(IEndStatement operation, object argument)
+        public override IOperation VisitEndStatement(IEndStatement operation, object argument)
         {
             return new EndStatement(((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }

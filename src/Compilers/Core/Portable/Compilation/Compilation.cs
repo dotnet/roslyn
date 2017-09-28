@@ -2418,6 +2418,10 @@ namespace Microsoft.CodeAnalysis
             {
                 pePdbFilePath = pePdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb");
             }
+            else
+            {
+                pePdbFilePath = null;
+            }
 
             if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded && !string.IsNullOrEmpty(pePdbFilePath))
             {

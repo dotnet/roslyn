@@ -1270,9 +1270,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class EndStatement : Operation, IEndStatement
     {
         public EndStatement(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            // https://github.com/dotnet/roslyn/issues/22004
-            // base(OperationKind.EndStatement, semanticModel, syntax, type, constantValue, isImplicit)
-            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+            base(OperationKind.EndStatement, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
         public override IEnumerable<IOperation> Children
@@ -4136,9 +4134,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class StopStatement : Operation, IStopStatement
     {
         public StopStatement(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            // https://github.com/dotnet/roslyn/issues/21297
-            // base(OperationKind.StopStatement, semanticModel, syntax, type, constantValue, isImplicit)
-            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+            base(OperationKind.StopStatement, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
         public override IEnumerable<IOperation> Children

@@ -614,13 +614,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Body, "Body");
         }
 
-        internal override void VisitStopStatement(IStopStatement operation)
+        public override void VisitStopStatement(IStopStatement operation)
         {
             LogString(nameof(IStopStatement));
             LogCommonPropertiesAndNewLine(operation);
         }
 
-        internal override void VisitEndStatement(IEndStatement operation)
+        public override void VisitEndStatement(IEndStatement operation)
         {
             LogString(nameof(IEndStatement));
             LogCommonPropertiesAndNewLine(operation);
