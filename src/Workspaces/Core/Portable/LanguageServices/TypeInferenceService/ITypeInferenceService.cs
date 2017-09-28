@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         public TypeInferenceInfo(ITypeSymbol type, bool isParams)
-            : this(type, isParams, default)
+            : this(type, isParams, null)
         {
         }
 
