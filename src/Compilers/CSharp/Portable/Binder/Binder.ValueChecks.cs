@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterSymbol parameterSymbol = parameter.ParameterSymbol;
 
             // all parameters can be passed by ref/out or assigned to
-            // except "in" parameters, which are readonly
+            // except "ref readonly" parameters, which are readonly
             if (parameterSymbol.RefKind == RefKind.RefReadOnly && RequiresAssignableVariable(valueKind))
             {
                 ReportReadOnlyError(parameterSymbol, node, valueKind, checkingReceiver, diagnostics);
@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //by default it is safe to escape
             uint escapeScope = Binder.ExternalScope;
 
-            ArrayBuilder<bool> inParametersMatchedWithArgs = null;
+            ArrayBuilder<bool> refReadOnlyParametersMatchedWithArgs = null;
 
             if (!argsOpt.IsDefault)
             {
@@ -983,7 +983,7 @@ moreArguments:
                         goto moreArguments;
                     }
 
-                    RefKind effectiveRefKind = GetEffectiveRefKind(argIndex, argRefKindsOpt, parameters, argsToParamsOpt, ref inParametersMatchedWithArgs);
+                    RefKind effectiveRefKind = GetEffectiveRefKind(argIndex, argRefKindsOpt, parameters, argsToParamsOpt, ref refReadOnlyParametersMatchedWithArgs);
 
                     // ref escape scope is the narrowest of 
                     // - ref escape of all byref arguments
@@ -1001,7 +1001,7 @@ moreArguments:
                     if (escapeScope >= scopeOfTheContainingExpression)
                     {
                         // no longer needed
-                        inParametersMatchedWithArgs?.Free();
+                        refReadOnlyParametersMatchedWithArgs?.Free();
 
                         // can't get any worse
                         return escapeScope;
@@ -1009,12 +1009,12 @@ moreArguments:
                 }
             }
 
-            // handle omitted optional "in" parameters if there are any
-            ParameterSymbol unmatchedInParameter = TryGetUnmatchedInParameterAndFreeMatchedArgs(parameters, ref inParametersMatchedWithArgs);
+            // handle omitted optional "ref readonly" parameters if there are any
+            ParameterSymbol unmatchedRefReadOnlyParameter = TryGetUnmatchedRefReadOnlyParameterAndFreeMatchedArgs(parameters, ref refReadOnlyParametersMatchedWithArgs);
 
-            // unmatched "in" parameter is the same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
+            // unmatched "ref readonly" parameter is the same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
             //                                                    its val escape is ExternalScope                   (does not affect overal result)
-            if (unmatchedInParameter != null && isRefEscape)
+            if (unmatchedRefReadOnlyParameter != null && isRefEscape)
             {
                 return scopeOfTheContainingExpression;
             }
@@ -1063,7 +1063,7 @@ moreArguments:
                 receiverOpt = null;
             }
 
-            ArrayBuilder<bool> inParametersMatchedWithArgs = null;
+            ArrayBuilder<bool> refReadOnlyParametersMatchedWithArgs = null;
 
             if (!argsOpt.IsDefault)
             {
@@ -1088,7 +1088,7 @@ moreArguments:
                         goto moreArguments;
                     }
 
-                    RefKind effectiveRefKind = GetEffectiveRefKind(argIndex, argRefKindsOpt, parameters, argsToParamsOpt, ref inParametersMatchedWithArgs);
+                    RefKind effectiveRefKind = GetEffectiveRefKind(argIndex, argRefKindsOpt, parameters, argsToParamsOpt, ref refReadOnlyParametersMatchedWithArgs);
 
                     // ref escape scope is the narrowest of 
                     // - ref escape of all byref arguments
@@ -1103,7 +1103,7 @@ moreArguments:
                     if (!valid)
                     {
                         // no longer needed
-                        inParametersMatchedWithArgs?.Free();
+                        refReadOnlyParametersMatchedWithArgs?.Free();
 
                         ErrorCode errorCode = GetStandardCallEscapeError(checkingReceiver);
 
@@ -1124,14 +1124,14 @@ moreArguments:
                 }
             }
 
-            // handle omitted optional "in" parameters if there are any
-            ParameterSymbol unmatchedInParameter = TryGetUnmatchedInParameterAndFreeMatchedArgs(parameters, ref inParametersMatchedWithArgs);
+            // handle omitted optional "ref readonly" parameters if there are any
+            ParameterSymbol unmatchedRefReadOnlyParameter = TryGetUnmatchedRefReadOnlyParameterAndFreeMatchedArgs(parameters, ref refReadOnlyParametersMatchedWithArgs);
 
-            // unmatched "in" parameter is the same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
+            // unmatched "ref readonly" parameter is the same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
             //                                                    its val escape is ExternalScope                   (does not affect overal result)
-            if (unmatchedInParameter != null && isRefEscape)
+            if (unmatchedRefReadOnlyParameter != null && isRefEscape)
             {
-                Error(diagnostics, GetStandardCallEscapeError(checkingReceiver), syntax, symbol, unmatchedInParameter.Name);
+                Error(diagnostics, GetStandardCallEscapeError(checkingReceiver), syntax, symbol, unmatchedRefReadOnlyParameter.Name);
                 return false;
             }
 
@@ -1276,15 +1276,15 @@ moreArguments:
         /// <summary>
         /// Gets "effective" ref kind of an argument. 
         /// Generally we know if a formal argument is passed as ref/out by looking at the call site. 
-        /// However, to distinguish "in" and regular "val" parameters we need to take a look at corresponding parameter, if such exists. 
-        /// NOTE: there are cases like params/vararg, when a corresponding parameter may not exist, then it cannot be an "in".
+        /// However, to distinguish "ref readonly" and regular "val" parameters we need to take a look at corresponding parameter, if such exists. 
+        /// NOTE: there are cases like params/vararg, when a corresponding parameter may not exist, then it cannot be a "ref readonly".
         /// </summary>
         private static RefKind GetEffectiveRefKind(
             int argIndex, 
             ImmutableArray<RefKind> argRefKindsOpt, 
             ImmutableArray<ParameterSymbol> parameters, 
             ImmutableArray<int> argsToParamsOpt, 
-            ref ArrayBuilder<bool> inParametersMatchedWithArgs)
+            ref ArrayBuilder<bool> refReadOnlyParametersMatchedWithArgs)
         {
             var effectiveRefKind = argRefKindsOpt.IsDefault ? RefKind.None : argRefKindsOpt[argIndex];
             if (effectiveRefKind == RefKind.None && argIndex < parameters.Length)
@@ -1294,8 +1294,8 @@ moreArguments:
                 if (parameters[paramIndex].RefKind == RefKind.RefReadOnly)
                 {
                     effectiveRefKind = RefKind.RefReadOnly;
-                    inParametersMatchedWithArgs = inParametersMatchedWithArgs ?? ArrayBuilder<bool>.GetInstance(parameters.Length, fillWithValue: false);
-                    inParametersMatchedWithArgs[paramIndex] = true;
+                    refReadOnlyParametersMatchedWithArgs = refReadOnlyParametersMatchedWithArgs ?? ArrayBuilder<bool>.GetInstance(parameters.Length, fillWithValue: false);
+                    refReadOnlyParametersMatchedWithArgs[paramIndex] = true;
                 }
             }
 
@@ -1303,11 +1303,11 @@ moreArguments:
         }
 
         /// <summary>
-        /// Gets an "in" parameter for which there is no argument supplied, if such exists. 
-        /// That indicates an optional "in" parameter. We treat it as an RValue passed by reference via a temporary.
+        /// Gets a "ref readonly" parameter for which there is no argument supplied, if such exists. 
+        /// That indicates an optional "ref readonly" parameter. We treat it as an RValue passed by reference via a temporary.
         /// The effective scope of such variable is the immediately containing scope.
         /// </summary>
-        private static ParameterSymbol TryGetUnmatchedInParameterAndFreeMatchedArgs(ImmutableArray<ParameterSymbol> parameters, ref ArrayBuilder<bool> inParametersMatchedWithArgs)
+        private static ParameterSymbol TryGetUnmatchedRefReadOnlyParameterAndFreeMatchedArgs(ImmutableArray<ParameterSymbol> parameters, ref ArrayBuilder<bool> refReadOnlyParametersMatchedWithArgs)
         {
             try
             {
@@ -1322,7 +1322,7 @@ moreArguments:
                         }
 
                         if (parameter.RefKind == RefKind.RefReadOnly &&
-                            inParametersMatchedWithArgs?[i] != true &&
+                            refReadOnlyParametersMatchedWithArgs?[i] != true &&
                             parameter.Type.IsByRefLikeType == false)
                         {
                             return parameter;
@@ -1334,9 +1334,9 @@ moreArguments:
             }
             finally
             {
-                inParametersMatchedWithArgs?.Free();
+                refReadOnlyParametersMatchedWithArgs?.Free();
                 // make sure noone uses it after.
-                inParametersMatchedWithArgs = null;
+                refReadOnlyParametersMatchedWithArgs = null;
             }
         }
 
