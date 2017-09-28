@@ -1380,36 +1380,46 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IOperation CreateBoundLocalDeclarationOperation(BoundLocalDeclaration boundLocalDeclaration)
         {
+            var node = boundLocalDeclaration.Syntax;
+            var kind = node.Kind();
+
             SyntaxNode varStatement;
-            SyntaxNode vardeclaration;
-
-            if (boundLocalDeclaration.Syntax is LocalDeclarationStatementSyntax statement)
+            SyntaxNode varDeclaration;
+            switch (kind)
             {
-                // this happen for simple int i = 0;
-                // var statement points to LocalDeclarationStatementSyntax
-                varStatement = statement;
+                case SyntaxKind.LocalDeclarationStatement:
+                {
+                    var statement = (LocalDeclarationStatementSyntax)node;
 
-                // var declaration points to VariableDeclaratorSyntax
-                vardeclaration = statement.Declaration.Variables.First();
+                    // this happen for simple int i = 0;
+                    // var statement points to LocalDeclarationStatementSyntax
+                    varStatement = statement;
+
+                    // var declaration points to VariableDeclaratorSyntax
+                    varDeclaration = statement.Declaration.Variables.First();
+                    break;
+                }
+                case SyntaxKind.VariableDeclarator:
+                {
+                    // this happen for 'for loop' initializer
+                    // var statement points to VariableDeclarationSyntax
+                    varStatement = node.Parent;
+
+                    // var declaration points to VariableDeclaratorSyntax
+                    varDeclaration = node;
+                    break;
+                }
+                default:
+                {
+                    Debug.Fail($"Unexpected syntax: {kind}");
+
+                    // otherwise, they points to whatever bound nodes are pointing to.
+                    varStatement = varDeclaration = node;
+                    break;
+                }
             }
-            else if (boundLocalDeclaration.Syntax is VariableDeclaratorSyntax declarator)
-            {
-                // this happen for 'for loop' initializer
-                // var statement points to VariableDeclarationSyntax
-                varStatement = declarator.Parent;
 
-                // var declaration points to VariableDeclaratorSyntax
-                vardeclaration = declarator;
-            }
-            else
-            {
-                Debug.Fail("when can this happen?");
-
-                // otherwise, they points to whatever bound nodes are pointing to.
-                varStatement = vardeclaration = boundLocalDeclaration.Syntax;
-            }
-
-            Lazy<ImmutableArray<IVariableDeclaration>> declarations = new Lazy<ImmutableArray<IVariableDeclaration>>(() => ImmutableArray.Create(CreateVariableDeclarationInternal(boundLocalDeclaration, vardeclaration)));
+            Lazy<ImmutableArray<IVariableDeclaration>> declarations = new Lazy<ImmutableArray<IVariableDeclaration>>(() => ImmutableArray.Create(CreateVariableDeclarationInternal(boundLocalDeclaration, varDeclaration)));
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundLocalDeclaration.WasCompilerGenerated;
