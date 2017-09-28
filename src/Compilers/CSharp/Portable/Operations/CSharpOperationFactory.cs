@@ -264,9 +264,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             return builder.ToImmutableAndFree();
         }
 
-        private IOperation CreateVariableDeclaration(BoundLocalDeclaration boundNode)
+        private IVariableDeclaration CreateVariableDeclaration(BoundLocalDeclaration boundNode)
         {
-            return _cache.GetOrAdd(boundNode, n => CreateVariableDeclarationInternal((BoundLocalDeclaration)n, n.Syntax));
+            return (IVariableDeclaration)_cache.GetOrAdd(boundNode, n => CreateVariableDeclarationInternal((BoundLocalDeclaration)n, n.Syntax));
         }
 
         private IPlaceholderExpression CreateBoundDeconstructValuePlaceholderOperation(BoundDeconstructValuePlaceholder boundDeconstructValuePlaceholder)
