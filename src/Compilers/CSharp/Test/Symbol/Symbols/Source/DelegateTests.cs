@@ -750,7 +750,7 @@ class C
             Assert.Equal(RefKind.RefReadOnly, d.DelegateInvokeMethod.RefKind);
             Assert.Equal(RefKind.RefReadOnly, ((MethodSymbol)d.GetMembers("EndInvoke").Single()).RefKind);
 
-            Assert.Equal(RefKind.RefReadOnly, d.DelegateInvokeMethod.Parameters[0].RefKind);
+            Assert.Equal(RefKind.In, d.DelegateInvokeMethod.Parameters[0].RefKind);
         }
 
         [Fact]
@@ -779,14 +779,14 @@ class C
 
             Assert.False(lambda.ReturnsByRef);
             Assert.True(lambda.ReturnsByRefReadonly);
-            Assert.Equal(lambda.Parameters[0].RefKind, RefKind.RefReadOnly);
+            Assert.Equal(lambda.Parameters[0].RefKind, RefKind.In);
 
             lambdaSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousMethodExpressionSyntax>().Single();
             lambda = (LambdaSymbol)model.GetSymbolInfo(lambdaSyntax).Symbol;
 
             Assert.False(lambda.ReturnsByRef);
             Assert.True(lambda.ReturnsByRefReadonly);
-            Assert.Equal(lambda.Parameters[0].RefKind, RefKind.RefReadOnly);
+            Assert.Equal(lambda.Parameters[0].RefKind, RefKind.In);
         }
     }
 }

@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // all parameters can be passed by ref/out or assigned to
             // except "in" parameters, which are readonly
-            if (parameterSymbol.RefKind == RefKind.RefReadOnly && RequiresAssignableVariable(valueKind))
+            if (parameterSymbol.RefKind == RefKind.In && RequiresAssignableVariable(valueKind))
             {
                 ReportReadOnlyError(parameterSymbol, node, valueKind, checkingReceiver, diagnostics);
                 return false;
@@ -1291,9 +1291,9 @@ moreArguments:
             {
                 var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
 
-                if (parameters[paramIndex].RefKind == RefKind.RefReadOnly)
+                if (parameters[paramIndex].RefKind == RefKind.In)
                 {
-                    effectiveRefKind = RefKind.RefReadOnly;
+                    effectiveRefKind = RefKind.In;
                     refReadOnlyParametersMatchedWithArgs = refReadOnlyParametersMatchedWithArgs ?? ArrayBuilder<bool>.GetInstance(parameters.Length, fillWithValue: false);
                     refReadOnlyParametersMatchedWithArgs[paramIndex] = true;
                 }
@@ -1321,7 +1321,7 @@ moreArguments:
                             break;
                         }
 
-                        if (parameter.RefKind == RefKind.RefReadOnly &&
+                        if (parameter.RefKind == RefKind.In &&
                             refReadOnlyParametersMatchedWithArgs?[i] != true &&
                             parameter.Type.IsByRefLikeType == false)
                         {

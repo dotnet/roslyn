@@ -597,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var parameter in symbol.Parameters)
                 {
-                    if (parameter.RefKind == RefKind.RefReadOnly)
+                    if (parameter.RefKind == RefKind.In)
                     {
                         foundRefReadOnly = true;
                         break;

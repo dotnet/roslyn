@@ -554,7 +554,7 @@ class C
             Assert.False(p.GetMethod.IsImplicitlyDeclared);
             Assert.True(p.IsExpressionBodied);
             Assert.Equal(RefKind.RefReadOnly, p.GetMethod.RefKind);
-            Assert.Equal(RefKind.RefReadOnly, p.GetMethod.Parameters[0].RefKind);
+            Assert.Equal(RefKind.In, p.GetMethod.Parameters[0].RefKind);
             Assert.False(p.ReturnsByRef);
             Assert.False(p.GetMethod.ReturnsByRef);
             Assert.True(p.ReturnsByRefReadonly);
@@ -582,7 +582,7 @@ class C
             Assert.False(p.GetMethod.IsImplicitlyDeclared);
             Assert.True(p.IsExpressionBodied);
             Assert.Equal(RefKind.RefReadOnly, p.GetMethod.RefKind);
-            Assert.Equal(RefKind.RefReadOnly, p.GetMethod.Parameters[0].RefKind);
+            Assert.Equal(RefKind.In, p.GetMethod.Parameters[0].RefKind);
             Assert.False(p.ReturnsByRef);
             Assert.False(p.GetMethod.ReturnsByRef);
             Assert.True(p.ReturnsByRefReadonly);

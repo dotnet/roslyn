@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.Call:
                         var call = (BoundCall)expression;
-                        if (refKind != RefKind.None && refKind != RefKind.RefReadOnly)
+                        if (refKind != RefKind.None && refKind != RefKind.In)
                         {
                             Debug.Assert(call.Method.RefKind != RefKind.None);
                             _F.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, _F.Syntax.Location, call.Method);
@@ -794,7 +794,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 receiver = node.ReceiverOpt;
                 var refKind = node.Method.ContainingType.IsReadOnly?
-                                                    RefKind.RefReadOnly:
+                                                    RefKind.In:
                                                     ReceiverSpillRefKind(receiver);
 
                 receiver = Spill(receiverBuilder, VisitExpression(ref receiverBuilder, receiver), refKind: refKind);

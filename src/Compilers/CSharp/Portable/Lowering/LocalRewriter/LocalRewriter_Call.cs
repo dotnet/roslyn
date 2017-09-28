@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < parameters.Length; i++)
             {
                 var paramRefKind = parameters[i].RefKind;
-                if (paramRefKind == RefKind.RefReadOnly)
+                if (paramRefKind == RefKind.In)
                 {
                     if (refKindsBuilder == null)
                     {
@@ -661,9 +661,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression argument = rewrittenArguments[a];
                 int p = (!argsToParamsOpt.IsDefault) ? argsToParamsOpt[a] : a;
                 RefKind refKind = argumentRefKinds.RefKinds(a);
-                if (refKind == RefKind.None && parameters[p].RefKind == RefKind.RefReadOnly)
+                if (refKind == RefKind.None && parameters[p].RefKind == RefKind.In)
                 {
-                    refKind = RefKind.RefReadOnly;
+                    refKind = RefKind.In;
                 }
 
                 Debug.Assert(arguments[p] == null);

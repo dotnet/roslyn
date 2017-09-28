@@ -36,7 +36,7 @@ class Test
                 Assert.True(method.ReturnsByRefReadonly);
 
                 var parameter = method.GetParameters().Single();
-                Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+                Assert.Equal(RefKind.In, parameter.RefKind);
 
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, parameter.GetAttributes(), module.ContainingAssembly.Name);
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
@@ -56,7 +56,7 @@ class Test
             CompileAndVerify(text, symbolValidator: module =>
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("M").GetParameters().Single();
-                Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+                Assert.Equal(RefKind.In, parameter.RefKind);
 
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Internal, parameter.GetAttributes(), module.ContainingAssembly.Name);
             });
@@ -108,7 +108,7 @@ class Test
                 Assert.True(method.ReturnsByRefReadonly);
 
                 var parameter = method.GetParameters().Single();
-                Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+                Assert.Equal(RefKind.In, parameter.RefKind);
 
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
@@ -138,7 +138,7 @@ struct Test
 
                 foreach (var parameter in method.Parameters)
                 {
-                    Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+                    Assert.Equal(RefKind.In, parameter.RefKind);
                     AssertReferencedIsReadOnlyAttribute(Accessibility.Public, parameter.GetAttributes(), module.ContainingAssembly.Name);
                 }
             });
@@ -190,7 +190,7 @@ struct Test
                 Assert.Equal(2, method.ParameterCount);
                 foreach (var parameter in method.Parameters)
                 {
-                    Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+                    Assert.Equal(RefKind.In, parameter.RefKind);
                     AssertReferencedIsReadOnlyAttribute(Accessibility.Public, parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
                 }
 
@@ -217,7 +217,7 @@ class Test
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod(".ctor").Parameters.Single();
 
-                Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+                Assert.Equal(RefKind.In, parameter.RefKind);
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, parameter.GetAttributes(), module.ContainingAssembly.Name);
             });
         }
@@ -261,7 +261,7 @@ class Test
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod(".ctor").Parameters.Single();
 
-                Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+                Assert.Equal(RefKind.In, parameter.RefKind);
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
 
                 AssertNoIsReadOnlyAttributeExists(module.ContainingAssembly);
@@ -391,7 +391,7 @@ class Test
                 Assert.True(indexer.ReturnsByRefReadonly);
 
                 var parameter = indexer.GetParameters().Single();
-                Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+                Assert.Equal(RefKind.In, parameter.RefKind);
 
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, parameter.GetAttributes(), module.ContainingAssembly.Name);
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, indexer.GetAttributes(), module.ContainingAssembly.Name);
@@ -411,7 +411,7 @@ class Test
             CompileAndVerify(text, symbolValidator: module =>
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]").GetParameters().Single();
-                Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+                Assert.Equal(RefKind.In, parameter.RefKind);
 
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Internal, parameter.GetAttributes(), module.ContainingAssembly.Name);
             });
@@ -463,7 +463,7 @@ class Test
                 Assert.True(indexer.ReturnsByRefReadonly);
 
                 var parameter = indexer.GetParameters().Single();
-                Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+                Assert.Equal(RefKind.In, parameter.RefKind);
 
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, indexer.GetAttributes(), referenceA.Compilation.AssemblyName);
@@ -490,7 +490,7 @@ public delegate in int D(in int x);
                 Assert.True(method.ReturnsByRefReadonly);
 
                 var parameter = method.GetParameters().Single();
-                Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+                Assert.Equal(RefKind.In, parameter.RefKind);
 
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, parameter.GetAttributes(), module.ContainingAssembly.Name);
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
@@ -507,7 +507,7 @@ public delegate void D(in int x);
             CompileAndVerify(text, symbolValidator: module =>
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod.GetParameters().Single();
-                Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+                Assert.Equal(RefKind.In, parameter.RefKind);
 
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Internal, parameter.GetAttributes(), module.ContainingAssembly.Name);
             });
@@ -552,7 +552,7 @@ public delegate ref readonly int D(in int x);
                 Assert.True(method.ReturnsByRefReadonly);
 
                 var parameter = method.GetParameters().Single();
-                Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+                Assert.Equal(RefKind.In, parameter.RefKind);
 
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
@@ -589,7 +589,7 @@ public class Test
                 Assert.True(method.ReturnsByRefReadonly);
 
                 var parameter = method.GetParameters().Single();
-                Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+                Assert.Equal(RefKind.In, parameter.RefKind);
 
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, parameter.GetAttributes(), module.ContainingAssembly.Name);
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
@@ -613,7 +613,7 @@ public class Test
             CompileAndVerify(text, options: options, symbolValidator: module =>
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("<M>g__Inner|0_0").GetParameters().Single();
-                Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+                Assert.Equal(RefKind.In, parameter.RefKind);
 
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Internal, parameter.GetAttributes(), module.ContainingAssembly.Name);
             });
@@ -678,7 +678,7 @@ public class Test
                 Assert.True(method.ReturnsByRefReadonly);
 
                 var parameter = method.GetParameters().Single();
-                Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+                Assert.Equal(RefKind.In, parameter.RefKind);
 
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
@@ -717,7 +717,7 @@ class Test
                 Assert.True(method.ReturnsByRefReadonly);
 
                 var parameter = method.GetParameters().Single();
-                Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+                Assert.Equal(RefKind.In, parameter.RefKind);
 
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, parameter.GetAttributes(), module.ContainingAssembly.Name);
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
@@ -745,7 +745,7 @@ class Test
             CompileAndVerify(text, options: options, symbolValidator: module =>
             {
                 var parameter = module.GlobalNamespace.GetMember<MethodSymbol>("Test.<>c.<M1>b__0_0").GetParameters().Single();
-                Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+                Assert.Equal(RefKind.In, parameter.RefKind);
 
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Internal, parameter.GetAttributes(), module.ContainingAssembly.Name);
             });
@@ -813,7 +813,7 @@ class Test
                 Assert.True(method.ReturnsByRefReadonly);
 
                 var parameter = method.GetParameters().Single();
-                Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+                Assert.Equal(RefKind.In, parameter.RefKind);
 
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, parameter.GetAttributes(), referenceA.Compilation.AssemblyName);
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, method.GetReturnTypeAttributes(), referenceA.Compilation.AssemblyName);
@@ -1151,7 +1151,7 @@ public class Test
                 AssertNoIsReadOnlyAttributeExists(module.ContainingAssembly);
 
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("M").GetParameters().Single();
-                Assert.Equal(RefKind.RefReadOnly, parameter.RefKind);
+                Assert.Equal(RefKind.In, parameter.RefKind);
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Public, parameter.GetAttributes(), reference.Display);
             });
         }

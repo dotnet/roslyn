@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitExpression(argument, true);
                     break;
 
-                case RefKind.RefReadOnly:
+                case RefKind.In:
                     var temp = EmitAddress(argument, AddressKind.ReadOnly);
                     AddExpressionTemp(temp);
                     break;

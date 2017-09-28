@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 case SyntaxKind.ReadOnlyKeyword:
                                     Debug.Assert(refKind == RefKind.Ref || syntax.HasErrors);
-                                    refKind = RefKind.RefReadOnly;
+                                    refKind = RefKind.In;
                                     allValue = false;
                                     break;
 

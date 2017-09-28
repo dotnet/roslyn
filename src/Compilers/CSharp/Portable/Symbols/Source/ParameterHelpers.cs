@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var parameter in parameters)
             {
-                if (parameter.RefKind == RefKind.RefReadOnly)
+                if (parameter.RefKind == RefKind.In)
                 {
                     // These parameters might not come from a compilation (example: lambdas evaluated in EE).
                     // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
@@ -533,11 +533,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             refKind = RefKind.Ref;
                         }
                         break;
-                    case SyntaxKind.ReadOnlyKeyword:
-                        if (refKind == RefKind.Ref)
+                    case SyntaxKind.InKeyword:
+                        if (refKind == RefKind.None)
                         {
                             refnessKeyword = modifier;
-                            refKind = RefKind.RefReadOnly;
+                            refKind = RefKind.In;
                         }
                         break;
                     case SyntaxKind.ParamsKeyword:

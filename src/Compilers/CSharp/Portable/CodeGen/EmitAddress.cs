@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Parameter:
                     return !needWriteable || 
-                        ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.RefReadOnly;
+                        ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.In;
 
                 case BoundKind.Local:
                     // locals have home unless they are byval stack locals or ref-readonly

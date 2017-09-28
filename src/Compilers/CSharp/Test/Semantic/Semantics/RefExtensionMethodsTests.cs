@@ -1962,7 +1962,7 @@ public static class Ext
 
             var model = comp.GetSemanticModel(tree);
             var symbol = (ParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
-            Assert.Equal(RefKind.RefReadOnly, symbol.RefKind);
+            Assert.Equal(RefKind.In, symbol.RefKind);
         }
 
         [Fact]

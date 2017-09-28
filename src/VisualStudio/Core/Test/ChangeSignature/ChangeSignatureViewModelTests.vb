@@ -359,7 +359,7 @@ class MyClass
 
         <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestRefKindsDisplayedCorrectly() As Tasks.Task
-            Dim includedInTest = {RefKind.None, RefKind.Ref, RefKind.Out, RefKind.RefReadOnly}
+            Dim includedInTest = {RefKind.None, RefKind.Ref, RefKind.Out, RefKind.In, RefKind.RefReadOnly}
             Assert.Equal(includedInTest, EnumUtilities.GetValues(Of RefKind)())
 
             Dim markup = <Text><![CDATA[
