@@ -278,7 +278,7 @@ End Class]]>.Value
 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(), IsInvalid) (Syntax: 'New Integer(x(0)) {1, 2}')
   Dimension Sizes(1):
       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x(0)')
-        Left: IArrayElementReferenceExpression (OperationKind.None) (Syntax: 'x(0)')
+        Left: IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.Int32) (Syntax: 'x(0)')
             Array reference: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32()) (Syntax: 'x')
             Indices(1):
                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -565,13 +565,13 @@ End Class]]>.Value
 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32(,)) (Syntax: 'New Integer ... ), x(1)) {}')
   Dimension Sizes(2):
       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x(0)')
-        Left: IArrayElementReferenceExpression (OperationKind.None) (Syntax: 'x(0)')
+        Left: IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.Int32) (Syntax: 'x(0)')
             Array reference: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32()) (Syntax: 'x')
             Indices(1):
                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
         Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'x(0)')
       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x(1)')
-        Left: IArrayElementReferenceExpression (OperationKind.None) (Syntax: 'x(1)')
+        Left: IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.Int32) (Syntax: 'x(1)')
             Array reference: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32()) (Syntax: 'x')
             Indices(1):
                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')

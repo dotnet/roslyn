@@ -350,13 +350,13 @@ IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreation
             Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Int32[]) (Syntax: '{ [0] = 1, [1] = 2 }')
                 Initializers(2):
                     ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '[0] = 1')
-                      Left: IArrayElementReferenceExpression (OperationKind.None) (Syntax: '[0]')
+                      Left: IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.Int32) (Syntax: '[0]')
                           Array reference: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: System.Int32[]) (Syntax: 'a')
                           Indices(1):
                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
                       Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                     ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '[1] = 2')
-                      Left: IArrayElementReferenceExpression (OperationKind.None) (Syntax: '[1]')
+                      Left: IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.Int32) (Syntax: '[1]')
                           Array reference: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: System.Int32[]) (Syntax: 'a')
                           Indices(1):
                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')

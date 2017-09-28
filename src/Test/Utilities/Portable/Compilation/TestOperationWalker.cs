@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitOmittedArgumentExpression(operation);
         }
 
-        internal override void VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation)
+        public override void VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation)
         {
             base.VisitArrayElementReferenceExpression(operation);
         }
