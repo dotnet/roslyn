@@ -9570,13 +9570,19 @@ tryAgain:
 
         private bool IsPossibleArgumentExpression()
         {
-            switch (this.CurrentToken.Kind)
+            return IsValidArgumentRefKindKeyword(this.CurrentToken.Kind) || this.IsPossibleExpression();
+        }
+
+        private static bool IsValidArgumentRefKindKeyword(SyntaxKind kind)
+        {
+            switch (kind)
             {
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.OutKeyword:
+                case SyntaxKind.InKeyword:
                     return true;
                 default:
-                    return this.IsPossibleExpression();
+                    return false;
             }
         }
 
@@ -9591,10 +9597,10 @@ tryAgain:
                 nameColon = CheckFeatureAvailability(nameColon, MessageID.IDS_FeatureNamedArgument);
             }
 
-            SyntaxToken refOrOutKeyword = null;
-            if (this.CurrentToken.Kind == SyntaxKind.RefKeyword || this.CurrentToken.Kind == SyntaxKind.OutKeyword)
+            SyntaxToken refKindKeyword = null;
+            if (IsValidArgumentRefKindKeyword(this.CurrentToken.Kind))
             {
-                refOrOutKeyword = this.EatToken();
+                refKindKeyword = this.EatToken();
             }
 
             ExpressionSyntax expression;
@@ -9609,18 +9615,23 @@ tryAgain:
             }
             else
             {
+                if (refKindKeyword?.Kind == SyntaxKind.InKeyword)
+                {
+                    refKindKeyword = this.CheckFeatureAvailability(refKindKeyword, MessageID.IDS_FeatureReadOnlyReferences);
+                }
+
                 // According to Language Specification, section 7.6.7 Element access
                 //      The argument-list of an element-access is not allowed to contain ref or out arguments.
                 // However, we actually do support ref indexing of indexed properties in COM interop
                 // scenarios, and when indexing an object of static type "dynamic". So we enforce
                 // that the ref/out of the argument must match the parameter when binding the argument list.
 
-                expression = (refOrOutKeyword?.Kind == SyntaxKind.OutKeyword)
+                expression = (refKindKeyword?.Kind == SyntaxKind.OutKeyword)
                     ? ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: MessageID.IDS_FeatureOutVar, permitTupleDesignation: false)
                     : ParseSubExpression(Precedence.Expression);
             }
 
-            return _syntaxFactory.Argument(nameColon, refOrOutKeyword, expression);
+            return _syntaxFactory.Argument(nameColon, refKindKeyword, expression);
         }
 
         private TypeOfExpressionSyntax ParseTypeOfExpression()

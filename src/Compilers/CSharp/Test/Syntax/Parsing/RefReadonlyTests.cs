@@ -56,6 +56,51 @@ unsafe class Program
         }
 
         [Fact]
+        public void InArgs_CSharp7()
+        {
+            var text = @"
+class Program
+{
+    static void M(in int x)
+    {
+    }
+
+    int this[in int x]
+    {
+        get
+        {
+            return 1;
+        }
+    }
+
+    static void Test1()
+    {
+        int x = 1;
+        M(in x);
+
+        _ = (new Program())[in x];
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1), options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (4,19): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     static void M(in int x)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("readonly references", "7.2").WithLocation(4, 19),
+                // (8,14): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     int this[in int x]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("readonly references", "7.2").WithLocation(8, 14),
+                // (19,11): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         M(in x);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("readonly references", "7.2").WithLocation(19, 11),
+                // (21,29): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         _ = (new Program())[in x];
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("readonly references", "7.2").WithLocation(21, 29)
+            );
+        }
+
+        [Fact]
         public void RefReadonlyReturn_Unexpected()
         {
             var text = @"
@@ -328,10 +373,7 @@ class Test
         int x = 0;
         M(in x);
     }
-}").GetParseDiagnostics().Verify(
-                // (10,11): error CS1041: Identifier expected; 'in' is a keyword
-                //         M(in x);
-                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "in").WithArguments("", "in").WithLocation(10, 11));
+}").GetParseDiagnostics().Verify();
         }
 
         [Fact]

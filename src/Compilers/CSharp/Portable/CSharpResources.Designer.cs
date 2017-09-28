@@ -8450,7 +8450,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression cannot be used in this context because it may not be returned by reference.
+        ///   Looks up a localized string similar to An expression cannot be used in this context because it may not be passed or returned by reference.
         /// </summary>
         internal static string ERR_RefReturnLvalueExpected {
             get {

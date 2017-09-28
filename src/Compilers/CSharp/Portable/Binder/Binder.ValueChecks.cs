@@ -1193,7 +1193,6 @@ moreArguments:
                     var refKind = argRefKindsOpt.IsDefault ? RefKind.None : argRefKindsOpt[argIndex];
                     if (refKind != RefKind.None && argument.Type?.IsByRefLikeType == true)
                     {
-                        Debug.Assert(refKind == RefKind.Ref || refKind == RefKind.Out);
                         escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
                     }
                 }
@@ -1209,7 +1208,6 @@ moreArguments:
                         var refKind = argListRefKindsOpt.IsDefault ? RefKind.None : argListRefKindsOpt[argIndex];
                         if (refKind != RefKind.None && argument.Type?.IsByRefLikeType == true)
                         {
-                            Debug.Assert(refKind == RefKind.Ref || refKind == RefKind.Out);
                             escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
                         }
                     }

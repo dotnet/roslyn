@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis
             {
                 case RefKind.Out: return "out";
                 case RefKind.Ref: return "ref";
+                case RefKind.RefReadOnly: return "in";
                 default: throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
