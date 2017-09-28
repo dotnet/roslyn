@@ -96,10 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var deconstructionDiagnostics = new DiagnosticBag();
             BoundExpression boundRight = rightPlaceholder ?? BindValue(right, deconstructionDiagnostics, BindValueKind.RValue);
-            if (!deconstructionDiagnostics.HasAnyErrors())
-            {
-                boundRight = FixTupleLiteral(locals.NestedVariables, boundRight, deconstruction, deconstructionDiagnostics);
-            }
+            boundRight = FixTupleLiteral(locals.NestedVariables, boundRight, deconstruction, deconstructionDiagnostics);
 
             bool resultIsUsed = resultIsUsedOverride || IsDeconstructionResultUsed(left);
             var assignment = BindDeconstructionAssignment(deconstruction, left, boundRight, locals.NestedVariables, resultIsUsed, deconstructionDiagnostics);
@@ -206,7 +203,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Let's fix the literal up by figuring out its type
                 // For declarations, that means merging type information from the LHS and RHS
                 // For assignments, only the LHS side matters since it is necessarily typed
-                TypeSymbol mergedTupleType = MakeMergedTupleType(checkedVariables, (BoundTupleLiteral)boundRHS, syntax, Compilation, diagnostics);
+
+                // If we already have diagnostics at this point, it is not worth collecting likely duplicate diagnostics from making the merged type
+                bool hadErrors = diagnostics.HasAnyErrors();
+                TypeSymbol mergedTupleType = MakeMergedTupleType(checkedVariables, (BoundTupleLiteral)boundRHS, syntax, Compilation, hadErrors ? null : diagnostics);
                 if ((object)mergedTupleType != null)
                 {
                     boundRHS = GenerateConversionForAssignment(mergedTupleType, boundRHS, diagnostics);

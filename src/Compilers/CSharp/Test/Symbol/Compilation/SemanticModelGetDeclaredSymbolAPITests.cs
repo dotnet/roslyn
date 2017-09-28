@@ -4970,12 +4970,21 @@ class C
             compilation.VerifyDiagnostics(
                 // (6,31): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
                 //         (short X, string Y) = (Alice: 1, Bob: null);
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(Alice: 1, Bob: null)").WithArguments("System.ValueTuple`2").WithLocation(6, 31)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(Alice: 1, Bob: null)").WithArguments("System.ValueTuple`2").WithLocation(6, 31),
+                // (6,32): warning CS8123: The tuple element name 'Alice' is ignored because a different name or no name is specified by the target type '(short, string)'.
+                //         (short X, string Y) = (Alice: 1, Bob: null);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "Alice: 1").WithArguments("Alice", "(short, string)").WithLocation(6, 32),
+                // (6,42): warning CS8123: The tuple element name 'Bob' is ignored because a different name or no name is specified by the target type '(short, string)'.
+                //         (short X, string Y) = (Alice: 1, Bob: null);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "Bob: null").WithArguments("Bob", "(short, string)").WithLocation(6, 42)
                 );
             var tree = compilation.SyntaxTrees[0];
             var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
             var model = compilation.GetSemanticModel(tree);
-            Assert.Null(model.GetDeclaredSymbol(decl));
+            var element = (FieldSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal(element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short Alice, string Bob).Bob");
+            Assert.Equal(element.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "Bob");
+            Assert.Equal(element.Locations.Single().IsInSource, true);
         }
 
         [Fact]

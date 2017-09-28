@@ -2614,7 +2614,8 @@ namespace System
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlibAndSpan(text);
+            compilation.VerifyDiagnostics(
                 // (12,29): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (global, global) = (local, local); // error 1
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(12, 29),
@@ -2637,6 +2638,132 @@ namespace System
                 //         (c, s) = (local, ""); // error 6
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(20, 19)
             );
+
+            // Check the Type and ConvertedType of tuples on the right-hand-side
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(3);
+            Assert.Equal(@"(local, """")", tuple2.ToString());
+            Assert.Equal(@"(global, s) = (local, """")", tuple2.Parent.ToString());
+            Assert.Equal("(System.Span<int> local, string)", model.GetTypeInfo(tuple2).Type.ToString());
+            Assert.Equal("(System.Span<int>, string)", model.GetTypeInfo(tuple2).ConvertedType.ToString());
+
+            var tuple3 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(5);
+            Assert.Equal(@"(local, null)", tuple3.ToString());
+            Assert.Equal(@"(global, s) = (local, null)", tuple3.Parent.ToString());
+            Assert.Null(model.GetTypeInfo(tuple3).Type);
+            Assert.Equal("(System.Span<int>, string)", model.GetTypeInfo(tuple3).ConvertedType.ToString());
+
+            var tuple6 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(11);
+            Assert.Equal(@"(local, """")", tuple6.ToString());
+            Assert.Equal(@"(c, s) = (local, """")", tuple6.Parent.ToString());
+            Assert.Equal("(System.Span<int> local, string)", model.GetTypeInfo(tuple6).Type.ToString());
+            Assert.Equal("(C, string)", model.GetTypeInfo(tuple6).ConvertedType.ToString());
+
+            var tuple7 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(13);
+            Assert.Equal("(local, null)", tuple7.ToString());
+            Assert.Equal("(c, s) = (local, null)", tuple7.Parent.ToString());
+            Assert.Null(model.GetTypeInfo(tuple7).Type);
+            Assert.Equal("(C, string)", model.GetTypeInfo(tuple7).ConvertedType.ToString());
+        }
+
+        [Fact]
+        public void DeconstructionAssignmentOfTuple_WithoutValueTuple()
+        {
+            var text = @"
+using System;
+
+public class C
+{
+    public void M(ref Span<int> global)
+    {
+        Span<int> local = stackalloc int[10];
+        string s;
+        C c;
+
+        (global, global) = (local, local); // error 1
+
+        (global, s) = (local, """"); // error 2
+        (global, s) = (local, null); // error 3
+
+        (local, s) = (global, """"); // error 4
+        (local, s) = (global, null); // error 5
+
+        (c, s) = (local, """"); // error 6
+        (c, s) = (local, null); // error 7
+    }
+    public static void Main() => throw null;
+    public static implicit operator C(Span<int> s) => throw null;
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSpan(text);
+            compilation.VerifyDiagnostics(
+                // (12,28): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                //         (global, global) = (local, local); // error 1
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(local, local)").WithArguments("System.ValueTuple`2").WithLocation(12, 28),
+                // (12,29): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         (global, global) = (local, local); // error 1
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(12, 29),
+                // (12,36): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         (global, global) = (local, local); // error 1
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(12, 36),
+                // (14,23): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                //         (global, s) = (local, ""); // error 2
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, @"(local, """")").WithArguments("System.ValueTuple`2").WithLocation(14, 23),
+                // (14,24): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         (global, s) = (local, ""); // error 2
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(14, 24),
+                // (15,23): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                //         (global, s) = (local, null); // error 3
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(local, null)").WithArguments("System.ValueTuple`2").WithLocation(15, 23),
+                // (17,22): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                //         (local, s) = (global, ""); // error 4
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, @"(global, """")").WithArguments("System.ValueTuple`2").WithLocation(17, 22),
+                // (17,23): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         (local, s) = (global, ""); // error 4
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(17, 23),
+                // (18,22): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                //         (local, s) = (global, null); // error 5
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(global, null)").WithArguments("System.ValueTuple`2").WithLocation(18, 22),
+                // (20,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                //         (c, s) = (local, ""); // error 6
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, @"(local, """")").WithArguments("System.ValueTuple`2").WithLocation(20, 18),
+                // (20,19): error CS0306: The type 'Span<int>' may not be used as a type argument
+                //         (c, s) = (local, ""); // error 6
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(20, 19),
+                // (21,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
+                //         (c, s) = (local, null);
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(local, null)").WithArguments("System.ValueTuple`2").WithLocation(21, 18)
+            );
+
+            // Check the Type and ConvertedType of tuples on the right-hand-side
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(3);
+            Assert.Equal(@"(local, """")", tuple2.ToString());
+            Assert.Equal(@"(global, s) = (local, """")", tuple2.Parent.ToString());
+            Assert.Equal("(System.Span<int> local, string)", model.GetTypeInfo(tuple2).Type.ToString());
+            Assert.Equal("(System.Span<int>, string)", model.GetTypeInfo(tuple2).ConvertedType.ToString());
+
+            var tuple3 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(5);
+            Assert.Equal(@"(local, null)", tuple3.ToString());
+            Assert.Equal(@"(global, s) = (local, null)", tuple3.Parent.ToString());
+            Assert.Null(model.GetTypeInfo(tuple3).Type);
+            Assert.Equal("(System.Span<int>, string)", model.GetTypeInfo(tuple3).ConvertedType.ToString());
+
+            var tuple6 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(11);
+            Assert.Equal(@"(local, """")", tuple6.ToString());
+            Assert.Equal(@"(c, s) = (local, """")", tuple6.Parent.ToString());
+            Assert.Equal("(System.Span<int> local, string)", model.GetTypeInfo(tuple6).Type.ToString());
+            Assert.Equal("(C, string)", model.GetTypeInfo(tuple6).ConvertedType.ToString());
+
+            var tuple7 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(13);
+            Assert.Equal("(local, null)", tuple7.ToString());
+            Assert.Equal("(c, s) = (local, null)", tuple7.Parent.ToString());
+            Assert.Null(model.GetTypeInfo(tuple7).Type);
+            Assert.Equal("(C, string)", model.GetTypeInfo(tuple7).ConvertedType.ToString());
         }
 
         [Fact]
@@ -2683,7 +2810,8 @@ namespace System
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlibAndSpan(text);
+            compilation.VerifyDiagnostics(
                 // (12,29): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (global, global) = (local, local); // error 1
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(12, 29),
@@ -2713,10 +2841,7 @@ namespace System
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(18, 23),
                 // (20,19): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (c, s) = (local, ""); // error 6
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(20, 19),
-                // (20,19): error CS8352: Cannot use local 'local' in this context because it may expose referenced variables outside of their declaration scope
-                //         (c, s) = (local, ""); // error 6
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "local").WithArguments("local").WithLocation(20, 19)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(20, 19)
             );
         }
 

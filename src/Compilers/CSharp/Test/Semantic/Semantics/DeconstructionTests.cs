@@ -4596,7 +4596,10 @@ class C
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 17),
                 // (5,31): error CS8210: A tuple may not contain a value of type 'void'.
                 //         (int x, void y) = (1, Main());
-                Diagnostic(ErrorCode.ERR_VoidInTuple, "Main()").WithLocation(5, 31)
+                Diagnostic(ErrorCode.ERR_VoidInTuple, "Main()").WithLocation(5, 31),
+                // (5,17): error CS0029: Cannot implicitly convert type 'void' to 'void'
+                //         (int x, void y) = (1, Main());
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "void y").WithArguments("void", "void").WithLocation(5, 17)
                 );
             var main = comp.GetMember<MethodSymbol>("C.Main");
             var tree = comp.SyntaxTrees[0];
