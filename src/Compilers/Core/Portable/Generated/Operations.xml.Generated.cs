@@ -234,15 +234,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseArrayCreationExpression : Operation, IArrayCreationExpression
     {
-        protected BaseArrayCreationExpression(ITypeSymbol elementType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseArrayCreationExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.ArrayCreationExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            ElementType = elementType;
         }
-        /// <summary>
-        /// Element type of the created array instance.
-        /// </summary>
-        public ITypeSymbol ElementType { get; }
         protected abstract ImmutableArray<IOperation> DimensionSizesImpl { get; }
         protected abstract IArrayInitializer InitializerImpl { get; }
         public override IEnumerable<IOperation> Children
@@ -279,8 +274,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class ArrayCreationExpression : BaseArrayCreationExpression, IArrayCreationExpression
     {
-        public ArrayCreationExpression(ITypeSymbol elementType, ImmutableArray<IOperation> dimensionSizes, IArrayInitializer initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(elementType, semanticModel, syntax, type, constantValue, isImplicit)
+        public ArrayCreationExpression(ImmutableArray<IOperation> dimensionSizes, IArrayInitializer initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             DimensionSizesImpl = dimensionSizes;
             InitializerImpl = initializer;
@@ -298,7 +293,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         private readonly Lazy<ImmutableArray<IOperation>> _lazyDimensionSizes;
         private readonly Lazy<IArrayInitializer> _lazyInitializer;
 
-        public LazyArrayCreationExpression(ITypeSymbol elementType, Lazy<ImmutableArray<IOperation>> dimensionSizes, Lazy<IArrayInitializer> initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(elementType, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyArrayCreationExpression(Lazy<ImmutableArray<IOperation>> dimensionSizes, Lazy<IArrayInitializer> initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyDimensionSizes = dimensionSizes;
             _lazyInitializer = initializer ?? throw new System.ArgumentNullException(nameof(initializer));
@@ -1274,9 +1270,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class EndStatement : Operation, IEndStatement
     {
         public EndStatement(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            // https://github.com/dotnet/roslyn/issues/22004
-            // base(OperationKind.EndStatement, semanticModel, syntax, type, constantValue, isImplicit)
-            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+            base(OperationKind.EndStatement, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
         public override IEnumerable<IOperation> Children
@@ -4140,9 +4134,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class StopStatement : Operation, IStopStatement
     {
         public StopStatement(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            // https://github.com/dotnet/roslyn/issues/21297
-            // base(OperationKind.StopStatement, semanticModel, syntax, type, constantValue, isImplicit)
-            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+            base(OperationKind.StopStatement, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
         public override IEnumerable<IOperation> Children

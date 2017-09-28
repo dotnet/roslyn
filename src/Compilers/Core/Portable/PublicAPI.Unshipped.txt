@@ -77,6 +77,7 @@ Microsoft.CodeAnalysis.OperationKind.DynamicInvocationExpression = 295 -> Micros
 Microsoft.CodeAnalysis.OperationKind.DynamicMemberReferenceExpression = 294 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.DynamicObjectCreationExpression = 293 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.EmptyStatement = 9 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.EndStatement = 81 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.EventAssignmentExpression = 283 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.EventReferenceExpression = 268 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.ExpressionStatement = 17 -> Microsoft.CodeAnalysis.OperationKind
@@ -114,6 +115,7 @@ Microsoft.CodeAnalysis.OperationKind.PropertyReferenceExpression = 266 -> Micros
 Microsoft.CodeAnalysis.OperationKind.ReturnStatement = 11 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.SimpleAssignmentExpression = 280 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.SizeOfExpression = 514 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.StopStatement = 80 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.SwitchCase = 1033 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.SwitchStatement = 4 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.ThrowExpression = 519 -> Microsoft.CodeAnalysis.OperationKind
@@ -202,7 +204,6 @@ Microsoft.CodeAnalysis.Semantics.IArgument.Parameter.get -> Microsoft.CodeAnalys
 Microsoft.CodeAnalysis.Semantics.IArgument.Value.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IArrayCreationExpression
 Microsoft.CodeAnalysis.Semantics.IArrayCreationExpression.DimensionSizes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
-Microsoft.CodeAnalysis.Semantics.IArrayCreationExpression.ElementType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Semantics.IArrayCreationExpression.Initializer.get -> Microsoft.CodeAnalysis.Semantics.IArrayInitializer
 Microsoft.CodeAnalysis.Semantics.IArrayInitializer
 Microsoft.CodeAnalysis.Semantics.IArrayInitializer.ElementValues.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
@@ -276,6 +277,7 @@ Microsoft.CodeAnalysis.Semantics.IDynamicObjectCreationExpression
 Microsoft.CodeAnalysis.Semantics.IDynamicObjectCreationExpression.Arguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.IDynamicObjectCreationExpression.Initializer.get -> Microsoft.CodeAnalysis.Semantics.IObjectOrCollectionInitializerExpression
 Microsoft.CodeAnalysis.Semantics.IEmptyStatement
+Microsoft.CodeAnalysis.Semantics.IEndStatement
 Microsoft.CodeAnalysis.Semantics.IEventAssignmentExpression
 Microsoft.CodeAnalysis.Semantics.IEventAssignmentExpression.Adds.get -> bool
 Microsoft.CodeAnalysis.Semantics.IEventAssignmentExpression.EventReference.get -> Microsoft.CodeAnalysis.Semantics.IEventReferenceExpression
@@ -402,6 +404,7 @@ Microsoft.CodeAnalysis.Semantics.ISingleValueCaseClause
 Microsoft.CodeAnalysis.Semantics.ISingleValueCaseClause.Value.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.ISizeOfExpression
 Microsoft.CodeAnalysis.Semantics.ISizeOfExpression.TypeOperand.get -> Microsoft.CodeAnalysis.ITypeSymbol
+Microsoft.CodeAnalysis.Semantics.IStopStatement
 Microsoft.CodeAnalysis.Semantics.ISwitchCase
 Microsoft.CodeAnalysis.Semantics.ISwitchCase.Body.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.ISwitchCase.Clauses.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.ICaseClause>
@@ -521,6 +524,7 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitDynamicInvocation
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitDynamicMemberReferenceExpression(Microsoft.CodeAnalysis.Semantics.IDynamicMemberReferenceExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitDynamicObjectCreationExpression(Microsoft.CodeAnalysis.Semantics.IDynamicObjectCreationExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitEmptyStatement(Microsoft.CodeAnalysis.Semantics.IEmptyStatement operation) -> void
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitEndStatement(Microsoft.CodeAnalysis.Semantics.IEndStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitEventAssignmentExpression(Microsoft.CodeAnalysis.Semantics.IEventAssignmentExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitEventReferenceExpression(Microsoft.CodeAnalysis.Semantics.IEventReferenceExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitExpressionStatement(Microsoft.CodeAnalysis.Semantics.IExpressionStatement operation) -> void
@@ -563,6 +567,7 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitReturnStatement(M
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitSimpleAssignmentExpression(Microsoft.CodeAnalysis.Semantics.ISimpleAssignmentExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitSingleValueCaseClause(Microsoft.CodeAnalysis.Semantics.ISingleValueCaseClause operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitSizeOfExpression(Microsoft.CodeAnalysis.Semantics.ISizeOfExpression operation) -> void
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitStopStatement(Microsoft.CodeAnalysis.Semantics.IStopStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitSwitchCase(Microsoft.CodeAnalysis.Semantics.ISwitchCase operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitSwitchStatement(Microsoft.CodeAnalysis.Semantics.ISwitchStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitThrowExpression(Microsoft.CodeAnalysis.Semantics.IThrowExpression operation) -> void
@@ -605,6 +610,7 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.Vi
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitDynamicMemberReferenceExpression(Microsoft.CodeAnalysis.Semantics.IDynamicMemberReferenceExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitDynamicObjectCreationExpression(Microsoft.CodeAnalysis.Semantics.IDynamicObjectCreationExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitEmptyStatement(Microsoft.CodeAnalysis.Semantics.IEmptyStatement operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitEndStatement(Microsoft.CodeAnalysis.Semantics.IEndStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitEventAssignmentExpression(Microsoft.CodeAnalysis.Semantics.IEventAssignmentExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitEventReferenceExpression(Microsoft.CodeAnalysis.Semantics.IEventReferenceExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitExpressionStatement(Microsoft.CodeAnalysis.Semantics.IExpressionStatement operation, TArgument argument) -> TResult
@@ -647,6 +653,7 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.Vi
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitSimpleAssignmentExpression(Microsoft.CodeAnalysis.Semantics.ISimpleAssignmentExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitSingleValueCaseClause(Microsoft.CodeAnalysis.Semantics.ISingleValueCaseClause operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitSizeOfExpression(Microsoft.CodeAnalysis.Semantics.ISizeOfExpression operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitStopStatement(Microsoft.CodeAnalysis.Semantics.IStopStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitSwitchCase(Microsoft.CodeAnalysis.Semantics.ISwitchCase operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitSwitchStatement(Microsoft.CodeAnalysis.Semantics.ISwitchStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitThrowExpression(Microsoft.CodeAnalysis.Semantics.IThrowExpression operation, TArgument argument) -> TResult

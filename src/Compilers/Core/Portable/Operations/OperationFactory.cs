@@ -83,21 +83,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 semanticModel: semanticModel, syntax: syntax, type: resultType, constantValue: default, isImplicit: isImplicit);
         }
 
-        public static IArrayCreationExpression CreateArrayCreationExpression(
-            IArrayTypeSymbol arrayType, ImmutableArray<IOperation> elementValues, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
-        {
-            var initializer = new ArrayInitializer(elementValues, semanticModel, syntax, arrayType, default(Optional<object>), isImplicit);
-            return new ArrayCreationExpression(
-                arrayType.ElementType,
-                ImmutableArray.Create<IOperation>(CreateLiteralExpression(elementValues.Count(), resultType: null, semanticModel: semanticModel, syntax: syntax, isImplicit: isImplicit)),
-                initializer,
-                semanticModel,
-                syntax,
-                arrayType,
-                default(Optional<object>),
-                isImplicit);
-        }
-
         public static IInvalidExpression CreateInvalidExpression(SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)
         {
             return CreateInvalidExpression(semanticModel, syntax, ImmutableArray<IOperation>.Empty, isImplicit);

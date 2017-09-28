@@ -614,13 +614,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Body, "Body");
         }
 
-        internal override void VisitStopStatement(IStopStatement operation)
+        public override void VisitStopStatement(IStopStatement operation)
         {
             LogString(nameof(IStopStatement));
             LogCommonPropertiesAndNewLine(operation);
         }
 
-        internal override void VisitEndStatement(IEndStatement operation)
+        public override void VisitEndStatement(IEndStatement operation)
         {
             LogString(nameof(IEndStatement));
             LogCommonPropertiesAndNewLine(operation);
@@ -1179,7 +1179,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitArrayCreationExpression(IArrayCreationExpression operation)
         {
             LogString(nameof(IArrayCreationExpression));
-            LogString($" (Element Type: {operation.ElementType?.ToTestDisplayString()})");
             LogCommonPropertiesAndNewLine(operation);
 
             VisitArray(operation.DimensionSizes, "Dimension Sizes", logElementCount: true);
