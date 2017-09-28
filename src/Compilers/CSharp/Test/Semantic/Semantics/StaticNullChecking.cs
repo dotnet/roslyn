@@ -16281,6 +16281,116 @@ class C
         }
 
         [Fact]
+        public void IsNull()
+        {
+            var source =
+@"class C
+{
+    static void F1(object o) { }
+    static void F2(object o) { }
+    static void G(object? o)
+    {
+        if (o is null)
+        {
+            F1(o);
+        }
+        else
+        {
+            F2(o);
+        }
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (9,16): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.F1(object o)'.
+                //             F1(o);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("o", "void C.F1(object o)").WithLocation(9, 16));
+        }
+
+        [Fact]
+        public void IsInvalidConstant()
+        {
+            var source =
+@"class C
+{
+    static void F(object o) { }
+    static void G(object? o)
+    {
+        if (o is F)
+        {
+            F(o);
+        }
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0428: Cannot convert method group 'F' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         if (o is F)
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "object").WithLocation(6, 18),
+                // (8,15): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.F(object o)'.
+                //             F(o);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("o", "void C.F(object o)").WithLocation(8, 15));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Should not warn on either call to F(string).
+        [Fact(Skip = "TODO")]
+        public void IsPattern()
+        {
+            var source =
+@"class C
+{
+    static void F(string s) { }
+    static void G(string? s)
+    {
+        if (s is string t)
+        {
+            F(t);
+            F(s);
+        }
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Should only warn on F(x) in `case null`.
+        [Fact(Skip = "TODO")]
+        public void PatternSwitch()
+        {
+            var source =
+@"class C
+{
+    static void F(object o) { }
+    static void G(object? x)
+    {
+        switch (x)
+        {
+            case string s:
+                F(s);
+                F(x); // string s
+                break;
+            case object y when y is string t:
+                F(y);
+                F(t);
+                F(x); // object y
+                break;
+            case null:
+                F(x); // null
+                break;
+            default:
+                F(x); // default
+                break;
+        }
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (18,19): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.F(object o)'.
+                //                 F(x); // null
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("o", "void C.F(object o)").WithLocation(18, 19));
+        }
+
+        [Fact]
         public void GetNullableReferenceFlags()
         {
             // C# 7

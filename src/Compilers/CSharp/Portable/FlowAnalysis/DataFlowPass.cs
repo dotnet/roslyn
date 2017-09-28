@@ -1870,7 +1870,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-#region Visitors
+        #region Visitors
+
+        public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
+        {
+            Debug.Assert(!IsConditionalState);
+
+            // Create slot when the state is unconditional since EnsureCapacity should be
+            // called on all fields and that is simpler if state is limited to this.State.
+            int slot = -1;
+            if (_performStaticNullChecks && this.State.Reachable)
+            {
+                var pattern = node.Pattern;
+                // PROTOTYPE(NullableReferenceTypes): Handle patterns that ensure x is not null:
+                // x is T y // where T is not inferred via var
+                // x is K // where K is a constant other than null
+                if (pattern.Kind == BoundKind.ConstantPattern && ((BoundConstantPattern)pattern).ConstantValue?.IsNull == true)
+                {
+                    slot = MakeSlot(node.Expression);
+                    if (slot > 0)
+                    {
+                        NormalizeNullable(ref this.State);
+                    }
+                }
+            }
+
+            var result = base.VisitIsPatternExpression(node);
+
+            Debug.Assert(IsConditionalState);
+            if (slot > 0)
+            {
+                this.StateWhenTrue[slot] = false;
+                this.StateWhenFalse[slot] = true;
+            }
+
+            return result;
+        }
 
         public override void VisitPattern(BoundExpression expression, BoundPattern pattern)
         {
@@ -3427,7 +3462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        #region TryStatements
+#region TryStatements
 
         private OptionalState _tryState;
 
@@ -3519,7 +3554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        #endregion TryStatements
+#endregion TryStatements
 
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
@@ -4401,7 +4436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitPropertyGroup(node);
         }
 
-        #endregion Visitors
+#endregion Visitors
 
         protected override string Dump(LocalState state)
         {
