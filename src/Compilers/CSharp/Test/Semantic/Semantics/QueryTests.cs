@@ -2523,5 +2523,56 @@ class Program
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "a").WithArguments("a").WithLocation(10, 43)
                 );
         }
+
+        [Fact, WorkItem(12052, "https://github.com/dotnet/roslyn/issues/12052")]
+        public void QueryOnTypeExpression()
+        {
+            var code = @"
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Namespace
+{
+    class Program
+    {
+        static void M<T>() where T : IEnumerable
+        {
+            var query1 = from object a in IEnumerable select 1;
+            var query2 = from b in IEnumerable select 2;
+            var query3 = from int c in IEnumerable<int> select 3;
+            var query4 = from d in IEnumerable<int> select 4;
+            var query5 = from d in T select 5;
+            var query6 = from d in null select 6;
+            var query7 = from d in Namespace select 7;
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(code);
+            comp.VerifyDiagnostics(
+                // (12,43): error CS0119: 'IEnumerable' is a type, which is not valid in the given context
+                //             var query1 = from object a in IEnumerable select 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "IEnumerable").WithArguments("IEnumerable", "type").WithLocation(12, 43),
+                // (13,36): error CS0119: 'IEnumerable' is a type, which is not valid in the given context
+                //             var query2 = from b in IEnumerable select 2;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "IEnumerable").WithArguments("IEnumerable", "type").WithLocation(13, 36),
+                // (14,40): error CS0119: 'IEnumerable<int>' is a type, which is not valid in the given context
+                //             var query3 = from int c in IEnumerable<int> select 3;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "IEnumerable<int>").WithArguments("IEnumerable<int>", "type").WithLocation(14, 40),
+                // (15,36): error CS0119: 'IEnumerable<int>' is a type, which is not valid in the given context
+                //             var query4 = from d in IEnumerable<int> select 4;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "IEnumerable<int>").WithArguments("IEnumerable<int>", "type").WithLocation(15, 36),
+                // (16,36): error CS0119: 'T' is a type, which is not valid in the given context
+                //             var query5 = from d in T select 5;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(16, 36),
+                // (17,41): error CS0186: Use of null is not valid in this context
+                //             var query6 = from d in null select 6;
+                Diagnostic(ErrorCode.ERR_NullNotValid, "select 6").WithLocation(17, 41),
+                // (18,36): error CS0119: 'Namespace' is a namespace, which is not valid in the given context
+                //             var query7 = from d in Namespace select 7;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Namespace").WithArguments("Namespace", "namespace").WithLocation(18, 36)
+                );
+        }
     }
 }
