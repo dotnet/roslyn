@@ -350,9 +350,8 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: D1) (Syntax: 'module = (D ... ) => false)')
         Left: IPropertyReferenceExpression: D1 <anonymous type: D1 module>.module { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: D1) (Syntax: 'module')
             Instance Receiver: null
-        Right: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: D1) (Syntax: '(D1)(() => false)')
-            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => false')
+        Right: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: D1) (Syntax: '(D1)(() => false)')
+            Target: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => false')
                 IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'false')
                   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'false')
                     ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'false')
