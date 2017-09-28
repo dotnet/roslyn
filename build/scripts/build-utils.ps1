@@ -183,15 +183,19 @@ function Ensure-SdkInPathAndData() {
         Write-Host "Downloading CLI $sdkVersion"
         Create-Directory $cliDir
         Create-Directory $toolsDir
-        $webClient = New-Object -TypeName "System.Net.WebClient"
         if (Is-Unix) {
-            $destFile = Join-Path $toolsDir "dotnet-install.sh"
-            $webClient.DownloadFile("https://dot.net/v1/dotnet-install.sh", $destFile)
             # AppImage mucks with LD_LIBRARY_PATH and causes the install to fail
             $old_ld_path = $env:LD_LIBRARY_PATH
             try {
                 $env:LD_LIBRARY_PATH = ""
-                Exec-Block { & bash $destFile -Version $sdkVersion -InstallDir $cliDir } | Out-Null
+                $destFile = Join-Path $toolsDir "dotnet-install.sh"
+                # Should be using System.Net.WebClient.DownloadFile, but that fails
+                # on WSL with "System.Net.Http.CurlException: Couldn't resolve host name"
+                Exec-Block { & curl "https://dot.net/v1/dotnet-install.sh" -o $destFile } | Out-Null
+                # RuntimeId needs to be specified, because some distros do not
+                # define VERSION_ID in /etc/os-release, which causes the install
+                # to fail (due to unset variable).
+                Exec-Block { & bash $destFile -Version $sdkVersion -InstallDir $cliDir -RuntimeId linux-x64 } | Out-Null
             }
             finally {
                 $env:LD_LIBRARY_PATH = $old_ld_path
@@ -199,6 +203,7 @@ function Ensure-SdkInPathAndData() {
         }
         else {
             $destFile = Join-Path $toolsDir "dotnet-install.ps1"
+            $webClient = New-Object -TypeName "System.Net.WebClient"
             $webClient.DownloadFile("https://dot.net/v1/dotnet-install.ps1", $destFile)
             Exec-Block { & $destFile -Version $sdkVersion -InstallDir $cliDir } | Out-Null
         }
