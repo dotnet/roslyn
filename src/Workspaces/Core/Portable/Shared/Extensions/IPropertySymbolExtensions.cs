@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 property.DeclaredAccessibility,
                 property.GetSymbolModifiers(),
                 property.Type,
-                property.ReturnsByRef,
+                property.RefKind,
                 property.ExplicitInterfaceImplementations,
                 property.Name,
                 parameters,
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 property.DeclaredAccessibility,
                 property.GetSymbolModifiers(),
                 property.Type,
-                property.ReturnsByRef,
+                property.RefKind,
                 property.ExplicitInterfaceImplementations,
                 property.Name,
                 property.Parameters.SelectAsArray(p =>

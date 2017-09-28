@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         options.Accessibility,
                         DetermineModifiers(),
                         DetermineReturnType(options),
-                        returnsByRef: false,
+                        RefKind.None,
                         name: options.TypeName,
                         typeParameters: DetermineTypeParameters(options),
                         parameters: DetermineParameters(options));
