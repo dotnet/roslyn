@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
             ITextView textView, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
-                TaggerEventSources.OnEditorFormatMapChanged(_editorFormatMap, TaggerDelay.NearImmediate),
+                new EditorFormatMapChangedEventSource(_editorFormatMap, TaggerDelay.NearImmediate),
                 TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate));
         }
 

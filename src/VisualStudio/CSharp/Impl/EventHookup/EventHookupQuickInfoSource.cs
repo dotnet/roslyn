@@ -10,18 +10,21 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
     internal sealed class EventHookupQuickInfoSource : IQuickInfoSource
     {
         private readonly ClassificationTypeMap _classificationTypeMap;
+        private readonly IClassificationFormatMapService _classificationFormatMapService;
         private readonly ITextBuffer _textBuffer;
 
-        public EventHookupQuickInfoSource(ITextBuffer textBuffer, ClassificationTypeMap classificationTypeMap)
+        public EventHookupQuickInfoSource(ITextBuffer textBuffer, ClassificationTypeMap classificationTypeMap, IClassificationFormatMapService classificationFormatMapService)
         {
             _textBuffer = textBuffer;
             _classificationTypeMap = classificationTypeMap;
+            _classificationFormatMapService = classificationFormatMapService;
         }
 
         void IQuickInfoSource.AugmentQuickInfoSession(IQuickInfoSession existingQuickInfoSession, IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
@@ -81,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         private FrameworkElement CreateContent(string eventName, ClassificationTypeMap classificationTypeMap)
         {
             var textBlock = new TextBlock { TextWrapping = TextWrapping.NoWrap };
-            textBlock.SetDefaultTextProperties(classificationTypeMap.ClassificationFormatMapService.GetClassificationFormatMap("tooltip"));
+            textBlock.SetDefaultTextProperties(_classificationFormatMapService.GetClassificationFormatMap("tooltip"));
 
             var eventNameRun = new Run(eventName + ";");
             eventNameRun.FontWeight = FontWeights.Bold;

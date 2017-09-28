@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Roslyn.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
+Imports Microsoft.VisualStudio.Text.Classification
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ChangeSignature
     Public Class ReorderParametersViewModelTests
@@ -352,7 +353,12 @@ class MyClass
                 Dim token = Await tree.GetTouchingWordAsync(doc.CursorPosition.Value, workspaceDoc.Project.LanguageServices.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
                 Dim symbol = (Await workspaceDoc.GetSemanticModelAsync()).GetDeclaredSymbol(token.Parent)
 
-                Dim viewModel = New ChangeSignatureDialogViewModel(New TestNotificationService(), ParameterConfiguration.Create(symbol.GetParameters().ToList(), symbol.IsExtensionMethod()), symbol, workspace.ExportProvider.GetExport(Of ClassificationTypeMap)().Value)
+                Dim viewModel = New ChangeSignatureDialogViewModel(
+                    New TestNotificationService(),
+                    ParameterConfiguration.Create(symbol.GetParameters().ToList(), symbol.IsExtensionMethod()),
+                    symbol,
+                    workspace.ExportProvider.GetExportedValue(Of IClassificationFormatMapService)().GetClassificationFormatMap("text"),
+                    workspace.ExportProvider.GetExportedValue(Of ClassificationTypeMap)())
                 Return New ChangeSignatureViewModelTestState(viewModel, symbol.GetParameters())
             End Using
         End Function

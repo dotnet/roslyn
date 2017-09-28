@@ -4,6 +4,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
@@ -21,16 +22,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
     internal sealed class EventHookupQuickInfoSourceProvider : IQuickInfoSourceProvider
     {
         private readonly ClassificationTypeMap _classificationTypeMap;
+        private readonly IClassificationFormatMapService _classificationFormatMapService;
 
         [ImportingConstructor]
-        public EventHookupQuickInfoSourceProvider(ClassificationTypeMap classificationTypeMap)
+        public EventHookupQuickInfoSourceProvider(ClassificationTypeMap classificationTypeMap, IClassificationFormatMapService classificationFormatMapService)
         {
             _classificationTypeMap = classificationTypeMap;
+            _classificationFormatMapService = classificationFormatMapService;
         }
 
         public IQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
         {
-            return textBuffer.Properties.GetOrCreateSingletonProperty<EventHookupQuickInfoSource>(() => new EventHookupQuickInfoSource(textBuffer, _classificationTypeMap));
+            return textBuffer.Properties.GetOrCreateSingletonProperty<EventHookupQuickInfoSource>(
+                () => new EventHookupQuickInfoSource(textBuffer, _classificationTypeMap, _classificationFormatMapService));
         }
     }
 }
