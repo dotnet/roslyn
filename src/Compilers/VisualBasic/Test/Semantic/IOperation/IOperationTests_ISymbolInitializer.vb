@@ -33,7 +33,7 @@ End Class
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
             For Each node In nodes
-                Assert.Null(semanticModel.GetOperationInternal(node))
+                Assert.Null(semanticModel.GetOperation(node))
             Next
         End Sub
 
