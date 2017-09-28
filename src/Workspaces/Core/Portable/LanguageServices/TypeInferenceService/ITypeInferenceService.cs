@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     internal struct TypeInferenceInfo
     {
         public TypeInferenceInfo(ITypeSymbol type)
-            : this(type, false, default)
+            : this(type, false, null)
         {
         }
 

@@ -684,10 +684,10 @@ class Test
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "test");
-            await VerifyItemExistsAsync(markup, "zed");
-            await VerifyItemExistsAsync(markup, "goo");
-            await VerifyItemExistsAsync(markup, "boo");
+            await VerifyItemExistsAsync(markup, "test"); // type name of one overload
+            await VerifyItemExistsAsync(markup, "goo"); // parameter name of one overload
+            await VerifyItemExistsAsync(markup, "zed"); // type name of other overload
+            await VerifyItemExistsAsync(markup, "boo"); // parameter name of other overload
         }
     }
 }
