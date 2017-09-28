@@ -1158,5 +1158,220 @@ class Program
   IL_0001:  throw
 }");
         }
+        
+        [Fact]
+        public void RefExtensionMethod_PassThrough_LocalNoCopying()
+        {
+            CompileAndVerify(@"
+public static class Ext
+{
+    public static ref int M(ref this int p) => ref p;
+}
+class Test
+{
+    void M()
+    {
+        int x = 5;
+        x.M();
+    }
+}", additionalRefs: new[] { SystemCoreRef }, verify: false).VerifyIL("Test.M", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (int V_0) //x
+  IL_0000:  ldc.i4.5
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""ref int Ext.M(ref int)""
+  IL_0009:  pop
+  IL_000a:  ret
+}");
+        }
+
+        [Fact]
+        public void RefExtensionMethod_PassThrough_FieldNoCopying()
+        {
+            CompileAndVerify(@"
+public static class Ext
+{
+    public static ref int M(ref this int p) => ref p;
+}
+class Test
+{
+    private int x = 5;
+    void M()
+    {
+        x.M();
+    }
+}", additionalRefs: new[] { SystemCoreRef }, verify: false).VerifyIL("Test.M", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""int Test.x""
+  IL_0006:  call       ""ref int Ext.M(ref int)""
+  IL_000b:  pop
+  IL_000c:  ret
+}");
+        }
+
+        [Fact]
+        public void RefExtensionMethod_PassThrough_ChainNoCopying()
+        {
+            CompileAndVerify(@"
+public static class Ext
+{
+    public static ref int M(ref this int p) => ref p;
+}
+class Test
+{
+    private int x = 5;
+    void M()
+    {
+        x.M().M().M();
+    }
+}", additionalRefs: new[] { SystemCoreRef }, verify: false).VerifyIL("Test.M", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""int Test.x""
+  IL_0006:  call       ""ref int Ext.M(ref int)""
+  IL_000b:  call       ""ref int Ext.M(ref int)""
+  IL_0010:  call       ""ref int Ext.M(ref int)""
+  IL_0015:  pop
+  IL_0016:  ret
+}");
+        }
+
+        [Fact]
+        public void RefReadOnlyExtensionMethod_PassThrough_TempCopying()
+        {
+            CompileAndVerify(@"
+public static class Ext
+{
+    public static ref readonly int M(ref readonly this int p) => ref p;
+}
+class Test
+{
+    void M()
+    {
+        5.M();
+    }
+}", additionalRefs: new[] { SystemCoreRef }, verify: false).VerifyIL("Test.M", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldc.i4.5
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""ref readonly int Ext.M(ref readonly int)""
+  IL_0009:  pop
+  IL_000a:  ret
+}");
+        }
+
+        [Fact]
+        public void RefReadOnlyExtensionMethod_PassThrough_LocalNoCopying()
+        {
+            CompileAndVerify(@"
+public static class Ext
+{
+    public static ref readonly int M(ref readonly this int p) => ref p;
+}
+class Test
+{
+    void M()
+    {
+        int x = 5;
+        x.M();
+    }
+}", additionalRefs: new[] { SystemCoreRef }, verify: false).VerifyIL("Test.M", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (int V_0) //x
+  IL_0000:  ldc.i4.5
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""ref readonly int Ext.M(ref readonly int)""
+  IL_0009:  pop
+  IL_000a:  ret
+}");
+        }
+
+        [Fact]
+        public void RefReadOnlyExtensionMethod_PassThrough_FieldNoCopying()
+        {
+            CompileAndVerify(@"
+public static class Ext
+{
+    public static ref readonly int M(ref readonly this int p) => ref p;
+}
+class Test
+{
+    private int x = 5;
+    void M()
+    {
+        x.M();
+    }
+}", additionalRefs: new[] { SystemCoreRef }, verify: false).VerifyIL("Test.M", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""int Test.x""
+  IL_0006:  call       ""ref readonly int Ext.M(ref readonly int)""
+  IL_000b:  pop
+  IL_000c:  ret
+}");
+        }
+
+        [Fact]
+        public void RefReadOnlyExtensionMethod_PassThrough_ChainNoCopying()
+        {
+            CompileAndVerify(@"
+public static class Ext
+{
+    public static ref readonly int M(ref readonly this int p) => ref p;
+}
+class Test
+{
+    private int x = 5;
+    void M()
+    {
+        x.M().M().M();
+    }
+}", additionalRefs: new[] { SystemCoreRef }, verify: false).VerifyIL("Test.M", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""int Test.x""
+  IL_0006:  call       ""ref readonly int Ext.M(ref readonly int)""
+  IL_000b:  call       ""ref readonly int Ext.M(ref readonly int)""
+  IL_0010:  call       ""ref readonly int Ext.M(ref readonly int)""
+  IL_0015:  pop
+  IL_0016:  ret
+}");
+        }
+
+        [Fact]
+        public void RefReadOnlyReturnOptionalValue()
+        {
+            CompileAndVerify(@"
+class Program
+{
+    static ref readonly string M(ref readonly string s = ""optional"") => ref s;
+
+    static void Main()
+    {
+        System.Console.Write(M());
+        System.Console.Write(""-"");
+        System.Console.Write(M(""provided""));
+    }
+}", verify: false, expectedOutput: "optional-provided");
+        }
     }
 }

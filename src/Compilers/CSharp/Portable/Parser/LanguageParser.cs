@@ -5174,14 +5174,20 @@ tryAgain:
                 case SyntaxKind.LessThanToken:           // e.g. `e is A<B> < C`
                 case SyntaxKind.LessThanEqualsToken:     // e.g. `e is A<B> <= C`
                 case SyntaxKind.GreaterThanEqualsToken:  // e.g. `e is A<B> >= C`
-                case SyntaxKind.GreaterThanToken when this.PeekToken(1).Kind != SyntaxKind.GreaterThanToken: // not >>
-                                                         // e.g. `e is A<B> > C`
                 case SyntaxKind.IsKeyword:               // e.g. `e is A<B> is bool`
                 case SyntaxKind.AsKeyword:               // e.g. `e is A<B> as bool`
-                    // These tokens are added to 7.5.4.2 Grammar Ambiguities in C#7 for a possible type following the `is` keyword
-                    return ((options & NameOptions.AfterIs) != 0)
-                        ? ScanTypeArgumentListKind.DefiniteTypeArgumentList
-                        : ScanTypeArgumentListKind.PossibleTypeArgumentList;
+                    // These tokens are added to 7.5.4.2 Grammar Ambiguities in C#7
+                    return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
+
+                case SyntaxKind.GreaterThanToken when ((options & NameOptions.AfterIs) != 0) && this.PeekToken(1).Kind != SyntaxKind.GreaterThanToken:
+                    // This token is added to 7.5.4.2 Grammar Ambiguities in C#7 for the special case in which
+                    // the possible generic is following an `is` keyword, e.g. `e is A<B> > C`.
+                    // We test one further token ahead because a right-shift operator `>>` looks like a pair of greater-than
+                    // tokens at this stage, but we don't intend to be handling the right-shift operator.
+                    // The upshot is that we retain compatibility with the two previous behaviors:
+                    // `(x is A<B>>C)` is parsed as `(x is A<B>) > C`
+                    // `A<B>>C` elsewhere is parsed as `A < (B >> C)`
+                    return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
 
                 case SyntaxKind.EndOfFileToken:          // e.g. `e is A<B>`
                     // This is useful for parsing expressions in isolation

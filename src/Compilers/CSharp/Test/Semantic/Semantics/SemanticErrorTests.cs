@@ -8536,41 +8536,51 @@ class FixedTest
         }
 
         [Fact]
-        public void CS0255ERR_StackallocInCatchFinally()
+        public void CS0255ERR_StackallocInFinally()
         {
             var text = @"
-using System;
-
-public class TestTryFinally
+unsafe class Test
 {
-   public static unsafe void Test()
-   {
-      int i = 123;
-      string s = ""Some string"";
-      object o = s;
-
-      try
-      {
-         // Conversion is not valid; o contains a string not an int
-         i = (int) o;
-      }
-
-      finally
-      {
-         Console.Write(""i = {0}"", i);
-         int* fib = stackalloc int[100];   // CS0255
-      }
-   }
-
-   public static void Main()
-   {
-   }
-}
-";
+    void M()
+    {
+        try
+        {
+            // Something        
+        }
+        finally
+        {
+            int* fib = stackalloc int[100];
+        }
+    }
+}";
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (21,21): error CS0255: stackalloc may not be used in a catch or finally block
-                //          int* fib = stackalloc int[100];   // CS0255
-                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int[100]"));
+                // (12,24): error CS0255: stackalloc may not be used in a catch or finally block
+                //             int* fib = stackalloc int[100];
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int[100]").WithLocation(12, 24));
+        }
+
+        [Fact]
+        public void CS0255ERR_StackallocInCatch()
+        {
+            var text = @"
+unsafe class Test
+{
+    void M()
+    {
+        try
+        {
+            // Something        
+        }
+        catch
+        {
+            int* fib = stackalloc int[100];
+        }
+    }
+}";
+            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (12,24): error CS0255: stackalloc may not be used in a catch or finally block
+                //             int* fib = stackalloc int[100];
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int[100]").WithLocation(12, 24));
         }
 
         [Fact]

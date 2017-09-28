@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                  accessibility,
                  modifiers,
                  returnType: null,
-                 returnsByRef: false,
+                 refKind: RefKind.None,
                  explicitInterfaceImplementations: default,
                  name: string.Empty,
                  typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,

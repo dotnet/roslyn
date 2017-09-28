@@ -627,5 +627,31 @@ interface I<out T> :
                 // interface I<out T> :
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T").WithArguments("I<T, T>", "T", "covariant", "contravariantly").WithLocation(14, 17));
         }
+
+        [Fact]
+        public void CovarianceBoundariesForRefReadOnly_Parameters()
+        {
+            CreateStandardCompilation(@"
+interface ITest<in T>
+{
+    void M(ref readonly T p);
+}").VerifyDiagnostics(
+                // (4,25): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'ITest<T>.M(ref readonly T)'. 'T' is contravariant.
+                //     void M(ref readonly T p);
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T").WithArguments("ITest<T>.M(ref readonly T)", "T", "contravariant", "invariantly").WithLocation(4, 25));
+        }
+
+        [Fact]
+        public void CovarianceBoundariesForRefReadOnly_ReturnType()
+        {
+            CreateStandardCompilation(@"
+interface ITest<in T>
+{
+    ref readonly T M();
+}").VerifyDiagnostics(
+                // (4,5): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'ITest<T>.M()'. 'T' is contravariant.
+                //     ref readonly T M();
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "ref readonly T").WithArguments("ITest<T>.M()", "T", "contravariant", "invariantly").WithLocation(4, 5));
+        }
     }
 }

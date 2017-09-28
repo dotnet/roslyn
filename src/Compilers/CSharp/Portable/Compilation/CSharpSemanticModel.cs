@@ -469,13 +469,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.GetOperationWorker(csnode, cancellationToken);
         }
 
-        internal enum GetOperationOptions
-        {
-            Highest,
-            Lowest,
-            Parent
-        }
-
         internal virtual IOperation GetOperationWorker(CSharpSyntaxNode node, CancellationToken cancellationToken)
         {
             return null;

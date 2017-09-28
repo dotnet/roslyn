@@ -8561,6 +8561,22 @@ class Program
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"4812");
         }
 
+        [Fact]
+        public void CannotTakeAddressOfRefReadOnlyParameter()
+        {
+            CreateStandardCompilation(@"
+public class Test
+{
+    unsafe void M(ref readonly int p)
+    {
+        int* pointer = &p;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,25): error CS0211: Cannot take the address of the given expression
+                //         int* pointer = &p;
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "p").WithLocation(6, 25));
+        }
+
         #endregion
     }
 }

@@ -14,10 +14,10 @@ get_repo_dir()
 # specified version file.
 get_version_core()
 {
-    local name=${1/./}
-    local name=${name/-/}
-    local version=$(awk -F'[<>]' "/<${name}Version>/{print \$3}" $2)
-    echo $version
+    local name="${1/./}"
+    local name="${name/-/}"
+    local version="$(awk -F'[<>]' "/<${name}Version>/{print \$3}" "$2")"
+    echo "$version"
 }
 
 # This function will give you the current version number for a given nuget package
@@ -28,16 +28,16 @@ get_version_core()
 #   get_package_version System.Console
 get_package_version() 
 {
-    local repoDir=$(get_repo_dir)
-    local version=$(get_version_core $1 ${repoDir}/build/Targets/Packages.props)
-    echo $version
+    local repoDir="$(get_repo_dir)"
+    local version="$(get_version_core "$1" "${repoDir}"/build/Targets/Packages.props)"
+    echo "$version"
 }
 
 get_tool_version() 
 {
-    local repoDir=$(get_repo_dir)
-    local version=$(get_version_core $1 ${repoDir}/build/Targets/Tools.props)
-    echo $version
+    local repoDir="$(get_repo_dir)"
+    local version="$(get_version_core "$1" "${repoDir}"/build/Targets/Tools.props)"
+    echo "$version"
 }
 
 
