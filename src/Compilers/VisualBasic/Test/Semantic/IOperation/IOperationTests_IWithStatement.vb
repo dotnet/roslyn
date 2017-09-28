@@ -38,7 +38,7 @@ IWithStatement (OperationKind.None) (Syntax: 'With c'BIND ... End With')
             Left: 
               IFieldReferenceExpression: C.I As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: '.I')
                 Instance Receiver: 
-                  IOperation:  (OperationKind.None, IsImplicit) (Syntax: 'c')
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'c')
             Right: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '.J = 0')
@@ -47,7 +47,7 @@ IWithStatement (OperationKind.None) (Syntax: 'With c'BIND ... End With')
             Left: 
               IFieldReferenceExpression: C.J As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: '.J')
                 Instance Receiver: 
-                  IOperation:  (OperationKind.None, IsImplicit) (Syntax: 'c')
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'c')
             Right: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ]]>.Value
@@ -88,7 +88,7 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Private 
               Left: 
                 IFieldReferenceExpression: C.I As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: '.I')
                   Instance Receiver: 
-                    IOperation:  (OperationKind.None, IsImplicit) (Syntax: 'c')
+                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'c')
               Right: 
                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
         IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '.J = 0')
@@ -97,7 +97,7 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Private 
               Left: 
                 IFieldReferenceExpression: C.J As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: '.J')
                   Instance Receiver: 
-                    IOperation:  (OperationKind.None, IsImplicit) (Syntax: 'c')
+                    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'c')
               Right: 
                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')

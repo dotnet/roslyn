@@ -404,25 +404,35 @@ class C
             string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'new C { a = ... [1] = 2 } }')
   Arguments(0)
-  Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C) (Syntax: '{ a = { [0] ... [1] = 2 } }')
+  Initializer: 
+    IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: C) (Syntax: '{ a = { [0] ... [1] = 2 } }')
       Initializers(1):
           IMemberInitializerExpression (OperationKind.MemberInitializerExpression, Type: System.Int32[]) (Syntax: 'a = { [0] = 1, [1] = 2 }')
-            InitializedMember: IFieldReferenceExpression: System.Int32[] C.a (OperationKind.FieldReferenceExpression, Type: System.Int32[]) (Syntax: 'a')
-                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'a')
-            Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Int32[]) (Syntax: '{ [0] = 1, [1] = 2 }')
+            InitializedMember: 
+              IFieldReferenceExpression: System.Int32[] C.a (OperationKind.FieldReferenceExpression, Type: System.Int32[]) (Syntax: 'a')
+                Instance Receiver: 
+                  IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'a')
+            Initializer: 
+              IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Int32[]) (Syntax: '{ [0] = 1, [1] = 2 }')
                 Initializers(2):
                     ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '[0] = 1')
-                      Left: IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.Int32) (Syntax: '[0]')
-                          Array reference: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: System.Int32[]) (Syntax: 'a')
+                      Left: 
+                        IArrayElementReferenceExpression (OperationKind.None) (Syntax: '[0]')
+                          Array reference: 
+                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: System.Int32[], IsImplicit) (Syntax: 'a')
                           Indices(1):
                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-                      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+                      Right: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                     ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '[1] = 2')
-                      Left: IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.Int32) (Syntax: '[1]')
-                          Array reference: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: System.Int32[]) (Syntax: 'a')
+                      Left: 
+                        IArrayElementReferenceExpression (OperationKind.None) (Syntax: '[1]')
+                          Array reference: 
+                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: System.Int32[], IsImplicit) (Syntax: 'a')
                           Indices(1):
                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-                      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+                      Right: 
+                        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
