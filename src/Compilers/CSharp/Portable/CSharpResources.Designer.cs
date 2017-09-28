@@ -4526,15 +4526,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is experimental and unsupported; use &apos;/features:{1}&apos; to enable..
-        /// </summary>
-        internal static string ERR_FeatureIsExperimental {
-            get {
-                return ResourceManager.GetString("ERR_FeatureIsExperimental", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not implemented in this compiler..
         /// </summary>
         internal static string ERR_FeatureIsUnimplemented {
@@ -8493,18 +8484,16 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("ERR_RefReturnNonreturnableLocal2", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Cannot return a parameter by reference &apos;{0}&apos; because it is not a ref or out parameter.
         /// </summary>
-        internal static string ERR_RefReturnParameter
-        {
-            get
-            {
+        internal static string ERR_RefReturnParameter {
+            get {
                 return ResourceManager.GetString("ERR_RefReturnParameter", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Cannot return by reference a member of parameter &apos;{0}&apos; because it is not a ref or out parameter.
         /// </summary>
