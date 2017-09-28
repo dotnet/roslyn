@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = @"
 class Program
 {
-    static ref readonly int M(ref readonly int x)
+    static ref readonly int M(in int x)
     {
         return ref x;
     }
@@ -30,7 +30,7 @@ class Program
 
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false);
 
-            comp.VerifyIL("Program.M(ref readonly int)", @"
+            comp.VerifyIL("Program.M(in int)", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -58,7 +58,7 @@ struct Program
         System.Console.WriteLine(s1.X);
     }
 
-    static ref readonly int M(ref readonly int x)
+    static ref readonly int M(in int x)
     {
         return ref x;
     }
@@ -68,7 +68,7 @@ struct Program
     {
         public int X;
 
-        public static S1 operator +(ref readonly S1 x, ref readonly S1 y)
+        public static S1 operator +(in S1 x, in S1 y)
         {
             return new S1(){X = x.X + y.X};
         }
@@ -88,7 +88,7 @@ struct Program
   IL_0000:  ldc.i4.s   42
   IL_0002:  stloc.0
   IL_0003:  ldloca.s   V_0
-  IL_0005:  call       ""ref readonly int Program.M(ref readonly int)""
+  IL_0005:  call       ""ref readonly int Program.M(in int)""
   IL_000a:  ldind.i4
   IL_000b:  call       ""void System.Console.WriteLine(int)""
   IL_0010:  ldloca.s   V_1
@@ -98,7 +98,7 @@ struct Program
   IL_001c:  stfld      ""int Program.S1.X""
   IL_0021:  ldloca.s   V_1
   IL_0023:  ldloca.s   V_1
-  IL_0025:  call       ""Program.S1 Program.S1.op_Addition(ref readonly Program.S1, ref readonly Program.S1)""
+  IL_0025:  call       ""Program.S1 Program.S1.op_Addition(in Program.S1, in Program.S1)""
   IL_002a:  stloc.1
   IL_002b:  ldloc.1
   IL_002c:  ldfld      ""int Program.S1.X""
@@ -121,12 +121,12 @@ class Program
         System.Console.WriteLine(M(42));
     }
 
-    static ref readonly int M(ref readonly int x)
+    static ref readonly int M(in int x)
     {
         return ref x;
     }
 
-    int this[ref readonly int x, ref readonly int y] => x + y;
+    int this[in int x, in int y] => x + y;
 }
 ";
 
@@ -144,7 +144,7 @@ class Program
   IL_0000:  ldc.i4.s   42
   IL_0002:  stloc.0
   IL_0003:  ldloca.s   V_0
-  IL_0005:  call       ""ref readonly int Program.M(ref readonly int)""
+  IL_0005:  call       ""ref readonly int Program.M(in int)""
   IL_000a:  ldind.i4
   IL_000b:  call       ""void System.Console.WriteLine(int)""
   IL_0010:  newobj     ""Program..ctor()""
@@ -154,18 +154,18 @@ class Program
   IL_0019:  ldc.i4.6
   IL_001a:  stloc.1
   IL_001b:  ldloca.s   V_1
-  IL_001d:  call       ""int Program.this[ref readonly int, ref readonly int].get""
+  IL_001d:  call       ""int Program.this[in int, in int].get""
   IL_0022:  call       ""void System.Console.WriteLine(int)""
   IL_0027:  ldc.i4.s   42
   IL_0029:  stloc.0
   IL_002a:  ldloca.s   V_0
-  IL_002c:  call       ""ref readonly int Program.M(ref readonly int)""
+  IL_002c:  call       ""ref readonly int Program.M(in int)""
   IL_0031:  ldind.i4
   IL_0032:  call       ""void System.Console.WriteLine(int)""
   IL_0037:  ldc.i4.s   42
   IL_0039:  stloc.0
   IL_003a:  ldloca.s   V_0
-  IL_003c:  call       ""ref readonly int Program.M(ref readonly int)""
+  IL_003c:  call       ""ref readonly int Program.M(in int)""
   IL_0041:  ldind.i4
   IL_0042:  call       ""void System.Console.WriteLine(int)""
   IL_0047:  ret
@@ -186,7 +186,7 @@ class Program
         System.Console.WriteLine(M(F));
     }
 
-    static ref readonly int M(ref readonly int x)
+    static ref readonly int M(in int x)
     {
         return ref x;
     }
@@ -200,14 +200,14 @@ class Program
   // Code size       17 (0x11)
   .maxstack  1
   IL_0000:  ldsflda    ""int Program.F""
-  IL_0005:  call       ""ref readonly int Program.M(ref readonly int)""
+  IL_0005:  call       ""ref readonly int Program.M(in int)""
   IL_000a:  ldind.i4
   IL_000b:  call       ""void System.Console.WriteLine(int)""
   IL_0010:  ret
 }");
 
 
-            comp.VerifyIL("Program.M(ref readonly int)", @"
+            comp.VerifyIL("Program.M(in int)", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -225,7 +225,7 @@ class Program
   IL_0000:  ldsfld     ""int Program.F""
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
-  IL_0008:  call       ""ref readonly int Program.M(ref readonly int)""
+  IL_0008:  call       ""ref readonly int Program.M(in int)""
   IL_000d:  ldind.i4
   IL_000e:  call       ""void System.Console.WriteLine(int)""
   IL_0013:  ret
@@ -246,12 +246,12 @@ class Program
         System.Console.WriteLine(M(F));
     }
 
-    static ref readonly int M(ref readonly int x)
+    static ref readonly int M(in int x)
     {
         return ref M1(x);
     }
 
-    static ref readonly int M1(ref readonly int x)
+    static ref readonly int M1(in int x)
     {
         return ref x;
     }
@@ -260,12 +260,12 @@ class Program
 
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: "42");
 
-            comp.VerifyIL("Program.M(ref readonly int)", @"
+            comp.VerifyIL("Program.M(in int)", @"
 {
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ref readonly int Program.M1(ref readonly int)""
+  IL_0001:  call       ""ref readonly int Program.M1(in int)""
   IL_0006:  ret
 }");
         }
@@ -292,7 +292,7 @@ class Program
        SI = x;
     }
 
-    public virtual ref readonly int M(ref readonly int x)
+    public virtual ref readonly int M(in int x)
     {
         return ref x;
     }
@@ -302,7 +302,7 @@ class P1 : Program
 {
     public P1(ref readonly string x) : base(x){}
 
-    public override ref readonly int M(ref readonly int x)
+    public override ref readonly int M(in int x)
     {
         return ref base.M(x);
     }
@@ -312,23 +312,23 @@ class P1 : Program
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"hi
 42");
 
-            comp.VerifyIL("P1..ctor(ref readonly string)", @"
+            comp.VerifyIL("P1..ctor(in string)", @"
 {
   // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""Program..ctor(ref readonly string)""
+  IL_0002:  call       ""Program..ctor(in string)""
   IL_0007:  ret
 }");
 
-            comp.VerifyIL("P1.M(ref readonly int)", @"
+            comp.VerifyIL("P1.M(in int)", @"
 {
   // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""ref readonly int Program.M(ref readonly int)""
+  IL_0002:  call       ""ref readonly int Program.M(in int)""
   IL_0007:  ret
 }");
         }
@@ -339,7 +339,7 @@ class P1 : Program
             var text = @"
 class Program
 {
-    static ref readonly int M(ref readonly int x)
+    static ref readonly int M(in int x)
     {
         return ref x;
     }
@@ -348,7 +348,7 @@ class Program
 
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false);
 
-            comp.VerifyIL("Program.M(ref readonly int)", @"
+            comp.VerifyIL("Program.M(in int)", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -363,7 +363,7 @@ class Program
             var text = @"
 class Program
 {
-    static void M(ref readonly int arg1, ref readonly (int Alice, int Bob) arg2)
+    static void M(in int arg1, in (int Alice, int Bob) arg2)
     {
         arg1 = 1;
         arg2.Alice = 2;
@@ -379,24 +379,24 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8408: Cannot assign to variable 'ref readonly int' because it is a readonly variable
+                // (6,9): error CS8408: Cannot assign to variable 'in int' because it is a readonly variable
                 //         arg1 = 1;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "ref readonly int").WithLocation(6, 9),
-                // (7,9): error CS8409: Cannot assign to a member of variable 'ref readonly (int Alice, int Bob)' because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "in int").WithLocation(6, 9),
+                // (7,9): error CS8409: Cannot assign to a member of variable 'in (int Alice, int Bob)' because it is a readonly variable
                 //         arg2.Alice = 2;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "ref readonly (int Alice, int Bob)").WithLocation(7, 9),
-                // (9,9): error CS8408: Cannot assign to variable 'ref readonly int' because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(7, 9),
+                // (9,9): error CS8408: Cannot assign to variable 'in int' because it is a readonly variable
                 //         arg1 ++;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "ref readonly int").WithLocation(9, 9),
-                // (10,9): error CS8409: Cannot assign to a member of variable 'ref readonly (int Alice, int Bob)' because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "in int").WithLocation(9, 9),
+                // (10,9): error CS8409: Cannot assign to a member of variable 'in (int Alice, int Bob)' because it is a readonly variable
                 //         arg2.Alice --;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "ref readonly (int Alice, int Bob)").WithLocation(10, 9),
-                // (12,9): error CS8408: Cannot assign to variable 'ref readonly int' because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(10, 9),
+                // (12,9): error CS8408: Cannot assign to variable 'in int' because it is a readonly variable
                 //         arg1 += 1;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "ref readonly int"),
-                // (13,9): error CS8409: Cannot assign to a member of variable 'ref readonly (int Alice, int Bob)' because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "in int"),
+                // (13,9): error CS8409: Cannot assign to a member of variable 'in (int Alice, int Bob)' because it is a readonly variable
                 //         arg2.Alice -= 2;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "ref readonly (int Alice, int Bob)"));
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)"));
         }
 
         [Fact]
@@ -405,24 +405,24 @@ class Program
             var text = @"
 class Program
 {
-    static ref readonly int M1_baseline(ref readonly int arg1, ref readonly (int Alice, int Bob) arg2)
+    static ref readonly int M1_baseline(in int arg1, in (int Alice, int Bob) arg2)
     {
         // valid
         return ref arg1;
     }
 
-    static ref readonly int M2_baseline(ref readonly int arg1, ref readonly (int Alice, int Bob) arg2)
+    static ref readonly int M2_baseline(in int arg1, in (int Alice, int Bob) arg2)
     {
         // valid
         return ref arg2.Alice;
     }
 
-    static ref int M1(ref readonly int arg1, ref readonly (int Alice, int Bob) arg2)
+    static ref int M1(in int arg1, in (int Alice, int Bob) arg2)
     {
         return ref arg1;
     }
 
-    static ref int M2(ref readonly int arg1, ref readonly (int Alice, int Bob) arg2)
+    static ref int M2(in int arg1, in (int Alice, int Bob) arg2)
     {
         return ref arg2.Alice;
     }
@@ -431,12 +431,12 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (18,20): error CS8410: Cannot return variable 'ref readonly int' by writable reference because it is a readonly variable
+                // (18,20): error CS8410: Cannot return variable 'in int' by writable reference because it is a readonly variable
                 //         return ref arg1;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg1").WithArguments("variable", "ref readonly int").WithLocation(18, 20),
-                // (23,20): error CS8411: Members of variable 'ref readonly (int Alice, int Bob)' cannot be returned by writable reference because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg1").WithArguments("variable", "in int").WithLocation(18, 20),
+                // (23,20): error CS8411: Members of variable 'in (int Alice, int Bob)' cannot be returned by writable reference because it is a readonly variable
                 //         return ref arg2.Alice;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg2.Alice").WithArguments("variable", "ref readonly (int Alice, int Bob)").WithLocation(23, 20)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(23, 20)
             );
         }
 
@@ -446,7 +446,7 @@ class Program
             var text = @"
 class Program
 {
-    static void M(ref readonly int arg1, ref readonly (int Alice, int Bob) arg2)
+    static void M(in int arg1, in (int Alice, int Bob) arg2)
     {
         ref var y = ref arg1;
         ref int a = ref arg2.Alice;
@@ -456,12 +456,12 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,25): error CS8406: Cannot use variable 'ref readonly int' as a ref or out value because it is a readonly variable
+                // (6,25): error CS8406: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
                 //         ref var y = ref arg1;
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "arg1").WithArguments("variable", "ref readonly int"),
-                // (7,25): error CS8407: Members of variable 'ref readonly (int Alice, int Bob)' cannot be used as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "arg1").WithArguments("variable", "in int"),
+                // (7,25): error CS8407: Members of variable 'in (int Alice, int Bob)' cannot be used as a ref or out value because it is a readonly variable
                 //         ref int a = ref arg2.Alice;
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "arg2.Alice").WithArguments("variable", "ref readonly (int Alice, int Bob)"));
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)"));
         }
 
         [Fact]
@@ -470,7 +470,7 @@ class Program
             var text = @"
 class Program
 {
-    unsafe static void M(ref readonly int arg1, ref readonly (int Alice, int Bob) arg2)
+    unsafe static void M(in int arg1, in (int Alice, int Bob) arg2)
     {
         int* a = & arg1;
         int* b = & arg2.Alice;
@@ -509,7 +509,7 @@ class Program
             var text = @"
 class Program
 {
-    static ref int M(ref readonly int arg1, ref readonly (int Alice, int Bob) arg2)
+    static ref int M(in int arg1, in (int Alice, int Bob) arg2)
     {
         bool b = true;
 
@@ -527,12 +527,12 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (10,24): error CS8410: Cannot return variable 'ref readonly int' by writable reference because it is a readonly variable
+                // (10,24): error CS8410: Cannot return variable 'in int' by writable reference because it is a readonly variable
                 //             return ref arg1;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg1").WithArguments("variable", "ref readonly int").WithLocation(10, 24),
-                // (14,24): error CS8411: Members of variable 'ref readonly (int Alice, int Bob)' cannot be returned by writable reference because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg1").WithArguments("variable", "in int").WithLocation(10, 24),
+                // (14,24): error CS8411: Members of variable 'in (int Alice, int Bob)' cannot be returned by writable reference because it is a readonly variable
                 //             return ref arg2.Alice;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg2.Alice").WithArguments("variable", "ref readonly (int Alice, int Bob)").WithLocation(14, 24)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(14, 24)
             );
         }
 
@@ -542,7 +542,7 @@ class Program
             var text = @"
 class Program
 {
-    static ref readonly int M(ref readonly int arg1, ref readonly (int Alice, int Bob) arg2)
+    static ref readonly int M(in int arg1, in (int Alice, int Bob) arg2)
     {
         bool b = true;
 
@@ -580,9 +580,9 @@ class Program
             var text = @"
 class Program
 {
-    static ref readonly int M(ref readonly int arg1, ref readonly (int Alice, int Bob) arg2)
+    static ref readonly int M(in int arg1, in (int Alice, int Bob) arg2)
     {
-        ref readonly int M1(ref readonly int arg11, ref readonly (int Alice, int Bob) arg21)
+        ref readonly int M1(in int arg11, in (int Alice, int Bob) arg21)
         {
             bool b = true;
 
@@ -603,7 +603,7 @@ class Program
 
             var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false);
 
-            comp.VerifyIL("Program.<M>g__M1|0_0(ref readonly int, ref readonly (int Alice, int Bob))", @"
+            comp.VerifyIL("Program.<M>g__M1|0_0(in int, in (int Alice, int Bob))", @"
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -623,9 +623,9 @@ class Program
             var text = @"
 class Program
 {
-    static ref readonly int M(ref readonly int arg1, ref readonly (int Alice, int Bob) arg2)
+    static ref readonly int M(in int arg1, in (int Alice, int Bob) arg2)
     {
-        ref int M1(ref readonly int arg11, ref readonly (int Alice, int Bob) arg21)
+        ref int M1(in int arg11, in (int Alice, int Bob) arg21)
         {
             bool b = true;
 
@@ -646,12 +646,12 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (12,28): error CS8410: Cannot return variable 'ref readonly int' by writable reference because it is a readonly variable
+                // (12,28): error CS8410: Cannot return variable 'in int' by writable reference because it is a readonly variable
                 //                 return ref arg11;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg11").WithArguments("variable", "ref readonly int").WithLocation(12, 28),
-                // (16,28): error CS8411: Members of variable 'ref readonly (int Alice, int Bob)' cannot be returned by writable reference because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg11").WithArguments("variable", "in int").WithLocation(12, 28),
+                // (16,28): error CS8411: Members of variable 'in (int Alice, int Bob)' cannot be returned by writable reference because it is a readonly variable
                 //                 return ref arg21.Alice;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg21.Alice").WithArguments("variable", "ref readonly (int Alice, int Bob)").WithLocation(16, 28)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg21.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(16, 28)
                 );
         }
 
@@ -666,7 +666,7 @@ class Program
         System.Console.WriteLine(M());
     }
 
-    static int M(ref readonly int x = 42) => x;
+    static int M(in int x = 42) => x;
 }
 
 ";
@@ -681,7 +681,7 @@ class Program
   IL_0000:  ldc.i4.s   42
   IL_0002:  stloc.0
   IL_0003:  ldloca.s   V_0
-  IL_0005:  call       ""int Program.M(ref readonly int)""
+  IL_0005:  call       ""int Program.M(in int)""
   IL_000a:  call       ""void System.Console.WriteLine(int)""
   IL_000f:  ret
 }");
@@ -699,7 +699,7 @@ class Program
         System.Console.WriteLine(M(arg));
     }
 
-    static double M(ref readonly double x) => x;
+    static double M(in double x) => x;
 }
 
 ";
@@ -715,7 +715,7 @@ class Program
   IL_0002:  conv.r8
   IL_0003:  stloc.0
   IL_0004:  ldloca.s   V_0
-  IL_0006:  call       ""double Program.M(ref readonly double)""
+  IL_0006:  call       ""double Program.M(in double)""
   IL_000b:  call       ""void System.Console.WriteLine(double)""
   IL_0010:  ret
 }");
@@ -745,7 +745,7 @@ class Program
             return val;
         }
 
-        public static void M1(ref readonly int arg1, ref readonly int arg2, ref readonly int arg3)
+        public static void M1(in int arg1, in int arg2, in int arg3)
         {
             System.Console.WriteLine(arg1 + arg2 + arg3);
         }
@@ -781,7 +781,7 @@ class Program
             return val;
         }
 
-        public static void M1(ref readonly int arg1, ref readonly int arg2, ref readonly int arg3)
+        public static void M1(in int arg1, in int arg2, in int arg3)
         {
             System.Console.WriteLine(arg1 + arg2 + arg3);
         }
@@ -833,7 +833,7 @@ class Program
         return val;
     }
 
-    public static void M1(ref readonly int arg1, ref readonly int arg2, ref readonly int arg3, ref readonly int arg4)
+    public static void M1(in int arg1, in int arg2, in int arg3, in int arg4)
     {
         System.Console.WriteLine(arg1);
         System.Console.WriteLine(arg2);
@@ -901,7 +901,7 @@ class Program
         return val;
     }
 
-    public static void M1(ref readonly int arg1, ref readonly int arg2, ref readonly int arg3, ref readonly int arg4)
+    public static void M1(in int arg1, in int arg2, in int arg3, in int arg4)
     {
         System.Console.WriteLine(arg1);
         System.Console.WriteLine(arg2);
@@ -964,7 +964,7 @@ class Program
         return val;
     }
 
-    public static void M1(ref readonly int arg1, ref readonly int arg2, ref readonly int arg3, ref readonly int arg4)
+    public static void M1(in int arg1, in int arg2, in int arg3, in int arg4)
     {
         System.Console.WriteLine(arg1);
         System.Console.WriteLine(arg2);
@@ -1021,7 +1021,7 @@ class Program
         return val;
     }
 
-    public static void M1(ref readonly int arg1, ref readonly int arg2, ref readonly int arg3, ref readonly int arg4)
+    public static void M1(in int arg1, in int arg2, in int arg3, in int arg4)
     {
         System.Console.WriteLine(arg1);
         System.Console.WriteLine(arg2);
@@ -1081,7 +1081,7 @@ class Program
 
 static class Ext
 {
-    public static void M1(ref readonly this int arg1, ref readonly int arg2, ref readonly int arg3, ref readonly int arg4)
+    public static void M1(in this int arg1, in int arg2, in int arg3, in int arg4)
     {
         System.Console.WriteLine(arg1);
         System.Console.WriteLine(arg2);
@@ -1166,7 +1166,7 @@ public readonly struct S1
         this.f = val;
     }
 
-    public void M1(ref readonly int arg2, ref readonly int arg3, ref readonly int arg4)
+    public void M1(in int arg2, in int arg3, in int arg4)
     {
         System.Console.WriteLine(this.f);
         System.Console.WriteLine(arg2);
@@ -1247,7 +1247,7 @@ public readonly struct S1
         this.f = val;
     }
 
-    public void M1(ref readonly S1 arg2, ref readonly S1 arg3, ref readonly S1 arg4)
+    public void M1(in S1 arg2, in S1 arg3, in S1 arg4)
     {
         System.Console.WriteLine(this.f);
         System.Console.WriteLine(arg2.f);
@@ -1319,7 +1319,7 @@ public readonly struct S1
     IL_006c:  ldsflda    ""S1 Program.s2""
     IL_0071:  ldloca.s   V_1
     IL_0073:  ldsflda    ""S1 Program.s4""
-    IL_0078:  call       ""void S1.M1(ref readonly S1, ref readonly S1, ref readonly S1)""
+    IL_0078:  call       ""void S1.M1(in S1, in S1, in S1)""
     IL_007d:  leave.s    IL_0096
   }
   catch System.Exception
@@ -1415,7 +1415,7 @@ public readonly struct S1
     IL_007a:  ldsfld     ""S1 Program.s4""
     IL_007f:  stloc.s    V_5
     IL_0081:  ldloca.s   V_5
-    IL_0083:  call       ""void S1.M1(ref readonly S1, ref readonly S1, ref readonly S1)""
+    IL_0083:  call       ""void S1.M1(in S1, in S1, in S1)""
     IL_0088:  leave.s    IL_00a3
   }
   catch System.Exception
@@ -1461,12 +1461,12 @@ public readonly struct S1
 
     abstract class C<U>
     {
-        public abstract void M1<T>(ref readonly T arg) where T : U, I1;
+        public abstract void M1<T>(in T arg) where T : U, I1;
     }
 
     class D: C<S1>
     {
-        public override void M1<T>(ref readonly T arg)
+        public override void M1<T>(in T arg)
         {
             arg.M3();
         }
@@ -1490,7 +1490,7 @@ public readonly struct S1
 
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"0");
 
-            comp.VerifyIL("D.M1<T>(ref readonly T)", @"
+            comp.VerifyIL("D.M1<T>(in T)", @"
 {
   // Code size       21 (0x15)
   .maxstack  1
@@ -1522,12 +1522,12 @@ public readonly struct S1
 
     abstract class C<U>
     {
-        public abstract void M1<T>(ref readonly T arg) where T : U, I1;
+        public abstract void M1<T>(in T arg) where T : U, I1;
     }
 
     class D: C<S1>
     {
-        public override void M1<T>(ref readonly T arg)
+        public override void M1<T>(in T arg)
         {
             arg.M3();
         }
@@ -1548,7 +1548,7 @@ public readonly struct S1
 
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"");
 
-            comp.VerifyIL("D.M1<T>(ref readonly T)", @"
+            comp.VerifyIL("D.M1<T>(in T)", @"
 {
   // Code size       21 (0x15)
   .maxstack  1
@@ -1570,7 +1570,7 @@ public readonly struct S1
 using System;
 class Program
 {
-    static void Print(ref readonly int p = 5)
+    static void Print(in int p = 5)
     {
         Console.Write(p);
     }

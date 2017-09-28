@@ -277,7 +277,7 @@ class C
 {
     void M()
     {
-        void L(ref int x, ref readonly int y)
+        void L(ref int x, in int y)
         {
             L(ref x, y);
             L(ref y, x);
@@ -291,9 +291,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (9,19): error CS8329: Cannot use variable 'ref readonly int' as a ref or out value because it is a readonly variable
+                // (9,19): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
                 //             L(ref y, x);
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "ref readonly int").WithLocation(9, 19),
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(9, 19),
                 // (10,26): error CS1615: Argument 2 may not be passed with the 'ref' keyword
                 //             L(ref x, ref x);
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("2", "ref").WithLocation(10, 26),
@@ -2704,13 +2704,13 @@ class TestClass
 using System.Threading.Tasks;
 class Test
 {
-    async Task Method(ref readonly int p)
+    async Task Method(in int p)
     {
         await Task.FromResult(0);
     }
 }").VerifyDiagnostics(
                 // (5,40): error CS1988: Async methods cannot have ref or out parameters
-                //     async Task Method(ref readonly int p)
+                //     async Task Method(in int p)
                 Diagnostic(ErrorCode.ERR_BadAsyncArgType, "p").WithLocation(5, 40));
         }
 
@@ -2721,7 +2721,7 @@ class Test
 using System.Collections.Generic;
 class Test
 {
-    IEnumerable<int> Method(ref readonly int p)
+    IEnumerable<int> Method(in int p)
     {
         yield return 0;
         yield return 1;
@@ -2729,7 +2729,7 @@ class Test
     }
 }").VerifyDiagnostics(
                 // (5,46): error CS1623: Iterators cannot have ref or out parameters
-                //     IEnumerable<int> Method(ref readonly int p)
+                //     IEnumerable<int> Method(in int p)
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "p").WithLocation(5, 46));
         }
 
@@ -2740,13 +2740,13 @@ class Test
 using System.Collections.Generic;
 class Test
 {
-    public IEnumerator<int> GetEnumerator(ref readonly int p)
+    public IEnumerator<int> GetEnumerator(in int p)
     {
         yield return 0;
     }
 }").VerifyDiagnostics(
                 // (5,60): error CS1623: Iterators cannot have ref or out parameters
-                //     public IEnumerator<int> GetEnumerator(ref readonly int p)
+                //     public IEnumerator<int> GetEnumerator(in int p)
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "p").WithLocation(5, 60));
         }
 
@@ -2756,7 +2756,7 @@ class Test
             CreateStandardCompilation(@"
 class Test
 {
-	void M(ref readonly int p)
+	void M(in int p)
     {
     }
     void N()

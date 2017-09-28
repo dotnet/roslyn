@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterSymbol parameterSymbol = parameter.ParameterSymbol;
 
             // all parameters can be passed by ref/out or assigned to
-            // except "ref readonly" parameters, which are readonly
+            // except "in" parameters, which are readonly
             if (parameterSymbol.RefKind == RefKind.RefReadOnly && RequiresAssignableVariable(valueKind))
             {
                 ReportReadOnlyError(parameterSymbol, node, valueKind, checkingReceiver, diagnostics);
@@ -1009,10 +1009,10 @@ moreArguments:
                 }
             }
 
-            // handle omitted optional "ref readonly" parameters if there are any
+            // handle omitted optional "in" parameters if there are any
             ParameterSymbol unmatchedRefReadOnlyParameter = TryGetUnmatchedRefReadOnlyParameterAndFreeMatchedArgs(parameters, ref refReadOnlyParametersMatchedWithArgs);
 
-            // unmatched "ref readonly" parameter is the same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
+            // unmatched "in" parameter is the same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
             //                                                    its val escape is ExternalScope                   (does not affect overal result)
             if (unmatchedRefReadOnlyParameter != null && isRefEscape)
             {
@@ -1124,10 +1124,10 @@ moreArguments:
                 }
             }
 
-            // handle omitted optional "ref readonly" parameters if there are any
+            // handle omitted optional "in" parameters if there are any
             ParameterSymbol unmatchedRefReadOnlyParameter = TryGetUnmatchedRefReadOnlyParameterAndFreeMatchedArgs(parameters, ref refReadOnlyParametersMatchedWithArgs);
 
-            // unmatched "ref readonly" parameter is the same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
+            // unmatched "in" parameter is the same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
             //                                                    its val escape is ExternalScope                   (does not affect overal result)
             if (unmatchedRefReadOnlyParameter != null && isRefEscape)
             {
@@ -1261,7 +1261,7 @@ moreArguments:
                 }
             }
 
-            //NB: we do not care about unmatched "ref readonly" parameters here. 
+            //NB: we do not care about unmatched "in" parameters here. 
             //    They have "outer" val escape, so cannot be worse than escapeTo.
 
             // check val escape of receiver if ref-like
@@ -1276,8 +1276,8 @@ moreArguments:
         /// <summary>
         /// Gets "effective" ref kind of an argument. 
         /// Generally we know if a formal argument is passed as ref/out by looking at the call site. 
-        /// However, to distinguish "ref readonly" and regular "val" parameters we need to take a look at corresponding parameter, if such exists. 
-        /// NOTE: there are cases like params/vararg, when a corresponding parameter may not exist, then it cannot be a "ref readonly".
+        /// However, to distinguish "in" and regular "val" parameters we need to take a look at corresponding parameter, if such exists. 
+        /// NOTE: there are cases like params/vararg, when a corresponding parameter may not exist, then it cannot be "in".
         /// </summary>
         private static RefKind GetEffectiveRefKind(
             int argIndex, 
@@ -1303,8 +1303,8 @@ moreArguments:
         }
 
         /// <summary>
-        /// Gets a "ref readonly" parameter for which there is no argument supplied, if such exists. 
-        /// That indicates an optional "ref readonly" parameter. We treat it as an RValue passed by reference via a temporary.
+        /// Gets a "in" parameter for which there is no argument supplied, if such exists. 
+        /// That indicates an optional "in" parameter. We treat it as an RValue passed by reference via a temporary.
         /// The effective scope of such variable is the immediately containing scope.
         /// </summary>
         private static ParameterSymbol TryGetUnmatchedRefReadOnlyParameterAndFreeMatchedArgs(ImmutableArray<ParameterSymbol> parameters, ref ArrayBuilder<bool> refReadOnlyParametersMatchedWithArgs)

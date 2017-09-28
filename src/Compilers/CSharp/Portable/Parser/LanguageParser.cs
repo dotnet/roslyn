@@ -3851,15 +3851,20 @@ tryAgain:
                         {
                             var nextKind = this.CurrentToken.Kind;
 
-                            // "ref readonly"
-                            if (nextKind == SyntaxKind.ReadOnlyKeyword)
-                            {
-                                modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureReadOnlyReferences);
-                                nextKind = PeekToken(1).Kind;
-                            }
-
                             // "ref this"
-                            // "ref readonly this"
+                            if (nextKind == SyntaxKind.ThisKeyword)
+                            {
+                                modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods);
+                            }
+                            break;
+                        }
+
+                    case SyntaxKind.InKeyword:
+                        {
+                            modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureReadOnlyReferences);
+                            var nextKind = this.CurrentToken.Kind;
+
+                            // "in this"
                             if (nextKind == SyntaxKind.ThisKeyword)
                             {
                                 modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods);

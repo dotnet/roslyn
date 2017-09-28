@@ -1018,7 +1018,7 @@ class C
 
     public static class S1Ext
     {
-        public static void RoExtension(ref readonly this S1 self)
+        public static void RoExtension(in this S1 self)
         {
             // do nothing
         }
@@ -1062,7 +1062,7 @@ class C
   IL_0045:  br.s       IL_004d
   IL_0047:  ldloc.0
   IL_0048:  ldflda     ""S1 C1.field""
-  IL_004d:  call       ""void S1Ext.RoExtension(ref readonly S1)""
+  IL_004d:  call       ""void S1Ext.RoExtension(in S1)""
   IL_0052:  ldloc.0
   IL_0053:  ldflda     ""S1 C1.field""
   IL_0058:  ldfld      ""int S1.value""

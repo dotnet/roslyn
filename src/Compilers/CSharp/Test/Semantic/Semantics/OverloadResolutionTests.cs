@@ -9320,7 +9320,7 @@ public class Program
             var code = @"
 public static class Program
 {
-    public static void Method(ref readonly int p)
+    public static void Method(in int p)
     {
         System.Console.WriteLine(p);
     }
@@ -9340,7 +9340,7 @@ public static class Program
             var code = @"
 public static class Program
 {
-    public static void Method(ref readonly int p)
+    public static void Method(in int p)
     {
         System.Console.WriteLine(p);
     }
@@ -9364,7 +9364,7 @@ public static class Program
             var code = @"
 public static class Program
 {
-    public static void Method(ref readonly int p)
+    public static void Method(in int p)
     {
         System.Console.WriteLine(p);
     }
@@ -9376,9 +9376,9 @@ public static class Program
 }";
 
             CreateStandardCompilation(code).VerifyDiagnostics(
-                // (11,16): error CS1503: Argument 1: cannot convert from 'System.Exception' to 'ref readonly int'
+                // (11,16): error CS1503: Argument 1: cannot convert from 'System.Exception' to 'in int'
                 //         Method(x);
-                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Exception", "ref readonly int").WithLocation(11, 16)
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Exception", "in int").WithLocation(11, 16)
             );
         }
 
@@ -9413,41 +9413,41 @@ public static class Program
             var code = @"
 public static class Program
 {
-    public static void Method(ref readonly int p)
+    public static void Method(in int p)
     {
         System.Console.WriteLine(p);
     }
     public static void Main()
     {
         int x = 5;
-        Method(ref readonly x);
+        Method(in x);
     }
 }";
 
             CreateStandardCompilation(code).VerifyDiagnostics(
                 // (11,20): error CS1525: Invalid expression term 'readonly'
-                //         Method(ref readonly x);
+                //         Method(in x);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(11, 20),
                 // (11,20): error CS1026: ) expected
-                //         Method(ref readonly x);
+                //         Method(in x);
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(11, 20),
                 // (11,20): error CS1002: ; expected
-                //         Method(ref readonly x);
+                //         Method(in x);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(11, 20),
                 // (11,20): error CS0106: The modifier 'readonly' is not valid for this item
-                //         Method(ref readonly x);
+                //         Method(in x);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(11, 20),
                 // (11,30): error CS1001: Identifier expected
-                //         Method(ref readonly x);
+                //         Method(in x);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(11, 30),
                 // (11,30): error CS1002: ; expected
-                //         Method(ref readonly x);
+                //         Method(in x);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(11, 30),
                 // (11,30): error CS1513: } expected
-                //         Method(ref readonly x);
+                //         Method(in x);
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(11, 30),
                 // (11,29): error CS0118: 'x' is a variable but is used like a type
-                //         Method(ref readonly x);
+                //         Method(in x);
                 Diagnostic(ErrorCode.ERR_BadSKknown, "x").WithArguments("x", "variable", "type").WithLocation(11, 29),
                 // (10,13): warning CS0219: The variable 'x' is assigned but its value is never used
                 //         int x = 5;
@@ -9460,7 +9460,7 @@ public static class Program
             var code = @"
 public static class Program
 {
-    public static void Method(ref readonly int p)
+    public static void Method(in int p)
     {
         System.Console.WriteLine(p);
     }
@@ -9483,7 +9483,7 @@ public static class Program
             var code = @"
 public static class Program
 {
-    public static void Method(ref readonly int p)
+    public static void Method(in int p)
     {
         System.Console.WriteLine(p);
     }

@@ -2311,7 +2311,7 @@ class P
         ref int refI = ref i;
         M2(/*<bind>*/refI/*</bind>*/);
     }
-    static void M2(ref readonly int i) { }
+    static void M2(in int i) { }
 }
 ";
             string expectedOperationTree = @"

@@ -6701,45 +6701,45 @@ class Program
         public void LocalFunction_ReadOnlyRef_Parameter_InsertWhole()
         {
             var src1 = @"class Test { void M() { } }";
-            var src2 = @"class Test { void M() { void local(ref readonly int b) { throw null; } } }";
+            var src2 = @"class Test { void M() { void local(in int b) { throw null; } } }";
 
             var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
 
             edits.VerifyEdits(
-                "Update [void M() { }]@13 -> [void M() { void local(ref readonly int b) { throw null; } }]@13");
+                "Update [void M() { }]@13 -> [void M() { void local(in int b) { throw null; } }]@13");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int b", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int b", FeaturesResources.parameter));
         }
 
         [Fact]
         public void LocalFunction_ReadOnlyRef_Parameter_InsertParameter()
         {
             var src1 = @"class Test { void M() { void local() { throw null; } } }";
-            var src2 = @"class Test { void M() { void local(ref readonly int b) { throw null; } } }";
+            var src2 = @"class Test { void M() { void local(in int b) { throw null; } } }";
 
             var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
 
             edits.VerifyEdits(
-                "Update [void M() { void local() { throw null; } }]@13 -> [void M() { void local(ref readonly int b) { throw null; } }]@13");
+                "Update [void M() { void local() { throw null; } }]@13 -> [void M() { void local(in int b) { throw null; } }]@13");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int b", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int b", FeaturesResources.parameter));
         }
 
         [Fact]
         public void LocalFunction_ReadOnlyRef_Parameter_Update()
         {
             var src1 = @"class Test { void M() { void local(int b) { throw null; } } }";
-            var src2 = @"class Test { void M() { void local(ref readonly int b) { throw null; } } }";
+            var src2 = @"class Test { void M() { void local(in int b) { throw null; } } }";
 
             var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
 
             edits.VerifyEdits(
-                "Update [void M() { void local(int b) { throw null; } }]@13 -> [void M() { void local(ref readonly int b) { throw null; } }]@13");
+                "Update [void M() { void local(int b) { throw null; } }]@13 -> [void M() { void local(in int b) { throw null; } }]@13");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int b", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int b", FeaturesResources.parameter));
         }
 
         [Fact]

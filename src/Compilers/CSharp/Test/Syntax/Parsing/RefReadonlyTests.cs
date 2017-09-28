@@ -97,7 +97,7 @@ class Program
                 // (11,41): error CS1519: Invalid token 'operator' in class, struct, or interface member declaration
                 //     public static ref readonly Program  operator  +(Program x, Program y)
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(11, 41),
-                // (12,5): error CS1519: Invalid token '{' in class, struct, or interface member declaration
+                // (12,5): error CS1519: Invalid token '{' ref readonly class, struct, or interface member declaration
                 //     {
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(12, 5),
                 // (12,5): error CS1519: Invalid token '{' in class, struct, or interface member declaration
@@ -221,10 +221,10 @@ class Test
                 // (7,39): error CS1002: ; expected
                 //     ref readonly int Invalid() => ref readonly value;
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(7, 39),
-                // (7,53): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                // (7,53): error CS1519: Invalid token ';' ref readonly class, struct, or interface member declaration
                 //     ref readonly int Invalid() => ref readonly value;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(7, 53),
-                // (7,53): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                // (7,53): error CS1519: Invalid token ';' ref readonly class, struct, or interface member declaration
                 //     ref readonly int Invalid() => ref readonly value;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(7, 53));
         }
@@ -282,35 +282,35 @@ class Test
             CreateStandardCompilation(@"
 class Test
 {
-    void M(ref readonly int p)
+    void M(in int p)
     {
     }
     void N()
     {
         int x = 0;
-        M(ref readonly x);
+        M(in x);
     }
 }").GetParseDiagnostics().Verify(
                 // (10,15): error CS1525: Invalid expression term 'readonly'
-                //         M(ref readonly x);
+                //         M(in x);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(10, 15),
                 // (10,15): error CS1026: ) expected
-                //         M(ref readonly x);
+                //         M(in x);
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(10, 15),
                 // (10,15): error CS1002: ; expected
-                //         M(ref readonly x);
+                //         M(in x);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(10, 15),
                 // (10,15): error CS0106: The modifier 'readonly' is not valid for this item
-                //         M(ref readonly x);
+                //         M(in x);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(10, 15),
                 // (10,25): error CS1001: Identifier expected
-                //         M(ref readonly x);
+                //         M(in x);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(10, 25),
                 // (10,25): error CS1002: ; expected
-                //         M(ref readonly x);
+                //         M(in x);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(10, 25),
                 // (10,25): error CS1513: } expected
-                //         M(ref readonly x);
+                //         M(in x);
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(10, 25));
         }
 
@@ -355,6 +355,30 @@ public class Test
                 // (4,57): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
                 //     public static ref readonly bool operator!(Test obj) => throw null;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(4, 57));
+        }
+
+        [Fact]
+        public void InNotAllowedInReturnType()
+        {
+            CreateStandardCompilation(@"
+class Test
+{
+    in int M() => throw null;
+}").VerifyDiagnostics();
+
+            Assert.False(true);
+        }
+
+        [Fact]
+        public void RefReadOnlyNotAllowedInParameters()
+        {
+            CreateStandardCompilation(@"
+class Test
+{
+    void M(ref readonly int p) => throw null;
+}").VerifyDiagnostics();
+
+            Assert.False(true);
         }
     }
 }

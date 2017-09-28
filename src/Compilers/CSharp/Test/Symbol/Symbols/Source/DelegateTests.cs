@@ -738,7 +738,7 @@ class C
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningDelegate()
         {
-            var source = @"delegate ref readonly int D(ref readonly int arg);";
+            var source = @"delegate ref readonly int D(in int arg);";
 
             var comp = CreateCompilationWithMscorlib45(source);
             comp.VerifyDiagnostics();
@@ -760,13 +760,13 @@ class C
             var source = @"
 class C
 {
-    public delegate ref readonly T DD<T>(ref readonly T arg);
+    public delegate ref readonly T DD<T>(in T arg);
 
     public static void Main()
     {
-        DD<int> d1 = (ref readonly int a) => ref a;
+        DD<int> d1 = (in int a) => ref a;
 
-        DD<int> d2 = delegate(ref readonly int a){return ref a;};
+        DD<int> d2 = delegate(in int a){return ref a;};
     }
 }";
             var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular);

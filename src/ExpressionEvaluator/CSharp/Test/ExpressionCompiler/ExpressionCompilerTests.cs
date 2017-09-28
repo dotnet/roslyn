@@ -6314,7 +6314,7 @@ class C
         public void RefReadOnlyLambdasEvaluationWillSynthesizeRequiredAttributes_Parameters()
         {
             var reference = CreateStandardCompilation(@"
-public delegate void D(ref readonly int p);");
+public delegate void D(in int p);");
 
             CompileAndVerify(reference, symbolValidator: module =>
             {
@@ -6339,7 +6339,7 @@ public class Test
             var testData = Evaluate(
                 comp,
                 methodName: "Test.M",
-                expr: "M((ref readonly int p) => {})");
+                expr: "M((in int p) => {})");
 
             var methodsGenerated = testData.GetMethodsByName().Keys;
             Assert.Contains(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName + "..ctor()", methodsGenerated);
@@ -6350,7 +6350,7 @@ public class Test
         public void RefReadOnlyLambdasEvaluationWillSynthesizeRequiredAttributes_ReturnTypes()
         {
             var reference = CreateStandardCompilation(@"
-public delegate ref readonly int D();");
+public delegate in int D();");
 
             CompileAndVerify(reference, symbolValidator: module =>
             {

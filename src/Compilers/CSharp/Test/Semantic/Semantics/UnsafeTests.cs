@@ -8567,7 +8567,7 @@ class Program
             CreateStandardCompilation(@"
 public class Test
 {
-    unsafe void M(ref readonly int p)
+    unsafe void M(in int p)
     {
         int* pointer = &p;
     }

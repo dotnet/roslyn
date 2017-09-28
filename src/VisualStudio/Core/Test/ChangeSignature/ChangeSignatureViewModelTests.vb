@@ -365,15 +365,15 @@ class MyClass
             Dim markup = <Text><![CDATA[
 class Test
 {
-    private void Method$$(int p1, ref int p2, ref readonly int p3, out int p4) { }
+    private void Method$$(int p1, ref int p2, in int p3, out int p4) { }
 }"]]></Text>
 
             Dim state = Await GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
-            VerifyOpeningState(state.ViewModel, "private void Method(int p1, ref int p2, ref readonly int p3, out int p4)")
+            VerifyOpeningState(state.ViewModel, "private void Method(int p1, ref int p2, in int p3, out int p4)")
 
             Assert.Equal("", state.ViewModel.AllParameters(0).Modifier)
             Assert.Equal("ref", state.ViewModel.AllParameters(1).Modifier)
-            Assert.Equal("ref readonly", state.ViewModel.AllParameters(2).Modifier)
+            Assert.Equal("in", state.ViewModel.AllParameters(2).Modifier)
             Assert.Equal("out", state.ViewModel.AllParameters(3).Modifier)
         End Function
     End Class
