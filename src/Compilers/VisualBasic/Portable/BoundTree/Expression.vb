@@ -3,7 +3,7 @@
 Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Partial Friend Class BoundBadExpression
+    Friend Partial Class BoundBadExpression
         Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get
                 Return StaticCast(Of BoundNode).From(Me.ChildBoundNodes)

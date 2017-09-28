@@ -42,7 +42,7 @@ IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
-        /// intAction<summary>
+        /// <summary>
         /// This test documents the fact that there is no IConversionExpression between two objects of the same type.
         /// </summary>
         [CompilerTrait(CompilerFeature.IOperation)]
