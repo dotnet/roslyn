@@ -759,7 +759,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             Lazy<IOperation> target = new Lazy<IOperation>(() =>
             {
                 if (boundDelegateCreationExpression.Argument.Kind == BoundKind.MethodGroup &&
-                    boundDelegateCreationExpression.MethodOpt != null)
+                    boundDelegateCreationExpression.MethodOpt != null &&
+                    !boundDelegateCreationExpression.HasErrors)
                 {
                     // If this is a method binding, and a valid candidate method was found, then we want to expose
                     // this child as an IMethodBindingReference. Otherwise, we want to just delegate to the standard

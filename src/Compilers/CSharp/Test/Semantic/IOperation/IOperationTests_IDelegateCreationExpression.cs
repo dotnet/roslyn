@@ -977,11 +977,10 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action(M1)')
-  Children(1):
-      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
-        Children(1):
-            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action(M1)')
+  Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
+      Children(1):
+          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0407: 'int Program.M1()' has the wrong return type
@@ -1010,11 +1009,10 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action(M1)')
-  Children(1):
-      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
-        Children(1):
-            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action(M1)')
+  Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
+      Children(1):
+          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0123: No overload for 'M1' matches delegate 'Action'
@@ -1576,11 +1574,10 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action<System.Int32>, IsInvalid) (Syntax: 'new Action<int>(M1)')
-  Children(1):
-      IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
-        Children(1):
-            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action<System.Int32>, IsInvalid) (Syntax: 'new Action<int>(M1)')
+  Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
+      Children(1):
+          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0123: No overload for 'Program.M1(object)' matches delegate 'Action<int>'
