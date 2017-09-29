@@ -2524,7 +2524,7 @@ class Program
                 );
         }
 
-        [Fact, WorkItem(12052, "https://github.com/dotnet/roslyn/issues/12052")]
+        [Fact, WorkItem(21484, "https://github.com/dotnet/roslyn/issues/21484")]
         public void QueryOnTypeExpression()
         {
             var code = @"

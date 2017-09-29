@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (IsMemberAccessedThroughType(receiverOpt))
                     {
-                        if (receiverOpt?.Kind == BoundKind.QueryClause)
+                        if (receiverOpt.Kind == BoundKind.QueryClause)
                         {
                             // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.
                             diagnostics.Add(ErrorCode.ERR_QueryNoProvider, node.Location, receiverOpt.Type, memberSymbol.Name);
