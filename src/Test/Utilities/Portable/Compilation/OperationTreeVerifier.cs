@@ -557,22 +557,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Body, "Body");
         }
 
-        internal override void VisitTryStatement(ITryStatement operation)
+        public override void VisitTryStatement(ITryStatement operation)
         {
             LogString(nameof(ITryStatement));
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Body, "Body");
             VisitArray(operation.Catches, "Catch clauses", logElementCount: true);
-            Visit(operation.FinallyHandler, "Finally");
+            Visit(operation.Finally, "Finally");
         }
 
-        internal override void VisitCatchClause(ICatchClause operation)
+        public override void VisitCatchClause(ICatchClause operation)
         {
             LogString(nameof(ICatchClause));
-            LogString($" (Exception type: {operation.CaughtType?.ToTestDisplayString()}, Exception local: {operation.ExceptionLocal?.ToTestDisplayString()})");
+            var exceptionTypeStr = operation.ExceptionType != null ? operation.ExceptionType.ToTestDisplayString() : "null";
+            LogString($" (Exception type: {exceptionTypeStr})");
             LogCommonPropertiesAndNewLine(operation);
 
+            LogLocals(operation.Locals);
+            Visit(operation.ExceptionDeclarationOrExpression, "ExceptionDeclarationOrExpression");
             Visit(operation.Filter, "Filter");
             Visit(operation.Handler, "Handler");
         }

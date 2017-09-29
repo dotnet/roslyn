@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyInvocationExpression(targetMethod, instance, isVirtual, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private ILocalReferenceExpression CreateBoundLocalOperation(BoundLocal boundLocal)
+        private IOperation CreateBoundLocalOperation(BoundLocal boundLocal)
         {
             ILocalSymbol local = boundLocal.LocalSymbol;
             bool isDeclaration = boundLocal.IsDeclaration;
@@ -1112,8 +1112,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                                                                                 // Filter out all OperationKind.None except fixed statements for now.
                                                                                 // https://github.com/dotnet/roslyn/issues/21776
                                                                                 .Where(s => s.operation.Kind != OperationKind.None ||
-                                                                                s.bound.Kind == BoundKind.FixedStatement ||
-                                                                                s.bound.Kind == BoundKind.TryStatement)
+                                                                                s.bound.Kind == BoundKind.FixedStatement)
                                                                                 .Select(s => s.operation).ToImmutableArray());
 
             ImmutableArray<ILocalSymbol> locals = boundBlock.Locals.As<ILocalSymbol>();
@@ -1300,15 +1299,17 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private ICatchClause CreateBoundCatchBlockOperation(BoundCatchBlock boundCatchBlock)
         {
-            Lazy<IBlockStatement> handler = new Lazy<IBlockStatement>(() => (IBlockStatement)Create(boundCatchBlock.Body));
-            ITypeSymbol caughtType = boundCatchBlock.ExceptionTypeOpt;
+            var exceptionSourceOpt = (BoundLocal)boundCatchBlock.ExceptionSourceOpt;
+            Lazy<IOperation> expressionDeclarationOrExpression = new Lazy<IOperation>(() => exceptionSourceOpt != null ? CreateVariableDeclaration(exceptionSourceOpt) : null);
+            ITypeSymbol exceptionType = boundCatchBlock.ExceptionTypeOpt;
+            ImmutableArray<ILocalSymbol> locals = boundCatchBlock.Locals.As<ILocalSymbol>();
             Lazy<IOperation> filter = new Lazy<IOperation>(() => Create(boundCatchBlock.ExceptionFilterOpt));
-            ILocalSymbol exceptionLocal = (boundCatchBlock.Locals.FirstOrDefault()?.DeclarationKind == CSharp.Symbols.LocalDeclarationKind.CatchVariable) ? boundCatchBlock.Locals.FirstOrDefault() : null;
+            Lazy<IBlockStatement> handler = new Lazy<IBlockStatement>(() => (IBlockStatement)Create(boundCatchBlock.Body));
             SyntaxNode syntax = boundCatchBlock.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundCatchBlock.WasCompilerGenerated;
-            return new LazyCatchClause(handler, caughtType, filter, exceptionLocal, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyCatchClause(expressionDeclarationOrExpression, exceptionType, locals, filter, handler, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IFixedStatement CreateBoundFixedStatementOperation(BoundFixedStatement boundFixedStatement)
