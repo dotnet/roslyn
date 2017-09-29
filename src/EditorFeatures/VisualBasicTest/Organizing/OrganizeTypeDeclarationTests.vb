@@ -4,6 +4,8 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.VisualStudio.Text.UI.Commanding
+Imports Microsoft.VisualStudio.Text.UI.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
     Public Class OrganizeTypeDeclarationTests
@@ -961,15 +963,15 @@ End Namespace</element>
                 Dim nextHandler =
                     Function()
                         delegatedToNext = True
-                        Return CommandState.Unavailable
+                        Return CommandState.CommandIsUnavailable
                     End Function
 
-                Dim state = handler.GetCommandState(New Commands.SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer), nextHandler)
+                Dim state = handler.GetCommandState(New SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer), nextHandler)
                 Assert.True(delegatedToNext)
                 Assert.False(state.IsAvailable)
                 delegatedToNext = False
 
-                state = handler.GetCommandState(New Commands.OrganizeDocumentCommandArgs(textView, textView.TextBuffer), nextHandler)
+                state = handler.GetCommandState(New OrganizeDocumentCommandArgs(textView, textView.TextBuffer), nextHandler)
                 Assert.True(delegatedToNext)
                 Assert.False(state.IsAvailable)
             End Using

@@ -2,7 +2,6 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text;
@@ -13,6 +12,8 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
+using Microsoft.VisualStudio.Text.UI.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
@@ -43,18 +44,20 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         protected abstract ISendToInteractiveSubmissionProvider SendToInteractiveSubmissionProvider { get; }
 
-        private string GetSelectedText(CommandArgs args, CancellationToken cancellationToken)
+        public bool InterestedInReadOnlyBuffer => true;
+
+        private string GetSelectedText(Microsoft.VisualStudio.Text.UI.Commanding.Commands.CommandArgs args, CancellationToken cancellationToken)
         {
             var editorOptions = _editorOptionsFactoryService.GetOptions(args.SubjectBuffer);
             return SendToInteractiveSubmissionProvider.GetSelectedText(editorOptions, args, cancellationToken);
         }
 
-        CommandState ICommandHandler<ExecuteInInteractiveCommandArgs>.GetCommandState(ExecuteInInteractiveCommandArgs args, Func<CommandState> nextHandler)
+        CommandState ICommandHandler<ExecuteInInteractiveCommandArgs>.GetCommandState(ExecuteInInteractiveCommandArgs args)
         {
-            return CommandState.Available;
+            return CommandState.CommandIsAvailable;
         }
 
-        void ICommandHandler<ExecuteInInteractiveCommandArgs>.ExecuteCommand(ExecuteInInteractiveCommandArgs args, Action nextHandler)
+        bool ICommandHandler<ExecuteInInteractiveCommandArgs>.ExecuteCommand(ExecuteInInteractiveCommandArgs args)
         {
             var window = OpenInteractiveWindow(focus: false);
             _waitIndicator.Wait(
@@ -68,14 +71,16 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                         window.SubmitAsync(new string[] { submission });
                     }
                 });
+
+            return true;
         }
 
-        CommandState ICommandHandler<CopyToInteractiveCommandArgs>.GetCommandState(CopyToInteractiveCommandArgs args, Func<CommandState> nextHandler)
+        CommandState ICommandHandler<CopyToInteractiveCommandArgs>.GetCommandState(CopyToInteractiveCommandArgs args)
         {
-            return CommandState.Available;
+            return CommandState.CommandIsAvailable;
         }
 
-        void ICommandHandler<CopyToInteractiveCommandArgs>.ExecuteCommand(CopyToInteractiveCommandArgs args, Action nextHandler)
+        bool ICommandHandler<CopyToInteractiveCommandArgs>.ExecuteCommand(CopyToInteractiveCommandArgs args)
         {
             var window = OpenInteractiveWindow(focus: true);
             var buffer = window.CurrentLanguageBuffer;
@@ -95,6 +100,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
                 window.ReadyForInput += action;
             }
+
+            return true;
         }
 
         private void CopyToWindow(IInteractiveWindow window, CopyToInteractiveCommandArgs args)

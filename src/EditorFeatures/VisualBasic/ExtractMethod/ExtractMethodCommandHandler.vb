@@ -4,6 +4,7 @@ Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
 Imports Microsoft.VisualStudio.Text.Operations
+Imports Microsoft.VisualStudio.Text.UI.Commanding
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ExtractMethod

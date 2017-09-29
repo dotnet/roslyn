@@ -3,6 +3,8 @@
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.UI.Commanding
+Imports Microsoft.VisualStudio.Text.UI.Commanding.Commands
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
@@ -387,11 +389,11 @@ End Class
                 Dim nextHandler =
                     Function()
                         delegatedToNext = True
-                        Return CommandState.Unavailable
+                        Return CommandState.CommandIsUnavailable
                     End Function
 
                 Dim handler = testState.SnippetCommandHandler
-                Dim state = handler.GetCommandState(New Commands.InsertSnippetCommandArgs(testState.TextView, testState.SubjectBuffer), nextHandler)
+                Dim state = handler.GetCommandState(New InsertSnippetCommandArgs(testState.TextView, testState.SubjectBuffer), nextHandler)
                 Assert.True(delegatedToNext)
                 Assert.False(state.IsAvailable)
 

@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.VisualStudio.Text;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
@@ -21,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     {
         private readonly IEnumerable<Lazy<IExecuteInInteractiveCommandHandler, ContentTypeMetadata>> _executeInInteractiveHandlers;
 
+        public bool InterestedInReadOnlyBuffer => true;
+
         [ImportingConstructor]
         public ExecuteInInteractiveCommandHandler(
             [ImportMany]IEnumerable<Lazy<IExecuteInInteractiveCommandHandler, ContentTypeMetadata>> executeInInteractiveHandlers)
@@ -35,16 +38,16 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 .SingleOrDefault();
         }
 
-        void ICommandHandler<ExecuteInInteractiveCommandArgs>.ExecuteCommand(ExecuteInInteractiveCommandArgs args, Action nextHandler)
+        bool ICommandHandler<ExecuteInInteractiveCommandArgs>.ExecuteCommand(ExecuteInInteractiveCommandArgs args)
         {
-            GetCommandHandler(args.SubjectBuffer)?.Value.ExecuteCommand(args, nextHandler);
+            return GetCommandHandler(args.SubjectBuffer)?.Value.ExecuteCommand(args) ?? false;
         }
 
-        CommandState ICommandHandler<ExecuteInInteractiveCommandArgs>.GetCommandState(ExecuteInInteractiveCommandArgs args, Func<CommandState> nextHandler)
+        CommandState ICommandHandler<ExecuteInInteractiveCommandArgs>.GetCommandState(ExecuteInInteractiveCommandArgs args)
         {
             return GetCommandHandler(args.SubjectBuffer) == null
-                ? CommandState.Unavailable
-                : CommandState.Available;
+                ? CommandState.CommandIsUnavailable
+                : CommandState.CommandIsAvailable;
         }
     }
 }

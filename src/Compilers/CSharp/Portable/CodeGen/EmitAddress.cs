@@ -40,13 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.Local:
-                    EmitLocalAddress((BoundLocal)expression);
-                    break;
+                    return EmitLocalAddress((BoundLocal)expression, addressKind);
 
                 case BoundKind.Dup:
                     Debug.Assert(((BoundDup)expression).RefKind != RefKind.None, "taking address of a stack value?");
-                    _builder.EmitOpCode(ILOpCode.Dup);
-                    break;
+                    return EmitDupAddress((BoundDup)expression, addressKind);
 
                 case BoundKind.ConditionalReceiver:
                     // do nothing receiver ref must be already pushed
@@ -213,9 +211,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _builder.MarkLabel(doneLabel);
         }
 
-        private void EmitLocalAddress(BoundLocal localAccess)
+        /// <summary>
+        /// May introduce a temp which it will return. (otherwise returns null)
+        /// </summary>
+        private LocalDefinition EmitLocalAddress(BoundLocal localAccess, AddressKind addressKind)
         {
             var local = localAccess.LocalSymbol;
+
+            if (!HasHome(localAccess, needWriteable: addressKind != AddressKind.ReadOnly))
+            {
+                return EmitAddressOfTempClone(localAccess);
+            }
 
             if (IsStackLocal(local))
             {
@@ -234,6 +240,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 _builder.EmitLocalAddress(GetLocal(localAccess));
             }
+
+            return null;
+        }
+
+        /// <summary>
+        /// May introduce a temp which it will return. (otherwise returns null)
+        /// </summary>
+        private LocalDefinition EmitDupAddress(BoundDup dup, AddressKind addressKind)
+        {
+            if (!HasHome(dup, needWriteable: addressKind != AddressKind.ReadOnly))
+            {
+                return EmitAddressOfTempClone(dup);
+            }
+
+            _builder.EmitOpCode(ILOpCode.Dup);
+            return null;
         }
 
         private void EmitPseudoVariableAddress(BoundPseudoVariable expression)
@@ -345,9 +367,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.RefReadOnly;
 
                 case BoundKind.Local:
-                    // locals have home unless they are byval stack locals
+                    // locals have home unless they are byval stack locals or ref-readonly
+                    // locals in a mutating call
                     var local = ((BoundLocal)expression).LocalSymbol;
-                    return !IsStackLocal(local) || local.RefKind != RefKind.None;
+                    return !((IsStackLocal(local) && local.RefKind == RefKind.None) || 
+                        (needWriteable && local.RefKind == RefKind.RefReadOnly));
 
                 case BoundKind.Call:
                     var methodRefKind = ((BoundCall)expression).Method.RefKind;
@@ -356,9 +380,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Dup:
                     //NB: Dup represents locals that do not need IL slot
-                    //    ref locals are currently always writeable, so we do not need to care about "needWriteable"
-                    Debug.Assert(((BoundDup)expression).RefKind != RefKind.RefReadOnly);
-                    return ((BoundDup)expression).RefKind != RefKind.None;
+                    var dupRefKind = ((BoundDup)expression).RefKind;
+                    return dupRefKind == RefKind.Ref ||
+                        (!needWriteable && dupRefKind == RefKind.RefReadOnly);
 
                 case BoundKind.FieldAccess:
                     return HasHome((BoundFieldAccess)expression, needWriteable);
@@ -540,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             ParameterSymbol parameterSymbol = parameter.ParameterSymbol;
 
-            if (!HasHome(parameter, addressKind != AddressKind.ReadOnly))
+            if (!HasHome(parameter, needWriteable: addressKind != AddressKind.ReadOnly))
             {
                 // accessing a parameter that is not writable
                 return EmitAddressOfTempClone(parameter);

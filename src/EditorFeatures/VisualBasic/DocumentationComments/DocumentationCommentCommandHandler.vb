@@ -9,7 +9,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
-    <ExportCommandHandler(PredefinedCommandHandlerNames.DocumentationComments, ContentTypeNames.VisualBasicContentType)>
+    <ExportLegacyCommandHandler(PredefinedCommandHandlerNames.DocumentationComments, ContentTypeNames.VisualBasicContentType)>
     <Order(After:=PredefinedCommandHandlerNames.Rename)>
     <Order(After:=PredefinedCommandHandlerNames.Completion)>
     Friend Class DocumentationCommentCommandHandler

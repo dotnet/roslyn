@@ -2,11 +2,12 @@
 
 using System;
 using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.VisualStudio.Text.UI.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal partial class RenameCommandHandler :
-        ICommandHandler<UndoCommandArgs>, ICommandHandler<RedoCommandArgs>
+        ILegacyCommandHandler<UndoCommandArgs>, ILegacyCommandHandler<RedoCommandArgs>
     {
         public CommandState GetCommandState(UndoCommandArgs args, Func<CommandState> nextHandler)
         {

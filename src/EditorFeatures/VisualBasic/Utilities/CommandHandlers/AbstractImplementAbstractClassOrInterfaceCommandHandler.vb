@@ -11,10 +11,12 @@ Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Operations
+Imports Microsoft.VisualStudio.Text.UI.Commanding
+Imports Microsoft.VisualStudio.Text.UI.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
     Friend MustInherit Class AbstractImplementAbstractClassOrInterfaceCommandHandler
-        Implements ICommandHandler(Of ReturnKeyCommandArgs)
+        Implements ILegacyCommandHandler(Of ReturnKeyCommandArgs)
 
         Private ReadOnly _editorOperationsFactoryService As IEditorOperationsFactoryService
 
@@ -27,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             typeSyntax As TypeSyntax,
             cancellationToken As CancellationToken) As Document
 
-        Private Sub ExecuteCommand(args As ReturnKeyCommandArgs, nextHandler As Action) Implements ICommandHandler(Of ReturnKeyCommandArgs).ExecuteCommand
+        Private Sub ExecuteCommand(args As ReturnKeyCommandArgs, nextHandler As Action) Implements ILegacyCommandHandler(Of ReturnKeyCommandArgs).ExecuteCommand
             Dim caretPointOpt = args.TextView.GetCaretPoint(args.SubjectBuffer)
             If caretPointOpt Is Nothing Then
                 nextHandler()
@@ -172,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             Return True
         End Function
 
-        Private Function GetCommandState(args As ReturnKeyCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements ICommandHandler(Of ReturnKeyCommandArgs).GetCommandState
+        Private Function GetCommandState(args As ReturnKeyCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements ILegacyCommandHandler(Of ReturnKeyCommandArgs).GetCommandState
             Return nextHandler()
         End Function
     End Class

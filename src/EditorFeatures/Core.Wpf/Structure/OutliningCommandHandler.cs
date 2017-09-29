@@ -2,8 +2,9 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.VisualStudio.Text.Outlining;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 {
@@ -18,13 +19,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             _outliningManagerService = outliningManagerService;
         }
 
-        public void ExecuteCommand(StartAutomaticOutliningCommandArgs args, Action nextHandler)
+        public bool InterestedInReadOnlyBuffer => true;
+
+        public bool ExecuteCommand(StartAutomaticOutliningCommandArgs args)
         {
             // The editor actually handles this command, we just have to make sure it is enabled.
-            nextHandler();
+            return false;
         }
 
-        public CommandState GetCommandState(StartAutomaticOutliningCommandArgs args, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(StartAutomaticOutliningCommandArgs args)
         {
             var outliningManager = _outliningManagerService.GetOutliningManager(args.TextView);
             var enabled = false;

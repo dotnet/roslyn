@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -16,16 +15,18 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 {
     internal abstract class AbstractDocumentationCommentCommandHandler<TDocumentationComment, TMemberNode> :
-        ICommandHandler<TypeCharCommandArgs>,
-        ICommandHandler<ReturnKeyCommandArgs>,
-        ICommandHandler<InsertCommentCommandArgs>,
-        ICommandHandler<OpenLineAboveCommandArgs>,
-        ICommandHandler<OpenLineBelowCommandArgs>
+        ILegacyCommandHandler<TypeCharCommandArgs>,
+        ILegacyCommandHandler<ReturnKeyCommandArgs>,
+        ILegacyCommandHandler<InsertCommentCommandArgs>,
+        ILegacyCommandHandler<OpenLineAboveCommandArgs>,
+        ILegacyCommandHandler<OpenLineBelowCommandArgs>
         where TDocumentationComment : SyntaxNode, IStructuredTriviaSyntax
         where TMemberNode : SyntaxNode
     {
@@ -535,13 +536,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
             if (caretPosition < 0)
             {
-                return CommandState.Unavailable;
+                return CommandState.CommandIsUnavailable;
             }
 
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                return CommandState.Unavailable;
+                return CommandState.CommandIsUnavailable;
             }
 
             TMemberNode targetMember = null;
@@ -553,8 +554,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             });
 
             return targetMember != null
-                ? CommandState.Available
-                : CommandState.Unavailable;
+                ? CommandState.CommandIsAvailable
+                : CommandState.CommandIsUnavailable;
         }
 
         public void ExecuteCommand(InsertCommentCommandArgs args, Action nextHandler)

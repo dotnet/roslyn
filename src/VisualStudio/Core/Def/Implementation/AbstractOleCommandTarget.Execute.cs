@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
@@ -167,14 +168,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     ExecuteGoToDefinition(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
 
-                case VSConstants.VSStd97CmdID.FindReferences:
-                    ExecuteFindReferences(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd97CmdID.SyncClassView:
-                    ExecuteSyncClassView(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
                 case VSConstants.VSStd97CmdID.Paste:
                     GCManager.UseLowLatencyModeForProcessingUserInput();
                     ExecutePaste(subjectBuffer, contentType, executeNextCommandTarget);
@@ -324,16 +317,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     ExecuteBackTab(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
 
-                case VSConstants.VSStd2KCmdID.HOME:
-                    GCManager.UseLowLatencyModeForProcessingUserInput();
-                    ExecuteDocumentStart(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd2KCmdID.END:
-                    GCManager.UseLowLatencyModeForProcessingUserInput();
-                    ExecuteDocumentEnd(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
                 case VSConstants.VSStd2KCmdID.BOL:
                     GCManager.UseLowLatencyModeForProcessingUserInput();
                     ExecuteLineStart(subjectBuffer, contentType, executeNextCommandTarget);
@@ -469,11 +452,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     ExecuteExtractInterface(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
 
-                case VSConstants.VSStd2KCmdID.EXTRACTMETHOD:
-                    GCManager.UseLowLatencyModeForProcessingUserInput();
-                    ExecuteExtractMethod(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
                 case VSConstants.VSStd2KCmdID.PASTE:
                     GCManager.UseLowLatencyModeForProcessingUserInput();
                     ExecutePaste(subjectBuffer, contentType, executeNextCommandTarget);
@@ -489,28 +467,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     ExecuteSurroundWith(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
 
-                case VSConstants.VSStd2KCmdID.ViewCallHierarchy:
-                    ExecuteViewCallHierarchy(subjectBuffer, contentType, executeNextCommandTarget);
+                case VSConstants.VSStd2KCmdID.REMOVEPARAMETERS:
+                    ExecuteRemoveParameters(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
 
                 case VSConstants.VSStd2KCmdID.ENCAPSULATEFIELD:
                     ExecuteEncapsulateField(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
 
-                case VSConstants.VSStd2KCmdID.REMOVEPARAMETERS:
-                    ExecuteRemoveParameters(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
                 case VSConstants.VSStd2KCmdID.REORDERPARAMETERS:
                     ExecuteReorderParameters(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd2KCmdID.ECMD_NEXTMETHOD:
-                    ExecuteGoToNextMethod(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                case VSConstants.VSStd2KCmdID.ECMD_PREVMETHOD:
-                    ExecuteGoToPreviousMethod(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
 
                 default:
@@ -541,41 +507,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 lastHandler: executeNextCommandTarget);
         }
 
-        private void ExecuteGoToNextMethod(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new GoToAdjacentMemberCommandArgs(ConvertTextView(), subjectBuffer, NavigateDirection.Down),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        private void ExecuteGoToPreviousMethod(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new GoToAdjacentMemberCommandArgs(ConvertTextView(), subjectBuffer, NavigateDirection.Up),
-                lastHandler: executeNextCommandTarget);
-        }
-
         /// <remarks>TODO: Revert the change to use standard VS11 command pending https://github.com/dotnet/roslyn/issues/8927 .</remarks>
         private int ExecuteInteractive(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut, ITextBuffer subjectBuffer, IContentType contentType)
         {
-            int result = VSConstants.S_OK;
-            var guidCmdGroup = pguidCmdGroup;
-            void executeNextCommandTarget()
-            {
-                result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            }
-
-            switch (commandId)
-            {
-                case ID.InteractiveCommands.ExecuteInInteractiveWindow:
-                    ExecuteExecuteInInteractiveWindow(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
-                default:
-                    return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            }
-
-            return result;
+            return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
         }
 
         private void ExecuteMoveSelectedLinesUp(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
@@ -603,20 +538,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             CurrentHandlers.Execute(contentType,
                 args: new ExtractInterfaceCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        protected void ExecuteExtractMethod(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new ExtractMethodCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        protected void ExecuteViewCallHierarchy(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new ViewCallHierarchyCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
@@ -679,14 +600,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         protected void ExecutePreviousHighlightedReference(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
             CurrentHandlers.Execute(contentType,
-                args: new NavigateToHighlightedReferenceCommandArgs(ConvertTextView(), subjectBuffer, NavigateDirection.Up),
+                args: new NavigateToPreviousHighlightedReferenceCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteNextHighlightedReference(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
             CurrentHandlers.Execute(contentType,
-                args: new NavigateToHighlightedReferenceCommandArgs(ConvertTextView(), subjectBuffer, NavigateDirection.Down),
+                args: new NavigateToNextHighlightedReferenceCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
@@ -781,20 +702,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 lastHandler: executeNextCommandTarget);
         }
 
-        protected void ExecuteDocumentStart(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new DocumentStartCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        protected void ExecuteDocumentEnd(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new DocumentEndCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
         protected void ExecuteLineStart(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
             CurrentHandlers.Execute(contentType,
@@ -847,14 +754,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         protected void ExecuteUndo(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget, int count = 1)
         {
             CurrentHandlers.Execute(contentType,
-                args: new UndoCommandArgs(ConvertTextView(), subjectBuffer, count),
+                args: new CodeAnalysis.Editor.Commands.UndoCommandArgs(ConvertTextView(), subjectBuffer, count),
                 lastHandler: executeNextCommandTarget);
         }
 
         protected void ExecuteRedo(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget, int count = 1)
         {
             CurrentHandlers.Execute(contentType,
-                args: new RedoCommandArgs(ConvertTextView(), subjectBuffer, count),
+                args: new CodeAnalysis.Editor.Commands.RedoCommandArgs(ConvertTextView(), subjectBuffer, count),
                 lastHandler: executeNextCommandTarget);
         }
 
@@ -879,18 +786,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 lastHandler: executeNextCommandTarget);
         }
 
+        private void ExecuteGoToDefinition(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
+        {
+            CurrentHandlers.Execute(contentType,
+                args: new GoToDefinitionCommandArgs(ConvertTextView(), subjectBuffer),
+                lastHandler: executeNextCommandTarget);
+        }
+
         protected void ExecuteTypeCharacter(IntPtr pvaIn, ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
             var typedChar = (char)(ushort)Marshal.GetObjectForNativeVariant(pvaIn);
             CurrentHandlers.Execute(contentType,
                 args: new TypeCharCommandArgs(ConvertTextView(), subjectBuffer, typedChar),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        private void ExecuteGoToDefinition(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new GoToDefinitionCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
@@ -901,27 +808,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 lastHandler: executeNextCommandTarget);
         }
 
-        private void ExecuteFindReferences(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new FindReferencesCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        private void ExecuteSyncClassView(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new SyncClassViewCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        protected void ExecutePaste(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new PasteCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
         private void ExecuteSortAndRemoveUnusedUsings(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
             CurrentHandlers.Execute(contentType,
@@ -929,10 +815,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 lastHandler: executeNextCommandTarget);
         }
 
-        private void ExecuteExecuteInInteractiveWindow(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
+        protected void ExecutePaste(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
             CurrentHandlers.Execute(contentType,
-                args: new ExecuteInInteractiveCommandArgs(ConvertTextView(), subjectBuffer),
+                args: new PasteCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 

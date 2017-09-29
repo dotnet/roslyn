@@ -6,7 +6,10 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -18,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     [Order(Before = PredefinedCommandHandlerNames.ChangeSignature)]
     [Order(Before = PredefinedCommandHandlerNames.ExtractInterface)]
     [Order(Before = PredefinedCommandHandlerNames.EncapsulateField)]
-    [ExportCommandHandler(PredefinedCommandHandlerNames.Rename, ContentTypeNames.RoslynContentType, ContentTypeNames.XamlContentType)]
+    [ExportLegacyCommandHandler(PredefinedCommandHandlerNames.Rename, ContentTypeNames.RoslynContentType, ContentTypeNames.XamlContentType)]
     internal partial class RenameCommandHandler
     {
         private readonly InlineRenameService _renameService;
@@ -40,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (_renameService.ActiveSession != null)
             {
-                return CommandState.Available;
+                return CommandState.CommandIsAvailable;
             }
 
             return nextHandler();

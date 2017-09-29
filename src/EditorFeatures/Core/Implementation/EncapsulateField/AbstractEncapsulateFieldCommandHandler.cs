@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -13,11 +12,13 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Text.UI.Commanding;
+using Microsoft.VisualStudio.Text.UI.Commanding.Commands;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
 {
-    internal abstract class AbstractEncapsulateFieldCommandHandler : ICommandHandler<EncapsulateFieldCommandArgs>
+    internal abstract class AbstractEncapsulateFieldCommandHandler : ILegacyCommandHandler<EncapsulateFieldCommandArgs>
     {
         private readonly IWaitIndicator _waitIndicator;
         private readonly ITextBufferUndoManagerProvider _undoManager;
@@ -56,9 +57,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
                 message: EditorFeaturesResources.Applying_Encapsulate_Field_refactoring,
                 allowCancel: true,
                 action: waitContext =>
-            {
-                executed = Execute(args, waitContext);
-            });
+                {
+                    executed = Execute(args, waitContext);
+                });
 
             if (!executed)
             {
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
                 return nextHandler();
             }
 
-            return CommandState.Available;
+            return CommandState.CommandIsAvailable;
         }
     }
 }
