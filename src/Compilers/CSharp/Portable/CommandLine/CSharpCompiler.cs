@@ -137,7 +137,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var compilation = CSharpCompilation.Create(
+            var loggingFileSystem = new LoggingStrongNameFileSystem(touchedFilesLogger);
+
+            return CSharpCompilation.Create(
                 Arguments.CompilationName,
                 trees.WhereNotNull(),
                 resolvedReferences,
@@ -145,20 +147,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     WithMetadataReferenceResolver(referenceDirectiveResolver).
                     WithAssemblyIdentityComparer(assemblyIdentityComparer).
                     WithXmlReferenceResolver(xmlFileResolver).
+                    WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem)).
                     WithSourceReferenceResolver(sourceFileResolver));
-
-            var loggingOperations = new LoggingStrongNameFileSystem(touchedFilesLogger);
-            var searchPaths = Arguments.KeyFileSearchPaths;
-
-            bool fallback =
-                (compilation.Feature("UseLegacyStrongNameProvider") != null) ||
-                (compilation.Options.CryptoKeyContainer != null);
-
-            return compilation.WithOptions(
-                compilation.Options.WithStrongNameProvider(
-                    fallback ?
-                    (StrongNameProvider)new DesktopStrongNameProvider(searchPaths, tempPath: null, strongNameFileSystem: loggingOperations) :
-                    (StrongNameProvider)new PortableStrongNameProvider(searchPaths, loggingOperations)));
         }
 
         private SyntaxTree ParseFile(

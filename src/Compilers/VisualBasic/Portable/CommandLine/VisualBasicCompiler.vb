@@ -135,7 +135,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' TODO: support for #load search paths
             Dim sourceFileResolver = New LoggingSourceFileResolver(ImmutableArray(Of String).Empty, Arguments.BaseDirectory, Arguments.PathMap, touchedFilesLogger)
 
-            Dim result = VisualBasicCompilation.Create(
+            Dim loggingFileSystem = New LoggingStrongNameFileSystem(touchedFilesLogger)
+
+            Return VisualBasicCompilation.Create(
                  Arguments.CompilationName,
                  trees,
                  resolvedReferences,
@@ -143,20 +145,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      WithMetadataReferenceResolver(referenceDirectiveResolver).
                      WithAssemblyIdentityComparer(assemblyIdentityComparer).
                      WithXmlReferenceResolver(xmlFileResolver).
+                     WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem)).
                      WithSourceReferenceResolver(sourceFileResolver))
-
-            Dim loggingOperations = New LoggingStrongNameFileSystem(touchedFilesLogger)
-            Dim searchPaths = Arguments.KeyFileSearchPaths
-
-            Dim fallback =
-                (result.Feature("UseLegacyStrongNameProvider") <> Nothing) Or
-                (result.Options.CryptoKeyContainer <> Nothing)
-
-            Return result.WithOptions(
-                result.Options.WithStrongNameProvider(
-                    If(fallback,
-                        CType(New DesktopStrongNameProvider(searchPaths, Nothing, loggingOperations), StrongNameProvider),
-                        CType(New PortableStrongNameProvider(searchPaths, loggingOperations), StrongNameProvider))))
         End Function
 
         Private Sub PrintReferences(resolvedReferences As List(Of MetadataReference), consoleOutput As TextWriter)
