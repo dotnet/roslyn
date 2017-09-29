@@ -337,24 +337,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!modifierErrors)
                 {
-                    SyntaxTokenList modifierTokens;
-                    switch (decl.SyntaxReference.GetSyntax())
-                    {
-                        case BaseTypeDeclarationSyntax type:
-                            modifierTokens = type.Modifiers;
-                            break;
-                        case DelegateDeclarationSyntax @delegate:
-                            modifierTokens = @delegate.Modifiers;
-                            break;
-                        default:
-                            // No modifier token list
-                            modifierTokens = default;
-                            break;
-                    }
-
                     mods = ModifierUtils.CheckModifiers(
                         mods, allowedModifiers, declaration.Declarations[i].NameLocation, diagnostics,
-                        modifierTokens: modifierTokens, modifierErrors: out modifierErrors);
+                        modifierTokens: null, modifierErrors: out modifierErrors);
 
                     // It is an error for the same modifier to appear multiple times.
                     if (!modifierErrors)

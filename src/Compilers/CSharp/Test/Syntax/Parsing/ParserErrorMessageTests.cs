@@ -414,7 +414,10 @@ partial enum E { }
             CreateStandardCompilation(test).VerifyDiagnostics(
                 // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
                 // partial enum E { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
+                // (2,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial enum E { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(2, 14));
         }
 
         [Fact]
@@ -426,6 +429,9 @@ partial delegate E { }
 
             // Extra errors
             CreateStandardCompilation(test).VerifyDiagnostics(
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial delegate E { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
                 // (2,20): error CS1001: Identifier expected
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(2, 20),
@@ -444,9 +450,9 @@ partial delegate E { }
                 // (2,22): error CS1022: Type or namespace definition, or end-of-file expected
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(2, 22),
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // (2,20): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
                 // partial delegate E { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "").WithLocation(2, 20),
                 // (2,18): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "E").WithArguments("E").WithLocation(2, 18));
@@ -463,7 +469,10 @@ partial delegate void E();
             CreateStandardCompilation(test).VerifyDiagnostics(
                 // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
                 // partial delegate void E();
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
+                // (2,23): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial delegate void E();
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(2, 23));
         }
 
         // TODO: Extra errors

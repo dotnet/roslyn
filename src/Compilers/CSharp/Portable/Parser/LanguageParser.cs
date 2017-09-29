@@ -1192,14 +1192,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             modTok = CheckFeatureAvailability(modTok,
                                 isPartialType ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod);
                         }
+                        else if(nextToken.Kind == SyntaxKind.NamespaceKeyword)
+                        {
+                            // Error reported in binding
+                            modTok = ConvertToKeyword(this.EatToken());
+                        }
                         else if (
                             nextToken.Kind == SyntaxKind.EnumKeyword ||
                             nextToken.Kind == SyntaxKind.DelegateKeyword ||
-                            nextToken.Kind == SyntaxKind.NamespaceKeyword ||
                             (IsPossibleStartOfTypeDeclaration(nextToken.Kind) && GetModifier(nextToken) != DeclarationModifiers.None))
                         {
-                            // Error tolerance cases.  Will report an error about these post parsing.
-                            modTok = ConvertToKeyword(this.EatToken());
+                            // Misplaced partial
+                            // TODO(https://github.com/dotnet/roslyn/issues/22439):
+                            // We should consider moving this check into binding, but avoid holding on to trees
+                            modTok = AddError(ConvertToKeyword(this.EatToken()), ErrorCode.ERR_PartialMisplaced);
                         }
                         else
                         {

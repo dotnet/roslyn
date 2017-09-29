@@ -31,21 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers allowedModifiers,
             Location errorLocation,
             DiagnosticBag diagnostics,
-            SyntaxTokenList modifierTokens,
+            SyntaxTokenList? modifierTokens,
             out bool modifierErrors)
         {
             modifierErrors = false;
             DeclarationModifiers errorModifiers = modifiers & ~allowedModifiers;
             DeclarationModifiers result = modifiers & allowedModifiers;
-
-            // Check if partial is allowed, but misplaced
-            if ((modifiers & DeclarationModifiers.Partial & allowedModifiers) != 0)
-            {
-                if (modifierTokens.Any() && modifierTokens.Last().Kind() != SyntaxKind.PartialKeyword)
-                {
-                    ReportPartialError(errorLocation, diagnostics, modifierTokens);
-                }
-            }
 
             while (errorModifiers != DeclarationModifiers.None)
             {
@@ -83,14 +74,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        private static void ReportPartialError(Location errorLocation, DiagnosticBag diagnostics, SyntaxTokenList modifierTokens)
+        private static void ReportPartialError(Location errorLocation, DiagnosticBag diagnostics, SyntaxTokenList? modifierTokens)
         {
             // If we can find the 'partial' token, report it on that.
-            var partialToken = modifierTokens.FirstOrDefault(SyntaxKind.PartialKeyword);
-            if (partialToken != default)
+            if (modifierTokens != null)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialMisplaced, partialToken.GetLocation());
-                return;
+                var partialToken = modifierTokens.Value.FirstOrDefault(SyntaxKind.PartialKeyword);
+                if (partialToken != default)
+                {
+                    diagnostics.Add(ErrorCode.ERR_PartialMisplaced, partialToken.GetLocation());
+                    return;
+                }
             }
 
             diagnostics.Add(ErrorCode.ERR_PartialMisplaced, errorLocation);
