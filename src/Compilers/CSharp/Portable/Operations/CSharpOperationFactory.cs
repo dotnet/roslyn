@@ -683,13 +683,10 @@ namespace Microsoft.CodeAnalysis.Semantics
             bool isImplicit = boundConversion.WasCompilerGenerated || !boundConversion.ExplicitCastInCode;
             if (boundConversion.ConversionKind == CSharp.ConversionKind.MethodGroup)
             {
+                // We don't check HasErrors on the conversion here because if we actually have a MethodGroup conversion,
+                // overload resolution succeeded. The resulting method could be invalid for other reasons, but we don't
+                // hide the resolved method.
                 Lazy<IOperation> target = new Lazy<IOperation>(() =>
-                    // If the conversion has errors, we cannot guarantee that the BoundMethodGroup was successfully resolved, even if it does
-                    // not have any errors. An example of this is when there are multiple candidate methods, but none of them are a match
-                    // to the type expected by the conversion. So, if the conversion has any errors, we don't construct an IMethodReferenceExpression,
-                    // but instead simply delegate to the standard CSharpOperationFactoryBehavior
-                    boundConversion.HasErrors ?
-                        Create(boundConversion.Operand) :
                         CreateBoundMethodGroupSingleMethodOperation((BoundMethodGroup)boundConversion.Operand,
                                                                     boundConversion.SymbolOpt,
                                                                     boundConversion.SuppressVirtualCalls));
@@ -759,12 +756,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             Lazy<IOperation> target = new Lazy<IOperation>(() =>
             {
                 if (boundDelegateCreationExpression.Argument.Kind == BoundKind.MethodGroup &&
-                    boundDelegateCreationExpression.MethodOpt != null &&
-                    !boundDelegateCreationExpression.HasErrors)
+                    boundDelegateCreationExpression.MethodOpt != null)
                 {
                     // If this is a method binding, and a valid candidate method was found, then we want to expose
                     // this child as an IMethodBindingReference. Otherwise, we want to just delegate to the standard
-                    // CSharpOperationFactory behavior
+                    // CSharpOperationFactory behavior. Note we don't check HasErrors here because if we have a method group,
+                    // overload resolution succeeded, even if the resulting method isn't valid for some other reason.
                     BoundMethodGroup boundMethodGroup = (BoundMethodGroup)boundDelegateCreationExpression.Argument;
                     return CreateBoundMethodGroupSingleMethodOperation(boundMethodGroup, boundDelegateCreationExpression.MethodOpt, boundMethodGroup.SuppressVirtualCalls);
                 }

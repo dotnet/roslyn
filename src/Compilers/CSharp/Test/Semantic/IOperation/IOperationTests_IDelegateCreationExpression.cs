@@ -362,7 +362,7 @@ IMethodReferenceExpression: void Program.M1() (OperationKind.MethodReferenceExpr
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void DelegateCreationExpression_ImplicitMethodBinding_InvalidIdentifer()
+        public void DelegateCreationExpression_ImplicitMethodBinding_InvalidIdentifier()
         {
             string source = @"
 using System;
@@ -441,9 +441,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'a = M1')
     Variables: Local_1: System.Action a
     Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: 'M1')
-        Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
-            Children(1):
-                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
+        Target: IMethodReferenceExpression: System.Int32 Program.M1() (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'M1')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0407: 'int Program.M1()' has the wrong return type
@@ -471,9 +470,8 @@ class Program
 ";
 
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
-  Children(1):
-      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
+IMethodReferenceExpression: System.Int32 Program.M1() (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'M1')
+  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
@@ -650,9 +648,8 @@ class Program
 ";
             string expectedOperationTree = @"
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M1')
-  Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
-      Children(1):
-          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
+  Target: IMethodReferenceExpression: System.Int32 Program.M1() (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'M1')
+      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
@@ -681,9 +678,8 @@ class Program
 ";
             string expectedOperationTree = @"
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)p.M1')
-  Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'p.M1')
-      Children(1):
-          ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'p')
+  Target: IMethodReferenceExpression: System.Int32 Program.M1() (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'p.M1')
+      Instance Receiver: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'p')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0407: 'int Program.M1()' has the wrong return type
@@ -978,9 +974,8 @@ class Program
 ";
             string expectedOperationTree = @"
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action(M1)')
-  Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
-      Children(1):
-          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
+  Target: IMethodReferenceExpression: System.Int32 Program.M1() (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'M1')
+      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0407: 'int Program.M1()' has the wrong return type
@@ -1289,9 +1284,8 @@ class Program
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInvalid) (Syntax: 'new Action((Action)M1)')
   Children(1):
       IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: '(Action)M1')
-        Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M1')
-            Children(1):
-                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
+        Target: IMethodReferenceExpression: System.Int32 Program.M1() (OperationKind.MethodReferenceExpression, Type: null, IsInvalid) (Syntax: 'M1')
+            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0407: 'int Program.M1()' has the wrong return type
@@ -1476,7 +1470,7 @@ class Program
     {
         /*<bind>*/Action<int> a = M1;/*</bind>*/
     }
-    void M1(object o) { }
+    void M1(Program o) { }
     void M1(string s) { }
 }
 ";
@@ -1492,7 +1486,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0123: No overload for 'Program.M1(object)' matches delegate 'Action<int>'
                 //         /*<bind>*/Action<int> a = M1;/*</bind>*/
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M1").WithArguments("Program.M1(object)", "System.Action<int>").WithLocation(7, 35)
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M1").WithArguments("M1", "System.Action<int>").WithLocation(7, 35)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1568,7 +1562,7 @@ class Program
         Action<int> a = /*<bind>*/new Action<int>(M1)/*</bind>*/;
     }
 
-    void M1(object o) { }
+    void M1(Program o) { }
 
     void M1(string s) { }
 }
@@ -1582,7 +1576,7 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0123: No overload for 'Program.M1(object)' matches delegate 'Action<int>'
                 //         Action<int> a = /*<bind>*/new Action<int>(M1)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M1").WithArguments("Program.M1(object)", "System.Action<int>").WithLocation(7, 51)
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new Action<int>(M1)").WithArguments("M1", "System.Action<int>").WithLocation(7, 35)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
