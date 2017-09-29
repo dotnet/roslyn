@@ -146,7 +146,7 @@ End Class"
         End Sub
 
         <Fact>
-        Public Sub CreateCompilationWithFeatureBypass()
+        Public Sub CreateCompilationWithStrongNameFallbackCommand()
             Dim source = "
 Public Class C
     Public Shared Sub Main()

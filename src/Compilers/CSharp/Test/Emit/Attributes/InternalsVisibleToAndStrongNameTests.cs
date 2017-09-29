@@ -1594,7 +1594,7 @@ public class C
             var options = TestOptions.ReleaseDll
                 .WithDelaySign(true)
                 .WithCryptoKeyFile(s_keyPairFile)
-                .WithStrongNameProvider(s_defaultPortableProvider);
+                .WithStrongNameProvider(provider);
 
             var other = CreateCompilation(
                 @"

@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis
                 string resolvedKeyFile = fileSystem.ResolveStrongNameKeyFile(keyFilePath, keyFileSearchPaths);
                 if (resolvedKeyFile == null)
                 {
-                    var message = $"{keyFilePath}: {CodeAnalysisResources.FileNotFound}";
-                    return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, message));
+                    return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, CodeAnalysisResources.FileNotFound));
                 }
 
                 Debug.Assert(PathUtilities.IsAbsolute(resolvedKeyFile));
