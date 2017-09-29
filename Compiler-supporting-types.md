@@ -24,6 +24,10 @@ The `ref readonly` feature chose option (1).
 
 There is discussion to adjust the compiler's tolerance to missing tuple names (adopting the third approach, instead of the second one): https://github.com/dotnet/roslyn/issues/20528.
 
+## History:
+- Changes in [.NET Framework 4.7.1](https://blogs.msdn.microsoft.com/dotnet/2017/09/28/net-framework-4-7-1-runtime-and-compiler-features/) (adding attributes for ref readonly and ref struct, making `ValueTuple` types serializable, adding ITuple, adding `RuntimeFeature` API)
+- Changes in [.NET Framework 4.7](https://blogs.msdn.microsoft.com/dotnet/2017/04/05/announcing-the-net-framework-4-7/) (adding `ValueTuple` types)
+
 ## Open issues:
 - Verify how the IDE behaves today when an attribute is marked as obsolete and the IDE tries to copy it from the method you're overriding.
 
