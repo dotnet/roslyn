@@ -4,6 +4,7 @@ Imports System.IO
 Imports System.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.SpecialType
+Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -1941,7 +1942,7 @@ End Module
             Assert.NotNull(label2)
             Assert.Equal("Label2", label2.Name)
             Dim symLabel = DirectCast(label1, LabelSymbol)
-            Assert.False(SymbolExtensions.IsOverloadable(symLabel))
+            Assert.False(Symbols.SymbolExtensions.IsOverloadable(symLabel))
             Assert.False(symLabel.IsMustOverride)
             Assert.False(symLabel.IsOverrides)
             Assert.False(symLabel.IsOverridable)

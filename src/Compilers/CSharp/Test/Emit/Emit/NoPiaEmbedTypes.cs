@@ -14,6 +14,7 @@ using MemoryStream = System.IO.MemoryStream;
 using System;
 using Microsoft.CodeAnalysis.Emit;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Test.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {

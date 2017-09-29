@@ -19,6 +19,7 @@ using Roslyn.Test.Utilities;
 
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
+using Microsoft.CodeAnalysis.Test.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {

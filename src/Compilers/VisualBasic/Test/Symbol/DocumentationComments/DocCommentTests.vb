@@ -10,6 +10,7 @@ Imports System.Text
 Imports System.IO
 Imports Roslyn.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation
+Imports Microsoft.CodeAnalysis.Test.Extensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class DocCommentTests

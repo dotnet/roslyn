@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Reflection;
+using Microsoft.CodeAnalysis.Test.Extensions;
 
 //test
 

@@ -8,6 +8,7 @@ using Roslyn.Test.Utilities;
 using System;
 using System.Linq;
 using Xunit;
+using Microsoft.CodeAnalysis.Test.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {

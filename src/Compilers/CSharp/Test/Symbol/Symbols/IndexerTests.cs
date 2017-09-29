@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -2541,11 +2542,11 @@ partial class C
 }
 ";
             var compilation = CreateStandardCompilation(new string[] { text1, text2 });
-            Assert.True(((TypeSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single()).GetMembers().Any(x => SymbolExtensions.IsIndexer(x)));
+            Assert.True(((TypeSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single()).GetMembers().Any(x => CSharp.Symbols.SymbolExtensions.IsIndexer(x)));
 
             //test with text inputs reversed in case syntax ordering predicate ever changes.
             compilation = CreateStandardCompilation(new string[] { text2, text1 });
-            Assert.True(((TypeSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single()).GetMembers().Any(x => SymbolExtensions.IsIndexer(x)));
+            Assert.True(((TypeSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single()).GetMembers().Any(x => CSharp.Symbols.SymbolExtensions.IsIndexer(x)));
         }
 
         [WorkItem(543957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543957")]

@@ -11,6 +11,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using CSReferenceManager = Microsoft.CodeAnalysis.CSharp.CSharpCompilation.ReferenceManager;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Test.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {

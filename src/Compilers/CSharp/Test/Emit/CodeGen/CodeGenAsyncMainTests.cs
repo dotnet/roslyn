@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 using System.Threading;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {

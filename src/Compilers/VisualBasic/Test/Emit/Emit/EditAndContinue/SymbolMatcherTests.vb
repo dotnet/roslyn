@@ -10,6 +10,7 @@ Imports Roslyn.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports System.Threading.Tasks
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Test.Extensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class SymbolMatcherTests

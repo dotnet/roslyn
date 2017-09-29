@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1663,7 +1664,7 @@ class Derived : Base<int>
         /// </summary>
         private static void CheckSymbols(SemanticModel model, int keyPositionNum, int position, IEnumerable<string> expectedSymbols)
         {
-            var actualSymbols = model.LookupSymbols(position).Select(SymbolUtilities.ToTestDisplayString).ToArray();
+            var actualSymbols = model.LookupSymbols(position).Select(CodeAnalysis.Test.Extensions.SymbolExtensions.ToTestDisplayString).ToArray();
             Array.Sort(actualSymbols);
 
             SyntaxToken token = model.SyntaxTree.GetCompilationUnitRoot().FindToken(position, findInsideTrivia: true);
