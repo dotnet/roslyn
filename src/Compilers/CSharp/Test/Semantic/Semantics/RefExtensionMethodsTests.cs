@@ -63,12 +63,12 @@ public static class Program
         }
 
         [Fact]
-        public void ExtensionMethods_RValues_RefReadOnly_Allowed()
+        public void ExtensionMethods_RValues_In_Allowed()
         {
             var code = @"
 public static class Extensions
 {
-    public static void PrintValue(ref readonly this int p)
+    public static void PrintValue(in this int p)
     {
         System.Console.Write(p);
     }
@@ -86,12 +86,12 @@ public static class Program
         }
 
         [Fact]
-        public void ExtensionMethods_LValues_RefReadOnly_Allowed()
+        public void ExtensionMethods_LValues_In_Allowed()
         {
             var code = @"
 public static class Extensions
 {
-    public static void PrintValue(ref readonly this int p)
+    public static void PrintValue(in this int p)
     {
         System.Console.Write(p);
     }
@@ -133,7 +133,7 @@ public static class Extensions
         }
 
         [Fact]
-        public void ExtensionMethods_NullConditionalOperator_RefReadOnly_NotAllowed()
+        public void ExtensionMethods_NullConditionalOperator_In_NotAllowed()
         {
             var code = @"
 public struct TestType
@@ -142,7 +142,7 @@ public struct TestType
 }
 public static class Extensions
 {
-    public static void Call(ref readonly this TestType obj)
+    public static void Call(in this TestType obj)
     {
         var value1 = obj?.GetValue();        // This should be an error
         var value2 = obj.GetValue();         // This should be OK
@@ -701,12 +701,12 @@ public static class Program
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_ValueTypes_Allowed()
+        public void InExtensionMethodsReceiverTypes_ValueTypes_Allowed()
         {
             var reference = CreateCompilationWithMscorlibAndSystemCore(@"
 public static class Extensions
 {
-    public static void PrintValue(ref readonly this int p)
+    public static void PrintValue(in this int p)
     {
         System.Console.Write(p);
     }
@@ -739,12 +739,12 @@ public static class Program2
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_ReferenceTypes_NotAllowed()
+        public void InExtensionMethodsReceiverTypes_ReferenceTypes_NotAllowed()
         {
             var code = @"
 public static class Extensions
 {
-    public static void PrintValue(ref readonly this string p)
+    public static void PrintValue(in this string p)
     {
         System.Console.WriteLine(p);
     }
@@ -761,7 +761,7 @@ public static class Program
 
             var reference = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
-                //     public static void PrintValue(ref readonly this string p)
+                //     public static void PrintValue(in this string p)
                 Diagnostic(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         x.PrintValue();
@@ -783,12 +783,12 @@ public static class Program2
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_InterfaceTypes_NotAllowed()
+        public void InExtensionMethodsReceiverTypes_InterfaceTypes_NotAllowed()
         {
             var code = @"
 public static class Extensions
 {
-    public static void PrintValue(ref readonly this System.IComparable p)
+    public static void PrintValue(in this System.IComparable p)
     {
         System.Console.WriteLine(p);
     }
@@ -805,7 +805,7 @@ public static class Program
 
             var reference = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
-                //     public static void PrintValue(ref readonly this System.IComparable p)
+                //     public static void PrintValue(in this System.IComparable p)
                 Diagnostic(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'IComparable' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'IComparable' could be found (are you missing a using directive or an assembly reference?)
                 //         x.PrintValue();
@@ -827,12 +827,12 @@ public static class Program2
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_UnconstrainedGenericTypes_NotAllowed()
+        public void InExtensionMethodsReceiverTypes_UnconstrainedGenericTypes_NotAllowed()
         {
             var code = @"
 public static class Extensions
 {
-    public static void PrintValue<T>(ref readonly this T p)
+    public static void PrintValue<T>(in this T p)
     {
         System.Console.WriteLine(p);
     }
@@ -849,7 +849,7 @@ public static class Program
 
             var reference = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
-                //     public static void PrintValue<T>(ref readonly this T p)
+                //     public static void PrintValue<T>(in this T p)
                 Diagnostic(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         x.PrintValue();
@@ -871,12 +871,12 @@ public static class Program2
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_StructConstrainedGenericTypes_NotAllowed()
+        public void InExtensionMethodsReceiverTypes_StructConstrainedGenericTypes_NotAllowed()
         {
             var code = @"
 public static class Extensions
 {
-    public static void PrintValue<T>(ref readonly this T p) where T : struct
+    public static void PrintValue<T>(in this T p) where T : struct
     {
         System.Console.WriteLine(p);
     }
@@ -893,7 +893,7 @@ public static class Program
 
             var reference = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
-                //     public static void PrintValue<T>(ref readonly this T p) where T : struct
+                //     public static void PrintValue<T>(in this T p) where T : struct
                 Diagnostic(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'int' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //         x.PrintValue();
@@ -915,12 +915,12 @@ public static class Program2
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_ClassConstrainedGenericTypes_NotAllowed()
+        public void InExtensionMethodsReceiverTypes_ClassConstrainedGenericTypes_NotAllowed()
         {
             var code = @"
 public static class Extensions
 {
-    public static void PrintValue<T>(ref readonly this T p) where T : class
+    public static void PrintValue<T>(in this T p) where T : class
     {
         System.Console.WriteLine(p);
     }
@@ -937,7 +937,7 @@ public static class Program
 
             var reference = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
-                //     public static void PrintValue<T>(ref readonly this T p) where T : class
+                //     public static void PrintValue<T>(in this T p) where T : class
                 Diagnostic(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         x.PrintValue();
@@ -959,12 +959,12 @@ public static class Program2
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_InterfaceConstrainedGenericTypes_NotAllowed()
+        public void InExtensionMethodsReceiverTypes_InterfaceConstrainedGenericTypes_NotAllowed()
         {
             var code = @"
 public static class Extensions
 {
-    public static void PrintValue<T>(ref readonly this T p) where T : System.IComparable
+    public static void PrintValue<T>(in this T p) where T : System.IComparable
     {
         System.Console.WriteLine(p);
     }
@@ -981,7 +981,7 @@ public static class Program
 
             var reference = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
-                //     public static void PrintValue<T>(ref readonly this T p) where T : System.IComparable
+                //     public static void PrintValue<T>(in this T p) where T : System.IComparable
                 Diagnostic(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         x.PrintValue();
@@ -1003,7 +1003,7 @@ public static class Program2
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_ValueTypes_Allowed_IL()
+        public void InExtensionMethodsReceiverTypes_ValueTypes_Allowed_IL()
         {
             var reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
@@ -1040,7 +1040,7 @@ public static class Program
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_ReferenceTypes_NotAllowed_IL()
+        public void InExtensionMethodsReceiverTypes_ReferenceTypes_NotAllowed_IL()
         {
             var reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
@@ -1079,7 +1079,7 @@ public static class Program
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_InterfaceTypes_NotAllowed_IL()
+        public void InExtensionMethodsReceiverTypes_InterfaceTypes_NotAllowed_IL()
         {
             var reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
@@ -1118,7 +1118,7 @@ public static class Program
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_UnconstrainedGenericTypes_NotAllowed_IL()
+        public void InExtensionMethodsReceiverTypes_UnconstrainedGenericTypes_NotAllowed_IL()
         {
             var reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
@@ -1157,7 +1157,7 @@ public static class Program
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_StructConstrainedGenericTypes_NotAllowed_IL()
+        public void InExtensionMethodsReceiverTypes_StructConstrainedGenericTypes_NotAllowed_IL()
         {
             var reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
@@ -1196,7 +1196,7 @@ public static class Program
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_ClassConstrainedGenericTypes_NotAllowed_IL()
+        public void InExtensionMethodsReceiverTypes_ClassConstrainedGenericTypes_NotAllowed_IL()
         {
             var reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
@@ -1235,7 +1235,7 @@ public static class Program
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_InterfaceConstrainedGenericTypes_NotAllowed_IL()
+        public void InExtensionMethodsReceiverTypes_InterfaceConstrainedGenericTypes_NotAllowed_IL()
         {
             var reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
@@ -1274,12 +1274,12 @@ public static class Program
         }
 
         [Fact]
-        public void RefReadOnlyErrorsArePropagatedThroughExtensionMethods()
+        public void InErrorsArePropagatedThroughExtensionMethods()
         {
             var code = @"
 public static class Extensions
 {
-    public static void Modify(ref readonly this int p)
+    public static void Modify(in this int p)
     {
         p++;
     }
@@ -1294,9 +1294,9 @@ public static class Program
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
-                // (6,9): error CS8408: Cannot assign to variable 'ref readonly int' because it is a readonly variable
+                // (6,9): error CS8408: Cannot assign to variable 'in int' because it is a readonly variable
                 //         p++;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "p").WithArguments("variable", "ref readonly int").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "p").WithArguments("variable", "in int").WithLocation(6, 9));
         }
 
         [Fact]
@@ -1358,12 +1358,12 @@ public class Test
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethods_CodeGen()
+        public void InExtensionMethods_CodeGen()
         {
             var code = @"
 public static class Extensions
 {
-    public static void Print(ref readonly this int x)
+    public static void Print(in this int x)
     {
         System.Console.Write(x);
     }
@@ -1388,7 +1388,7 @@ public class Test
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""void Extensions.Print(ref readonly int)""
+  IL_0004:  call       ""void Extensions.Print(in int)""
   IL_0009:  ret
 }");
 
@@ -1433,12 +1433,12 @@ public class Test
         }
 
         [Fact]
-        public void Conversions_Numeric_RefReadOnlyExtensionMethods_NotAllowed()
+        public void Conversions_Numeric_InExtensionMethods_NotAllowed()
         {
             var code = @"
 public static class Extensions
 {
-    public static void Print(ref readonly this long x)
+    public static void Print(in this long x)
     {
         System.Console.WriteLine(x);
     }
@@ -1456,9 +1456,9 @@ public class Test
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
-                // (14,9): error CS1929: 'int' does not contain a definition for 'Print' and the best extension method overload 'Extensions.Print(ref readonly long)' requires a receiver of type 'ref readonly long'
+                // (14,9): error CS1929: 'int' does not contain a definition for 'Print' and the best extension method overload 'Extensions.Print(in long)' requires a receiver of type 'in long'
                 //         intValue.Print();       // Should be an error
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "intValue").WithArguments("int", "Print", "Extensions.Print(ref readonly long)", "ref readonly long").WithLocation(14, 9));
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "intValue").WithArguments("int", "Print", "Extensions.Print(in long)", "in long").WithLocation(14, 9));
         }
 
         [Fact]
@@ -1495,12 +1495,12 @@ public class Test
         }
 
         [Fact]
-        public void Conversion_Tuples_RefReadOnlyExtensionMethods_NotAllowed()
+        public void Conversion_Tuples_InExtensionMethods_NotAllowed()
         {
             var code = @"
 public static class Extensions
 {
-    public static void Print(ref readonly this (long, long) x)
+    public static void Print(in this (long, long) x)
     {
         System.Console.WriteLine(x);
     }
@@ -1522,9 +1522,9 @@ public class Test
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(code, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }).VerifyDiagnostics(
-                // (16,9): error CS1929: '(int intValue1, int intValue2)' does not contain a definition for 'Print' and the best extension method overload 'Extensions.Print(ref readonly (long, long))' requires a receiver of type 'ref readonly (long, long)'
+                // (16,9): error CS1929: '(int intValue1, int intValue2)' does not contain a definition for 'Print' and the best extension method overload 'Extensions.Print(in (long, long))' requires a receiver of type 'in (long, long)'
                 //         intTuple.Print();                       // Should be an error
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "intTuple").WithArguments("(int intValue1, int intValue2)", "Print", "Extensions.Print(ref readonly (long, long))", "ref readonly (long, long)").WithLocation(16, 9));
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "intTuple").WithArguments("(int intValue1, int intValue2)", "Print", "Extensions.Print(in (long, long))", "in (long, long)").WithLocation(16, 9));
         }
 
         [Fact]
@@ -1562,12 +1562,12 @@ public class Test
         }
 
         [Fact]
-        public void Conversions_Nullables_RefReadOnlyExtensionMethods_NotAllowed()
+        public void Conversions_Nullables_InExtensionMethods_NotAllowed()
         {
             var code = @"
 public static class Extensions
 {
-    public static void Print(ref readonly this int? x)
+    public static void Print(in this int? x)
     {
         System.Console.WriteLine(x.Value);
     }
@@ -1587,12 +1587,12 @@ public class Test
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
-                // (13,9): error CS1929: 'int' does not contain a definition for 'Print' and the best extension method overload 'Extensions.Print(ref readonly int?)' requires a receiver of type 'ref readonly int?'
+                // (13,9): error CS1929: 'int' does not contain a definition for 'Print' and the best extension method overload 'Extensions.Print(in int?)' requires a receiver of type 'in int?'
                 //         0.Print();                  // Should be an error
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "0").WithArguments("int", "Print", "Extensions.Print(ref readonly int?)", "ref readonly int?").WithLocation(13, 9),
-                // (16,9): error CS1929: 'int' does not contain a definition for 'Print' and the best extension method overload 'Extensions.Print(ref readonly int?)' requires a receiver of type 'ref readonly int?'
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "0").WithArguments("int", "Print", "Extensions.Print(in int?)", "in int?").WithLocation(13, 9),
+                // (16,9): error CS1929: 'int' does not contain a definition for 'Print' and the best extension method overload 'Extensions.Print(in int?)' requires a receiver of type 'in int?'
                 //         intValue.Print();           // Should be an error
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "intValue").WithArguments("int", "Print", "Extensions.Print(ref readonly int?)", "ref readonly int?").WithLocation(16, 9));
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "intValue").WithArguments("int", "Print", "Extensions.Print(in int?)", "in int?").WithLocation(16, 9));
         }
 
         [Fact]
@@ -1627,7 +1627,7 @@ public struct Test
         }
 
         [Fact]
-        public void Conversions_ImplicitOperators_RefReadOnlyExtensionMethods_NotAllowed()
+        public void Conversions_ImplicitOperators_InExtensionMethods_NotAllowed()
         {
             var code = @"
 public static class Extensions
@@ -1697,7 +1697,7 @@ public class Test
         }
 
         [Fact]
-        public void ColorColorCasesShouldBeResolvedCorrectly_RefReadOnlyExtensionMethods()
+        public void ColorColorCasesShouldBeResolvedCorrectly_InExtensionMethods()
         {
             var code = @"
 public struct Color
@@ -1713,7 +1713,7 @@ public struct Color
 }
 public static class Extensions
 {
-    public static void Extension(ref readonly this Color x)
+    public static void Extension(in this Color x)
     {
         System.Console.Write(""Extension"");
     }
@@ -1796,7 +1796,7 @@ public class Program
         }
 
         [Fact]
-        public void RecursiveCalling_RefReadOnlyExtensionMethods()
+        public void RecursiveCalling_InExtensionMethods()
         {
             var code = @"
 public struct S1
@@ -1810,7 +1810,7 @@ public struct S1
 }
 public static class Extensions
 {
-    public static void PrintValue(ref readonly this S1 obj, S1 other)
+    public static void PrintValue(in this S1 obj, S1 other)
     {
         if (other.i > 0)
         {
@@ -1849,7 +1849,7 @@ public static class Ext1
 }
 public static class Ext2
 {
-    public static void Print(ref readonly this int p)
+    public static void Print(in this int p)
     {
         System.Console.WriteLine(p);
     }
@@ -1864,9 +1864,9 @@ public class Program
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
-                // (20,11): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.Print(ref int)' and 'Ext2.Print(ref readonly int)'
+                // (20,11): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.Print(ref int)' and 'Ext2.Print(in int)'
                 //         0.Print();                  // Error
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Print").WithArguments("Ext1.Print(ref int)", "Ext2.Print(ref readonly int)").WithLocation(20, 11));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Print").WithArguments("Ext1.Print(ref int)", "Ext2.Print(in int)").WithLocation(20, 11));
         }
 
         [Fact]
@@ -1882,7 +1882,7 @@ public static class Ext1
 }
 public static class Ext2
 {
-    public static void Print(ref readonly this int p)
+    public static void Print(in this int p)
     {
         System.Console.WriteLine(p);
     }
@@ -1900,9 +1900,9 @@ public class Program
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
-                // (21,15): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.Print(ref int)' and 'Ext2.Print(ref readonly int)'
+                // (21,15): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.Print(ref int)' and 'Ext2.Print(in int)'
                 //         value.Print();              // Error
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Print").WithArguments("Ext1.Print(ref int)", "Ext2.Print(ref readonly int)").WithLocation(21, 15));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Print").WithArguments("Ext1.Print(ref int)", "Ext2.Print(in int)").WithLocation(21, 15));
         }
 
         [Fact]
@@ -1911,7 +1911,7 @@ public class Program
             var code = @"
 public static class Ext
 {
-    public static void ReadOnly(ref readonly int p)
+    public static void ReadOnly(in int p)
     {
         Ref(ref p);     // Should be an error
     }
@@ -1922,9 +1922,9 @@ public static class Ext
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
-                // (6,17): error CS8406: Cannot use variable 'ref readonly int' as a ref or out value because it is a readonly variable
+                // (6,17): error CS8406: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
                 //         Ref(ref p);     // Should be an error
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "p").WithArguments("variable", "ref readonly int").WithLocation(6, 17));
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "p").WithArguments("variable", "in int").WithLocation(6, 17));
         }
 
         [Fact]
@@ -1947,12 +1947,12 @@ public static class Ext
         }
 
         [Fact]
-        public void ParameterSymbolsRetrievedThroughSemanticModel_RefReadOnlyExtensionMethods()
+        public void ParameterSymbolsRetrievedThroughSemanticModel_InExtensionMethods()
         {
             var code = @"
 public static class Ext
 {
-    public static void Method(ref readonly this int p) { }
+    public static void Method(in this int p) { }
 }";
 
             var comp = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics();
@@ -1962,7 +1962,7 @@ public static class Ext
 
             var model = comp.GetSemanticModel(tree);
             var symbol = (ParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
-            Assert.Equal(RefKind.RefReadOnly, symbol.RefKind);
+            Assert.Equal(RefKind.In, symbol.RefKind);
         }
 
         [Fact]
@@ -2040,89 +2040,12 @@ public static class Program
         }
 
         [Fact]
-        public void UsingRefExtensionMethodsBeforeVersion7_2ProducesDiagnostics_RefReadOnlySyntax_SameCompilation()
-        {
-            var code = @"
-public static class Ext
-{
-    public static void Print(ref readonly this int p)
-    {
-        System.Console.WriteLine(p);
-    }
-}
-public static class Program
-{
-    public static void Main()
-    {
-        int p = 5;
-        p.Print();
-    }
-}";
-
-            CreateCompilationWithMscorlibAndSystemCore(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
-                // (4,30): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
-                //     public static void Print(ref readonly this int p)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "ref").WithArguments("readonly references", "7.2").WithLocation(4, 30),
-                // (4,30): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
-                //     public static void Print(ref readonly this int p)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "ref").WithArguments("ref extension methods", "7.2").WithLocation(4, 30),
-                // (14,9): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
-                //         p.Print();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(14, 9)
-            );
-
-            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "5");
-        }
-
-        [Fact]
-        public void UsingRefExtensionMethodsBeforeVersion7_2ProducesDiagnostics_RefReadOnlySyntax_DifferentCompilation()
-        {
-            var reference = CreateCompilationWithMscorlibAndSystemCore(@"
-public static class Ext
-{
-    public static void Print(ref readonly this int p)
-    {
-        System.Console.WriteLine(p);
-    }
-}");
-
-            var code = @"
-public static class Program
-{
-    public static void Main()
-    {
-        int p = 5;
-        p.Print();
-    }
-}";
-
-            CreateCompilationWithMscorlibAndSystemCore(
-                text: code,
-                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1),
-                references: new[] { reference.ToMetadataReference() }).VerifyDiagnostics(
-                // (7,9): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
-                //         p.Print();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(7, 9));
-
-            CreateCompilationWithMscorlibAndSystemCore(
-                text: code,
-                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1),
-                references: new[] { reference.EmitToImageReference() }).VerifyDiagnostics(
-                // (7,9): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
-                //         p.Print();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(7, 9));
-
-            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef, reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef, reference.EmitToImageReference() }, expectedOutput: "5");
-        }
-
-        [Fact]
         public void UsingRefExtensionMethodsBeforeVersion7_2ProducesDiagnostics_InSyntax_SameCompilation()
         {
             var code = @"
 public static class Ext
 {
-    public static void Print(ref readonly this int p)
+    public static void Print(in this int p)
     {
         System.Console.WriteLine(p);
     }
@@ -2137,12 +2060,12 @@ public static class Program
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
-                // (4,30): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
-                //     public static void Print(ref readonly this int p)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "ref").WithArguments("ref extension methods", "7.2").WithLocation(4, 30),
                 // (4,30): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
-                //     public static void Print(ref readonly this int p)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "ref").WithArguments("readonly references", "7.2").WithLocation(4, 30),
+                //     public static void Print(in this int p)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("readonly references", "7.2").WithLocation(4, 30),
+                // (4,30): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     public static void Print(in this int p)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("ref extension methods", "7.2").WithLocation(4, 30),
                 // (14,9): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
                 //         p.Print();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(14, 9)
@@ -2157,7 +2080,7 @@ public static class Program
             var reference = CreateCompilationWithMscorlibAndSystemCore(@"
 public static class Ext
 {
-    public static void Print(ref readonly this int p)
+    public static void Print(in this int p)
     {
         System.Console.WriteLine(p);
     }
@@ -2192,7 +2115,7 @@ public static class Program
             CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef, reference.ToMetadataReference() }, expectedOutput: "5");
             CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef, reference.EmitToImageReference() }, expectedOutput: "5");
         }
-
+        
         private const string ExtraRefReadOnlyIL = @"
 .class private auto ansi sealed beforefieldinit Microsoft.CodeAnalysis.EmbeddedAttribute extends [mscorlib]System.Attribute
 {

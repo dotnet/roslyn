@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             return ref (new int[1])[0];
         }
 
-        static S1 MayWrap(ref readonly Span<int> arg)
+        static S1 MayWrap(in Span<int> arg)
         {
             return default;
         }
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             return ref (new int[1])[0];
         }
 
-        static S1 MayNotWrap(ref readonly int arg = 123)
+        static S1 MayNotWrap(in int arg = 123)
         {
             return default;
         }
@@ -1226,7 +1226,7 @@ class Program
         int dummy3 = this[inner, rOuter];
     }
 
-    int this[ref readonly int arg1, ref readonly S1 arg2]
+    int this[in int arg1, in S1 arg2]
     {
         get
         {
@@ -1236,7 +1236,7 @@ class Program
         }
     }
 
-    int this[ref readonly S1 arg1, ref readonly S1 arg2]
+    int this[in S1 arg1, in S1 arg2]
     {
         get
         {
@@ -1293,7 +1293,7 @@ class Program
         int dummy4 = rOuter[inner];
     }
 
-    static S1 MayWrap(ref readonly Span<int> arg)
+    static S1 MayWrap(in Span<int> arg)
     {
         return default;
     }
@@ -1302,7 +1302,7 @@ class Program
     {
         public Span<int> field;
 
-        public int this[ref readonly Span<int> arg1]
+        public int this[in Span<int> arg1]
         {
             get
             {
@@ -1312,7 +1312,7 @@ class Program
             }
         }
 
-        public int this[ref readonly S1 arg1]
+        public int this[in S1 arg1]
         {
             get
             {
@@ -1332,15 +1332,15 @@ class Program
                 // (24,29): error CS8526: Cannot use local 'rInner' in this context because it may expose referenced variables outside of their declaration scope
                 //         int dummy3 = rOuter[rInner];
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "rInner").WithArguments("rInner").WithLocation(24, 29),
-                // (24,22): error CS8524: This combination of arguments to 'Program.S1.this[ref readonly Program.S1]' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
+                // (24,22): error CS8524: This combination of arguments to 'Program.S1.this[in Program.S1]' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
                 //         int dummy3 = rOuter[rInner];
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "rOuter[rInner]").WithArguments("Program.S1.this[ref readonly Program.S1]", "arg1").WithLocation(24, 22),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "rOuter[rInner]").WithArguments("Program.S1.this[in Program.S1]", "arg1").WithLocation(24, 22),
                 // (27,29): error CS8526: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //         int dummy4 = rOuter[inner];
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(27, 29),
-                // (27,22): error CS8524: This combination of arguments to 'Program.S1.this[ref readonly Span<int>]' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
+                // (27,22): error CS8524: This combination of arguments to 'Program.S1.this[in Span<int>]' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
                 //         int dummy4 = rOuter[inner];
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "rOuter[inner]").WithArguments("Program.S1.this[ref readonly System.Span<int>]", "arg1").WithLocation(27, 22)
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "rOuter[inner]").WithArguments("Program.S1.this[in System.Span<int>]", "arg1").WithLocation(27, 22)
             );
         }
 
@@ -1907,12 +1907,12 @@ class X : List<int>
             MayAssign(ref rInner);
         }
 
-        static void MayAssign(ref S1 arg1, ref readonly Span<int> arg2 = default)
+        static void MayAssign(ref S1 arg1, in Span<int> arg2 = default)
         {
             arg1 = MayWrap(arg2);
         }
 
-        static S1 MayWrap(ref readonly Span<int> arg)
+        static S1 MayWrap(in Span<int> arg)
         {
             return default;
         }

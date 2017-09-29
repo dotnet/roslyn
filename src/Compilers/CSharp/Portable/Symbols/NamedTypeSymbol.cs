@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var thisParam = method.Parameters.First();
 
                         if ((thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType) ||
-                            (thisParam.RefKind == RefKind.RefReadOnly && thisParam.Type.TypeKind != TypeKind.Struct))
+                            (thisParam.RefKind == RefKind.In && thisParam.Type.TypeKind != TypeKind.Struct))
                         {
                             // For ref and ref-readonly extension methods, receivers need to be of the correct types to be considered in lookup
                             continue;

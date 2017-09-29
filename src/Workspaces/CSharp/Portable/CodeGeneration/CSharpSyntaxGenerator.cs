@@ -130,8 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.OutKeyword));
                 case RefKind.Ref:
                     return SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword));
-                case RefKind.RefReadOnly:
-                    return SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
+                case RefKind.In:
+                    return SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.InKeyword));
                 default:
                     throw ExceptionUtilities.UnexpectedValue(refKind);
             }
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             switch (refKind)
             {
                 case RefKind.None:
-                case RefKind.RefReadOnly:
+                case RefKind.In:
                     return default;
                 case RefKind.Out:
                     return SyntaxFactory.Token(SyntaxKind.OutKeyword);

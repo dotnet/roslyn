@@ -188,12 +188,12 @@ class Program
     }
 
     // OK
-    static void M3(ref readonly Span<string> ss)
+    static void M3(in Span<string> ss)
     {
     }
 
     // OK
-    static void M3l(ref readonly SpanLike<string> ss)
+    static void M3l(in SpanLike<string> ss)
     {
     }
 

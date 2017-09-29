@@ -950,17 +950,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterSymbol parameter = method.GetParameters()[parm];
             bool isLastParameter = method.GetParameterCount() == parm + 1; // This is used to later decide if we need to try to unwrap a params array
             RefKind refArg = arguments.RefKind(arg);
-            RefKind refParm = parameter.RefKind;
+            RefKind refParameter = parameter.RefKind;
 
             if (arguments.IsExtensionMethodThisArgument(arg))
             {
                 Debug.Assert(refArg == RefKind.None);
-                if (refParm == RefKind.Ref || refParm == RefKind.RefReadOnly)
+                if (refParameter == RefKind.Ref || refParameter == RefKind.In)
                 {
                     // For ref and ref-readonly extension methods, we omit the "ref" modifier on receiver arguments.
                     // Setting the correct RefKind for finding the correct diagnostics message.
                     // For other ref kinds, keeping it as it is to find mismatch errors. 
-                    refArg = refParm;
+                    refArg = refParameter;
                 }
             }
 
@@ -974,7 +974,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If the problem is that a lambda isn't convertible to the given type, also report why.
                 // The argument and parameter type might match, but may not have same in/out modifiers
-                if (argument.Kind == BoundKind.UnboundLambda && refArg == refParm)
+                if (argument.Kind == BoundKind.UnboundLambda && refArg == refParameter)
                 {
                     ((UnboundLambda)argument).GenerateAnonymousFunctionConversionError(diagnostics, parameter.Type);
                 }
@@ -992,9 +992,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         UnwrapIfParamsArray(parameter, isLastParameter));
                 }
             }
-            else if (refArg != refParm && !(refArg == RefKind.None && refParm == RefKind.RefReadOnly))
+            else if (refArg != refParameter && !(refArg == RefKind.None && refParameter == RefKind.In))
             {
-                if (refParm == RefKind.None || refParm == RefKind.RefReadOnly)
+                if (refParameter == RefKind.None || refParameter == RefKind.In)
                 {
                     //  Argument {0} should not be passed with the {1} keyword
                     diagnostics.Add(
@@ -1012,7 +1012,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         sourceLocation,
                         symbols,
                         arg + 1,
-                        refParm.ToParameterDisplayString());
+                        refParameter.ToParameterDisplayString());
                 }
             }
             else

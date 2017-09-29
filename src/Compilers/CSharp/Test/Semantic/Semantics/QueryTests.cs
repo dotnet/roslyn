@@ -4037,5 +4037,51 @@ IOperation:  (OperationKind.None) (Syntax: 'i')
 
             VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [Fact, WorkItem(21484, "https://github.com/dotnet/roslyn/issues/21484")]
+        public void QueryOnTypeExpression()
+        {
+            var code = @"
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void M<T>() where T : IEnumerable
+    {
+        var query1 = from object a in IEnumerable select 1;
+        var query2 = from b in IEnumerable select 2;
+
+        var query3 = from int c in IEnumerable<int> select 3;
+        var query4 = from d in IEnumerable<int> select 4;
+
+        var query5 = from object d in T select 5;
+        var query6 = from d in T select 6;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(code);
+            comp.VerifyDiagnostics(
+                // (10,22): error CS0120: An object reference is required for the non-static field, method, or property 'Enumerable.Cast<object>(IEnumerable)'
+                //         var query1 = from object a in IEnumerable select 1;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "from object a in IEnumerable").WithArguments("System.Linq.Enumerable.Cast<object>(System.Collections.IEnumerable)").WithLocation(10, 22),
+                // (11,32): error CS1934: Could not find an implementation of the query pattern for source type 'IEnumerable'.  'Select' not found.  Consider explicitly specifying the type of the range variable 'b'.
+                //         var query2 = from b in IEnumerable select 2;
+                Diagnostic(ErrorCode.ERR_QueryNoProviderCastable, "IEnumerable").WithArguments("System.Collections.IEnumerable", "Select", "b").WithLocation(11, 32),
+                // (13,22): error CS0120: An object reference is required for the non-static field, method, or property 'Enumerable.Cast<int>(IEnumerable)'
+                //         var query3 = from int c in IEnumerable<int> select 3;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "from int c in IEnumerable<int>").WithArguments("System.Linq.Enumerable.Cast<int>(System.Collections.IEnumerable)").WithLocation(13, 22),
+                // (14,49): error CS1936: Could not find an implementation of the query pattern for source type 'IEnumerable<int>'.  'Select' not found.
+                //         var query4 = from d in IEnumerable<int> select 4;
+                Diagnostic(ErrorCode.ERR_QueryNoProvider, "select 4").WithArguments("System.Collections.Generic.IEnumerable<int>", "Select").WithLocation(14, 49),
+                // (16,22): error CS0120: An object reference is required for the non-static field, method, or property 'Enumerable.Cast<object>(IEnumerable)'
+                //         var query5 = from object d in T select 5;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "from object d in T").WithArguments("System.Linq.Enumerable.Cast<object>(System.Collections.IEnumerable)").WithLocation(16, 22),
+                // (17,32): error CS1936: Could not find an implementation of the query pattern for source type 'T'.  'Select' not found.
+                //         var query6 = from d in T select 6;
+                Diagnostic(ErrorCode.ERR_QueryNoProvider, "T").WithArguments("T", "Select").WithLocation(17, 32)
+                );
+        }
     }
 }

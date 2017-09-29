@@ -99,27 +99,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReadonlyRef = RefersToLocation | RValue,
 
             /// <summary>
+            /// Expression can be the operand of an address-of operation (&amp;).
+            /// Same as ReadonlyRef. The difference is just for error reporting.
+            /// </summary>
+            AddressOf = ReadonlyRef + 1,
+
+            /// <summary>
+            /// Expression is the receiver of a fixed buffer field access
+            /// Same as ReadonlyRef. The difference is just for error reporting.
+            /// </summary>
+            FixedReceiver = ReadonlyRef + 2,
+
+            /// <summary>
             /// Expression is passed as a ref or out parameter or assigned to a byref variable.
             /// </summary>
             RefOrOut = RefersToLocation | RValue | Assignable,
 
             /// <summary>
-            /// Expression can be the operand of an address-of operation (&amp;).
-            /// Same as RefOrOut. The difference is just for error reporting.
-            /// </summary>
-            AddressOf = RefOrOut + 1,
-
-            /// <summary>
-            /// Expression is the receiver of a fixed buffer field access
-            /// Same as RefOrOut. The difference is just for error reporting.
-            /// </summary>
-            FixedReceiver = RefOrOut + 2,
-
-            /// <summary>
             /// Expression is returned by an ordinary r/w reference.
             /// Same as RefOrOut. The difference is just for error reporting.
             /// </summary>
-            RefReturn = RefOrOut + 3,
+            RefReturn = RefOrOut + 1,
         }
 
         private static bool RequiresRValueOnly(BindValueKind kind)
@@ -395,7 +395,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Note: RValueOnly is checked at the beginning of this method. Since we are here we need more than readable.
                     //"this" is readonly in members of readonly structs, unless we are in a constructor.
                     if (!thisref.Type.IsValueType ||
-                        (thisref.Type.IsReadOnly && (this.ContainingMemberOrLambda as MethodSymbol)?.MethodKind != MethodKind.Constructor))
+                            (RequiresAssignableVariable(valueKind) &&
+                             thisref.Type.IsReadOnly && 
+                             (this.ContainingMemberOrLambda as MethodSymbol)?.MethodKind != MethodKind.Constructor))
                     {
                         // CONSIDER: the Dev10 name has angle brackets (i.e. "<this>")
                         Error(diagnostics, GetThisLvalueError(valueKind), node, ThisParameterSymbol.SymbolName);
@@ -518,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // all parameters can be passed by ref/out or assigned to
             // except "in" parameters, which are readonly
-            if (parameterSymbol.RefKind == RefKind.RefReadOnly && RequiresAssignableVariable(valueKind))
+            if (parameterSymbol.RefKind == RefKind.In && RequiresAssignableVariable(valueKind))
             {
                 ReportReadOnlyError(parameterSymbol, node, valueKind, checkingReceiver, diagnostics);
                 return false;
@@ -1010,7 +1012,7 @@ moreArguments:
             }
 
             // handle omitted optional "in" parameters if there are any
-            ParameterSymbol unmatchedInParameter = TryGetUnmatchedInParameterAndFreeMatchedArgs(parameters, ref inParametersMatchedWithArgs);
+            ParameterSymbol unmatchedInParameter = TryGetunmatchedInParameterAndFreeMatchedArgs(parameters, ref inParametersMatchedWithArgs);
 
             // unmatched "in" parameter is the same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
             //                                                    its val escape is ExternalScope                   (does not affect overal result)
@@ -1125,7 +1127,7 @@ moreArguments:
             }
 
             // handle omitted optional "in" parameters if there are any
-            ParameterSymbol unmatchedInParameter = TryGetUnmatchedInParameterAndFreeMatchedArgs(parameters, ref inParametersMatchedWithArgs);
+            ParameterSymbol unmatchedInParameter = TryGetunmatchedInParameterAndFreeMatchedArgs(parameters, ref inParametersMatchedWithArgs);
 
             // unmatched "in" parameter is the same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
             //                                                    its val escape is ExternalScope                   (does not affect overal result)
@@ -1261,7 +1263,7 @@ moreArguments:
                 }
             }
 
-            //NB: we do not care about unmatched "ref readonly" parameters here. 
+            //NB: we do not care about unmatched "in" parameters here. 
             //    They have "outer" val escape, so cannot be worse than escapeTo.
 
             // check val escape of receiver if ref-like
@@ -1277,7 +1279,7 @@ moreArguments:
         /// Gets "effective" ref kind of an argument. 
         /// Generally we know if a formal argument is passed as ref/out by looking at the call site. 
         /// However, to distinguish "in" and regular "val" parameters we need to take a look at corresponding parameter, if such exists. 
-        /// NOTE: there are cases like params/vararg, when a corresponding parameter may not exist, then it cannot be an "in".
+        /// NOTE: there are cases like params/vararg, when a corresponding parameter may not exist, then it cannot be "in".
         /// </summary>
         private static RefKind GetEffectiveRefKind(
             int argIndex, 
@@ -1291,9 +1293,9 @@ moreArguments:
             {
                 var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
 
-                if (parameters[paramIndex].RefKind == RefKind.RefReadOnly)
+                if (parameters[paramIndex].RefKind == RefKind.In)
                 {
-                    effectiveRefKind = RefKind.RefReadOnly;
+                    effectiveRefKind = RefKind.In;
                     inParametersMatchedWithArgs = inParametersMatchedWithArgs ?? ArrayBuilder<bool>.GetInstance(parameters.Length, fillWithValue: false);
                     inParametersMatchedWithArgs[paramIndex] = true;
                 }
@@ -1303,11 +1305,11 @@ moreArguments:
         }
 
         /// <summary>
-        /// Gets an "in" parameter for which there is no argument supplied, if such exists. 
+        /// Gets a "in" parameter for which there is no argument supplied, if such exists. 
         /// That indicates an optional "in" parameter. We treat it as an RValue passed by reference via a temporary.
         /// The effective scope of such variable is the immediately containing scope.
         /// </summary>
-        private static ParameterSymbol TryGetUnmatchedInParameterAndFreeMatchedArgs(ImmutableArray<ParameterSymbol> parameters, ref ArrayBuilder<bool> inParametersMatchedWithArgs)
+        private static ParameterSymbol TryGetunmatchedInParameterAndFreeMatchedArgs(ImmutableArray<ParameterSymbol> parameters, ref ArrayBuilder<bool> inParametersMatchedWithArgs)
         {
             try
             {
@@ -1321,7 +1323,7 @@ moreArguments:
                             break;
                         }
 
-                        if (parameter.RefKind == RefKind.RefReadOnly &&
+                        if (parameter.RefKind == RefKind.In &&
                             inParametersMatchedWithArgs?[i] != true &&
                             parameter.Type.IsByRefLikeType == false)
                         {
@@ -1369,12 +1371,6 @@ moreArguments:
                 return;
             }
 
-            if (kind == BindValueKind.AddressOf)
-            {
-                Error(diagnostics, ErrorCode.ERR_AddrOnReadOnlyLocal, node);
-                return;
-            }
-
             ErrorCode[] ReadOnlyLocalErrors =
             {
                 ErrorCode.ERR_RefReadonlyLocalCause,
@@ -1401,7 +1397,7 @@ moreArguments:
                     return ErrorCode.ERR_RefReadonlyLocal;
 
                 case BindValueKind.AddressOf:
-                    return ErrorCode.ERR_AddrOnReadOnlyLocal;
+                    return ErrorCode.ERR_InvalidAddrOp;
 
                 case BindValueKind.IncrementDecrement:
                     return ErrorCode.ERR_IncrementLvalueExpected;
