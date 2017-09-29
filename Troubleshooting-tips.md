@@ -19,8 +19,14 @@ Windows Registry Editor Version 5.00
 
 More [information](https://msdn.microsoft.com/en-us/library/windows/desktop/bb787181(v=vs.85).aspx)
 
-## Running the compiler with a long command line
+# Running the compiler with a long command line
 
 Often times the command-line recorded by msbuild logs is very long. Simply copy/pasting it into a command window fails, because the line gets truncated.
 
 The solution is to copy the command-line options into a test file (for instance, `repro.rsp`) then invoke the compiler with `csc.exe /noconfig @repro.rsp`. The same thing works with `vbc.exe`.
+
+# Verifying the version of the compiler and language
+
+If you have access to a command-line, simply running `csc.exe` will print out the version of the compiler.
+
+For environments where you cannot use the command-line, you can include `#error version` in your program and the compiler and language versions will be printed as an error message. (Note this only works with C# 7.1 or later)
