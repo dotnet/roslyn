@@ -378,6 +378,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.Call:
                         var call = (BoundCall)expression;
+
+                        // NOTE: 'In' arguments that were originally specified with 'In' modifier
+                        //       will have refKind `RefKindExtensions.StrictIn` at this point.
+                        //       Unlike those that were specified with no modifier we should not spill them by value
+                        //       and produce an error instead.
                         if (refKind != RefKind.None && refKind != RefKind.In)
                         {
                             Debug.Assert(call.Method.RefKind != RefKind.None);
@@ -389,6 +394,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.ConditionalOperator:
                         var conditional = (BoundConditionalOperator)expression;
+                        // NOTE: 'In' arguments that were originally specified with 'In' modifier
+                        //       will have refKind `RefKindExtensions.StrictIn` at this point.
+                        //       Unlike those that were specified with no modifier we should not spill them by value
+                        //       and produce an error instead.
                         if (refKind != RefKind.None && refKind != RefKind.RefReadOnly)
                         {
                             Debug.Assert(conditional.IsByRef);

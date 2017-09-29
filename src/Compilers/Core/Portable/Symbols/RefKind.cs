@@ -71,5 +71,10 @@ namespace Microsoft.CodeAnalysis
                 default: throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
+
+        // used internally to track `In` arguments that were specified with `In` modifier
+        // as opposed to those that were specified with no modifiers and matched `In` parameter
+        // There is at least one kind of anlysis that cares about this distinction - async stack spilling
+        internal const RefKind StrictIn = (RefKind)(RefKind.In + 1);
     }
 }

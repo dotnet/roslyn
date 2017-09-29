@@ -497,11 +497,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Patch refKinds for arguments that match 'In' parameters to have effective RefKind.
         /// For the purpose of further analysis we will mark the arguments as -
-        /// - In       if was originally passed as None
-        /// - Ref      if was originally passed as In
+        /// - In        if was originally passed as None
+        /// - StrictIn  if was originally passed as In
         /// Here and in the layers after the lowering we only care about None/notNone differences for the arguments
         /// Except for async stack spilling which needs to know whether arguments were originally passed as "In" and must obey "no copying" rule.
-        /// Therefore we put arguments that were originally passed as 'In' into the same bucket as `Ref`
         /// </summary>
         private static ImmutableArray<RefKind> GetEffectiveArgumentRefKinds(ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<ParameterSymbol> parameters)
         {
@@ -527,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    refKindsBuilder[i] = argRefKind == RefKind.None? paramRefKind: RefKind.Ref;
+                    refKindsBuilder[i] = argRefKind == RefKind.None? paramRefKind: RefKindExtensions.StrictIn;
                 }
             }
 
@@ -671,16 +670,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RefKind argRefKind = argumentRefKinds.RefKinds(a);
                 RefKind paramRefKind = parameters[p].RefKind;
 
-                // Patch refKinds for arguments that match 'In' parameters to have effective RefKind.
+                // Patch refKinds for arguments that match 'In' parameters to have effective RefKind
                 // For the purpose of further analysis we will mark the arguments as -
-                // - In       if was originally passed as None
-                // - Ref      if was originally passed as In
+                // - In        if was originally passed as None
+                // - StrictIn  if was originally passed as In
                 // Here and in the layers after the lowering we only care about None/notNone differences for the arguments
                 // Except for async stack spilling which needs to know whether arguments were originally passed as "In" and must obey "no copying" rule.
-                // Therefore we put arguments that were originally passed as 'In' into the same bucket as `Ref`
                 if (paramRefKind == RefKind.In)
                 {
-                    argRefKind = argRefKind == RefKind.None ? paramRefKind : RefKind.Ref; ;
+                    argRefKind = argRefKind == RefKind.None ? paramRefKind : RefKindExtensions.StrictIn;
                 }
 
                 Debug.Assert(arguments[p] == null);
