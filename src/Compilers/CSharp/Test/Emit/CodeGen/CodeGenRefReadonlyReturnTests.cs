@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void RefReadonlyLocalToField()
         {
-            var comp = CompileAndVerify(@"
+            var source = @"
 struct S
 {
     public int X;
@@ -52,7 +52,9 @@ class C
 
         return ref rs1;
     }
-}");
+}";
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
             comp.VerifyIL("C.M", @"
 {
   // Code size       65 (0x41)
@@ -81,6 +83,31 @@ class C
   IL_0039:  ldloca.s   V_2
   IL_003b:  call       ""void S2.AddOne()""
   IL_0040:  ret
+}");
+
+            comp = CompileAndVerify(source, verify: false);
+            comp.VerifyIL("C.M", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  2
+  .locals init (S V_0)
+  IL_0000:  ldsflda    ""S C.s1""
+  IL_0005:  dup
+  IL_0006:  ldobj      ""S""
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  call       ""void S.AddOne()""
+  IL_0013:  ldsflda    ""S C.s2""
+  IL_0018:  ldobj      ""S""
+  IL_001d:  stloc.0
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  call       ""void S.AddOne()""
+  IL_0025:  ldsflda    ""S2 C.s3""
+  IL_002a:  call       ""void S2.AddOne()""
+  IL_002f:  ldarg.0
+  IL_0030:  ldflda     ""S2 C.s4""
+  IL_0035:  call       ""void S2.AddOne()""
+  IL_003a:  ret
 }");
         }
 
@@ -343,15 +370,11 @@ class C
 }");
             verifier.VerifyIL("C.M()", @"
 {
-  // Code size       11 (0xb)
+  // Code size        7 (0x7)
   .maxstack  1
-  .locals init (int V_0)
   IL_0000:  call       ""ref readonly int C.Helper()""
-  IL_0005:  ldind.i4
-  IL_0006:  stloc.0
-  IL_0007:  ldloca.s   V_0
-  IL_0009:  pop
-  IL_000a:  ret
+  IL_0005:  pop
+  IL_0006:  ret
 }");
         }
 
@@ -618,30 +641,18 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
-                // (6,20): error CS0211: Cannot take the address of the given expression
+                // (6,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         int* a = & M();
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "M()").WithLocation(6, 20),
-                // (7,20): error CS0211: Cannot take the address of the given expression
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "& M()").WithLocation(6, 18),
+                // (7,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         int* b = & M1().Alice;
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "M1().Alice").WithLocation(7, 20),
-                // (9,21): error CS0211: Cannot take the address of the given expression
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "& M1().Alice").WithLocation(7, 18),
+                // (9,19): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         int* a1 = & P;
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "P").WithLocation(9, 21),
-                // (10,21): error CS0211: Cannot take the address of the given expression
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "& P").WithLocation(9, 19),
+                // (10,19): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         int* b2 = & P1.Alice;
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "P1.Alice").WithLocation(10, 21),
-                // (12,26): error CS0211: Cannot take the address of the given expression
-                //         fixed(int* c = & M())
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "M()").WithLocation(12, 26),
-                // (16,26): error CS0211: Cannot take the address of the given expression
-                //         fixed(int* d = & M1().Alice)
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "M1().Alice").WithLocation(16, 26),
-                // (20,26): error CS0211: Cannot take the address of the given expression
-                //         fixed(int* c = & P)
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "P").WithLocation(20, 26),
-                // (24,26): error CS0211: Cannot take the address of the given expression
-                //         fixed(int* d = & P1.Alice)
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "P1.Alice").WithLocation(24, 26)
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "& P1.Alice").WithLocation(10, 19)
             );
         }
 

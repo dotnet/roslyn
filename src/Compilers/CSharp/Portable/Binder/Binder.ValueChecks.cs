@@ -99,27 +99,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReadonlyRef = RefersToLocation | RValue,
 
             /// <summary>
+            /// Expression can be the operand of an address-of operation (&amp;).
+            /// Same as ReadonlyRef. The difference is just for error reporting.
+            /// </summary>
+            AddressOf = ReadonlyRef + 1,
+
+            /// <summary>
+            /// Expression is the receiver of a fixed buffer field access
+            /// Same as ReadonlyRef. The difference is just for error reporting.
+            /// </summary>
+            FixedReceiver = ReadonlyRef + 2,
+
+            /// <summary>
             /// Expression is passed as a ref or out parameter or assigned to a byref variable.
             /// </summary>
             RefOrOut = RefersToLocation | RValue | Assignable,
 
             /// <summary>
-            /// Expression can be the operand of an address-of operation (&amp;).
-            /// Same as RefOrOut. The difference is just for error reporting.
-            /// </summary>
-            AddressOf = RefOrOut + 1,
-
-            /// <summary>
-            /// Expression is the receiver of a fixed buffer field access
-            /// Same as RefOrOut. The difference is just for error reporting.
-            /// </summary>
-            FixedReceiver = RefOrOut + 2,
-
-            /// <summary>
             /// Expression is returned by an ordinary r/w reference.
             /// Same as RefOrOut. The difference is just for error reporting.
             /// </summary>
-            RefReturn = RefOrOut + 3,
+            RefReturn = RefOrOut + 1,
         }
 
         private static bool RequiresRValueOnly(BindValueKind kind)
@@ -395,7 +395,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Note: RValueOnly is checked at the beginning of this method. Since we are here we need more than readable.
                     //"this" is readonly in members of readonly structs, unless we are in a constructor.
                     if (!thisref.Type.IsValueType ||
-                        (thisref.Type.IsReadOnly && (this.ContainingMemberOrLambda as MethodSymbol)?.MethodKind != MethodKind.Constructor))
+                            (RequiresAssignableVariable(valueKind) &&
+                             thisref.Type.IsReadOnly && 
+                             (this.ContainingMemberOrLambda as MethodSymbol)?.MethodKind != MethodKind.Constructor))
                     {
                         // CONSIDER: the Dev10 name has angle brackets (i.e. "<this>")
                         Error(diagnostics, GetThisLvalueError(valueKind), node, ThisParameterSymbol.SymbolName);
@@ -1369,12 +1371,6 @@ moreArguments:
                 return;
             }
 
-            if (kind == BindValueKind.AddressOf)
-            {
-                Error(diagnostics, ErrorCode.ERR_AddrOnReadOnlyLocal, node);
-                return;
-            }
-
             ErrorCode[] ReadOnlyLocalErrors =
             {
                 ErrorCode.ERR_RefReadonlyLocalCause,
@@ -1401,7 +1397,7 @@ moreArguments:
                     return ErrorCode.ERR_RefReadonlyLocal;
 
                 case BindValueKind.AddressOf:
-                    return ErrorCode.ERR_AddrOnReadOnlyLocal;
+                    return ErrorCode.ERR_InvalidAddrOp;
 
                 case BindValueKind.IncrementDecrement:
                     return ErrorCode.ERR_IncrementLvalueExpected;
