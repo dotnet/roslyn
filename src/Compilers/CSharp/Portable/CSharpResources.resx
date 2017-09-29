@@ -5186,7 +5186,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
     <value>The first parameter of the reference extension method '{0}' must be a value type or a generic type constrained to struct.</value>
   </data>
-  <data name="ERR_RefReadOnlyExtensionMustBeValueType" xml:space="preserve">
+  <data name="ERR_InExtensionMustBeValueType" xml:space="preserve">
     <value>The first parameter of the readonly reference extension method '{0}' must be a value type.</value>
   </data>
   <data name="ERR_BadParameterModifiersOrder" xml:space="preserve">

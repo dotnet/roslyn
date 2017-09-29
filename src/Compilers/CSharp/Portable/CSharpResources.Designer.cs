@@ -8344,9 +8344,9 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to The first parameter of the readonly reference extension method &apos;{0}&apos; must be a value type..
         /// </summary>
-        internal static string ERR_RefReadOnlyExtensionMustBeValueType {
+        internal static string ERR_InExtensionMustBeValueType {
             get {
-                return ResourceManager.GetString("ERR_RefReadOnlyExtensionMustBeValueType", resourceCulture);
+                return ResourceManager.GetString("ERR_InExtensionMustBeValueType", resourceCulture);
             }
         }
         
