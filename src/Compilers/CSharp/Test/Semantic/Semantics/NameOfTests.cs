@@ -1328,7 +1328,7 @@ class EntryPoint
         }
 
         [Fact]
-        public void PassingNameOfToRefReadOnlyShouldCopy()
+        public void PassingNameOfToInShouldCopy()
         {
             CompileAndVerify(@"
 class Program

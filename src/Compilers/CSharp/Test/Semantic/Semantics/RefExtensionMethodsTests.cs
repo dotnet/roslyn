@@ -63,7 +63,7 @@ public static class Program
         }
 
         [Fact]
-        public void ExtensionMethods_RValues_RefReadOnly_Allowed()
+        public void ExtensionMethods_RValues_In_Allowed()
         {
             var code = @"
 public static class Extensions
@@ -86,7 +86,7 @@ public static class Program
         }
 
         [Fact]
-        public void ExtensionMethods_LValues_RefReadOnly_Allowed()
+        public void ExtensionMethods_LValues_In_Allowed()
         {
             var code = @"
 public static class Extensions
@@ -133,7 +133,7 @@ public static class Extensions
         }
 
         [Fact]
-        public void ExtensionMethods_NullConditionalOperator_RefReadOnly_NotAllowed()
+        public void ExtensionMethods_NullConditionalOperator_In_NotAllowed()
         {
             var code = @"
 public struct TestType
@@ -701,7 +701,7 @@ public static class Program
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_ValueTypes_Allowed()
+        public void InExtensionMethodsReceiverTypes_ValueTypes_Allowed()
         {
             var reference = CreateCompilationWithMscorlibAndSystemCore(@"
 public static class Extensions
@@ -739,7 +739,7 @@ public static class Program2
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_ReferenceTypes_NotAllowed()
+        public void InExtensionMethodsReceiverTypes_ReferenceTypes_NotAllowed()
         {
             var code = @"
 public static class Extensions
@@ -783,7 +783,7 @@ public static class Program2
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_InterfaceTypes_NotAllowed()
+        public void InExtensionMethodsReceiverTypes_InterfaceTypes_NotAllowed()
         {
             var code = @"
 public static class Extensions
@@ -827,7 +827,7 @@ public static class Program2
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_UnconstrainedGenericTypes_NotAllowed()
+        public void InExtensionMethodsReceiverTypes_UnconstrainedGenericTypes_NotAllowed()
         {
             var code = @"
 public static class Extensions
@@ -871,7 +871,7 @@ public static class Program2
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_StructConstrainedGenericTypes_NotAllowed()
+        public void InExtensionMethodsReceiverTypes_StructConstrainedGenericTypes_NotAllowed()
         {
             var code = @"
 public static class Extensions
@@ -915,7 +915,7 @@ public static class Program2
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_ClassConstrainedGenericTypes_NotAllowed()
+        public void InExtensionMethodsReceiverTypes_ClassConstrainedGenericTypes_NotAllowed()
         {
             var code = @"
 public static class Extensions
@@ -959,7 +959,7 @@ public static class Program2
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_InterfaceConstrainedGenericTypes_NotAllowed()
+        public void InExtensionMethodsReceiverTypes_InterfaceConstrainedGenericTypes_NotAllowed()
         {
             var code = @"
 public static class Extensions
@@ -1003,7 +1003,7 @@ public static class Program2
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_ValueTypes_Allowed_IL()
+        public void InExtensionMethodsReceiverTypes_ValueTypes_Allowed_IL()
         {
             var reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
@@ -1040,7 +1040,7 @@ public static class Program
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_ReferenceTypes_NotAllowed_IL()
+        public void InExtensionMethodsReceiverTypes_ReferenceTypes_NotAllowed_IL()
         {
             var reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
@@ -1079,7 +1079,7 @@ public static class Program
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_InterfaceTypes_NotAllowed_IL()
+        public void InExtensionMethodsReceiverTypes_InterfaceTypes_NotAllowed_IL()
         {
             var reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
@@ -1118,7 +1118,7 @@ public static class Program
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_UnconstrainedGenericTypes_NotAllowed_IL()
+        public void InExtensionMethodsReceiverTypes_UnconstrainedGenericTypes_NotAllowed_IL()
         {
             var reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
@@ -1157,7 +1157,7 @@ public static class Program
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_StructConstrainedGenericTypes_NotAllowed_IL()
+        public void InExtensionMethodsReceiverTypes_StructConstrainedGenericTypes_NotAllowed_IL()
         {
             var reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
@@ -1196,7 +1196,7 @@ public static class Program
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_ClassConstrainedGenericTypes_NotAllowed_IL()
+        public void InExtensionMethodsReceiverTypes_ClassConstrainedGenericTypes_NotAllowed_IL()
         {
             var reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
@@ -1235,7 +1235,7 @@ public static class Program
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethodsReceiverTypes_InterfaceConstrainedGenericTypes_NotAllowed_IL()
+        public void InExtensionMethodsReceiverTypes_InterfaceConstrainedGenericTypes_NotAllowed_IL()
         {
             var reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
@@ -1274,7 +1274,7 @@ public static class Program
         }
 
         [Fact]
-        public void RefReadOnlyErrorsArePropagatedThroughExtensionMethods()
+        public void InErrorsArePropagatedThroughExtensionMethods()
         {
             var code = @"
 public static class Extensions
@@ -1358,7 +1358,7 @@ public class Test
         }
 
         [Fact]
-        public void RefReadOnlyExtensionMethods_CodeGen()
+        public void InExtensionMethods_CodeGen()
         {
             var code = @"
 public static class Extensions
@@ -1433,7 +1433,7 @@ public class Test
         }
 
         [Fact]
-        public void Conversions_Numeric_RefReadOnlyExtensionMethods_NotAllowed()
+        public void Conversions_Numeric_InExtensionMethods_NotAllowed()
         {
             var code = @"
 public static class Extensions
@@ -1495,7 +1495,7 @@ public class Test
         }
 
         [Fact]
-        public void Conversion_Tuples_RefReadOnlyExtensionMethods_NotAllowed()
+        public void Conversion_Tuples_InExtensionMethods_NotAllowed()
         {
             var code = @"
 public static class Extensions
@@ -1562,7 +1562,7 @@ public class Test
         }
 
         [Fact]
-        public void Conversions_Nullables_RefReadOnlyExtensionMethods_NotAllowed()
+        public void Conversions_Nullables_InExtensionMethods_NotAllowed()
         {
             var code = @"
 public static class Extensions
@@ -1627,7 +1627,7 @@ public struct Test
         }
 
         [Fact]
-        public void Conversions_ImplicitOperators_RefReadOnlyExtensionMethods_NotAllowed()
+        public void Conversions_ImplicitOperators_InExtensionMethods_NotAllowed()
         {
             var code = @"
 public static class Extensions
@@ -1697,7 +1697,7 @@ public class Test
         }
 
         [Fact]
-        public void ColorColorCasesShouldBeResolvedCorrectly_RefReadOnlyExtensionMethods()
+        public void ColorColorCasesShouldBeResolvedCorrectly_InExtensionMethods()
         {
             var code = @"
 public struct Color
@@ -1796,7 +1796,7 @@ public class Program
         }
 
         [Fact]
-        public void RecursiveCalling_RefReadOnlyExtensionMethods()
+        public void RecursiveCalling_InExtensionMethods()
         {
             var code = @"
 public struct S1
@@ -1947,7 +1947,7 @@ public static class Ext
         }
 
         [Fact]
-        public void ParameterSymbolsRetrievedThroughSemanticModel_RefReadOnlyExtensionMethods()
+        public void ParameterSymbolsRetrievedThroughSemanticModel_InExtensionMethods()
         {
             var code = @"
 public static class Ext

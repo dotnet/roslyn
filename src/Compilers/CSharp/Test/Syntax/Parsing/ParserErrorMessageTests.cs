@@ -3149,7 +3149,7 @@ public static class GenExtensions<X> where X : struct
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void RefReadOnlyParametersWouldErrorOutInEarlierCSharpVersions()
+        public void InParametersWouldErrorOutInEarlierCSharpVersions()
         {
             var code = @"
 public class Test
@@ -3451,7 +3451,7 @@ public static class TestType
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void BadRefReadOnlyWithRefParameterModifiers()
+        public void BadInWithRefParameterModifiers()
         {
             var test = @"
 public class TestType
@@ -3493,7 +3493,7 @@ public static void Method6<T, U, V>(ref in int i) { }
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void BadRefReadOnlyWithThisParameterModifiers()
+        public void BadInWithThisParameterModifiers()
         {
             var test = @"
 public static class TestType
@@ -3526,7 +3526,7 @@ public static void Method6<T, U, V>(this in int i) { }
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void BadRefReadOnlyWithParamsParameterModifiers()
+        public void BadInWithParamsParameterModifiers()
         {
             var test = @"
 public class TestType
@@ -3610,7 +3610,7 @@ public static void Method6<T, U, V>(out in int i) { }
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void RefReadonlyParametersAreParsedCorrectly()
+        public void InParametersAreParsedCorrectly()
         {
             var test = @"
 public class Test
@@ -5557,7 +5557,7 @@ class TestClass { }";
         }
 
         [Fact]
-        public void RefExtensionMethodsNotSupportedBefore7_2_RefReadOnlySyntax()
+        public void RefExtensionMethodsNotSupportedBefore7_2_InSyntax()
         {
             var code = @"
 public static class Extensions

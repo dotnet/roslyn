@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                     else if (moduleSymbol.Module.HasIsReadOnlyAttribute(handle))
                     {
-                        refKind = RefKind.RefReadOnly;
+                        refKind = RefKind.In;
                     }
                     else
                     {

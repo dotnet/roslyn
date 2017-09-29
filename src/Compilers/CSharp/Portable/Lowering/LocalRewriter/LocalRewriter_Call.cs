@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// patch refKinds for "readonly ref" to have effective RefReadOnly kind.
+        /// Patch refKinds for "in" arguments to have effective RefKind.In
         /// </summary>
         private static ImmutableArray<RefKind> GetEffectiveArgumentRefKinds(ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<ParameterSymbol> parameters)
         {

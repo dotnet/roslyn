@@ -9315,7 +9315,7 @@ public class Program
         }
 
         [Fact]
-        public void PassingArgumentsToRefReadOnlyParameters_RefKind_None()
+        public void PassingArgumentsToInParameters_RefKind_None()
         {
             var code = @"
 public static class Program
@@ -9335,7 +9335,7 @@ public static class Program
         }
 
         [Fact]
-        public void PassingArgumentsToRefReadOnlyParameters_RefKind_Ref()
+        public void PassingArgumentsToInParameters_RefKind_Ref()
         {
             var code = @"
 public static class Program
@@ -9359,7 +9359,7 @@ public static class Program
 
         [WorkItem(20799, "https://github.com/dotnet/roslyn/issues/20799")]
         [Fact]
-        public void PassingArgumentsToRefReadOnlyParameters_RefKind_None_WrongType()
+        public void PassingArgumentsToInParameters_RefKind_None_WrongType()
         {
             var code = @"
 public static class Program
@@ -9408,7 +9408,7 @@ public static class Program
         }
 
         [Fact]
-        public void PassingArgumentsToRefReadOnlyParameters_RefKind_RefReadOnly()
+        public void PassingArgumentsToInParameters_RefKind_RefReadOnly()
         {
             var code = @"
 public static class Program
@@ -9455,7 +9455,7 @@ public static class Program
         }
 
         [Fact]
-        public void PassingArgumentsToRefReadOnlyParameters_RefKind_In()
+        public void PassingArgumentsToInParameters_RefKind_In()
         {
             var code = @"
 public static class Program
@@ -9478,7 +9478,7 @@ public static class Program
         }
 
         [Fact]
-        public void PassingArgumentsToRefReadOnlyParameters_RefKind_Out()
+        public void PassingArgumentsToInParameters_RefKind_Out()
         {
             var code = @"
 public static class Program

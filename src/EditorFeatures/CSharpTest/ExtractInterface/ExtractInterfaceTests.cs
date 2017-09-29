@@ -1094,7 +1094,7 @@ class $$Test<T, U>
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
-        public async Task TestRefReadOnlyWithMethod_Parameters()
+        public async Task TestInWithMethod_Parameters()
         {
             var markup = @"
 using System;
@@ -1147,7 +1147,7 @@ class $$TestClass
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
-        public async Task TestRefReadOnlyWithIndexer_Parameters()
+        public async Task TestInWithIndexer_Parameters()
         {
             var markup = @"
 using System;

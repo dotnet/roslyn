@@ -44,7 +44,7 @@ class Test
         }
 
         [Fact]
-        public void RefReadOnlyIsWrittenToMetadata_NeedsToBeGenerated_Method_Parameter()
+        public void InIsWrittenToMetadata_NeedsToBeGenerated_Method_Parameter()
         {
             var text = @"
 class Test
@@ -145,7 +145,7 @@ struct Test
         }
 
         [Fact]
-        public void RefReadOnlyIsWrittenToMetadata_NeedsToBeGenerated_Operator_Parameter()
+        public void InIsWrittenToMetadata_NeedsToBeGenerated_Operator_Parameter()
         {
             var text = @"
 struct Test
@@ -223,7 +223,7 @@ class Test
         }
 
         [Fact]
-        public void RefReadOnlyIsWrittenToMetadata_NeedsToBeGenerated_Constructor_Parameter()
+        public void InIsWrittenToMetadata_NeedsToBeGenerated_Constructor_Parameter()
         {
             var text = @"
 class Test
@@ -399,7 +399,7 @@ class Test
         }
 
         [Fact]
-        public void RefReadOnlyIsWrittenToMetadata_NeedsToBeGenerated_Indexer_Parameter()
+        public void InIsWrittenToMetadata_NeedsToBeGenerated_Indexer_Parameter()
         {
             var text = @"
 class Test
@@ -498,7 +498,7 @@ public delegate ref readonly int D(in int x);
         }
 
         [Fact]
-        public void RefReadOnlyIsWrittenToMetadata_NeedsToBeGenerated_Delegate_Parameter()
+        public void InIsWrittenToMetadata_NeedsToBeGenerated_Delegate_Parameter()
         {
             var text = @"
 public delegate void D(in int x);
@@ -597,7 +597,7 @@ public class Test
         }
 
         [Fact]
-        public void RefReadOnlyIsWrittenToMetadata_NeedsToBeGenerated_LocalFunctions_Parameters()
+        public void InIsWrittenToMetadata_NeedsToBeGenerated_LocalFunctions_Parameters()
         {
             var text = @"
 public class Test
@@ -725,7 +725,7 @@ class Test
         }
 
         [Fact]
-        public void RefReadOnlyIsWrittenToMetadata_NeedsToBeGenerated_Lambda_Parameter()
+        public void InIsWrittenToMetadata_NeedsToBeGenerated_Lambda_Parameter()
         {
             var text = @"
 delegate void D(in int x);

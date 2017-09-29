@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-    public class CodeGenRefReadOnlyParametersTests : CompilingTestBase
+    public class CodeGenInParametersTests : CompilingTestBase
     {
         [Fact]
         public void RefReturnParamAccess()
@@ -40,7 +40,7 @@ class Program
         }
 
         [Fact]
-        public void RefReadOnlyParamPassLValue()
+        public void InParamPassLValue()
         {
             var text = @"
 struct Program
@@ -108,7 +108,7 @@ struct Program
         }
 
         [Fact]
-        public void RefReadOnlyParamPassRValue()
+        public void InParamPassRValue()
         {
             var text = @"
 class Program
@@ -174,7 +174,7 @@ class Program
 
         [Fact]
         [CompilerTrait(CompilerFeature.PEVerifyCompat)]
-        public void RefReadOnlyParamPassRoField()
+        public void InParamPassRoField()
         {
             var text = @"
 class Program
@@ -234,7 +234,7 @@ class Program
         }
 
         [Fact]
-        public void RefReadOnlyParamPassRoParamReturn()
+        public void InParamPassRoParamReturn()
         {
             var text = @"
 class Program
@@ -271,7 +271,7 @@ class Program
         }
 
         [Fact]
-        public void RefReadOnlyParamBase()
+        public void InParamBase()
         {
             var text = @"
 class Program
@@ -358,7 +358,7 @@ class Program
         }
 
         [Fact]
-        public void ReadonlyParamCannotAssign()
+        public void InParamCannotAssign()
         {
             var text = @"
 class Program
@@ -400,7 +400,7 @@ class Program
         }
 
         [Fact]
-        public void ReadonlyParamCannotRefReturn()
+        public void InParamCannotRefReturn()
         {
             var text = @"
 class Program
@@ -441,7 +441,7 @@ class Program
         }
 
         [Fact]
-        public void ReadonlyParamCannotAssignByref()
+        public void InParamCannotAssignByref()
         {
             var text = @"
 class Program
@@ -465,7 +465,7 @@ class Program
         }
 
         [Fact]
-        public void ReadonlyParamCannotTakePtr()
+        public void InParamCannotTakePtr()
         {
             var text = @"
 class Program
@@ -504,7 +504,7 @@ class Program
         }
 
         [Fact]
-        public void ReadonlyParamCannotReturnByOrdinaryRef()
+        public void InParamCannotReturnByOrdinaryRef()
         {
             var text = @"
 class Program
@@ -537,7 +537,7 @@ class Program
         }
 
         [Fact]
-        public void ReadonlyParamCanReturnByRefReadonly()
+        public void InParamCanReturnByRefReadonly()
         {
             var text = @"
 class Program
@@ -575,7 +575,7 @@ class Program
         }
 
         [Fact, WorkItem(18357, "https://github.com/dotnet/roslyn/issues/18357")]
-        public void ReadonlyParamCanReturnByRefReadonlyNested()
+        public void InParamCanReturnByRefReadonlyNested()
         {
             var text = @"
 class Program
@@ -618,7 +618,7 @@ class Program
         }
 
         [Fact, WorkItem(18357, "https://github.com/dotnet/roslyn/issues/18357")]
-        public void ReadonlyParamCannotReturnByRefNested()
+        public void InParamCannotReturnByRefNested()
         {
             var text = @"
 class Program
@@ -656,7 +656,7 @@ class Program
         }
 
         [Fact]
-        public void ReadonlyParamOptional()
+        public void InParamOptional()
         {
             var text = @"
 class Program
@@ -688,7 +688,7 @@ class Program
         }
 
         [Fact]
-        public void ReadonlyParamConv()
+        public void InParamConv()
         {
             var text = @"
 class Program
@@ -722,7 +722,7 @@ class Program
         }
 
         [Fact]
-        public void ReadonlyParamAsyncSpill1()
+        public void InParamAsyncSpill1()
         {
             var text = @"
     using System.Threading.Tasks;
@@ -758,7 +758,7 @@ class Program
         }
 
         [Fact]
-        public void ReadonlyParamAsyncSpill2()
+        public void InParamAsyncSpill2()
         {
             var text = @"
     using System.Threading.Tasks;
@@ -795,7 +795,7 @@ class Program
 
         [WorkItem(20764, "https://github.com/dotnet/roslyn/issues/20764")]
         [Fact]
-        public void ReadonlyParamAsyncSpillMethods()
+        public void InParamAsyncSpillMethods()
         {
             var text = @"
 using System.Threading.Tasks;
@@ -863,7 +863,7 @@ public struct S1
 
         [WorkItem(20764, "https://github.com/dotnet/roslyn/issues/20764")]
         [Fact]
-        public void ReadonlyParamAsyncSpillMethodsWriteable()
+        public void InParamAsyncSpillMethodsWriteable()
         {
             var text = @"
 using System.Threading.Tasks;
@@ -932,7 +932,7 @@ public struct S1
 
         [WorkItem(20764, "https://github.com/dotnet/roslyn/issues/20764")]
         [Fact]
-        public void ReadonlyParamAsyncSpillStructField()
+        public void InParamAsyncSpillStructField()
         {
             var text = @"
 using System.Threading.Tasks;
@@ -989,7 +989,7 @@ public struct S1
         }
 
         [Fact]
-        public void ReadonlyParamAsyncSpillClassField()
+        public void InParamAsyncSpillClassField()
         {
             var text = @"
 using System.Threading.Tasks;
@@ -1046,7 +1046,7 @@ public class S1
         }
 
         [Fact]
-        public void ReadonlyParamAsyncSpillExtension()
+        public void InParamAsyncSpillExtension()
         {
             var text = @"
 using System.Threading.Tasks;
@@ -1107,7 +1107,7 @@ public struct S1
 
         [Fact]
         [CompilerTrait(CompilerFeature.PEVerifyCompat)]
-        public void ReadonlyParamAsyncSpillReadOnlyStructThis()
+        public void InParamAsyncSpillReadOnlyStructThis()
         {
             var text = @"
 using System.Threading.Tasks;
@@ -1209,7 +1209,7 @@ public readonly struct S1
 
         [Fact]
         [CompilerTrait(CompilerFeature.PEVerifyCompat)]
-        public void ReadonlyParamAsyncSpillReadOnlyStructThis_NoValCapture()
+        public void InParamAsyncSpillReadOnlyStructThis_NoValCapture()
         {
             var text = @"
 using System.Threading.Tasks;

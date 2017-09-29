@@ -569,7 +569,7 @@ BC30643: Property 'TestRef.Item(p As )' is of an unsupported type.
         End Sub
 
         <Fact>
-        Public Sub UsingLambdasOfRefReadOnlyDelegatesIsNotSupported_Invoke_Parameters()
+        Public Sub UsingLambdasOfInDelegatesIsNotSupported_Invoke_Parameters()
             Dim reference = CreateCSharpCompilation("
 public delegate void D(in int p);
 ", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
@@ -596,7 +596,7 @@ BC30657: 'D' has a return type that is not supported or parameter types that are
         End Sub
 
         <Fact>
-        Public Sub UsingLambdasOfRefReadOnlyDelegatesIsNotSupported_BeginInvoke_Parameters()
+        Public Sub UsingLambdasOfInDelegatesIsNotSupported_BeginInvoke_Parameters()
             Dim reference = CreateCSharpCompilation("
 public delegate void D(in int p);
 ", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
@@ -623,7 +623,7 @@ BC30657: 'BeginInvoke' has a return type that is not supported or parameter type
         End Sub
 
         <Fact>
-        Public Sub UsingLambdasOfRefReadOnlyDelegatesIsNotSupported_EndInvoke_Parameters()
+        Public Sub UsingLambdasOfInDelegatesIsNotSupported_EndInvoke_Parameters()
             Dim reference = CreateCSharpCompilation("
 public delegate void D(in int p);
 ", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()

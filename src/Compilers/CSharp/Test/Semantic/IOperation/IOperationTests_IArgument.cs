@@ -2300,7 +2300,7 @@ IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument
         }
 
         [Fact]
-        public void DirectlyBindRefReadonlyArgument_InvocationExpression()
+        public void DirectlyBindInArgument_InvocationExpression()
         {
             string source = @"
 class P

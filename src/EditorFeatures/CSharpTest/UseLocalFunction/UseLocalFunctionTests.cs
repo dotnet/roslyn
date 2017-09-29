@@ -1145,7 +1145,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
-        public async Task TestRefReadOnlyWithParameters()
+        public async Task TestInWithParameters()
         {
             await TestInRegularAndScriptAsync(
 @"

@@ -2516,7 +2516,7 @@ End Module
         End Sub
 
         <Fact>
-        Public Sub ConsumeRefReadOnlyExtensionMethods()
+        Public Sub ConsumeInExtensionMethods()
             Dim options = New CSharpParseOptions(CodeAnalysis.CSharp.LanguageVersion.Latest)
             Dim csharp = CreateCSharpCompilation("
 public static class Extensions

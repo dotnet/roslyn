@@ -1024,7 +1024,7 @@ public class Test
         }
 
         [Fact]
-        public void OtherModReqsAreNotAllowedOnRefCustomModifiersForRefReadOnlySignatures_Methods_Parameters()
+        public void OtherModReqsAreNotAllowedOnRefCustomModifiersForInSignatures_Methods_Parameters()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
 .class public auto ansi beforefieldinit TestRef
@@ -1206,7 +1206,7 @@ public class Test
         }
 
         [Fact]
-        public void OtherModReqsAreNotAllowedOnRefCustomModifiersForRefReadOnlySignatures_Indexers_Parameters()
+        public void OtherModReqsAreNotAllowedOnRefCustomModifiersForInSignatures_Indexers_Parameters()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
 .class public auto ansi beforefieldinit TestRef
@@ -1356,7 +1356,7 @@ public class Test
         }
 
         [Fact]
-        public void OtherModReqsAreNotAllowedOnRefCustomModifiersForRefReadOnlySignatures_Delegates_Parameters()
+        public void OtherModReqsAreNotAllowedOnRefCustomModifiersForInSignatures_Delegates_Parameters()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
 .class public auto ansi sealed D
@@ -1620,7 +1620,7 @@ public delegate ref readonly int D();";
         }
 
         [Fact]
-        public void InAttributeIsWrittenOnRefReadOnlyMembers_Methods_Parameters_Virtual()
+        public void InAttributeIsWrittenOnInMembers_Methods_Parameters_Virtual()
         {
             var code = @"
 class Test
@@ -1640,7 +1640,7 @@ class Test
         }
 
         [Fact]
-        public void InAttributeIsWrittenOnRefReadOnlyMembers_Methods_Parameters_Abstract()
+        public void InAttributeIsWrittenOnInMembers_Methods_Parameters_Abstract()
         {
             var code = @"
 abstract class Test
@@ -1826,7 +1826,7 @@ class Test
         }
 
         [Fact]
-        public void InAttributeIsWrittenOnRefReadOnlyMembers_Indexers_Parameters_Virtual()
+        public void InAttributeIsWrittenOnInMembers_Indexers_Parameters_Virtual()
         {
             var code = @"
 class Test
@@ -1846,7 +1846,7 @@ class Test
         }
 
         [Fact]
-        public void InAttributeIsWrittenOnRefReadOnlyMembers_Indexers_Parameters_Abstract()
+        public void InAttributeIsWrittenOnInMembers_Indexers_Parameters_Abstract()
         {
             var code = @"
 abstract class Test
@@ -1929,7 +1929,7 @@ class Test
         }
 
         [Fact]
-        public void InAttributeIsWrittenOnRefReadOnlyMembers_Delegates_Parameters()
+        public void InAttributeIsWrittenOnInMembers_Delegates_Parameters()
         {
             var code = "public delegate void D(in int p);";
 
@@ -1975,7 +1975,7 @@ class Test
         }
 
         [Fact]
-        public void InAttributeIsNotWrittenOnRefReadOnlyMembers_Methods_Parameters_NoModifiers()
+        public void InAttributeIsNotWrittenOnInMembers_Methods_Parameters_NoModifiers()
         {
             var code = @"
 class Test
@@ -1995,7 +1995,7 @@ class Test
         }
 
         [Fact]
-        public void InAttributeIsNotWrittenOnRefReadOnlyMembers_Methods_Parameters_Static()
+        public void InAttributeIsNotWrittenOnInMembers_Methods_Parameters_Static()
         {
             var code = @"
 class Test
@@ -2015,7 +2015,7 @@ class Test
         }
 
         [Fact]
-        public void InAttributeIsNotWrittenOnRefReadOnlyMembers_Indexers_Parameters_NoModifiers()
+        public void InAttributeIsNotWrittenOnInMembers_Indexers_Parameters_NoModifiers()
         {
             var code = @"
 class Test

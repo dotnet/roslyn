@@ -1574,7 +1574,7 @@ class C : AbstractClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public async Task TestRefReadOnlyWithMethod_Parameters()
+        public async Task TestInWithMethod_Parameters()
         {
             await TestInRegularAndScriptAsync(
 @"abstract class TestParent
@@ -1643,7 +1643,7 @@ public class Test : TestParent
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public async Task TestRefReadOnlyWithIndexer_Parameters()
+        public async Task TestInWithIndexer_Parameters()
         {
             await TestInRegularAndScriptAsync(
 @"abstract class TestParent

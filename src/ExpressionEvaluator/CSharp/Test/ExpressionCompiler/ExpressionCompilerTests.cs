@@ -6311,7 +6311,7 @@ class C
         }
 
         [Fact]
-        public void RefReadOnlyLambdasEvaluationWillSynthesizeRequiredAttributes_Parameters()
+        public void InLambdasEvaluationWillSynthesizeRequiredAttributes_Parameters()
         {
             var reference = CreateStandardCompilation(@"
 public delegate void D(in int p);");

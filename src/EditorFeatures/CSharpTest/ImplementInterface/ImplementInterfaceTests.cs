@@ -6834,7 +6834,7 @@ class Class : IInterface
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task TestRefReadOnlyWithMethod_Parameters()
+        public async Task TestInWithMethod_Parameters()
         {
             await TestInRegularAndScriptAsync(
 @"interface ITest
@@ -6903,7 +6903,7 @@ public class Test : ITest
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task TestRefReadOnlyWithIndexer_Parameters()
+        public async Task TestInWithIndexer_Parameters()
         {
             await TestInRegularAndScriptAsync(
 @"interface ITest

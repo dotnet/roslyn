@@ -3987,7 +3987,7 @@ void ValidatorBase<T>.DoValidate(T objectToValidate)");
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void HidingMethodWithRefReadOnlyParameter()
+        public void HidingMethodWithInParameter()
         {
             var code = @"
 class A
@@ -4196,7 +4196,7 @@ class B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void HidingMethodWithRefReadOnlyParameterAndNewKeyword()
+        public void HidingMethodWithInParameterAndNewKeyword()
         {
             var code = @"
 class A
@@ -4276,7 +4276,7 @@ class B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void OverridingMethodWithRefReadOnlyParameter()
+        public void OverridingMethodWithInParameter()
         {
             var code = @"
 class A

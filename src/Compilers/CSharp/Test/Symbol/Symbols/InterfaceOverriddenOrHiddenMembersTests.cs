@@ -822,7 +822,7 @@ public class ITest : ITest.Test{
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void HidingMethodWithRefReadOnlyParameter()
+        public void HidingMethodWithInParameter()
         {
             var code = @"
 interface A
@@ -1025,7 +1025,7 @@ interface B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void HidingMethodWithRefReadOnlyParameterAndNewKeyword()
+        public void HidingMethodWithInParameterAndNewKeyword()
         {
             var code = @"
 interface A
@@ -1103,7 +1103,7 @@ interface B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void ImplementingMethodWithRefReadOnlyParameter()
+        public void ImplementingMethodWithInParameter()
         {
             var code = @"
 interface A
@@ -1199,7 +1199,7 @@ class DerivedClass : BaseInterface
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void MethodImplementationsShouldPreserveReadOnlyRefnessInParameters()
+        public void MethodImplementationsShouldPreserveRefKindInParameters()
         {
             var text = @"
 interface BaseInterface
