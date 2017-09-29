@@ -234,6 +234,7 @@ Microsoft.CodeAnalysis.Semantics.ICatchClause.ExceptionDeclarationOrExpression.g
 Microsoft.CodeAnalysis.Semantics.ICatchClause.ExceptionType.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Semantics.ICatchClause.Filter.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.ICatchClause.Handler.get -> Microsoft.CodeAnalysis.Semantics.IBlockStatement
+Microsoft.CodeAnalysis.Semantics.ICatchClause.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.Semantics.ICoalesceExpression
 Microsoft.CodeAnalysis.Semantics.ICoalesceExpression.Expression.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.ICoalesceExpression.WhenNull.get -> Microsoft.CodeAnalysis.IOperation

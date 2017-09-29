@@ -574,6 +574,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($" (Exception type: {exceptionTypeStr})");
             LogCommonPropertiesAndNewLine(operation);
 
+            LogLocals(operation.Locals);
             Visit(operation.ExceptionDeclarationOrExpression, "ExceptionDeclarationOrExpression");
             Visit(operation.Filter, "Filter");
             Visit(operation.Handler, "Handler");

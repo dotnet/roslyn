@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override IOperation VisitCatchClause(ICatchClause operation, object argument)
         {
-            return new CatchClause(Visit(operation.ExceptionDeclarationOrExpression), operation.ExceptionType, Visit(operation.Filter), Visit(operation.Handler), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new CatchClause(Visit(operation.ExceptionDeclarationOrExpression), operation.ExceptionType, operation.Locals, Visit(operation.Filter), Visit(operation.Handler), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitUsingStatement(IUsingStatement operation, object argument)

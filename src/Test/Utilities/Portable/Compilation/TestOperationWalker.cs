@@ -188,6 +188,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitCatchClause(ICatchClause operation)
         {
             var exceptionType = operation.ExceptionType;
+            var locals = operation.Locals;
 
             base.VisitCatchClause(operation);
         }

@@ -1302,13 +1302,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             var exceptionSourceOpt = (BoundLocal)boundCatchBlock.ExceptionSourceOpt;
             Lazy<IOperation> expressionDeclarationOrExpression = new Lazy<IOperation>(() => exceptionSourceOpt != null ? CreateVariableDeclaration(exceptionSourceOpt) : null);
             ITypeSymbol exceptionType = boundCatchBlock.ExceptionTypeOpt;
+            ImmutableArray<ILocalSymbol> locals = boundCatchBlock.Locals.As<ILocalSymbol>();
             Lazy<IOperation> filter = new Lazy<IOperation>(() => Create(boundCatchBlock.ExceptionFilterOpt));
             Lazy<IBlockStatement> handler = new Lazy<IBlockStatement>(() => (IBlockStatement)Create(boundCatchBlock.Body));
             SyntaxNode syntax = boundCatchBlock.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundCatchBlock.WasCompilerGenerated;
-            return new LazyCatchClause(expressionDeclarationOrExpression, exceptionType, filter, handler, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyCatchClause(expressionDeclarationOrExpression, exceptionType, locals, filter, handler, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IFixedStatement CreateBoundFixedStatementOperation(BoundFixedStatement boundFixedStatement)

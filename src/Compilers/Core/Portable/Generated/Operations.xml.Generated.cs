@@ -821,15 +821,20 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseCatchClause : Operation, ICatchClause
     {
-        protected BaseCatchClause(ITypeSymbol exceptionType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseCatchClause(ITypeSymbol exceptionType, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.CatchClause, semanticModel, syntax, type, constantValue, isImplicit)
         {
             ExceptionType = exceptionType;
+            Locals = locals;
         }
         /// <summary>
         /// Type of the exception handled by the catch clause.
         /// </summary>
         public ITypeSymbol ExceptionType { get; }
+        /// <summary>
+        /// Locals declared by the <see cref="ExceptionDeclarationOrExpression"/> and/or <see cref="Filter"/> clause.
+        /// </summary>
+        public ImmutableArray<ILocalSymbol> Locals { get; }
         protected abstract IOperation ExceptionDeclarationOrExpressionImpl { get; }
         protected abstract IOperation FilterImpl { get; }
         protected abstract IBlockStatement HandlerImpl { get; }
@@ -874,8 +879,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class CatchClause : BaseCatchClause, ICatchClause
     {
-        public CatchClause(IOperation exceptionDeclarationOrExpression, ITypeSymbol exceptionType, IOperation filter, IBlockStatement handler, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(exceptionType, semanticModel, syntax, type, constantValue, isImplicit)
+        public CatchClause(IOperation exceptionDeclarationOrExpression, ITypeSymbol exceptionType, ImmutableArray<ILocalSymbol> locals, IOperation filter, IBlockStatement handler, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(exceptionType, locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
             ExceptionDeclarationOrExpressionImpl = exceptionDeclarationOrExpression;
             FilterImpl = filter;
@@ -896,8 +901,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         private readonly Lazy<IOperation> _lazyFilter;
         private readonly Lazy<IBlockStatement> _lazyHandler;
 
-        public LazyCatchClause(Lazy<IOperation> exceptionDeclarationOrExpression, ITypeSymbol exceptionType, Lazy<IOperation> filter, Lazy<IBlockStatement> handler, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            : base(exceptionType, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyCatchClause(Lazy<IOperation> exceptionDeclarationOrExpression, ITypeSymbol exceptionType, ImmutableArray<ILocalSymbol> locals, Lazy<IOperation> filter, Lazy<IBlockStatement> handler, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(exceptionType, locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyExceptionDeclarationOrExpression = exceptionDeclarationOrExpression ?? throw new System.ArgumentNullException(nameof(exceptionDeclarationOrExpression));
             _lazyFilter = filter ?? throw new System.ArgumentNullException(nameof(filter));

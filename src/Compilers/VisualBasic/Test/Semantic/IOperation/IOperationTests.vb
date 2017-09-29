@@ -626,6 +626,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'Catch ex As ...  Is Nothing')
+  Locals: Local_1: ex As System.Exception
   ExceptionDeclarationOrExpression: IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'ex')
       Variables: Local_1: ex As System.Exception
       Initializer: null

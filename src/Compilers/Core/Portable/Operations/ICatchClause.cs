@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
@@ -15,6 +17,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Body of the exception handler.
         /// </summary>
         IBlockStatement Handler { get; }
+
+        /// <summary>
+        /// Locals declared by the <see cref="ExceptionDeclarationOrExpression"/> and/or <see cref="Filter"/> clause.
+        /// </summary>
+        ImmutableArray<ILocalSymbol> Locals { get; }
 
         /// <summary>
         /// Type of the exception handled by the catch clause.
