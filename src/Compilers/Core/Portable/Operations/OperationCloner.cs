@@ -139,14 +139,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LockStatement(Visit(operation.Expression), Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        internal override IOperation VisitTryStatement(ITryStatement operation, object argument)
+        public override IOperation VisitTryStatement(ITryStatement operation, object argument)
         {
-            return new TryStatement(Visit(operation.Body), VisitArray(operation.Catches), Visit(operation.FinallyHandler), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new TryStatement(Visit(operation.Body), VisitArray(operation.Catches), Visit(operation.Finally), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        internal override IOperation VisitCatchClause(ICatchClause operation, object argument)
+        public override IOperation VisitCatchClause(ICatchClause operation, object argument)
         {
-            return new CatchClause(Visit(operation.Handler), operation.CaughtType, Visit(operation.Filter), operation.ExceptionLocal, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new CatchClause(Visit(operation.ExceptionDeclarationOrExpression), operation.ExceptionType, operation.Locals, Visit(operation.Filter), Visit(operation.Handler), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitUsingStatement(IUsingStatement operation, object argument)

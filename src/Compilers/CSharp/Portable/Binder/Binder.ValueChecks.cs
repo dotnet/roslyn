@@ -1954,6 +1954,27 @@ moreArguments:
             return false;
         }
 
+        internal static uint GetBroadestValEscape(BoundTupleExpression expr, uint scopeOfTheContainingExpression)
+        {
+            uint broadest = scopeOfTheContainingExpression;
+            foreach (var element in expr.Arguments)
+            {
+                uint valEscape;
+                if (element.Kind == BoundKind.TupleLiteral)
+                {
+                    valEscape = GetBroadestValEscape((BoundTupleExpression)element, scopeOfTheContainingExpression);
+                }
+                else
+                {
+                    valEscape = GetValEscape(element, scopeOfTheContainingExpression);
+                }
+
+                broadest = Math.Min(broadest, valEscape);
+            }
+
+            return broadest;
+        }
+
         /// <summary>
         /// Computes the widest scope depth to which the given expression can escape by value.
         /// 
@@ -1989,6 +2010,14 @@ moreArguments:
                     // always returnable
                     return Binder.ExternalScope;
 
+                case BoundKind.TupleLiteral:
+                    var tupleLiteral = (BoundTupleLiteral)expr;
+                    return GetTupleValEscape(tupleLiteral.Arguments, scopeOfTheContainingExpression);
+
+                case BoundKind.ConvertedTupleLiteral:
+                    var convertedTupleLiteral = (BoundConvertedTupleLiteral)expr;
+                    return GetTupleValEscape(convertedTupleLiteral.Arguments, scopeOfTheContainingExpression);
+
                 case BoundKind.MakeRefOperator:
                 case BoundKind.RefValueOperator:
                     // for compat reasons
@@ -1999,6 +2028,9 @@ moreArguments:
                 case BoundKind.DiscardExpression:
                     // same as uninitialized local
                     return Binder.ExternalScope;
+
+                case BoundKind.DeconstructValuePlaceholder:
+                    return ((BoundDeconstructValuePlaceholder)expr).ValEscape;
 
                 case BoundKind.Local:
                     return ((BoundLocal)expr).LocalSymbol.ValEscapeScope;
@@ -2162,6 +2194,17 @@ moreArguments:
             }
         }
 
+        private static uint GetTupleValEscape(ImmutableArray<BoundExpression> elements, uint scopeOfTheContainingExpression)
+        {
+            uint narrowestScope = scopeOfTheContainingExpression;
+            foreach (var element in elements)
+            {
+                narrowestScope = Math.Max(narrowestScope, GetValEscape(element, scopeOfTheContainingExpression));
+            }
+
+            return narrowestScope;
+        }
+
         private static uint GetValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, uint scopeOfTheContainingExpression)
         {
             var result = Binder.ExternalScope;
@@ -2236,6 +2279,14 @@ moreArguments:
                     // always returnable
                     return true;
 
+                case BoundKind.TupleLiteral:
+                    var tupleLiteral = (BoundTupleLiteral)expr;
+                    return CheckTupleValEscape(tupleLiteral.Arguments, escapeFrom, escapeTo, diagnostics);
+
+                case BoundKind.ConvertedTupleLiteral:
+                    var convertedTupleLiteral = (BoundConvertedTupleLiteral)expr;
+                    return CheckTupleValEscape(convertedTupleLiteral.Arguments, escapeFrom, escapeTo, diagnostics);
+
                 case BoundKind.MakeRefOperator:
                 case BoundKind.RefValueOperator:
                     // for compat reasons
@@ -2243,6 +2294,15 @@ moreArguments:
 
                 case BoundKind.DiscardExpression:
                     // same as uninitialized local
+                    return true;
+
+                case BoundKind.DeconstructValuePlaceholder:
+                    var placeholder = (BoundDeconstructValuePlaceholder)expr;
+                    if (placeholder.ValEscape > escapeTo)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, placeholder.Syntax);
+                        return false;
+                    }
                     return true;
 
                 case BoundKind.Local:
@@ -2459,8 +2519,6 @@ moreArguments:
 //                case BoundKind.NameOfOperator:
 //                case BoundKind.InterpolatedString:
 //                case BoundKind.StringInsert:
-//                case BoundKind.TupleLiteral:
-//                case BoundKind.ConvertedTupleLiteral:
 //                case BoundKind.DynamicIndexerAccess:
 //                case BoundKind.Lambda:
 //                case BoundKind.DynamicObjectCreationExpression:
@@ -2537,7 +2595,6 @@ moreArguments:
 //                case BoundKind.DeclarationPattern:
 //                case BoundKind.ConstantPattern:
 //                case BoundKind.WildcardPattern:
-//                case BoundKind.DeconstructValuePlaceholder:
 
                 #endregion
 
@@ -2571,6 +2628,19 @@ moreArguments:
 
                 #endregion
             }
+        }
+
+        private static bool CheckTupleValEscape(ImmutableArray<BoundExpression> elements, uint escapeFrom, uint escapeTo, DiagnosticBag diagnostics)
+        {
+            foreach (var element in elements)
+            {
+                if (!CheckValEscape(element.Syntax, element, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static bool CheckValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, uint escapeFrom, uint escapeTo, DiagnosticBag diagnostics)
