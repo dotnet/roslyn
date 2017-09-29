@@ -121,6 +121,14 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterIn()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    void Goo(in $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterThis_InBogusMethod()
         {
             await VerifyAbsenceAsync(
@@ -647,7 +655,22 @@ public static class Extensions
     public static void Extension(ref $$ object obj, int x) { }
 }");
         }
-        
+
+        [Fact]
+        public async Task TestExtensionMethods_FirstParameter_AfterInKeyword_InClass()
+        {
+            await VerifyKeywordAsync(@"
+public static class Extensions
+{
+    public static void Extension(in $$");
+
+            await VerifyKeywordAsync(@"
+public static class Extensions
+{
+    public static void Extension(in $$ object obj, int x) { }
+}");
+        }
+
         [Fact]
         public async Task TestExtensionMethods_SecondParameter_AfterRefKeyword_InClass()
         {
@@ -664,17 +687,17 @@ public static class Extensions
         }
 
         [Fact]
-        public async Task TestExtensionMethods_SecondParameter_AfterRefReadonlyKeywords_InClass()
+        public async Task TestExtensionMethods_SecondParameter_AfterInKeywords_InClass()
         {
             await VerifyAbsenceAsync(@"
 public static class Extensions
 {
-    public static void Extension(int x, ref readonly $$");
+    public static void Extension(int x, in $$");
 
             await VerifyAbsenceAsync(@"
 public static class Extensions
 {
-    public static void Extension(int x, ref readonly $$ object obj) { }
+    public static void Extension(int x, in $$ object obj) { }
 }");
         }
 
@@ -687,11 +710,11 @@ public static class Extensions
         }
 
         [Fact]
-        public async Task TestExtensionMethods_FirstParameter_AfterRefReadOnlyKeywords_OutsideClass()
+        public async Task TestExtensionMethods_FirstParameter_AfterInKeywords_OutsideClass()
         {
-            await VerifyAbsenceAsync("public static void Extension(ref readonly $$");
+            await VerifyAbsenceAsync("public static void Extension(in $$");
 
-            await VerifyAbsenceAsync("public static void Extension(ref readonly $$ object obj, int x) { }");
+            await VerifyAbsenceAsync("public static void Extension(in $$ object obj, int x) { }");
         }
 
         [Fact]
@@ -710,17 +733,17 @@ public class Extensions
         }
 
         [Fact]
-        public async Task TestExtensionMethods_FirstParameter_AfterRefReadOnlyKeywords_NonStaticClass()
+        public async Task TestExtensionMethods_FirstParameter_AfterInKeywords_NonStaticClass()
         {
             await VerifyAbsenceAsync(@"
 public class Extensions
 {
-    public static void Extension(ref readonly $$");
+    public static void Extension(in $$");
 
             await VerifyAbsenceAsync(@"
 public class Extensions
 {
-    public static void Extension(ref readonly $$ object obj, int x) { }
+    public static void Extension(in $$ object obj, int x) { }
 }");
         }
 
@@ -740,17 +763,17 @@ public static class Extensions
         }
 
         [Fact]
-        public async Task TestExtensionMethods_FirstParameter_AfterRefReadOnlyKeywords_NonStaticMethod()
+        public async Task TestExtensionMethods_FirstParameter_AfterInKeywords_NonStaticMethod()
         {
             await VerifyAbsenceAsync(@"
 public static class Extensions
 {
-    public void Extension(ref readonly $$");
+    public void Extension(in $$");
 
             await VerifyAbsenceAsync(@"
 public static class Extensions
 {
-    public void Extension(ref readonly $$ object obj, int x) { }
+    public void Extension(in $$ object obj, int x) { }
 }");
         }
     }

@@ -422,5 +422,14 @@ class Program
     public $$ int Test { get; set; }
 }");
         }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterThis()
+        {
+            await VerifyAbsenceAsync(
+@"static class C {
+    static void Goo(this $$");
+        }
     }
 }

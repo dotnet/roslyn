@@ -5895,11 +5895,6 @@ tryAgain:
                     this.EatToken();
                 }
             }
-            else if (this.CurrentToken.Kind == SyntaxKind.InKeyword)
-            {
-                // Start of a lambda parameter
-                this.EatToken();
-            }
 
             if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
             {
@@ -9815,6 +9810,7 @@ tryAgain:
                             }
                             break;
                         case SyntaxKind.OutKeyword:
+                        case SyntaxKind.InKeyword:
                         case SyntaxKind.ParamsKeyword:
                             this.EatToken();
                             foundParameterModifier = true;
