@@ -2497,7 +2497,7 @@ public static class Extensions
             );
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/22442")]
         public void DeconstructionAssignmentWithRefReadonlyExtension()
         {
             var text = @"
