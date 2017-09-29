@@ -288,7 +288,7 @@ class Test
     void N()
     {
         int x = 0;
-        M(in x);
+        M(ref readonly x);
     }
 }").GetParseDiagnostics().Verify(
                 // (10,15): error CS1525: Invalid expression term 'readonly'
@@ -312,6 +312,43 @@ class Test
                 // (10,25): error CS1513: } expected
                 //         M(in x);
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(10, 25));
+        }
+
+        [Fact]
+        public void InAtCallSite()
+        {
+            CreateStandardCompilation(@"
+class Test
+{
+    void M(in int p)
+    {
+    }
+    void N()
+    {
+        int x = 0;
+        M(in x);
+    }
+}").GetParseDiagnostics().Verify(
+                // (10,11): error CS1041: Identifier expected; 'in' is a keyword
+                //         M(in x);
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "in").WithArguments("", "in").WithLocation(10, 11));
+        }
+
+        [Fact]
+        public void NothingAtCallSite()
+        {
+            CreateStandardCompilation(@"
+class Test
+{
+    void M(in int p)
+    {
+    }
+    void N()
+    {
+        int x = 0;
+        M(x);
+    }
+}").GetParseDiagnostics().Verify();
         }
 
         [Fact]
@@ -364,9 +401,10 @@ public class Test
 class Test
 {
     in int M() => throw null;
-}").VerifyDiagnostics();
-
-            Assert.False(true);
+}").VerifyDiagnostics(
+                // (4,5): error CS1519: Invalid token 'in' in class, struct, or interface member declaration
+                //     in int M() => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "in").WithArguments("in").WithLocation(4, 5));
         }
 
         [Fact]
@@ -376,9 +414,28 @@ class Test
 class Test
 {
     void M(ref readonly int p) => throw null;
-}").VerifyDiagnostics();
-
-            Assert.False(true);
+}").VerifyDiagnostics(
+                // (4,16): error CS1031: Type expected
+                //     void M(ref readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "readonly").WithLocation(4, 16),
+                // (4,16): error CS1001: Identifier expected
+                //     void M(ref readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(4, 16),
+                // (4,16): error CS1026: ) expected
+                //     void M(ref readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(4, 16),
+                // (4,16): error CS1002: ; expected
+                //     void M(ref readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(4, 16),
+                // (4,30): error CS1003: Syntax error, ',' expected
+                //     void M(ref readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(4, 30),
+                // (4,10): error CS0501: 'Test.M(ref ?)' must declare a body because it is not marked abstract, extern, or partial
+                //     void M(ref readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M").WithArguments("Test.M(ref ?)").WithLocation(4, 10),
+                // (4,29): warning CS0169: The field 'Test.p' is never used
+                //     void M(ref readonly int p) => throw null;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "p").WithArguments("Test.p").WithLocation(4, 29));
         }
     }
 }

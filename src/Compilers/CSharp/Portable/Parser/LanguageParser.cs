@@ -3703,19 +3703,15 @@ tryAgain:
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.OpenBracketToken: // attribute
-                case SyntaxKind.RefKeyword:
-                case SyntaxKind.OutKeyword:
-                case SyntaxKind.ParamsKeyword:
                 case SyntaxKind.ArgListKeyword:
                 case SyntaxKind.OpenParenToken:   // tuple
-                case SyntaxKind.ThisKeyword:
                     return true;
 
                 case SyntaxKind.IdentifierToken:
                     return this.IsTrueIdentifier();
 
                 default:
-                    return IsPredefinedType(this.CurrentToken.Kind);
+                    return IsParameterModifier(this.CurrentToken.Kind) || IsPredefinedType(this.CurrentToken.Kind);
             }
         }
 
@@ -3827,8 +3823,8 @@ tryAgain:
                 case SyntaxKind.ThisKeyword:
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.OutKeyword:
+                case SyntaxKind.InKeyword:
                 case SyntaxKind.ParamsKeyword:
-                case SyntaxKind.ReadOnlyKeyword:
                     return true;
             }
 
@@ -3849,26 +3845,23 @@ tryAgain:
 
                     case SyntaxKind.RefKeyword:
                         {
-                            var nextKind = this.CurrentToken.Kind;
-
-                            // "ref this"
-                            if (nextKind == SyntaxKind.ThisKeyword)
+                            if (this.CurrentToken.Kind == SyntaxKind.ThisKeyword)
                             {
                                 modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods);
                             }
+
                             break;
                         }
 
                     case SyntaxKind.InKeyword:
                         {
                             modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureReadOnlyReferences);
-                            var nextKind = this.CurrentToken.Kind;
 
-                            // "in this"
-                            if (nextKind == SyntaxKind.ThisKeyword)
+                            if (this.CurrentToken.Kind == SyntaxKind.ThisKeyword)
                             {
                                 modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods);
                             }
+
                             break;
                         }
                 }
@@ -5892,14 +5885,20 @@ tryAgain:
         {
             ScanTypeFlags result;
 
-            // in a ref local or ref return, we treat "ref" and "ref readonly" as part of the type
             if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
             {
+                // in a ref local or ref return, we treat "ref" and "ref readonly" as part of the type
                 this.EatToken();
+
                 if (this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword)
                 {
                     this.EatToken();
                 }
+            }
+            else if (this.CurrentToken.Kind == SyntaxKind.InKeyword)
+            {
+                // Start of a lambda parameter
+                this.EatToken();
             }
 
             if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
@@ -10814,6 +10813,7 @@ tryAgain:
                 // recovery purposes and then give an error during semantic analysis.
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.OutKeyword:
+                case SyntaxKind.InKeyword:
                 case SyntaxKind.OpenParenToken:   // tuple
                     return true;
 

@@ -332,27 +332,27 @@ public class Test
 }";
 
             CreateCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
-                // (4,18): error CS0518: Predefined type 'System.Object' is not defined or imported
-                //     public class Attribute {}
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Attribute").WithArguments("System.Object"),
-                // (7,14): error CS0518: Predefined type 'System.Object' is not defined or imported
-                // public class Test
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Test").WithArguments("System.Object"),
                 // (5,18): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //     public class Void {}
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Void").WithArguments("System.Object").WithLocation(5, 18),
-                // (9,34): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // (7,14): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // public class Test
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Test").WithArguments("System.Object").WithLocation(7, 14),
+                // (4,18): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //     public class Attribute {}
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Attribute").WithArguments("System.Object").WithLocation(4, 18),
+                // (9,24): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //     public object M(in object x) { return x; } // should trigger synthesizing IsReadOnly
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Object").WithLocation(9, 34),
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Object").WithLocation(9, 24),
                 // (9,12): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //     public object M(in object x) { return x; } // should trigger synthesizing IsReadOnly
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Object").WithLocation(9, 12),
-                // (5,18): error CS1729: 'object' does not contain a constructor that takes 0 arguments
-                //     public class Void {}
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Void").WithArguments("object", "0").WithLocation(5, 18),
                 // (4,18): error CS1729: 'object' does not contain a constructor that takes 0 arguments
                 //     public class Attribute {}
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Attribute").WithArguments("object", "0").WithLocation(4, 18),
+                // (5,18): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+                //     public class Void {}
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Void").WithArguments("object", "0").WithLocation(5, 18),
                 // (7,14): error CS1729: 'object' does not contain a constructor that takes 0 arguments
                 // public class Test
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test").WithArguments("object", "0").WithLocation(7, 14));

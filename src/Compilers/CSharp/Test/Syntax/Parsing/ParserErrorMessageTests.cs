@@ -3160,7 +3160,7 @@ public class Test
             ParseAndValidate(code, new CSharpParseOptions(LanguageVersion.CSharp7),
                 // (4,29): error CS8107: Feature 'readonly references' is not available in C# 7. Please use language version 7.2 or greater.
                 // public void DoSomething(in int x) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "ref").WithArguments("readonly references", "7.2").WithLocation(4, 29)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "in").WithArguments("readonly references", "7.2").WithLocation(4, 29)
             );
         }
 
@@ -3432,12 +3432,9 @@ public static class TestType
 ";
 
             CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
-                // (8,43): error CS1107: A parameter can only have one 'ref' modifier
+                // (8,33): error CS1107: A parameter can only have one 'in' modifier
                 //     public static void Test5(in in int[] i) {}
-                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(8, 43),
-                // (8,47): error CS1107: A parameter can only have one 'readonly' modifier
-                //     public static void Test6(in in int[] i) {}
-                Diagnostic(ErrorCode.ERR_DupParamMod, "readonly").WithArguments("readonly").WithLocation(8, 47),
+                Diagnostic(ErrorCode.ERR_DupParamMod, "in").WithArguments("in").WithLocation(8, 33),
                 // (5,34): error CS1107: A parameter can only have one 'out' modifier
                 //     public static void Test2(out out int i) {}
                 Diagnostic(ErrorCode.ERR_DupParamMod, "out").WithArguments("out").WithLocation(5, 34),
@@ -3474,24 +3471,24 @@ public static void Method6<T, U, V>(ref in int i) { }
 ";
 
             CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
-                // (5,41): error CS1107: A parameter can only have one 'ref' modifier
-                // public static void Method1(in ref int i) { }
-                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(5, 41),
-                // (6,32): error CS1107: A parameter can only have one 'ref' modifier
+                // (6,32): error CS8328:  The parameter modifier 'in' cannot be used with 'ref'
                 // public static void Method2(ref in int i) { }
-                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(6, 32),
-                // (9,44): error CS1107: A parameter can only have one 'ref' modifier
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(6, 32),
+                // (9,34): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
                 // public static void Method3<T>(in ref int i) { }
-                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(9, 44),
-                // (10,35): error CS1107: A parameter can only have one 'ref' modifier
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("out", "in").WithLocation(9, 34),
+                // (10,35): error CS8328:  The parameter modifier 'in' cannot be used with 'ref'
                 // public static void Method4<T>(ref in int i) { }
-                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(10, 35),
-                // (13,50): error CS1107: A parameter can only have one 'ref' modifier
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(10, 35),
+                // (13,40): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
                 // public static void Method5<T, U, V>(in ref int i) { }
-                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(13, 50),
-                // (14,41): error CS1107: A parameter can only have one 'ref' modifier
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("out", "in").WithLocation(13, 40),
+                // (14,41): error CS8328:  The parameter modifier 'in' cannot be used with 'ref'
                 // public static void Method6<T, U, V>(ref in int i) { }
-                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(14, 41));
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(14, 41),
+                // (5,31): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
+                // public static void Method1(in ref int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("out", "in").WithLocation(5, 31));
         }
 
         [Fact]
@@ -3516,24 +3513,15 @@ public static void Method6<T, U, V>(this in int i) { }
 ";
 
             CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
-                // (14,42): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                // (14,42): error CS8339: The parameter modifier 'in' cannot be used after the modifier 'this'
                 // public static void Method6<T, U, V>(this in int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(14, 42),
-                // (14,46): error CS8339:  The parameter modifier 'readonly' cannot be used after the modifier 'this' 
-                // public static void Method6<T, U, V>(this in int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "readonly").WithArguments("readonly", "this").WithLocation(14, 46),
-                // (6,33): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "in").WithArguments("in", "this").WithLocation(14, 42),
+                // (6,33): error CS8339: The parameter modifier 'in' cannot be used after the modifier 'this'
                 // public static void Method2(this in int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(6, 33),
-                // (6,37): error CS8339:  The parameter modifier 'readonly' cannot be used after the modifier 'this' 
-                // public static void Method2(this in int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "readonly").WithArguments("readonly", "this").WithLocation(6, 37),
-                // (10,36): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "in").WithArguments("in", "this").WithLocation(6, 33),
+                // (10,36): error CS8339: The parameter modifier 'in' cannot be used after the modifier 'this'
                 // public static void Method4<T>(this in int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(10, 36),
-                // (10,40): error CS8339:  The parameter modifier 'readonly' cannot be used after the modifier 'this' 
-                // public static void Method4<T>(this in int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "readonly").WithArguments("readonly", "this").WithLocation(10, 40));
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "in").WithArguments("in", "this").WithLocation(10, 36));
         }
 
         [Fact]
@@ -3558,38 +3546,29 @@ public static void Method6<T, U, V>(params in int[] i) { }
 ";
 
             CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
-                // (6,35): error CS1611: The params parameter cannot be declared as ref
+                // (6,35): error CS1611: The params parameter cannot be declared as in
                 // public static void Method2(params in int[] i) { }
-                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "ref").WithArguments("ref").WithLocation(6, 35),
-                // (6,39): error CS1611: The params parameter cannot be declared as readonly
-                // public static void Method2(params in int[] i) { }
-                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "readonly").WithArguments("readonly").WithLocation(6, 39),
-                // (9,44): error CS8328:  The parameter modifier 'params' cannot be used with 'ref' 
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "in").WithArguments("in").WithLocation(6, 35),
+                // (9,34): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
                 // public static void Method3<T>(in params int[] i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "ref").WithLocation(9, 44),
-                // (10,38): error CS1611: The params parameter cannot be declared as ref
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("out", "in").WithLocation(9, 34),
+                // (10,38): error CS1611: The params parameter cannot be declared as in
                 // public static void Method4<T>(params in int[] i) { }
-                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "ref").WithArguments("ref").WithLocation(10, 38),
-                // (10,42): error CS1611: The params parameter cannot be declared as readonly
-                // public static void Method4<T>(params in int[] i) { }
-                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "readonly").WithArguments("readonly").WithLocation(10, 42),
-                // (13,50): error CS8328:  The parameter modifier 'params' cannot be used with 'ref' 
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "in").WithArguments("in").WithLocation(10, 38),
+                // (13,40): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
                 // public static void Method5<T, U, V>(in params int[] i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "ref").WithLocation(13, 50),
-                // (14,44): error CS1611: The params parameter cannot be declared as ref
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("out", "in").WithLocation(13, 40),
+                // (14,44): error CS1611: The params parameter cannot be declared as in
                 // public static void Method6<T, U, V>(params in int[] i) { }
-                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "ref").WithArguments("ref").WithLocation(14, 44),
-                // (14,48): error CS1611: The params parameter cannot be declared as readonly
-                // public static void Method6<T, U, V>(params in int[] i) { }
-                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "readonly").WithArguments("readonly").WithLocation(14, 48),
-                // (5,41): error CS8328:  The parameter modifier 'params' cannot be used with 'ref' 
+                Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "in").WithArguments("in").WithLocation(14, 44),
+                // (5,31): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
                 // public static void Method1(in params int[] i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "ref").WithLocation(5, 41));
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("out", "in").WithLocation(5, 31));
         }
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void BadRefReadOnlyWithOutParameterModifiers()
+        public void BadInWithOutParameterModifiers()
         {
             var test = @"
 public class TestType
@@ -3609,33 +3588,24 @@ public static void Method6<T, U, V>(out in int i) { }
 ";
 
             CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
-                // (5,41): error CS8328:  The parameter modifier 'out' cannot be used with 'ref' 
-                // public static void Method1(in out int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(5, 41),
-                // (6,32): error CS8328:  The parameter modifier 'ref' cannot be used with 'out' 
+                // (6,32): error CS8328:  The parameter modifier 'in' cannot be used with 'out'
                 // public static void Method2(out in int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(6, 32),
-                // (6,36): error CS8328:  The parameter modifier 'readonly' cannot be used with 'out' 
-                // public static void Method2(out in int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "out").WithLocation(6, 36),
-                // (9,44): error CS8328:  The parameter modifier 'out' cannot be used with 'ref' 
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "out").WithLocation(6, 32),
+                // (9,34): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
                 // public static void Method3<T>(in out int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(9, 44),
-                // (10,35): error CS8328:  The parameter modifier 'ref' cannot be used with 'out' 
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "in").WithLocation(9, 34),
+                // (10,35): error CS8328:  The parameter modifier 'in' cannot be used with 'out'
                 // public static void Method4<T>(out in int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(10, 35),
-                // (10,39): error CS8328:  The parameter modifier 'readonly' cannot be used with 'out' 
-                // public static void Method4<T>(out in int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "out").WithLocation(10, 39),
-                // (13,50): error CS8328:  The parameter modifier 'out' cannot be used with 'ref' 
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "out").WithLocation(10, 35),
+                // (13,40): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
                 // public static void Method5<T, U, V>(in out int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(13, 50),
-                // (14,41): error CS8328:  The parameter modifier 'ref' cannot be used with 'out' 
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "in").WithLocation(13, 40),
+                // (14,41): error CS8328:  The parameter modifier 'in' cannot be used with 'out'
                 // public static void Method6<T, U, V>(out in int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(14, 41),
-                // (14,45): error CS8328:  The parameter modifier 'readonly' cannot be used with 'out' 
-                // public static void Method6<T, U, V>(out in int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "out").WithLocation(14, 45));
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "out").WithLocation(14, 41),
+                // (5,31): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
+                // public static void Method1(in out int i) { }
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "in").WithLocation(5, 31));
         }
 
         [Fact]
@@ -3672,34 +3642,25 @@ public class Test
             tree.GetDiagnostics().Verify();
 
             var methodDeclaration = (MethodDeclarationSyntax)tree.GetRoot().DescendantNodes().Single(node => node is MethodDeclarationSyntax);
-            verifyModifier(methodDeclaration.ParameterList.Parameters);
+            Assert.Equal(SyntaxKind.InKeyword, methodDeclaration.ParameterList.Parameters.Single().Modifiers.Single().Kind());
 
             var delegateDeclaration = (DelegateDeclarationSyntax)tree.GetRoot().DescendantNodes().Single(node => node is DelegateDeclarationSyntax);
-            verifyModifier(delegateDeclaration.ParameterList.Parameters);
+            Assert.Equal(SyntaxKind.InKeyword, delegateDeclaration.ParameterList.Parameters.Single().Modifiers.Single().Kind());
 
             var localFunctionStatement = (LocalFunctionStatementSyntax)tree.GetRoot().DescendantNodes().Single(node => node is LocalFunctionStatementSyntax);
-            verifyModifier(localFunctionStatement.ParameterList.Parameters);
+            Assert.Equal(SyntaxKind.InKeyword, localFunctionStatement.ParameterList.Parameters.Single().Modifiers.Single().Kind());
 
             var lambdaExpression = (ParenthesizedLambdaExpressionSyntax)tree.GetRoot().DescendantNodes().Single(node => node is ParenthesizedLambdaExpressionSyntax);
-            verifyModifier(lambdaExpression.ParameterList.Parameters);
+            Assert.Equal(SyntaxKind.InKeyword, lambdaExpression.ParameterList.Parameters.Single().Modifiers.Single().Kind());
 
             var anonymousMethodExpression = (AnonymousMethodExpressionSyntax)tree.GetRoot().DescendantNodes().Single(node => node is AnonymousMethodExpressionSyntax);
-            verifyModifier(anonymousMethodExpression.ParameterList.Parameters);
+            Assert.Equal(SyntaxKind.InKeyword, anonymousMethodExpression.ParameterList.Parameters.Single().Modifiers.Single().Kind());
 
             var indexerDeclaration = (IndexerDeclarationSyntax)tree.GetRoot().DescendantNodes().Single(node => node is IndexerDeclarationSyntax);
-            verifyModifier(indexerDeclaration.ParameterList.Parameters);
+            Assert.Equal(SyntaxKind.InKeyword, indexerDeclaration.ParameterList.Parameters.Single().Modifiers.Single().Kind());
 
             var operatorDeclaration = (OperatorDeclarationSyntax)tree.GetRoot().DescendantNodes().Single(node => node is OperatorDeclarationSyntax);
-            verifyModifier(operatorDeclaration.ParameterList.Parameters);
-
-            void verifyModifier(SeparatedSyntaxList<ParameterSyntax> list)
-            {
-                var parameter = list.Single();
-                Assert.Equal(2, parameter.Modifiers.Count);
-
-                Assert.Equal(SyntaxKind.RefKeyword, parameter.Modifiers.First().Kind());
-                Assert.Equal(SyntaxKind.ReadOnlyKeyword, parameter.Modifiers.Last().Kind());
-            }
+            Assert.Equal(SyntaxKind.InKeyword, operatorDeclaration.ParameterList.Parameters.Single().Modifiers.Single().Kind());
         }
 
         [Fact]
@@ -5618,10 +5579,10 @@ public static class Program
             CreateCompilationWithMscorlibAndSystemCore(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).GetParseDiagnostics().Verify(
                // (4,30): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
                //     public static void Print(in this int p)
-               Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "ref").WithArguments("readonly references", "7.2").WithLocation(4, 30),
+               Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("readonly references", "7.2").WithLocation(4, 30),
                // (4,30): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
                //     public static void Print(in this int p)
-               Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "ref").WithArguments("ref extension methods", "7.2").WithLocation(4, 30)
+               Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("ref extension methods", "7.2").WithLocation(4, 30)
             );
 
             CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "5");

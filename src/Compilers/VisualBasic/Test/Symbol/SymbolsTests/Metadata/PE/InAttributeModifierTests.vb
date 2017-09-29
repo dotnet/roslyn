@@ -184,7 +184,7 @@ BC30657: 'M' has a return type that is not supported or parameter types that are
 public class TestRef
 {
     private int value = 0;
-    public virtual in int M()
+    public virtual ref readonly int M()
     {
         return ref value;
     }
@@ -216,7 +216,7 @@ BC30657: 'M' has a return type that is not supported or parameter types that are
             Dim reference = CreateCSharpCompilation("
 public abstract class TestRef
 {
-    public abstract in int M();
+    public abstract ref readonly int M();
 }", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
 
             Dim source =
@@ -245,7 +245,7 @@ BC30657: 'M' has a return type that is not supported or parameter types that are
 public class TestRef
 {
     private static int value = 0;
-    public static in int M()
+    public static ref readonly int M()
     {
         return ref value;
     }

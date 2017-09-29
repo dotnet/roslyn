@@ -9420,7 +9420,7 @@ public static class Program
     public static void Main()
     {
         int x = 5;
-        Method(in x);
+        Method(ref readonly x);
     }
 }";
 

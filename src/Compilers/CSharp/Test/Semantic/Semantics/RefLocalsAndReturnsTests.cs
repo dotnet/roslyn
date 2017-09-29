@@ -2709,9 +2709,9 @@ class Test
         await Task.FromResult(0);
     }
 }").VerifyDiagnostics(
-                // (5,40): error CS1988: Async methods cannot have ref or out parameters
+                // (5,30): error CS1988: Async methods cannot have ref or out parameters
                 //     async Task Method(in int p)
-                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "p").WithLocation(5, 40));
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "p").WithLocation(5, 30));
         }
 
         [Fact]
@@ -2728,9 +2728,9 @@ class Test
         yield return 2;
     }
 }").VerifyDiagnostics(
-                // (5,46): error CS1623: Iterators cannot have ref or out parameters
+                // (5,36): error CS1623: Iterators cannot have ref or out parameters
                 //     IEnumerable<int> Method(in int p)
-                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "p").WithLocation(5, 46));
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "p").WithLocation(5, 36));
         }
 
         [Fact]
@@ -2745,9 +2745,9 @@ class Test
         yield return 0;
     }
 }").VerifyDiagnostics(
-                // (5,60): error CS1623: Iterators cannot have ref or out parameters
+                // (5,50): error CS1623: Iterators cannot have ref or out parameters
                 //     public IEnumerator<int> GetEnumerator(in int p)
-                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "p").WithLocation(5, 60));
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "p").WithLocation(5, 50));
         }
 
         [Fact]

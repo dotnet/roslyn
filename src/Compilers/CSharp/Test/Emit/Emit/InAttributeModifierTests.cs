@@ -3715,7 +3715,7 @@ namespace System.Runtime.InteropServices
 {
     public class InAttribute {}
 }
-public delegate void D(ref readonly int p);");
+public delegate void D(in int p);");
 
             CompileAndVerify(reference, symbolValidator: module =>
             {
@@ -3734,7 +3734,7 @@ public class Test
 {
     public static void Main()
     {
-        Run((ref readonly int p) => System.Console.WriteLine(p));
+        Run((in int p) => System.Console.WriteLine(p));
     }
 
     public static void Run(D lambda)

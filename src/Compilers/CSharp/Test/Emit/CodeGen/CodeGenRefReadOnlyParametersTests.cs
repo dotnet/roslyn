@@ -287,7 +287,7 @@ class Program
          System.Console.WriteLine(p.M(42));
     }
 
-    public Program(ref readonly string x)
+    public Program(in string x)
     {
        SI = x;
     }
@@ -300,7 +300,7 @@ class Program
 
 class P1 : Program
 {
-    public P1(ref readonly string x) : base(x){}
+    public P1(in string x) : base(x){}
 
     public override ref readonly int M(in int x)
     {

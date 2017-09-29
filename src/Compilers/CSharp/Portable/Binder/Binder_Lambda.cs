@@ -125,8 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type = BindType(typeSyntax, diagnostics);
                         foreach (var modifier in p.Modifiers)
                         {
-                            var modKind = modifier.Kind();
-
                             switch (modifier.Kind())
                             {
                                 case SyntaxKind.RefKeyword:
@@ -139,8 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     allValue = false;
                                     break;
 
-                                case SyntaxKind.ReadOnlyKeyword:
-                                    Debug.Assert(refKind == RefKind.Ref || syntax.HasErrors);
+                                case SyntaxKind.InKeyword:
                                     refKind = RefKind.In;
                                     allValue = false;
                                     break;

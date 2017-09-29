@@ -6350,7 +6350,7 @@ public class Test
         public void RefReadOnlyLambdasEvaluationWillSynthesizeRequiredAttributes_ReturnTypes()
         {
             var reference = CreateStandardCompilation(@"
-public delegate in int D();");
+public delegate ref readonly int D();");
 
             CompileAndVerify(reference, symbolValidator: module =>
             {

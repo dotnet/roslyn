@@ -40,14 +40,14 @@ class C
 
     ref readonly S M()
     {
-        in S rs1 = ref s1;
+        ref readonly S rs1 = ref s1;
         rs1.AddOne();
-        in S rs2 = ref s2;
+        ref readonly S rs2 = ref s2;
         rs2.AddOne();
 
-        in S2 rs3 = ref s3;
+        ref readonly S2 rs3 = ref s3;
         rs3.AddOne();
-        in S2 rs4 = ref s4;
+        ref readonly S2 rs4 = ref s4;
         rs4.AddOne();
 
         return ref rs1;
@@ -1023,7 +1023,7 @@ struct S1
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(8, 20),
                 // (11,44): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     in int this[in int i] => ref x;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithArguments("this").WithLocation(11, 54)
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithArguments("this").WithLocation(11, 44)
             );
         }
 

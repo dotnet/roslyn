@@ -5698,6 +5698,8 @@ public class C
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -5943,9 +5945,7 @@ class C
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.MethodName, // Local
                 SymbolDisplayPartKind.Punctuation, // (
-                SymbolDisplayPartKind.Keyword, // ref
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Keyword, // readonly
+                SymbolDisplayPartKind.Keyword, // in
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.NamespaceName, // System
                 SymbolDisplayPartKind.Punctuation, // .

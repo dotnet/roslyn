@@ -6698,7 +6698,7 @@ class Program
         }
 
         [Fact]
-        public void LocalFunction_ReadOnlyRef_Parameter_InsertWhole()
+        public void LocalFunction_In_Parameter_InsertWhole()
         {
             var src1 = @"class Test { void M() { } }";
             var src2 = @"class Test { void M() { void local(in int b) { throw null; } } }";
@@ -6713,7 +6713,7 @@ class Program
         }
 
         [Fact]
-        public void LocalFunction_ReadOnlyRef_Parameter_InsertParameter()
+        public void LocalFunction_In_Parameter_InsertParameter()
         {
             var src1 = @"class Test { void M() { void local() { throw null; } } }";
             var src2 = @"class Test { void M() { void local(in int b) { throw null; } } }";
@@ -6728,7 +6728,7 @@ class Program
         }
 
         [Fact]
-        public void LocalFunction_ReadOnlyRef_Parameter_Update()
+        public void LocalFunction_In_Parameter_Update()
         {
             var src1 = @"class Test { void M() { void local(int b) { throw null; } } }";
             var src2 = @"class Test { void M() { void local(in int b) { throw null; } } }";

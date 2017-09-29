@@ -636,9 +636,9 @@ interface ITest<in T>
 {
     void M(in T p);
 }").VerifyDiagnostics(
-                // (4,25): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'ITest<T>.M(in T)'. 'T' is contravariant.
+                // (4,15): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'ITest<T>.M(in T)'. 'T' is contravariant.
                 //     void M(in T p);
-                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T").WithArguments("ITest<T>.M(in T)", "T", "contravariant", "invariantly").WithLocation(4, 25));
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T").WithArguments("ITest<T>.M(in T)", "T", "contravariant", "invariantly").WithLocation(4, 15));
         }
 
         [Fact]

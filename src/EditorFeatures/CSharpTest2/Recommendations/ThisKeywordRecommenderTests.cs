@@ -647,22 +647,7 @@ public static class Extensions
     public static void Extension(ref $$ object obj, int x) { }
 }");
         }
-
-        [Fact]
-        public async Task TestExtensionMethods_FirstParameter_AfterRefReadOnlyKeywords_InClass()
-        {
-            await VerifyKeywordAsync(@"
-public static class Extensions
-{
-    public static void Extension(ref readonly $$");
-
-            await VerifyKeywordAsync(@"
-public static class Extensions
-{
-    public static void Extension(ref readonly $$ object obj, int x) { }
-}");
-        }
-
+        
         [Fact]
         public async Task TestExtensionMethods_SecondParameter_AfterRefKeyword_InClass()
         {
