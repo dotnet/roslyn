@@ -854,80 +854,62 @@ public class Program
         }
 
         [Fact]
-        public void SpanDetect()
+        public void RefSpanDetectBoxing_NoRef()
         {
-
-            //span structs are not marked as "ref"
-            string spanSourceNoRefs = @"
+            string spanSource = @"
 namespace System
 {
-    public struct Span<T> 
-    {
-        public ref T this[int i] => throw null;
-        public override int GetHashCode() => 1;
-    }
-
-    public struct ReadOnlySpan<T>
-    {
-        public ref readonly T this[int i] => throw null;
-        public override int GetHashCode() => 2;
-    }
-
-    public struct RegularStruct<T>
-    {
-    }
-
-    // arity 0 - not a span
-    public struct Span 
-    {
-    }
-
-    // arity 2 - not a span
-    public struct Span<T, U> 
-    {
-        public ref T this[int i] => throw null;
-        public override int GetHashCode() => 1;
-    }
-}
-
-// nested
-public struct S1
-{
-    public struct Span<T> 
-    {
-        public ref T this[int i] => throw null;
-        public override int GetHashCode() => 1;
-    }
-}
-
-public struct Span<T> 
-{
-    public ref T this[int i] => throw null;
-    public override int GetHashCode() => 1;
-}
-
-";
+    public struct Span<T> { }
+    public struct ReadOnlySpan<T> { }
+}";
             var reference = CreateCompilation(
-                spanSourceNoRefs,
+                spanSource,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
                 options: TestOptions.ReleaseDll);
 
             reference.VerifyDiagnostics();
 
             var text = @"
-using System;
-
 class Program
 {
     static void Main()
     {
         object x = new System.Span<int>();
-        object y = new ReadOnlySpan<byte>();
+        object y = new System.ReadOnlySpan<byte>();
+    }
+}
+";
+            var comp = CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
+                options: TestOptions.ReleaseExe);
 
-        object z1 = new Span();
-        object z2 = new Span<int, int>();
-        object z3 = new S1.Span<int>();
-        object z4 = new Span<int>();
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefSpanDetectBoxing_Ref()
+        {
+            string spanSource = @"
+namespace System
+{
+    public ref struct Span<T> { }
+    public ref struct ReadOnlySpan<T> { }
+}";
+            var reference = CreateCompilation(
+                spanSource,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                options: TestOptions.ReleaseDll);
+
+            reference.VerifyDiagnostics();
+
+            var text = @"
+class Program
+{
+    static void Main()
+    {
+        object x = new System.Span<int>();
+        object y = new System.ReadOnlySpan<byte>();
     }
 }
 ";
@@ -937,13 +919,94 @@ class Program
                 options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (8,20): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
+                // (6,20): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
                 //         object x = new System.Span<int>();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new System.Span<int>()").WithArguments("System.Span<int>", "object").WithLocation(8, 20),
-                // (9,20): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<byte>' to 'object'
-                //         object y = new ReadOnlySpan<byte>();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new ReadOnlySpan<byte>()").WithArguments("System.ReadOnlySpan<byte>", "object").WithLocation(9, 20)
-            );
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new System.Span<int>()").WithArguments("System.Span<int>", "object").WithLocation(6, 20),
+                // (7,20): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<byte>' to 'object'
+                //         object y = new System.ReadOnlySpan<byte>();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new System.ReadOnlySpan<byte>()").WithArguments("System.ReadOnlySpan<byte>", "object").WithLocation(7, 20));
+        }
+
+        [Fact]
+        public void CannotUseNonRefSpan()
+        {
+            string spanSource = @"
+namespace System
+{
+    public struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length)
+        {
+        }
+    }
+}";
+            var reference = CreateCompilation(
+                spanSource,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                options: TestOptions.UnsafeReleaseDll);
+
+            reference.VerifyDiagnostics();
+
+            var text = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+        Span<int> x = stackalloc int [10];
+    }
+}
+";
+            var comp = CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
+                options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (7,23): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'Span<int>' is not possible.
+                //         Span<int> x = stackalloc int [10];
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int [10]").WithArguments("int", "System.Span<int>").WithLocation(7, 23));
+        }
+
+        [Fact]
+        public void CannotUseNonStructSpan()
+        {
+            string spanSource = @"
+namespace System
+{
+    public class Span<T> 
+    {
+        unsafe public Span(void* pointer, int length)
+        {
+        }
+    }
+}";
+            var reference = CreateCompilation(
+                spanSource,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                options: TestOptions.UnsafeReleaseDll);
+
+            reference.VerifyDiagnostics();
+
+            var text = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+        Span<int> x = stackalloc int [10];
+    }
+}
+";
+            var comp = CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
+                options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (7,23): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'Span<int>' is not possible.
+                //         Span<int> x = stackalloc int [10];
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int [10]").WithArguments("int", "System.Span<int>").WithLocation(7, 23));
         }
     }
 }
