@@ -105,12 +105,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 var inferredTypes = typeInferenceService.GetTypeInferenceInfo(semanticModel, argument.SpanStart, cancellationToken: cancellationToken);
                 var types = inferredTypes.SelectAsArray(t => t.InferredType);
-                var parameters = inferredTypes.SelectAsArray(t => t.ParameterName).WhereAsArray(p => p != null);
+                var parameters = inferredTypes.Select(t => t.ParameterName)
+                                              .Where(p => p != null)
+                                              .ToImmutableArray();
                 result = new NameDeclarationInfo(
                         ImmutableArray.Create(SymbolKind.Local),
                         Accessibility.NotApplicable,
                         new DeclarationModifiers(),
-                        types: types,
+                        types,
                         parameterNames: parameters);
 
                 return true;

@@ -64,28 +64,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private ImmutableArray<ImmutableArray<string>> GetBaseNames(SemanticModel semanticModel, NameDeclarationInfo info)
         {
-            ImmutableArray<ImmutableArray<string>> baseNames = default;
-            if (info.Aliases != null)
+            ImmutableArray<ImmutableArray<string>>.Builder baseNames = ImmutableArray.CreateBuilder<ImmutableArray<string>>();
+            if (!info.Aliases.IsDefaultOrEmpty)
             {
-                baseNames = info.Aliases.ToSet().SelectMany(alias => NameGenerator.GetBaseNames(alias)).ToImmutableArray();
+                var aliasNames = info.Aliases.Distinct().SelectMany(alias => NameGenerator.GetBaseNames(alias)).Distinct();
+                foreach (var name in aliasNames)
+                {
+                    baseNames.Add(name);
+                }
             }
-            else if (info.Types != null)
+            else if (!info.Types.IsDefaultOrEmpty)
             {
-                baseNames = info.Types
+                var typeNames = info.Types
                     .Where(IsValidType)
                     .ToSet()
                     .Select(t => UnwrapType(t, semanticModel.Compilation))
                     .SelectMany(t => NameGenerator.GetBaseNames(t))
-                    .ToImmutableArray();
+                    .Distinct();
+
+                foreach (var name in typeNames)
+                {
+                    baseNames.Add(name);
+                }
             }
 
-            if (info.ParameterNames != null)
+            if (!info.ParameterNames.IsDefaultOrEmpty)
             {
                 // In the `out var` case, also suggest the name of the out parameter
-                baseNames = baseNames.AddRange(info.ParameterNames.Select(p => ImmutableArray.Create(p)));
+                foreach (var parameterName in info.ParameterNames.Select(p => ImmutableArray.Create(p)))
+                {
+                    baseNames.Add(parameterName);
+                }
             }
 
-            return baseNames;
+            return baseNames.ToImmutable();
 
         }
 
