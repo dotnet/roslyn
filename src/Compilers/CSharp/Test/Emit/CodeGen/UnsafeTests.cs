@@ -1226,6 +1226,72 @@ unsafe class C
 ");
         }
 
+        [Fact]
+        public void FixedStatementThis()
+        {
+            var text = @"
+public class Program
+{
+    public static void Main()
+    {
+        S1 s = default;
+        s.Test();
+    }
+
+    unsafe readonly struct S1
+    {
+        readonly int x;
+
+        public void Test()
+        {
+            fixed(void* p = &this)
+            {
+                *(int*)p = 123;
+            }
+
+            ref readonly S1 r = ref this;
+
+            fixed (S1* p = &r)
+            {
+                System.Console.WriteLine(p->x);
+            }
+        }
+    }
+}
+";
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"123");
+
+            compVerifier.VerifyIL("Program.S1.Test()", @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (void* V_0, //p
+                pinned Program.S1& V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloc.1
+  IL_0003:  conv.u
+  IL_0004:  stloc.0
+  IL_0005:  ldloc.0
+  IL_0006:  ldc.i4.s   123
+  IL_0008:  stind.i4
+  IL_0009:  ldc.i4.0
+  IL_000a:  conv.u
+  IL_000b:  stloc.1
+  IL_000c:  ldarg.0
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.1
+  IL_000f:  conv.u
+  IL_0010:  ldfld      ""int Program.S1.x""
+  IL_0015:  call       ""void System.Console.WriteLine(int)""
+  IL_001a:  ldc.i4.0
+  IL_001b:  conv.u
+  IL_001c:  stloc.1
+  IL_001d:  ret
+}
+");
+        }
+
         [WorkItem(22306, "https://github.com/dotnet/roslyn/issues/22306")]
         [Fact]
         public void FixedStatementMultipleFields()
