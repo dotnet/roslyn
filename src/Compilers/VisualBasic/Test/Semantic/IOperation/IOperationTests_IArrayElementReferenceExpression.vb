@@ -692,8 +692,6 @@ Class C
     End Sub
 End Class]]>.Value
 
-            ' Operation tree is missing parameter reference for 'y'
-            ' See https://github.com/dotnet/roslyn/issues/22409
             Dim expectedOperationTree = <![CDATA[
 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'args(y)()()()(x)')
   Children(2):
