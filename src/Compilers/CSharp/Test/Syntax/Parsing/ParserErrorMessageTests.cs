@@ -398,7 +398,10 @@ public class Test
 }
 ";
 
-            CreateStandardCompilation(test).VerifyDiagnostics();
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial public class C  // CS0267
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
         }
 
         [Fact]
@@ -411,7 +414,7 @@ partial enum E { }
             CreateStandardCompilation(test).VerifyDiagnostics(
                 // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
                 // partial enum E { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(2, 14));
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
         }
 
         [Fact]
@@ -443,7 +446,7 @@ partial delegate E { }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(2, 22),
                 // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
                 // partial delegate E { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "").WithLocation(2, 20),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
                 // (2,18): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "E").WithArguments("E").WithLocation(2, 18));
@@ -460,7 +463,7 @@ partial delegate void E();
             CreateStandardCompilation(test).VerifyDiagnostics(
                 // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
                 // partial delegate void E();
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(2, 23));
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
         }
 
         // TODO: Extra errors
