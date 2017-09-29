@@ -1165,7 +1165,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         protected static string GetOperationTreeForTest<TSyntaxNode>(
             string testSrc,
-            string expectedOperationTree,
             CSharpCompilationOptions compilationOptions = null,
             CSharpParseOptions parseOptions = null,
             bool useLatestFrameworkReferences = false)
@@ -1193,7 +1192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             bool useLatestFrameworkReferences = false)
             where TSyntaxNode : SyntaxNode
         {
-            var actualOperationTree = GetOperationTreeForTest<TSyntaxNode>(testSrc, expectedOperationTree, compilationOptions, parseOptions, useLatestFrameworkReferences);
+            var actualOperationTree = GetOperationTreeForTest<TSyntaxNode>(testSrc, compilationOptions, parseOptions, useLatestFrameworkReferences);
             OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
         }
 

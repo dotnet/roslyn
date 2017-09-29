@@ -412,33 +412,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDeconstructValuePlaceholder : BoundValuePlaceholderBase
     {
-        public BoundDeconstructValuePlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
+        public BoundDeconstructValuePlaceholder(SyntaxNode syntax, uint valEscape, TypeSymbol type, bool hasErrors)
             : base(BoundKind.DeconstructValuePlaceholder, syntax, type, hasErrors)
         {
 
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
+            this.ValEscape = valEscape;
         }
 
-        public BoundDeconstructValuePlaceholder(SyntaxNode syntax, TypeSymbol type)
+        public BoundDeconstructValuePlaceholder(SyntaxNode syntax, uint valEscape, TypeSymbol type)
             : base(BoundKind.DeconstructValuePlaceholder, syntax, type)
         {
 
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
+            this.ValEscape = valEscape;
         }
 
+
+        public uint ValEscape { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitDeconstructValuePlaceholder(this);
         }
 
-        public BoundDeconstructValuePlaceholder Update(TypeSymbol type)
+        public BoundDeconstructValuePlaceholder Update(uint valEscape, TypeSymbol type)
         {
-            if (type != this.Type)
+            if (valEscape != this.ValEscape || type != this.Type)
             {
-                var result = new BoundDeconstructValuePlaceholder(this.Syntax, type, this.HasErrors);
+                var result = new BoundDeconstructValuePlaceholder(this.Syntax, valEscape, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -8473,7 +8477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
         {
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(type);
+            return node.Update(node.ValEscape, type);
         }
         public override BoundNode VisitDup(BoundDup node)
         {
@@ -9385,6 +9389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new TreeDumperNode("deconstructValuePlaceholder", null, new TreeDumperNode[]
             {
+                new TreeDumperNode("valEscape", node.ValEscape, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );
