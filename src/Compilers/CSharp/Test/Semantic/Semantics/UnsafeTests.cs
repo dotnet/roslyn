@@ -8564,9 +8564,10 @@ public class Test
         int* pointer = &p;
     }
 }", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,25): error CS0211: Cannot take the address of the given expression
+                // (6,24): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         int* pointer = &p;
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "p").WithLocation(6, 25));
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&p").WithLocation(6, 24)
+                );
         }
 
         #endregion
