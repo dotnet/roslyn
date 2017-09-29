@@ -1710,7 +1710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Parameter {0} is declared as type '{1}{2}' but should be '{3}{4}'
                         Error(diagnostics, ErrorCode.ERR_BadParamType, lambdaParameterLocation,
-                            i + 1, lambdaRefKind.ToPrefix(), distinguisher.First, delegateRefKind.ToPrefix(), distinguisher.Second);
+                            i + 1, lambdaRefKind.ToParameterPrefix(), distinguisher.First, delegateRefKind.ToParameterPrefix(), distinguisher.Second);
                     }
                     else if (lambdaRefKind != delegateRefKind)
                     {

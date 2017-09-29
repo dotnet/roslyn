@@ -155,7 +155,7 @@ namespace System.Runtime.CompilerServices
 using System.Runtime.CompilerServices;
 
 [IsReadOnly]
-public delegate ref readonly int D([IsReadOnly]ref readonly int x);
+public delegate ref readonly int D([IsReadOnly]in int x);
 ";
 
             CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
@@ -163,7 +163,7 @@ public delegate ref readonly int D([IsReadOnly]ref readonly int x);
                 // [IsReadOnly]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(4, 2),
                 // (5,37): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
-                // public delegate ref readonly int D([IsReadOnly]ref readonly int x);
+                // public delegate ref readonly int D([IsReadOnly]in int x);
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(5, 37));
         }
 
@@ -269,7 +269,7 @@ public class Test
 {
     [IsReadOnly]
     [return: IsReadOnly]
-    public ref readonly int Method([IsReadOnly]ref readonly int x)
+    public ref readonly int Method([IsReadOnly]in int x)
     {
         return ref x;
     }
@@ -284,7 +284,7 @@ public class Test
                 //     [return: IsReadOnly]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(7, 14),
                 // (8,37): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
-                //     public ref readonly int Method([IsReadOnly]ref readonly int x)
+                //     public ref readonly int Method([IsReadOnly]in int x)
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(8, 37));
         }
 
@@ -305,7 +305,7 @@ using System.Runtime.CompilerServices;
 public class Test
 {
     [IsReadOnly]
-    public ref readonly int this[[IsReadOnly]ref readonly int x] { get { return ref x; } }
+    public ref readonly int this[[IsReadOnly]in int x] { get { return ref x; } }
 }
 ";
 
@@ -314,7 +314,7 @@ public class Test
                 //     [IsReadOnly]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(6, 6),
                 // (7,35): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
-                //     public ref readonly int this[[IsReadOnly]ref readonly int x] { get { return ref x; } }
+                //     public ref readonly int this[[IsReadOnly]in int x] { get { return ref x; } }
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(7, 35));
         }
 

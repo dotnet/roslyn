@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, location, Name);
                 }
-                else if (parameter0RefKind == RefKind.RefReadOnly && parameter0Type.TypeKind != TypeKind.Struct)
+                else if (parameter0RefKind == RefKind.In && parameter0Type.TypeKind != TypeKind.Struct)
                 {
                     diagnostics.Add(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, location, Name);
                 }

@@ -154,7 +154,7 @@ namespace System.Runtime.CompilerServices
 using System.Runtime.CompilerServices;
 
 [IsByRefLike]
-public delegate ref readonly int D([IsByRefLike]ref readonly int x);
+public delegate ref readonly int D([IsByRefLike]in int x);
 ";
 
             CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
@@ -162,7 +162,7 @@ public delegate ref readonly int D([IsByRefLike]ref readonly int x);
                 // [IsByRefLike]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(4, 2),
                 // (5,37): error CS8335: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
-                // public delegate ref readonly int D([IsByRefLike]ref readonly int x);
+                // public delegate ref readonly int D([IsByRefLike]in int x);
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(5, 37));
         }
 
@@ -268,7 +268,7 @@ public class Test
 {
     [IsByRefLike]
     [return: IsByRefLike]
-    public ref readonly int Method([IsByRefLike]ref readonly int x)
+    public ref readonly int Method([IsByRefLike]in int x)
     {
         return ref x;
     }
@@ -283,7 +283,7 @@ public class Test
                 //     [return: IsByRefLike]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(7, 14),
                 // (8,37): error CS8335: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
-                //     public ref readonly int Method([IsByRefLike]ref readonly int x)
+                //     public ref readonly int Method([IsByRefLike]in int x)
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(8, 37));
         }
 
@@ -304,7 +304,7 @@ using System.Runtime.CompilerServices;
 public class Test
 {
     [IsByRefLike]
-    public ref readonly int this[[IsByRefLike]ref readonly int x] { get { return ref x; } }
+    public ref readonly int this[[IsByRefLike]in int x] { get { return ref x; } }
 }
 ";
 
@@ -313,7 +313,7 @@ public class Test
                 //     [IsByRefLike]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(6, 6),
                 // (7,35): error CS8335: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
-                //     public ref readonly int this[[IsByRefLike]ref readonly int x] { get { return ref x; } }
+                //     public ref readonly int this[[IsByRefLike]in int x] { get { return ref x; } }
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(7, 35));
         }
 

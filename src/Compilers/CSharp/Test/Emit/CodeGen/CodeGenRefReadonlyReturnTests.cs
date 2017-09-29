@@ -253,7 +253,7 @@ class C
     {
         M(new S(0));
     }
-    static void M(ref readonly S rs)
+    static void M(in S rs)
     {
         Console.WriteLine(rs.X);
         rs.AddOne();
@@ -311,7 +311,7 @@ class C
 {
     public static void Main()
     {
-        void L(ref readonly int p)
+        void L(in int p)
         {
             Console.WriteLine(p);
         }
@@ -339,9 +339,9 @@ class C
   IL_0004:  ldc.i4.s   10
   IL_0006:  stloc.1
   IL_0007:  ldloca.s   V_1
-  IL_0009:  call       ""void C.<Main>g__L|0_0(ref readonly int)""
+  IL_0009:  call       ""void C.<Main>g__L|0_0(in int)""
   IL_000e:  ldloca.s   V_0
-  IL_0010:  call       ""void C.<Main>g__L|0_0(ref readonly int)""
+  IL_0010:  call       ""void C.<Main>g__L|0_0(in int)""
   IL_0015:  ldloc.0
   IL_0016:  ldc.i4.1
   IL_0017:  add
@@ -965,7 +965,7 @@ class Program
         return ref this[local];
     }
 
-    ref readonly int this[ref readonly int x] => ref x;
+    ref readonly int this[in int x] => ref x;
 }
 
 ";
@@ -975,9 +975,9 @@ class Program
                 // (8,25): error CS8168: Cannot return local 'local' by reference because it is not a ref local
                 //         return ref this[local];
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(8, 25),
-                // (8,20): error CS8521: Cannot use a result of 'Program.this[ref readonly int]' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (8,20): error CS8521: Cannot use a result of 'Program.this[in int]' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return ref this[local];
-                Diagnostic(ErrorCode.ERR_EscapeCall, "this[local]").WithArguments("Program.this[ref readonly int]", "x").WithLocation(8, 20)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "this[local]").WithArguments("Program.this[in int]", "x").WithLocation(8, 20)
             );
         }
 
@@ -992,7 +992,7 @@ class Program
         return ref this[42];
     }
 
-    ref readonly int this[ref readonly int x] => ref x;
+    ref readonly int this[in int x] => ref x;
 }
 
 ";
@@ -1002,9 +1002,9 @@ class Program
                 // (6,25): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref this[42];
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "42").WithLocation(6, 25),
-                // (6,20): error CS8521: Cannot use a result of 'Program.this[ref readonly int]' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (6,20): error CS8521: Cannot use a result of 'Program.this[in int]' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return ref this[42];
-                Diagnostic(ErrorCode.ERR_EscapeCall, "this[42]").WithArguments("Program.this[ref readonly int]", "x").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "this[42]").WithArguments("Program.this[in int]", "x").WithLocation(6, 20)
             );
         }
 
@@ -1022,7 +1022,7 @@ struct S1
         return ref this;
     }
 
-    ref readonly int this[ref readonly int i] => ref x;
+    ref readonly int this[in int i] => ref x;
 }
 
 ";
@@ -1033,8 +1033,8 @@ struct S1
                 //         return ref this;
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(8, 20),
                 // (11,44): error CS8170: Struct members cannot return 'this' or other instance members by reference
-                //     ref readonly int this[ref readonly int i] => ref x;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithArguments("this").WithLocation(11, 54)
+                //     in int this[in int i] => ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithArguments("this").WithLocation(11, 44)
             );
         }
 
@@ -1072,7 +1072,7 @@ class Program
         return ref M(42);
     }
 
-    ref readonly int M(ref readonly int x) => ref x;
+    ref readonly int M(in int x) => ref x;
 }
 
 ";
@@ -1082,9 +1082,9 @@ class Program
                 // (6,22): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref M(42);
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "42").WithLocation(6, 22),
-                // (6,20): error CS8521: Cannot use a result of 'Program.M(ref readonly int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (6,20): error CS8521: Cannot use a result of 'Program.M(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return ref M(42);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "M(42)").WithArguments("Program.M(ref readonly int)", "x").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M(42)").WithArguments("Program.M(in int)", "x").WithLocation(6, 20)
             );
         }
 
@@ -1099,16 +1099,16 @@ class Program
         return ref M();
     }
 
-    ref readonly int M(ref readonly int x = 42) => ref x;
+    ref readonly int M(in int x = 42) => ref x;
 }
 
 ";
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,20): error CS8521: Cannot use a result of 'Program.M(ref readonly int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (6,20): error CS8521: Cannot use a result of 'Program.M(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return ref M();
-                Diagnostic(ErrorCode.ERR_EscapeCall, "M()").WithArguments("Program.M(ref readonly int)", "x").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M()").WithArguments("Program.M(in int)", "x").WithLocation(6, 20)
             );
         }
 
@@ -1124,7 +1124,7 @@ class Program
         return ref M(b);
     }
 
-    ref readonly int M(ref readonly int x) => ref x;
+    ref readonly int M(in int x) => ref x;
 }
 
 ";
@@ -1134,9 +1134,9 @@ class Program
                 // (7,22): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref M(b);
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "b").WithLocation(7, 22),
-                // (7,20): error CS8521: Cannot use a result of 'Program.M(ref readonly int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (7,20): error CS8521: Cannot use a result of 'Program.M(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return ref M(b);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "M(b)").WithArguments("Program.M(ref readonly int)", "x").WithLocation(7, 20)
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M(b)").WithArguments("Program.M(in int)", "x").WithLocation(7, 20)
             );
         }
 
@@ -1261,7 +1261,7 @@ class Test
             CompileAndVerify(@"
 public static class Ext
 {
-    public static ref readonly int M(ref readonly this int p) => ref p;
+    public static ref readonly int M(in this int p) => ref p;
 }
 class Test
 {
@@ -1277,7 +1277,7 @@ class Test
   IL_0000:  ldc.i4.5
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""ref readonly int Ext.M(ref readonly int)""
+  IL_0004:  call       ""ref readonly int Ext.M(in int)""
   IL_0009:  pop
   IL_000a:  ret
 }");
@@ -1289,7 +1289,7 @@ class Test
             CompileAndVerify(@"
 public static class Ext
 {
-    public static ref readonly int M(ref readonly this int p) => ref p;
+    public static ref readonly int M(in this int p) => ref p;
 }
 class Test
 {
@@ -1306,7 +1306,7 @@ class Test
   IL_0000:  ldc.i4.5
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""ref readonly int Ext.M(ref readonly int)""
+  IL_0004:  call       ""ref readonly int Ext.M(in int)""
   IL_0009:  pop
   IL_000a:  ret
 }");
@@ -1318,7 +1318,7 @@ class Test
             CompileAndVerify(@"
 public static class Ext
 {
-    public static ref readonly int M(ref readonly this int p) => ref p;
+    public static ref readonly int M(in this int p) => ref p;
 }
 class Test
 {
@@ -1333,7 +1333,7 @@ class Test
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""int Test.x""
-  IL_0006:  call       ""ref readonly int Ext.M(ref readonly int)""
+  IL_0006:  call       ""ref readonly int Ext.M(in int)""
   IL_000b:  pop
   IL_000c:  ret
 }");
@@ -1345,7 +1345,7 @@ class Test
             CompileAndVerify(@"
 public static class Ext
 {
-    public static ref readonly int M(ref readonly this int p) => ref p;
+    public static ref readonly int M(in this int p) => ref p;
 }
 class Test
 {
@@ -1360,9 +1360,9 @@ class Test
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""int Test.x""
-  IL_0006:  call       ""ref readonly int Ext.M(ref readonly int)""
-  IL_000b:  call       ""ref readonly int Ext.M(ref readonly int)""
-  IL_0010:  call       ""ref readonly int Ext.M(ref readonly int)""
+  IL_0006:  call       ""ref readonly int Ext.M(in int)""
+  IL_000b:  call       ""ref readonly int Ext.M(in int)""
+  IL_0010:  call       ""ref readonly int Ext.M(in int)""
   IL_0015:  pop
   IL_0016:  ret
 }");
@@ -1374,7 +1374,7 @@ class Test
             CompileAndVerify(@"
 class Program
 {
-    static ref readonly string M(ref readonly string s = ""optional"") => ref s;
+    static ref readonly string M(in string s = ""optional"") => ref s;
 
     static void Main()
     {
