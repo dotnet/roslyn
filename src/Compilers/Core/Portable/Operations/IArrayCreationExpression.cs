@@ -14,10 +14,6 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IArrayCreationExpression : IOperation
     {
         /// <summary>
-        /// Element type of the created array instance.
-        /// </summary>
-        ITypeSymbol ElementType { get; }
-        /// <summary>
         /// Sizes of the dimensions of the created array instance.
         /// </summary>
         ImmutableArray<IOperation> DimensionSizes { get; }

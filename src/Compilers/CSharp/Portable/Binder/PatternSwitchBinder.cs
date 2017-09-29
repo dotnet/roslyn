@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -52,11 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPatternSwitchLabel defaultLabel;
             bool isComplete;
             ImmutableArray<BoundPatternSwitchSection> switchSections =
-                BindPatternSwitchSections(originalBinder, out defaultLabel, out isComplete, diagnostics);
+                BindPatternSwitchSections(originalBinder, out defaultLabel, out isComplete, out var someCaseMatches, diagnostics);
             var locals = GetDeclaredLocalsForScope(node);
             var functions = GetDeclaredLocalFunctionsForScope(node);
             return new BoundPatternSwitchStatement(
-                node, boundSwitchExpression,
+                node, boundSwitchExpression, someCaseMatches,
                 locals, functions, switchSections, defaultLabel, this.BreakLabel, this, isComplete);
         }
 
@@ -74,7 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPatternSwitchLabel defaultLabel = null;
             BindPatternSwitchSectionLabel(
                 sectionBinder: GetBinder(node.Parent),
-                boundSwitchExpression: SwitchGoverningExpression,
                 node: node,
                 label: LabelsByNode[node],
                 defaultLabel: ref defaultLabel,
@@ -82,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Bind the pattern switch labels, reporting in the process which cases are subsumed. The strategy,
+        /// Bind the pattern switch labels, reporting in the process which cases are subsumed. The strategy
         /// implemented with the help of <see cref="SubsumptionDiagnosticBuilder"/>, is to start with an empty
         /// decision tree, and for each case we visit the decision tree to see if the case is subsumed. If it
         /// is, we report an error. If it is not subsumed and there is no guard expression, we then add it to
@@ -92,43 +90,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder originalBinder,
             out BoundPatternSwitchLabel defaultLabel,
             out bool isComplete,
+            out bool someCaseMatches,
             DiagnosticBag diagnostics)
         {
             defaultLabel = null;
 
-            // true if we found a case label whose value is the same as the input expression's constant value
-            bool someValueMatched = false;
+            // someCaseMatches will be set to true if some single case label would handle all inputs
+            someCaseMatches = false;
 
             // Bind match sections
             var boundPatternSwitchSectionsBuilder = ArrayBuilder<BoundPatternSwitchSection>.GetInstance();
-            SubsumptionDiagnosticBuilder subsumption = new SubsumptionDiagnosticBuilder(ContainingMemberOrLambda, SwitchSyntax, this.Conversions, SwitchGoverningExpression);
+            SubsumptionDiagnosticBuilder subsumption = new SubsumptionDiagnosticBuilder(ContainingMemberOrLambda, SwitchSyntax, this.Conversions, SwitchGoverningType);
             foreach (var sectionSyntax in SwitchSyntax.Sections)
             {
-                boundPatternSwitchSectionsBuilder.Add(BindPatternSwitchSection(
-                    SwitchGoverningExpression, sectionSyntax, originalBinder, ref defaultLabel, ref someValueMatched, subsumption, diagnostics));
+                var section = BindPatternSwitchSection(sectionSyntax, originalBinder, ref defaultLabel, ref someCaseMatches, subsumption, diagnostics);
+                boundPatternSwitchSectionsBuilder.Add(section);
             }
 
-            isComplete = defaultLabel != null || subsumption.IsComplete || someValueMatched;
+            isComplete = defaultLabel != null || subsumption.IsComplete || someCaseMatches;
             return boundPatternSwitchSectionsBuilder.ToImmutableAndFree();
         }
 
         /// <summary>
         /// Bind the pattern switch section, producing subsumption diagnostics.
         /// </summary>
-        /// <param name="boundSwitchExpression"/>
         /// <param name="node"/>
         /// <param name="originalBinder"/>
         /// <param name="defaultLabel">If a default label is found in this section, assigned that label</param>
-        /// <param name="someValueMatched">If a constant label is found that matches the constant input, assigned that label</param>
+        /// <param name="someCaseMatches">If a case is found that would always match the input, set to true</param>
         /// <param name="subsumption">A helper class that uses a decision tree to produce subsumption diagnostics.</param>
         /// <param name="diagnostics"></param>
         /// <returns></returns>
         private BoundPatternSwitchSection BindPatternSwitchSection(
-            BoundExpression boundSwitchExpression,
             SwitchSectionSyntax node,
             Binder originalBinder,
             ref BoundPatternSwitchLabel defaultLabel,
-            ref bool someValueMatched,
+            ref bool someCaseMatches,
             SubsumptionDiagnosticBuilder subsumption,
             DiagnosticBag diagnostics)
         {
@@ -138,15 +135,56 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(sectionBinder != null);
             var labelsByNode = LabelsByNode;
 
+            bool? inputMatchesType(TypeSymbol patternType)
+            {
+                // use-site diagnostics will have been reported previously.
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                return ExpressionOfTypeMatchesPatternType(Conversions, SwitchGoverningType, patternType, ref useSiteDiagnostics, out _, SwitchGoverningExpression.ConstantValue, true);
+            }
+
             foreach (var labelSyntax in node.Labels)
             {
                 LabelSymbol label = labelsByNode[labelSyntax];
-                BoundPatternSwitchLabel boundLabel = BindPatternSwitchSectionLabel(sectionBinder, boundSwitchExpression, labelSyntax, label, ref defaultLabel, diagnostics);
-                bool valueMatched; // true if we find an unconditional constant label that matches the input constant's value
-                bool isReachable = subsumption.AddLabel(boundLabel, diagnostics, out valueMatched);
-                boundLabel = boundLabel.Update(boundLabel.Label, boundLabel.Pattern, boundLabel.Guard, isReachable && !someValueMatched);
-                someValueMatched |= valueMatched;
+                BoundPatternSwitchLabel boundLabel = BindPatternSwitchSectionLabel(sectionBinder, labelSyntax, label, ref defaultLabel, diagnostics);
+                bool isNotSubsumed = subsumption.AddLabel(boundLabel, diagnostics);
+                bool guardAlwaysSatisfied = boundLabel.Guard == null || boundLabel.Guard.ConstantValue == ConstantValue.True;
+
+                // patternMatches is true if the input expression is unconditionally matched by the pattern, false if it never matches, null otherwise.
+                // While subsumption would produce an error for an unreachable pattern based on the input's type, this is used for reachability (warnings),
+                // and takes the input value into account.
+                bool? patternMatches;
+                if (labelSyntax.Kind() == SyntaxKind.DefaultSwitchLabel)
+                {
+                    patternMatches = null;
+                }
+                else if (boundLabel.Pattern.Kind == BoundKind.WildcardPattern)
+                {
+                    // wildcard pattern matches anything
+                    patternMatches = true;
+                }
+                else if (boundLabel.Pattern is BoundDeclarationPattern d)
+                {
+                    // `var x` matches anything
+                    // `Type x` matches anything of a subtype of `Type` except null
+                    patternMatches = d.IsVar ? true : inputMatchesType(d.DeclaredType.Type);
+                }
+                else if (boundLabel.Pattern is BoundConstantPattern p)
+                {
+                    // `case 2` matches the input `2`
+                    patternMatches = SwitchGoverningExpression.ConstantValue?.Equals(p.ConstantValue);
+                }
+                else
+                {
+                    patternMatches = null;
+                }
+
+                bool labelIsReachable = isNotSubsumed && !someCaseMatches && patternMatches != false;
+                boundLabel = boundLabel.Update(boundLabel.Label, boundLabel.Pattern, boundLabel.Guard, labelIsReachable);
                 boundLabelsBuilder.Add(boundLabel);
+
+                // labelWouldMatch is true if we find an unconditional (no `when` clause restriction) label that matches the input expression
+                bool labelWouldMatch = guardAlwaysSatisfied && patternMatches == true;
+                someCaseMatches |= labelWouldMatch;
             }
 
             // Bind switch section statements
@@ -160,7 +198,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundPatternSwitchLabel BindPatternSwitchSectionLabel(
-            Binder sectionBinder, BoundExpression boundSwitchExpression, SwitchLabelSyntax node, LabelSymbol label, ref BoundPatternSwitchLabel defaultLabel, DiagnosticBag diagnostics)
+            Binder sectionBinder,
+            SwitchLabelSyntax node,
+            LabelSymbol label,
+            ref BoundPatternSwitchLabel defaultLabel,
+            DiagnosticBag diagnostics)
         {
             switch (node.Kind())
             {
@@ -169,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
                         bool wasExpression;
                         var pattern = sectionBinder.BindConstantPattern(
-                            node, boundSwitchExpression, boundSwitchExpression.Type, caseLabelSyntax.Value, node.HasErrors, diagnostics, out wasExpression, wasSwitchCase: true);
+                            node, SwitchGoverningType, caseLabelSyntax.Value, node.HasErrors, diagnostics, out wasExpression, wasSwitchCase: true);
                         bool hasErrors = pattern.HasErrors;
                         var constantValue = pattern.ConstantValue;
                         if (!hasErrors &&
@@ -216,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var matchLabelSyntax = (CasePatternSwitchLabelSyntax)node;
                         var pattern = sectionBinder.BindPattern(
-                            matchLabelSyntax.Pattern, boundSwitchExpression, boundSwitchExpression.Type, node.HasErrors, diagnostics, wasSwitchCase: true);
+                            matchLabelSyntax.Pattern, SwitchGoverningType, node.HasErrors, diagnostics, wasSwitchCase: true);
                         return new BoundPatternSwitchLabel(node, label, pattern,
                             matchLabelSyntax.WhenClause != null ? sectionBinder.BindBooleanExpression(matchLabelSyntax.WhenClause.Condition, diagnostics) : null,
                             true, node.HasErrors);

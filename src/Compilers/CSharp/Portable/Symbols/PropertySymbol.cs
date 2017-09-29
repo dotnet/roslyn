@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Gets the ref kind of the property.
         /// </summary>
-        internal abstract RefKind RefKind { get; }
+        public abstract RefKind RefKind { get; }
 
         /// <summary>
         /// The type of the property. 

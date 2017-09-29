@@ -158,17 +158,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             return builder.ToImmutableAndFree();
         }
 
-        private static ITypeSymbol GetArrayCreationElementType(BoundArrayCreation creation)
-        {
-            IArrayTypeSymbol arrayType = creation.Type as IArrayTypeSymbol;
-            if ((object)arrayType != null)
-            {
-                return arrayType.ElementType;
-            }
-
-            return null;
-        }
-
         private ImmutableArray<ISwitchCase> GetSwitchStatementCases(BoundSwitchStatement statement)
         {
             return statement.SwitchSections.SelectAsArray(switchSection =>
