@@ -1205,7 +1205,7 @@ IAnonymousFunctionExpression (Symbol: Function () As System.Int32) (OperationKin
     Locals: Local_1: <anonymous local> As System.Int32
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return .Field')
       ReturnedValue: IFieldReferenceExpression: C1.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: '.Field')
-          Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New C1 With ... d Function}')
+          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'New C1 With ... d Function}')
     ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
       Statement: null
     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
@@ -1594,7 +1594,7 @@ IObjectCreationExpression (Constructor: Sub scen2..ctor()) (OperationKind.Object
       Initializers(1):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void) (Syntax: '.Scen2 = 5')
             Left: IPropertyReferenceExpression: Property scen2.Scen2 As System.Int16 (OperationKind.PropertyReferenceExpression, Type: System.Int16) (Syntax: 'Scen2')
-                Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New scen2 W ... .Scen2 = 5}')
+                Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: scen2) (Syntax: 'New scen2 W ... .Scen2 = 5}')
             Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int16, Constant: 5) (Syntax: '5')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')

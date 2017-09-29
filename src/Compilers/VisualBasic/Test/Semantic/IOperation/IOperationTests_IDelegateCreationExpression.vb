@@ -2086,7 +2086,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                     Children(1):
                         IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
                           Children(1):
-                              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: ConsoleApp2.M1, IsInvalid) (Syntax: 'Method2')
+                              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid) (Syntax: 'Method2')
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ]]>.Value
 
