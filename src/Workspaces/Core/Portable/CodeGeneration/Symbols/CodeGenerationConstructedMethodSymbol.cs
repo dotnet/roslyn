@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override bool ReturnsByRef => _constructedFrom.ReturnsByRef;
 
+        public override RefKind RefKind => _constructedFrom.RefKind;
+
         public override bool ReturnsByRefReadonly
         {
             get

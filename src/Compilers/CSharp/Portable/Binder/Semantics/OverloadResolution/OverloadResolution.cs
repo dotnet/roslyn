@@ -2577,7 +2577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (paramRefKind == RefKind.RefReadOnly)
             {
-                // "in" parameters are effectively None for the purpose of overload resolution.
+                // "ref readonly" parameters are effectively None for the purpose of overload resolution.
                 paramRefKind = RefKind.None;
             }
 

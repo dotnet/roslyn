@@ -788,6 +788,9 @@
 
   <Node Name="BoundPatternSwitchStatement" Base="BoundStatement">
     <Field Name="Expression" Type="BoundExpression"/>
+    
+    <!-- SomeValueMatched is true if some case label would always match. -->
+    <Field Name="SomeLabelAlwaysMatches" Type="bool"/>
 
     <!-- Locals declared immediately within the switch block. -->
     <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
@@ -1322,6 +1325,9 @@
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+
+    <!-- Used by IOperation to reconstruct the receiver for this expression. -->
+    <Field Name="ReceiverType" Type="TypeSymbol" Null="disallow"/>
     
     <!-- BinderOpt is a temporary solution for IOperation implementation and should probably be removed in the future -->
     <!-- Tracked by https://github.com/dotnet/roslyn/issues/20787 -->

@@ -6832,5 +6832,116 @@ class Class : IInterface
     }
 }", parseOptions: CSharp7_1);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestRefReadOnlyWithMethod_Parameters()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface ITest
+{
+    void Method(ref readonly int p);
+}
+public class Test : [|ITest|]
+{
+}",
+@"interface ITest
+{
+    void Method(ref readonly int p);
+}
+public class Test : ITest
+{
+    public void Method(ref readonly int p)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestRefReadOnlyWithMethod_ReturnType()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface ITest
+{
+    ref readonly int Method();
+}
+public class Test : [|ITest|]
+{
+}",
+@"interface ITest
+{
+    ref readonly int Method();
+}
+public class Test : ITest
+{
+    public ref readonly int Method()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestRefReadOnlyWithProperty()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface ITest
+{
+    ref readonly int Property { get; }
+}
+public class Test : [|ITest|]
+{
+}",
+@"interface ITest
+{
+    ref readonly int Property { get; }
+}
+public class Test : ITest
+{
+    public ref readonly int Property => throw new System.NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestRefReadOnlyWithIndexer_Parameters()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface ITest
+{
+    int this[ref readonly int p] { set; }
+}
+public class Test : [|ITest|]
+{
+}",
+@"interface ITest
+{
+    int this[ref readonly int p] { set; }
+}
+public class Test : ITest
+{
+    public int this[ref readonly int p] { set => throw new System.NotImplementedException(); }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestRefReadOnlyWithIndexer_ReturnType()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface ITest
+{
+    ref readonly int this[int p] { get; }
+}
+public class Test : [|ITest|]
+{
+}",
+@"interface ITest
+{
+    ref readonly int this[int p] { get; }
+}
+public class Test : ITest
+{
+    public ref readonly int this[int p] => throw new System.NotImplementedException();
+}");
+        }
     }
 }
