@@ -464,8 +464,9 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "arg2.Alice").WithArguments("variable", "ref readonly (int Alice, int Bob)"));
         }
 
+        [WorkItem(22306, "https://github.com/dotnet/roslyn/issues/22306")]
         [Fact]
-        public void ReadonlyParamCannotTakePtr()
+        public void ReadonlyParamCanTakePtr()
         {
             var text = @"
 class Program
@@ -488,18 +489,12 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
-                // (6,20): error CS0211: Cannot take the address of the given expression
+                // (6,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         int* a = & arg1;
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "arg1").WithLocation(6, 20),
-                // (7,20): error CS0211: Cannot take the address of the given expression
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "& arg1").WithLocation(6, 18),
+                // (7,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         int* b = & arg2.Alice;
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "arg2.Alice").WithLocation(7, 20),
-                // (9,26): error CS0211: Cannot take the address of the given expression
-                //         fixed(int* c = & arg1)
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "arg1").WithLocation(9, 26),
-                // (13,26): error CS0211: Cannot take the address of the given expression
-                //         fixed(int* d = & arg2.Alice)
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "arg2.Alice").WithLocation(13, 26)
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "& arg2.Alice").WithLocation(7, 18)
             );
         }
 

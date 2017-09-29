@@ -1356,9 +1356,6 @@
   <data name="WRN_AlwaysNull_Title" xml:space="preserve">
     <value>The result of the expression is always 'null'</value>
   </data>
-  <data name="ERR_AddrOnReadOnlyLocal" xml:space="preserve">
-    <value>Cannot take the address of a read-only local variable</value>
-  </data>
   <data name="ERR_RefReturnThis" xml:space="preserve">
     <value>Cannot return 'this' by reference.</value>
   </data>
