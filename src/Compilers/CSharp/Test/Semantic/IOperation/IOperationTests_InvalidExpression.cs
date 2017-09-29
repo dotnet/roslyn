@@ -81,7 +81,7 @@ IInvocationExpression ( void Program.F(System.Int32 x)) (OperationKind.Invocatio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/8813"), WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
+        [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidInvocationExpression_OverloadResolutionFailureExtraArgument()
         {
             string source = @"
@@ -101,7 +101,13 @@ class Program
 ";
             string expectedOperationTree = @"
 IInvocationExpression ( void Program.F()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'F(string.Empty)')
-  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'F')
+  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'F')
+  Arguments(1):
+      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: 'string.Empty')
+        IFieldReferenceExpression: System.String System.String.Empty (Static) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'string.Empty')
+          Instance Receiver: null
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1501: No overload for method 'F' takes 1 arguments
@@ -233,7 +239,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18056"), WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
+        [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidUnaryExpression()
         {
             string source = @"
@@ -253,9 +259,8 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IIncrementOrDecrementExpression (UnaryOperandKind.Invalid) (BinaryOperationKind.Invalid) (OperationKind.IncrementExpression, Type: System.Object, IsInvalid) (Syntax: '++x')
-  Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
-  Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Object, Constant: 1) (Syntax: '++x')
+IIncrementOrDecrementExpression (Prefix) (OperationKind.IncrementExpression, Type: System.Object, IsInvalid) (Syntax: '++x')
+  Target: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0023: Operator '++' cannot be applied to operand of type 'Program'
@@ -305,7 +310,7 @@ IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperator
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18057"), WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
+        [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidLambdaBinding_UnboundLambda()
         {
             string source = @"
@@ -315,7 +320,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var x /*<bind>*/= () => F()/*</bind>*/;
+        var /*<bind>*/x = () => F()/*</bind>*/;
     }
 
     static void F()
@@ -324,21 +329,22 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var x /*<bi ... *</bind>*/;')
-  IVariableDeclaration: var x (OperationKind.VariableDeclaration) (Syntax: 'var x /*<bi ... *</bind>*/;')
-    Initializer: IUnboundLambdaExpression (OperationKind.UnboundLambdaExpression, Type: null) (Syntax: '() => F()
-        IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => F()')
-          IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'F()')
-            IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'F()')
-              IInvocationExpression (static void Program.F()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'F()')')
+IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'x = () => F()')
+  Variables: Local_1: var x
+  Initializer: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() => F()')
+      IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'F()')
+        IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'F()')
+          Expression: IInvocationExpression (void Program.F()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'F()')
+              Instance Receiver: null
+              Arguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0815: Cannot assign lambda expression to an implicitly-typed variable
-                //         var x /*<bind>*/= () => F()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x /*<bind>*/= () => F()").WithArguments("lambda expression").WithLocation(8, 13)
+                //         var /*<bind>*/x = () => F()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x = () => F()").WithArguments("lambda expression").WithLocation(8, 23)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -505,7 +511,7 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: X[], IsIn
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18059"), WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
+        [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidParameterDefaultValueInitializer()
         {
             string source = @"
@@ -524,7 +530,9 @@ class Program
 ";
             string expectedOperationTree = @"
 IParameterInitializer (Parameter: [System.Int32 p = default(System.Int32)]) (OperationKind.ParameterInitializer, IsInvalid) (Syntax: '= M()')
-  IInvocationExpression (static System.Int32 Program.M()) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'M()')
+  IInvocationExpression (System.Int32 Program.M()) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'M()')
+    Instance Receiver: null
+    Arguments(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1736: Default parameter value for 'p' must be a compile-time constant
