@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    refKindsBuilder[i] = argRefKind == RefKind.None? paramRefKind: RefKindExtensions.StrictIn;
+                    refKindsBuilder[i] = argRefKind == RefKind.None ? paramRefKind : RefKindExtensions.StrictIn;
                 }
             }
 
