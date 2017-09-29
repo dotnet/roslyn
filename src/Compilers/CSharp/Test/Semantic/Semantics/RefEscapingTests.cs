@@ -2515,7 +2515,7 @@ public class C
 }
 public static class Extensions
 {
-    public static void Deconstruct(ref readonly this Span<int> self, out Span<int> x, out Span<int> y) => throw null;
+    public static void Deconstruct(in this Span<int> self, out Span<int> x, out Span<int> y) => throw null;
 }
 ";
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
