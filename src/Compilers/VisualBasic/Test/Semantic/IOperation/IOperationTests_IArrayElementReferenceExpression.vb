@@ -358,7 +358,7 @@ IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression,
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")>
-        Public Sub ArrayElementReference_ExplicitUserDefinedConversionInArrayReference()
+        Public Sub ArrayElementReference_ExplicitConversionInArrayReference()
             Dim source = <![CDATA[
 Class C
     Public Sub F(o As Object, x As Integer)
