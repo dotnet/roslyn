@@ -5183,11 +5183,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TypeReserved" xml:space="preserve">
     <value>The type name '{0}' is reserved to be used by the compiler.</value>
   </data>
-  <data name="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
-    <value>The first parameter of the reference extension method '{0}' must be a value type or a generic type constrained to struct.</value>
-  </data>
   <data name="ERR_InExtensionMustBeValueType" xml:space="preserve">
-    <value>The first parameter of the readonly reference extension method '{0}' must be a value type.</value>
+    <value>The first parameter of an 'in' extension method '{0}' must be a value type.</value>
   </data>
   <data name="ERR_BadParameterModifiersOrder" xml:space="preserve">
     <value>The parameter modifier '{0}' cannot be used after the modifier '{1}'</value>
@@ -5209,5 +5206,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_StackAllocExpression" xml:space="preserve">
     <value>stackalloc {0}[{1}]</value>
+  </data>
+  <data name="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
+    <value>The first parameter of a 'ref' extension method '{0}' must be a value type or a generic type constrained to struct.</value>
   </data>
 </root>

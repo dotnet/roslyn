@@ -1282,11 +1282,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         private static string spanSource = @"
 namespace System
 {
-    public ref struct Span<T> 
+    public readonly ref struct Span<T> 
     {
         public ref T this[int i] => throw null;
         public override int GetHashCode() => 1;
-        public int Length { get; private set; }
+        public int Length { get; }
 
         unsafe public Span(void* pointer, int length)
         {
@@ -1296,7 +1296,7 @@ namespace System
         public void CopyTo(Span<T> other){}
     }
 
-    public ref struct ReadOnlySpan<T>
+    public readonly ref struct ReadOnlySpan<T>
     {
         public ref readonly T this[int i] => throw null;
         public override int GetHashCode() => 2;
@@ -1304,12 +1304,11 @@ namespace System
         public void CopyTo(Span<T> other){}
     }
 
-    public ref struct SpanLike<T>
+    public readonly ref struct SpanLike<T>
     {
-        public Span<T> field;
+        public readonly Span<T> field;
     }
-}
-";
+}";
         #endregion
     }
 }
