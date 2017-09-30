@@ -34,6 +34,10 @@ namespace Microsoft.CodeAnalysis
         /// Indicates a "ref readonly" return type.
         /// </summary>
         RefReadOnly = 3,
+
+        // NOTE: There is an additional value of this enum type - RefKindExtensions.StrictIn == RefKind.In + 1
+        //       It is used internally during lowering. 
+        //       Consider that when adding values or changing this enum in some other way.
     }
 
     internal static class RefKindExtensions
@@ -55,6 +59,7 @@ namespace Microsoft.CodeAnalysis
             {
                 case RefKind.Out: return "out";
                 case RefKind.Ref: return "ref";
+                case RefKind.In: return "in";
                 default: throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
@@ -70,5 +75,10 @@ namespace Microsoft.CodeAnalysis
                 default: throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
+
+        // used internally to track `In` arguments that were specified with `In` modifier
+        // as opposed to those that were specified with no modifiers and matched `In` parameter
+        // There is at least one kind of anlysis that cares about this distinction - async stack spilling
+        internal const RefKind StrictIn = RefKind.In + 1;
     }
 }

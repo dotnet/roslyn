@@ -4815,7 +4815,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference</value>
   </data>
   <data name="ERR_RefReturnLvalueExpected" xml:space="preserve">
-    <value>An expression cannot be used in this context because it may not be returned by reference</value>
+    <value>An expression cannot be used in this context because it may not be passed or returned by reference</value>
   </data>
   <data name="ERR_RefReturnNonreturnableLocal" xml:space="preserve">
     <value>Cannot return '{0}' by reference because it was initialized to a value that cannot be returned by reference</value>
@@ -5186,7 +5186,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
     <value>The first parameter of the reference extension method '{0}' must be a value type or a generic type constrained to struct.</value>
   </data>
-  <data name="ERR_RefReadOnlyExtensionMustBeValueType" xml:space="preserve">
+  <data name="ERR_InExtensionMustBeValueType" xml:space="preserve">
     <value>The first parameter of the readonly reference extension method '{0}' must be a value type.</value>
   </data>
   <data name="ERR_BadParameterModifiersOrder" xml:space="preserve">

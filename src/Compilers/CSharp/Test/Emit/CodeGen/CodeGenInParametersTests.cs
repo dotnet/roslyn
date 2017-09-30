@@ -753,6 +753,52 @@ class Program
         }
 
         [Fact]
+        public void ReadonlyParamAsyncSpillIn()
+        {
+            var text = @"
+    using System.Threading.Tasks;
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Test().Wait();
+        }
+
+        public static async Task Test()
+        {
+            int local = 1;
+            M1(in RefReturning(ref local), await GetT(2), 3);
+        }
+
+        private static ref int RefReturning(ref int arg)
+        {
+            return ref arg;
+        }    
+
+        public static async Task<T> GetT<T>(T val)
+        {
+            await Task.Yield();
+            return val;
+        }
+
+        public static void M1(in int arg1, in int arg2, in int arg3)
+        {
+            System.Console.WriteLine(arg1 + arg2 + arg3);
+        }
+    }
+
+";
+
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics(
+                // (14,44): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.RefReturning(ref int)' because it returns by reference
+                //             M1(in RefReturning(ref local), await GetT(2), 3);
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await GetT(2)").WithArguments("Program.RefReturning(ref int)").WithLocation(14, 44)
+                );
+        }
+
+        [Fact]
         public void InParamAsyncSpill2()
         {
             var text = @"

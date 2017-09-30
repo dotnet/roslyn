@@ -1516,7 +1516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitReservedAttr = 8335,
         ERR_TypeReserved = 8336,
         ERR_RefExtensionMustBeValueTypeOrConstrainedToOne = 8337,
-        ERR_RefReadOnlyExtensionMustBeValueType = 8338,
+        ERR_InExtensionMustBeValueType = 8338,
         ERR_BadParameterModifiersOrder = 8339,
 
         ERR_FieldsInRoStruct = 8340,

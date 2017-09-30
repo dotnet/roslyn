@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (parameter0RefKind == RefKind.In && parameter0Type.TypeKind != TypeKind.Struct)
                 {
-                    diagnostics.Add(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, location, Name);
+                    diagnostics.Add(ErrorCode.ERR_InExtensionMustBeValueType, location, Name);
                 }
                 else if ((object)ContainingType.ContainingType != null)
                 {
