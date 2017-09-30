@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 isImplicit: expression.WasCompilerGenerated || argument == null);
         }
 
-        private IVariableDeclaration CreateVariableDeclaration(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
+        private IVariableDeclaration CreateVariableDeclarationInternal(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
         {
             return OperationFactory.CreateVariableDeclaration(boundLocalDeclaration.LocalSymbol, Create(boundLocalDeclaration.InitializerOpt), _semanticModel, syntax);
         }
