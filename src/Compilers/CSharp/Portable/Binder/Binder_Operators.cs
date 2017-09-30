@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isNullableEquality = (object)signature.Method == null &&
                     (signature.Kind.Operator() == BinaryOperatorKind.Equal || signature.Kind.Operator() == BinaryOperatorKind.NotEqual) &&
                     (leftNull && (object)rightType != null && rightType.IsNullableType() ||
-                    rightNull && (object)leftType != null && leftType.IsNullableType());
+                        rightNull && (object)leftType != null && leftType.IsNullableType());
 
                 if (isNullableEquality)
                 {
@@ -560,6 +560,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasErrors)
             {
+                if (GetTupleCardinality(left).HasValue &&
+                    GetTupleCardinality(right).HasValue &&
+                    (kind == BinaryOperatorKind.Equal || kind == BinaryOperatorKind.NotEqual))
+                {
+                    CheckFeatureAvailability(node, MessageID.IDS_FeatureTupleEquality, diagnostics);
+                    return BindTupleBinaryOperator(node, kind, left, right, diagnostics);
+                }
+
                 ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, resultKind);
                 resultOperatorKind &= ~BinaryOperatorKind.TypeMask;
             }

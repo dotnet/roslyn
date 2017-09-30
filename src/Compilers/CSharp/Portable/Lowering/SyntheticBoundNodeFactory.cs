@@ -491,9 +491,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SynthesizedParameterSymbol.Create(container, type, ordinal, RefKind.None, name);
         }
 
-        public BoundBinaryOperator Binary(BinaryOperatorKind kind, TypeSymbol type, BoundExpression left, BoundExpression right)
+        public BoundBinaryOperator Binary(BinaryOperatorKind kind, TypeSymbol type, BoundExpression left, BoundExpression right, MethodSymbol methodSymbolOpt = null)
         {
-            return new BoundBinaryOperator(this.Syntax, kind, left, right, ConstantValue.NotAvailable, null, LookupResultKind.Viable, type) { WasCompilerGenerated = true };
+            return new BoundBinaryOperator(this.Syntax, kind, left, right, ConstantValue.NotAvailable, methodSymbolOpt, LookupResultKind.Viable, type) { WasCompilerGenerated = true };
         }
 
         public BoundAsOperator As(BoundExpression operand, TypeSymbol type)
