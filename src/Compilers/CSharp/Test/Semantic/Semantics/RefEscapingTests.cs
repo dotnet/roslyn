@@ -3048,5 +3048,46 @@ public ref struct S
 ";
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics();
         }
+
+        [WorkItem(22456, "https://github.com/dotnet/roslyn/issues/22456")]
+        [Fact]
+        public void InMatchesIn()
+        {
+            var text = @"
+public class C
+{
+    public static void Main() => throw null;
+
+    static ref readonly int F1(in int x)
+    {
+        return ref x; 
+    }
+
+    static ref readonly int Test1(in int x)
+    {
+        return ref F1(in x);
+    }
+
+    static ref readonly int Test2(in int x)
+    {
+        ref readonly var t = ref F1(in x);
+        return ref t;
+    }
+
+    static ref readonly int Test3()
+    {
+        return ref F1(in (new int[1])[0]);
+    }
+
+    static ref readonly int Test4()
+    {
+        ref readonly var t = ref F1(in (new int[1])[0]);
+        return ref t;
+    }
+}
+
+";
+            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics();
+        }
     }
 }
