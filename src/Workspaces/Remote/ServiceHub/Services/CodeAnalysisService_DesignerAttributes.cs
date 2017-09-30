@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttributes;
+using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
@@ -19,24 +19,23 @@ namespace Microsoft.CodeAnalysis.Remote
         /// 
         /// This will be called by ServiceHub/JsonRpc framework
         /// </summary>
-        public Task<IList<DesignerAttributeDocumentData>> ScanDesignerAttributesAsync(ProjectId projectId, CancellationToken cancellationToken)
+        public Task<DesignerAttributeResult> ScanDesignerAttributesAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
-                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetDesignerAttributesAsync, projectId.DebugName, cancellationToken))
+                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetDesignerAttributesAsync, documentId.DebugName, cancellationToken))
                 {
-                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
-                    var project = solution.GetProject(projectId);
+                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                    var document = solution.GetDocument(documentId);
 
-                    var data = await AbstractDesignerAttributeService.TryAnalyzeProjectInCurrentProcessAsync(
-                        project, cancellationToken).ConfigureAwait(false);
-
-                    if (data.Count == 0)
+                    var service = document.GetLanguageService<IDesignerAttributeService>();
+                    if (service != null)
                     {
-                        return SpecializedCollections.EmptyList<DesignerAttributeDocumentData>();
+                        // todo comment service supported
+                        return await service.ScanDesignerAttributesAsync(document, cancellationToken).ConfigureAwait(false);
                     }
 
-                    return data.Values.ToList();
+                    return new DesignerAttributeResult(designerAttributeArgument: null, containsErrors: true, notApplicable: true);
                 }
             }, cancellationToken);
         }
