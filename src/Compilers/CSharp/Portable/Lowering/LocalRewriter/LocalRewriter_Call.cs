@@ -784,7 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns true if the given argument is the begining of a list of param array arguments (could be empty), otherwise returns false.
+        /// Returns true if the given argument is the beginning of a list of param array arguments (could be empty), otherwise returns false.
         /// When returns true, numberOfParamArrayArguments is set to the number of param array arguments.
         /// </summary>
         private static bool IsBeginningOfParamArray(

@@ -6556,7 +6556,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub TupleUnsupportedInUsingStatment()
+        Public Sub TupleUnsupportedInUsingStatement()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[

@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function MakeTupleConversion(syntax As SyntaxNode, rewrittenOperand As BoundExpression, destinationType As TypeSymbol, convertedElements As BoundConvertedTupleElements) As BoundExpression
             If destinationType.IsSameTypeIgnoringAll(rewrittenOperand.Type) Then
                 'binder keeps some tuple conversions just for the purpose of semantic model
-                'otherwisw they are as good as identity conversions
+                'otherwise they are as good as identity conversions
 
                 Return rewrittenOperand
             End If

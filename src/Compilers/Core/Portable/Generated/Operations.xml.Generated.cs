@@ -1008,7 +1008,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
         }
         /// <summary>
-        /// Expresson that is conditionally accessed.
+        /// Expression that is conditionally accessed.
         /// </summary>
         public IOperation Expression => Operation.SetParentOperation(ExpressionImpl, this);
         /// <summary>
@@ -1239,7 +1239,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Reprsents an empty statement.
+    /// Represents an empty statement.
     /// </summary>
     internal sealed partial class EmptyStatement : Operation, IEmptyStatement
     {
@@ -4342,9 +4342,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             get
             {
                 yield return Body;
-                foreach (var catche in Catches)
+                foreach (var @catch in Catches)
                 {
-                    yield return catche;
+                    yield return @catch;
                 }
                 yield return FinallyHandler;
             }

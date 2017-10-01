@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             private readonly Func<Task<BuildResponse>> _runServerCompilationFunc;
 
             public TestableDesktopBuildClient(
-                RequestLanguage langauge,
+                RequestLanguage language,
                 CompileFunc compileFunc,
                 string pipeName,
                 Func<string, bool> createServerFunc,
-                Func<Task<BuildResponse>> runServerCompilationFunc) : base(langauge, compileFunc, new Mock<IAnalyzerAssemblyLoader>().Object)
+                Func<Task<BuildResponse>> runServerCompilationFunc) : base(language, compileFunc, new Mock<IAnalyzerAssemblyLoader>().Object)
             {
                 _pipeName = pipeName;
                 _createServerFunc = createServerFunc;

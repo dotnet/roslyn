@@ -2647,7 +2647,7 @@ class C
         }
 
         [Fact]
-        public void CannotUseAwaitExpressionToAssignRefReturing()
+        public void CannotUseAwaitExpressionToAssignRefReturning()
         {
             var code = @"
 using System;

@@ -75,7 +75,7 @@ End Class
     Public Sub VersionAttribute_WildCard()
         Dim now = Date.Now
         Dim days = 0, seconds = 0
-        VersionTestHelpers.GetDefautVersion(now, days, seconds)
+        VersionTestHelpers.GetDefaultVersion(now, days, seconds)
 
         Dim comp = CreateCompilationWithMscorlib(
 <compilation>

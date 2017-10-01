@@ -730,7 +730,7 @@ partial class EnumPartial
 
         // Enum as an optional parameter 
         [Fact]
-        public void CS1763ERR_NotNullRefDefaultParameter_EnumAsOptionalParamete()
+        public void CS1763ERR_NotNullRefDefaultParameter_EnumAsOptionalParameter()
         {
             var text =
 @"

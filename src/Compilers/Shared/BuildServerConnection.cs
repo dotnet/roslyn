@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
     internal struct BuildPathsAlt
     {
         /// <summary>
-        /// The path which containts the compiler binaries and response files.
+        /// The path which contains the compiler binaries and response files.
         /// </summary>
         internal string ClientDirectory { get; }
 

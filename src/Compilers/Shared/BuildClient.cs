@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     // Build could not be completed on the server.
                     return null;
                 default:
-                    // Will not happen with our server but hypothetically could be sent by a rouge server.  Should
+                    // Will not happen with our server but hypothetically could be sent by a rogue server.  Should
                     // not let that block compilation.
                     Debug.Assert(false);
                     return null;
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
 
         /// <summary>
-        /// When running on Windows we can't take the commmand line which was provided to the 
+        /// When running on Windows we can't take the command line which was provided to the 
         /// Main method of the application.  That will go through normal windows command line 
         /// parsing which eliminates artifacts like quotes.  This has the effect of normalizing
         /// the below command line options, which are semantically different, into the same

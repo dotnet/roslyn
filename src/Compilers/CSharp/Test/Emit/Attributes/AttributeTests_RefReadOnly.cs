@@ -1301,9 +1301,9 @@ public interface Test
                 Assert.NotNull(method);
                 AssertReferencedIsReadOnlyAttribute(Accessibility.Internal, method.GetReturnTypeAttributes(), module.ContainingAssembly.Name);
 
-                var paramater = method.Parameters.Single();
-                Assert.NotNull(paramater);
-                AssertReferencedIsReadOnlyAttribute(Accessibility.Internal, paramater.GetAttributes(), module.ContainingAssembly.Name);
+                var parameter = method.Parameters.Single();
+                Assert.NotNull(parameter);
+                AssertReferencedIsReadOnlyAttribute(Accessibility.Internal, parameter.GetAttributes(), module.ContainingAssembly.Name);
             });
 
             var code = @"
@@ -1339,9 +1339,9 @@ class User
                 Assert.NotNull(method);
                 Assert.Empty(method.GetReturnTypeAttributes());
 
-                var paramater = method.Parameters.Single();
-                Assert.NotNull(paramater);
-                Assert.Empty(paramater.GetAttributes());
+                var parameter = method.Parameters.Single();
+                Assert.NotNull(parameter);
+                Assert.Empty(parameter.GetAttributes());
             }
         }
 

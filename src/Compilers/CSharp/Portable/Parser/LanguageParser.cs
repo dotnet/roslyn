@@ -5245,7 +5245,7 @@ tryAgain:
                             //
                             //  var v = ImmutableDictionary<Int32,
                             //
-                            // Here this might actualy be a relational expression and the comma is meant
+                            // Here this might actually be a relational expression and the comma is meant
                             // to separate out the variable declarator 'v' from the next variable.
                             //
                             // Note: we check if we got 'MustBeType' which triggers for predefined types,
@@ -5290,7 +5290,7 @@ tryAgain:
                             //
                             //      X < Y ? Z : W
                             //
-                            // We'd see a nullable type here, but htis is definitley not a type arg list.
+                            // We'd see a nullable type here, but htis is definitely not a type arg list.
 
                             break;
 
@@ -5429,7 +5429,7 @@ tryAgain:
 
                 // Consider the case where someone supplies an invalid type argument
                 // Such as Action<0> or Action<static>.  In this case we generate a missing 
-                // identifer in ParseType, but if we continue as is we'll immediately start to 
+                // identifier in ParseType, but if we continue as is we'll immediately start to 
                 // interpret 0 as the start of a new expression when we can tell it's most likely
                 // meant to be part of the type list.  
                 //
@@ -6699,7 +6699,7 @@ tryAgain:
             //      Task.await Task
             //
             // This does not represent user intent, and it causes all sorts of problems to higher 
-            // layers.  This is because both the parse tree is strage, and the symbol tables have
+            // layers.  This is because both the parse tree is strange, and the symbol tables have
             // entries that throw things off (like a bogus 'Task' local).
             //
             // Note that we explicitly do this check when we see that the code spreads over multiple 

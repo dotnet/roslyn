@@ -1696,7 +1696,7 @@
       </PropertyComment>
     </Field>
     <TypeComment>
-      <summary>Class which represents a simple pattern-maching expresion using the "is" keyword.</summary>
+      <summary>Class which represents a simple pattern-matching expression using the "is" keyword.</summary>
     </TypeComment>
     <FactoryComment>
       <summary>Creates an IsPatternExpressionSyntax node.</summary>

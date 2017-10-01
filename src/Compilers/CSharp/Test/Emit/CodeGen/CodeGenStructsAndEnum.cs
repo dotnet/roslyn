@@ -2042,7 +2042,7 @@ readonly struct S
         // named argument reordering introduces a sequence with temps
         // and we cannot know whether RefMethod returns a ref to a sequence local
         // so we must assume that it can, and therefore must keep all the sequence the locals in use 
-        // for the duration of the most-encompasing expression.
+        // for the duration of the most-encompassing expression.
         Console.WriteLine(RefMethod(arg2: I(5), arg1: I(3)).GreaterThan(
                           RefMethod(arg2: I(0), arg1: I(0))));
     }

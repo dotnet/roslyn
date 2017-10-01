@@ -765,7 +765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         /// <summary>
-        /// Defines sequence locals and record them so tht they could be retained for the duration of the encompassing expresson
+        /// Defines sequence locals and record them so that they could be retained for the duration of the encompassing expression
         /// Use this when taking a reference of the sequence, which can indirectly refer to any of its locals.
         /// </summary>
         private void DefineAndRecordLocals(BoundSequence sequence)
@@ -786,7 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         /// <summary>
         /// Closes the visibility/debug scopes for the sequence locals, but keep the local slots from reuse
-        /// for the duration of the encompassing expresson.
+        /// for the duration of the encompassing expression.
         /// Use this paired with DefineAndRecordLocals when taking a reference of the sequence, which can indirectly refer to any of its locals.
         /// </summary>
         private void CloseScopeAndKeepLocals(BoundSequence sequence)
@@ -944,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(!field.IsConst || field.ContainingType.SpecialType == SpecialType.System_Decimal,
                 "rewriter should lower constant fields into constant expressions");
 
-            // static field access is sideeffecting since it gurantees that ..ctor has run.
+            // static field access is sideeffecting since it guarantees that ..ctor has run.
             // we emit static accesses even if unused.
             if (field.IsStatic)
             {
@@ -1749,8 +1749,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             var containingType = method.ContainingType;
-            // overrides in structs that are special types can be caled directly.
-            // we can assume that special types will not be removing oiverrides
+            // overrides in structs that are special types can be called directly.
+            // we can assume that special types will not be removing overrides
             return containingType.SpecialType != SpecialType.None;
         }
 
@@ -1834,7 +1834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             EmitExpression(expression.Count, used);
 
-            // the only sideeffect of a localloc is a nondeterminisic and generaly fatal StackOverflow.
+            // the only sideeffect of a localloc is a nondeterministic and generally fatal StackOverflow.
             // we can ignore that if the actual result is unused
             if (used)
             {

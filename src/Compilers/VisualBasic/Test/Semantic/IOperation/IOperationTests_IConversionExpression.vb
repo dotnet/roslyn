@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -1972,7 +1972,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub ConversionExpressin_Implicit_WideningConstantConversion()
+        Public Sub ConversionExpression_Implicit_WideningConstantConversion()
             Dim source = <![CDATA[
 Option Strict On
 Module Module1
