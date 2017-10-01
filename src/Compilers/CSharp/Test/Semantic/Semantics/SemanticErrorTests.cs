@@ -5280,7 +5280,7 @@ class Program
         }
 
         [Fact]
-        public void CS7103WRN_FilterIsConstantFalse1()
+        public void CS7104WRN_FilterIsConstantFalse1()
         {
             var text = @"
 using System;
@@ -5298,16 +5298,16 @@ class Program
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (11,25): warning CS7103: Filter expression is a constant 'false', consider removing the catch clause
+                // (11,25): warning CS7104: Filter expression is a constant 'false', consider removing the catch clause
                 //         catch (A) when (false) { }
                 Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(11, 25),
-                // (12,25): warning CS7103: Filter expression is a constant 'false', consider removing the catch clause
+                // (12,25): warning CS7104: Filter expression is a constant 'false', consider removing the catch clause
                 //         catch (B) when (false) { }
                 Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(12, 25));
         }
 
         [Fact]
-        public void CS7103WRN_FilterIsConstantFalse2()
+        public void CS7104WRN_FilterIsConstantFalse2()
         {
             var text = @"
 using System;
@@ -5325,16 +5325,16 @@ class Program
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (11,25): warning CS7103: Filter expression is a constant 'false', consider removing the catch clause
+                // (11,25): warning CS7104: Filter expression is a constant 'false', consider removing the catch clause
                 //         catch (A) when (false) { }
                 Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "(1+1)!=2").WithLocation(11, 25),
-                // (12,25): warning CS7103: Filter expression is a constant 'false', consider removing the catch clause
+                // (12,25): warning CS7104: Filter expression is a constant 'false', consider removing the catch clause
                 //         catch (B) when (false) { }
                 Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(12, 25));
         }
 
         [Fact]
-        public void CS7104WRN_FilterIsConstantRedundantTryCatch1()
+        public void CS7105WRN_FilterIsConstantRedundantTryCatch1()
         {
             var text = @"
 using System;
@@ -5350,13 +5350,13 @@ class Program
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (11,25): warning CS7104: Filter expression is a constant 'false', consider removing the try-catch block
+                // (11,25): warning CS7105: Filter expression is a constant 'false', consider removing the try-catch block
                 //         catch (A) when (false) { }
                 Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(10, 25));
         }
 
         [Fact]
-        public void CS7104WRN_FilterIsConstantRedundantTryCatch2()
+        public void CS7105WRN_FilterIsConstantRedundantTryCatch2()
         {
             var text = @"
 using System;
@@ -5372,7 +5372,7 @@ class Program
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (11,25): warning CS7104: Filter expression is a constant 'false', consider removing the try-catch block
+                // (11,25): warning CS7105: Filter expression is a constant 'false', consider removing the try-catch block
                 //         catch (A) when (false) { }
                 Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "(1+1)!=2").WithLocation(10, 25));
         }
@@ -5423,7 +5423,7 @@ class Program
                 // (10,19): warning CS7095: Filter expression is a constant 'true', consider removing the filter
                 //         catch when (true) { }
                 Diagnostic(ErrorCode.WRN_FilterIsConstantTrue, "true").WithLocation(10, 21),
-                // (12,19): warning CS7103: Filter expression is a constant 'false', consider removing the catch clause
+                // (12,19): warning CS7104: Filter expression is a constant 'false', consider removing the catch clause
                 //         catch when (false) { }
                 Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(12, 21));
         }
@@ -5472,7 +5472,7 @@ class Program
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-    // (11,25): warning CS7105: Filter expression is a constant 'false', consider removing the catch clause
+    // (11,25): warning CS7104: Filter expression is a constant 'false', consider removing the catch clause
     //         catch (A) when (false) 
     Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(11, 25),
     // (13,13): warning CS0162: Unreachable code detected
@@ -5505,7 +5505,7 @@ class Program
             // is to make conditional compilation easier. Such scenario doesn't apply to filters.
 
             CreateStandardCompilation(text).VerifyDiagnostics(
-    // (10,33): warning CS7104: Filter expression is a constant 'false', consider removing the try-catch block
+    // (10,33): warning CS7105: Filter expression is a constant 'false', consider removing the try-catch block
     //         catch (Exception) when (false) 
     Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(10, 33),
     // (12,13): warning CS0162: Unreachable code detected
