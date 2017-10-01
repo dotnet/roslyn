@@ -1242,7 +1242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MutuallyExclusiveOptions = 7102,
         ERR_InvalidDebugInfo = 7103,
         WRN_FilterIsConstantFalse = 7104,
-        WRN_FilterIsConstantRedundantTryCatch = 7105,
+        WRN_FilterIsConstantFalseRedundantTryCatch = 7105,
         #endregion diagnostics introduced in C# 6
 
         // huge gap here; unused 7106-8000
