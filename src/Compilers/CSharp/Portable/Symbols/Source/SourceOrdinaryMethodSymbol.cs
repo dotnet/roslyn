@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -994,6 +995,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             base.ForceComplete(locationOpt, cancellationToken);
+        }
+
+        internal override bool IsDefinedInSourceTree(
+            SyntaxTree tree,
+            TextSpan? definedWithinSpan,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            // Since only the declaring (and not the implementing) part of a partial method appears in the member
+            // list, we need to ensure we complete the implementation part when needed.
+            return
+                base.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) ||
+                this.SourcePartialImplementation?.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) == true;
         }
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
