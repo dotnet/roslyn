@@ -6345,5 +6345,33 @@ class Program
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, @"Console.WriteLine(""Hello"")").WithArguments("void").WithLocation(6, 17)
                 );
         }
+
+        [Fact, WorkItem(20103, "https://github.com/dotnet/roslyn/issues/20103")]
+        public void TestNullInInPattern()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        const string s = null;
+        if (s is string) {} else { Console.Write(""Hello ""); }
+        if (s is string t) {} else { Console.WriteLine(""World""); }
+    }
+}
+";
+            var expectedOutput = @"Hello World";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('string') type
+                //         if (s is string) {} else { Console.Write("Hello "); }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string").WithArguments("string").WithLocation(7, 13),
+                // (8,13): warning CS0184: The given expression is never of the provided ('string') type
+                //         if (s is string t) {} else { Console.WriteLine("World"); }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string t").WithArguments("string").WithLocation(8, 13)
+                );
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }
