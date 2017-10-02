@@ -170,9 +170,9 @@ class Program
 
     readonly partial struct S1{}
 
-    readonly partial ref struct S2{}
+    readonly ref partial struct S2{}
 
-    readonly partial ref struct S2{}
+    readonly ref partial struct S2{}
 }
 ";
 
@@ -198,13 +198,13 @@ class Program
 {
     readonly partial struct S1{}
 
-    readonly partial ref struct S1{}
+    readonly ref partial struct S1{}
 
     readonly partial struct S2{}
 
     partial struct S2{}
 
-    readonly partial ref struct S3{}
+    readonly ref partial struct S3{}
 
     partial struct S3{}
 }
