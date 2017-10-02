@@ -2047,11 +2047,9 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action) (Syntax: 'New Action( ... Of Method2)')
-  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'AddressOf Method2')
-      Target: IMethodReferenceExpression: Sub M1.Method2() (OperationKind.MethodReferenceExpression, Type: System.Action) (Syntax: 'AddressOf Method2')
-          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1) (Syntax: 'Method2')
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'New Action( ... Of Method2)')
+  Target: IMethodReferenceExpression: Sub M1.Method2() (OperationKind.MethodReferenceExpression, Type: System.Action) (Syntax: 'AddressOf Method2')
+      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2116,11 +2114,9 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action) (Syntax: 'New Action( ... Of Method2)')
-  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'AddressOf Method2')
-      Target: IMethodReferenceExpression: Function M1.Method2() As System.Object (OperationKind.MethodReferenceExpression, Type: System.Action) (Syntax: 'AddressOf Method2')
-          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1) (Syntax: 'Method2')
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'New Action( ... Of Method2)')
+  Target: IMethodReferenceExpression: Function M1.Method2() As System.Object (OperationKind.MethodReferenceExpression, Type: System.Action) (Syntax: 'AddressOf Method2')
+      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2144,11 +2140,9 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.Int32)) (Syntax: 'New Action( ... Of Method2)')
-  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.Int32)) (Syntax: 'AddressOf Method2')
-      Target: IMethodReferenceExpression: Sub M1.Method2(o As System.Object) (OperationKind.MethodReferenceExpression, Type: System.Action(Of System.Int32)) (Syntax: 'AddressOf Method2')
-          Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1) (Syntax: 'Method2')
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.Int32)) (Syntax: 'New Action( ... Of Method2)')
+  Target: IMethodReferenceExpression: Sub M1.Method2(o As System.Object) (OperationKind.MethodReferenceExpression, Type: System.Action(Of System.Int32)) (Syntax: 'AddressOf Method2')
+      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2172,9 +2166,8 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid) (Syntax: 'New Action( ... Of Method2)')
-  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid) (Syntax: 'New Action( ... Of Method2)')
+  Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
       Children(1):
           IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
             Children(1):
@@ -2206,9 +2199,8 @@ Module M1
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'New Func(Of ... Of Method2)')
-  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'New Func(Of ... Of Method2)')
+  Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
       Children(1):
           IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
             Children(1):

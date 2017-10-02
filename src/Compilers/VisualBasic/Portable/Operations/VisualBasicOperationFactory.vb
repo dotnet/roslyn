@@ -617,7 +617,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function IsValidDelegateCreationSyntax(conversionKind As ConversionKind, conversionSyntax As SyntaxNode, operandSyntax As SyntaxNode) As Boolean
+        Private Function IsDelegateCreationSyntax(conversionKind As ConversionKind, conversionSyntax As SyntaxNode, operandSyntax As SyntaxNode) As Boolean
             ' An identity conversion is introduced by the compiler on top of New DelegateType(AddressOf Method). This node
             ' only exists for the convenience of SemanticModel, so we want to classify it as a Delegate Creation
             Dim validConversionKind = conversionKind = ConversionKind.Identity OrElse
@@ -627,18 +627,23 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim validConversionSyntax = conversionSyntax.Kind() = SyntaxKind.CTypeExpression OrElse
                                         conversionSyntax.Kind() = SyntaxKind.DirectCastExpression OrElse
                                         conversionSyntax.Kind() = SyntaxKind.TryCastExpression OrElse
-                                        conversionSyntax.Kind() = SyntaxKind.ObjectCollectionInitializer
+                                        conversionSyntax.Kind() = SyntaxKind.ObjectCreationExpression
 
             Dim validOperandSyntax = operandSyntax.Kind() = SyntaxKind.AddressOfExpression
 
             Return validConversionKind AndAlso validConversionSyntax AndAlso validOperandSyntax
         End Function
 
-        Private Function CreateConversionOperation(operand As BoundNode, conversionKind As ConversionKind, conversionSyntax As SyntaxNode) As (methodSymbol As MethodSymbol, operation As Lazy(Of IOperation), isAddressOfDelegateCreation As Boolean)
+        ''' <summary>
+        ''' Creates the Lazy IOperation from a delegate creation operand or a bound conversion operand, handling when the conversion
+        ''' is actually a delegate creation.
+        ''' </summary>
+        Private Function CreateConversionOperation(operand As BoundNode, conversionKind As ConversionKind, conversionSyntax As SyntaxNode
+                                                   ) As (methodSymbol As MethodSymbol, operation As Lazy(Of IOperation), isAddressOfDelegateCreation As Boolean)
             If (conversionKind And VisualBasic.ConversionKind.UserDefined) = VisualBasic.ConversionKind.UserDefined Then
                 Dim userDefinedConversion As BoundUserDefinedConversion = DirectCast(operand, BoundUserDefinedConversion)
                 Return (userDefinedConversion.Call.Method, New Lazy(Of IOperation)(Function() Create(userDefinedConversion.Operand)), isAddressOfDelegateCreation:=False)
-            ElseIf IsValidDelegateCreationSyntax(conversionKind, conversionSyntax, operand.Syntax) Then
+            ElseIf IsDelegateCreationSyntax(conversionKind, conversionSyntax, operand.Syntax) Then
                 ' In this scenario, we're a delegate creation expression involving an AddressOf.
                 Dim methodSymbol As MethodSymbol = Nothing
                 Dim operandLazy As Lazy(Of IOperation)
