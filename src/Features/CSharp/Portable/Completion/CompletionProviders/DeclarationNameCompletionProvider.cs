@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var nameInfo = await NameDeclarationInfo.GetDeclarationInfo(document, position, cancellationToken).ConfigureAwait(false);
             var baseNames = GetBaseNames(semanticModel, nameInfo);
-            if (baseNames == default)
+            if (baseNames.IsDefaultOrEmpty)
             {
                 return;
             }
