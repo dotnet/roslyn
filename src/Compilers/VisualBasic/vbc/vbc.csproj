@@ -53,7 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="vbc.rsp" Condition="'$(TargetFramework)' != 'netcoreapp2.0'">
+    <None Include="vbc.rsp" Condition="'$(TargetFramework)' == 'net46'">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

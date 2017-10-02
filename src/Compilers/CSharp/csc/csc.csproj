@@ -54,7 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="csc.rsp" Condition="'$(TargetFramework)' != 'netcoreapp2.0'">
+    <None Include="csc.rsp" Condition="'$(TargetFramework)' == 'net46'">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
