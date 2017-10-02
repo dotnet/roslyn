@@ -15,6 +15,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class SpanStackSafetyTests : CompilingTestBase
     {
         [Fact]
+        public void SpanToSpanSwitch()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M(Span<string> s)
+    {
+        switch (s)
+        {
+            case Span<string> span:
+                break;
+            default:
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void SpanToObjectPatternSwitch()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -156,6 +177,21 @@ class C
                 // (9,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'T'.
                 //             case T t:
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<string>", "T").WithLocation(9, 18));
+        }
+
+        [Fact]
+        public void SpanToSpanIsExpr()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    bool M(Span<string> s) => s is Span<string> && s is Span<string> span;
+}");
+            comp.VerifyDiagnostics(
+                // (5,31): warning CS0183: The given expression is always of the provided ('Span<string>') type
+                //     bool M(Span<string> s) => s is Span<string> && s is Span<string> span;
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "s is Span<string>").WithArguments("System.Span<string>").WithLocation(5, 31));
         }
 
         [Fact]
