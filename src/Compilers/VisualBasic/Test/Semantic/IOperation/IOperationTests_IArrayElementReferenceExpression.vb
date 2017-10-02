@@ -364,10 +364,6 @@ Class C
     Public Sub F(o As Object, x As Integer)
         Dim a = DirectCast(o, String())(x)'BIND:"DirectCast(o, String())(x)"
     End Sub
-
-    Public Shared Widening Operator CType(ByVal c As C) As String()
-        Return Nothing
-    End Operator
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
