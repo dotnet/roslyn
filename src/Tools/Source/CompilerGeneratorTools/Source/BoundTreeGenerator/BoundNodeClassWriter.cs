@@ -80,23 +80,21 @@ namespace BoundTreeGenerator
         protected int _indent;
         protected bool _needsIndent = true;
 
-        protected void Write(string format, params object[] args)
+        protected void Write(string text)
         {
             if (_needsIndent)
             {
                 _writer.Write(new string(' ', _indent * 4));
                 _needsIndent = false;
             }
-            _writer.Write(format, args);
+            _writer.Write(text);
         }
-
-        protected void WriteLine(string format, params object[] args)
+        protected void WriteLine(string text)
         {
-            Write(format, args);
+            Write(text);
             _writer.WriteLine();
             _needsIndent = true;
         }
-
         protected void Blank()
         {
             _writer.WriteLine();
@@ -153,7 +151,7 @@ namespace BoundTreeGenerator
 
         protected virtual void WriteStartNamespace() => throw new ArgumentException("Unexpected target language", nameof(_targetLang));
 
-        protected virtual void WriteEndNamespace() =>  throw new ArgumentException("Unexpected target language", nameof(_targetLang));
+        protected virtual void WriteEndNamespace() => throw new ArgumentException("Unexpected target language", nameof(_targetLang));
 
         protected virtual void WriteKinds() => throw new ArgumentException("Unexpected target language", nameof(_targetLang));
 
@@ -223,13 +221,13 @@ namespace BoundTreeGenerator
             }
         }
 
-        protected virtual void WriteConstructorWithHasErrors(TreeType node, bool isPublic, bool hasErrorsIsOptional) =>    throw new ArgumentException("Unexpected target language", nameof(_targetLang));
+        protected virtual void WriteConstructorWithHasErrors(TreeType node, bool isPublic, bool hasErrorsIsOptional) => throw new ArgumentException("Unexpected target language", nameof(_targetLang));
 
         // This constructor should only be created if no node or list fields, since it just calls base class constructor
         // without merging hasErrors.
         protected virtual void WriteConstructorWithoutHasErrors(TreeType node, bool isPublic) => throw new ArgumentException("Unexpected target language", nameof(_targetLang));
 
-        protected virtual void WriteNullCheck(bool isROArray, Field field)=> throw new ArgumentException("Unexpected target language", nameof(_targetLang));
+        protected virtual void WriteNullCheck(bool isROArray, Field field) => throw new ArgumentException("Unexpected target language", nameof(_targetLang));
 
         // Write the null checks for any fields that can't be null.
         protected void WriteNullChecks(TreeType node)
@@ -381,7 +379,7 @@ namespace BoundTreeGenerator
             WriteClassFooter(node);
         }
 
-        virtual protected void WriteUpdateMethod(Node node, Boolean emitNew)=> throw new ArgumentException("Unexpected target language", nameof(_targetLang));
+        virtual protected void WriteUpdateMethod(Node node, Boolean emitNew) => throw new ArgumentException("Unexpected target language", nameof(_targetLang));
 
         protected void WriteUpdateMethod(Node node)
         {
@@ -401,20 +399,20 @@ namespace BoundTreeGenerator
 
         protected virtual void WriteRewriter() => throw new ArgumentException("Unexpected target language", nameof(_targetLang));
 
-        protected bool IsDerivedOrListOfDerived(string baseType, string derivedType)=> IsDerivedType(baseType, derivedType) || IsListOfDerived(baseType, derivedType);
+        protected bool IsDerivedOrListOfDerived(string baseType, string derivedType) => IsDerivedType(baseType, derivedType) || IsListOfDerived(baseType, derivedType);
 
-        protected bool IsListOfDerived(string baseType, string derivedType)=> IsNodeList(derivedType) && IsDerivedType(baseType, GetElementType(derivedType));
+        protected bool IsListOfDerived(string baseType, string derivedType) => IsNodeList(derivedType) && IsDerivedType(baseType, GetElementType(derivedType));
 
         protected virtual bool IsImmutableArray(string typeName) => throw new ArgumentException("Unexpected target language", nameof(_targetLang));
 
-        protected virtual bool IsNodeList(string typeName )=> throw new ArgumentException("Unexpected target language", nameof(_targetLang));
+        protected virtual bool IsNodeList(string typeName) => throw new ArgumentException("Unexpected target language", nameof(_targetLang));
 
         public bool IsNodeOrNodeList(string typeName) => IsNode(typeName) || IsNodeList(typeName);
 
         protected virtual string GetGenericType(string typeName) => throw new ArgumentException("Unexpected target language", nameof(_targetLang));
         protected virtual string GetElementType(string typeName) => throw new ArgumentException("Unexpected target language", nameof(_targetLang));
 
-        protected bool IsAnyList(string typeName)=> IsNodeList(typeName);
+        protected bool IsAnyList(string typeName) => IsNodeList(typeName);
 
         protected bool IsValueType(string typeName)
         {
@@ -439,11 +437,11 @@ namespace BoundTreeGenerator
 
         protected static bool IsRoot(Node n) => n.Root != null && string.Compare(n.Root, "true", true) == 0;
         protected bool IsNode(string typeName) => _typeMap.ContainsKey(typeName);
-        protected static bool IsNew(Field f)=> f.New != null && string.Compare(f.New, "true", true) == 0;
+        protected static bool IsNew(Field f) => f.New != null && string.Compare(f.New, "true", true) == 0;
 
         protected static bool IsPropertyOverrides(Field f) => f.PropertyOverrides != null && string.Compare(f.PropertyOverrides, "true", true) == 0;
- 
-        protected static bool SkipInVisitor(Field f)=> f.SkipInVisitor != null && string.Compare(f.SkipInVisitor, "true", true) == 0;
+
+        protected static bool SkipInVisitor(Field f) => f.SkipInVisitor != null && string.Compare(f.SkipInVisitor, "true", true) == 0;
 
         protected string ToCamelCase(string name)
         {
