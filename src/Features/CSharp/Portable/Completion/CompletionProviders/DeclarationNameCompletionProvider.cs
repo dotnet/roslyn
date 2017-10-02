@@ -12,9 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -34,14 +32,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var semanticModel = await document.GetSemanticModelForSpanAsync(new Text.TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
 
             if (!completionContext.Options.GetOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp))
-			{
-				return;
-			}
+            {
+                return;
+            }
 
             // If there's currently an active snippet expansion active,
             // don't suggest names: completion's commit behavior makes it
             // difficult to type names in snippet fields.
-            if (completionContext.Options.GetOption(CompletionControllerOptions.TextEditorSnipppetsAreActive))
+            if (completionContext.Options.GetOption(CompletionControllerOptions.TextEditorSnippetFieldIsActive))
             {
                 return;
             }
@@ -71,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             completionContext.SuggestionModeItem = CommonCompletionItem.Create(CSharpFeaturesResources.Name, CompletionItemRules.Default);
         }
 
-        private ImmutableArray<ImmutableArray<string>> GetBaseNames(SemanticModel semanticModel,  NameDeclarationInfo nameInfo)
+        private ImmutableArray<ImmutableArray<string>> GetBaseNames(SemanticModel semanticModel, NameDeclarationInfo nameInfo)
         {
             if (nameInfo.Alias != null)
             {
@@ -224,10 +222,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         CompletionItem CreateCompletionItem(string name, Glyph glyph, string sortText)
         {
             return CommonCompletionItem.Create(
-                name, 
-                CompletionItemRules.Default, 
-                glyph: glyph, 
-                sortText: sortText, 
+                name,
+                CompletionItemRules.Default,
+                glyph: glyph,
+                sortText: sortText,
                 description: CSharpFeaturesResources.Suggested_name.ToSymbolDisplayParts());
         }
     }

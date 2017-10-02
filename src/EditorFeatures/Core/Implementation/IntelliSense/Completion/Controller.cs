@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var service = workspace.Services.GetService<ICaretIsInSnippetExpansionFieldService>();
             if (service.CaretIsInSnippetExpansionField(TextView))
             {
-                options = options.WithChangedOption(CompletionControllerOptions.TextEditorSnipppetsAreActive, true);
+                options = options.WithChangedOption(CompletionControllerOptions.TextEditorSnippetFieldIsActive, true);
             }
 
             return options;

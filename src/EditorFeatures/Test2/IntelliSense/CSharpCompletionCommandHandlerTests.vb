@@ -10,15 +10,11 @@ Imports Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.VisualStudio.Editor
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Projection
-Imports Microsoft.VisualStudio.TextManager.Interop
 Imports Microsoft.VisualStudio.Utilities
-Imports MSXML
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
@@ -3552,8 +3548,6 @@ class C
             End Using
         End Function
 
-
-
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
 
@@ -3578,7 +3572,7 @@ class C
 
             Public Overrides Function GetChangeAsync(document As Document, item As CompletionItem, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of CompletionChange)
                 Dim newText =
-    "using NewUsing;
+"using NewUsing;
 using System;
 class C
 {
@@ -3586,7 +3580,7 @@ class C
         return InsertedItem"
 
                 Dim change = CompletionChange.Create(
-                    New TextChange(New Text.TextSpan(0, _caretPosition), newText))
+                    New TextChange(New TextSpan(0, _caretPosition), newText))
                 Return Task.FromResult(change)
             End Function
         End Class

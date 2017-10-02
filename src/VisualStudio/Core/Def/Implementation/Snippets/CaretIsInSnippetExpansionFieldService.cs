@@ -1,17 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
+﻿using System.Composition;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Snippets;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -34,10 +26,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             AssertIsForeground();
 
-            var ivsTextview =_editorAdaptersFactoryService.GetViewAdapter(textView);
+            var ivsTextview = _editorAdaptersFactoryService.GetViewAdapter(textView);
             if (ivsTextview != null)
             {
-                ivsTextview.GetBuffer(out var textLines);
+                if (ivsTextview.GetBuffer(out var textLines) != VSConstants.S_OK)
+                {
+                    return false;
+                }
+
                 var stream = (IVsTextStream)textLines;
                 var caretLine = textView.Caret.ContainingTextViewLine;
                 var caretPosition = textView.Caret.Position.BufferPosition.Position;
@@ -53,22 +49,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         }
 
         private static bool CaretIntersectsWithSnippetTag(
-            ITextViewLine line, 
-            int caretPosition, 
+            ITextViewLine line,
+            int caretPosition,
             IVsTextStream stream,
             MARKERTYPE2 markerType)
         {
             // Enumerating over only snippet fields on the current line
-            stream.EnumMarkers(line.Start, line.Length, (int)markerType, (int)ENUMMARKERFLAGS.EM_DEFAULT, out var enumerator);
-            enumerator.GetCount(out var count);
-            for (int i = 0; i < count; i++)
+            if (stream.EnumMarkers(line.Start, line.Length, (int)markerType, (int)ENUMMARKERFLAGS.EM_DEFAULT, out var enumerator) == VSConstants.S_OK &&
+                enumerator.GetCount(out var count) == VSConstants.S_OK)
             {
-                enumerator.Next(out var marker);
-                marker.GetCurrentSpan(out var start, out var len);
-
-                if (start <= caretPosition && caretPosition <= start + len)
+                for (int i = 0; i < count; i++)
                 {
-                    return true;
+                    if (enumerator.Next(out var marker) == VSConstants.S_OK &&
+                        marker.GetCurrentSpan(out var start, out var len) == VSConstants.S_OK)
+                    {
+                        if (start <= caretPosition && caretPosition <= start + len)
+                        {
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
             }
 

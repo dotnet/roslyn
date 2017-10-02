@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    interface ICaretIsInSnippetExpansionFieldService : IWorkspaceService
+    internal interface ICaretIsInSnippetExpansionFieldService : IWorkspaceService
     {
         bool CaretIsInSnippetExpansionField(ITextView textView);
     }

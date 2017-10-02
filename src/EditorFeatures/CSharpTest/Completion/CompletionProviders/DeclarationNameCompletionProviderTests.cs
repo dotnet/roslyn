@@ -666,7 +666,7 @@ class Test
 ";
             var workspace = WorkspaceFixture.GetWorkspace();
             var originalOptions = workspace.Options;
-            workspace.Options = originalOptions.WithChangedOption(CompletionControllerOptions.TextEditorSnipppetsAreActive, true);
+            workspace.Options = originalOptions.WithChangedOption(CompletionControllerOptions.TextEditorSnippetFieldIsActive, true);
             try
             {
                 await VerifyNoItemsExistAsync(markup);
