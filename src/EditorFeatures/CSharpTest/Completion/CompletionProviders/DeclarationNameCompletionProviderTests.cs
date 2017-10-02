@@ -675,7 +675,6 @@ class Test
             {
                 workspace.Options = originalOptions;
             }
-
         }
     }
 }
