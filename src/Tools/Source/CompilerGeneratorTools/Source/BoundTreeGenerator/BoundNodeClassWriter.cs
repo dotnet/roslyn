@@ -66,12 +66,8 @@ namespace BoundTreeGenerator
         {
             switch (targetLang)
             {
-                case TargetLanguage.CSharp:
-                    new BoundNodeClassWriter_CS(writer, tree).WriteFile();
-                    break;
-                case TargetLanguage.VB:
-                    new BoundNodeClassWriter_VB(writer, tree).WriteFile();
-                    break;
+                case TargetLanguage.CSharp: new BoundNodeClassWriter_CS(writer, tree).WriteFile(); break;
+                case TargetLanguage.VB:     new BoundNodeClassWriter_VB(writer, tree).WriteFile(); break;
                 default:
                     throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
@@ -183,8 +179,7 @@ namespace BoundTreeGenerator
             var first = true;
             foreach (T item in items)
             {
-                if (!first)
-                    _writer.Write(separator);
+                if (!first) _writer.Write(separator);
                 first = false;
                 _writer.Write(func(item));
             }
@@ -250,27 +245,22 @@ namespace BoundTreeGenerator
 
         protected static IEnumerable<Field> Fields(TreeType node)
         {
-            if (node is Node nn)
-                return from n in nn.Fields where !n.Override select n;
-            if (node is AbstractNode an)
-                return from n in an.Fields where !n.Override select n;
+            if (node is Node nn)          return from n in nn.Fields where !n.Override select n;
+            if (node is AbstractNode an)  return from n in an.Fields where !n.Override select n;
             return Enumerable.Empty<Field>();
         }
 
         protected static IEnumerable<Field> FieldsIncludingOverrides(TreeType node)
         {
-            if (node is Node n)
-                return n.Fields;
-            if (node is AbstractNode an)
-                return an.Fields;
+            if (node is Node n)           return n.Fields;
+            if (node is AbstractNode an)  return an.Fields;
             return Enumerable.Empty<Field>();
         }
 
         protected TreeType BaseType(TreeType node)
         {
             string name = _typeMap[node.Name];
-            if (name == _tree.Root)
-                return null;
+            if (name == _tree.Root)  return null;
             return _tree.Types.Single(t => t.Name == name);
         }
 
@@ -288,11 +278,10 @@ namespace BoundTreeGenerator
 
         protected IEnumerable<Field> AllFields(TreeType node)
         {
-            if (node == null)
-                return Enumerable.Empty<Field>();
-            return from t in TypeAndBaseTypes(node)
-                   from f in Fields(t)
-                   select f;
+            return (node == null) ? Enumerable.Empty<Field>() 
+                                  :  from t in TypeAndBaseTypes(node)
+                                     from f in Fields(t)
+                                     select f;
         }
 
         // AlwaysNull fields are those that have Null="Always" specified (possibly in an override).
@@ -311,18 +300,12 @@ namespace BoundTreeGenerator
             {
                 switch (f.Null.ToUpperInvariant())
                 {
-                    case "ALLOW":
-                        return NullHandling.Allow;
-                    case "DISALLOW":
-                        return NullHandling.Disallow;
-                    case "ALWAYS":
-                        return NullHandling.Always;
-                    case "NOTAPPLICABLE":
-                        return NullHandling.NotApplicable;
-                    case "":
-                        break;
-                    default:
-                        throw new ArgumentException("Unexpected value", nameof(f.Null));
+                    case    "ALLOW":  return NullHandling.Allow;
+                    case "DISALLOW":  return NullHandling.Disallow;
+                    case   "ALWAYS":  return NullHandling.Always;
+                    case "NOTAPPLICABLE":  return NullHandling.NotApplicable;
+                    case "":  break;
+                    default:  throw new ArgumentException("Unexpected value", nameof(f.Null));
                 }
             }
 
@@ -351,25 +334,19 @@ namespace BoundTreeGenerator
 
         protected void WriteType(TreeType node)
         {
-            if (!(node is AbstractNode) && !(node is Node))
-                return;
+            if (!(node is AbstractNode) && !(node is Node))  return;
             WriteClassHeader(node);
 
             bool unsealed = !CanBeSealed(node);
             bool concrete = !(node is AbstractNode);
             bool hasChildNodes = AllNodeOrNodeListFields(node).Any();
 
-            if (unsealed)
-            {
-                WriteConstructor(node, false, hasChildNodes);
-            }
-            if (concrete)
-            {
-                WriteConstructor(node, true, hasChildNodes);
-            }
+            if (unsealed)  WriteConstructor(node, false, hasChildNodes);
+            if (concrete)  WriteConstructor(node, true, hasChildNodes);
 
             foreach (var field in Fields(node))
                 WriteField(field);
+
             if (node is Node)
             {
                 WriteAccept(node.Name);
@@ -383,8 +360,7 @@ namespace BoundTreeGenerator
 
         protected void WriteUpdateMethod(Node node)
         {
-            if (!AllFields(node).Any())
-                return;
+            if (!AllFields(node).Any())  return;
             bool emitNew = (!Fields(node).Any()) && !(BaseType(node) is AbstractNode);
             WriteUpdateMethod(node, emitNew);
         }
@@ -417,21 +393,13 @@ namespace BoundTreeGenerator
         protected bool IsValueType(string typeName)
         {
             string genericType = GetGenericType(typeName);
-
-            if (_valueTypes.TryGetValue(genericType, out bool isValueType))
-                return isValueType;
-            else
-                return false;
+            return (_valueTypes.TryGetValue(genericType, out bool isValueType)) ? isValueType : false;
         }
 
         protected bool IsDerivedType(string typeName, string derivedTypeName)
         {
-            if (typeName == derivedTypeName)
-                return true;
-            if (derivedTypeName != null && _typeMap.TryGetValue(derivedTypeName, out var baseType))
-            {
-                return IsDerivedType(typeName, baseType);
-            }
+            if (typeName == derivedTypeName)  return true;
+            if (derivedTypeName != null && _typeMap.TryGetValue(derivedTypeName, out var baseType)) return IsDerivedType(typeName, baseType);
             return false;
         }
 
@@ -443,14 +411,7 @@ namespace BoundTreeGenerator
 
         protected static bool SkipInVisitor(Field f) => f.SkipInVisitor != null && string.Compare(f.SkipInVisitor, "true", true) == 0;
 
-        protected string ToCamelCase(string name)
-        {
-            if (char.IsUpper(name[0]))
-            {
-                name = char.ToLowerInvariant(name[0]) + name.Substring(1);
-            }
-            return FixKeyword(name);
-        }
+        protected string ToCamelCase(string name) => char.IsUpper(name[0]) ? char.ToLowerInvariant(name[0]) + name.Substring(1) : FixKeyword(name);
 
         protected virtual string EscapeKeyword(string name) => throw new ArgumentException("Unexpected target language", nameof(_targetLang));
 

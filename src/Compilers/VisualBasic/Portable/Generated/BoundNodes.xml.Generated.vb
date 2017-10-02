@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Type = type
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
             MyBase.New(kind, syntax)
             Me._Type = type
         End Sub
@@ -237,15 +237,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, arguments As ImmutableArray(Of TypeSymbol), hasErrors As Boolean)
             MyBase.New(BoundKind.TypeArguments, syntax, Nothing, hasErrors)
 
-            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not arguments.IsDefault, "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Arguments = arguments
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, arguments As ImmutableArray(Of TypeSymbol))
+        Public  Sub New(syntax As SyntaxNode, arguments As ImmutableArray(Of TypeSymbol))
             MyBase.New(BoundKind.TypeArguments, syntax, Nothing)
 
-            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not arguments.IsDefault, "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Arguments = arguments
         End Sub
@@ -283,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.OmittedArgument, syntax, type, hasErrors)
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.OmittedArgument, syntax, type)
         End Sub
 
@@ -316,7 +316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
             MyBase.New(kind, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -378,7 +378,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
             MyBase.New(kind, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -397,7 +397,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
             MyBase.New(kind, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -416,7 +416,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.WithLValueExpressionPlaceholder, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -452,7 +452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.WithRValueExpressionPlaceholder, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -493,7 +493,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.RValuePlaceholder, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -536,7 +536,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.LValuePlaceholder, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -572,7 +572,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._IsReference = isReference
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, isReference As Boolean, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, isReference As Boolean, type As TypeSymbol)
             MyBase.New(BoundKind.Dup, syntax, type)
             Me._IsReference = isReference
         End Sub
@@ -609,8 +609,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, resultKind As LookupResultKind, symbols As ImmutableArray(Of Symbol), childBoundNodes As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.BadExpression, syntax, type, hasErrors OrElse childBoundNodes.NonNullAndHasErrors())
 
-            Debug.Assert(Not (symbols.IsDefault), "Field 'symbols' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (childBoundNodes.IsDefault), "Field 'childBoundNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not symbols.IsDefault, "Field 'symbols' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not childBoundNodes.IsDefault, "Field 'childBoundNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ResultKind = resultKind
             Me._Symbols = symbols
@@ -668,7 +668,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, childBoundNodes As ImmutableArray(Of BoundNode), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.BadStatement, syntax, hasErrors OrElse childBoundNodes.NonNullAndHasErrors())
 
-            Debug.Assert(Not (childBoundNodes.IsDefault), "Field 'childBoundNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not childBoundNodes.IsDefault, "Field 'childBoundNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ChildBoundNodes = childBoundNodes
         End Sub
@@ -793,7 +793,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.ArrayAccess, syntax, type, hasErrors OrElse expression.NonNullAndHasErrors() OrElse indices.NonNullAndHasErrors())
 
             Debug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (indices.IsDefault), "Field 'indices' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not indices.IsDefault, "Field 'indices' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Expression = expression
@@ -934,7 +934,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Field = field
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, field As FieldSymbol, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, field As FieldSymbol, type As TypeSymbol)
             MyBase.New(BoundKind.FieldInfo, syntax, type)
 
             Debug.Assert(field IsNot Nothing, "Field 'field' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -981,7 +981,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Method = method
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol)
             MyBase.New(BoundKind.MethodInfo, syntax, type)
 
             Debug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -1072,7 +1072,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Data = data
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, data As BoundTypeOrValueData, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, data As BoundTypeOrValueData, type As TypeSymbol)
             MyBase.New(BoundKind.TypeOrValueExpression, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -1176,7 +1176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Method = method
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol)
             MyBase.New(BoundKind.MethodDefIndex, syntax, type)
 
             Debug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -1221,7 +1221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.MaximumMethodDefIndex, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -1259,7 +1259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._IsLValue = isLValue
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, analysisKind As Integer, isLValue As Boolean, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, analysisKind As Integer, isLValue As Boolean, type As TypeSymbol)
             MyBase.New(BoundKind.InstrumentationPayloadRoot, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -1312,7 +1312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._IsLValue = isLValue
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, isLValue As Boolean, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, isLValue As Boolean, type As TypeSymbol)
             MyBase.New(BoundKind.ModuleVersionId, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -1356,7 +1356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.ModuleVersionIdString, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -1394,7 +1394,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Document = document
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, document As Cci.DebugSourceDocument, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, document As Cci.DebugSourceDocument, type As TypeSymbol)
             MyBase.New(BoundKind.SourceDocumentIndex, syntax, type)
 
             Debug.Assert(document IsNot Nothing, "Field 'document' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -1802,7 +1802,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.CompoundAssignmentTargetPlaceholder, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -2236,7 +2236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(kind, syntax, hasErrors)
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode)
             MyBase.New(kind, syntax)
         End Sub
 
@@ -2293,8 +2293,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, elementPlaceholders As ImmutableArray(Of BoundRValuePlaceholder), convertedElements As ImmutableArray(Of BoundExpression), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ConvertedTupleElements, syntax, hasErrors OrElse elementPlaceholders.NonNullAndHasErrors() OrElse convertedElements.NonNullAndHasErrors())
 
-            Debug.Assert(Not (elementPlaceholders.IsDefault), "Field 'elementPlaceholders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (convertedElements.IsDefault), "Field 'convertedElements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not elementPlaceholders.IsDefault, "Field 'elementPlaceholders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not convertedElements.IsDefault, "Field 'convertedElements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ElementPlaceholders = elementPlaceholders
             Me._ConvertedElements = convertedElements
@@ -2593,7 +2593,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(kind, syntax, hasErrors)
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode)
             MyBase.New(kind, syntax)
         End Sub
 
@@ -2720,7 +2720,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Flavor = flavor
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, flavor As NoOpStatementFlavor)
+        Public  Sub New(syntax As SyntaxNode, flavor As NoOpStatementFlavor)
             MyBase.New(BoundKind.NoOpStatement, syntax)
             Me._Flavor = flavor
         End Sub
@@ -2782,7 +2782,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, typeArgumentsOpt As BoundTypeArguments, methods As ImmutableArray(Of MethodSymbol), pendingExtensionMethodsOpt As ExtensionMethodGroup, resultKind As LookupResultKind, receiverOpt As BoundExpression, qualificationKind As QualificationKind, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.MethodGroup, syntax, receiverOpt, qualificationKind, hasErrors OrElse typeArgumentsOpt.NonNullAndHasErrors() OrElse receiverOpt.NonNullAndHasErrors())
 
-            Debug.Assert(Not (methods.IsDefault), "Field 'methods' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not methods.IsDefault, "Field 'methods' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._TypeArgumentsOpt = typeArgumentsOpt
             Me._Methods = methods
@@ -2843,7 +2843,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, properties As ImmutableArray(Of PropertySymbol), resultKind As LookupResultKind, receiverOpt As BoundExpression, qualificationKind As QualificationKind, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.PropertyGroup, syntax, receiverOpt, qualificationKind, hasErrors OrElse receiverOpt.NonNullAndHasErrors())
 
-            Debug.Assert(Not (properties.IsDefault), "Field 'properties' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not properties.IsDefault, "Field 'properties' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Properties = properties
             Me._ResultKind = resultKind
@@ -3019,7 +3019,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, clauses As ImmutableArray(Of BoundRedimClause), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.RedimStatement, syntax, hasErrors OrElse clauses.NonNullAndHasErrors())
 
-            Debug.Assert(Not (clauses.IsDefault), "Field 'clauses' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not clauses.IsDefault, "Field 'clauses' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Clauses = clauses
         End Sub
@@ -3057,7 +3057,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.RedimClause, syntax, hasErrors OrElse operand.NonNullAndHasErrors() OrElse indices.NonNullAndHasErrors())
 
             Debug.Assert(operand IsNot Nothing, "Field 'operand' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (indices.IsDefault), "Field 'indices' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not indices.IsDefault, "Field 'indices' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Operand = operand
             Me._Indices = indices
@@ -3123,7 +3123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, clauses As ImmutableArray(Of BoundAssignmentOperator), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.EraseStatement, syntax, hasErrors OrElse clauses.NonNullAndHasErrors())
 
-            Debug.Assert(Not (clauses.IsDefault), "Field 'clauses' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not clauses.IsDefault, "Field 'clauses' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Clauses = clauses
         End Sub
@@ -3161,7 +3161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.Call, syntax, type, hasErrors OrElse methodGroupOpt.NonNullAndHasErrors() OrElse receiverOpt.NonNullAndHasErrors() OrElse arguments.NonNullAndHasErrors())
 
             Debug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not arguments.IsDefault, "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Method = method
@@ -3252,8 +3252,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, constructor As MethodSymbol, constructorArguments As ImmutableArray(Of BoundExpression), namedArguments As ImmutableArray(Of BoundExpression), resultKind As LookupResultKind, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Attribute, syntax, type, hasErrors OrElse constructorArguments.NonNullAndHasErrors() OrElse namedArguments.NonNullAndHasErrors())
 
-            Debug.Assert(Not (constructorArguments.IsDefault), "Field 'constructorArguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (namedArguments.IsDefault), "Field 'namedArguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not constructorArguments.IsDefault, "Field 'constructorArguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not namedArguments.IsDefault, "Field 'namedArguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Constructor = constructor
@@ -3510,7 +3510,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, type, hasErrors)
 
-            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not arguments.IsDefault, "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Arguments = arguments
         End Sub
@@ -3530,7 +3530,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, inferredType As TupleTypeSymbol, argumentNamesOpt As ImmutableArray(Of String), inferredNamesOpt As ImmutableArray(Of Boolean), arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.TupleLiteral, syntax, arguments, type, hasErrors OrElse arguments.NonNullAndHasErrors())
 
-            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not arguments.IsDefault, "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._InferredType = inferredType
             Me._ArgumentNamesOpt = argumentNamesOpt
@@ -3583,7 +3583,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, naturalTypeOpt As TypeSymbol, arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ConvertedTupleLiteral, syntax, arguments, type, hasErrors OrElse arguments.NonNullAndHasErrors())
 
-            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not arguments.IsDefault, "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._NaturalTypeOpt = naturalTypeOpt
@@ -3646,7 +3646,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, constructorOpt As MethodSymbol, methodGroupOpt As BoundMethodGroup, arguments As ImmutableArray(Of BoundExpression), initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ObjectCreationExpression, syntax, initializerOpt, type, hasErrors OrElse methodGroupOpt.NonNullAndHasErrors() OrElse arguments.NonNullAndHasErrors() OrElse initializerOpt.NonNullAndHasErrors())
 
-            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not arguments.IsDefault, "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ConstructorOpt = constructorOpt
@@ -3737,8 +3737,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, binderOpt As Binder.AnonymousTypeCreationBinder, declarations As ImmutableArray(Of BoundAnonymousTypePropertyAccess), arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.AnonymousTypeCreationExpression, syntax, type, hasErrors OrElse declarations.NonNullAndHasErrors() OrElse arguments.NonNullAndHasErrors())
 
-            Debug.Assert(Not (declarations.IsDefault), "Field 'declarations' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not declarations.IsDefault, "Field 'declarations' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not arguments.IsDefault, "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._BinderOpt = binderOpt
             Me._Declarations = declarations
@@ -3797,7 +3797,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._PropertyIndex = propertyIndex
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, binder As Binder.AnonymousTypeCreationBinder, propertyIndex As Integer, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, binder As Binder.AnonymousTypeCreationBinder, propertyIndex As Integer, type As TypeSymbol)
             MyBase.New(BoundKind.AnonymousTypePropertyAccess, syntax, type)
 
             Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -3891,7 +3891,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, placeholderOpt As BoundWithLValueExpressionPlaceholder, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, type, hasErrors)
 
-            Debug.Assert(Not (initializers.IsDefault), "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not initializers.IsDefault, "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._PlaceholderOpt = placeholderOpt
             Me._Initializers = initializers
@@ -3920,7 +3920,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.ObjectInitializerExpression, syntax, placeholderOpt, initializers, type, hasErrors OrElse placeholderOpt.NonNullAndHasErrors() OrElse initializers.NonNullAndHasErrors())
 
             Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (initializers.IsDefault), "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not initializers.IsDefault, "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._CreateTemporaryLocalForInitialization = createTemporaryLocalForInitialization
             Me._Binder = binder
@@ -3970,7 +3970,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, placeholderOpt As BoundWithLValueExpressionPlaceholder, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.CollectionInitializerExpression, syntax, placeholderOpt, initializers, type, hasErrors OrElse placeholderOpt.NonNullAndHasErrors() OrElse initializers.NonNullAndHasErrors())
 
-            Debug.Assert(Not (initializers.IsDefault), "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not initializers.IsDefault, "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
 
             Validate()
@@ -4108,7 +4108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, isParamArrayArgument As Boolean, bounds As ImmutableArray(Of BoundExpression), initializerOpt As BoundArrayInitialization, arrayLiteralOpt As BoundArrayLiteral, arrayLiteralConversion As ConversionKind, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ArrayCreation, syntax, type, hasErrors OrElse bounds.NonNullAndHasErrors() OrElse initializerOpt.NonNullAndHasErrors() OrElse arrayLiteralOpt.NonNullAndHasErrors())
 
-            Debug.Assert(Not (bounds.IsDefault), "Field 'bounds' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not bounds.IsDefault, "Field 'bounds' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._IsParamArrayArgument = isParamArrayArgument
@@ -4184,7 +4184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.ArrayLiteral, syntax, Nothing, hasErrors OrElse bounds.NonNullAndHasErrors() OrElse initializer.NonNullAndHasErrors())
 
             Debug.Assert(inferredType IsNot Nothing, "Field 'inferredType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (bounds.IsDefault), "Field 'bounds' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not bounds.IsDefault, "Field 'bounds' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(initializer IsNot Nothing, "Field 'initializer' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
@@ -4263,7 +4263,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ArrayInitialization, syntax, type, hasErrors OrElse initializers.NonNullAndHasErrors())
 
-            Debug.Assert(Not (initializers.IsDefault), "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not initializers.IsDefault, "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Initializers = initializers
         End Sub
@@ -4376,7 +4376,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.PropertyAccess, syntax, type, hasErrors OrElse propertyGroupOpt.NonNullAndHasErrors() OrElse receiverOpt.NonNullAndHasErrors() OrElse arguments.NonNullAndHasErrors())
 
             Debug.Assert(propertySymbol IsNot Nothing, "Field 'propertySymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not arguments.IsDefault, "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._PropertySymbol = propertySymbol
@@ -4513,8 +4513,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, statementListSyntax As SyntaxList(Of StatementSyntax), locals As ImmutableArray(Of LocalSymbol), statements As ImmutableArray(Of BoundStatement), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Block, syntax, hasErrors OrElse statements.NonNullAndHasErrors())
 
-            Debug.Assert(Not (locals.IsDefault), "Field 'locals' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (statements.IsDefault), "Field 'statements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not locals.IsDefault, "Field 'locals' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not statements.IsDefault, "Field 'statements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._StatementListSyntax = statementListSyntax
             Me._Locals = locals
@@ -4567,7 +4567,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, fields As ImmutableArray(Of FieldSymbol), statement As BoundStatement, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.StateMachineScope, syntax, hasErrors OrElse statement.NonNullAndHasErrors())
 
-            Debug.Assert(Not (fields.IsDefault), "Field 'fields' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not fields.IsDefault, "Field 'fields' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(statement IsNot Nothing, "Field 'statement' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Fields = fields
@@ -4614,7 +4614,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(kind, syntax, hasErrors)
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode)
             MyBase.New(kind, syntax)
         End Sub
 
@@ -4684,7 +4684,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, localDeclarations As ImmutableArray(Of BoundLocalDeclaration), initializer As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.AsNewLocalDeclarations, syntax, hasErrors OrElse localDeclarations.NonNullAndHasErrors() OrElse initializer.NonNullAndHasErrors())
 
-            Debug.Assert(Not (localDeclarations.IsDefault), "Field 'localDeclarations' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not localDeclarations.IsDefault, "Field 'localDeclarations' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(initializer IsNot Nothing, "Field 'initializer' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LocalDeclarations = localDeclarations
@@ -4730,7 +4730,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, localDeclarations As ImmutableArray(Of BoundLocalDeclarationBase), initializerOpt As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.DimStatement, syntax, hasErrors OrElse localDeclarations.NonNullAndHasErrors() OrElse initializerOpt.NonNullAndHasErrors())
 
-            Debug.Assert(Not (localDeclarations.IsDefault), "Field 'localDeclarations' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not localDeclarations.IsDefault, "Field 'localDeclarations' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LocalDeclarations = localDeclarations
             Me._InitializerOpt = initializerOpt
@@ -4776,7 +4776,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(kind, syntax, hasErrors)
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode)
             MyBase.New(kind, syntax)
         End Sub
 
@@ -4784,7 +4784,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.Initializer, syntax, hasErrors)
         End Sub
 
-        Public Sub New(syntax As SyntaxNode)
+        Public  Sub New(syntax As SyntaxNode)
             MyBase.New(BoundKind.Initializer, syntax)
         End Sub
 
@@ -4828,7 +4828,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, initializedFields As ImmutableArray(Of FieldSymbol), memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.FieldInitializer, syntax, memberAccessExpressionOpt, initialValue, hasErrors OrElse memberAccessExpressionOpt.NonNullAndHasErrors() OrElse initialValue.NonNullAndHasErrors())
 
-            Debug.Assert(Not (initializedFields.IsDefault), "Field 'initializedFields' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not initializedFields.IsDefault, "Field 'initializedFields' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(initialValue IsNot Nothing, "Field 'initialValue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._InitializedFields = initializedFields
@@ -4866,7 +4866,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, initializedProperties As ImmutableArray(Of PropertySymbol), memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.PropertyInitializer, syntax, memberAccessExpressionOpt, initialValue, hasErrors OrElse memberAccessExpressionOpt.NonNullAndHasErrors() OrElse initialValue.NonNullAndHasErrors())
 
-            Debug.Assert(Not (initializedProperties.IsDefault), "Field 'initializedProperties' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not initializedProperties.IsDefault, "Field 'initializedProperties' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(initialValue IsNot Nothing, "Field 'initialValue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._InitializedProperties = initializedProperties
@@ -4987,8 +4987,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, locals As ImmutableArray(Of LocalSymbol), sideEffects As ImmutableArray(Of BoundExpression), valueOpt As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Sequence, syntax, type, hasErrors OrElse sideEffects.NonNullAndHasErrors() OrElse valueOpt.NonNullAndHasErrors())
 
-            Debug.Assert(Not (locals.IsDefault), "Field 'locals' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (sideEffects.IsDefault), "Field 'sideEffects' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not locals.IsDefault, "Field 'locals' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not sideEffects.IsDefault, "Field 'sideEffects' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Locals = locals
@@ -5139,7 +5139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.SelectStatement, syntax, hasErrors OrElse expressionStatement.NonNullAndHasErrors() OrElse exprPlaceholderOpt.NonNullAndHasErrors() OrElse caseBlocks.NonNullAndHasErrors())
 
             Debug.Assert(expressionStatement IsNot Nothing, "Field 'expressionStatement' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (caseBlocks.IsDefault), "Field 'caseBlocks' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not caseBlocks.IsDefault, "Field 'caseBlocks' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(exitLabel IsNot Nothing, "Field 'exitLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ExpressionStatement = expressionStatement
@@ -5255,7 +5255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, caseClauses As ImmutableArray(Of BoundCaseClause), conditionOpt As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.CaseStatement, syntax, hasErrors OrElse caseClauses.NonNullAndHasErrors() OrElse conditionOpt.NonNullAndHasErrors())
 
-            Debug.Assert(Not (caseClauses.IsDefault), "Field 'caseClauses' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not caseClauses.IsDefault, "Field 'caseClauses' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._CaseClauses = caseClauses
             Me._ConditionOpt = conditionOpt
@@ -5301,7 +5301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(kind, syntax, hasErrors)
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode)
             MyBase.New(kind, syntax)
         End Sub
 
@@ -5470,7 +5470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._ExitLabel = exitLabel
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, continueLabel As LabelSymbol, exitLabel As LabelSymbol)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode, continueLabel As LabelSymbol, exitLabel As LabelSymbol)
             MyBase.New(kind, syntax)
 
             Debug.Assert(continueLabel IsNot Nothing, "Field 'continueLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -5885,7 +5885,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Label = label
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, label As LabelSymbol)
+        Public  Sub New(syntax As SyntaxNode, label As LabelSymbol)
             MyBase.New(BoundKind.ExitStatement, syntax)
 
             Debug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -5930,7 +5930,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Label = label
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, label As LabelSymbol)
+        Public  Sub New(syntax As SyntaxNode, label As LabelSymbol)
             MyBase.New(BoundKind.ContinueStatement, syntax)
 
             Debug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -5971,7 +5971,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.TryStatement, syntax, hasErrors OrElse tryBlock.NonNullAndHasErrors() OrElse catchBlocks.NonNullAndHasErrors() OrElse finallyBlockOpt.NonNullAndHasErrors())
 
             Debug.Assert(tryBlock IsNot Nothing, "Field 'tryBlock' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (catchBlocks.IsDefault), "Field 'catchBlocks' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not catchBlocks.IsDefault, "Field 'catchBlocks' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._TryBlock = tryBlock
             Me._CatchBlocks = catchBlocks
@@ -6119,7 +6119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, value As ConstantValue, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, value As ConstantValue, type As TypeSymbol)
             MyBase.New(BoundKind.Literal, syntax, type)
 
             Debug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6165,7 +6165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.MeReference, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6206,7 +6206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.ValueTypeMeReference, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6244,7 +6244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.MyBaseReference, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6280,7 +6280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.MyClassReference, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6318,7 +6318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._SourceType = sourceType
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, sourceType As NamedTypeSymbol, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, sourceType As NamedTypeSymbol, type As TypeSymbol)
             MyBase.New(BoundKind.PreviousSubmissionReference, syntax, type)
 
             Debug.Assert(sourceType IsNot Nothing, "Field 'sourceType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6363,7 +6363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.HostObjectMemberReference, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6407,7 +6407,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, isLValue As Boolean, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, isLValue As Boolean, type As TypeSymbol)
             MyBase.New(BoundKind.Local, syntax, type)
 
             Debug.Assert(localSymbol IsNot Nothing, "Field 'localSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6467,7 +6467,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._EmitExpressions = emitExpressions
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, isLValue As Boolean, emitExpressions As PseudoVariableExpressions, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, isLValue As Boolean, emitExpressions As PseudoVariableExpressions, type As TypeSymbol)
             MyBase.New(BoundKind.PseudoVariable, syntax, type)
 
             Debug.Assert(localSymbol IsNot Nothing, "Field 'localSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6533,7 +6533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._SuppressVirtualCalls = suppressVirtualCalls
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, parameterSymbol As ParameterSymbol, isLValue As Boolean, suppressVirtualCalls As Boolean, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, parameterSymbol As ParameterSymbol, isLValue As Boolean, suppressVirtualCalls As Boolean, type As TypeSymbol)
             MyBase.New(BoundKind.Parameter, syntax, type)
 
             Debug.Assert(parameterSymbol IsNot Nothing, "Field 'parameterSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6595,7 +6595,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._IsOut = isOut
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, isOut As Boolean, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, isOut As Boolean, type As TypeSymbol)
             MyBase.New(BoundKind.ByRefArgumentPlaceholder, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6769,7 +6769,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Label = label
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, label As LabelSymbol)
+        Public  Sub New(syntax As SyntaxNode, label As LabelSymbol)
             MyBase.New(BoundKind.LabelStatement, syntax)
 
             Debug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6814,7 +6814,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Label = label
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, label As LabelSymbol, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, label As LabelSymbol, type As TypeSymbol)
             MyBase.New(BoundKind.Label, syntax, type)
 
             Debug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -6899,7 +6899,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, statements As ImmutableArray(Of BoundStatement), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.StatementList, syntax, hasErrors OrElse statements.NonNullAndHasErrors())
 
-            Debug.Assert(Not (statements.IsDefault), "Field 'statements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not statements.IsDefault, "Field 'statements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Statements = statements
         End Sub
@@ -7046,7 +7046,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.UnboundLambda, syntax, Nothing, hasErrors)
 
             Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (parameters.IsDefault), "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not parameters.IsDefault, "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(bindingCache IsNot Nothing, "Field 'bindingCache' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Binder = binder
@@ -7061,11 +7061,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, binder As Binder, flags As SourceMemberFlags, parameters As ImmutableArray(Of ParameterSymbol), returnType As TypeSymbol, bindingCache As UnboundLambda.UnboundLambdaBindingCache)
+        Public  Sub New(syntax As SyntaxNode, binder As Binder, flags As SourceMemberFlags, parameters As ImmutableArray(Of ParameterSymbol), returnType As TypeSymbol, bindingCache As UnboundLambda.UnboundLambdaBindingCache)
             MyBase.New(BoundKind.UnboundLambda, syntax, Nothing)
 
             Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (parameters.IsDefault), "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not parameters.IsDefault, "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(bindingCache IsNot Nothing, "Field 'bindingCache' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Binder = binder
@@ -7139,7 +7139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(lambdaSymbol IsNot Nothing, "Field 'lambdaSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (diagnostics.IsDefault), "Field 'diagnostics' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not diagnostics.IsDefault, "Field 'diagnostics' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LambdaSymbol = lambdaSymbol
             Me._Body = body
@@ -7263,7 +7263,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
             MyBase.New(kind, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -7354,9 +7354,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, rangeVariables As ImmutableArray(Of RangeVariableSymbol), compoundVariableType As TypeSymbol, binders As ImmutableArray(Of Binder), type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(kind, syntax, type, hasErrors)
 
-            Debug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not rangeVariables.IsDefault, "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(compoundVariableType IsNot Nothing, "Field 'compoundVariableType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (binders.IsDefault), "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not binders.IsDefault, "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._RangeVariables = rangeVariables
@@ -7364,12 +7364,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Binders = binders
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, rangeVariables As ImmutableArray(Of RangeVariableSymbol), compoundVariableType As TypeSymbol, binders As ImmutableArray(Of Binder), type As TypeSymbol)
+        Protected  Sub New(kind As BoundKind, syntax as SyntaxNode, rangeVariables As ImmutableArray(Of RangeVariableSymbol), compoundVariableType As TypeSymbol, binders As ImmutableArray(Of Binder), type As TypeSymbol)
             MyBase.New(kind, syntax, type)
 
-            Debug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not rangeVariables.IsDefault, "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(compoundVariableType IsNot Nothing, "Field 'compoundVariableType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (binders.IsDefault), "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not binders.IsDefault, "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._RangeVariables = rangeVariables
@@ -7407,9 +7407,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.QueryableSource, syntax, rangeVariables, compoundVariableType, binders, type, hasErrors OrElse source.NonNullAndHasErrors())
 
             Debug.Assert(source IsNot Nothing, "Field 'source' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not rangeVariables.IsDefault, "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(compoundVariableType IsNot Nothing, "Field 'compoundVariableType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (binders.IsDefault), "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not binders.IsDefault, "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Source = source
@@ -7461,9 +7461,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.QueryClause, syntax, rangeVariables, compoundVariableType, binders, type, hasErrors OrElse underlyingExpression.NonNullAndHasErrors())
 
             Debug.Assert(underlyingExpression IsNot Nothing, "Field 'underlyingExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not rangeVariables.IsDefault, "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(compoundVariableType IsNot Nothing, "Field 'compoundVariableType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (binders.IsDefault), "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not binders.IsDefault, "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._UnderlyingExpression = underlyingExpression
@@ -7540,7 +7540,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.QueryLambda, syntax, Nothing, hasErrors OrElse expression.NonNullAndHasErrors())
 
             Debug.Assert(lambdaSymbol IsNot Nothing, "Field 'lambdaSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not rangeVariables.IsDefault, "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LambdaSymbol = lambdaSymbol
@@ -7650,7 +7650,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.GroupTypeInferenceLambda, syntax, Nothing, hasErrors)
 
             Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (parameters.IsDefault), "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not parameters.IsDefault, "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(compilation IsNot Nothing, "Field 'compilation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Binder = binder
@@ -7658,11 +7658,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._Compilation = compilation
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, binder As Binder, parameters As ImmutableArray(Of ParameterSymbol), compilation As VisualBasicCompilation)
+        Public  Sub New(syntax As SyntaxNode, binder As Binder, parameters As ImmutableArray(Of ParameterSymbol), compilation As VisualBasicCompilation)
             MyBase.New(BoundKind.GroupTypeInferenceLambda, syntax, Nothing)
 
             Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (parameters.IsDefault), "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not parameters.IsDefault, "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(compilation IsNot Nothing, "Field 'compilation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Binder = binder
@@ -7717,9 +7717,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.AggregateClause, syntax, rangeVariables, compoundVariableType, binders, type, hasErrors OrElse capturedGroupOpt.NonNullAndHasErrors() OrElse groupPlaceholderOpt.NonNullAndHasErrors() OrElse underlyingExpression.NonNullAndHasErrors())
 
             Debug.Assert(underlyingExpression IsNot Nothing, "Field 'underlyingExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not rangeVariables.IsDefault, "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(compoundVariableType IsNot Nothing, "Field 'compoundVariableType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (binders.IsDefault), "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not binders.IsDefault, "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._CapturedGroupOpt = capturedGroupOpt
@@ -7817,7 +7817,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._RangeVariable = rangeVariable
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, rangeVariable As RangeVariableSymbol, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, rangeVariable As RangeVariableSymbol, type As TypeSymbol)
             MyBase.New(BoundKind.RangeVariable, syntax, type)
 
             Debug.Assert(rangeVariable IsNot Nothing, "Field 'rangeVariable' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -8205,7 +8205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.XmlDocument, syntax, type, hasErrors OrElse declaration.NonNullAndHasErrors() OrElse childNodes.NonNullAndHasErrors())
 
             Debug.Assert(declaration IsNot Nothing, "Field 'declaration' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (childNodes.IsDefault), "Field 'childNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not childNodes.IsDefault, "Field 'childNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(rewriterInfo IsNot Nothing, "Field 'rewriterInfo' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
@@ -8495,7 +8495,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.XmlElement, syntax, type, hasErrors OrElse argument.NonNullAndHasErrors() OrElse childNodes.NonNullAndHasErrors())
 
             Debug.Assert(argument IsNot Nothing, "Field 'argument' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (childNodes.IsDefault), "Field 'childNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not childNodes.IsDefault, "Field 'childNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(rewriterInfo IsNot Nothing, "Field 'rewriterInfo' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
@@ -8910,7 +8910,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.UnstructuredExceptionOnErrorSwitch, syntax, hasErrors OrElse value.NonNullAndHasErrors() OrElse jumps.NonNullAndHasErrors())
 
             Debug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (jumps.IsDefault), "Field 'jumps' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not jumps.IsDefault, "Field 'jumps' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Value = value
             Me._Jumps = jumps
@@ -8963,7 +8963,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(resumeTargetTemporary IsNot Nothing, "Field 'resumeTargetTemporary' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(resumeLabel IsNot Nothing, "Field 'resumeLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(resumeNextLabel IsNot Nothing, "Field 'resumeNextLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (jumps.IsDefault), "Field 'jumps' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not jumps.IsDefault, "Field 'jumps' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ResumeTargetTemporary = resumeTargetTemporary
             Me._ResumeLabel = resumeLabel
@@ -9117,9 +9117,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, locals As ImmutableArray(Of LocalSymbol), spillFields As ImmutableArray(Of FieldSymbol), statements As ImmutableArray(Of BoundStatement), valueOpt As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.SpillSequence, syntax, type, hasErrors OrElse statements.NonNullAndHasErrors() OrElse valueOpt.NonNullAndHasErrors())
 
-            Debug.Assert(Not (locals.IsDefault), "Field 'locals' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (spillFields.IsDefault), "Field 'spillFields' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (statements.IsDefault), "Field 'statements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not locals.IsDefault, "Field 'locals' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not spillFields.IsDefault, "Field 'spillFields' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not statements.IsDefault, "Field 'statements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Locals = locals
             Me._SpillFields = spillFields
@@ -9186,7 +9186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.StopStatement, syntax, hasErrors)
         End Sub
 
-        Public Sub New(syntax As SyntaxNode)
+        Public  Sub New(syntax As SyntaxNode)
             MyBase.New(BoundKind.StopStatement, syntax)
         End Sub
 
@@ -9203,7 +9203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.EndStatement, syntax, hasErrors)
         End Sub
 
-        Public Sub New(syntax As SyntaxNode)
+        Public  Sub New(syntax As SyntaxNode)
             MyBase.New(BoundKind.EndStatement, syntax)
         End Sub
 
@@ -9353,7 +9353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Partial Sub Validate()
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, placeholderId As Integer, type As TypeSymbol)
+        Public  Sub New(syntax As SyntaxNode, placeholderId As Integer, type As TypeSymbol)
             MyBase.New(BoundKind.ConditionalAccessReceiverPlaceholder, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -9617,7 +9617,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, contents As ImmutableArray(Of BoundNode), binder As Binder, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.InterpolatedStringExpression, syntax, type, hasErrors OrElse contents.NonNullAndHasErrors())
 
-            Debug.Assert(Not (contents.IsDefault), "Field 'contents' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not contents.IsDefault, "Field 'contents' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
@@ -13530,695 +13530,695 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitTypeArguments(node As BoundTypeArguments, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("typeArguments", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("arguments", node.Arguments, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("arguments", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitOmittedArgument(node As BoundOmittedArgument, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("omittedArgument", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitLValueToRValueWrapper(node As BoundLValueToRValueWrapper, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("lValueToRValueWrapper", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("underlyingLValue", Nothing, new TreeDumperNode() { Visit(node.UnderlyingLValue, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("underlyingLValue", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitWithLValueExpressionPlaceholder(node As BoundWithLValueExpressionPlaceholder, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("withLValueExpressionPlaceholder", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitWithRValueExpressionPlaceholder(node As BoundWithRValueExpressionPlaceholder, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("withRValueExpressionPlaceholder", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitRValuePlaceholder(node As BoundRValuePlaceholder, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("rValuePlaceholder", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitLValuePlaceholder(node As BoundLValuePlaceholder, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("lValuePlaceholder", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitDup(node As BoundDup, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("dup", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("isReference", node.IsReference, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("isReference", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitBadExpression(node As BoundBadExpression, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("badExpression", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("resultKind", node.ResultKind, Nothing),
-                New TreeDumperNode("symbols", node.Symbols, Nothing),
-                New TreeDumperNode("childBoundNodes", Nothing, From x In node.ChildBoundNodes Select Visit(x, Nothing)),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("resultKind", node.{field.Name}, Nothing),
+                New TreeDumperNode("symbols", node.{field.Name}, Nothing),
+                New TreeDumperNode("childBoundNodes", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitBadStatement(node As BoundBadStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("badStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("childBoundNodes", Nothing, From x In node.ChildBoundNodes Select Visit(x, Nothing))
+                New TreeDumperNode("childBoundNodes", Nothing, From x In node.{field.Name} Select Visit(x, Nothing))
             })
         End Function
 
         Public Overrides Function VisitParenthesized(node As BoundParenthesized, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("parenthesized", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("expression", Nothing, new TreeDumperNode() { Visit(node.Expression, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("expression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitBadVariable(node As BoundBadVariable, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("badVariable", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("expression", Nothing, new TreeDumperNode() { Visit(node.Expression, Nothing) }),
-                New TreeDumperNode("isLValue", node.IsLValue, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("expression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("isLValue", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitArrayAccess(node As BoundArrayAccess, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("arrayAccess", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("expression", Nothing, new TreeDumperNode() { Visit(node.Expression, Nothing) }),
-                New TreeDumperNode("indices", Nothing, From x In node.Indices Select Visit(x, Nothing)),
-                New TreeDumperNode("isLValue", node.IsLValue, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("expression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("indices", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("isLValue", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitArrayLength(node As BoundArrayLength, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("arrayLength", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("expression", Nothing, new TreeDumperNode() { Visit(node.Expression, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("expression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitGetType(node As BoundGetType, arg As Object) As TreeDumperNode
-            Return New TreeDumperNode("[getType]", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("sourceType", Nothing, new TreeDumperNode() { Visit(node.SourceType, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+            Return New TreeDumperNode("getType", Nothing, New TreeDumperNode() {
+                New TreeDumperNode("sourceType", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitFieldInfo(node As BoundFieldInfo, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("fieldInfo", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("field", node.Field, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("field", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitMethodInfo(node As BoundMethodInfo, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("methodInfo", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("method", node.Method, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("method", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitTypeExpression(node As BoundTypeExpression, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("typeExpression", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("unevaluatedReceiverOpt", Nothing, new TreeDumperNode() { Visit(node.UnevaluatedReceiverOpt, Nothing) }),
-                New TreeDumperNode("aliasOpt", node.AliasOpt, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("unevaluatedReceiverOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("aliasOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitTypeOrValueExpression(node As BoundTypeOrValueExpression, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("typeOrValueExpression", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("data", node.Data, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("data", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitNamespaceExpression(node As BoundNamespaceExpression, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("namespaceExpression", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("unevaluatedReceiverOpt", Nothing, new TreeDumperNode() { Visit(node.UnevaluatedReceiverOpt, Nothing) }),
-                New TreeDumperNode("aliasOpt", node.AliasOpt, Nothing),
-                New TreeDumperNode("namespaceSymbol", node.NamespaceSymbol, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("unevaluatedReceiverOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("aliasOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("namespaceSymbol", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitMethodDefIndex(node As BoundMethodDefIndex, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("methodDefIndex", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("method", node.Method, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("method", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitMaximumMethodDefIndex(node As BoundMaximumMethodDefIndex, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("maximumMethodDefIndex", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitInstrumentationPayloadRoot(node As BoundInstrumentationPayloadRoot, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("instrumentationPayloadRoot", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("analysisKind", node.AnalysisKind, Nothing),
-                New TreeDumperNode("isLValue", node.IsLValue, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("analysisKind", node.{field.Name}, Nothing),
+                New TreeDumperNode("isLValue", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitModuleVersionId(node As BoundModuleVersionId, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("moduleVersionId", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("isLValue", node.IsLValue, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("isLValue", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitModuleVersionIdString(node As BoundModuleVersionIdString, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("moduleVersionIdString", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitSourceDocumentIndex(node As BoundSourceDocumentIndex, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("sourceDocumentIndex", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("document", node.Document, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("document", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitUnaryOperator(node As BoundUnaryOperator, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("unaryOperator", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("operatorKind", node.OperatorKind, Nothing),
-                New TreeDumperNode("operand", Nothing, new TreeDumperNode() { Visit(node.Operand, Nothing) }),
-                New TreeDumperNode("checked", node.Checked, Nothing),
-                New TreeDumperNode("constantValueOpt", node.ConstantValueOpt, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("operatorKind", node.{field.Name}, Nothing),
+                New TreeDumperNode("operand", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("checked", node.{field.Name}, Nothing),
+                New TreeDumperNode("constantValueOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitUserDefinedUnaryOperator(node As BoundUserDefinedUnaryOperator, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("userDefinedUnaryOperator", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("operatorKind", node.OperatorKind, Nothing),
-                New TreeDumperNode("underlyingExpression", Nothing, new TreeDumperNode() { Visit(node.UnderlyingExpression, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("operatorKind", node.{field.Name}, Nothing),
+                New TreeDumperNode("underlyingExpression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitNullableIsTrueOperator(node As BoundNullableIsTrueOperator, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("nullableIsTrueOperator", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("operand", Nothing, new TreeDumperNode() { Visit(node.Operand, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("operand", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitBinaryOperator(node As BoundBinaryOperator, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("binaryOperator", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("operatorKind", node.OperatorKind, Nothing),
-                New TreeDumperNode("left", Nothing, new TreeDumperNode() { Visit(node.Left, Nothing) }),
-                New TreeDumperNode("right", Nothing, new TreeDumperNode() { Visit(node.Right, Nothing) }),
-                New TreeDumperNode("checked", node.Checked, Nothing),
-                New TreeDumperNode("constantValueOpt", node.ConstantValueOpt, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("operatorKind", node.{field.Name}, Nothing),
+                New TreeDumperNode("left", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("right", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("checked", node.{field.Name}, Nothing),
+                New TreeDumperNode("constantValueOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitUserDefinedBinaryOperator(node As BoundUserDefinedBinaryOperator, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("userDefinedBinaryOperator", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("operatorKind", node.OperatorKind, Nothing),
-                New TreeDumperNode("underlyingExpression", Nothing, new TreeDumperNode() { Visit(node.UnderlyingExpression, Nothing) }),
-                New TreeDumperNode("checked", node.Checked, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("operatorKind", node.{field.Name}, Nothing),
+                New TreeDumperNode("underlyingExpression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("checked", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitUserDefinedShortCircuitingOperator(node As BoundUserDefinedShortCircuitingOperator, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("userDefinedShortCircuitingOperator", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("leftOperand", Nothing, new TreeDumperNode() { Visit(node.LeftOperand, Nothing) }),
-                New TreeDumperNode("leftOperandPlaceholder", Nothing, new TreeDumperNode() { Visit(node.LeftOperandPlaceholder, Nothing) }),
-                New TreeDumperNode("leftTest", Nothing, new TreeDumperNode() { Visit(node.LeftTest, Nothing) }),
-                New TreeDumperNode("bitwiseOperator", Nothing, new TreeDumperNode() { Visit(node.BitwiseOperator, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("leftOperand", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("leftOperandPlaceholder", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("leftTest", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("bitwiseOperator", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitCompoundAssignmentTargetPlaceholder(node As BoundCompoundAssignmentTargetPlaceholder, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("compoundAssignmentTargetPlaceholder", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitAssignmentOperator(node As BoundAssignmentOperator, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("assignmentOperator", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("left", Nothing, new TreeDumperNode() { Visit(node.Left, Nothing) }),
-                New TreeDumperNode("leftOnTheRightOpt", Nothing, new TreeDumperNode() { Visit(node.LeftOnTheRightOpt, Nothing) }),
-                New TreeDumperNode("right", Nothing, new TreeDumperNode() { Visit(node.Right, Nothing) }),
-                New TreeDumperNode("suppressObjectClone", node.SuppressObjectClone, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("left", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("leftOnTheRightOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("right", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("suppressObjectClone", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitReferenceAssignment(node As BoundReferenceAssignment, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("referenceAssignment", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("byRefLocal", Nothing, new TreeDumperNode() { Visit(node.ByRefLocal, Nothing) }),
-                New TreeDumperNode("lValue", Nothing, new TreeDumperNode() { Visit(node.LValue, Nothing) }),
-                New TreeDumperNode("isLValue", node.IsLValue, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("byRefLocal", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("lValue", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("isLValue", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitAddressOfOperator(node As BoundAddressOfOperator, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("addressOfOperator", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("binder", node.Binder, Nothing),
-                New TreeDumperNode("methodGroup", Nothing, new TreeDumperNode() { Visit(node.MethodGroup, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("binder", node.{field.Name}, Nothing),
+                New TreeDumperNode("methodGroup", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitTernaryConditionalExpression(node As BoundTernaryConditionalExpression, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("ternaryConditionalExpression", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("condition", Nothing, new TreeDumperNode() { Visit(node.Condition, Nothing) }),
-                New TreeDumperNode("whenTrue", Nothing, new TreeDumperNode() { Visit(node.WhenTrue, Nothing) }),
-                New TreeDumperNode("whenFalse", Nothing, new TreeDumperNode() { Visit(node.WhenFalse, Nothing) }),
-                New TreeDumperNode("constantValueOpt", node.ConstantValueOpt, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("condition", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("whenTrue", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("whenFalse", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("constantValueOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitBinaryConditionalExpression(node As BoundBinaryConditionalExpression, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("binaryConditionalExpression", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("testExpression", Nothing, new TreeDumperNode() { Visit(node.TestExpression, Nothing) }),
-                New TreeDumperNode("convertedTestExpression", Nothing, new TreeDumperNode() { Visit(node.ConvertedTestExpression, Nothing) }),
-                New TreeDumperNode("testExpressionPlaceholder", Nothing, new TreeDumperNode() { Visit(node.TestExpressionPlaceholder, Nothing) }),
-                New TreeDumperNode("elseExpression", Nothing, new TreeDumperNode() { Visit(node.ElseExpression, Nothing) }),
-                New TreeDumperNode("constantValueOpt", node.ConstantValueOpt, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("testExpression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("convertedTestExpression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("testExpressionPlaceholder", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("elseExpression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("constantValueOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitConversion(node As BoundConversion, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("conversion", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("operand", Nothing, new TreeDumperNode() { Visit(node.Operand, Nothing) }),
-                New TreeDumperNode("conversionKind", node.ConversionKind, Nothing),
-                New TreeDumperNode("checked", node.Checked, Nothing),
-                New TreeDumperNode("explicitCastInCode", node.ExplicitCastInCode, Nothing),
-                New TreeDumperNode("constantValueOpt", node.ConstantValueOpt, Nothing),
-                New TreeDumperNode("extendedInfoOpt", Nothing, new TreeDumperNode() { Visit(node.ExtendedInfoOpt, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("operand", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("conversionKind", node.{field.Name}, Nothing),
+                New TreeDumperNode("checked", node.{field.Name}, Nothing),
+                New TreeDumperNode("explicitCastInCode", node.{field.Name}, Nothing),
+                New TreeDumperNode("constantValueOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("extendedInfoOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitRelaxationLambda(node As BoundRelaxationLambda, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("relaxationLambda", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("lambda", Nothing, new TreeDumperNode() { Visit(node.Lambda, Nothing) }),
-                New TreeDumperNode("receiverPlaceholderOpt", Nothing, new TreeDumperNode() { Visit(node.ReceiverPlaceholderOpt, Nothing) })
+                New TreeDumperNode("lambda", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("receiverPlaceholderOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitConvertedTupleElements(node As BoundConvertedTupleElements, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("convertedTupleElements", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("elementPlaceholders", Nothing, From x In node.ElementPlaceholders Select Visit(x, Nothing)),
-                New TreeDumperNode("convertedElements", Nothing, From x In node.ConvertedElements Select Visit(x, Nothing))
+                New TreeDumperNode("elementPlaceholders", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("convertedElements", Nothing, From x In node.{field.Name} Select Visit(x, Nothing))
             })
         End Function
 
         Public Overrides Function VisitUserDefinedConversion(node As BoundUserDefinedConversion, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("userDefinedConversion", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("underlyingExpression", Nothing, new TreeDumperNode() { Visit(node.UnderlyingExpression, Nothing) }),
-                New TreeDumperNode("inOutConversionFlags", node.InOutConversionFlags, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("underlyingExpression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("inOutConversionFlags", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitDirectCast(node As BoundDirectCast, arg As Object) As TreeDumperNode
-            Return New TreeDumperNode("[directCast]", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("operand", Nothing, new TreeDumperNode() { Visit(node.Operand, Nothing) }),
-                New TreeDumperNode("conversionKind", node.ConversionKind, Nothing),
-                New TreeDumperNode("suppressVirtualCalls", node.SuppressVirtualCalls, Nothing),
-                New TreeDumperNode("constantValueOpt", node.ConstantValueOpt, Nothing),
-                New TreeDumperNode("relaxationLambdaOpt", Nothing, new TreeDumperNode() { Visit(node.RelaxationLambdaOpt, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+            Return New TreeDumperNode("directCast", Nothing, New TreeDumperNode() {
+                New TreeDumperNode("operand", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("conversionKind", node.{field.Name}, Nothing),
+                New TreeDumperNode("suppressVirtualCalls", node.{field.Name}, Nothing),
+                New TreeDumperNode("constantValueOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("relaxationLambdaOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitTryCast(node As BoundTryCast, arg As Object) As TreeDumperNode
-            Return New TreeDumperNode("[tryCast]", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("operand", Nothing, new TreeDumperNode() { Visit(node.Operand, Nothing) }),
-                New TreeDumperNode("conversionKind", node.ConversionKind, Nothing),
-                New TreeDumperNode("constantValueOpt", node.ConstantValueOpt, Nothing),
-                New TreeDumperNode("relaxationLambdaOpt", Nothing, new TreeDumperNode() { Visit(node.RelaxationLambdaOpt, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+            Return New TreeDumperNode("tryCast", Nothing, New TreeDumperNode() {
+                New TreeDumperNode("operand", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("conversionKind", node.{field.Name}, Nothing),
+                New TreeDumperNode("constantValueOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("relaxationLambdaOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitTypeOf(node As BoundTypeOf, arg As Object) As TreeDumperNode
-            Return New TreeDumperNode("[typeOf]", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("operand", Nothing, new TreeDumperNode() { Visit(node.Operand, Nothing) }),
-                New TreeDumperNode("isTypeOfIsNotExpression", node.IsTypeOfIsNotExpression, Nothing),
-                New TreeDumperNode("targetType", node.TargetType, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+            Return New TreeDumperNode("typeOf", Nothing, New TreeDumperNode() {
+                New TreeDumperNode("operand", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("isTypeOfIsNotExpression", node.{field.Name}, Nothing),
+                New TreeDumperNode("targetType", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitSequencePoint(node As BoundSequencePoint, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("sequencePoint", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("statementOpt", Nothing, new TreeDumperNode() { Visit(node.StatementOpt, Nothing) })
+                New TreeDumperNode("statementOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitSequencePointExpression(node As BoundSequencePointExpression, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("sequencePointExpression", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("expression", Nothing, new TreeDumperNode() { Visit(node.Expression, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("expression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitSequencePointWithSpan(node As BoundSequencePointWithSpan, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("sequencePointWithSpan", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("statementOpt", Nothing, new TreeDumperNode() { Visit(node.StatementOpt, Nothing) }),
-                New TreeDumperNode("span", node.Span, Nothing)
+                New TreeDumperNode("statementOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("span", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitNoOpStatement(node As BoundNoOpStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("noOpStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("flavor", node.Flavor, Nothing)
+                New TreeDumperNode("flavor", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitMethodGroup(node As BoundMethodGroup, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("methodGroup", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("typeArgumentsOpt", Nothing, new TreeDumperNode() { Visit(node.TypeArgumentsOpt, Nothing) }),
-                New TreeDumperNode("methods", node.Methods, Nothing),
-                New TreeDumperNode("pendingExtensionMethodsOpt", node.PendingExtensionMethodsOpt, Nothing),
-                New TreeDumperNode("resultKind", node.ResultKind, Nothing),
-                New TreeDumperNode("receiverOpt", Nothing, new TreeDumperNode() { Visit(node.ReceiverOpt, Nothing) }),
-                New TreeDumperNode("qualificationKind", node.QualificationKind, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("typeArgumentsOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("methods", node.{field.Name}, Nothing),
+                New TreeDumperNode("pendingExtensionMethodsOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("resultKind", node.{field.Name}, Nothing),
+                New TreeDumperNode("receiverOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("qualificationKind", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitPropertyGroup(node As BoundPropertyGroup, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("propertyGroup", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("properties", node.Properties, Nothing),
-                New TreeDumperNode("resultKind", node.ResultKind, Nothing),
-                New TreeDumperNode("receiverOpt", Nothing, new TreeDumperNode() { Visit(node.ReceiverOpt, Nothing) }),
-                New TreeDumperNode("qualificationKind", node.QualificationKind, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("properties", node.{field.Name}, Nothing),
+                New TreeDumperNode("resultKind", node.{field.Name}, Nothing),
+                New TreeDumperNode("receiverOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("qualificationKind", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitReturnStatement(node As BoundReturnStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("returnStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("expressionOpt", Nothing, new TreeDumperNode() { Visit(node.ExpressionOpt, Nothing) }),
-                New TreeDumperNode("functionLocalOpt", node.FunctionLocalOpt, Nothing),
-                New TreeDumperNode("exitLabelOpt", node.ExitLabelOpt, Nothing)
+                New TreeDumperNode("expressionOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("functionLocalOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("exitLabelOpt", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitYieldStatement(node As BoundYieldStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("yieldStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("expression", Nothing, new TreeDumperNode() { Visit(node.Expression, Nothing) })
+                New TreeDumperNode("expression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitThrowStatement(node As BoundThrowStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("throwStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("expressionOpt", Nothing, new TreeDumperNode() { Visit(node.ExpressionOpt, Nothing) })
+                New TreeDumperNode("expressionOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitRedimStatement(node As BoundRedimStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("redimStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("clauses", Nothing, From x In node.Clauses Select Visit(x, Nothing))
+                New TreeDumperNode("clauses", Nothing, From x In node.{field.Name} Select Visit(x, Nothing))
             })
         End Function
 
         Public Overrides Function VisitRedimClause(node As BoundRedimClause, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("redimClause", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("operand", Nothing, new TreeDumperNode() { Visit(node.Operand, Nothing) }),
-                New TreeDumperNode("indices", Nothing, From x In node.Indices Select Visit(x, Nothing)),
-                New TreeDumperNode("arrayTypeOpt", node.ArrayTypeOpt, Nothing),
-                New TreeDumperNode("preserve", node.Preserve, Nothing)
+                New TreeDumperNode("operand", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("indices", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("arrayTypeOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("preserve", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitEraseStatement(node As BoundEraseStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("eraseStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("clauses", Nothing, From x In node.Clauses Select Visit(x, Nothing))
+                New TreeDumperNode("clauses", Nothing, From x In node.{field.Name} Select Visit(x, Nothing))
             })
         End Function
 
         Public Overrides Function VisitCall(node As BoundCall, arg As Object) As TreeDumperNode
-            Return New TreeDumperNode("[call]", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("method", node.Method, Nothing),
-                New TreeDumperNode("methodGroupOpt", Nothing, new TreeDumperNode() { Visit(node.MethodGroupOpt, Nothing) }),
-                New TreeDumperNode("receiverOpt", Nothing, new TreeDumperNode() { Visit(node.ReceiverOpt, Nothing) }),
-                New TreeDumperNode("arguments", Nothing, From x In node.Arguments Select Visit(x, Nothing)),
-                New TreeDumperNode("constantValueOpt", node.ConstantValueOpt, Nothing),
-                New TreeDumperNode("isLValue", node.IsLValue, Nothing),
-                New TreeDumperNode("suppressObjectClone", node.SuppressObjectClone, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+            Return New TreeDumperNode("call", Nothing, New TreeDumperNode() {
+                New TreeDumperNode("method", node.{field.Name}, Nothing),
+                New TreeDumperNode("methodGroupOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("receiverOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("arguments", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("constantValueOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("isLValue", node.{field.Name}, Nothing),
+                New TreeDumperNode("suppressObjectClone", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitAttribute(node As BoundAttribute, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("attribute", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("constructor", node.Constructor, Nothing),
-                New TreeDumperNode("constructorArguments", Nothing, From x In node.ConstructorArguments Select Visit(x, Nothing)),
-                New TreeDumperNode("namedArguments", Nothing, From x In node.NamedArguments Select Visit(x, Nothing)),
-                New TreeDumperNode("resultKind", node.ResultKind, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("constructor", node.{field.Name}, Nothing),
+                New TreeDumperNode("constructorArguments", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("namedArguments", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("resultKind", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitLateMemberAccess(node As BoundLateMemberAccess, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("lateMemberAccess", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("nameOpt", node.NameOpt, Nothing),
-                New TreeDumperNode("containerTypeOpt", node.ContainerTypeOpt, Nothing),
-                New TreeDumperNode("receiverOpt", Nothing, new TreeDumperNode() { Visit(node.ReceiverOpt, Nothing) }),
-                New TreeDumperNode("typeArgumentsOpt", Nothing, new TreeDumperNode() { Visit(node.TypeArgumentsOpt, Nothing) }),
-                New TreeDumperNode("accessKind", node.AccessKind, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("nameOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("containerTypeOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("receiverOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("typeArgumentsOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("accessKind", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitLateInvocation(node As BoundLateInvocation, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("lateInvocation", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("member", Nothing, new TreeDumperNode() { Visit(node.Member, Nothing) }),
-                New TreeDumperNode("argumentsOpt", Nothing, From x In node.ArgumentsOpt Select Visit(x, Nothing)),
-                New TreeDumperNode("argumentNamesOpt", node.ArgumentNamesOpt, Nothing),
-                New TreeDumperNode("accessKind", node.AccessKind, Nothing),
-                New TreeDumperNode("methodOrPropertyGroupOpt", Nothing, new TreeDumperNode() { Visit(node.MethodOrPropertyGroupOpt, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("member", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("argumentsOpt", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("argumentNamesOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("accessKind", node.{field.Name}, Nothing),
+                New TreeDumperNode("methodOrPropertyGroupOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitLateAddressOfOperator(node As BoundLateAddressOfOperator, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("lateAddressOfOperator", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("binder", node.Binder, Nothing),
-                New TreeDumperNode("memberAccess", Nothing, new TreeDumperNode() { Visit(node.MemberAccess, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("binder", node.{field.Name}, Nothing),
+                New TreeDumperNode("memberAccess", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitTupleLiteral(node As BoundTupleLiteral, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("tupleLiteral", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("inferredType", node.InferredType, Nothing),
-                New TreeDumperNode("argumentNamesOpt", node.ArgumentNamesOpt, Nothing),
-                New TreeDumperNode("inferredNamesOpt", node.InferredNamesOpt, Nothing),
-                New TreeDumperNode("arguments", Nothing, From x In node.Arguments Select Visit(x, Nothing)),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("inferredType", node.{field.Name}, Nothing),
+                New TreeDumperNode("argumentNamesOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("inferredNamesOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("arguments", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitConvertedTupleLiteral(node As BoundConvertedTupleLiteral, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("convertedTupleLiteral", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("naturalTypeOpt", node.NaturalTypeOpt, Nothing),
-                New TreeDumperNode("arguments", Nothing, From x In node.Arguments Select Visit(x, Nothing)),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("naturalTypeOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("arguments", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitObjectCreationExpression(node As BoundObjectCreationExpression, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("objectCreationExpression", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("constructorOpt", node.ConstructorOpt, Nothing),
-                New TreeDumperNode("methodGroupOpt", Nothing, new TreeDumperNode() { Visit(node.MethodGroupOpt, Nothing) }),
-                New TreeDumperNode("arguments", Nothing, From x In node.Arguments Select Visit(x, Nothing)),
-                New TreeDumperNode("initializerOpt", Nothing, new TreeDumperNode() { Visit(node.InitializerOpt, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("constructorOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("methodGroupOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("arguments", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("initializerOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitNoPiaObjectCreationExpression(node As BoundNoPiaObjectCreationExpression, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("noPiaObjectCreationExpression", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("guidString", node.GuidString, Nothing),
-                New TreeDumperNode("initializerOpt", Nothing, new TreeDumperNode() { Visit(node.InitializerOpt, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("guidString", node.{field.Name}, Nothing),
+                New TreeDumperNode("initializerOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitAnonymousTypeCreationExpression(node As BoundAnonymousTypeCreationExpression, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("anonymousTypeCreationExpression", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("binderOpt", node.BinderOpt, Nothing),
-                New TreeDumperNode("declarations", Nothing, From x In node.Declarations Select Visit(x, Nothing)),
-                New TreeDumperNode("arguments", Nothing, From x In node.Arguments Select Visit(x, Nothing)),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("binderOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("declarations", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("arguments", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitAnonymousTypePropertyAccess(node As BoundAnonymousTypePropertyAccess, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("anonymousTypePropertyAccess", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("binder", node.Binder, Nothing),
-                New TreeDumperNode("propertyIndex", node.PropertyIndex, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("binder", node.{field.Name}, Nothing),
+                New TreeDumperNode("propertyIndex", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitAnonymousTypeFieldInitializer(node As BoundAnonymousTypeFieldInitializer, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("anonymousTypeFieldInitializer", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("binder", node.Binder, Nothing),
-                New TreeDumperNode("value", Nothing, new TreeDumperNode() { Visit(node.Value, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("binder", node.{field.Name}, Nothing),
+                New TreeDumperNode("value", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitObjectInitializerExpression(node As BoundObjectInitializerExpression, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("objectInitializerExpression", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("createTemporaryLocalForInitialization", node.CreateTemporaryLocalForInitialization, Nothing),
-                New TreeDumperNode("binder", node.Binder, Nothing),
-                New TreeDumperNode("placeholderOpt", Nothing, new TreeDumperNode() { Visit(node.PlaceholderOpt, Nothing) }),
-                New TreeDumperNode("initializers", Nothing, From x In node.Initializers Select Visit(x, Nothing)),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("createTemporaryLocalForInitialization", node.{field.Name}, Nothing),
+                New TreeDumperNode("binder", node.{field.Name}, Nothing),
+                New TreeDumperNode("placeholderOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("initializers", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitCollectionInitializerExpression(node As BoundCollectionInitializerExpression, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("collectionInitializerExpression", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("placeholderOpt", Nothing, new TreeDumperNode() { Visit(node.PlaceholderOpt, Nothing) }),
-                New TreeDumperNode("initializers", Nothing, From x In node.Initializers Select Visit(x, Nothing)),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("placeholderOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("initializers", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitNewT(node As BoundNewT, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("newT", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("initializerOpt", Nothing, new TreeDumperNode() { Visit(node.InitializerOpt, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("initializerOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitDelegateCreationExpression(node As BoundDelegateCreationExpression, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("delegateCreationExpression", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("receiverOpt", Nothing, new TreeDumperNode() { Visit(node.ReceiverOpt, Nothing) }),
-                New TreeDumperNode("method", node.Method, Nothing),
-                New TreeDumperNode("relaxationLambdaOpt", Nothing, new TreeDumperNode() { Visit(node.RelaxationLambdaOpt, Nothing) }),
-                New TreeDumperNode("relaxationReceiverPlaceholderOpt", Nothing, new TreeDumperNode() { Visit(node.RelaxationReceiverPlaceholderOpt, Nothing) }),
-                New TreeDumperNode("methodGroupOpt", Nothing, new TreeDumperNode() { Visit(node.MethodGroupOpt, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("receiverOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("method", node.{field.Name}, Nothing),
+                New TreeDumperNode("relaxationLambdaOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("relaxationReceiverPlaceholderOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("methodGroupOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitArrayCreation(node As BoundArrayCreation, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("arrayCreation", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("isParamArrayArgument", node.IsParamArrayArgument, Nothing),
-                New TreeDumperNode("bounds", Nothing, From x In node.Bounds Select Visit(x, Nothing)),
-                New TreeDumperNode("initializerOpt", Nothing, new TreeDumperNode() { Visit(node.InitializerOpt, Nothing) }),
-                New TreeDumperNode("arrayLiteralOpt", Nothing, new TreeDumperNode() { Visit(node.ArrayLiteralOpt, Nothing) }),
-                New TreeDumperNode("arrayLiteralConversion", node.ArrayLiteralConversion, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("isParamArrayArgument", node.{field.Name}, Nothing),
+                New TreeDumperNode("bounds", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("initializerOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("arrayLiteralOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("arrayLiteralConversion", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitArrayLiteral(node As BoundArrayLiteral, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("arrayLiteral", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("hasDominantType", node.HasDominantType, Nothing),
-                New TreeDumperNode("numberOfCandidates", node.NumberOfCandidates, Nothing),
-                New TreeDumperNode("inferredType", node.InferredType, Nothing),
-                New TreeDumperNode("bounds", Nothing, From x In node.Bounds Select Visit(x, Nothing)),
-                New TreeDumperNode("initializer", Nothing, new TreeDumperNode() { Visit(node.Initializer, Nothing) }),
-                New TreeDumperNode("binder", node.Binder, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("hasDominantType", node.{field.Name}, Nothing),
+                New TreeDumperNode("numberOfCandidates", node.{field.Name}, Nothing),
+                New TreeDumperNode("inferredType", node.{field.Name}, Nothing),
+                New TreeDumperNode("bounds", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("initializer", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("binder", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitArrayInitialization(node As BoundArrayInitialization, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("arrayInitialization", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("initializers", Nothing, From x In node.Initializers Select Visit(x, Nothing)),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("initializers", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitFieldAccess(node As BoundFieldAccess, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("fieldAccess", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("receiverOpt", Nothing, new TreeDumperNode() { Visit(node.ReceiverOpt, Nothing) }),
-                New TreeDumperNode("fieldSymbol", node.FieldSymbol, Nothing),
-                New TreeDumperNode("isLValue", node.IsLValue, Nothing),
-                New TreeDumperNode("suppressVirtualCalls", node.SuppressVirtualCalls, Nothing),
-                New TreeDumperNode("constantsInProgressOpt", node.ConstantsInProgressOpt, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("receiverOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("fieldSymbol", node.{field.Name}, Nothing),
+                New TreeDumperNode("isLValue", node.{field.Name}, Nothing),
+                New TreeDumperNode("suppressVirtualCalls", node.{field.Name}, Nothing),
+                New TreeDumperNode("constantsInProgressOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitPropertyAccess(node As BoundPropertyAccess, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("propertyAccess", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("propertySymbol", node.PropertySymbol, Nothing),
-                New TreeDumperNode("propertyGroupOpt", Nothing, new TreeDumperNode() { Visit(node.PropertyGroupOpt, Nothing) }),
-                New TreeDumperNode("accessKind", node.AccessKind, Nothing),
-                New TreeDumperNode("isWriteable", node.IsWriteable, Nothing),
-                New TreeDumperNode("isLValue", node.IsLValue, Nothing),
-                New TreeDumperNode("receiverOpt", Nothing, new TreeDumperNode() { Visit(node.ReceiverOpt, Nothing) }),
-                New TreeDumperNode("arguments", Nothing, From x In node.Arguments Select Visit(x, Nothing)),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("propertySymbol", node.{field.Name}, Nothing),
+                New TreeDumperNode("propertyGroupOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("accessKind", node.{field.Name}, Nothing),
+                New TreeDumperNode("isWriteable", node.{field.Name}, Nothing),
+                New TreeDumperNode("isLValue", node.{field.Name}, Nothing),
+                New TreeDumperNode("receiverOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("arguments", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitEventAccess(node As BoundEventAccess, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("eventAccess", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("receiverOpt", Nothing, new TreeDumperNode() { Visit(node.ReceiverOpt, Nothing) }),
-                New TreeDumperNode("eventSymbol", node.EventSymbol, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("receiverOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("eventSymbol", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitBlock(node As BoundBlock, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("block", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("statementListSyntax", node.StatementListSyntax, Nothing),
-                New TreeDumperNode("locals", node.Locals, Nothing),
-                New TreeDumperNode("statements", Nothing, From x In node.Statements Select Visit(x, Nothing))
+                New TreeDumperNode("statementListSyntax", node.{field.Name}, Nothing),
+                New TreeDumperNode("locals", node.{field.Name}, Nothing),
+                New TreeDumperNode("statements", Nothing, From x In node.{field.Name} Select Visit(x, Nothing))
             })
         End Function
 
         Public Overrides Function VisitStateMachineScope(node As BoundStateMachineScope, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("stateMachineScope", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("fields", node.Fields, Nothing),
-                New TreeDumperNode("statement", Nothing, new TreeDumperNode() { Visit(node.Statement, Nothing) })
+                New TreeDumperNode("fields", node.{field.Name}, Nothing),
+                New TreeDumperNode("statement", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitLocalDeclaration(node As BoundLocalDeclaration, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("localDeclaration", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("localSymbol", node.LocalSymbol, Nothing),
-                New TreeDumperNode("initializerOpt", Nothing, new TreeDumperNode() { Visit(node.InitializerOpt, Nothing) }),
-                New TreeDumperNode("initializedByAsNew", node.InitializedByAsNew, Nothing)
+                New TreeDumperNode("localSymbol", node.{field.Name}, Nothing),
+                New TreeDumperNode("initializerOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("initializedByAsNew", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitAsNewLocalDeclarations(node As BoundAsNewLocalDeclarations, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("asNewLocalDeclarations", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("localDeclarations", Nothing, From x In node.LocalDeclarations Select Visit(x, Nothing)),
-                New TreeDumperNode("initializer", Nothing, new TreeDumperNode() { Visit(node.Initializer, Nothing) })
+                New TreeDumperNode("localDeclarations", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("initializer", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitDimStatement(node As BoundDimStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("dimStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("localDeclarations", Nothing, From x In node.LocalDeclarations Select Visit(x, Nothing)),
-                New TreeDumperNode("initializerOpt", Nothing, new TreeDumperNode() { Visit(node.InitializerOpt, Nothing) })
+                New TreeDumperNode("localDeclarations", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("initializerOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
@@ -14228,660 +14228,660 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitFieldInitializer(node As BoundFieldInitializer, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("fieldInitializer", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("initializedFields", node.InitializedFields, Nothing),
-                New TreeDumperNode("memberAccessExpressionOpt", Nothing, new TreeDumperNode() { Visit(node.MemberAccessExpressionOpt, Nothing) }),
-                New TreeDumperNode("initialValue", Nothing, new TreeDumperNode() { Visit(node.InitialValue, Nothing) })
+                New TreeDumperNode("initializedFields", node.{field.Name}, Nothing),
+                New TreeDumperNode("memberAccessExpressionOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("initialValue", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitPropertyInitializer(node As BoundPropertyInitializer, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("propertyInitializer", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("initializedProperties", node.InitializedProperties, Nothing),
-                New TreeDumperNode("memberAccessExpressionOpt", Nothing, new TreeDumperNode() { Visit(node.MemberAccessExpressionOpt, Nothing) }),
-                New TreeDumperNode("initialValue", Nothing, new TreeDumperNode() { Visit(node.InitialValue, Nothing) })
+                New TreeDumperNode("initializedProperties", node.{field.Name}, Nothing),
+                New TreeDumperNode("memberAccessExpressionOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("initialValue", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitParameterEqualsValue(node As BoundParameterEqualsValue, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("parameterEqualsValue", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("parameter", node.Parameter, Nothing),
-                New TreeDumperNode("value", Nothing, new TreeDumperNode() { Visit(node.Value, Nothing) })
+                New TreeDumperNode("parameter", node.{field.Name}, Nothing),
+                New TreeDumperNode("value", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitGlobalStatementInitializer(node As BoundGlobalStatementInitializer, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("globalStatementInitializer", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("statement", Nothing, new TreeDumperNode() { Visit(node.Statement, Nothing) })
+                New TreeDumperNode("statement", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitSequence(node As BoundSequence, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("sequence", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("locals", node.Locals, Nothing),
-                New TreeDumperNode("sideEffects", Nothing, From x In node.SideEffects Select Visit(x, Nothing)),
-                New TreeDumperNode("valueOpt", Nothing, new TreeDumperNode() { Visit(node.ValueOpt, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("locals", node.{field.Name}, Nothing),
+                New TreeDumperNode("sideEffects", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("valueOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitExpressionStatement(node As BoundExpressionStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("expressionStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("expression", Nothing, new TreeDumperNode() { Visit(node.Expression, Nothing) })
+                New TreeDumperNode("expression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitIfStatement(node As BoundIfStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("ifStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("condition", Nothing, new TreeDumperNode() { Visit(node.Condition, Nothing) }),
-                New TreeDumperNode("consequence", Nothing, new TreeDumperNode() { Visit(node.Consequence, Nothing) }),
-                New TreeDumperNode("alternativeOpt", Nothing, new TreeDumperNode() { Visit(node.AlternativeOpt, Nothing) })
+                New TreeDumperNode("condition", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("consequence", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("alternativeOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitSelectStatement(node As BoundSelectStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("selectStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("expressionStatement", Nothing, new TreeDumperNode() { Visit(node.ExpressionStatement, Nothing) }),
-                New TreeDumperNode("exprPlaceholderOpt", Nothing, new TreeDumperNode() { Visit(node.ExprPlaceholderOpt, Nothing) }),
-                New TreeDumperNode("caseBlocks", Nothing, From x In node.CaseBlocks Select Visit(x, Nothing)),
-                New TreeDumperNode("recommendSwitchTable", node.RecommendSwitchTable, Nothing),
-                New TreeDumperNode("exitLabel", node.ExitLabel, Nothing)
+                New TreeDumperNode("expressionStatement", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("exprPlaceholderOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("caseBlocks", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("recommendSwitchTable", node.{field.Name}, Nothing),
+                New TreeDumperNode("exitLabel", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitCaseBlock(node As BoundCaseBlock, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("caseBlock", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("caseStatement", Nothing, new TreeDumperNode() { Visit(node.CaseStatement, Nothing) }),
-                New TreeDumperNode("body", Nothing, new TreeDumperNode() { Visit(node.Body, Nothing) })
+                New TreeDumperNode("caseStatement", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("body", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitCaseStatement(node As BoundCaseStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("caseStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("caseClauses", Nothing, From x In node.CaseClauses Select Visit(x, Nothing)),
-                New TreeDumperNode("conditionOpt", Nothing, new TreeDumperNode() { Visit(node.ConditionOpt, Nothing) })
+                New TreeDumperNode("caseClauses", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("conditionOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitSimpleCaseClause(node As BoundSimpleCaseClause, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("simpleCaseClause", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("valueOpt", Nothing, new TreeDumperNode() { Visit(node.ValueOpt, Nothing) }),
-                New TreeDumperNode("conditionOpt", Nothing, new TreeDumperNode() { Visit(node.ConditionOpt, Nothing) })
+                New TreeDumperNode("valueOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("conditionOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitRangeCaseClause(node As BoundRangeCaseClause, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("rangeCaseClause", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("lowerBoundOpt", Nothing, new TreeDumperNode() { Visit(node.LowerBoundOpt, Nothing) }),
-                New TreeDumperNode("upperBoundOpt", Nothing, new TreeDumperNode() { Visit(node.UpperBoundOpt, Nothing) }),
-                New TreeDumperNode("lowerBoundConditionOpt", Nothing, new TreeDumperNode() { Visit(node.LowerBoundConditionOpt, Nothing) }),
-                New TreeDumperNode("upperBoundConditionOpt", Nothing, new TreeDumperNode() { Visit(node.UpperBoundConditionOpt, Nothing) })
+                New TreeDumperNode("lowerBoundOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("upperBoundOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("lowerBoundConditionOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("upperBoundConditionOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitRelationalCaseClause(node As BoundRelationalCaseClause, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("relationalCaseClause", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("operatorKind", node.OperatorKind, Nothing),
-                New TreeDumperNode("operandOpt", Nothing, new TreeDumperNode() { Visit(node.OperandOpt, Nothing) }),
-                New TreeDumperNode("conditionOpt", Nothing, new TreeDumperNode() { Visit(node.ConditionOpt, Nothing) })
+                New TreeDumperNode("operatorKind", node.{field.Name}, Nothing),
+                New TreeDumperNode("operandOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("conditionOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitDoLoopStatement(node As BoundDoLoopStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("doLoopStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("topConditionOpt", Nothing, new TreeDumperNode() { Visit(node.TopConditionOpt, Nothing) }),
-                New TreeDumperNode("bottomConditionOpt", Nothing, new TreeDumperNode() { Visit(node.BottomConditionOpt, Nothing) }),
-                New TreeDumperNode("topConditionIsUntil", node.TopConditionIsUntil, Nothing),
-                New TreeDumperNode("bottomConditionIsUntil", node.BottomConditionIsUntil, Nothing),
-                New TreeDumperNode("body", Nothing, new TreeDumperNode() { Visit(node.Body, Nothing) }),
-                New TreeDumperNode("continueLabel", node.ContinueLabel, Nothing),
-                New TreeDumperNode("exitLabel", node.ExitLabel, Nothing)
+                New TreeDumperNode("topConditionOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("bottomConditionOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("topConditionIsUntil", node.{field.Name}, Nothing),
+                New TreeDumperNode("bottomConditionIsUntil", node.{field.Name}, Nothing),
+                New TreeDumperNode("body", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("continueLabel", node.{field.Name}, Nothing),
+                New TreeDumperNode("exitLabel", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitWhileStatement(node As BoundWhileStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("whileStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("condition", Nothing, new TreeDumperNode() { Visit(node.Condition, Nothing) }),
-                New TreeDumperNode("body", Nothing, new TreeDumperNode() { Visit(node.Body, Nothing) }),
-                New TreeDumperNode("continueLabel", node.ContinueLabel, Nothing),
-                New TreeDumperNode("exitLabel", node.ExitLabel, Nothing)
+                New TreeDumperNode("condition", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("body", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("continueLabel", node.{field.Name}, Nothing),
+                New TreeDumperNode("exitLabel", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitForToUserDefinedOperators(node As BoundForToUserDefinedOperators, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("forToUserDefinedOperators", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("leftOperandPlaceholder", Nothing, new TreeDumperNode() { Visit(node.LeftOperandPlaceholder, Nothing) }),
-                New TreeDumperNode("rightOperandPlaceholder", Nothing, new TreeDumperNode() { Visit(node.RightOperandPlaceholder, Nothing) }),
-                New TreeDumperNode("addition", Nothing, new TreeDumperNode() { Visit(node.Addition, Nothing) }),
-                New TreeDumperNode("subtraction", Nothing, new TreeDumperNode() { Visit(node.Subtraction, Nothing) }),
-                New TreeDumperNode("lessThanOrEqual", Nothing, new TreeDumperNode() { Visit(node.LessThanOrEqual, Nothing) }),
-                New TreeDumperNode("greaterThanOrEqual", Nothing, new TreeDumperNode() { Visit(node.GreaterThanOrEqual, Nothing) })
+                New TreeDumperNode("leftOperandPlaceholder", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("rightOperandPlaceholder", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("addition", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("subtraction", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("lessThanOrEqual", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("greaterThanOrEqual", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitForToStatement(node As BoundForToStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("forToStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("initialValue", Nothing, new TreeDumperNode() { Visit(node.InitialValue, Nothing) }),
-                New TreeDumperNode("limitValue", Nothing, new TreeDumperNode() { Visit(node.LimitValue, Nothing) }),
-                New TreeDumperNode("stepValue", Nothing, new TreeDumperNode() { Visit(node.StepValue, Nothing) }),
-                New TreeDumperNode("checked", node.Checked, Nothing),
-                New TreeDumperNode("operatorsOpt", Nothing, new TreeDumperNode() { Visit(node.OperatorsOpt, Nothing) }),
-                New TreeDumperNode("declaredOrInferredLocalOpt", node.DeclaredOrInferredLocalOpt, Nothing),
-                New TreeDumperNode("controlVariable", Nothing, new TreeDumperNode() { Visit(node.ControlVariable, Nothing) }),
-                New TreeDumperNode("body", Nothing, new TreeDumperNode() { Visit(node.Body, Nothing) }),
-                New TreeDumperNode("nextVariablesOpt", Nothing, From x In node.NextVariablesOpt Select Visit(x, Nothing)),
-                New TreeDumperNode("continueLabel", node.ContinueLabel, Nothing),
-                New TreeDumperNode("exitLabel", node.ExitLabel, Nothing)
+                New TreeDumperNode("initialValue", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("limitValue", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("stepValue", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("checked", node.{field.Name}, Nothing),
+                New TreeDumperNode("operatorsOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("declaredOrInferredLocalOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("controlVariable", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("body", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("nextVariablesOpt", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("continueLabel", node.{field.Name}, Nothing),
+                New TreeDumperNode("exitLabel", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitForEachStatement(node As BoundForEachStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("forEachStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("collection", Nothing, new TreeDumperNode() { Visit(node.Collection, Nothing) }),
-                New TreeDumperNode("enumeratorInfo", node.EnumeratorInfo, Nothing),
-                New TreeDumperNode("declaredOrInferredLocalOpt", node.DeclaredOrInferredLocalOpt, Nothing),
-                New TreeDumperNode("controlVariable", Nothing, new TreeDumperNode() { Visit(node.ControlVariable, Nothing) }),
-                New TreeDumperNode("body", Nothing, new TreeDumperNode() { Visit(node.Body, Nothing) }),
-                New TreeDumperNode("nextVariablesOpt", Nothing, From x In node.NextVariablesOpt Select Visit(x, Nothing)),
-                New TreeDumperNode("continueLabel", node.ContinueLabel, Nothing),
-                New TreeDumperNode("exitLabel", node.ExitLabel, Nothing)
+                New TreeDumperNode("collection", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("enumeratorInfo", node.{field.Name}, Nothing),
+                New TreeDumperNode("declaredOrInferredLocalOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("controlVariable", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("body", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("nextVariablesOpt", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("continueLabel", node.{field.Name}, Nothing),
+                New TreeDumperNode("exitLabel", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitExitStatement(node As BoundExitStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("exitStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("label", node.Label, Nothing)
+                New TreeDumperNode("label", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitContinueStatement(node As BoundContinueStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("continueStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("label", node.Label, Nothing)
+                New TreeDumperNode("label", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitTryStatement(node As BoundTryStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("tryStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("tryBlock", Nothing, new TreeDumperNode() { Visit(node.TryBlock, Nothing) }),
-                New TreeDumperNode("catchBlocks", Nothing, From x In node.CatchBlocks Select Visit(x, Nothing)),
-                New TreeDumperNode("finallyBlockOpt", Nothing, new TreeDumperNode() { Visit(node.FinallyBlockOpt, Nothing) }),
-                New TreeDumperNode("exitLabelOpt", node.ExitLabelOpt, Nothing)
+                New TreeDumperNode("tryBlock", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("catchBlocks", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("finallyBlockOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("exitLabelOpt", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitCatchBlock(node As BoundCatchBlock, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("catchBlock", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("localOpt", node.LocalOpt, Nothing),
-                New TreeDumperNode("exceptionSourceOpt", Nothing, new TreeDumperNode() { Visit(node.ExceptionSourceOpt, Nothing) }),
-                New TreeDumperNode("errorLineNumberOpt", Nothing, new TreeDumperNode() { Visit(node.ErrorLineNumberOpt, Nothing) }),
-                New TreeDumperNode("exceptionFilterOpt", Nothing, new TreeDumperNode() { Visit(node.ExceptionFilterOpt, Nothing) }),
-                New TreeDumperNode("body", Nothing, new TreeDumperNode() { Visit(node.Body, Nothing) }),
-                New TreeDumperNode("isSynthesizedAsyncCatchAll", node.IsSynthesizedAsyncCatchAll, Nothing)
+                New TreeDumperNode("localOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("exceptionSourceOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("errorLineNumberOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("exceptionFilterOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("body", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("isSynthesizedAsyncCatchAll", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitLiteral(node As BoundLiteral, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("literal", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("value", node.Value, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("value", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitMeReference(node As BoundMeReference, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("meReference", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitValueTypeMeReference(node As BoundValueTypeMeReference, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("valueTypeMeReference", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitMyBaseReference(node As BoundMyBaseReference, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("myBaseReference", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitMyClassReference(node As BoundMyClassReference, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("myClassReference", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitPreviousSubmissionReference(node As BoundPreviousSubmissionReference, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("previousSubmissionReference", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("sourceType", node.SourceType, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("sourceType", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitHostObjectMemberReference(node As BoundHostObjectMemberReference, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("hostObjectMemberReference", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitLocal(node As BoundLocal, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("local", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("localSymbol", node.LocalSymbol, Nothing),
-                New TreeDumperNode("isLValue", node.IsLValue, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("localSymbol", node.{field.Name}, Nothing),
+                New TreeDumperNode("isLValue", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitPseudoVariable(node As BoundPseudoVariable, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("pseudoVariable", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("localSymbol", node.LocalSymbol, Nothing),
-                New TreeDumperNode("isLValue", node.IsLValue, Nothing),
-                New TreeDumperNode("emitExpressions", node.EmitExpressions, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("localSymbol", node.{field.Name}, Nothing),
+                New TreeDumperNode("isLValue", node.{field.Name}, Nothing),
+                New TreeDumperNode("emitExpressions", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitParameter(node As BoundParameter, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("parameter", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("parameterSymbol", node.ParameterSymbol, Nothing),
-                New TreeDumperNode("isLValue", node.IsLValue, Nothing),
-                New TreeDumperNode("suppressVirtualCalls", node.SuppressVirtualCalls, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("parameterSymbol", node.{field.Name}, Nothing),
+                New TreeDumperNode("isLValue", node.{field.Name}, Nothing),
+                New TreeDumperNode("suppressVirtualCalls", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitByRefArgumentPlaceholder(node As BoundByRefArgumentPlaceholder, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("byRefArgumentPlaceholder", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("isOut", node.IsOut, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("isOut", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitByRefArgumentWithCopyBack(node As BoundByRefArgumentWithCopyBack, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("byRefArgumentWithCopyBack", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("originalArgument", Nothing, new TreeDumperNode() { Visit(node.OriginalArgument, Nothing) }),
-                New TreeDumperNode("inConversion", Nothing, new TreeDumperNode() { Visit(node.InConversion, Nothing) }),
-                New TreeDumperNode("inPlaceholder", Nothing, new TreeDumperNode() { Visit(node.InPlaceholder, Nothing) }),
-                New TreeDumperNode("outConversion", Nothing, new TreeDumperNode() { Visit(node.OutConversion, Nothing) }),
-                New TreeDumperNode("outPlaceholder", Nothing, new TreeDumperNode() { Visit(node.OutPlaceholder, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("originalArgument", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("inConversion", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("inPlaceholder", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("outConversion", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("outPlaceholder", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitLateBoundArgumentSupportingAssignmentWithCapture(node As BoundLateBoundArgumentSupportingAssignmentWithCapture, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("lateBoundArgumentSupportingAssignmentWithCapture", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("originalArgument", Nothing, new TreeDumperNode() { Visit(node.OriginalArgument, Nothing) }),
-                New TreeDumperNode("localSymbol", node.LocalSymbol, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("originalArgument", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("localSymbol", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitLabelStatement(node As BoundLabelStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("labelStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("label", node.Label, Nothing)
+                New TreeDumperNode("label", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitLabel(node As BoundLabel, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("label", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("label", node.Label, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("label", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitGotoStatement(node As BoundGotoStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("gotoStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("label", node.Label, Nothing),
-                New TreeDumperNode("labelExpressionOpt", Nothing, new TreeDumperNode() { Visit(node.LabelExpressionOpt, Nothing) })
+                New TreeDumperNode("label", node.{field.Name}, Nothing),
+                New TreeDumperNode("labelExpressionOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitStatementList(node As BoundStatementList, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("statementList", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("statements", Nothing, From x In node.Statements Select Visit(x, Nothing))
+                New TreeDumperNode("statements", Nothing, From x In node.{field.Name} Select Visit(x, Nothing))
             })
         End Function
 
         Public Overrides Function VisitConditionalGoto(node As BoundConditionalGoto, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("conditionalGoto", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("condition", Nothing, new TreeDumperNode() { Visit(node.Condition, Nothing) }),
-                New TreeDumperNode("jumpIfTrue", node.JumpIfTrue, Nothing),
-                New TreeDumperNode("label", node.Label, Nothing)
+                New TreeDumperNode("condition", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("jumpIfTrue", node.{field.Name}, Nothing),
+                New TreeDumperNode("label", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitWithStatement(node As BoundWithStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("withStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("originalExpression", Nothing, new TreeDumperNode() { Visit(node.OriginalExpression, Nothing) }),
-                New TreeDumperNode("body", Nothing, new TreeDumperNode() { Visit(node.Body, Nothing) }),
-                New TreeDumperNode("binder", node.Binder, Nothing)
+                New TreeDumperNode("originalExpression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("body", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("binder", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitUnboundLambda(node As UnboundLambda, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("unboundLambda", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("binder", node.Binder, Nothing),
-                New TreeDumperNode("flags", node.Flags, Nothing),
-                New TreeDumperNode("parameters", node.Parameters, Nothing),
-                New TreeDumperNode("returnType", node.ReturnType, Nothing),
-                New TreeDumperNode("bindingCache", node.BindingCache, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("binder", node.{field.Name}, Nothing),
+                New TreeDumperNode("flags", node.{field.Name}, Nothing),
+                New TreeDumperNode("parameters", node.{field.Name}, Nothing),
+                New TreeDumperNode("returnType", node.{field.Name}, Nothing),
+                New TreeDumperNode("bindingCache", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitLambda(node As BoundLambda, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("lambda", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("lambdaSymbol", node.LambdaSymbol, Nothing),
-                New TreeDumperNode("body", Nothing, new TreeDumperNode() { Visit(node.Body, Nothing) }),
-                New TreeDumperNode("diagnostics", node.Diagnostics, Nothing),
-                New TreeDumperNode("lambdaBinderOpt", node.LambdaBinderOpt, Nothing),
-                New TreeDumperNode("delegateRelaxation", node.DelegateRelaxation, Nothing),
-                New TreeDumperNode("methodConversionKind", node.MethodConversionKind, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("lambdaSymbol", node.{field.Name}, Nothing),
+                New TreeDumperNode("body", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("diagnostics", node.{field.Name}, Nothing),
+                New TreeDumperNode("lambdaBinderOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("delegateRelaxation", node.{field.Name}, Nothing),
+                New TreeDumperNode("methodConversionKind", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitQueryExpression(node As BoundQueryExpression, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("queryExpression", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("lastOperator", Nothing, new TreeDumperNode() { Visit(node.LastOperator, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("lastOperator", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitQuerySource(node As BoundQuerySource, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("querySource", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("expression", Nothing, new TreeDumperNode() { Visit(node.Expression, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("expression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitToQueryableCollectionConversion(node As BoundToQueryableCollectionConversion, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("toQueryableCollectionConversion", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("conversionCall", Nothing, new TreeDumperNode() { Visit(node.ConversionCall, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("conversionCall", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitQueryableSource(node As BoundQueryableSource, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("queryableSource", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("source", Nothing, new TreeDumperNode() { Visit(node.Source, Nothing) }),
-                New TreeDumperNode("rangeVariableOpt", node.RangeVariableOpt, Nothing),
-                New TreeDumperNode("rangeVariables", node.RangeVariables, Nothing),
-                New TreeDumperNode("compoundVariableType", node.CompoundVariableType, Nothing),
-                New TreeDumperNode("binders", node.Binders, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("source", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("rangeVariableOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("rangeVariables", node.{field.Name}, Nothing),
+                New TreeDumperNode("compoundVariableType", node.{field.Name}, Nothing),
+                New TreeDumperNode("binders", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitQueryClause(node As BoundQueryClause, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("queryClause", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("underlyingExpression", Nothing, new TreeDumperNode() { Visit(node.UnderlyingExpression, Nothing) }),
-                New TreeDumperNode("rangeVariables", node.RangeVariables, Nothing),
-                New TreeDumperNode("compoundVariableType", node.CompoundVariableType, Nothing),
-                New TreeDumperNode("binders", node.Binders, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("underlyingExpression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("rangeVariables", node.{field.Name}, Nothing),
+                New TreeDumperNode("compoundVariableType", node.{field.Name}, Nothing),
+                New TreeDumperNode("binders", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitOrdering(node As BoundOrdering, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("ordering", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("underlyingExpression", Nothing, new TreeDumperNode() { Visit(node.UnderlyingExpression, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("underlyingExpression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitQueryLambda(node As BoundQueryLambda, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("queryLambda", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("lambdaSymbol", node.LambdaSymbol, Nothing),
-                New TreeDumperNode("rangeVariables", node.RangeVariables, Nothing),
-                New TreeDumperNode("expression", Nothing, new TreeDumperNode() { Visit(node.Expression, Nothing) }),
-                New TreeDumperNode("exprIsOperandOfConditionalBranch", node.ExprIsOperandOfConditionalBranch, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("lambdaSymbol", node.{field.Name}, Nothing),
+                New TreeDumperNode("rangeVariables", node.{field.Name}, Nothing),
+                New TreeDumperNode("expression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("exprIsOperandOfConditionalBranch", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitRangeVariableAssignment(node As BoundRangeVariableAssignment, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("rangeVariableAssignment", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("rangeVariable", node.RangeVariable, Nothing),
-                New TreeDumperNode("value", Nothing, new TreeDumperNode() { Visit(node.Value, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("rangeVariable", node.{field.Name}, Nothing),
+                New TreeDumperNode("value", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitGroupTypeInferenceLambda(node As GroupTypeInferenceLambda, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("groupTypeInferenceLambda", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("binder", node.Binder, Nothing),
-                New TreeDumperNode("parameters", node.Parameters, Nothing),
-                New TreeDumperNode("compilation", node.Compilation, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("binder", node.{field.Name}, Nothing),
+                New TreeDumperNode("parameters", node.{field.Name}, Nothing),
+                New TreeDumperNode("compilation", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitAggregateClause(node As BoundAggregateClause, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("aggregateClause", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("capturedGroupOpt", Nothing, new TreeDumperNode() { Visit(node.CapturedGroupOpt, Nothing) }),
-                New TreeDumperNode("groupPlaceholderOpt", Nothing, new TreeDumperNode() { Visit(node.GroupPlaceholderOpt, Nothing) }),
-                New TreeDumperNode("underlyingExpression", Nothing, new TreeDumperNode() { Visit(node.UnderlyingExpression, Nothing) }),
-                New TreeDumperNode("rangeVariables", node.RangeVariables, Nothing),
-                New TreeDumperNode("compoundVariableType", node.CompoundVariableType, Nothing),
-                New TreeDumperNode("binders", node.Binders, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("capturedGroupOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("groupPlaceholderOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("underlyingExpression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("rangeVariables", node.{field.Name}, Nothing),
+                New TreeDumperNode("compoundVariableType", node.{field.Name}, Nothing),
+                New TreeDumperNode("binders", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitGroupAggregation(node As BoundGroupAggregation, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("groupAggregation", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("group", Nothing, new TreeDumperNode() { Visit(node.Group, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("group", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitRangeVariable(node As BoundRangeVariable, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("rangeVariable", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("rangeVariable", node.RangeVariable, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("rangeVariable", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitAddHandlerStatement(node As BoundAddHandlerStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("addHandlerStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("eventAccess", Nothing, new TreeDumperNode() { Visit(node.EventAccess, Nothing) }),
-                New TreeDumperNode("handler", Nothing, new TreeDumperNode() { Visit(node.Handler, Nothing) })
+                New TreeDumperNode("eventAccess", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("handler", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitRemoveHandlerStatement(node As BoundRemoveHandlerStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("removeHandlerStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("eventAccess", Nothing, new TreeDumperNode() { Visit(node.EventAccess, Nothing) }),
-                New TreeDumperNode("handler", Nothing, new TreeDumperNode() { Visit(node.Handler, Nothing) })
+                New TreeDumperNode("eventAccess", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("handler", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitRaiseEventStatement(node As BoundRaiseEventStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("raiseEventStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("eventSymbol", node.EventSymbol, Nothing),
-                New TreeDumperNode("eventInvocation", Nothing, new TreeDumperNode() { Visit(node.EventInvocation, Nothing) })
+                New TreeDumperNode("eventSymbol", node.{field.Name}, Nothing),
+                New TreeDumperNode("eventInvocation", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitUsingStatement(node As BoundUsingStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("usingStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("resourceList", Nothing, From x In node.ResourceList Select Visit(x, Nothing)),
-                New TreeDumperNode("resourceExpressionOpt", Nothing, new TreeDumperNode() { Visit(node.ResourceExpressionOpt, Nothing) }),
-                New TreeDumperNode("body", Nothing, new TreeDumperNode() { Visit(node.Body, Nothing) }),
-                New TreeDumperNode("usingInfo", node.UsingInfo, Nothing)
+                New TreeDumperNode("resourceList", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("resourceExpressionOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("body", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("usingInfo", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitSyncLockStatement(node As BoundSyncLockStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("syncLockStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("lockExpression", Nothing, new TreeDumperNode() { Visit(node.LockExpression, Nothing) }),
-                New TreeDumperNode("body", Nothing, new TreeDumperNode() { Visit(node.Body, Nothing) })
+                New TreeDumperNode("lockExpression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("body", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitXmlName(node As BoundXmlName, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("xmlName", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("xmlNamespace", Nothing, new TreeDumperNode() { Visit(node.XmlNamespace, Nothing) }),
-                New TreeDumperNode("localName", Nothing, new TreeDumperNode() { Visit(node.LocalName, Nothing) }),
-                New TreeDumperNode("objectCreation", Nothing, new TreeDumperNode() { Visit(node.ObjectCreation, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("xmlNamespace", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("localName", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("objectCreation", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitXmlNamespace(node As BoundXmlNamespace, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("xmlNamespace", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("xmlNamespace", Nothing, new TreeDumperNode() { Visit(node.XmlNamespace, Nothing) }),
-                New TreeDumperNode("objectCreation", Nothing, new TreeDumperNode() { Visit(node.ObjectCreation, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("xmlNamespace", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("objectCreation", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitXmlDocument(node As BoundXmlDocument, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("xmlDocument", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("declaration", Nothing, new TreeDumperNode() { Visit(node.Declaration, Nothing) }),
-                New TreeDumperNode("childNodes", Nothing, From x In node.ChildNodes Select Visit(x, Nothing)),
-                New TreeDumperNode("rewriterInfo", node.RewriterInfo, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("declaration", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("childNodes", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("rewriterInfo", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitXmlDeclaration(node As BoundXmlDeclaration, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("xmlDeclaration", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("version", Nothing, new TreeDumperNode() { Visit(node.Version, Nothing) }),
-                New TreeDumperNode("encoding", Nothing, new TreeDumperNode() { Visit(node.Encoding, Nothing) }),
-                New TreeDumperNode("standalone", Nothing, new TreeDumperNode() { Visit(node.Standalone, Nothing) }),
-                New TreeDumperNode("objectCreation", Nothing, new TreeDumperNode() { Visit(node.ObjectCreation, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("version", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("encoding", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("standalone", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("objectCreation", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitXmlProcessingInstruction(node As BoundXmlProcessingInstruction, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("xmlProcessingInstruction", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("target", Nothing, new TreeDumperNode() { Visit(node.Target, Nothing) }),
-                New TreeDumperNode("data", Nothing, new TreeDumperNode() { Visit(node.Data, Nothing) }),
-                New TreeDumperNode("objectCreation", Nothing, new TreeDumperNode() { Visit(node.ObjectCreation, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("target", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("data", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("objectCreation", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitXmlComment(node As BoundXmlComment, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("xmlComment", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("value", Nothing, new TreeDumperNode() { Visit(node.Value, Nothing) }),
-                New TreeDumperNode("objectCreation", Nothing, new TreeDumperNode() { Visit(node.ObjectCreation, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("value", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("objectCreation", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitXmlAttribute(node As BoundXmlAttribute, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("xmlAttribute", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("name", Nothing, new TreeDumperNode() { Visit(node.Name, Nothing) }),
-                New TreeDumperNode("value", Nothing, new TreeDumperNode() { Visit(node.Value, Nothing) }),
-                New TreeDumperNode("matchesImport", node.MatchesImport, Nothing),
-                New TreeDumperNode("objectCreation", Nothing, new TreeDumperNode() { Visit(node.ObjectCreation, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("name", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("value", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("matchesImport", node.{field.Name}, Nothing),
+                New TreeDumperNode("objectCreation", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitXmlElement(node As BoundXmlElement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("xmlElement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("argument", Nothing, new TreeDumperNode() { Visit(node.Argument, Nothing) }),
-                New TreeDumperNode("childNodes", Nothing, From x In node.ChildNodes Select Visit(x, Nothing)),
-                New TreeDumperNode("rewriterInfo", node.RewriterInfo, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("argument", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("childNodes", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("rewriterInfo", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitXmlMemberAccess(node As BoundXmlMemberAccess, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("xmlMemberAccess", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("memberAccess", Nothing, new TreeDumperNode() { Visit(node.MemberAccess, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("memberAccess", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitXmlEmbeddedExpression(node As BoundXmlEmbeddedExpression, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("xmlEmbeddedExpression", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("expression", Nothing, new TreeDumperNode() { Visit(node.Expression, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("expression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitXmlCData(node As BoundXmlCData, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("xmlCData", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("value", Nothing, new TreeDumperNode() { Visit(node.Value, Nothing) }),
-                New TreeDumperNode("objectCreation", Nothing, new TreeDumperNode() { Visit(node.ObjectCreation, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("value", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("objectCreation", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitResumeStatement(node As BoundResumeStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("resumeStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("resumeKind", node.ResumeKind, Nothing),
-                New TreeDumperNode("labelOpt", node.LabelOpt, Nothing),
-                New TreeDumperNode("labelExpressionOpt", Nothing, new TreeDumperNode() { Visit(node.LabelExpressionOpt, Nothing) })
+                New TreeDumperNode("resumeKind", node.{field.Name}, Nothing),
+                New TreeDumperNode("labelOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("labelExpressionOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitOnErrorStatement(node As BoundOnErrorStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("onErrorStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("onErrorKind", node.OnErrorKind, Nothing),
-                New TreeDumperNode("labelOpt", node.LabelOpt, Nothing),
-                New TreeDumperNode("labelExpressionOpt", Nothing, new TreeDumperNode() { Visit(node.LabelExpressionOpt, Nothing) })
+                New TreeDumperNode("onErrorKind", node.{field.Name}, Nothing),
+                New TreeDumperNode("labelOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("labelExpressionOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitUnstructuredExceptionHandlingStatement(node As BoundUnstructuredExceptionHandlingStatement, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("unstructuredExceptionHandlingStatement", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("containsOnError", node.ContainsOnError, Nothing),
-                New TreeDumperNode("containsResume", node.ContainsResume, Nothing),
-                New TreeDumperNode("resumeWithoutLabelOpt", node.ResumeWithoutLabelOpt, Nothing),
-                New TreeDumperNode("trackLineNumber", node.TrackLineNumber, Nothing),
-                New TreeDumperNode("body", Nothing, new TreeDumperNode() { Visit(node.Body, Nothing) })
+                New TreeDumperNode("containsOnError", node.{field.Name}, Nothing),
+                New TreeDumperNode("containsResume", node.{field.Name}, Nothing),
+                New TreeDumperNode("resumeWithoutLabelOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("trackLineNumber", node.{field.Name}, Nothing),
+                New TreeDumperNode("body", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 
         Public Overrides Function VisitUnstructuredExceptionHandlingCatchFilter(node As BoundUnstructuredExceptionHandlingCatchFilter, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("unstructuredExceptionHandlingCatchFilter", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("activeHandlerLocal", Nothing, new TreeDumperNode() { Visit(node.ActiveHandlerLocal, Nothing) }),
-                New TreeDumperNode("resumeTargetLocal", Nothing, new TreeDumperNode() { Visit(node.ResumeTargetLocal, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("activeHandlerLocal", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("resumeTargetLocal", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitUnstructuredExceptionOnErrorSwitch(node As BoundUnstructuredExceptionOnErrorSwitch, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("unstructuredExceptionOnErrorSwitch", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("value", Nothing, new TreeDumperNode() { Visit(node.Value, Nothing) }),
-                New TreeDumperNode("jumps", Nothing, From x In node.Jumps Select Visit(x, Nothing))
+                New TreeDumperNode("value", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("jumps", Nothing, From x In node.{field.Name} Select Visit(x, Nothing))
             })
         End Function
 
         Public Overrides Function VisitUnstructuredExceptionResumeSwitch(node As BoundUnstructuredExceptionResumeSwitch, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("unstructuredExceptionResumeSwitch", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("resumeTargetTemporary", Nothing, new TreeDumperNode() { Visit(node.ResumeTargetTemporary, Nothing) }),
-                New TreeDumperNode("resumeLabel", Nothing, new TreeDumperNode() { Visit(node.ResumeLabel, Nothing) }),
-                New TreeDumperNode("resumeNextLabel", Nothing, new TreeDumperNode() { Visit(node.ResumeNextLabel, Nothing) }),
-                New TreeDumperNode("jumps", Nothing, From x In node.Jumps Select Visit(x, Nothing))
+                New TreeDumperNode("resumeTargetTemporary", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("resumeLabel", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("resumeNextLabel", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("jumps", Nothing, From x In node.{field.Name} Select Visit(x, Nothing))
             })
         End Function
 
         Public Overrides Function VisitAwaitOperator(node As BoundAwaitOperator, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("awaitOperator", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("operand", Nothing, new TreeDumperNode() { Visit(node.Operand, Nothing) }),
-                New TreeDumperNode("awaitableInstancePlaceholder", Nothing, new TreeDumperNode() { Visit(node.AwaitableInstancePlaceholder, Nothing) }),
-                New TreeDumperNode("getAwaiter", Nothing, new TreeDumperNode() { Visit(node.GetAwaiter, Nothing) }),
-                New TreeDumperNode("awaiterInstancePlaceholder", Nothing, new TreeDumperNode() { Visit(node.AwaiterInstancePlaceholder, Nothing) }),
-                New TreeDumperNode("isCompleted", Nothing, new TreeDumperNode() { Visit(node.IsCompleted, Nothing) }),
-                New TreeDumperNode("getResult", Nothing, new TreeDumperNode() { Visit(node.GetResult, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("operand", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("awaitableInstancePlaceholder", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("getAwaiter", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("awaiterInstancePlaceholder", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("isCompleted", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("getResult", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitSpillSequence(node As BoundSpillSequence, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("spillSequence", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("locals", node.Locals, Nothing),
-                New TreeDumperNode("spillFields", node.SpillFields, Nothing),
-                New TreeDumperNode("statements", Nothing, From x In node.Statements Select Visit(x, Nothing)),
-                New TreeDumperNode("valueOpt", Nothing, new TreeDumperNode() { Visit(node.ValueOpt, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("locals", node.{field.Name}, Nothing),
+                New TreeDumperNode("spillFields", node.{field.Name}, Nothing),
+                New TreeDumperNode("statements", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("valueOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
@@ -14895,77 +14895,77 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitMidResult(node As BoundMidResult, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("midResult", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("original", Nothing, new TreeDumperNode() { Visit(node.Original, Nothing) }),
-                New TreeDumperNode("start", Nothing, new TreeDumperNode() { Visit(node.Start, Nothing) }),
-                New TreeDumperNode("lengthOpt", Nothing, new TreeDumperNode() { Visit(node.LengthOpt, Nothing) }),
-                New TreeDumperNode("source", Nothing, new TreeDumperNode() { Visit(node.Source, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("original", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("start", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("lengthOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("source", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitConditionalAccess(node As BoundConditionalAccess, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("conditionalAccess", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("receiver", Nothing, new TreeDumperNode() { Visit(node.Receiver, Nothing) }),
-                New TreeDumperNode("placeholder", Nothing, new TreeDumperNode() { Visit(node.Placeholder, Nothing) }),
-                New TreeDumperNode("accessExpression", Nothing, new TreeDumperNode() { Visit(node.AccessExpression, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("receiver", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("placeholder", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("accessExpression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitConditionalAccessReceiverPlaceholder(node As BoundConditionalAccessReceiverPlaceholder, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("conditionalAccessReceiverPlaceholder", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("placeholderId", node.PlaceholderId, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("placeholderId", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitLoweredConditionalAccess(node As BoundLoweredConditionalAccess, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("loweredConditionalAccess", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("receiverOrCondition", Nothing, new TreeDumperNode() { Visit(node.ReceiverOrCondition, Nothing) }),
-                New TreeDumperNode("captureReceiver", node.CaptureReceiver, Nothing),
-                New TreeDumperNode("placeholderId", node.PlaceholderId, Nothing),
-                New TreeDumperNode("whenNotNull", Nothing, new TreeDumperNode() { Visit(node.WhenNotNull, Nothing) }),
-                New TreeDumperNode("whenNullOpt", Nothing, new TreeDumperNode() { Visit(node.WhenNullOpt, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("receiverOrCondition", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("captureReceiver", node.{field.Name}, Nothing),
+                New TreeDumperNode("placeholderId", node.{field.Name}, Nothing),
+                New TreeDumperNode("whenNotNull", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("whenNullOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitComplexConditionalAccessReceiver(node As BoundComplexConditionalAccessReceiver, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("complexConditionalAccessReceiver", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("valueTypeReceiver", Nothing, new TreeDumperNode() { Visit(node.ValueTypeReceiver, Nothing) }),
-                New TreeDumperNode("referenceTypeReceiver", Nothing, new TreeDumperNode() { Visit(node.ReferenceTypeReceiver, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("valueTypeReceiver", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("referenceTypeReceiver", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitNameOfOperator(node As BoundNameOfOperator, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("nameOfOperator", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("argument", Nothing, new TreeDumperNode() { Visit(node.Argument, Nothing) }),
-                New TreeDumperNode("constantValueOpt", node.ConstantValueOpt, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("argument", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("constantValueOpt", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitTypeAsValueExpression(node As BoundTypeAsValueExpression, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("typeAsValueExpression", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("expression", Nothing, new TreeDumperNode() { Visit(node.Expression, Nothing) }),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("expression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitInterpolatedStringExpression(node As BoundInterpolatedStringExpression, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("interpolatedStringExpression", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("contents", Nothing, From x In node.Contents Select Visit(x, Nothing)),
-                New TreeDumperNode("binder", node.Binder, Nothing),
-                New TreeDumperNode("type", node.Type, Nothing)
+                New TreeDumperNode("contents", Nothing, From x In node.{field.Name} Select Visit(x, Nothing)),
+                New TreeDumperNode("binder", node.{field.Name}, Nothing),
+                New TreeDumperNode("type", node.{field.Name}, Nothing)
             })
         End Function
 
         Public Overrides Function VisitInterpolation(node As BoundInterpolation, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("interpolation", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("expression", Nothing, new TreeDumperNode() { Visit(node.Expression, Nothing) }),
-                New TreeDumperNode("alignmentOpt", Nothing, new TreeDumperNode() { Visit(node.AlignmentOpt, Nothing) }),
-                New TreeDumperNode("formatStringOpt", Nothing, new TreeDumperNode() { Visit(node.FormatStringOpt, Nothing) })
+                New TreeDumperNode("expression", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("alignmentOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }}),
+                New TreeDumperNode("formatStringOpt", Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})
             })
         End Function
 

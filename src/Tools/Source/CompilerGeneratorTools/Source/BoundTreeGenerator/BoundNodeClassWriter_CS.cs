@@ -52,7 +52,6 @@ namespace BoundTreeGenerator
             Unbrace();
         }
 
-
         protected override void WriteClassHeader(TreeType node)
         {
             string abstr = "";
@@ -62,7 +61,6 @@ namespace BoundTreeGenerator
                 abstr = "sealed ";
             WriteLine($"internal {abstr}partial class {node.Name} : {node.Base}");
             Brace();
-
         }
 
         protected override void WriteClassFooter(TreeType node) => Unbrace();
@@ -91,11 +89,7 @@ namespace BoundTreeGenerator
                 // Base call has bound kind, syntax, all fields in base type, plus merged HasErrors.
                 Write($"BoundKind.{StripBound(node.Name)}");
                 Write(", syntax, ");
-                foreach (Field baseField in AllSpecifiableFields(BaseType(node)))
-                {
-                    var value = FieldNullHandling(node, baseField.Name) == NullHandling.Always ? "null" : ToCamelCase(baseField.Name);
-                    Write($"{value}, ");
-                }
+                WriteFields("", AllSpecifiableFields(BaseType(node)), node, ", ");
                 Or((new[] { "hasErrors" })
                     .Concat(from field in AllNodeOrNodeListFields(node)
                             select ToCamelCase(field.Name) + ".HasErrors()"), x => x);
@@ -104,11 +98,7 @@ namespace BoundTreeGenerator
             {
                 // Base call has kind, syntax, and hasErrors. No merging of hasErrors because derived class already did the merge.
                 Write("kind, syntax, ");
-                foreach (Field baseField in AllSpecifiableFields(BaseType(node)))
-                {
-                    var value = FieldNullHandling(node, baseField.Name) == NullHandling.Always ? "null" : ToCamelCase(baseField.Name);
-                    Write($"{value}, ");
-                }
+                WriteFields("", AllSpecifiableFields(BaseType(node)), node, ", ");
                 Write("hasErrors");
             }
             Write(")");
@@ -153,21 +143,13 @@ namespace BoundTreeGenerator
                 // Base call has bound kind, syntax, fields.
                 Write($"BoundKind.{StripBound(node.Name)}");
                 Write(", syntax");
-                foreach (Field baseField in AllSpecifiableFields(BaseType(node)))
-                {
-                    var value = FieldNullHandling(node, baseField.Name) == NullHandling.Always ? "null" : ToCamelCase(baseField.Name);
-                    Write($", {value}");
-                }
+                WriteFields(", ", AllSpecifiableFields(BaseType(node)), node, "");
             }
             else
             {
                 // Base call has kind, syntax, fields
                 Write("kind, syntax");
-                foreach (Field baseField in AllSpecifiableFields(BaseType(node)))
-                {
-                    var value = FieldNullHandling(node, baseField.Name) == NullHandling.Always ? "null" : ToCamelCase(baseField.Name);
-                    Write($", {value}");
-                }
+                WriteFields(", ", AllSpecifiableFields(BaseType(node)), node, "");
             }
             Write(")");
             Blank();
@@ -192,13 +174,25 @@ namespace BoundTreeGenerator
             Blank();
         }
 
+        private void WriteFields(string prefix, IEnumerable<Field> fx, TreeType node, string postfix)
+        {
+            foreach (Field baseField in fx)
+            {
+                var value = FieldNullHandling(node, baseField.Name) == NullHandling.Always ? "null" : ToCamelCase(baseField.Name);
+                Write($"{prefix}{value}{postfix}");
+            }
+        }
+
         protected override void WriteNullCheck(bool isROArray, Field field)
         {
+            Write("Debug.Assert(");
             var member = ToCamelCase(field.Name);
             if (isROArray)
-                WriteLine($"Debug.Assert(!{member}.IsDefault, \"Field '{member}' cannot be null (use Null=\\\"allow\\\" in BoundNodes.xml to remove this check)\");");
+                Write($"!{member}.IsDefault");
             else
-                WriteLine($"Debug.Assert({member} != null, \"Field '{member}' cannot be null (use Null=\\\"allow\\\" in BoundNodes.xml to remove this check)\");");
+                Write($"{member} != null");
+
+            WriteLine($", \"Field '{member}' cannot be null (use Null=\\\"allow\\\" in BoundNodes.xml to remove this check)\");");
         }
 
         protected override void WriteField(Field field)
@@ -381,21 +375,22 @@ namespace BoundTreeGenerator
                     for (int i = 0; i < allFields.Length; ++i)
                     {
                         Field field = allFields[i];
+                        Write($"new TreeDumperNode(\"{ToCamelCase(field.Name)}\", ");
                         if (IsDerivedType("BoundNode", field.Type))
-                            Write($"new TreeDumperNode(\"{ToCamelCase(field.Name)}\", null, new TreeDumperNode[] {{ Visit(node.{field.Name}, null) }})");
+                            Write($"null, new TreeDumperNode[] {{ Visit(node.{field.Name}, null) }})");
                         else if (IsListOfDerived("BoundNode", field.Type))
                         {
                             if (IsImmutableArray(field.Type) && FieldNullHandling(node, field.Name) == NullHandling.Disallow)
                             {
-                                Write($"new TreeDumperNode(\"{ToCamelCase(field.Name)}\", null, from x in node.{field.Name} select Visit(x, null))");
+                                Write($"null, from x in node.{field.Name} select Visit(x, null))");
                             }
                             else
                             {
-                                Write($"new TreeDumperNode(\"{ToCamelCase(field.Name)}\", null, node.{field.Name}.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.{field.Name} select Visit(x, null))");
+                                Write($"null, node.{field.Name}.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.{field.Name} select Visit(x, null))");
                             }
                         }
                         else
-                            Write($"new TreeDumperNode(\"{ToCamelCase(field.Name)}\", node.{ field.Name}, null)");
+                            Write($"node.{ field.Name}, null)");
 
                         if (i == allFields.Length - 1)
                             WriteLine("");
@@ -466,24 +461,18 @@ namespace BoundTreeGenerator
 
         protected override string GetGenericType(string typeName)
         {
-
-            if (!typeName.Contains("<"))
-                return typeName;
+            if (!typeName.Contains("<"))  return typeName;
             int iStart = typeName.IndexOf('<');
             return typeName.Substring(0, iStart);
         }
 
         protected override string GetElementType(string typeName)
         {
-
-            if (!typeName.Contains("<"))
-                return string.Empty;
+            if (!typeName.Contains("<")) return string.Empty;
             int iStart = typeName.IndexOf('<');
             int iEnd = typeName.IndexOf('>', iStart + 1);
-            if (iEnd < iStart)
-                return string.Empty;
-            var sub = typeName.Substring(iStart + 1, iEnd - iStart - 1);
-            return sub;
+            if (iEnd < iStart)  return string.Empty;
+            return typeName.Substring(iStart + 1, iEnd - iStart - 1);
         }
 
         protected override string EscapeKeyword(string name) => "@" + name;
