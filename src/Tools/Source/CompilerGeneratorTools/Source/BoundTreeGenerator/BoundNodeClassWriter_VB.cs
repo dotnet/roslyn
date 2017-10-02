@@ -63,9 +63,9 @@ namespace BoundTreeGenerator
                 abstr = "MustInherit ";
             else if (CanBeSealed(node))
                 abstr = "NotInheritable ";
-            WriteLine($"Friend {abstr}Partial Class {node.Name}");
+            WriteLine($"Friend {abstr}Partial Class {node.Name} : Inherits {node.Base}");
             Indent();
-            WriteLine($"Inherits {node.Base}");
+            //WriteLine($"Inherits {node.Base}");
             Blank();
         }
 
@@ -102,7 +102,6 @@ namespace BoundTreeGenerator
                 Write(", syntax, ");
                 WriteFields("", AllSpecifiableFields(BaseType(node)), node, ", ");
 
-
                 Or((new[] { "hasErrors" })
                     .Concat(from field in AllNodeOrNodeListFields(node)
                             select ToCamelCase(field.Name) + ".NonNullAndHasErrors()"), x => x);
@@ -129,7 +128,7 @@ namespace BoundTreeGenerator
 
             if (hasValidate)
             {
-                Blank();
+                //Blank();
                 WriteLine("Validate()");
             }
 
@@ -183,11 +182,7 @@ namespace BoundTreeGenerator
                 WriteLine($"Me._{field.Name} = {value}");
             }
 
-            if (HasValidate(node))
-            {
-                Blank();
-                WriteLine("Validate()");
-            }
+            if (HasValidate(node)) WriteLine("Validate()");
 
             Outdent();
             WriteLine("End Sub");
@@ -217,17 +212,17 @@ namespace BoundTreeGenerator
         {
             Blank();
             var Shadows = (IsNew(field) ? "Shadows " : "");
-            WriteLine($"Private {Shadows}ReadOnly _{field.Name} As {field.Type}");
+            //WriteLine($"Private {Shadows}ReadOnly _{field.Name} As {field.Type}");
             Shadows = (IsNew(field) ? "Shadows " : IsPropertyOverrides(field) ? "Overrides " : "");
             WriteLine($"Public {Shadows}ReadOnly Property {field.Name} As {field.Type}");
-            Indent();
-            WriteLine("Get");
-            Indent();
-            WriteLine($"Return _{field.Name}");
-            Outdent();
-            WriteLine("End Get");
-            Outdent();
-            WriteLine("End Property");
+            //Indent();
+            //WriteLine("Get");
+            //Indent();
+            //WriteLine($"Return _{field.Name}");
+            //Outdent();
+            //WriteLine("End Get");
+            //Outdent();
+            //WriteLine("End Property");
         }
 
         protected override void WriteAccept(string name)
@@ -267,17 +262,11 @@ namespace BoundTreeGenerator
                                 $"{ToCamelCase(field.Name)} IsNot Me.{field.Name}");
                 WriteLine(" Then");
                 Indent();
-                Write($"Dim result = New {node.Name}");
+                Write($"Dim result As New {node.Name}");
                 var fields = new[] { "Me.Syntax" }.Concat(AllSpecifiableFields(node).Select(f => ToCamelCase(f.Name))).Concat(new[] { "Me.HasErrors" });
                 ParenList(fields);
                 WriteLine("");
-                WriteLine("");
-                WriteLine("If Me.WasCompilerGenerated Then");
-                Indent();
-                WriteLine("result.SetWasCompilerGenerated()");
-                Outdent();
-                WriteLine("End If");
-                WriteLine("");
+                WriteLine("If Me.WasCompilerGenerated Then result.SetWasCompilerGenerated()");
                 WriteLine("Return result");
                 Outdent();
                 WriteLine("End If");
@@ -434,11 +423,11 @@ namespace BoundTreeGenerator
                         Field field = allFields[i];
                         Write($"New TreeDumperNode(\"{ToCamelCase(field.Name)}\", ");
                         if (IsDerivedType("BoundNode", field.Type))
-                            Write("Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})");
+                            Write($"Nothing, new TreeDumperNode() {{ Visit(node.{field.Name}, Nothing) }})");
                         else if (IsListOfDerived("BoundNode", field.Type))
-                            Write("Nothing, From x In node.{field.Name} Select Visit(x, Nothing))");
+                            Write($"Nothing, From x In node.{field.Name} Select Visit(x, Nothing))");
                         else
-                            Write("node.{field.Name}, Nothing)");
+                            Write($"node.{field.Name}, Nothing)");
 
                         if (i == allFields.Length - 1)
                             WriteLine("");

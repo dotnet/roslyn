@@ -221,7 +221,7 @@ namespace BoundTreeGenerator
             Blank();
             WriteLine("public override BoundNode Accept(BoundTreeVisitor visitor)");
             Brace();
-            WriteLine($"return visitor.Visit{ StripBound(name)}(this);");
+            WriteLine($"return visitor.Visit{StripBound(name)}(this);");
             Unbrace();
         }
         protected override void WriteUpdateMethod(Node node, Boolean emitNew)
@@ -238,8 +238,7 @@ namespace BoundTreeGenerator
             {
                 Write("if ");
                 Paren();
-                Or(AllSpecifiableFields(node),
-                    field => $"{ToCamelCase(field.Name)} != this.{field.Name}");
+                Or(AllSpecifiableFields(node),  field => $"{ToCamelCase(field.Name)} != this.{field.Name}");
                 UnParen();
                 Blank();
                 Brace();
@@ -332,7 +331,7 @@ namespace BoundTreeGenerator
         protected override void WriteWalker()
         {
             Blank();
-            WriteLine("internal abstract partial class BoundTreeWalker: BoundTreeVisitor");
+            WriteLine("internal abstract partial class BoundTreeWalker : BoundTreeVisitor");
             Brace();
             foreach (var node in _tree.Types.OfType<Node>())
             {
@@ -441,7 +440,7 @@ namespace BoundTreeGenerator
                 if (hadField)
                 {
                     Write("return node.Update");
-                    ParenList(AllSpecifiableFields(node), field => IsDerivedOrListOfDerived("BoundNode", field.Type) || field.Type == "TypeSymbol" ? ToCamelCase(field.Name) : string.Format("node.{0}", field.Name));
+                    ParenList(AllSpecifiableFields(node), field => IsDerivedOrListOfDerived("BoundNode", field.Type) || field.Type == "TypeSymbol" ? ToCamelCase(field.Name) : $"node.{field.Name}");
                     WriteLine(";");
                 }
                 else

@@ -99,14 +99,14 @@ namespace BoundTreeGenerator
 
         protected void Brace()
         {
-            WriteLine("{{");
+            WriteLine("{");
             Indent();
         }
 
         protected void Unbrace()
         {
             Outdent();
-            WriteLine("}}");
+            WriteLine("}");
         }
 
         protected void Indent() => ++_indent;
@@ -411,7 +411,7 @@ namespace BoundTreeGenerator
 
         protected static bool SkipInVisitor(Field f) => f.SkipInVisitor != null && string.Compare(f.SkipInVisitor, "true", true) == 0;
 
-        protected string ToCamelCase(string name) => char.IsUpper(name[0]) ? char.ToLowerInvariant(name[0]) + name.Substring(1) : FixKeyword(name);
+        protected string ToCamelCase(string name) => FixKeyword( char.IsUpper(name[0]) ? char.ToLowerInvariant(name[0]) + name.Substring(1) : name);
 
         protected virtual string EscapeKeyword(string name) => throw new ArgumentException("Unexpected target language", nameof(_targetLang));
 
