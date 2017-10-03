@@ -986,7 +986,14 @@ class Class1
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (va ... }')
   Locals: Local_1: System.UInt32 x
     Local_2: System.UInt32 y
-  LoopControlVariable: IOperation:  (OperationKind.None) (Syntax: 'var (x, y)')
+  LoopControlVariable: IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.UInt32 x, System.UInt32 y)) (Syntax: 'var (x, y)')
+      Left: ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32 x, System.UInt32 y)) (Syntax: 'var (x, y)')
+          Elements(2):
+              ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.UInt32) (Syntax: 'x')
+              ILocalReferenceExpression: y (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.UInt32) (Syntax: 'y')
+      Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.UInt32 x, System.UInt32 y)) (Syntax: 'new Point[] ... int(0, 1) }')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: IPlaceholderExpression (OperationKind.None) (Syntax: 'new Point[] ... int(0, 1) }')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'new Point[] ... int(0, 1) }')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
       Operand: IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: Point[]) (Syntax: 'new Point[] ... int(0, 1) }')

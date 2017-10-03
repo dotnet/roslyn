@@ -1251,7 +1251,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             Lazy<IOperation> loopControlVariable;
             if (boundForEachStatement.DeconstructionOpt != null)
             {
-                loopControlVariable = new Lazy<IOperation>(() => Create(boundForEachStatement.DeconstructionOpt));
+                loopControlVariable = new Lazy<IOperation>(() => Create(boundForEachStatement.DeconstructionOpt.DeconstructionAssignment));
             }
             else if (locals.Length == 1)
             {
