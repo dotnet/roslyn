@@ -87,7 +87,7 @@ IAnonymousFunctionExpression (Symbol: Sub ()) (OperationKind.AnonymousFunctionEx
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_ImplicitLambdaConversion_InvalidArgumentType()
+        Public Sub DelegateCreationExpression_ImplicitLambdaConversion_DisallowedArgumentType()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -124,6 +124,51 @@ BC36670: Nested sub does not have a signature that is compatible with delegate '
         Dim a As Action = Sub(i As Integer) Console.WriteLine("")'BIND:"Dim a As Action = Sub(i As Integer) Console.WriteLine("")"
                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>.Value
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ImplicitLambdaConversion_InvalidArgumentType()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module M1
+    Class C1
+    End Class
+    Sub Method1()
+        Dim a As Action(Of String) = Sub(c1 As C1) Console.WriteLine("")'BIND:"Dim a As Action(Of String) = Sub(c1 As C1) Console.WriteLine("")"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... iteLine("")')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
+    Variables: Local_1: a As System.Action(Of System.String)
+    Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String), IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+        Target: IAnonymousFunctionExpression (Symbol: Sub (c1 As M1.C1)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+            IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+              IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+                IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine("")')
+                  Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine("")')
+                      Instance Receiver: null
+                      Arguments(1):
+                          IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, IsInvalid) (Syntax: '""')
+                            ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+                Statement: null
+              IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+                ReturnedValue: null
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC36670: Nested sub does not have a signature that is compatible with delegate 'Action(Of String)'.
+        Dim a As Action(Of String) = Sub(c1 As C1) Console.WriteLine("")'BIND:"Dim a As Action(Of String) = Sub(c1 As C1) Console.WriteLine("")"
+                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
@@ -312,7 +357,7 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_CTypeLambdaConversion_InvalidArgumentType()
+        Public Sub DelegateCreationExpression_CTypeLambdaConversion_DisallowedArgumentType()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -341,6 +386,48 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 BC36670: Nested sub does not have a signature that is compatible with delegate 'Action'.
         Dim a As Action = CType(Sub(i As Integer) Console.WriteLine(), Action)'BIND:"CType(Sub(i As Integer) Console.WriteLine(), Action)"
                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_CTypeLambdaConversion_InvalidArgumentType()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module M1
+    Class C1
+    End Class
+    Sub Method1()
+        Dim a As Action(Of String) = CType(Sub(c1 As C1) Console.WriteLine(""), Action(Of String))'BIND:"CType(Sub(c1 As C1) Console.WriteLine(""), Action(Of String))"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String), IsInvalid) (Syntax: 'CType(Sub(c ... Of String))')
+  Target: IAnonymousFunctionExpression (Symbol: Sub (c1 As M1.C1)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+      IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+          IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine("")')
+            Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine("")')
+                Instance Receiver: null
+                Arguments(1):
+                    IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, IsInvalid) (Syntax: '""')
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+          Statement: null
+        IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+          ReturnedValue: null
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC36670: Nested sub does not have a signature that is compatible with delegate 'Action(Of String)'.
+        Dim a As Action(Of String) = CType(Sub(c1 As C1) Console.WriteLine(""), Action(Of String))'BIND:"CType(Sub(c1 As C1) Console.WriteLine(""), Action(Of String))"
+                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -629,7 +716,7 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_DirectCastLambdaConversion_InvalidArgumentType()
+        Public Sub DelegateCreationExpression_DirectCastLambdaConversion_DisallowedArgumentType()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -660,6 +747,48 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 BC36670: Nested sub does not have a signature that is compatible with delegate 'Action'.
         Dim a As Action = DirectCast(Sub(i As Integer) Console.WriteLine(), Action)'BIND:"DirectCast(Sub(i As Integer) Console.WriteLine(), Action)"
                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of DirectCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_DirectCastLambdaConversion_InvalidArgumentType()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module M1
+    Class C1
+    End Class
+    Sub Method1()
+        Dim a As Action(Of String) = DirectCast(Sub(c1 As C1) Console.WriteLine(""), Action(Of String))'BIND:"DirectCast(Sub(c1 As C1) Console.WriteLine(""), Action(Of String))"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
+  Target: IAnonymousFunctionExpression (Symbol: Sub (c1 As M1.C1)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+      IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+          IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine("")')
+            Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine("")')
+                Instance Receiver: null
+                Arguments(1):
+                    IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, IsInvalid) (Syntax: '""')
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+          Statement: null
+        IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+          ReturnedValue: null
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC36670: Nested sub does not have a signature that is compatible with delegate 'Action(Of String)'.
+        Dim a As Action(Of String) = DirectCast(Sub(c1 As C1) Console.WriteLine(""), Action(Of String))'BIND:"DirectCast(Sub(c1 As C1) Console.WriteLine(""), Action(Of String))"
+                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of DirectCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -881,7 +1010,7 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_TryCastLambdaConversion_InvalidArgumentType()
+        Public Sub DelegateCreationExpression_TryCastLambdaConversion_DisallowedArgumentType()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -912,6 +1041,48 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 BC36670: Nested sub does not have a signature that is compatible with delegate 'Action'.
         Dim a As Action = TryCast(Sub(i As Integer) Console.WriteLine(), Action)'BIND:"TryCast(Sub(i As Integer) Console.WriteLine(), Action)"
                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TryCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_TryCastLambdaConversion_InvalidArgumentType()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module M1
+    Class C1
+    End Class
+    Sub Method1()
+        Dim a As Action(Of String) = TryCast(Sub(c1 As C1) Console.WriteLine(""), Action(Of String))'BIND:"TryCast(Sub(c1 As C1) Console.WriteLine(""), Action(Of String))"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String), IsInvalid) (Syntax: 'TryCast(Sub ... Of String))')
+  Target: IAnonymousFunctionExpression (Symbol: Sub (c1 As M1.C1)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+      IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+          IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine("")')
+            Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine("")')
+                Instance Receiver: null
+                Arguments(1):
+                    IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, IsInvalid) (Syntax: '""')
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+          Statement: null
+        IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+          ReturnedValue: null
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC36670: Nested sub does not have a signature that is compatible with delegate 'Action(Of String)'.
+        Dim a As Action(Of String) = TryCast(Sub(c1 As C1) Console.WriteLine(""), Action(Of String))'BIND:"TryCast(Sub(c1 As C1) Console.WriteLine(""), Action(Of String))"
+                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of TryCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -1239,7 +1410,7 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_DelegateCreationLambdaArgument_InvalidArgumentType()
+        Public Sub DelegateCreationExpression_DelegateCreationLambdaArgument_DisallowedArgumentType()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -1269,6 +1440,48 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 BC30512: Option Strict On disallows implicit conversions from 'Object' to 'Integer'.
         Dim a As Action(Of Object) = New Action(Of Object)(Sub(i As Integer) Console.WriteLine())'BIND:"New Action(Of Object)(Sub(i As Integer) Console.WriteLine())"
                                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_DelegateCreationLambdaArgument_InvalidArgumentType()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module M1
+    Class C1
+    End Class
+    Sub Method1()
+        Dim a As Action(Of String) = New Action(Of String)(Sub(c1 As C1) Console.WriteLine(""))'BIND:"New Action(Of String)(Sub(c1 As C1) Console.WriteLine(""))"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String), IsInvalid) (Syntax: 'New Action( ... teLine(""))')
+  Target: IAnonymousFunctionExpression (Symbol: Sub (c1 As M1.C1)) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+      IBlockStatement (3 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+        IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+          IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Console.WriteLine("")')
+            Expression: IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Console.WriteLine("")')
+                Instance Receiver: null
+                Arguments(1):
+                    IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, IsInvalid) (Syntax: '""')
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+          Statement: null
+        IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Sub(c1 As C ... iteLine("")')
+          ReturnedValue: null
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC36670: Nested sub does not have a signature that is compatible with delegate 'Action(Of String)'.
+        Dim a As Action(Of String) = New Action(Of String)(Sub(c1 As C1) Console.WriteLine(""))'BIND:"New Action(Of String)(Sub(c1 As C1) Console.WriteLine(""))"
+                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -1436,7 +1649,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_ImplicitAddressOf_InvalidArgumentConversion()
+        Public Sub DelegateCreationExpression_ImplicitAddressOf_DisallowedArgumentType()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -1466,6 +1679,45 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 BC31143: Method 'Public Sub Method2(i As Integer)' does not have a signature compatible with delegate 'Delegate Sub Action()'.
         Dim a As Action = AddressOf Method2'BIND:"Dim a As Action = AddressOf Method2"
                                     ~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ImplicitAddressOf_InvalidArgumentType()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module M1
+    Class C1
+    End Class
+    Sub Method1()
+        Dim a As Action(Of String) = AddressOf Method2'BIND:"Dim a As Action(Of String) = AddressOf Method2"
+    End Sub
+
+    Sub Method2(i As C1)
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Ac ... sOf Method2')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
+    Variables: Local_1: a As System.Action(Of System.String)
+    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.String), IsInvalid) (Syntax: 'AddressOf Method2')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
+            Children(1):
+                IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
+                  Children(1):
+                      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid) (Syntax: 'Method2')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC31143: Method 'Public Sub Method2(i As M1.C1)' does not have a signature compatible with delegate 'Delegate Sub Action(Of String)(obj As String)'.
+        Dim a As Action(Of String) = AddressOf Method2'BIND:"Dim a As Action(Of String) = AddressOf Method2"
+                                               ~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -1664,7 +1916,7 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_CTypeAddressOf_InvalidArgumentConversion()
+        Public Sub DelegateCreationExpression_CTypeAddressOf_DisallowedArgumentType()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -1693,6 +1945,41 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 BC31143: Method 'Public Sub M2(i As Integer)' does not have a signature compatible with delegate 'Delegate Sub Action()'.
         Dim a As Action = CType(AddressOf M2, Action)'BIND:"CType(AddressOf M2, Action)"
                                           ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_CTypeAddressOf_InvalidArgumentType()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module M1
+    Class C1
+    End Class
+    Sub Method1()
+        Dim a As Action(Of String) = CType(AddressOf Method2, Action(Of String))'BIND:"CType(AddressOf Method2, Action(Of String))"
+    End Sub
+
+    Sub Method2(i As C1)
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String), IsInvalid) (Syntax: 'CType(Addre ... Of String))')
+  Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
+      Children(1):
+          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
+            Children(1):
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid) (Syntax: 'Method2')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC31143: Method 'Public Sub Method2(i As M1.C1)' does not have a signature compatible with delegate 'Delegate Sub Action(Of String)(obj As String)'.
+        Dim a As Action(Of String) = CType(AddressOf Method2, Action(Of String))'BIND:"CType(AddressOf Method2, Action(Of String))"
+                                                     ~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -1961,7 +2248,7 @@ BC30002: Type 'NonExistant' is not defined.
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_DirectCastAddressOf_InvalidArgumentType()
+        Public Sub DelegateCreationExpression_DirectCastAddressOf_DisallowedArgumentType()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -1990,6 +2277,41 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 BC31143: Method 'Public Sub M2(s As Integer)' does not have a signature compatible with delegate 'Delegate Sub Action()'.
         Dim a As Action = DirectCast(AddressOf M2, Action)'BIND:"DirectCast(AddressOf M2, Action)"
                                                ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of DirectCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_DirectCastAddressOf_InvalidArgumentType()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module M1
+    Class C1
+    End Class
+    Sub Method1()
+        Dim a As Action(Of String) = DirectCast(AddressOf Method2, Action(Of String))'BIND:"DirectCast(AddressOf Method2, Action(Of String))"
+    End Sub
+
+    Sub Method2(i As C1)
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
+  Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
+      Children(1):
+          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
+            Children(1):
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid) (Syntax: 'Method2')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC31143: Method 'Public Sub Method2(i As M1.C1)' does not have a signature compatible with delegate 'Delegate Sub Action(Of String)(obj As String)'.
+        Dim a As Action(Of String) = DirectCast(AddressOf Method2, Action(Of String))'BIND:"DirectCast(AddressOf Method2, Action(Of String))"
+                                                          ~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of DirectCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -2222,7 +2544,7 @@ BC30451: 'NonExistant' is not declared. It may be inaccessible due to its protec
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_TryCastAddressOf_InvalidArgumentType()
+        Public Sub DelegateCreationExpression_TryCastAddressOf_DisallowedArgumentType()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -2251,6 +2573,41 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 BC31143: Method 'Public Sub M2(s As Integer)' does not have a signature compatible with delegate 'Delegate Sub Action()'.
         Dim a As Action = TryCast(AddressOf M2, Action)'BIND:"TryCast(AddressOf M2, Action)"
                                             ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TryCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_TryCastAddressOf_InvalidArgumentType()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module M1
+    Class C1
+    End Class
+    Sub Method1()
+        Dim a As Action(Of String) = TryCast(AddressOf Method2, Action(Of String))'BIND:"TryCast(AddressOf Method2, Action(Of String))"
+    End Sub
+
+    Sub Method2(i As C1)
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String), IsInvalid) (Syntax: 'TryCast(Add ... Of String))')
+  Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
+      Children(1):
+          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
+            Children(1):
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid) (Syntax: 'Method2')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC31143: Method 'Public Sub Method2(i As M1.C1)' does not have a signature compatible with delegate 'Delegate Sub Action(Of String)(obj As String)'.
+        Dim a As Action(Of String) = TryCast(AddressOf Method2, Action(Of String))'BIND:"TryCast(AddressOf Method2, Action(Of String))"
+                                                       ~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of TryCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -2469,7 +2826,7 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_DelegateCreationAddressOfArgument_InvalidArgumentType()
+        Public Sub DelegateCreationExpression_DelegateCreationAddressOfArgument_DisallowedArgumentType()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -2495,6 +2852,41 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 BC31143: Method 'Public Sub Method2(o As Object)' does not have a signature compatible with delegate 'Delegate Sub Action()'.
         Dim a As Action= New Action(AddressOf Method2)'BIND:"New Action(AddressOf Method2)"
                                               ~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_DelegateCreationAddressOfArgument_InvalidArgumentType()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module M1
+    Class C1
+    End Class
+    Sub Method1()
+        Dim a As Action(Of String) = New Action(Of String)(AddressOf Method2)'BIND:"New Action(Of String)(AddressOf Method2)"
+    End Sub
+
+    Sub Method2(i As C1)
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String), IsInvalid) (Syntax: 'New Action( ... Of Method2)')
+  Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
+      Children(1):
+          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
+            Children(1):
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid) (Syntax: 'Method2')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC31143: Method 'Public Sub Method2(i As M1.C1)' does not have a signature compatible with delegate 'Delegate Sub Action(Of String)(obj As String)'.
+        Dim a As Action(Of String) = New Action(Of String)(AddressOf Method2)'BIND:"New Action(Of String)(AddressOf Method2)"
+                                                                     ~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
