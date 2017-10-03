@@ -1497,7 +1497,9 @@ BC30668: 'S' is obsolete: 'Types with embedded references are not supported in t
     Sub M(s As S)
                ~
 ]]>))
-
+            vbCompilation.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_UseOfObsoleteSymbol2, "S").WithArguments("S", "Types with embedded references are not supported in this version of your compiler.").WithLocation(2, 16)
+                )
         End Sub
 
         <Fact(), WorkItem(858839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858839")>
