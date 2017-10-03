@@ -131,6 +131,46 @@ BC36670: Nested sub does not have a signature that is compatible with delegate '
         <Fact()>
         Public Sub DelegateCreationExpression_ImplicitLambdaConversion_InvalidReturnType()
             Dim source = <![CDATA[
+Option Strict Off
+Imports System
+Module M1
+    Sub Method1()
+        Dim a As Func(Of String) = Function() New NonExistant()'BIND:"Dim a As Func(Of String) = Function() New NonExistant()"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Fu ... nExistant()')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
+    Variables: Local_1: a As System.Func(Of System.String)
+    Initializer: IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'Function()  ... nExistant()')
+        Target: IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+            IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+              Locals: Local_1: <anonymous local> As System.String
+              IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'New NonExistant()')
+                ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: 'New NonExistant()')
+                    Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: NonExistant, IsInvalid) (Syntax: 'New NonExistant()')
+                        Children(0)
+              ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+                Statement: null
+              IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+                ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30002: Type 'NonExistant' is not defined.
+        Dim a As Func(Of String) = Function() New NonExistant()'BIND:"Dim a As Func(Of String) = Function() New NonExistant()"
+                                                  ~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ImplicitLambdaConversion_DisallowedReturnType()
+            Dim source = <![CDATA[
 Option Strict On
 Imports System
 Module M1
@@ -308,7 +348,7 @@ BC36670: Nested sub does not have a signature that is compatible with delegate '
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_CTypeLambdaConversion_InvalidReturnType()
+        Public Sub DelegateCreationExpression_CTypeLambdaConversion_DisallowedReturnType()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -337,6 +377,43 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'String'.
         Dim a As Func(Of String) = CType(Function() 1, Func(Of String))'BIND:"CType(Function() 1, Func(Of String))"
                                                     ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_CTypeLambdaConversion_InvalidReturnType()
+            Dim source = <![CDATA[
+Option Strict Off
+Imports System
+Module M1
+    Sub Main()
+        Dim a As Func(Of String) = CType(Function() New NonExistant(), Func(Of String)) 'BIND:"CType(Function() New NonExistant(), Func(Of String))"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'CType(Funct ... Of String))')
+  Target: IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+      IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+        Locals: Local_1: <anonymous local> As System.String
+        IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'New NonExistant()')
+          ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: 'New NonExistant()')
+              Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: NonExistant, IsInvalid) (Syntax: 'New NonExistant()')
+                  Children(0)
+        ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+          Statement: null
+        IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+          ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30002: Type 'NonExistant' is not defined.
+        Dim a As Func(Of String) = CType(Function() New NonExistant(), Func(Of String)) 'BIND:"CType(Function() New NonExistant(), Func(Of String))"
+                                                        ~~~~~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -590,7 +667,7 @@ BC36670: Nested sub does not have a signature that is compatible with delegate '
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_DirectCastLambdaConversion_InvalidReturnType()
+        Public Sub DelegateCreationExpression_DirectCastLambdaConversion_DisallowedReturnType()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -621,6 +698,44 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'String'.
         Dim a As Func(Of String) = DirectCast(Function() 1, Func(Of String))'BIND:"DirectCast(Function() 1, Func(Of String))"
                                                          ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of DirectCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_DirectCastLambdaConversion_InvalidReturnType()
+            Dim source = <![CDATA[
+Option Strict Off
+Imports System
+
+Module Program
+    Sub Main()
+        Dim a As Func(Of String) = DirectCast(Function() New NonExistant(), Func(Of String)) 'BIND:"DirectCast(Function() New NonExistant(), Func(Of String))"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
+  Target: IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+      IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+        Locals: Local_1: <anonymous local> As System.String
+        IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'New NonExistant()')
+          ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: 'New NonExistant()')
+              Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: NonExistant, IsInvalid) (Syntax: 'New NonExistant()')
+                  Children(0)
+        ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+          Statement: null
+        IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+          ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30002: Type 'NonExistant' is not defined.
+        Dim a As Func(Of String) = DirectCast(Function() New NonExistant(), Func(Of String)) 'BIND:"DirectCast(Function() New NonExistant(), Func(Of String))"
+                                                             ~~~~~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of DirectCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -804,7 +919,7 @@ BC36670: Nested sub does not have a signature that is compatible with delegate '
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_TryCastLambdaConversion_InvalidReturnType()
+        Public Sub DelegateCreationExpression_TryCastLambdaConversion_DisallowedReturnType()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -835,6 +950,44 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 BC36670: Nested sub does not have a signature that is compatible with delegate 'Func(Of Object)'.
         Dim a As Func(Of Object) = TryCast(Sub() Console.WriteLine(), Func(Of Object))'BIND:"TryCast(Sub() Console.WriteLine(), Func(Of Object))"
                                            ~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TryCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_TryCastLambdaConversion_InvalidReturnType()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module Program
+    Sub Main()
+        Dim a As Func(Of Object) = TryCast(Function() New NonExistant(), Func(Of Object)) 'BIND:"TryCast(Function() New NonExistant(), Func(Of Object))"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Object), IsInvalid) (Syntax: 'TryCast(Fun ... Of Object))')
+  Target: IAnonymousFunctionExpression (Symbol: Function () As System.Object) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+      IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+        Locals: Local_1: <anonymous local> As System.Object
+        IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'New NonExistant()')
+          ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New NonExistant()')
+              Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: NonExistant, IsInvalid) (Syntax: 'New NonExistant()')
+                  Children(0)
+        ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+          Statement: null
+        IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+          ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30002: Type 'NonExistant' is not defined.
+        Dim a As Func(Of Object) = TryCast(Function() New NonExistant(), Func(Of Object)) 'BIND:"TryCast(Function() New NonExistant(), Func(Of Object))"
+                                                          ~~~~~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of TryCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -1123,7 +1276,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Object' to 'Integ
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_DelegateCreationLambdaArgument_InvalidReturnType()
+        Public Sub DelegateCreationExpression_DelegateCreationLambdaArgument_DisallowedReturnType()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -1131,7 +1284,6 @@ Module M1
     Sub Method1()
         Dim a As Func(Of Object) = New Func(Of Object)(Sub() Console.WriteLine())'BIND:"New Func(Of Object)(Sub() Console.WriteLine())"
     End Sub
-
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
@@ -1153,6 +1305,43 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 BC36670: Nested sub does not have a signature that is compatible with delegate 'Func(Of Object)'.
         Dim a As Func(Of Object) = New Func(Of Object)(Sub() Console.WriteLine())'BIND:"New Func(Of Object)(Sub() Console.WriteLine())"
                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_DelegateCreationLambdaArgument_InvalidReturnType()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module M1
+    Sub Method1()
+        Dim a As Func(Of Object) = New Func(Of Object)(Function() New NonExistant())'BIND:"New Func(Of Object)(Function() New NonExistant())"
+    End Sub
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Object), IsInvalid) (Syntax: 'New Func(Of ... Existant())')
+  Target: IAnonymousFunctionExpression (Symbol: Function () As System.Object) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+      IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+        Locals: Local_1: <anonymous local> As System.Object
+        IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'New NonExistant()')
+          ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New NonExistant()')
+              Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: NonExistant, IsInvalid) (Syntax: 'New NonExistant()')
+                  Children(0)
+        ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+          Statement: null
+        IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+          ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'Function()  ... nExistant()')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30002: Type 'NonExistant' is not defined.
+        Dim a As Func(Of Object) = New Func(Of Object)(Function() New NonExistant())'BIND:"New Func(Of Object)(Function() New NonExistant())"
+                                                                      ~~~~~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -1284,7 +1473,7 @@ BC31143: Method 'Public Sub Method2(i As Integer)' does not have a signature com
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_ImplicitAddressOf_InvalidReturnType()
+        Public Sub DelegateCreationExpression_ImplicitAddressOf_DisallowedReturnType()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -1311,6 +1500,50 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 BC36663: Option Strict On does not allow narrowing in implicit type conversions between method 'Public Function Method2() As Integer' and delegate 'Delegate Function Func(Of String)() As String'.
         Dim a As Func(Of String) = AddressOf Method2 'BIND:"Dim a As Func(Of String) = AddressOf Method2"
                                              ~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_ImplicitAddressOf_InvalidReturnType()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module M1
+    Sub Method1()
+        Dim a As Func(Of String) = AddressOf Method2 'BIND:"Dim a As Func(Of String) = AddressOf Method2"
+    End Sub
+
+    Function Method2() As NonExistant
+        Return New NonExistant
+    End Function
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As Fu ... sOf Method2')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
+    Variables: Local_1: a As System.Func(Of System.String)
+    Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'AddressOf Method2')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
+            Children(1):
+                IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
+                  Children(1):
+                      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid) (Syntax: 'Method2')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC31143: Method 'Public Function Method2() As NonExistant' does not have a signature compatible with delegate 'Delegate Function Func(Of String)() As String'.
+        Dim a As Func(Of String) = AddressOf Method2 'BIND:"Dim a As Func(Of String) = AddressOf Method2"
+                                             ~~~~~~~
+BC30002: Type 'NonExistant' is not defined.
+    Function Method2() As NonExistant
+                          ~~~~~~~~~~~
+BC30002: Type 'NonExistant' is not defined.
+        Return New NonExistant
+                   ~~~~~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -1650,7 +1883,7 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_DirectCastAddressOf_InvalidReturnType()
+        Public Sub DelegateCreationExpression_DirectCastAddressOf_DisallowedReturnType()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -1679,6 +1912,48 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 BC31143: Method 'Public Sub M2()' does not have a signature compatible with delegate 'Delegate Function Func(Of Object)() As Object'.
         Dim a As Func(Of Object) = DirectCast(AddressOf M2, Func(Of Object))'BIND:"DirectCast(AddressOf M2, Func(Of Object))"
                                                         ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of DirectCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_DirectCastAddressOf_InvalidReturnType()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module Program
+    Sub M1()
+        Dim o As New Object
+        Dim a As Func(Of Object) = DirectCast(AddressOf M2, Func(Of Object))'BIND:"DirectCast(AddressOf M2, Func(Of Object))"
+    End Sub
+
+    Function M2() As NonExistant
+        Return New NonExistant
+    End Function
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Object), IsInvalid) (Syntax: 'DirectCast( ... Of Object))')
+  Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf M2')
+      Children(1):
+          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M2')
+            Children(1):
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M2')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC31143: Method 'Public Function M2() As NonExistant' does not have a signature compatible with delegate 'Delegate Function Func(Of Object)() As Object'.
+        Dim a As Func(Of Object) = DirectCast(AddressOf M2, Func(Of Object))'BIND:"DirectCast(AddressOf M2, Func(Of Object))"
+                                                        ~~
+BC30002: Type 'NonExistant' is not defined.
+    Function M2() As NonExistant
+                     ~~~~~~~~~~~
+BC30002: Type 'NonExistant' is not defined.
+        Return New NonExistant
+                   ~~~~~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of DirectCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -1869,7 +2144,7 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_TryCastAddressOf_InvalidReturnType()
+        Public Sub DelegateCreationExpression_TryCastAddressOf_DisallowedReturnType()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -1898,6 +2173,48 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 BC31143: Method 'Public Sub M2()' does not have a signature compatible with delegate 'Delegate Function Func(Of Object)() As Object'.
         Dim a As Func(Of Object) = TryCast(AddressOf M2, Func(Of Object))'BIND:"TryCast(AddressOf M2, Func(Of Object))"
                                                      ~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TryCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_TryCastAddressOf_InvalidReturnType()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Module Program
+    Sub M1()
+        Dim o As New Object
+        Dim a As Func(Of Object) = TryCast(AddressOf M2, Func(Of Object))'BIND:"TryCast(AddressOf M2, Func(Of Object))"
+    End Sub
+
+    Function M2() As NonExistant
+        Return NonExistant
+    End Function
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Object), IsInvalid) (Syntax: 'TryCast(Add ... Of Object))')
+  Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf M2')
+      Children(1):
+          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M2')
+            Children(1):
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'M2')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC31143: Method 'Public Function M2() As NonExistant' does not have a signature compatible with delegate 'Delegate Function Func(Of Object)() As Object'.
+        Dim a As Func(Of Object) = TryCast(AddressOf M2, Func(Of Object))'BIND:"TryCast(AddressOf M2, Func(Of Object))"
+                                                     ~~
+BC30002: Type 'NonExistant' is not defined.
+    Function M2() As NonExistant
+                     ~~~~~~~~~~~
+BC30451: 'NonExistant' is not declared. It may be inaccessible due to its protection level.
+        Return NonExistant
+               ~~~~~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of TryCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -2185,7 +2502,7 @@ BC31143: Method 'Public Sub Method2(o As Object)' does not have a signature comp
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_DelegateCreationAddressOfArgument_InvalidReturnType()
+        Public Sub DelegateCreationExpression_DelegateCreationAddressOfArgument_DisallowedReturnType()
             Dim source = <![CDATA[
 Option Strict On
 Imports System
@@ -2211,6 +2528,46 @@ IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Sys
 BC31143: Method 'Public Sub Method2()' does not have a signature compatible with delegate 'Delegate Function Func(Of String)() As String'.
         Dim a As Func(Of String) = New Func(Of String)(AddressOf Method2)'BIND:"New Func(Of String)(AddressOf Method2)"
                                                                  ~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub DelegateCreationExpression_DelegateCreationAddressOfArgument_InvalidReturnType()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module M1
+    Sub Method1()
+        Dim a As Func(Of String) = New Func(Of String)(AddressOf Method2)'BIND:"New Func(Of String)(AddressOf Method2)"
+    End Sub
+
+    Function Method2() As NonExistant
+        Return New NonExistant()
+    End Function
+End Module]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'New Func(Of ... Of Method2)')
+  Target: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
+      Children(1):
+          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
+            Children(1):
+                IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid) (Syntax: 'Method2')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC31143: Method 'Public Function Method2() As NonExistant' does not have a signature compatible with delegate 'Delegate Function Func(Of String)() As String'.
+        Dim a As Func(Of String) = New Func(Of String)(AddressOf Method2)'BIND:"New Func(Of String)(AddressOf Method2)"
+                                                                 ~~~~~~~
+BC30002: Type 'NonExistant' is not defined.
+    Function Method2() As NonExistant
+                          ~~~~~~~~~~~
+BC30002: Type 'NonExistant' is not defined.
+        Return New NonExistant()
+                   ~~~~~~~~~~~
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
