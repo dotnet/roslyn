@@ -440,13 +440,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                         if (ToolExe != _dotnetHostInfo.ToolNameOpt)
                         {
-                            _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolPath, commandLine);
+                            _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolExe, commandLine);
                         }
                     }
                     else
                     {
                         // Explicitly provided ToolPath, don't try to figure anything out
-                        _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolPath, commandLine);
+                        _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(Path.Combine(ToolPath, ToolExe), commandLine);
                     }
                 }
                 return _dotnetHostInfo;
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             try
             {
                 if (!UseSharedCompilation ||
-                !string.IsNullOrEmpty(ToolPath) ||
+                !DotnetHostInfo.IsManagedTool ||
                 !BuildServerConnection.IsCompilerServerSupported)
                 {
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);

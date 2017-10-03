@@ -12,16 +12,23 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         public string CommandLineArgs { get; }
 
-        private DotnetHost(string toolNameOpt, string pathToToolOpt, string commandLineArgs)
+        /// <summary>
+        /// True if this tool is a managed executable, and will be invoked with `dotnet`.
+        /// False if this executable is being invoked directly.
+        /// </summary>
+        public bool IsManagedTool { get; }
+
+        private DotnetHost(string toolNameOpt, string pathToToolOpt, string commandLineArgs, bool isManagedTool)
         {
             ToolNameOpt = toolNameOpt;
             PathToToolOpt = pathToToolOpt;
             CommandLineArgs = commandLineArgs;
+            IsManagedTool = isManagedTool;
         }
 
         public static DotnetHost CreateUnmanagedToolInvocation(string pathToTool, string commandLineArgs)
         {
-            return new DotnetHost(null, pathToTool, commandLineArgs);
+            return new DotnetHost(null, pathToTool, commandLineArgs, isManagedTool: false);
         }
 
         public static DotnetHost CreateManagedToolInvocation(string toolNameWithoutExtension, string commandLineArgs)
@@ -45,7 +52,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 pathToToolOpt = Utilities.GenerateFullPathToTool(toolName);
             }
 
-            return new DotnetHost(toolName, pathToToolOpt, commandLineArgs);
+            return new DotnetHost(toolName, pathToToolOpt, commandLineArgs, isManagedTool: true);
         }
 
         private static bool IsCliHost(out string pathToDotnet)
