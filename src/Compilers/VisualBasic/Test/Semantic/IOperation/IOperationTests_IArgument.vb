@@ -746,6 +746,42 @@ BC30057: Too many arguments to 'Public Sub M2(x As Integer, [y As Integer = 0], 
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
+        Public Sub TestValidDynamicInvocation_OmittedArgument()
+            Dim source = <![CDATA[
+Option Strict Off
+
+Class P
+    Sub M1(o As Object)
+        M2(o,,)'BIND:"M2(o,,)"
+    End Sub
+
+    Sub M2(x As Integer, Optional y As Integer = 0, Optional z As Integer = 0)
+    End Sub
+
+    Sub M2(x As Double, Optional y As Integer = 0, Optional z As Integer = 0)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'M2(o,,)')
+  Expression: IDynamicMemberReferenceExpression (Member Name: "M2", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: System.Object) (Syntax: 'M2')
+      Type Arguments(0)
+      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
+  Arguments(3):
+      IParameterReferenceExpression: o (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'o')
+      IOmittedArgumentExpression (OperationKind.OmittedArgumentExpression, Type: System.Object) (Syntax: '')
+      IOmittedArgumentExpression (OperationKind.OmittedArgumentExpression, Type: System.Object) (Syntax: '')
+  ArgumentNames(0)
+  ArgumentRefKinds: null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
         Public Sub Error_OmittingParamArrayArgument()
             Dim source = <![CDATA[
 Class P

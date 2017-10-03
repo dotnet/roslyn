@@ -1193,6 +1193,45 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0])) (OperationKind.Invocati
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        public void TestOmittedArgument()
+        {
+            string source = @"
+class P
+{
+    void M1()
+    {
+        /*<bind>*/M2(1,)/*</bind>*/;
+    }
+
+    void M2(int y, int x = 0)
+    { }
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression ( void P.M2(System.Int32 y, [System.Int32 x = 0])) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1,)')
+  Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
+  Arguments(2):
+      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: '1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+          Children(0)
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(6,24): error CS1525: Invalid expression term ')'
+                //         /*<bind>*/M2(1,)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 24)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void WrongArgumentType()
         {
             string source = @"
