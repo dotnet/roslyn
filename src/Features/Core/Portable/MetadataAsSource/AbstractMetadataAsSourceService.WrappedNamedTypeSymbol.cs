@@ -83,6 +83,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public INamedTypeSymbol ConstructedFrom => _symbol.ConstructedFrom;
             public INamedTypeSymbol BaseType => _symbol.BaseType;
             public INamedTypeSymbol TupleUnderlyingType => _symbol.TupleUnderlyingType;
+            public bool IsByRefLikeType => _symbol.IsByRefLikeType;
 
             public ImmutableArray<ITypeParameterSymbol> TypeParameters => _symbol.TypeParameters;
             public ImmutableArray<ITypeSymbol> TypeArguments => _symbol.TypeArguments;

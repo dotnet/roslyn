@@ -720,6 +720,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         bool ITypeSymbol.IsTupleType => this.IsTupleType;
 
+        /// <summary>
+        /// True if the type may contain embedded references.
+        /// </summary>
+        bool ITypeSymbol.IsByRefLikeType => this.IsByRefLikeType;
+
         #endregion
 
         #region Interface member checks
