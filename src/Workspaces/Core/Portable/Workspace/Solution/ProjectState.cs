@@ -20,8 +20,19 @@ namespace Microsoft.CodeAnalysis
         private readonly ProjectInfo _projectInfo;
         private readonly HostLanguageServices _languageServices;
         private readonly SolutionServices _solutionServices;
-        private readonly ImmutableDictionary<DocumentId, DocumentState> _documentStates;
-        private readonly ImmutableDictionary<DocumentId, TextDocumentState> _additionalDocumentStates;
+
+        /// <summary>
+        /// The documents in this project. They are sorted by <see cref="DocumentId.Id"/> to provide a stable sort for
+        /// <see cref="GetChecksumAsync(CancellationToken)"/>.
+        /// </summary>
+        private readonly ImmutableSortedDictionary<DocumentId, DocumentState> _documentStates;
+
+        /// <summary>
+        /// The additional documents in this project. They are sorted by <see cref="DocumentId.Id"/> to provide a stable sort for
+        /// <see cref="GetChecksumAsync(CancellationToken)"/>.
+        /// </summary>
+        private readonly ImmutableSortedDictionary<DocumentId, TextDocumentState> _additionalDocumentStates;
+
         private readonly ImmutableList<DocumentId> _documentIds;
         private readonly ImmutableList<DocumentId> _additionalDocumentIds;
         private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentVersion;
@@ -39,8 +50,8 @@ namespace Microsoft.CodeAnalysis
             SolutionServices solutionServices,
             ImmutableList<DocumentId> documentIds,
             ImmutableList<DocumentId> additionalDocumentIds,
-            ImmutableDictionary<DocumentId, DocumentState> documentStates,
-            ImmutableDictionary<DocumentId, TextDocumentState> additionalDocumentStates,
+            ImmutableSortedDictionary<DocumentId, DocumentState> documentStates,
+            ImmutableSortedDictionary<DocumentId, TextDocumentState> additionalDocumentStates,
             AsyncLazy<VersionStamp> lazyLatestDocumentVersion,
             AsyncLazy<VersionStamp> lazyLatestDocumentTopLevelChangeVersion)
         {
@@ -76,14 +87,14 @@ namespace Microsoft.CodeAnalysis
             _additionalDocumentIds = projectInfoFixed.AdditionalDocuments.Select(d => d.Id).ToImmutableList();
 
             var parseOptions = projectInfoFixed.ParseOptions;
-            var docStates = ImmutableDictionary.CreateRange<DocumentId, DocumentState>(
+            var docStates = ImmutableSortedDictionary.CreateRange(DocumentIdComparer.Instance,
                 projectInfoFixed.Documents.Select(d =>
                     new KeyValuePair<DocumentId, DocumentState>(d.Id,
                         CreateDocument(d, parseOptions, languageServices, solutionServices))));
 
             _documentStates = docStates;
 
-            var additionalDocStates = ImmutableDictionary.CreateRange<DocumentId, TextDocumentState>(
+            var additionalDocStates = ImmutableSortedDictionary.CreateRange(DocumentIdComparer.Instance,
                     projectInfoFixed.AdditionalDocuments.Select(d =>
                         new KeyValuePair<DocumentId, TextDocumentState>(d.Id, TextDocumentState.Create(d, solutionServices))));
 
@@ -129,7 +140,7 @@ namespace Microsoft.CodeAnalysis
             return projectInfo;
         }
 
-        private static async Task<VersionStamp> ComputeLatestDocumentVersionAsync(ImmutableDictionary<DocumentId, DocumentState> documentStates, ImmutableDictionary<DocumentId, TextDocumentState> additionalDocumentStates, CancellationToken cancellationToken)
+        private static async Task<VersionStamp> ComputeLatestDocumentVersionAsync(IImmutableDictionary<DocumentId, DocumentState> documentStates, IImmutableDictionary<DocumentId, TextDocumentState> additionalDocumentStates, CancellationToken cancellationToken)
         {
             // this may produce a version that is out of sync with the actual Document versions.
             var latestVersion = VersionStamp.Default;
@@ -157,8 +168,8 @@ namespace Microsoft.CodeAnalysis
 
         private AsyncLazy<VersionStamp> CreateLazyLatestDocumentTopLevelChangeVersion(
             TextDocumentState newDocument,
-            ImmutableDictionary<DocumentId, DocumentState> newDocumentStates,
-            ImmutableDictionary<DocumentId, TextDocumentState> newAdditionalDocumentStates)
+            IImmutableDictionary<DocumentId, DocumentState> newDocumentStates,
+            IImmutableDictionary<DocumentId, TextDocumentState> newAdditionalDocumentStates)
         {
             if (_lazyLatestDocumentTopLevelChangeVersion.TryGetValue(out var oldVersion))
             {
@@ -176,7 +187,7 @@ namespace Microsoft.CodeAnalysis
             return newVersion.GetNewerVersion(oldVersion);
         }
 
-        private static async Task<VersionStamp> ComputeLatestDocumentTopLevelChangeVersionAsync(ImmutableDictionary<DocumentId, DocumentState> documentStates, ImmutableDictionary<DocumentId, TextDocumentState> additionalDocumentStates, CancellationToken cancellationToken)
+        private static async Task<VersionStamp> ComputeLatestDocumentTopLevelChangeVersionAsync(IImmutableDictionary<DocumentId, DocumentState> documentStates, IImmutableDictionary<DocumentId, TextDocumentState> additionalDocumentStates, CancellationToken cancellationToken)
         {
             // this may produce a version that is out of sync with the actual Document versions.
             var latestVersion = VersionStamp.Default;
@@ -312,10 +323,10 @@ namespace Microsoft.CodeAnalysis
         public IReadOnlyList<DocumentId> AdditionalDocumentIds => _additionalDocumentIds;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public ImmutableDictionary<DocumentId, DocumentState> DocumentStates => _documentStates;
+        public IImmutableDictionary<DocumentId, DocumentState> DocumentStates => _documentStates;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public ImmutableDictionary<DocumentId, TextDocumentState> AdditionalDocumentStates => _additionalDocumentStates;
+        public IImmutableDictionary<DocumentId, TextDocumentState> AdditionalDocumentStates => _additionalDocumentStates;
 
         public bool ContainsDocument(DocumentId documentId)
         {
@@ -343,8 +354,8 @@ namespace Microsoft.CodeAnalysis
             ProjectInfo projectInfo = null,
             ImmutableList<DocumentId> documentIds = default,
             ImmutableList<DocumentId> additionalDocumentIds = default,
-            ImmutableDictionary<DocumentId, DocumentState> documentStates = null,
-            ImmutableDictionary<DocumentId, TextDocumentState> additionalDocumentStates = null,
+            ImmutableSortedDictionary<DocumentId, DocumentState> documentStates = null,
+            ImmutableSortedDictionary<DocumentId, TextDocumentState> additionalDocumentStates = null,
             AsyncLazy<VersionStamp> latestDocumentVersion = null,
             AsyncLazy<VersionStamp> latestDocumentTopLevelChangeVersion = null)
         {
@@ -559,7 +570,7 @@ namespace Microsoft.CodeAnalysis
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
                 documentIds: _documentIds.Add(document.Id),
-                documentStates: this.DocumentStates.Add(document.Id, document));
+                documentStates: _documentStates.Add(document.Id, document));
         }
 
         public ProjectState AddAdditionalDocument(TextDocumentState document)
@@ -569,7 +580,7 @@ namespace Microsoft.CodeAnalysis
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
                 additionalDocumentIds: _additionalDocumentIds.Add(document.Id),
-                additionalDocumentStates: this.AdditionalDocumentStates.Add(document.Id, document));
+                additionalDocumentStates: _additionalDocumentStates.Add(document.Id, document));
         }
 
         public ProjectState RemoveDocument(DocumentId documentId)
@@ -579,7 +590,7 @@ namespace Microsoft.CodeAnalysis
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
                 documentIds: _documentIds.Remove(documentId),
-                documentStates: this.DocumentStates.Remove(documentId));
+                documentStates: _documentStates.Remove(documentId));
         }
 
         public ProjectState RemoveAdditionalDocument(DocumentId documentId)
@@ -589,7 +600,7 @@ namespace Microsoft.CodeAnalysis
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
                 additionalDocumentIds: _additionalDocumentIds.Remove(documentId),
-                additionalDocumentStates: this.AdditionalDocumentStates.Remove(documentId));
+                additionalDocumentStates: _additionalDocumentStates.Remove(documentId));
         }
 
         public ProjectState RemoveAllDocuments()
@@ -597,7 +608,7 @@ namespace Microsoft.CodeAnalysis
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()).WithDocuments(SpecializedCollections.EmptyEnumerable<DocumentInfo>()),
                 documentIds: ImmutableList<DocumentId>.Empty,
-                documentStates: ImmutableDictionary<DocumentId, DocumentState>.Empty);
+                documentStates: ImmutableSortedDictionary.Create<DocumentId, DocumentState>(DocumentIdComparer.Instance));
         }
 
         public ProjectState UpdateDocument(DocumentState newDocument, bool textChanged, bool recalculateDependentVersions)
@@ -610,7 +621,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            var newDocumentStates = this.DocumentStates.SetItem(newDocument.Id, newDocument);
+            var newDocumentStates = _documentStates.SetItem(newDocument.Id, newDocument);
             GetLatestDependentVersions(
                 newDocumentStates, _additionalDocumentStates, oldDocument, newDocument, recalculateDependentVersions, textChanged,
                 out var dependentDocumentVersion, out var dependentSemanticVersion);
@@ -631,7 +642,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            var newDocumentStates = this.AdditionalDocumentStates.SetItem(newDocument.Id, newDocument);
+            var newDocumentStates = _additionalDocumentStates.SetItem(newDocument.Id, newDocument);
             GetLatestDependentVersions(
                 _documentStates, newDocumentStates, oldDocument, newDocument, recalculateDependentVersions, textChanged,
                 out var dependentDocumentVersion, out var dependentSemanticVersion);
@@ -643,8 +654,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         private void GetLatestDependentVersions(
-            ImmutableDictionary<DocumentId, DocumentState> newDocumentStates,
-            ImmutableDictionary<DocumentId, TextDocumentState> newAdditionalDocumentStates,
+            IImmutableDictionary<DocumentId, DocumentState> newDocumentStates,
+            IImmutableDictionary<DocumentId, TextDocumentState> newAdditionalDocumentStates,
             TextDocumentState oldDocument, TextDocumentState newDocument,
             bool recalculateDependentVersions, bool textChanged,
             out AsyncLazy<VersionStamp> dependentDocumentVersion, out AsyncLazy<VersionStamp> dependentSemanticVersion)
@@ -679,6 +690,20 @@ namespace Microsoft.CodeAnalysis
                 textChanged ?
                     CreateLazyLatestDocumentTopLevelChangeVersion(newDocument, newDocumentStates, newAdditionalDocumentStates) :
                     _lazyLatestDocumentTopLevelChangeVersion;
+        }
+
+        private sealed class DocumentIdComparer : IComparer<DocumentId>
+        {
+            public static IComparer<DocumentId> Instance = new DocumentIdComparer();
+
+            private DocumentIdComparer()
+            {
+            }
+
+            public int Compare(DocumentId x, DocumentId y)
+            {
+                return x.Id.CompareTo(y.Id);
+            }
         }
     }
 }
