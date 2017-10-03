@@ -529,6 +529,66 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a deconstruction assignment expression.
+    /// </summary>
+    internal abstract partial class BaseDeconstructionAssignmentExpression : AssignmentExpression, IDeconstructionAssignmentExpression
+    {
+        public BaseDeconstructionAssignmentExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.DeconstructionAssignmentExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Target;
+                yield return Value;
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitDeconstructionAssignmentExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitDeconstructionAssignmentExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a deconstruction assignment expression.
+    /// </summary>
+    internal sealed partial class DeconstructionAssignmentExpression : BaseDeconstructionAssignmentExpression, IDeconstructionAssignmentExpression
+    {
+        public DeconstructionAssignmentExpression(IOperation target, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            TargetImpl = target;
+            ValueImpl = value;
+        }
+        protected override IOperation TargetImpl { get; }
+        protected override IOperation ValueImpl { get; }
+    }
+
+    /// <summary>
+    /// Represents a deconstruction assignment expression.
+    /// </summary>
+    internal sealed partial class LazyDeconstructionAssignmentExpression : BaseDeconstructionAssignmentExpression, IDeconstructionAssignmentExpression
+    {
+        private readonly Lazy<IOperation> _lazyTarget;
+        private readonly Lazy<IOperation> _lazyValue;
+
+        public LazyDeconstructionAssignmentExpression(Lazy<IOperation> target, Lazy<IOperation> value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyTarget = target ?? throw new System.ArgumentNullException(nameof(target));
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
+        }
+        protected override IOperation TargetImpl => _lazyTarget.Value;
+        protected override IOperation ValueImpl => _lazyValue.Value;
+    }
+
+    /// <summary>
     /// Represents an await expression.
     /// </summary>
     internal abstract partial class BaseAwaitExpression : Operation, IAwaitExpression

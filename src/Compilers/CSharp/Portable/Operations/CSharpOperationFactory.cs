@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 case BoundKind.DeconstructValuePlaceholder:
                     return CreateBoundDeconstructValuePlaceholderOperation((BoundDeconstructValuePlaceholder)boundNode);
+                case BoundKind.DeconstructionAssignmentOperator:
+                    return CreateBoundDeconstructionAssignmentOperator((BoundDeconstructionAssignmentOperator)boundNode);
                 case BoundKind.Call:
                     return CreateBoundCallOperation((BoundCall)boundNode);
                 case BoundKind.Local:
@@ -276,6 +278,17 @@ namespace Microsoft.CodeAnalysis.Semantics
             Optional<object> constantValue = ConvertToOptional(boundDeconstructValuePlaceholder.ConstantValue);
             bool isImplicit = boundDeconstructValuePlaceholder.WasCompilerGenerated;
             return new PlaceholderExpression(_semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IDeconstructionAssignmentExpression CreateBoundDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator boundDeconstructionAssignmentOperator)
+        {
+            Lazy<IOperation> target = new Lazy<IOperation>(() => Create(boundDeconstructionAssignmentOperator.Left));
+            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundDeconstructionAssignmentOperator.Right));
+            SyntaxNode syntax = boundDeconstructionAssignmentOperator.Syntax;
+            ITypeSymbol type = boundDeconstructionAssignmentOperator.Type;
+            Optional<object> constantValue = ConvertToOptional(boundDeconstructionAssignmentOperator.ConstantValue);
+            bool isImplicit = boundDeconstructionAssignmentOperator.WasCompilerGenerated;
+            return new LazyDeconstructionAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IInvocationExpression CreateBoundCallOperation(BoundCall boundCall)

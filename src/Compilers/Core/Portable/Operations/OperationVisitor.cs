@@ -396,6 +396,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
+        public virtual void VisitDeconstructionAssignmentExpression(IDeconstructionAssignmentExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitCompoundAssignmentExpression(ICompoundAssignmentExpression operation)
         {
             DefaultVisit(operation);
@@ -883,6 +888,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitSimpleAssignmentExpression(ISimpleAssignmentExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitDeconstructionAssignmentExpression(IDeconstructionAssignmentExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

@@ -1206,6 +1206,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Value, "Right");
         }
 
+        public override void VisitDeconstructionAssignmentExpression(IDeconstructionAssignmentExpression operation)
+        {
+            LogString(nameof(IDeconstructionAssignmentExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Target, "Left");
+            Visit(operation.Value, "Right");
+        }
+
         public override void VisitCompoundAssignmentExpression(ICompoundAssignmentExpression operation)
         {
             LogString(nameof(ICompoundAssignmentExpression));
