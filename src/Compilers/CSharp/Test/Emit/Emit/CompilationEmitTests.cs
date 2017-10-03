@@ -1401,12 +1401,12 @@ comp => comp.VerifyDiagnostics(
         {
             string name = GetUniqueName();
             var libComp = CreateStandardCompilation(lib_cs, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef },
-                options: TestOptions.DebugDll.WithDeterministic(true), parseOptions: TestOptions.RegularLatest, assemblyName: name);
+                options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
             libComp.VerifyDiagnostics();
             var libImage = libComp.EmitToImageReference(emitOptions);
 
             var comp = CreateStandardCompilation(source, references: new[] { libImage, ValueTupleRef, SystemRuntimeFacadeRef },
-                options: TestOptions.DebugDll.WithAllowUnsafe(true), parseOptions: TestOptions.RegularLatest);
+                options: TestOptions.DebugDll.WithAllowUnsafe(true));
             validator(comp);
         }
 
