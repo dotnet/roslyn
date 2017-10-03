@@ -107,6 +107,11 @@ function Exec-Script([string]$script, [string]$scriptArgs = "") {
     Exec-Command "powershell" "-noprofile -executionPolicy RemoteSigned -file `"$script`" $scriptArgs"
 }
 
+# True if we are running on Linux or MacOS
+function Is-Unix() {
+    return $PSVersionTable.PSEdition -eq "Core" -and $PSVersionTable.Platform -eq "Unix"
+}
+
 # Ensure that NuGet is installed and return the path to the 
 # executable to use.
 function Ensure-NuGet() {
@@ -137,12 +142,19 @@ function Ensure-NuGet() {
 # SDK.
 function Ensure-SdkInPathAndData() { 
     $sdkVersion = Get-ToolVersion "dotnetSdk"
+    if (Is-Unix) {
+        $dotnetName = "dotnet"
+    }
+    else {
+        $dotnetName = "dotnet.exe"
+    }
+    $pathSep = [IO.Path]::PathSeparator
 
     # Get the path to dotnet.exe. This is the first path on %PATH% that contains the 
     # dotnet.exe instance. Many SDK tools use this to locate items like the SDK.
     function Get-DotnetDir() { 
-        foreach ($part in ${env:PATH}.Split(';', [System.StringSplitOptions]::RemoveEmptyEntries)) {
-            $dotnetExe = Join-Path $part "dotnet.exe"
+        foreach ($part in ${env:PATH}.Split($pathSep, [System.StringSplitOptions]::RemoveEmptyEntries)) {
+            $dotnetExe = Join-Path $part $dotnetName
             if (Test-Path $dotnetExe) {
                 return $part
             }
@@ -156,7 +168,7 @@ function Ensure-SdkInPathAndData() {
     if ($dotnetDir -ne $null) { 
         $sdkPath = Join-Path $dotnetDir "sdk\$sdkVersion"
         if (Test-Path $sdkPath) {
-            Write-Output (Join-Path $dotnetDir "dotnet.exe")
+            Write-Output (Join-Path $dotnetDir $dotnetName)
             Write-Output $sdkPath
             return        
         }
@@ -166,21 +178,41 @@ function Ensure-SdkInPathAndData() {
     # Binaries\Tools directory
     $toolsDir = Join-Path $binariesDir "Tools"
     $cliDir = Join-Path $toolsDir "dotnet"
-    $dotnetExe = Join-Path $cliDir "dotnet.exe"
+    $dotnetExe = Join-Path $cliDir $dotnetName
     if (-not (Test-Path $dotnetExe)) { 
         Write-Host "Downloading CLI $sdkVersion"
         Create-Directory $cliDir
         Create-Directory $toolsDir
-        $destFile = Join-Path $toolsDir "dotnet-install.ps1"
-        $webClient = New-Object -TypeName "System.Net.WebClient"
-        $webClient.DownloadFile("https://dot.net/v1/dotnet-install.ps1", $destFile)
-        Exec-Block { & $destFile -Version $sdkVersion -InstallDir $cliDir } | Out-Null
+        if (Is-Unix) {
+            # AppImage mucks with LD_LIBRARY_PATH and causes the install to fail
+            $old_ld_path = $env:LD_LIBRARY_PATH
+            try {
+                $env:LD_LIBRARY_PATH = ""
+                $destFile = Join-Path $toolsDir "dotnet-install.sh"
+                # Should be using System.Net.WebClient.DownloadFile, but that fails
+                # on WSL with "System.Net.Http.CurlException: Couldn't resolve host name"
+                Exec-Block { & curl "https://dot.net/v1/dotnet-install.sh" -o $destFile } | Out-Null
+                # RuntimeId needs to be specified, because some distros do not
+                # define VERSION_ID in /etc/os-release, which causes the install
+                # to fail (due to unset variable).
+                Exec-Block { & bash $destFile -Version $sdkVersion -InstallDir $cliDir -RuntimeId linux-x64 } | Out-Null
+            }
+            finally {
+                $env:LD_LIBRARY_PATH = $old_ld_path
+            }
+        }
+        else {
+            $destFile = Join-Path $toolsDir "dotnet-install.ps1"
+            $webClient = New-Object -TypeName "System.Net.WebClient"
+            $webClient.DownloadFile("https://dot.net/v1/dotnet-install.ps1", $destFile)
+            Exec-Block { & $destFile -Version $sdkVersion -InstallDir $cliDir } | Out-Null
+        }
     }
 
-    ${env:PATH} = "$cliDir;${env:PATH}"
+    ${env:PATH} = "$cliDir$pathSep${env:PATH}"
     $sdkPath = Join-Path $cliDir "sdk\$sdkVersion"
-    Write-Host $dotnetExe
-    Write-Host $sdkPath
+    Write-Output $dotnetExe
+    Write-Output $sdkPath
     return
 }
 
@@ -280,7 +312,7 @@ function Get-PackagesDir() {
         $d = $env:NUGET_PACKAGES
     }
     else {
-        $d = Join-Path $env:UserProfile ".nuget\packages\"
+        $d = Join-Path $home ".nuget\packages\"
     }
 
     Create-Directory $d
@@ -298,6 +330,11 @@ function Get-PackageDir([string]$name, [string]$version = "") {
     $p = Join-Path $p $name
     $p = Join-Path $p $version
     return $p
+}
+
+# Return the RID of the provided dotnet executable
+function Get-DotnetRID([string]$dotnet) {
+    return (Exec-Block { & $dotnet "--info" } | Where-Object {$_.Contains("RID:")} | Foreach-Object {$_.Split(":")[1].Trim()} | Select-Object -Index 0)
 }
 
 # The intent of this script is to locate and return the path to the MSBuild directory that
@@ -443,7 +480,39 @@ function Restore-Packages([string]$msbuildDir = "", [string]$project = "") {
 }
 
 # Restore all of the projects that the repo consumes
-function Restore-All([string]$msbuildDir = "") {
-    Restore-Packages -msbuildDir $msbuildDir
+function Restore-Packages-Dotnet([string]$dotnet = "", [string]$project = "") {
+    if ($dotnet -eq "") {
+        $dotnet, $sdkDir = Ensure-SdkInPathAndData
+    }
+
+    Write-Host "Restore using dotnet at $dotnet"
+
+    if ($project -ne "") {
+        Write-Host "Restoring project $project"
+
+        Exec-Block { & $dotnet restore $project } | Write-Host
+    }
+    else {
+        $all = @(
+            "Base Toolset:build\ToolsetPackages\BaseToolset.csproj",
+            "CoreClr Toolset:build\ToolsetPackages\CoreToolset.csproj",
+            "CrossPlatform:CrossPlatform.sln")
+
+        foreach ($cur in $all) {
+            $both = $cur.Split(':')
+            Write-Host "Restoring $($both[0])"
+            Exec-Block { & $dotnet restore $both[1] } | Write-Host
+        }
+    }
+}
+
+# Restore all of the projects that the repo consumes
+function Restore-All([string]$msbuildDir = "", [string]$dotnet = "") {
+    if (Is-Unix) {
+        Restore-Packages-Dotnet -dotnet $dotnet
+    }
+    else {
+        Restore-Packages -msbuildDir $msbuildDir
+    }
 }
 
