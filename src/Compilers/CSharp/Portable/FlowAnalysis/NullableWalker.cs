@@ -2288,9 +2288,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             if (this.State.Reachable)
             {
-                if ((object)node.Type != null && node.Type.IsReferenceType == true)
+                if ((object)node.Type != null && node.Type.IsReferenceType)
                 {
-                    this.State.ResultIsNotNull = false;
+                    bool isNotNull = node.Syntax.Kind() == SyntaxKind.DefaultExpression && !node.IsNullable;
+                    this.State.ResultIsNotNull = isNotNull;
+                    if (isNotNull && _includeNonNullableWarnings)
+                    {
+                        // Creating a null value of a non-nullable type.
+                        ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_DefaultOfNonNullableType, node.Syntax);
+                    }
                 }
                 else
                 {

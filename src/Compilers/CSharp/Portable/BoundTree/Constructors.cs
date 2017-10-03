@@ -542,8 +542,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundDefaultExpression
     {
-        public BoundDefaultExpression(SyntaxNode syntax, TypeSymbol type, bool hasErrors = false)
-            : this(syntax, type.GetDefaultValue(), type, hasErrors)
+        public BoundDefaultExpression(SyntaxNode syntax, TypeSymbol type)
+            : this(syntax, type.GetDefaultValue(), type)
+        {
+        }
+
+        public BoundDefaultExpression(SyntaxNode syntax, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors = false)
+            : this(syntax, false, constantValueOpt, type, hasErrors)
         {
         }
     }

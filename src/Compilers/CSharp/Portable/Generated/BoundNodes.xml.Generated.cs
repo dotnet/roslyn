@@ -1807,18 +1807,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDefaultExpression : BoundExpression
     {
-        public BoundDefaultExpression(SyntaxNode syntax, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors)
+        public BoundDefaultExpression(SyntaxNode syntax, bool isNullable, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors)
             : base(BoundKind.DefaultExpression, syntax, type, hasErrors)
         {
+            this.IsNullable = isNullable;
             this.ConstantValueOpt = constantValueOpt;
         }
 
-        public BoundDefaultExpression(SyntaxNode syntax, ConstantValue constantValueOpt, TypeSymbol type)
+        public BoundDefaultExpression(SyntaxNode syntax, bool isNullable, ConstantValue constantValueOpt, TypeSymbol type)
             : base(BoundKind.DefaultExpression, syntax, type)
         {
+            this.IsNullable = isNullable;
             this.ConstantValueOpt = constantValueOpt;
         }
 
+
+        public bool IsNullable { get; }
 
         public ConstantValue ConstantValueOpt { get; }
 
@@ -1827,11 +1831,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitDefaultExpression(this);
         }
 
-        public BoundDefaultExpression Update(ConstantValue constantValueOpt, TypeSymbol type)
+        public BoundDefaultExpression Update(bool isNullable, ConstantValue constantValueOpt, TypeSymbol type)
         {
-            if (constantValueOpt != this.ConstantValueOpt || type != this.Type)
+            if (isNullable != this.IsNullable || constantValueOpt != this.ConstantValueOpt || type != this.Type)
             {
-                var result = new BoundDefaultExpression(this.Syntax, constantValueOpt, type, this.HasErrors);
+                var result = new BoundDefaultExpression(this.Syntax, isNullable, constantValueOpt, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -8786,7 +8790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDefaultExpression(BoundDefaultExpression node)
         {
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.ConstantValueOpt, type);
+            return node.Update(node.IsNullable, node.ConstantValueOpt, type);
         }
         public override BoundNode VisitIsOperator(BoundIsOperator node)
         {
@@ -9863,6 +9867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new TreeDumperNode("defaultExpression", null, new TreeDumperNode[]
             {
+                new TreeDumperNode("isNullable", node.IsNullable, null),
                 new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
                 new TreeDumperNode("type", node.Type, null)
             }

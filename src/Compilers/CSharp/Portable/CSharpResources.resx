@@ -5156,6 +5156,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureStaticNullChecking" xml:space="preserve">
     <value>static null checking</value>
   </data>
+  <data name="WRN_DefaultOfNonNullableType" xml:space="preserve">
+    <value>Creating a null value of a non-nullable type.</value>
+  </data>
+  <data name="WRN_DefaultOfNonNullableType_Title" xml:space="preserve">
+    <value>Creating a null value of a non-nullable type.</value>
+  </data>
   <data name="WRN_NullAsNonNullable" xml:space="preserve">
     <value>Cannot convert null to non-nullable reference.</value>
   </data>
