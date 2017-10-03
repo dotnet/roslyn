@@ -35,6 +35,7 @@ Public Class BuildDevDivInsertionFiles
     Public Shared Function Main(args As String()) As Integer
         If args.Length <> 4 Then
             Console.WriteLine("Expected arguments: <bin dir> <setup dir> <nuget root dir> <assembly version>")
+            Console.WriteLine($"Actual argument count is {args.Length}")
             Return 1
         End If
 
@@ -69,7 +70,12 @@ Public Class BuildDevDivInsertionFiles
         "StreamJsonRpc.resources.dll",
         "codeAnalysisService.servicehub.service.json",
         "remoteHostService.servicehub.service.json",
-        "serviceHubSnapshotService.servicehub.service.json",
+        "snapshotService.servicehub.service.json",
+        "remoteSymbolSearchUpdateEngine.servicehub.service.json",
+        "codeAnalysisService64.servicehub.service.json",
+        "remoteHostService64.servicehub.service.json",
+        "snapshotService64.servicehub.service.json",
+        "remoteSymbolSearchUpdateEngine64.servicehub.service.json",
         "Microsoft.Build.Conversion.Core.dll",
         "Microsoft.Build.dll",
         "Microsoft.Build.Engine.dll",
@@ -157,7 +163,6 @@ Public Class BuildDevDivInsertionFiles
     Private ReadOnly IntegrationTestFiles As String() = {
         "xunit.*.dll",
         "*.UnitTests.dll.config",
-        "Esent.Interop.dll",
         "InteractiveHost.exe",
         "Microsoft.CodeAnalysis.CSharp.dll",
         "Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll",
@@ -292,7 +297,6 @@ Public Class BuildDevDivInsertionFiles
         "xunit.*.dll",
         "PerfTests",
         "BasicUndo.dll",
-        "Esent.Interop.dll",
         "InteractiveHost.exe",
         "Microsoft.CodeAnalysis.CSharp.dll",
         "Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll",
@@ -830,25 +834,24 @@ Public Class BuildDevDivInsertionFiles
             Next
         Next
 
-        add("Exes\csc\csc.exe.config")
-        add("Exes\csc\csc.rsp")
-        add("Exes\vbc\vbc.exe.config")
-        add("Exes\vbc\vbc.rsp")
-        add("Exes\VBCSCompiler\VBCSCompiler.exe.config")
+        add("Exes\csc\net46\csc.exe.config")
+        add("Exes\csc\net46\csc.rsp")
+        add("Exes\vbc\net46\vbc.exe.config")
+        add("Exes\vbc\net46\vbc.rsp")
+        add("Exes\VBCSCompiler\net46\VBCSCompiler.exe.config")
         add("Exes\InteractiveHost\InteractiveHost.exe.config")
-        add("Exes\csi\csi.rsp")
-        add("Vsix\Roslyn.Deployment.Full.Next\remoteSymbolSearchUpdateEngine.servicehub.service.json")
-        add("Vsix\Roslyn.Deployment.Full.Next\snapshotService.servicehub.service.json")
+        add("Exes\csi\net46\csi.rsp")
         add("Vsix\VisualStudioInteractiveComponents\CSharpInteractive.rsp")
+        add("Vsix\VisualStudioSetup\Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll")
         add("Vsix\VisualStudioSetup\System.Composition.Convention.dll")
         add("Vsix\VisualStudioSetup\System.Composition.Hosting.dll")
         add("Vsix\VisualStudioSetup\System.Composition.TypedParts.dll")
-        add("Vsix\VisualStudioSetup.Next\Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll")
         add("Dlls\BasicExpressionCompiler\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.vsdconfig")
         add("Dlls\BasicResultProvider.Portable\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.vsdconfig")
         add("Dlls\CSharpExpressionCompiler\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.vsdconfig")
         add("Dlls\CSharpResultProvider.Portable\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.vsdconfig")
         add("Dlls\FunctionResolver\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.vsdconfig")
+        add("Dlls\ServicesVisualStudio\Microsoft.VisualStudio.LanguageServices.vsdconfig")
         add("Dlls\MSBuildTask\Microsoft.CSharp.Core.targets")
         add("Dlls\MSBuildTask\Microsoft.VisualBasic.Core.targets")
         add("Dlls\CSharpCompilerTestUtilities\Roslyn.Compilers.CSharp.Test.Utilities.dll")
@@ -859,9 +862,8 @@ Public Class BuildDevDivInsertionFiles
         add("Dlls\ServicesTestUtilities\Roslyn.Services.Test.Utilities.dll")
         add("Dlls\PdbUtilities\Roslyn.Test.PdbUtilities.dll")
         add("Dlls\TestUtilities.Desktop\Roslyn.Test.Utilities.Desktop.dll")
-        add("Dlls\TestUtilities\Roslyn.Test.Utilities.dll")
+        add("Dlls\TestUtilities\net461\Roslyn.Test.Utilities.dll")
         add("UnitTests\EditorServicesTest\BasicUndo.dll")
-        add("UnitTests\EditorServicesTest\Esent.Interop.dll")
         add("UnitTests\EditorServicesTest\Moq.dll")
         add("UnitTests\EditorServicesTest\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll")
         add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.PortablePdb.dll")

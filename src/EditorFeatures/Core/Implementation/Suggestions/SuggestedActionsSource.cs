@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             public bool TryGetTelemetryId(out Guid telemetryId)
             {
-                telemetryId = default(Guid);
+                telemetryId = default;
 
                 var workspace = _workspace;
                 if (workspace == null || _subjectBuffer == null)
@@ -404,8 +405,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var fixes = fixCollection.Fixes;
                 var fixCount = fixes.Length;
 
-                Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet =
-                    codeAction => GetFixAllSuggestedActionSet(
+                SuggestedActionSet getFixAllSuggestedActionSet(CodeAction codeAction) => GetFixAllSuggestedActionSet(
                         codeAction, fixCount, fixCollection.FixAllState,
                         fixCollection.SupportedScopes, fixCollection.FirstDiagnostic,
                         workspace);
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// always show up last after all other fixes (and refactorings) for the selected line of code.
             /// </remarks>
             private static ImmutableArray<SuggestedActionSet> PrioritizeFixGroups(
-                IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map, IList<CodeFixGroupKey> order)
+                ImmutableDictionary<CodeFixGroupKey, IList<SuggestedAction>> map, ImmutableArray<CodeFixGroupKey> order)
             {
                 var sets = ArrayBuilder<SuggestedActionSet>.GetInstance();
 
@@ -673,7 +673,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 {
                     return null;
                 }
-
+              
+                // Also make sure the range is from the same buffer that this source was created for
+                Contract.ThrowIfFalse(
+                    range.Snapshot.TextBuffer.Equals(_subjectBuffer),
+                    $"Invalid text buffer passed to {nameof(HasSuggestedActionsAsync)}");
+              
                 // Next, before we do any async work, acquire the user's selection, directly grabbing
                 // it from the UI thread if htat's what we're on. That way we don't have any reentrancy
                 // blocking concerns if VS wants to block on this call (for example, if the user 

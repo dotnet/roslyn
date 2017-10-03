@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -213,7 +213,7 @@ class Program
 {
     void Method()
     {
-        [|var|] x = new Foo();
+        [|var|] x = new Goo();
     }
 }", new TestParameters(options: ExplicitTypeEverywhere()));
         }
@@ -741,8 +741,8 @@ class C
     {
         var customers = new List<Customer>();
         IEnumerable<Customer> expr = from c in customers
-                                     where c.City == ""London""
-                                     select c;
+                   where c.City == ""London""
+                   select c;
     }
 
     private class Customer
@@ -1079,9 +1079,8 @@ class C
         [|var|] s = 5;
     }
 }";
-            await TestDiagnosticSeverityAndCountAsync(source,
+            await TestDiagnosticInfoAsync(source,
                 options: ExplicitTypeEnforcements(),
-                diagnosticCount: 1,
                 diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Info);
         }
@@ -1098,9 +1097,8 @@ class C
         [|var|] n1 = new[] {2, 4, 6, 8};
     }
 }";
-            await TestDiagnosticSeverityAndCountAsync(source,
+            await TestDiagnosticInfoAsync(source,
                 options: ExplicitTypeEnforcements(),
-                diagnosticCount: 1,
                 diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning);
         }
@@ -1117,9 +1115,8 @@ class C
         [|var|] n1 = new C();
     }
 }";
-            await TestDiagnosticSeverityAndCountAsync(source,
+            await TestDiagnosticInfoAsync(source,
                 options: ExplicitTypeEnforcements(),
-                diagnosticCount: 1,
                 diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Error);
         }
@@ -1182,6 +1179,32 @@ options: ExplicitTypeEverywhere());
     static void M()
     {
         (int a, string) s = (a: 1, ""hello"");
+    }
+}",
+options: ExplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(20437, "https://github.com/dotnet/roslyn/issues/20437")]
+        public async Task SuggestExplicitTypeOnDeclarationExpressionSyntax()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    static void M()
+    {
+        DateTime.TryParse(string.Empty, [|out var|] date);
+    }
+}",
+@"using System;
+
+class C
+{
+    static void M()
+    {
+        DateTime.TryParse(string.Empty, out DateTime date);
     }
 }",
 options: ExplicitTypeEverywhere());

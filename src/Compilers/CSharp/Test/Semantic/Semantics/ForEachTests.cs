@@ -289,14 +289,14 @@ class Enumerator
             var text = @"
 struct C
 {
-    static void Foo(Enumerable? e)
+    static void Goo(Enumerable? e)
     {
         foreach (long x in e) { }
     }
 
     static void Main()
     {
-        Foo(new Enumerable());
+        Goo(new Enumerable());
     }
 }
 
@@ -751,7 +751,7 @@ using System.Collections.Generic;
 
 class C
 {
-    void Foo(Enumerable e)
+    void Goo(Enumerable e)
     {
         foreach (int x in e) { }
     }
@@ -779,7 +779,7 @@ using System.Collections.Generic;
 
 class C
 {
-    void Foo(Enumerable e)
+    void Goo(Enumerable e)
     {
         foreach (int x in e) { }
     }
@@ -938,7 +938,7 @@ class C
             var text = @"
 class C
 {
-    void Foo(int i)
+    void Goo(int i)
     {
         foreach (int x in i) { }
     }
@@ -956,7 +956,7 @@ class C
             var text = @"
 class C
 {
-    void Foo(int[] a)
+    void Goo(int[] a)
     {
         foreach (int x in a) { x++; }
     }
@@ -974,9 +974,9 @@ class C
             var text = @"
 class C
 {
-    System.Collections.IEnumerable Foo(object y)
+    System.Collections.IEnumerable Goo(object y)
     {
-        foreach (var x in Foo(x)) { }
+        foreach (var x in Goo(x)) { }
         return null;
     }
 }
@@ -993,7 +993,7 @@ class C
             var text = @"
 class C
 {
-    void Foo(DynamicEnumerable e)
+    void Goo(DynamicEnumerable e)
     {
         foreach (int x in e) { }
     }
@@ -1037,7 +1037,7 @@ class C
             var text = @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         foreach (int x in System.Console) { }
     }
@@ -1183,7 +1183,7 @@ class C
             var text = @"
 class C
 {
-    void Foo(int[] a)
+    void Goo(int[] a)
     {
         foreach (int x in a) { }
     }
@@ -1215,7 +1215,7 @@ class C
             var text = @"
 class C
 {
-    void Foo(string s)
+    void Goo(string s)
     {
         foreach (char c in s) { }
     }
@@ -1247,7 +1247,7 @@ class C
             var text = @"
 class C
 {
-    void Foo(Enumerable e)
+    void Goo(Enumerable e)
     {
         foreach (long x in e) { }
     }
@@ -1290,7 +1290,7 @@ class Enumerator
             var text = @"
 struct C
 {
-    void Foo(Enumerable e)
+    void Goo(Enumerable e)
     {
         foreach (long x in e) { }
     }
@@ -1319,7 +1319,7 @@ struct Enumerator
             Assert.False(info.NeedsDisposeMethod); // Definitely not disposable
             Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.Boxing, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.ImplicitNumeric, boundNode.ElementConversion.Kind);
             Assert.Equal("System.Int64 x", boundNode.IterationVariables.Single().ToTestDisplayString());
@@ -1333,7 +1333,7 @@ struct Enumerator
             var text = @"
 class C
 {
-    void Foo(System.Collections.IEnumerable e)
+    void Goo(System.Collections.IEnumerable e)
     {
         foreach (long x in e) { }
     }
@@ -1365,7 +1365,7 @@ class C
             var text = @"
 class C
 {
-    void Foo(Enumerable e)
+    void Goo(Enumerable e)
     {
         foreach (long x in e) { }
     }
@@ -1404,7 +1404,7 @@ class Enumerable : System.Collections.Generic.IEnumerable<int>
             var text = @"
 class C
 {
-    void Foo(Enumerable e)
+    void Goo(Enumerable e)
     {
         foreach (object x in e) { }
     }
@@ -1445,7 +1445,7 @@ class Enumerable : System.Collections.Generic.IEnumerable<Enumerable.Hidden>
             var text = @"
 class C
 {
-    void Foo(Enumerable e)
+    void Goo(Enumerable e)
     {
         foreach (long x in e) { }
     }
@@ -1483,7 +1483,7 @@ class Enumerable : System.Collections.IEnumerable
             var text = @"
 class C
 {
-    void Foo(int[] a)
+    void Goo(int[] a)
     {
         foreach (var x in a) { }
     }
@@ -1513,7 +1513,7 @@ class C
             var text = @"
 class C
 {
-    void Foo(string s)
+    void Goo(string s)
     {
         foreach (var x in s) { }
     }
@@ -1543,7 +1543,7 @@ class C
             var text = @"
 class C
 {
-    void Foo(Enumerable e)
+    void Goo(Enumerable e)
     {
         foreach (var x in e) { }
     }
@@ -1572,7 +1572,7 @@ class Enumerator
             var text = @"
 class C
 {
-    void Foo(Enumerable e)
+    void Goo(Enumerable e)
     {
         foreach (var x in e) { }
     }
@@ -1596,7 +1596,7 @@ class Enumerable : System.Collections.IEnumerable
             var text = @"
 class C
 {
-    void Foo(var[] a)
+    void Goo(var[] a)
     {
         foreach (var x in a) { }
     }
@@ -1628,7 +1628,7 @@ class C
             var text = @"
 class C
 {
-    void Foo(dynamic d)
+    void Goo(dynamic d)
     {
         foreach (int x in d) { }
     }
@@ -1660,7 +1660,7 @@ class C
             var text = @"
 class C
 {
-    void Foo(dynamic d)
+    void Goo(dynamic d)
     {
         foreach (var x in d) { }
     }
@@ -1809,7 +1809,7 @@ interface MyEnumerator
             Assert.Equal("Enumerable<T>", ((BoundConversion)boundNode.Expression).Operand.Type.ToTestDisplayString());
         }
 
-        // Copied from TestSuccessPatternStruct - only change is that Foo parameter is now nullable.
+        // Copied from TestSuccessPatternStruct - only change is that Goo parameter is now nullable.
         [WorkItem(544908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544908")]
         [Fact]
         public void TestSuccessNullableCollection()
@@ -1817,7 +1817,7 @@ interface MyEnumerator
             var text = @"
 struct C
 {
-    void Foo(Enumerable? e)
+    void Goo(Enumerable? e)
     {
         foreach (long x in e) { }
     }
@@ -1847,7 +1847,7 @@ struct Enumerator
             Assert.False(info.NeedsDisposeMethod); // Definitely not disposable
             Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.Boxing, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.ImplicitNumeric, boundNode.ElementConversion.Kind);
             Assert.Equal("System.Int64 x", boundNode.IterationVariables.Single().ToTestDisplayString());
@@ -1900,8 +1900,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "i < 5").WithLocation(6, 18),
                 // (6,25): error CS0103: The name 'i' does not exist in the current context
                 //     foreach(int; i < 5; i++)
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(6, 25)
-                );
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(6, 25));
             Assert.Null(boundNode.EnumeratorInfoOpt);
         }
 
@@ -2175,7 +2174,7 @@ class C
             var text = @"
 class C
 {
-    void Foo(Enumerable e)
+    void Goo(Enumerable e)
     {
         foreach (Element x in e) { }
     }
@@ -2231,7 +2230,7 @@ namespace System.Collections.Generic
 
 class C
 {
-    void Foo(System.Collections.Generic.IEnumerable<C>? e)
+    void Goo(System.Collections.Generic.IEnumerable<C>? e)
     {
         foreach (var c in e) { }
     }
@@ -2267,7 +2266,7 @@ public class Enumerable<T> : System.Collections.Generic.IEnumerable<T> { }
 
 class C
 {
-    void Foo(System.Collections.Generic.IEnumerable<C> e1, Enumerable<C> e2)
+    void Goo(System.Collections.Generic.IEnumerable<C> e1, Enumerable<C> e2)
     {
         foreach (var c in e1) { } // Pattern
         foreach (var c in e2) { } // Interface
@@ -2329,7 +2328,7 @@ public class Enumerable<T> : System.Collections.Generic.IEnumerable<T>
 
 class C
 {
-    void Foo(System.Collections.Generic.IEnumerable<C> e1, Enumerable<C> e2)
+    void Goo(System.Collections.Generic.IEnumerable<C> e1, Enumerable<C> e2)
     {
         foreach (var c in e1) { } // Pattern
         foreach (var c in e2) { } // Interface
@@ -2399,7 +2398,7 @@ public class Enumerable<T> : System.Collections.Generic.IEnumerable<T>
 
 class C
 {
-    void Foo(System.Collections.Generic.IEnumerable<C> e1, Enumerable<C> e2)
+    void Goo(System.Collections.Generic.IEnumerable<C> e1, Enumerable<C> e2)
     {
         foreach (var c in e1) { } // Pattern
         foreach (var c in e2) { } // Interface
@@ -2469,7 +2468,7 @@ public class Enumerable<T> : System.Collections.Generic.IEnumerable<T>
 
 class C
 {
-    void Foo(System.Collections.Generic.IEnumerable<C> e1, Enumerable<C> e2)
+    void Goo(System.Collections.Generic.IEnumerable<C> e1, Enumerable<C> e2)
     {
         foreach (var c in e1) { } // Pattern
         foreach (var c in e2) { } // Interface
@@ -2514,7 +2513,7 @@ public class Enumerable : System.Collections.IEnumerable { }
 
 class C
 {
-    void Foo(System.Collections.IEnumerable e1, Enumerable e2)
+    void Goo(System.Collections.IEnumerable e1, Enumerable e2)
     {
         foreach (var c in e1) { } // Pattern
         foreach (var c in e2) { } // Interface
@@ -2579,7 +2578,7 @@ public class Enumerable : System.Collections.IEnumerable
 
 class C
 {
-    void Foo(System.Collections.IEnumerable e1, Enumerable e2)
+    void Goo(System.Collections.IEnumerable e1, Enumerable e2)
     {
         foreach (var c in e1) { } // Pattern
         foreach (var c in e2) { } // Interface
@@ -2642,7 +2641,7 @@ public class Enumerable : System.Collections.IEnumerable
 
 class C
 {
-    void Foo(System.Collections.IEnumerable e1, Enumerable e2)
+    void Goo(System.Collections.IEnumerable e1, Enumerable e2)
     {
         foreach (var c in e1) { } // Pattern
         foreach (var c in e2) { } // Interface
@@ -2705,7 +2704,7 @@ public class Enumerable : System.Collections.IEnumerable
 
 class C
 {
-    void Foo(System.Collections.IEnumerable e1, Enumerable e2)
+    void Goo(System.Collections.IEnumerable e1, Enumerable e2)
     {
         foreach (var c in e1) { } // Pattern
         foreach (var c in e2) { } // Interface
@@ -2736,14 +2735,14 @@ class Program
 {
     static void Main()
     {
-        foreach(var x in Foo) { }
+        foreach(var x in Goo) { }
     }
 }
 ";
             CreateStandardCompilation(source).VerifyDiagnostics(
-                // (6,26): error CS0103: The name 'Foo' does not exist in the current context
-                //         foreach(var x in Foo) { }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(6, 26));
+                // (6,26): error CS0103: The name 'Goo' does not exist in the current context
+                //         foreach(var x in Goo) { }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo").WithArguments("Goo").WithLocation(6, 26));
         }
 
         [WorkItem(847507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847507")]
@@ -3188,13 +3187,10 @@ class Program
 
             var comp4 = CreateCompilation(source4, new[] { comp2.ToMetadataReference(), comp3.ToMetadataReference() });
             comp4.VerifyDiagnostics(
-    // (6,9): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-    //         foreach (var x in new Enumerable())
-    Diagnostic(ErrorCode.ERR_NoTypeDef, @"foreach (var x in new Enumerable())
-        { }").WithArguments("System.ValueType", "MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9),
-    // (6,9): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-    //         foreach (var x in new Enumerable())
-    Diagnostic(ErrorCode.ERR_NoTypeDef, "foreach").WithArguments("System.ValueType", "MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9)
+                // (6,9): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         foreach (var x in new Enumerable())
+                Diagnostic(ErrorCode.ERR_NoTypeDef, @"foreach (var x in new Enumerable())
+        { }").WithArguments("System.ValueType", "MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9)
                 );
         }
     }

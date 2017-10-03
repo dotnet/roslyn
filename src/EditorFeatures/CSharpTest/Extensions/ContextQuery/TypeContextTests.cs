@@ -663,25 +663,25 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ExplicitInterfaceImplementationGeneric1()
         {
-            VerifyFalse(@"class C { void IFoo<$$");
+            VerifyFalse(@"class C { void IGoo<$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ExplicitInterfaceImplementationGenericList1()
         {
-            VerifyFalse(@"class C { void IFoo<T,$$");
+            VerifyFalse(@"class C { void IGoo<T,$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ExplicitInterfaceImplementationGeneric2()
         {
-            VerifyTrue(@"class C { void IFoo<$$>.Method(");
+            VerifyTrue(@"class C { void IGoo<$$>.Method(");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ExplicitInterfaceImplementationGenericList2()
         {
-            VerifyTrue(@"class C { void IFoo<T,$$>.Method(");
+            VerifyTrue(@"class C { void IGoo<T,$$>.Method(");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

@@ -36,13 +36,13 @@ static class Program
 
     static async void f()
     {
-        await foo;
+        await goo;
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (8,15): error CS0103: The name 'foo' does not exist in the current context
-                //         await foo;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "foo").WithArguments("foo"));
+                // (8,15): error CS0103: The name 'goo' does not exist in the current context
+                //         await goo;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "goo").WithArguments("goo"));
         }
 
         [Fact]
@@ -2583,15 +2583,15 @@ class C
 {
     async void M()
     {
-        using (await foo())
+        using (await goo())
         {
         }
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (6,22): error CS0103: The name 'foo' does not exist in the current context
-                //         using (await foo())
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "foo").WithArguments("foo"));
+                // (6,22): error CS0103: The name 'goo' does not exist in the current context
+                //         using (await goo())
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "goo").WithArguments("goo"));
         }
 
         [Fact]
@@ -2600,11 +2600,11 @@ class C
             var source = @"
 class Test
 {
-    public void foo() { }
+    public void goo() { }
 
     public async void awaitVoid()
     {
-        await foo();
+        await goo();
     }
 
     public async void awaitNull()
@@ -2614,7 +2614,7 @@ class Test
 
     public async void awaitMethodGroup()
     {
-        await foo;
+        await goo;
     }
 
     public async void awaitLambda()
@@ -2626,14 +2626,14 @@ class Test
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (8,9): error CS4008: Cannot await 'void'
-                //         await foo();
-                Diagnostic(ErrorCode.ERR_BadAwaitArgVoidCall, "await foo()"),
+                //         await goo();
+                Diagnostic(ErrorCode.ERR_BadAwaitArgVoidCall, "await goo()"),
                 // (13,9): error CS4001: Cannot await '<null>;'
                 //         await null;
                 Diagnostic(ErrorCode.ERR_BadAwaitArgIntrinsic, "await null").WithArguments("<null>"),
                 // (18,9): error CS4001: Cannot await 'method group'
-                //         await foo;
-                Diagnostic(ErrorCode.ERR_BadAwaitArgIntrinsic, "await foo").WithArguments("method group"),
+                //         await goo;
+                Diagnostic(ErrorCode.ERR_BadAwaitArgIntrinsic, "await goo").WithArguments("method group"),
                 // (23,9): error CS4001: Cannot await 'lambda expression'
                 //         await (x => x);
                 Diagnostic(ErrorCode.ERR_BadAwaitArgIntrinsic, "await (x => x)").WithArguments("lambda expression"));
@@ -2647,22 +2647,22 @@ using System.Threading.Tasks;
 
 class Test
 {
-    public async void foo()
+    public async void goo()
     {
         await Task.Factory.StartNew(() => { });
     }
 
     public async void bar()
     {
-        await foo();
+        await goo();
     }
 
     public static void Main() { }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (10,9): error CS4008: Cannot await 'void'
-                //         await foo();
-                Diagnostic(ErrorCode.ERR_BadAwaitArgVoidCall, "await foo()"));
+                //         await goo();
+                Diagnostic(ErrorCode.ERR_BadAwaitArgVoidCall, "await goo()"));
         }
 
         [Fact, WorkItem(531356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531356")]
@@ -2831,7 +2831,28 @@ class Repro
                 // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
                 Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1));
 
-            CompileAndVerify(comp, expectedOutput: "dynamic42");
+            var compiled = CompileAndVerify(comp, expectedOutput: "dynamic42", verify: false);
+
+            compiled.VerifyIL("MyAwaiter.OnCompleted(System.Action)", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  3
+  .locals init (MyAwaiter.<>c__DisplayClass5_0 V_0) //CS$<>8__locals0
+  IL_0000:  newobj     ""MyAwaiter.<>c__DisplayClass5_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldarg.1
+  IL_0008:  stfld      ""System.Action MyAwaiter.<>c__DisplayClass5_0.continuation""
+  IL_000d:  ldarg.0
+  IL_000e:  ldflda     ""MyTask MyAwaiter.task""
+  IL_0013:  ldfld      ""System.Threading.Tasks.Task MyTask.task""
+  IL_0018:  ldloc.0
+  IL_0019:  ldftn      ""void MyAwaiter.<>c__DisplayClass5_0.<OnCompleted>b__0(System.Threading.Tasks.Task)""
+  IL_001f:  newobj     ""System.Action<System.Threading.Tasks.Task>..ctor(object, System.IntPtr)""
+  IL_0024:  callvirt   ""System.Threading.Tasks.Task System.Threading.Tasks.Task.ContinueWith(System.Action<System.Threading.Tasks.Task>)""
+  IL_0029:  pop
+  IL_002a:  ret
+}");
         }
     }
 }

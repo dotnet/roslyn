@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -424,6 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 if (!next.IsKind(SyntaxKind.ColonToken) &&
                     !next.IsKind(SyntaxKind.DotToken) &&
+                    !next.IsKind(SyntaxKind.QuestionToken) &&
                     !next.IsKind(SyntaxKind.SemicolonToken) &&
                     !next.IsKind(SyntaxKind.OpenBracketToken) &&
                     !next.IsKind(SyntaxKind.CloseParenToken) &&

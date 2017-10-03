@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -82,9 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
+            var currentConstructor = semanticModel.GetDeclaredSymbol(constructorInitializer.Parent);
+
             var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
             var accessibleConstructors = type.InstanceConstructors
-                                             .WhereAsArray(c => c.IsAccessibleWithin(within))
+                                             .WhereAsArray(c => c.IsAccessibleWithin(within) && !c.Equals(currentConstructor))
                                              .WhereAsArray(c => c.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
                                              .Sort(symbolDisplayService, semanticModel, constructorInitializer.SpanStart);
 

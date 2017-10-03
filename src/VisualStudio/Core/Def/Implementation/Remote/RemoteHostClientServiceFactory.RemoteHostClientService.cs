@@ -9,8 +9,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -18,6 +20,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal partial class RemoteHostClientServiceFactory
     {
         public class RemoteHostClientService : ForegroundThreadAffinitizedObject, IRemoteHostClientService
@@ -84,6 +88,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         return;
                     }
 
+                    // set bitness
+                    SetRemoteHostBitness();
+
                     // make sure we run it on background thread
                     _shutdownCancellationTokenSource = new CancellationTokenSource();
 
@@ -137,11 +144,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 client?.Shutdown();
             }
 
-            public Task<RemoteHostClient> GetRemoteHostClientAsync(CancellationToken cancellationToken)
-            {
-                return TryGetRemoteHostClientAsync(cancellationToken);
-            }
-
             public Task<RemoteHostClient> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -161,6 +163,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return remoteClientTask;
             }
 
+            private void SetRemoteHostBitness()
+            {
+                var x64 = _workspace.Options.GetOption(RemoteHostOptions.OOP64Bit);
+                if (!x64)
+                {
+                    x64 = _workspace.Services.GetService<IExperimentationService>().IsExperimentEnabled(
+                        WellKnownExperimentNames.RoslynOOP64bit);
+                }
+
+                // log OOP bitness
+                Logger.Log(FunctionId.RemoteHost_Bitness, KeyValueLogMessage.Create(LogType.Trace, m => m["64bit"] = x64));
+
+                // set service bitness
+                WellKnownRemoteHostServices.Set64bit(x64);
+                WellKnownServiceHubServices.Set64bit(x64);
+            }
+
             private async Task<RemoteHostClient> EnableAsync(CancellationToken cancellationToken)
             {
                 // if we reached here, IRemoteHostClientFactory must exist.
@@ -171,13 +190,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return null;
                 }
 
-                client.ConnectionChanged += OnConnectionChanged;
+                client.StatusChanged += OnStatusChanged;
 
                 // set global assets on remote host
                 var checksums = AddGlobalAssets(cancellationToken);
 
                 // send over global asset
-                await client.RunOnRemoteHostAsync(
+                await client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution,
                     nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
                     (object)checksums, cancellationToken).ConfigureAwait(false);
@@ -191,7 +210,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 using (Logger.LogBlock(FunctionId.RemoteHostClientService_AddGlobalAssetsAsync, cancellationToken))
                 {
-                    var snapshotService = _workspace.Services.GetService<ISolutionSynchronizationService>();
+                    var snapshotService = _workspace.Services.GetService<IRemotableDataService>();
                     var assetBuilder = new CustomAssetBuilder(_workspace);
 
                     foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
@@ -210,7 +229,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 using (Logger.LogBlock(FunctionId.RemoteHostClientService_RemoveGlobalAssets, CancellationToken.None))
                 {
-                    var snapshotService = _workspace.Services.GetService<ISolutionSynchronizationService>();
+                    var snapshotService = _workspace.Services.GetService<IRemotableDataService>();
 
                     foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
                     {
@@ -219,9 +238,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
             }
 
-            private void OnConnectionChanged(object sender, bool connected)
+            private void OnStatusChanged(object sender, bool started)
             {
-                if (connected)
+                if (started)
                 {
                     return;
                 }
@@ -288,7 +307,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 Logger.Log(FunctionId.RemoteHostClientService_Restarted, KeyValueLogMessage.NoProperty);
 
                 // we are going to kill the existing remote host, connection change is expected
-                existingClient.ConnectionChanged -= OnConnectionChanged;
+                existingClient.StatusChanged -= OnStatusChanged;
 
                 lock (_gate)
                 {

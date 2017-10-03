@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -27,16 +27,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main()
-        Dim f As [|Foo(Of Integer)|]
+        Dim f As [|Goo(Of Integer)|]
     End Sub
 End Module",
 "Module Program
     Sub Main()
-        Dim f As Foo(Of Integer)
+        Dim f As Goo(Of Integer)
     End Sub
 End Module
-Friend Class Foo(Of T)
-End Class",
+
+Friend Class Goo(Of T)
+End Class
+",
 index:=1)
         End Function
 
@@ -48,6 +50,7 @@ index:=1)
 End Class",
 "Class C
     Dim emp As List(Of Employee)
+
     Private Class Employee
     End Class
 End Class",
@@ -58,11 +61,12 @@ index:=2)
         Public Async Function TestGenerateClassFromFieldDeclarationIntoSameType() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    dim f as [|Foo|]
+    dim f as [|Goo|]
 End Class",
 "Class C
-    dim f as Foo
-    Private Class Foo
+    dim f as Goo
+
+    Private Class Goo
     End Class
 End Class",
 index:=2)
@@ -72,13 +76,15 @@ index:=2)
         Public Async Function TestGenerateClassFromFieldDeclarationIntoSameNamespace() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    dim f as [|Foo|]
+    dim f as [|Goo|]
 End Class",
 "Class C
-    dim f as Foo
+    dim f as Goo
 End Class
-Friend Class Foo
-End Class",
+
+Friend Class Goo
+End Class
+",
 index:=1)
         End Function
 
@@ -86,7 +92,7 @@ index:=1)
         Public Async Function TestMissingOnLowercaseName() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
-    dim f as [|foo|]
+    dim f as [|goo|]
 End Class")
         End Function
 
@@ -95,14 +101,15 @@ End Class")
         Public Async Function TestGenerateClassFromFullyQualifiedFieldIntoSameNamespace() As Task
             Await TestAsync(
 "Namespace NS
-    Class Foo
+    Class Goo
         Private x As New NS.[|Bar|]
     End Class
 End Namespace",
 "Namespace NS
-    Class Foo
+    Class Goo
         Private x As New NS.Bar
     End Class
+
     Friend Class Bar
     End Class
 End Namespace",
@@ -114,11 +121,12 @@ parseOptions:=Nothing) ' Namespaces not supported in script
         Public Async Function TestGenerateClassWithCtorFromObjectCreation() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Dim f As Foo = New [|Foo|]()
+    Dim f As Goo = New [|Goo|]()
 End Class",
 "Class C
-    Dim f As Foo = New Foo()
-    Private Class Foo
+    Dim f As Goo = New Goo()
+
+    Private Class Goo
         Public Sub New()
         End Sub
     End Class
@@ -174,32 +182,40 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        Throw New [|Foo|]()
+        Throw New [|Goo|]()
     End Sub
 End Module",
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Runtime.Serialization
+
 Module Program
     Sub Main(args As String())
-        Throw New Foo()
+        Throw New Goo()
     End Sub
 End Module
-<Serializable> Friend Class Foo
+
+<Serializable>
+Friend Class Goo
     Inherits Exception
+
     Public Sub New()
     End Sub
+
     Public Sub New(message As String)
         MyBase.New(message)
     End Sub
+
     Public Sub New(message As String, innerException As Exception)
         MyBase.New(message, innerException)
     End Sub
+
     Protected Sub New(info As SerializationInfo, context As StreamingContext)
         MyBase.New(info, context)
     End Sub
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -211,7 +227,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        Call New [|Foo|](1, ""blah"")
+        Call New [|Goo|](1, ""blah"")
     End Sub
 End Module",
 "Imports System
@@ -219,17 +235,20 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        Call New Foo(1, ""blah"")
+        Call New Goo(1, ""blah"")
     End Sub
 End Module
-Friend Class Foo
+
+Friend Class Goo
     Private v1 As Integer
     Private v2 As String
+
     Public Sub New(v1 As Integer, v2 As String)
         Me.v1 = v1
         Me.v2 = v2
     End Sub
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -256,12 +275,15 @@ Module Program
         Dim d As B = New D(4)
     End Sub
 End Module
+
 Friend Class D
     Inherits B
+
     Public Sub New(value As Integer)
         MyBase.New(value)
     End Sub
 End Class
+
 Class B
     Protected Sub New(value As Integer)
     End Sub
@@ -291,6 +313,7 @@ Namespace Outer
             Call New Blah()
         End Sub
     End Module
+
     Friend Class Blah
         Public Sub New()
         End Sub
@@ -321,12 +344,15 @@ Module Program
         Dim d As B = New D(i)
     End Sub
 End Module
+
 Friend Class D
     Inherits B
+
     Public Sub New(i As Integer)
         Me.i = i
     End Sub
 End Class
+
 Class B
     Protected i As Integer
 End Class",
@@ -341,7 +367,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Class Outer(Of M)
     Sub Main(i As Integer)
-        Call New [|Foo(Of M)|]
+        Call New [|Goo(Of M)|]
     End Sub
 End Class",
 "Imports System
@@ -349,11 +375,13 @@ Imports System.Collections.Generic
 Imports System.Linq
 Class Outer(Of M)
     Sub Main(i As Integer)
-        Call New Foo(Of M)
+        Call New Goo(Of M)
     End Sub
 End Class
-Friend Class Foo(Of M)
-End Class",
+
+Friend Class Goo(Of M)
+End Class
+",
 index:=1)
         End Function
 
@@ -365,7 +393,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Class Outer(Of M)
     Sub Main(i As Integer)
-        Call New [|Foo(Of M)|]
+        Call New [|Goo(Of M)|]
     End Sub
 End Class",
 "Imports System
@@ -373,9 +401,10 @@ Imports System.Collections.Generic
 Imports System.Linq
 Class Outer(Of M)
     Sub Main(i As Integer)
-        Call New Foo(Of M)
+        Call New Goo(Of M)
     End Sub
-    Private Class Foo(Of M)
+
+    Private Class Goo(Of M)
     End Class
 End Class",
 index:=2)
@@ -386,14 +415,15 @@ index:=2)
             Await TestInRegularAndScriptAsync(
 "Class Program
     Sub Test()
-        Dim d = New [|Program.Foo|]()
+        Dim d = New [|Program.Goo|]()
     End Sub
 End Class",
 "Class Program
     Sub Test()
-        Dim d = New Program.Foo()
+        Dim d = New Program.Goo()
     End Sub
-    Private Class Foo
+
+    Private Class Goo
         Public Sub New()
         End Sub
     End Class
@@ -404,19 +434,20 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateIntoNamespaceFromFullyQualifiedInvocation() As Task
             Await TestAsync(
-"Namespace Foo
+"Namespace Goo
     Class Program
         Sub Test()
-            Dim d = New [|Foo.Bar|]()
+            Dim d = New [|Goo.Bar|]()
         End Sub
     End Class
 End Namespace",
-"Namespace Foo
+"Namespace Goo
     Class Program
         Sub Test()
-            Dim d = New Foo.Bar()
+            Dim d = New Goo.Bar()
         End Sub
     End Class
+
     Friend Class Bar
         Public Sub New()
         End Sub
@@ -432,15 +463,17 @@ parseOptions:=Nothing) ' Namespaces not supported in script
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
-Class Program(Of T As {Foo, [|IBar|]})
+Class Program(Of T As {Goo, [|IBar|]})
 End Class",
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
-Class Program(Of T As {Foo, IBar})
+Class Program(Of T As {Goo, IBar})
 End Class
+
 Friend Interface IBar
-End Interface",
+End Interface
+",
 index:=1)
         End Function
 
@@ -452,16 +485,17 @@ Imports System.Collections.Generic
 Imports System.Linq
 Class Program
     Sub Main()
-        Call New Foo.[|Bar|]()
+        Call New Goo.[|Bar|]()
     End Sub
 End Class",
-"Namespace Foo
+"Namespace Goo
     Friend Class Bar
         Public Sub New()
         End Sub
     End Class
-End Namespace",
-expectedContainers:=ImmutableArray.Create("Foo"),
+End Namespace
+",
+expectedContainers:=ImmutableArray.Create("Goo"),
 expectedDocumentName:="Bar.vb")
         End Function
 
@@ -484,7 +518,7 @@ Friend Class Bar
 End Class
 ",
 expectedContainers:=ImmutableArray(Of String).Empty,
-expectedDocumentName:="Bar.vb", ignoreTrivia:=False)
+expectedDocumentName:="Bar.vb")
         End Function
 
         <WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")>
@@ -504,7 +538,7 @@ End Class",
 End Class
 ",
 expectedContainers:=ImmutableArray(Of String).Empty,
-expectedDocumentName:="Bar.vb", ignoreTrivia:=False)
+expectedDocumentName:="Bar.vb")
         End Function
 
         <WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")>
@@ -531,7 +565,7 @@ Friend Class Bar
 End Class
 ",
 expectedContainers:=ImmutableArray(Of String).Empty,
-expectedDocumentName:="Bar.vb", ignoreTrivia:=False)
+expectedDocumentName:="Bar.vb")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -542,13 +576,14 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        Dim x As New [|Foo|]
+        Dim x As New [|Goo|]
     End Sub
 End Module",
-"Friend Class Foo
-End Class",
+"Friend Class Goo
+End Class
+",
 expectedContainers:=ImmutableArray(Of String).Empty,
-expectedDocumentName:="Foo.vb")
+expectedDocumentName:="Goo.vb")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -559,7 +594,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        Dim d As [|IFoo|] = New Foo()
+        Dim d As [|IGoo|] = New Goo()
     End Sub
 End Module",
 "Imports System
@@ -567,11 +602,13 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        Dim d As IFoo = New Foo()
+        Dim d As IGoo = New Goo()
     End Sub
 End Module
-Friend Interface IFoo
-End Interface",
+
+Friend Interface IGoo
+End Interface
+",
 index:=1)
         End Function
 
@@ -583,23 +620,25 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        Dim d As IFoo = New [|Foo|]()
+        Dim d As IGoo = New [|Goo|]()
     End Sub
 End Module
-Friend Interface IFoo
+Friend Interface IGoo
 End Interface",
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        Dim d As IFoo = New Foo()
+        Dim d As IGoo = New Goo()
     End Sub
 End Module
-Friend Class Foo
-    Implements IFoo
+
+Friend Class Goo
+    Implements IGoo
 End Class
-Friend Interface IFoo
+
+Friend Interface IGoo
 End Interface",
 index:=1)
         End Function
@@ -617,12 +656,15 @@ End Class",
         Dim x = New Bar(value:=7)
     End Sub
 End Class
+
 Friend Class Bar
     Private value As Integer
+
     Public Sub New(value As Integer)
         Me.value = value
     End Sub
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -641,44 +683,50 @@ count:=3)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateClassFromReturnType() As Task
             Await TestInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
     Function F() As [|Bar|]
     End Function
 End Class",
-"Class Foo
+"Class Goo
     Function F() As Bar
     End Function
 End Class
+
 Public Class Bar
-End Class",
+End Class
+",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateClassWhereKeywordBecomesTypeName() As Task
             Await TestInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
     Dim x As New [|[Class]|]
 End Class",
-"Class Foo
+"Class Goo
     Dim x As New [Class]
 End Class
+
 Friend Class [Class]
-End Class",
+End Class
+",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestNegativeTestGenerateClassFromEscapedType() As Task
             Await TestInRegularAndScriptAsync(
-"Class Foo
+"Class Goo
     Dim x as New [|[Bar]|]
 End Class",
-"Class Foo
+"Class Goo
     Dim x as New [Bar]
 End Class
+
 Friend Class Bar
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -687,14 +735,15 @@ index:=1)
         Public Async Function TestGenerateTypeIntoContainingNamespace() As Task
             Await TestAsync(
 "Namespace NS
-    Class Foo
+    Class Goo
         Dim x As New NS.[|Bar|]
     End Class
 End Namespace",
 "Namespace NS
-    Class Foo
+    Class Goo
         Dim x As New NS.Bar
     End Class
+
     Friend Class Bar
     End Class
 End Namespace",
@@ -711,6 +760,7 @@ parseOptions:=Nothing) ' Namespaces not supported in script
 End Module",
 "Module M
     Dim x As C
+
     Private Class C
     End Class
 End Module",
@@ -727,8 +777,10 @@ End Class",
 "Class C
     Implements D
 End Class
+
 Friend Interface D
-End Interface",
+End Interface
+",
 index:=1)
         End Function
 
@@ -758,7 +810,8 @@ End Class",
 "Friend Class Derived
     Public Sub New()
     End Sub
-End Class",
+End Class
+",
 expectedContainers:=ImmutableArray(Of String).Empty,
 expectedDocumentName:="Derived.vb")
         End Function
@@ -768,7 +821,7 @@ expectedDocumentName:="Derived.vb")
             Await TestMissingInRegularAndScriptAsync(
 "Class Base
     Sub Main
-        Dim a = 1 + [|Foo|]
+        Dim a = 1 + [|Goo|]
     End Sub
 End Class")
         End Function
@@ -787,8 +840,8 @@ End Module")
         Public Async Function TestNotOfferedIfLeftFromDotIsNotAName() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C1
-    Sub Foo
-        Me.[|Foo|] = 3
+    Sub Goo
+        Me.[|Goo|] = 3
     End Sub
 End Class")
         End Function
@@ -821,9 +874,11 @@ End Class",
         Dim p() As Base = New Derived(10) {}
     End Sub
 End Class
+
 Friend Class Derived
     Inherits Base
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -841,9 +896,11 @@ End Class",
         Dim p As Base() = New Derived(10) {}
     End Sub
 End Class
+
 Friend Class Derived
     Inherits Base
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -861,8 +918,10 @@ End Class",
         Dim p As Base = New Derived(10) {}
     End Sub
 End Class
+
 Friend Class Derived
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -872,19 +931,21 @@ index:=1)
             Await TestInRegularAndScriptAsync(
 "Class Program
     Private Sub Main()
-        Dim f As [|Foo(Of Integer)|]
+        Dim f As [|Goo(Of Integer)|]
     End Sub
 End Class
-Class Foo
+Class Goo
 End Class",
 "Class Program
     Private Sub Main()
-        Dim f As Foo(Of Integer)
+        Dim f As Goo(Of Integer)
     End Sub
 End Class
-Friend Class Foo(Of T)
+
+Friend Class Goo(Of T)
 End Class
-Class Foo
+
+Class Goo
 End Class",
 index:=1)
         End Function
@@ -903,14 +964,17 @@ End Class",
         Dim a As Test = New Test(x, y)
     End Sub
 End Class
+
 Friend Class Test
     Private x As Object
     Private y As Object
+
     Public Sub New(x As Object, y As Object)
         Me.x = x
         Me.y = y
     End Sub
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -928,14 +992,17 @@ End Class",
         Dim a As Test(Of T1, T2) = New Test(Of T1, T2)(x, y)
     End Sub
 End Class
+
 Friend Class Test(Of T1, T2)
     Private x As T1
     Private y As T2
+
     Public Sub New(x As T1, y As T2)
         Me.x = x
         Me.y = y
     End Sub
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -957,12 +1024,15 @@ End Module",
     Sub M()
     End Sub
 End Module
+
 Friend Class C
     Private v As Object
+
     Public Sub New(v As Object)
         Me.v = v
     End Sub
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -980,12 +1050,15 @@ End Class",
         Dim x As New C(4)
     End Sub
 End Class
+
 Friend Class C
     Private v As Integer
+
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1008,12 +1081,15 @@ End Class")
 Class C
 End Class",
 "Imports System
+
 <AttClass()>
 Class C
 End Class
+
 Friend Class AttClassAttribute
     Inherits Attribute
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1029,9 +1105,11 @@ End Class",
 <AttClass()>
 Class C
 End Class
+
 Friend Class AttClassAttribute
     Inherits Attribute
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1043,7 +1121,7 @@ index:=1)
 Imports System.Collections
 Imports System.Collections.Generic
 Public Class A
-    Public Sub Foo()
+    Public Sub Goo()
         Dim Table As Hashtable = New Hashtable()
         Table![|Orange|] = ""A fruit"" 
  Table(""Broccoli"") = ""A vegetable"" 
@@ -1069,6 +1147,7 @@ Module StringExtensions
     Public Sub Print(ByVal aString As String, x As C)
         Console.WriteLine(aString)
     End Sub
+
     Public Class C
     End Class
 End Module",
@@ -1094,8 +1173,7 @@ End Class</Text>.NormalizedValue,
         End Sub
     End Class
 End Class</Text>.NormalizedValue,
-index:=2,
-ignoreTrivia:=False)
+index:=2)
         End Function
 
         <WorkItem(543290, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543290")>
@@ -1143,12 +1221,12 @@ End Module")
 #ExternalSource ("Default.aspx", 1)
 Class Program
     Sub Main(args As String())
-        Dim f As New [|Foo|]()
+        Dim f As New [|Goo|]()
     End Sub
 End Class
 #End ExternalSource
 </text>.NormalizedValue,
-{String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", FeaturesResources.Global_Namespace), String.Format(FeaturesResources.Generate_nested_0_1, "class", "Foo", "Program"), FeaturesResources.Generate_new_type})
+{String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo", FeaturesResources.Global_Namespace), String.Format(FeaturesResources.Generate_nested_0_1, "class", "Goo", "Program"), FeaturesResources.Generate_new_type})
         End Function
 
         <WorkItem(545363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545363")>
@@ -1159,7 +1237,7 @@ End Class
 #ExternalSource ("Default.aspx", 1)
 Class Program
     Sub Main(args As String())
-        Dim f As New [|Foo|]()
+        Dim f As New [|Goo|]()
     End Sub
 End Class
 
@@ -1167,9 +1245,9 @@ Class Bar
 End Class
 #End ExternalSource
 </text>.NormalizedValue,
-{String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", FeaturesResources.Global_Namespace),
-String.Format(FeaturesResources.Generate_0_1, "class", "Foo", FeaturesResources.Global_Namespace),
-String.Format(FeaturesResources.Generate_nested_0_1, "class", "Foo"), FeaturesResources.Generate_new_type})
+{String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo", FeaturesResources.Global_Namespace),
+String.Format(FeaturesResources.Generate_0_1, "class", "Goo", FeaturesResources.Global_Namespace),
+String.Format(FeaturesResources.Generate_nested_0_1, "class", "Goo"), FeaturesResources.Generate_new_type})
         End Function
 
         <WorkItem(545363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545363")>
@@ -1180,7 +1258,7 @@ String.Format(FeaturesResources.Generate_nested_0_1, "class", "Foo"), FeaturesRe
 #ExternalSource ("Default.aspx", 1)
 Class Program
     Sub Main(args As String())
-        Dim f As New [|Foo|]()
+        Dim f As New [|Goo|]()
     End Sub
 End Class
 
@@ -1192,11 +1270,11 @@ End Class
 #ExternalSource ("Default.aspx", 1)
 Class Program
     Sub Main(args As String())
-        Dim f As New Foo()
+        Dim f As New Goo()
     End Sub
 End Class
 
-Friend Class Foo
+Friend Class Goo
     Public Sub New()
     End Sub
 End Class
@@ -1218,17 +1296,21 @@ index:=1)
     End Sub
 End Module",
 "Imports System
+
 Module Program
     Sub Main()
         Dim c = New C(Function() x)
     End Sub
 End Module
+
 Friend Class C
     Private p As Func(Of Object)
+
     Public Sub New(p As Func(Of Object))
         Me.p = p
     End Sub
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1248,14 +1330,17 @@ Module Program
         Dim x = New C(,)
     End Sub
 End Module
+
 Friend Class C
     Private p1 As Object
     Private p2 As Object
+
     Public Sub New(p1 As Object, p2 As Object)
         Me.p1 = p1
         Me.p2 = p2
     End Sub
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1275,9 +1360,11 @@ Module Program
     Sub Main()
     End Sub
 End Module
+
 Friend Class SystemAttribute
     Inherits Attribute
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1308,8 +1395,7 @@ End Class
 Class AA(Of T)
 End Class
 </text>.NormalizedValue,
-index:=1,
-ignoreTrivia:=False)
+index:=1)
         End Function
 
         <WorkItem(821277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/821277")>
@@ -1339,8 +1425,7 @@ End Class
 Class AA(Of T)
 End Class
 </text>.NormalizedValue,
-index:=1,
-ignoreTrivia:=False)
+index:=1)
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -1370,7 +1455,6 @@ Friend Class T
 End Class
 </text>.NormalizedValue,
 index:=1,
-ignoreTrivia:=False,
 options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Error))
         End Function
 
@@ -1407,7 +1491,7 @@ Namespace A
     End Class
 End Namespace</Text>.NormalizedValue
 
-            Await TestInRegularAndScriptAsync(initial, expected, ignoreTrivia:=False)
+            Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
         <WorkItem(940003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/940003")>
@@ -1426,16 +1510,20 @@ Module Program
         Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = ""John"", .Age = Date.Today}
     End Sub
 End Module
+
 Friend Class Customer
     Private x As Integer
     Private y As String
+
     Public Sub New(x As Integer, y As String)
         Me.x = x
         Me.y = y
     End Sub
+
     Public Property Name As String
     Public Property Age As Date
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1455,16 +1543,20 @@ Module Program
         Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = Nothing, .Age = Date.Today}
     End Sub
 End Module
+
 Friend Class Customer
     Private x As Integer
     Private y As String
+
     Public Sub New(x As Integer, y As String)
         Me.x = x
         Me.y = y
     End Sub
+
     Public Property Name As Object
     Public Property Age As Date
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1475,25 +1567,29 @@ index:=1)
 "Imports System
 Module Program
     Sub Main()
-        Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = Foo, .Age = Date.Today}
+        Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = Goo, .Age = Date.Today}
     End Sub
 End Module",
 "Imports System
 Module Program
     Sub Main()
-        Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = Foo, .Age = Date.Today}
+        Dim c As New [|Customer|](x:=1, y:=""Hello"") With {.Name = Goo, .Age = Date.Today}
     End Sub
 End Module
+
 Friend Class Customer
     Private x As Integer
     Private y As String
+
     Public Sub New(x As Integer, y As String)
         Me.x = x
         Me.y = y
     End Sub
+
     Public Property Name As Object
     Public Property Age As Date
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1513,10 +1609,12 @@ Module Program
         Dim c As New [|Customer|] With {.Name = ""John"", .Age = Date.Today}
     End Sub
 End Module
+
 Friend Class Customer
     Public Property Name As String
     Public Property Age As Date
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1536,8 +1634,10 @@ Module Program
         Dim x = nameof([|Z|])
     End Sub
 End Module
+
 Friend Class Z
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1556,6 +1656,7 @@ Class Program
     Sub Main()
         Dim x = nameof([|Z|])
     End Sub
+
     Private Class Z
     End Class
 End Class",
@@ -1577,6 +1678,7 @@ Class Program
     Sub Main()
         Dim x = nameof([|Program.Z|])
     End Sub
+
     Private Class Z
     End Class
 End Class")
@@ -1587,12 +1689,12 @@ End Class")
         Public Async Function TestAccessibilityForNestedType() As Task
             Await TestInRegularAndScriptAsync(
 "Public Interface I
-    Sub Foo(a As [|X.Y.Z|])
+    Sub Goo(a As [|X.Y.Z|])
 End Interface
 Public Class X
 End Class",
 "Public Interface I
-    Sub Foo(a As X.Y.Z)
+    Sub Goo(a As X.Y.Z)
 End Interface
 Public Class X
     Public Class Y
@@ -1616,8 +1718,10 @@ End Class
             Await TestInRegularAndScriptAsync(
 "Imports [|Fizz|]",
 "Imports Fizz
+
 Friend Class Fizz
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1631,7 +1735,8 @@ End Class",
 "Public Class B
     Public Sub New()
     End Sub
-End Class")
+End Class
+")
         End Function
 
         <WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")>
@@ -1648,7 +1753,8 @@ End Class
 Public Class B
     Public Sub New()
     End Sub
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1661,6 +1767,7 @@ index:=1)
 End Class",
 "Public Class A
     Public B As New B()
+
     Public Class B
         Public Sub New()
         End Sub
@@ -1677,7 +1784,8 @@ index:=2)
     Public B As New [|B|]
 End Class",
 "Public Class B
-End Class")
+End Class
+")
         End Function
 
         <WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")>
@@ -1692,7 +1800,8 @@ End Class",
 End Class
 
 Public Class B
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1705,6 +1814,7 @@ index:=1)
 End Class",
 "Public Class A
     Public B As New B
+
     Public Class B
     End Class
 End Class",
@@ -1719,7 +1829,8 @@ index:=2)
     Public B As New [|B(Of Integer)|]
 End Class",
 "Public Class B(Of T)
-End Class")
+End Class
+")
         End Function
 
         <WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")>
@@ -1734,7 +1845,8 @@ End Class",
 End Class
 
 Public Class B(Of T)
-End Class",
+End Class
+",
 index:=1)
         End Function
 
@@ -1747,6 +1859,7 @@ index:=1)
 End Class",
 "Public Class A
     Public B As New B(Of Integer)
+
     Public Class B(Of T)
     End Class
 End Class",
@@ -1773,12 +1886,15 @@ index:=2)
     <[|Extension|]>
 End Module",
 "Imports System
+
 Module Program
     <Extension>
 End Module
+
 Friend Class ExtensionAttribute
     Inherits Attribute
-End Class",
+End Class
+",
 index:=1)
             End Function
         End Class

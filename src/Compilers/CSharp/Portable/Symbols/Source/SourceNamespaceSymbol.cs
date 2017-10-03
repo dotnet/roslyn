@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis;
@@ -32,11 +33,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private LexicalSortKey _lazyLexicalSortKey = LexicalSortKey.NotInitialized;
 
-        internal SourceNamespaceSymbol(SourceModuleSymbol module, Symbol container, MergedNamespaceDeclaration mergedDeclaration)
+        internal SourceNamespaceSymbol(
+            SourceModuleSymbol module, Symbol container,
+            MergedNamespaceDeclaration mergedDeclaration,
+            DiagnosticBag diagnostics)
         {
             _module = module;
             _container = container;
             _mergedDeclaration = mergedDeclaration;
+
+            foreach (var singleDeclaration in mergedDeclaration.Declarations)
+            {
+                diagnostics.AddRange(singleDeclaration.Diagnostics);
+            }
         }
 
         internal MergedNamespaceDeclaration MergedDeclaration
@@ -365,8 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)other != null)
                     {
-                        if (nts is SourceNamedTypeSymbol && other is SourceNamedTypeSymbol &&
-                            (nts as SourceNamedTypeSymbol).IsPartial && (other as SourceNamedTypeSymbol).IsPartial)
+                        if ((nts as SourceNamedTypeSymbol)?.IsPartial == true && (other as SourceNamedTypeSymbol)?.IsPartial == true)
                         {
                             diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, symbol.Locations[0], symbol);
                         }
@@ -382,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         //types declared at the namespace level may only have declared accessibility of public or internal (Section 3.5.1)
                         Accessibility declaredAccessibility = nts.DeclaredAccessibility;
-                        if ((declaredAccessibility & (Accessibility.Public | Accessibility.Internal)) != declaredAccessibility)
+                        if (declaredAccessibility != Accessibility.Public && declaredAccessibility != Accessibility.Internal)
                         {
                             diagnostics.Add(ErrorCode.ERR_NoNamespacePrivate, symbol.Locations[0]);
                         }
@@ -398,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (declaration.Kind)
             {
                 case DeclarationKind.Namespace:
-                    return new SourceNamespaceSymbol(_module, this, (MergedNamespaceDeclaration)declaration);
+                    return new SourceNamespaceSymbol(_module, this, (MergedNamespaceDeclaration)declaration, diagnostics);
 
                 case DeclarationKind.Struct:
                 case DeclarationKind.Interface:

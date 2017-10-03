@@ -28,6 +28,9 @@
                     <CheckBox x:Name="PlaceSystemNamespaceFirst"
                               x:Uid="SortImports_PlaceSystemFirst"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_PlaceSystemNamespaceFirst}" />
+                    <CheckBox x:Name="SeparateImportGroups"
+                              x:Uid="SeparateImportGroups"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_SeparateImportGroups}" />
                     <CheckBox x:Name="SuggestForTypesInReferenceAssemblies"
                               x:Uid="AddImport_SuggestForTypesInReferenceAssemblies"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Suggest_imports_for_types_in_reference_assemblies}" />
@@ -62,6 +65,13 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Collapse_regions_when_collapsing_to_definitions}" />
                 </StackPanel>
             </GroupBox>
+            <GroupBox x:Uid="FadingGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Fading}">
+                <StackPanel>
+                    <CheckBox x:Name="Fade_out_unused_imports"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Fade_out_unused_imports}" />
+                </StackPanel>
+            </GroupBox>
             <GroupBox x:Uid="BlockStructureGuidesGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Block_Structure_Guides}">
                 <StackPanel>
@@ -84,6 +94,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleApostrophes}" />
                     <CheckBox x:Name="RenameTrackingPreview"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
+                    <CheckBox x:Name="Report_invalid_placeholders_in_string_dot_format_calls"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="GoToDefinitionGroupBox"

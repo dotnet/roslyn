@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal sealed partial class SyntaxTreeIndex : IObjectWritable
     {
         private const string PersistenceName = "<SyntaxTreeIndex>";
-        private const string SerializationFormat = "9";
+        private const string SerializationFormat = "10";
 
         public readonly Checksum Checksum;
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         if (FormatAndChecksumMatches(reader, SerializationFormat, checksum))
                         {
-                            return ReadFrom(reader, checksum);
+                            return ReadFrom(GetStringTable(document.Project), reader, checksum);
                         }
                     }
                 }
@@ -152,12 +152,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static SyntaxTreeIndex ReadFrom(
-            ObjectReader reader, Checksum checksum)
+            StringTable stringTable, ObjectReader reader, Checksum checksum)
         {
             var literalInfo = LiteralInfo.TryReadFrom(reader);
             var identifierInfo = IdentifierInfo.TryReadFrom(reader);
             var contextInfo = ContextInfo.TryReadFrom(reader);
-            var declarationInfo = DeclarationInfo.TryReadFrom(reader);
+            var declarationInfo = DeclarationInfo.TryReadFrom(stringTable, reader);
 
             if (literalInfo == null || identifierInfo == null || contextInfo == null || declarationInfo == null)
             {

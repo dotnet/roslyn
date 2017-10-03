@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
@@ -10,8 +11,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     {
         Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory);
 
-        Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity);
-        Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string name);
-        Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity);
+        Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken);
+        Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string name, CancellationToken cancellationToken);
+        Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken);
     }
 }

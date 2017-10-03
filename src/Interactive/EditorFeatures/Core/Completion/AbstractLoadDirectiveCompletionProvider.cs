@@ -3,7 +3,7 @@
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
@@ -33,28 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
             return builder.ToImmutableAndFree();
         }
 
-        private FileSystemCompletionHelper GetFileSystemCompletionHelper(SourceText text, Document document)
-        {
-            // TODO: https://github.com/dotnet/roslyn/issues/5263
-            // Avoid dependency on a specific resolver.
-            // The search paths should be provided by specialized workspaces:
-            // - InteractiveWorkspace for interactive window 
-            // - MiscFilesWorkspace for loose .csx files
-            var searchPaths = (document.Project.CompilationOptions.SourceReferenceResolver as SourceFileResolver)?.SearchPaths ?? ImmutableArray<string>.Empty;
-
-            return new FileSystemCompletionHelper(
-                Glyph.OpenFolder,
-                Glyph.CSharpFile,
-                searchPaths: searchPaths,
-                baseDirectoryOpt: GetBaseDirectory(text, document),
-                allowableExtensions: ImmutableArray.Create(".csx"),
-                itemRules: s_rules);
-        }
-
         protected override async Task ProvideCompletionsAsync(CompletionContext context, string pathThroughLastSlash)
         {
-            var text = await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
-            var helper = GetFileSystemCompletionHelper(text, context.Document);
+            var helper = GetFileSystemCompletionHelper(context.Document, Glyph.CSharpFile, ImmutableArray.Create(".csx"), s_rules);
             context.AddItems(await helper.GetItemsAsync(pathThroughLastSlash, context.CancellationToken).ConfigureAwait(false));
         }
     }

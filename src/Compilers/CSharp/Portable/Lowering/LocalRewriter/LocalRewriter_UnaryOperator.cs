@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -210,7 +211,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenConsequence: consequence,
                 rewrittenAlternative: alternative,
                 constantValueOpt: null,
-                rewrittenType: type);
+                rewrittenType: type,
+                isRef: false);
 
             // temp = operand; 
             // temp.HasValue ? 
@@ -322,7 +324,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 MakeUnaryOperator(operatorKind, syntax, method, conditional.Consequence, type),
                                 MakeUnaryOperator(operatorKind, syntax, method, conditional.Alternative, type),
                                 ConstantValue.NotAvailable,
-                                type),
+                                type,
+                                isRef: false),
                             type);
                     }
                 }
@@ -648,7 +651,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenConsequence: consequence,
                 rewrittenAlternative: alternative,
                 constantValueOpt: null,
-                rewrittenType: type);
+                rewrittenType: type,
+                isRef: false);
 
             // temp = operand; 
             // temp.HasValue ? 
@@ -806,7 +810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression alternative = new BoundDefaultExpression(syntax, null, operand.Type);
 
             // x.HasValue ? new decimal?(op_Inc(x.GetValueOrDefault())) : default(decimal?)
-            return RewriteConditionalOperator(syntax, condition, consequence, alternative, ConstantValue.NotAvailable, operand.Type);
+            return RewriteConditionalOperator(syntax, condition, consequence, alternative, ConstantValue.NotAvailable, operand.Type, isRef: false);
         }
 
         /// <summary>

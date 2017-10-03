@@ -5,15 +5,15 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Remote.Services;
 using Microsoft.CodeAnalysis.Remote.Storage;
-using Microsoft.CodeAnalysis.Remote.Telemetry;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
@@ -41,11 +41,6 @@ namespace Microsoft.CodeAnalysis.Remote
             // we set up logger here
             RoslynLogger.SetLogger(new EtwLogger(GetLoggingChecker()));
 
-            // Set this process's priority BelowNormal.
-            // this should let us to freely try to use all resources possible without worrying about affecting
-            // host's work such as responsiveness or build.
-            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
-
             SetNativeDllSearchDirectories();
         }
 
@@ -56,90 +51,102 @@ namespace Microsoft.CodeAnalysis.Remote
             Rpc.StartListening();
         }
 
-        public string Connect(string host, string serializedSession)
+        public string Connect(string host, string serializedSession, CancellationToken cancellationToken)
         {
-            _primaryInstance = InstanceId;
-
-            var existing = Interlocked.CompareExchange(ref _host, host, null);
-
-            SetGlobalContext(serializedSession);
-
-            if (existing != null && existing != host)
+            return RunService(() =>
             {
-                LogError($"{host} is given for {existing}");
-            }
+                cancellationToken.ThrowIfCancellationRequested();
 
-            // log telemetry that service hub started
-            RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(SetSessionInfo));
+                _primaryInstance = InstanceId;
 
-            return _host;
+                var existing = Interlocked.CompareExchange(ref _host, host, null);
+
+                SetGlobalContext(serializedSession);
+
+                if (existing != null && existing != host)
+                {
+                    LogError($"{host} is given for {existing}");
+                }
+
+                // log telemetry that service hub started
+                RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(SetSessionInfo));
+
+                // serializedSession will be null for testing
+                if (serializedSession != null)
+                {
+                    // Set this process's priority BelowNormal.
+                    // this should let us to freely try to use all resources possible without worrying about affecting
+                    // host's work such as responsiveness or build.
+                    Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
+                }
+
+                return _host;
+            }, cancellationToken);
         }
 
-        public async Task SynchronizePrimaryWorkspaceAsync(Checksum checksum)
+        public Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken)
         {
-            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, CancellationToken))
+            return RunServiceAsync(async () =>
             {
-                try
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
                 {
                     var solutionController = (ISolutionController)RoslynServices.SolutionService;
-                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, CancellationToken).ConfigureAwait(false);
+                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, cancellationToken).ConfigureAwait(false);
                 }
-                catch (IOException)
-                {
-                    // stream to send over assets has closed before we
-                    // had chance to check cancellation
-                }
-                catch (OperationCanceledException)
-                {
-                    // rpc connection has closed.
-                    // this can happen if client side cancelled the
-                    // operation
-                }
-            }
+            }, cancellationToken);
         }
 
-        public async Task SynchronizeGlobalAssetsAsync(Checksum[] checksums)
+        public Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken)
         {
-            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, CancellationToken))
+            return RunServiceAsync(async () =>
             {
-                try
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
                 {
-                    var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, CancellationToken).ConfigureAwait(false);
+                    var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, cancellationToken).ConfigureAwait(false);
 
                     foreach (var asset in assets)
                     {
                         AssetStorage.TryAddGlobalAsset(asset.Item1, asset.Item2);
                     }
                 }
-                catch (IOException)
-                {
-                    // stream to send over assets has closed before we
-                    // had chance to check cancellation
-                }
-                catch (OperationCanceledException)
-                {
-                    // rpc connection has closed.
-                    // this can happen if client side cancelled the
-                    // operation
-                }
-            }
+            }, cancellationToken);
         }
 
-        public void RegisterPrimarySolutionId(SolutionId solutionId)
+        public void RegisterPrimarySolutionId(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken)
         {
-            var persistentStorageService = GetPersistentStorageService();
-            persistentStorageService?.RegisterPrimarySolution(solutionId);
+            RunService(() =>
+            {
+                var persistentStorageService = GetPersistentStorageService();
+                persistentStorageService?.RegisterPrimarySolution(solutionId);
+                RemotePersistentStorageLocationService.UpdateStorageLocation(solutionId, storageLocation);
+            }, cancellationToken);
         }
 
-        public void UnregisterPrimarySolutionId(SolutionId solutionId, bool synchronousShutdown)
+        public void UnregisterPrimarySolutionId(SolutionId solutionId, bool synchronousShutdown, CancellationToken cancellationToken)
         {
-            var persistentStorageService = GetPersistentStorageService();
-            persistentStorageService?.UnregisterPrimarySolution(solutionId, synchronousShutdown);
+            RunService(() =>
+            {
+                var persistentStorageService = GetPersistentStorageService();
+                persistentStorageService?.UnregisterPrimarySolution(solutionId, synchronousShutdown);
+            }, cancellationToken);
         }
 
-        public void UpdateSolutionIdStorageLocation(SolutionId solutionId, string storageLocation)
+        public void OnGlobalOperationStarted(string unused)
         {
-            RemotePersistentStorageLocationService.UpdateStorageLocation(solutionId, storageLocation);
+            RunService(() =>
+            {
+                var globalOperationNotificationService = GetGlobalOperationNotificationService();
+                globalOperationNotificationService?.OnStarted();
+            }, CancellationToken.None);
+        }
+
+        public void OnGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled)
+        {
+            RunService(() =>
+            {
+                var globalOperationNotificationService = GetGlobalOperationNotificationService();
+                globalOperationNotificationService?.OnStopped(operations, cancelled);
+            }, CancellationToken.None);
         }
 
         private static Func<FunctionId, bool> GetLoggingChecker()
@@ -227,6 +234,13 @@ namespace Microsoft.CodeAnalysis.Remote
             return persistentStorageService;
         }
 
+        private RemoteGlobalOperationNotificationService GetGlobalOperationNotificationService()
+        {
+            var workspace = SolutionService.PrimaryWorkspace;
+            var notificationService = workspace.Services.GetService<IGlobalOperationNotificationService>() as RemoteGlobalOperationNotificationService;
+            return notificationService;
+        }
+
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern IntPtr AddDllDirectory(string directory);
 
@@ -243,10 +257,19 @@ namespace Microsoft.CodeAnalysis.Remote
                 //   "appBasePath": "%VSAPPIDDIR%"
                 //
 
-                var cookie = AddDllDirectory(AppDomain.CurrentDomain.BaseDirectory);
-                if (cookie == IntPtr.Zero)
+                var loadDir = AppDomain.CurrentDomain.BaseDirectory;
+
+                try
                 {
-                    throw new Win32Exception();
+                    if (AddDllDirectory(loadDir) == IntPtr.Zero)
+                    {
+                        throw new Win32Exception();
+                    }
+                }
+                catch (EntryPointNotFoundException)
+                {
+                    // AddDllDirectory API might not be available on Windows 7.
+                    Environment.SetEnvironmentVariable("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", loadDir);
                 }
             }
         }

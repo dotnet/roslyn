@@ -11,8 +11,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 {
     internal abstract partial class SyntaxEditorBasedCodeFixProvider : CodeFixProvider
     {
+        private readonly bool _supportsFixAll;
+
+        protected SyntaxEditorBasedCodeFixProvider(bool supportsFixAll = true)
+        {
+            _supportsFixAll = supportsFixAll;
+        }
+
         public sealed override FixAllProvider GetFixAllProvider()
-            => new SyntaxEditorBasedFixAllProvider(this);
+            => _supportsFixAll ? new SyntaxEditorBasedFixAllProvider(this) : null;
 
         protected Task<Document> FixAsync(
             Document document, Diagnostic diagnostic, CancellationToken cancellationToken)

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Runtime.InteropServices;
@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         public FileCodeNamespaceTests()
             : base(@"using System;
 
-namespace Foo
+namespace Goo
 {
     public class Alpha
     {
@@ -52,7 +52,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Children()
         {
-            CodeNamespace testObject = GetCodeNamespace("Foo");
+            CodeNamespace testObject = GetCodeNamespace("Goo");
 
             Assert.Equal(3, testObject.Children.Count);
         }
@@ -61,7 +61,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Members()
         {
-            CodeNamespace testObject = GetCodeNamespace("Foo");
+            CodeNamespace testObject = GetCodeNamespace("Goo");
 
             Assert.Equal(3, testObject.Members.Count);
         }
@@ -70,7 +70,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Parent()
         {
-            CodeNamespace outer = GetCodeNamespace("Foo");
+            CodeNamespace outer = GetCodeNamespace("Goo");
             CodeNamespace inner = outer.Members.Item("Bar") as CodeNamespace;
 
             Assert.Equal(outer.Name, ((CodeNamespace)inner.Parent).Name);
@@ -80,7 +80,7 @@ namespace A.B
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Kind()
         {
-            CodeNamespace testObject = GetCodeNamespace("Foo");
+            CodeNamespace testObject = GetCodeNamespace("Goo");
 
             Assert.Equal(vsCMElement.vsCMElementNamespace, testObject.Kind);
         }
@@ -91,7 +91,7 @@ namespace A.B
         {
             CodeNamespace testObject = GetCodeNamespace(2);
 
-            Assert.Equal("Foo", testObject.Name);
+            Assert.Equal("Goo", testObject.Name);
         }
 
         [ConditionalWpfFact(typeof(x86))]

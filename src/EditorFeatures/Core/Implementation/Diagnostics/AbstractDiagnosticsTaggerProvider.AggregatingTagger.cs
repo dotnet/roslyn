@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -166,8 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 this.AssertIsForeground();
 
                 tagger.TagsChanged -= OnUnderlyingTaggerTagsChanged;
-                var disposable = tagger as IDisposable;
-                if (disposable != null)
+                if (tagger is IDisposable disposable)
                 {
                     disposable.Dispose();
                 }

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
+using Microsoft.CodeAnalysis.PooledObjects;
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
@@ -145,13 +146,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (isExplicit)
             {
-                return default(SyntaxList<AttributeListSyntax>);
+                return default;
             }
 
             var attributes = parameter.GetAttributes();
             if (attributes.Length == 0)
             {
-                return default(SyntaxList<AttributeListSyntax>);
+                return default;
             }
 
             return AttributeGenerator.GenerateAttributeLists(attributes, options);

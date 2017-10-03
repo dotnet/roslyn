@@ -54,6 +54,34 @@ class D
 end class")
         End Function
 
+        <WorkItem(20973, "https://github.com/dotnet/roslyn/issues/20973")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        Public Async Function TestNothingArgument1() As Task
+            Await TestInRegularAndScriptAsync(
+"
+class C
+    public sub new(i as integer)
+    end sub
+end class
+
+class D
+    sub M()
+        dim a = new C(nothing, [|1|])
+    end sub
+end class",
+"
+class C
+    public sub new(i as integer, v As Integer)
+    end sub
+end class
+
+class D
+    sub M()
+        dim a = new C(nothing, 1)
+    end sub
+end class")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
         Public Async Function TestNamedArg() As Task
             Await TestInRegularAndScriptAsync(
@@ -151,7 +179,8 @@ class D
     sub M()
         dim a = new C(1, true)
     end sub
-end class")
+end class
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
@@ -181,7 +210,8 @@ class D
     sub M()
         dim a = new C(true, 1)
     end sub
-end class")
+end class
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
@@ -199,6 +229,174 @@ class D
     end sub
 end class
 ")
+        End Function
+
+        <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        Public Async Function TestMultiLineParameters1() As Task
+            Await TestInRegularAndScriptAsync(
+"
+class C
+    public sub new(i as integer,
+                   j as integer)
+    end sub
+
+    private sub Goo()
+        dim x = new C(true, 0, [|0|])
+    end sub
+end class",
+"
+class C
+    public sub new(v As Boolean,
+                   i as integer,
+                   j as integer)
+    end sub
+
+    private sub Goo()
+        dim x = new C(true, 0, 0)
+    end sub
+end class")
+        End Function
+
+        <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        Public Async Function TestMultiLineParameters2() As Task
+            Await TestInRegularAndScriptAsync(
+"
+class C
+    public sub new(i as integer,
+                   j as integer)
+    end sub
+
+    private sub Goo()
+        dim x = new C(0, true, [|0|])
+    end sub
+end class",
+"
+class C
+    public sub new(i as integer,
+                   v As Boolean,
+                   j as integer)
+    end sub
+
+    private sub Goo()
+        dim x = new C(0, true, 0)
+    end sub
+end class")
+        End Function
+
+        <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        Public Async Function TestMultiLineParameters3() As Task
+            Await TestInRegularAndScriptAsync(
+"
+class C
+    public sub new(i as integer,
+                   j as integer)
+    end sub
+
+    private sub Goo()
+        dim x = new C(0, 0, [|true|])
+    end sub
+end class",
+"
+class C
+    public sub new(i as integer,
+                   j as integer,
+                   v As Boolean)
+    end sub
+
+    private sub Goo()
+        dim x = new C(0, 0, true)
+    end sub
+end class")
+        End Function
+
+        <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        Public Async Function TestMultiLineParameters4() As Task
+            Await TestInRegularAndScriptAsync(
+"
+class C
+    public sub new(
+        i as integer,
+        j as integer)
+    end sub
+
+    private sub Goo()
+        dim x = new C(true, 0, [|0|])
+    end sub
+end class",
+"
+class C
+    public sub new(
+        v As Boolean,
+        i as integer,
+        j as integer)
+    end sub
+
+    private sub Goo()
+        dim x = new C(true, 0, 0)
+    end sub
+end class")
+        End Function
+
+        <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        Public Async Function TestMultiLineParameters5() As Task
+            Await TestInRegularAndScriptAsync(
+"
+class C
+    public sub new(
+        i as integer,
+        j as integer)
+    end sub
+
+    private sub Goo()
+        dim x = new C(0, true, [|0|])
+    end sub
+end class",
+"
+class C
+    public sub new(
+        i as integer,
+        v As Boolean,
+        j as integer)
+    end sub
+
+    private sub Goo()
+        dim x = new C(0, true, 0)
+    end sub
+end class")
+        End Function
+
+        <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        Public Async Function TestMultiLineParameters6() As Task
+            Await TestInRegularAndScriptAsync(
+"
+class C
+    public sub new(
+        i as integer,
+        j as integer)
+    end sub
+
+    private sub Goo()
+        dim x = new C(0, 0, [|true|])
+    end sub
+end class",
+"
+class C
+    public sub new(
+        i as integer,
+        j as integer,
+        v As Boolean)
+    end sub
+
+    private sub Goo()
+        dim x = new C(0, 0, true)
+    end sub
+end class")
         End Function
     End Class
 End Namespace

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -145,11 +146,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // compile additional and anonymous types if any
             if (moduleBeingBuiltOpt != null)
             {
-                var additionalTypes = moduleBeingBuiltOpt.GetAdditionalTopLevelTypes();
-                if (!additionalTypes.IsEmpty)
-                {
-                    methodCompiler.CompileSynthesizedMethods(additionalTypes, diagnostics);
-                }
+                var additionalTypes = moduleBeingBuiltOpt.GetAdditionalTopLevelTypes(diagnostics);
+                methodCompiler.CompileSynthesizedMethods(additionalTypes, diagnostics);
+
+                var embeddedTypes = moduleBeingBuiltOpt.GetEmbeddedTypes(diagnostics);
+                methodCompiler.CompileSynthesizedMethods(embeddedTypes, diagnostics);
 
                 // By this time we have processed all types reachable from module's global namespace
                 compilation.AnonymousTypeManager.AssignTemplatesNamesAndCompile(methodCompiler, moduleBeingBuiltOpt, diagnostics);
@@ -226,7 +227,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !hasDeclarationErrors &&
                 !diagnostics.HasAnyErrors())
             {
-                BoundStatement body = synthesizedEntryPoint.CreateBody();
+                BoundStatement body = synthesizedEntryPoint.CreateBody(diagnostics);
+                if (body.HasErrors || diagnostics.HasAnyErrors())
+                {
+                    return entryPoint;
+                }
 
                 var dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
                 VariableSlotAllocator lazyVariableSlotAllocator = null;
@@ -655,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var diagnosticsThisMethod = DiagnosticBag.GetInstance();
 
                     var method = methodWithBody.Method;
-                    var lambda = method as SynthesizedLambdaMethod;
+                    var lambda = method as SynthesizedClosureMethod;
                     var variableSlotAllocatorOpt = ((object)lambda != null) ?
                         _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(lambda, lambda.TopLevelMethod, diagnosticsThisMethod) :
                         _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method, method, diagnosticsThisMethod);
@@ -845,7 +850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeCompilationState compilationState)
         {
             _cancellationToken.ThrowIfCancellationRequested();
-            SourceMethodSymbol sourceMethod = methodSymbol as SourceMethodSymbol;
+            SourceMemberMethodSymbol sourceMethod = methodSymbol as SourceMemberMethodSymbol;
 
             if (methodSymbol.IsAbstract)
             {
@@ -1025,8 +1030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return semanticModel;
                     });
 
-                    MethodSymbol symbolToProduce = methodSymbol.PartialDefinitionPart ?? methodSymbol;
-                    _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, symbolToProduce, lazySemanticModel));
+                    _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(_compilation, methodSymbol, lazySemanticModel));
                 }
 
                 // Don't lower if we're not emitting or if there were errors. 
@@ -1556,7 +1560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundBlock body;
 
-            var sourceMethod = method as SourceMethodSymbol;
+            var sourceMethod = method as SourceMemberMethodSymbol;
             if ((object)sourceMethod != null)
             {
                 var constructorSyntax = sourceMethod.SyntaxNode as ConstructorDeclarationSyntax;
@@ -1693,7 +1697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note that the base type can be null if we're compiling System.Object in source.
             NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
 
-            SourceMethodSymbol sourceConstructor = constructor as SourceMethodSymbol;
+            SourceMemberMethodSymbol sourceConstructor = constructor as SourceMemberMethodSymbol;
             ConstructorDeclarationSyntax constructorSyntax = null;
             ArgumentListSyntax initializerArgumentListOpt = null;
             if ((object)sourceConstructor != null)
@@ -1715,7 +1719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (baseType.SpecialType == SpecialType.System_Object)
                 {
-                    return GenerateObjectConstructorInitializer(constructor, diagnostics);
+                    return GenerateBaseParameterlessConstructorInitializer(constructor, diagnostics);
                 }
                 else if (baseType.IsErrorType() || baseType.IsStatic)
                 {
@@ -1816,42 +1820,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static BoundCall GenerateObjectConstructorInitializer(MethodSymbol constructor, DiagnosticBag diagnostics)
+        internal static BoundCall GenerateBaseParameterlessConstructorInitializer(MethodSymbol constructor, DiagnosticBag diagnostics)
         {
-            NamedTypeSymbol objectType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
-            Debug.Assert(objectType.SpecialType == SpecialType.System_Object);
-            MethodSymbol objectConstructor = null;
+            NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
+            MethodSymbol baseConstructor = null;
             LookupResultKind resultKind = LookupResultKind.Viable;
+            Location diagnosticsLocation = constructor.Locations.IsEmpty ? NoLocation.Singleton : constructor.Locations[0];
 
-            foreach (MethodSymbol objectCtor in objectType.InstanceConstructors)
+            foreach (MethodSymbol ctor in baseType.InstanceConstructors)
             {
-                if (objectCtor.ParameterCount == 0)
+                if (ctor.ParameterCount == 0)
                 {
-                    objectConstructor = objectCtor;
+                    baseConstructor = ctor;
                     break;
                 }
             }
 
             // UNDONE: If this happens then something is deeply wrong. Should we give a better error?
-            if ((object)objectConstructor == null)
+            if ((object)baseConstructor == null)
             {
-                diagnostics.Add(ErrorCode.ERR_BadCtorArgCount, constructor.Locations[0], objectType, /*desired param count*/ 0);
+                diagnostics.Add(ErrorCode.ERR_BadCtorArgCount, diagnosticsLocation, baseType, /*desired param count*/ 0);
+                return null;
+            }
+
+            if (Binder.ReportUseSiteDiagnostics(baseConstructor, diagnostics, diagnosticsLocation))
+            {
                 return null;
             }
 
             // UNDONE: If this happens then something is deeply wrong. Should we give a better error?
             bool hasErrors = false;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            if (!AccessCheck.IsSymbolAccessible(objectConstructor, constructor.ContainingType, ref useSiteDiagnostics))
+            if (!AccessCheck.IsSymbolAccessible(baseConstructor, constructor.ContainingType, ref useSiteDiagnostics))
             {
-                diagnostics.Add(ErrorCode.ERR_BadAccess, constructor.Locations[0], objectConstructor);
+                diagnostics.Add(ErrorCode.ERR_BadAccess, diagnosticsLocation, baseConstructor);
                 resultKind = LookupResultKind.Inaccessible;
                 hasErrors = true;
             }
 
             if (!useSiteDiagnostics.IsNullOrEmpty())
             {
-                diagnostics.Add(constructor.Locations.IsEmpty ? NoLocation.Singleton : constructor.Locations[0], useSiteDiagnostics);
+                diagnostics.Add(diagnosticsLocation, useSiteDiagnostics);
             }
 
             CSharpSyntaxNode syntax = constructor.GetNonNullSyntaxNode();
@@ -1860,7 +1869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 syntax: syntax,
                 receiverOpt: receiver,
-                method: objectConstructor,
+                method: baseConstructor,
                 arguments: ImmutableArray<BoundExpression>.Empty,
                 argumentNamesOpt: ImmutableArray<string>.Empty,
                 argumentRefKindsOpt: ImmutableArray<RefKind>.Empty,
@@ -1870,12 +1879,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt: ImmutableArray<int>.Empty,
                 resultKind: resultKind,
                 binderOpt: null,
-                type: objectType,
+                type: baseType,
                 hasErrors: hasErrors)
             { WasCompilerGenerated = true };
         }
 
-        private static void GenerateExternalMethodWarnings(SourceMethodSymbol methodSymbol, DiagnosticBag diagnostics)
+        private static void GenerateExternalMethodWarnings(SourceMemberMethodSymbol methodSymbol, DiagnosticBag diagnostics)
         {
             if (methodSymbol.GetAttributes().IsEmpty && !methodSymbol.ContainingType.IsComImport)
             {
@@ -1894,7 +1903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((object)method != null && method.MethodKind == MethodKind.Constructor)
             {
-                SourceMethodSymbol sourceMethod = method as SourceMethodSymbol;
+                SourceMemberMethodSymbol sourceMethod = method as SourceMemberMethodSymbol;
                 if ((object)sourceMethod != null)
                 {
                     ConstructorDeclarationSyntax constructorSyntax = sourceMethod.SyntaxNode as ConstructorDeclarationSyntax;

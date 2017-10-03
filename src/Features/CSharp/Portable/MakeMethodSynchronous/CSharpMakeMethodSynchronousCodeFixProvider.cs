@@ -10,7 +10,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeMethodSynchronous), Shared]
+    [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImport)]
     internal class CSharpMakeMethodSynchronousCodeFixProvider : AbstractMakeMethodSynchronousCodeFixProvider
     {
         private const string CS1998 = nameof(CS1998); // This async method lacks 'await' operators and will run synchronously.
@@ -99,17 +100,17 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
 
         private SyntaxNode FixParenthesizedLambda(ParenthesizedLambdaExpressionSyntax lambda)
         {
-            return lambda.WithAsyncKeyword(default(SyntaxToken)).WithPrependedLeadingTrivia(lambda.AsyncKeyword.LeadingTrivia);
+            return lambda.WithAsyncKeyword(default).WithPrependedLeadingTrivia(lambda.AsyncKeyword.LeadingTrivia);
         }
 
         private SyntaxNode FixSimpleLambda(SimpleLambdaExpressionSyntax lambda)
         {
-            return lambda.WithAsyncKeyword(default(SyntaxToken)).WithPrependedLeadingTrivia(lambda.AsyncKeyword.LeadingTrivia);
+            return lambda.WithAsyncKeyword(default).WithPrependedLeadingTrivia(lambda.AsyncKeyword.LeadingTrivia);
         }
 
         private SyntaxNode FixAnonymousMethod(AnonymousMethodExpressionSyntax method)
         {
-            return method.WithAsyncKeyword(default(SyntaxToken)).WithPrependedLeadingTrivia(method.AsyncKeyword.LeadingTrivia);
+            return method.WithAsyncKeyword(default).WithPrependedLeadingTrivia(method.AsyncKeyword.LeadingTrivia);
         }
     }
 }

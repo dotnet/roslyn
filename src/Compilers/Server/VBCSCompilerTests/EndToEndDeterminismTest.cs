@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void HelloWorld()
         {
             var source = @"using System;
@@ -89,7 +89,7 @@ class Hello
             RunDeterministicTest(source);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void CallerInfo()
         {
             var source = @"using System;
@@ -115,7 +115,7 @@ class CallerInfo {
             RunDeterministicTest(source);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void AnonType()
         {
             var source = @"using System;
@@ -133,7 +133,7 @@ class AnonType {
             RunDeterministicTest(source);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void LineDirective()
         {
             var source = @"using System;

@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -551,6 +552,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.BaseReference:
                 case BoundKind.DefaultExpression:
                     return expr;
+
+                case BoundKind.Call:
+                    var call = (BoundCall)expr;
+                    if (isRef)
+                    {
+                        Debug.Assert(call.Method.RefKind != RefKind.None);
+                        F.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, F.Syntax.Location, call.Method);
+                        isRef = false; // Switch to ByVal to avoid asserting later in the pipeline
+                    }
+                    goto default;
+
+                case BoundKind.ConditionalOperator:
+                    var conditional = (BoundConditionalOperator)expr;
+                    if (isRef)
+                    {
+                        Debug.Assert(conditional.IsByRef);
+                        F.Diagnostics.Add(ErrorCode.ERR_RefConditionalAndAwait, F.Syntax.Location);
+                        isRef = false; // Switch to ByVal to avoid asserting later in the pipeline
+                    }
+                    goto default;
 
                 default:
                     if (expr.ConstantValue != null)

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 {
     internal sealed class CustomCommitCompletion : Completion3, ICustomCommit
     {
-        private static readonly string s_glyphCompletionWarning = "GlyphCompletionWarning";
+        private const string s_glyphCompletionWarning = "GlyphCompletionWarning";
         private readonly CompletionPresenterSession _completionPresenterSession;
         internal readonly CompletionItem CompletionItem;
         private readonly ImageMoniker _imageMoniker;
@@ -54,16 +54,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 // to give them something non-empty so they know to go get the async description.
                 "...";
 
-        public async Task<CompletionDescription> GetDescriptionAsync(CancellationToken cancellationToken)
+        public Task<CompletionDescription> GetDescriptionAsync(CancellationToken cancellationToken)
         {
-            var document = await GetDocumentAsync(cancellationToken).ConfigureAwait(false);
-            var service = CompletionService.GetService(document);
-            return await service.GetDescriptionAsync(document, this.CompletionItem, cancellationToken).ConfigureAwait(false);
-        }
-
-        private Task<Document> GetDocumentAsync(CancellationToken cancellationToken)
-        {
-            return _completionPresenterSession.SubjectBuffer.CurrentSnapshot.AsText().GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken);
+            var service = CompletionService.GetService(this.CompletionItem.Document);
+            return service?.GetDescriptionAsync(this.CompletionItem.Document, this.CompletionItem, cancellationToken);
         }
 
         public string GetDescription_TestingOnly()
@@ -73,13 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         public override ImageMoniker IconMoniker => _imageMoniker;
 
-        public override string IconAutomationText
-        {
-            get
-            {
-                return _imageMoniker.ToString();
-            }
-        }
+        public override string IconAutomationText => _imageMoniker.ToString();
 
         public override IEnumerable<CompletionIcon> AttributeIcons
         {

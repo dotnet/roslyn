@@ -122,7 +122,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestNotOnPartialMethod1()
+        public async Task TestNotOnExternParameter()
         {
             await TestMissingInRegularAndScriptAsync(
 @"
@@ -130,16 +130,29 @@ using System;
 
 class C
 {
-    private partial void M([||]string s);
+    extern void M([||]string s);
+}");
+        }
 
-    private void M(string s)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNotOnPartialMethodDefinition1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    partial void M([||]string s);
+
+    partial void M(string s)
     {
     }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestNotOnPartialMethod2()
+        public async Task TestNotOnPartialMethodDefinition2()
         {
             await TestMissingInRegularAndScriptAsync(
 @"
@@ -147,11 +160,75 @@ using System;
 
 class C
 {
-    private void M(string s)
+    partial void M(string s)
     {
     }
 
-    private partial void M([||]string s);
+    partial void M([||]string s);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestOnPartialMethodImplementation1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    partial void M(string s);
+
+    partial void M([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    partial void M(string s);
+
+    partial void M(string s)
+    {
+        if (s == null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestOnPartialMethodImplementation2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    partial void M([||]string s)
+    {
+    }
+
+    partial void M(string s);
+}",
+@"
+using System;
+
+class C
+{
+    partial void M(string s)
+    {
+        if (s == null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+    }
+
+    partial void M(string s);
 }");
         }
 
@@ -348,7 +425,7 @@ class C
         {
             throw new ArgumentNullException(nameof(s));
         }
-        
+
         Init();
     }
 }");
@@ -377,7 +454,7 @@ class C
         {
             throw new ArgumentNullException(nameof(s));
         }
-        
+
         Init();
     }
 }", parameters: new TestParameters(options:
@@ -642,7 +719,7 @@ class C
 {
     public C()
     {
-        void Foo([||]string s)
+        void Goo([||]string s)
         {
         }
     }
@@ -780,9 +857,36 @@ class C
         if (s == null)
             throw new ArgumentNullException(nameof(s));
     }
-}", ignoreTrivia: false,
+}",
     parameters: new TestParameters(options:
         Option(CSharpCodeStyleOptions.PreferBraces, CodeStyleOptions.FalseWithNoneEnforcement)));
+        }
+
+        [WorkItem(19956, "https://github.com/dotnet/roslyn/issues/19956")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNoBlock()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public C(string s[||])
+}",
+@"
+using System;
+
+class C
+{
+    public C(string s)
+    {
+        if (s == null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+    }
+}");
         }
     }
 }

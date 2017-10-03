@@ -1,21 +1,32 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.TodoComments;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.TodoComments
 {
-    [ExportLanguageService(typeof(ITodoCommentService), LanguageNames.CSharp), Shared]
+    [ExportLanguageServiceFactory(typeof(ITodoCommentService), LanguageNames.CSharp), Shared]
+    internal class CSharpTodoCommentServiceFactory : ILanguageServiceFactory
+    {
+        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+            => new CSharpTodoCommentService(languageServices.WorkspaceServices.Workspace);
+    }
+
     internal class CSharpTodoCommentService : AbstractTodoCommentService
     {
         private static readonly int s_multilineCommentPostfixLength = "*/".Length;
         private const string SingleLineCommentPrefix = "//";
+
+        public CSharpTodoCommentService(Workspace workspace) : base(workspace)
+        {
+        }
 
         protected override void AppendTodoComments(IList<TodoCommentDescriptor> commentDescriptors, SyntacticDocument document, SyntaxTrivia trivia, List<TodoComment> todoList)
         {

@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -263,11 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var inputConstant = byType.Expression.ConstantValue;
 
                 // three-valued: true if input known null, false if input known non-null, null if not known.
-                bool? inputIsNull = null;
-                if (inputConstant != null)
-                {
-                    inputIsNull = inputConstant.IsNull;
-                }
+                bool? inputIsNull = inputConstant?.IsNull;
 
                 var defaultLabel = _factory.GenerateLabel("byTypeDefault");
 

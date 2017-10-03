@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.InteropServices
 Imports System.Xml.Linq
@@ -15,9 +15,9 @@ Imports Microsoft.CodeAnalysis.SymbolSearch
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     <ComVisible(True)>
     Public Class AutomationObject
-        Private ReadOnly _workspace As Workspace
+        Private ReadOnly _workspace As CodeAnalysis.Workspace
 
-        Friend Sub New(workspace As Workspace)
+        Friend Sub New(workspace As CodeAnalysis.Workspace)
             _workspace = workspace
         End Sub
 

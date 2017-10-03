@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 
         internal async Task VerifyWorkerAsync(string markup, bool absent, CSharpParseOptions options = null, int? matchPriority = null)
         {
-            string code;
-            int position;
-            MarkupTestFile.GetPosition(markup, out code, out position);
+            MarkupTestFile.GetPosition(markup, out var code, out int position);
             await VerifyAtPositionAsync(code, position, absent, options: options, matchPriority: matchPriority);
             await VerifyInFrontOfCommentAsync(code, position, absent, options: options, matchPriority: matchPriority);
             await VerifyAtEndOfFileAsync(code, position, absent, options: options, matchPriority: matchPriority);

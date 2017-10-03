@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -141,7 +142,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var match = symbolsMatch(node, semanticModel);
-                if (match.Item1)
+                if (match.matched)
                 {
                     SyntaxNode nodeToBeReferenced = null;
 
@@ -153,7 +154,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     {
                         var childNodes = node.ChildNodes();
                         var leftOfInvocation = childNodes.First();
-                        if (symbolsMatch(leftOfInvocation, semanticModel).Item1)
+                        if (symbolsMatch(leftOfInvocation, semanticModel).matched)
                         {
                             // Element access with explicit member name (allowed in VB).
                             // We have already added a reference location for the member name identifier, so skip this one.
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     if (nodeToBeReferenced != null)
                     {
                         var location = nodeToBeReferenced.SyntaxTree.GetLocation(new TextSpan(nodeToBeReferenced.SpanStart, 0));
-                        locations.Add(new ReferenceLocation(document, null, location, isImplicit: false, isWrittenTo: false, candidateReason: match.Item2));
+                        locations.Add(new ReferenceLocation(document, null, location, isImplicit: false, isWrittenTo: false, candidateReason: match.reason));
                     }
                 }
             }

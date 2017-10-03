@@ -76,7 +76,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IEventDefinition eventDefinition)
         {
-            this.Visit(eventDefinition.Accessors);
+            this.Visit(eventDefinition.GetAccessors(Context));
             this.Visit(eventDefinition.GetType(Context));
         }
 
@@ -271,7 +271,8 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IMethodDefinition method)
         {
-            this.Visit(method.ReturnValueAttributes);
+            this.Visit(method.GetReturnValueAttributes(Context));
+            this.Visit(method.RefCustomModifiers);
             this.Visit(method.ReturnValueCustomModifiers);
 
             if (method.HasDeclarativeSecurity)
@@ -412,6 +413,7 @@ namespace Microsoft.Cci
             Debug.Assert((marshalling != null || !parameterDefinition.MarshallingDescriptor.IsDefaultOrEmpty) == parameterDefinition.IsMarshalledExplicitly);
 
             this.Visit(parameterDefinition.GetAttributes(Context));
+            this.Visit(parameterDefinition.RefCustomModifiers);
             this.Visit(parameterDefinition.CustomModifiers);
 
             MetadataConstant defaultValue = parameterDefinition.GetDefaultValue(Context);
@@ -441,6 +443,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IParameterTypeInformation parameterTypeInformation)
         {
+            this.Visit(parameterTypeInformation.RefCustomModifiers);
             this.Visit(parameterTypeInformation.CustomModifiers);
             this.Visit(parameterTypeInformation.GetType(Context));
         }

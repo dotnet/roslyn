@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _name = declaratorSyntax.Identifier.ValueText;
 
-
             var declaratorDiagnostics = DiagnosticBag.GetInstance();
             var declarationSyntax = (VariableDeclarationSyntax)declaratorSyntax.Parent;
             _type = BindEventType(binder, declarationSyntax.Type, declaratorDiagnostics);
@@ -77,6 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 _associatedField = MakeAssociatedField(declaratorSyntax);
                 // Don't initialize this.type - we'll just use the type of the field (which is lazy and handles var)
+            }
+
+            if (!IsStatic && ContainingType.IsReadOnly)
+            {
+                diagnostics.Add(ErrorCode.ERR_FieldlikeEventsInRoStruct, this.Locations[0]);
             }
 
             // Accessors will assume that Type is available.

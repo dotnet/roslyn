@@ -27,6 +27,9 @@
                     <CheckBox x:Name="PlaceSystemNamespaceFirst"
                               x:Uid="SortUsings_PlaceSystemFirst"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_PlaceSystemNamespaceFirst}" />
+                    <CheckBox x:Name="SeparateImportGroups"
+                              x:Uid="SeparateImportGroups"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_SeparateImportGroups}" />
                     <CheckBox x:Name="SuggestForTypesInReferenceAssemblies"
                               x:Uid="AddImport_SuggestForTypesInReferenceAssemblies"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Suggest_usings_for_types_in_reference_assemblies}" />
@@ -61,6 +64,15 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Collapse_regions_when_collapsing_to_definitions}" />
                 </StackPanel>
             </GroupBox>
+            <GroupBox x:Uid="FadingGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Fading}">
+                <StackPanel>
+                    <CheckBox x:Name="Fade_out_unused_usings"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Fade_out_unused_usings}" />
+                    <CheckBox x:Name="Fade_out_unreachable_code"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Fade_out_unreachable_code}" />
+                </StackPanel>
+            </GroupBox>
             <GroupBox x:Uid="BlockStructureGuidesGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Block_Structure_Guides}">
                 <StackPanel>
@@ -81,6 +93,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
                     <CheckBox x:Name="Split_string_literals_on_enter"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Split_string_literals_on_enter}" />
+                    <CheckBox x:Name="Report_invalid_placeholders_in_string_dot_format_calls"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="ExtractMethodGroupBox"

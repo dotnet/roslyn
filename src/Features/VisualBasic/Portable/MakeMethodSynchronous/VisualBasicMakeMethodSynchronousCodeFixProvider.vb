@@ -7,7 +7,8 @@ Imports Microsoft.CodeAnalysis.MakeMethodSynchronous
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.MakeMethodSynchronous), [Shared]>
+    <ExtensionOrder(After:=PredefinedCodeFixProviderNames.AddImport)>
     Friend Class VisualBasicMakeMethodSynchronousCodeFixProvider
         Inherits AbstractMakeMethodSynchronousCodeFixProvider
 

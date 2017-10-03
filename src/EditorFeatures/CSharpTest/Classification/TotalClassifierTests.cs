@@ -1,6 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class TotalClassifierTests : AbstractCSharpClassifierTests
     {
-        internal override async Task<IEnumerable<ClassifiedSpan>> GetClassificationSpansAsync(
+        internal override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(
             string code, TextSpan textSpan, CSharpParseOptions options)
         {
             using (var workspace = TestWorkspace.CreateCSharp(code, options))
@@ -27,12 +29,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
                 var syntaxTree = await document.GetSyntaxTreeAsync();
 
-                var service = document.GetLanguageService<IClassificationService>();
+                var service = document.GetLanguageService<ISyntaxClassificationService>();
                 var classifiers = service.GetDefaultSyntaxClassifiers();
                 var extensionManager = workspace.Services.GetService<IExtensionManager>();
 
-                var semanticClassifications = new List<ClassifiedSpan>();
-                var syntacticClassifications = new List<ClassifiedSpan>();
+                var semanticClassifications = ArrayBuilder<ClassifiedSpan>.GetInstance();
+                var syntacticClassifications = ArrayBuilder<ClassifiedSpan>.GetInstance();
                 await service.AddSemanticClassificationsAsync(document, textSpan,
                     extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes),
                     extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds),
@@ -52,7 +54,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                     where !classificationsSpans.Contains(t.TextSpan)
                     select t);
 
-                return allClassifications;
+                syntacticClassifications.Free();
+                semanticClassifications.Free();
+                return allClassifications.ToImmutableArray();
             }
         }
 
@@ -348,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         public async Task TestValueInProperty()
         {
             await TestInClassAsync(
-@"int Foo
+@"int Goo
 {
     get
     {
@@ -361,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     }
 }",
                 Keyword("int"),
-                Identifier("Foo"),
+                Identifier("Goo"),
                 Punctuation.OpenCurly,
                 Keyword("get"),
                 Punctuation.OpenCurly,
@@ -464,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             await TestAsync(
 @"class X
 {
-    void Foo<var>()
+    void Goo<var>()
     {
         var x;
     }
@@ -473,7 +477,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Class("X"),
                 Punctuation.OpenCurly,
                 Keyword("void"),
-                Identifier("Foo"),
+                Identifier("Goo"),
                 Punctuation.OpenAngle,
                 TypeParameter("var"),
                 Punctuation.CloseAngle,
@@ -600,7 +604,7 @@ namespace C
 @"class Program<T>
 {
     /// <param name=""x""/>
-    void Foo(int x)
+    void Goo(int x)
     {
     }
 }",
@@ -622,7 +626,7 @@ namespace C
                 XmlDoc.AttributeQuotes("\""),
                 XmlDoc.Delimiter("/>"),
                 Keyword("void"),
-                Identifier("Foo"),
+                Identifier("Goo"),
                 Punctuation.OpenParen,
                 Keyword("int"),
                 Identifier("x"),
@@ -639,7 +643,7 @@ namespace C
 @"/// <see cref=""Program{T}""/>
 class Program<T>
 {
-    void Foo()
+    void Goo()
     {
     }
 }",
@@ -664,7 +668,7 @@ class Program<T>
                 Punctuation.CloseAngle,
                 Punctuation.OpenCurly,
                 Keyword("void"),
-                Identifier("Foo"),
+                Identifier("Goo"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -708,17 +712,17 @@ namespace N
         public async Task InterfacePropertyWithSameNameShouldBePreferredToType()
         {
             await TestAsync(
-@"interface IFoo
+@"interface IGoo
 {
-    int IFoo { get; set; }
+    int IGoo { get; set; }
 
-    void Bar(int x = IFoo);
+    void Bar(int x = IGoo);
 }",
                 Keyword("interface"),
-                Interface("IFoo"),
+                Interface("IGoo"),
                 Punctuation.OpenCurly,
                 Keyword("int"),
-                Identifier("IFoo"),
+                Identifier("IGoo"),
                 Punctuation.OpenCurly,
                 Keyword("get"),
                 Punctuation.Semicolon,
@@ -731,7 +735,7 @@ namespace N
                 Keyword("int"),
                 Identifier("x"),
                 Operators.Equals,
-                Identifier("IFoo"),
+                Identifier("IGoo"),
                 Punctuation.CloseParen,
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly);

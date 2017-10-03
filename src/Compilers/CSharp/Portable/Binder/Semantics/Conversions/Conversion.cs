@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -235,6 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion InterpolatedString => new Conversion(ConversionKind.InterpolatedString);
         internal static Conversion Deconstruction => new Conversion(ConversionKind.Deconstruction);
         internal static Conversion IdentityValue => new Conversion(ConversionKind.IdentityValue);
+        internal static Conversion PinnedObjectToPointer => new Conversion(ConversionKind.PinnedObjectToPointer);
 
         // trivial conversions that could be underlying in nullable conversion
         // NOTE: tuple conversions can be underlying as well, but they are not trivial 
@@ -257,6 +260,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal static ImmutableArray<Conversion> PointerToIntegerUnderlying = ImmutableArray.Create(PointerToInteger);
         }
 
+        internal static Conversion MakeStackAllocToPointerType(Conversion underlyingConversion)
+        {
+            return new Conversion(ConversionKind.StackAllocToPointerType, ImmutableArray.Create(underlyingConversion));
+        }
+
+        internal static Conversion MakeStackAllocToSpanType(Conversion underlyingConversion)
+        {
+            return new Conversion(ConversionKind.StackAllocToSpanType, ImmutableArray.Create(underlyingConversion));
+        }
 
         internal static Conversion MakeNullableConversion(ConversionKind kind, Conversion nestedConversion)
         {
@@ -443,6 +455,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return Kind == ConversionKind.Identity;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the conversion is a stackalloc conversion.
+        /// </summary>
+        public bool IsStackAlloc
+        {
+            get
+            {
+                return Kind == ConversionKind.StackAllocToPointerType || Kind == ConversionKind.StackAllocToSpanType;
             }
         }
 
@@ -839,6 +862,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Creates a <seealso cref="CommonConversion"/> from this C# conversion.
+        /// </summary>
+        /// <returns>The <see cref="CommonConversion"/> that represents this conversion.</returns>
+        /// <remarks>
+        /// This is a lossy conversion; it is not possible to recover the original <see cref="Conversion"/>
+        /// from the <see cref="CommonConversion"/> struct.
+        /// </remarks>
+        public CommonConversion ToCommonConversion()
+        {
+            // The MethodSymbol of CommonConversion only refers to UserDefined conversions, not method groups
+            var methodSymbol = IsUserDefined ? MethodSymbol : null;
+            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, methodSymbol);
         }
 
         /// <summary>

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.AddImport.AddImportDiagnosticIds;
@@ -179,8 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
         private static bool TryFindStandaloneType(SyntaxNode node, out SimpleNameSyntax nameNode)
         {
-            var qn = node as QualifiedNameSyntax;
-            if (qn != null)
+            if (node is QualifiedNameSyntax qn)
             {
                 node = GetLeftMostSimpleName(qn);
             }
@@ -194,8 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             while (qn != null)
             {
                 var left = qn.Left;
-                var simpleName = left as SimpleNameSyntax;
-                if (simpleName != null)
+                if (left is SimpleNameSyntax simpleName)
                 {
                     return simpleName;
                 }
@@ -525,14 +524,12 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         private NameSyntax AddOrReplaceAlias(
             NameSyntax nameSyntax, IdentifierNameSyntax alias)
         {
-            var simpleName = nameSyntax as SimpleNameSyntax;
-            if (simpleName != null)
+            if (nameSyntax is SimpleNameSyntax simpleName)
             {
                 return SyntaxFactory.AliasQualifiedName(alias, simpleName);
             }
 
-            var qualifiedName = nameSyntax as QualifiedNameSyntax;
-            if (qualifiedName != null)
+            if (nameSyntax is QualifiedNameSyntax qualifiedName)
             {
                 return qualifiedName.WithLeft(AddOrReplaceAlias(qualifiedName.Left, alias));
             }
@@ -613,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return IsViableExtensionMethod(method, leftExpressionType);
         }
 
-        internal override bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel)
+        protected override bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel)
         {
             if (node.Parent.IsKind(SyntaxKind.CollectionInitializerExpression))
             {

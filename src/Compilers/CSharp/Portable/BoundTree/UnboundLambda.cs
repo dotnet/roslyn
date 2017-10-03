@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -380,11 +381,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return delegateType.GetDelegateType()?.DelegateInvokeMethod;
         }
 
-        private static ImmutableArray<ParameterSymbol> DelegateParameters(MethodSymbol invokeMethod)
-        {
-            return ((object)invokeMethod == null) ? ImmutableArray<ParameterSymbol>.Empty : invokeMethod.Parameters;
-        }
-
         private static TypeSymbol DelegateReturnType(MethodSymbol invokeMethod, out RefKind refKind)
         {
             if ((object)invokeMethod == null)
@@ -450,8 +446,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 cacheKey.ParameterTypes,
                 cacheKey.ParameterRefKinds,
                 refKind,
-                returnType);
+                returnType,
+                diagnostics);
             lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, binder));
+
+            if (lambdaSymbol.RefKind == CodeAnalysis.RefKind.RefReadOnly)
+            {
+                binder.Compilation.EnsureIsReadOnlyAttributeExists(diagnostics, lambdaSymbol.DiagnosticLocation, modifyCompilationForRefReadOnly: false);
+            }
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(lambdaSymbol.Parameters, diagnostics, modifyCompilationForRefReadOnly: false);
+
             block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
 
             ((ExecutableCodeBinder)lambdaBodyBinder).ValidateIteratorMethods(diagnostics);
@@ -488,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (IsAsync)
             {
                 Debug.Assert(lambdaSymbol.IsAsync);
-                SourceMemberMethodSymbol.ReportAsyncParameterErrors(lambdaSymbol.Parameters, diagnostics, lambdaSymbol.DiagnosticLocation);
+                SourceOrdinaryMethodSymbol.ReportAsyncParameterErrors(lambdaSymbol.Parameters, diagnostics, lambdaSymbol.DiagnosticLocation);
             }
 
             var result = new BoundLambda(_unboundLambda.Syntax, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType, inferReturnType: false)
@@ -525,7 +530,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundLambda ReallyInferReturnType(NamedTypeSymbol delegateType, ImmutableArray<TypeSymbol> parameterTypes, ImmutableArray<RefKind> parameterRefKinds)
         {
             var diagnostics = DiagnosticBag.GetInstance();
-            var lambdaSymbol = new LambdaSymbol(binder.Compilation, binder.ContainingMemberOrLambda, _unboundLambda, parameterTypes, parameterRefKinds, refKind: Microsoft.CodeAnalysis.RefKind.None, returnType: null);
+            var lambdaSymbol = new LambdaSymbol(
+                binder.Compilation,
+                binder.ContainingMemberOrLambda,
+                _unboundLambda,
+                parameterTypes,
+                parameterRefKinds,
+                refKind: CodeAnalysis.RefKind.None,
+                returnType: null,
+                diagnostics: diagnostics);
             Binder lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, binder));
             var block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
 

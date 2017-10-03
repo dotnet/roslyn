@@ -56,9 +56,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var source = @"
 class C
 {
-  void Foo()
+  void Goo()
   {
-    F del = Foo;
+    F del = Goo;
     del();  //need to use del or the delegate receiver alone is emitted in optimized code. 
   }
 }
@@ -66,7 +66,7 @@ class C
 
             var comp = CreateCompilationWithCustomILSource(source, il);
             var emitResult = comp.Emit(new System.IO.MemoryStream());
-            emitResult.Diagnostics.Verify(Diagnostic(ErrorCode.ERR_BadDelegateConstructor, "Foo").WithArguments("F"));
+            emitResult.Diagnostics.Verify(Diagnostic(ErrorCode.ERR_BadDelegateConstructor, "Goo").WithArguments("F"));
         }
 
         /// <summary>
@@ -1110,9 +1110,9 @@ class C
                 // (5,15): error CS1003: Syntax error, ',' expected
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",", "(").WithLocation(5, 15),
-                // (5,15): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (5,15): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(5, 15),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(5, 15),
                 // (5,16): error CS8124: Tuple must contain at least two elements.
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 16),
@@ -1366,7 +1366,7 @@ class C : I
         {
             var text = @"namespace NS
 {
-    interface IFoo
+    interface IGoo
     {
         void M1(byte b, sbyte b);
     }
@@ -1429,8 +1429,8 @@ class C : I
         {
             var text = @"namespace NS
 {
-    interface IFoo<T, V> { }
-    class IFoo<T, V> { }
+    interface IGoo<T, V> { }
+    class IGoo<T, V> { }
 
     struct SS { }
     public class SS { }
@@ -1447,8 +1447,8 @@ class C : I
         {
             var text = @"namespace NS
 {
-    interface IFoo<T, V> { }
-    interface IFoo<T, V> { }
+    interface IGoo<T, V> { }
+    interface IGoo<T, V> { }
 
     struct SS { }
     public struct SS { }
@@ -1465,8 +1465,8 @@ class C : I
         {
             var text = @"namespace NS
 {
-    partial class Foo<T, V> { } // no error, because ""partial""
-    partial class Foo<T, V> { }
+    partial class Goo<T, V> { } // no error, because ""partial""
+    partial class Goo<T, V> { }
 }";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
 
@@ -1572,7 +1572,7 @@ class C : I
         {
             var text = @"namespace n1
 {
-    public interface IFoo<T> { }
+    public interface IGoo<T> { }
     class A { }
 }
 namespace n3
@@ -1582,10 +1582,10 @@ namespace n3
 
     namespace n2
     {
-        public interface IFoo<V> { }
+        public interface IGoo<V> { }
         public class A { }
     }
-    public class C<X> : IFoo<X>
+    public class C<X> : IGoo<X>
     {
     }
 
@@ -1599,9 +1599,9 @@ namespace n3
                 // (22,9): error CS0104: 'A' is an ambiguous reference between 'n1.A' and 'n3.n2.A'
                 //         A a;
                 Diagnostic(ErrorCode.ERR_AmbigContext, "A").WithArguments("A", "n1.A", "n3.n2.A").WithLocation(22, 9),
-                // (16,25): error CS0104: 'IFoo<>' is an ambiguous reference between 'n1.IFoo<T>' and 'n3.n2.IFoo<V>'
-                //     public class C<X> : IFoo<X>
-                Diagnostic(ErrorCode.ERR_AmbigContext, "IFoo<X>").WithArguments("IFoo<>", "n1.IFoo<T>", "n3.n2.IFoo<V>").WithLocation(16, 25),
+                // (16,25): error CS0104: 'IGoo<>' is an ambiguous reference between 'n1.IGoo<T>' and 'n3.n2.IGoo<V>'
+                //     public class C<X> : IGoo<X>
+                Diagnostic(ErrorCode.ERR_AmbigContext, "IGoo<X>").WithArguments("IGoo<>", "n1.IGoo<T>", "n3.n2.IGoo<V>").WithLocation(16, 25),
                 // (22,11): warning CS0169: The field 'S.a' is never used
                 //         A a;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("n3.S.a").WithLocation(22, 11)
@@ -1610,7 +1610,7 @@ namespace n3
             var ns3 = comp.SourceModule.GlobalNamespace.GetMember<NamespaceSymbol>("n3");
             var classC = ns3.GetMember<NamedTypeSymbol>("C");
             var classCInterface = classC.Interfaces.Single();
-            Assert.Equal("IFoo", classCInterface.Name);
+            Assert.Equal("IGoo", classCInterface.Name);
             Assert.Equal(TypeKind.Error, classCInterface.TypeKind);
 
             var structS = ns3.GetMember<NamedTypeSymbol>("S");
@@ -1752,7 +1752,7 @@ class C
         public void CS0106ERR_BadMemberFlag05()
         {
             var text = @"
-struct Foo
+struct Goo
 {
     public abstract void Bar1();
     public virtual void Bar2() { }
@@ -2127,51 +2127,51 @@ class B : A
         {
             var text = @"namespace NS
 {
-    namespace Foo {}
+    namespace Goo {}
 
     internal struct S
     {
-        void Foo(Foo f) {}
+        void Goo(Goo f) {}
     }
 
     class Bar
     {
-        Foo foundNamespaceInsteadOfType;
+        Goo foundNamespaceInsteadOfType;
     }
 
-    public class A : Foo {}
+    public class A : Goo {}
 }";
             var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
-                // (7,18): error CS0118: 'Foo' is a namespace but is used like a type
-                //         void Foo(Foo f) {}
-                Diagnostic(ErrorCode.ERR_BadSKknown, "Foo").WithArguments("Foo", "namespace", "type"),
-                // (12,9): error CS0118: 'Foo' is a namespace but is used like a type
-                //         Foo foundNamespaceInsteadOfType;
-                Diagnostic(ErrorCode.ERR_BadSKknown, "Foo").WithArguments("Foo", "namespace", "type"),
-                // (15,22): error CS0118: 'Foo' is a namespace but is used like a type
-                //     public class A : Foo {}
-                Diagnostic(ErrorCode.ERR_BadSKknown, "Foo").WithArguments("Foo", "namespace", "type"),
+                // (7,18): error CS0118: 'Goo' is a namespace but is used like a type
+                //         void Goo(Goo f) {}
+                Diagnostic(ErrorCode.ERR_BadSKknown, "Goo").WithArguments("Goo", "namespace", "type"),
+                // (12,9): error CS0118: 'Goo' is a namespace but is used like a type
+                //         Goo foundNamespaceInsteadOfType;
+                Diagnostic(ErrorCode.ERR_BadSKknown, "Goo").WithArguments("Goo", "namespace", "type"),
+                // (15,22): error CS0118: 'Goo' is a namespace but is used like a type
+                //     public class A : Goo {}
+                Diagnostic(ErrorCode.ERR_BadSKknown, "Goo").WithArguments("Goo", "namespace", "type"),
                 // (12,13): warning CS0169: The field 'NS.Bar.foundNamespaceInsteadOfType' is never used
-                //         Foo foundNamespaceInsteadOfType;
+                //         Goo foundNamespaceInsteadOfType;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "foundNamespaceInsteadOfType").WithArguments("NS.Bar.foundNamespaceInsteadOfType")
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var baseType = ns.GetTypeMembers("A").Single().BaseType;
-            Assert.Equal("Foo", baseType.Name);
+            Assert.Equal("Goo", baseType.Name);
             Assert.Equal(TypeKind.Error, baseType.TypeKind);
             Assert.Null(baseType.BaseType);
 
             var type2 = ns.GetTypeMembers("Bar").Single() as NamedTypeSymbol;
             var mem1 = type2.GetMembers("foundNamespaceInsteadOfType").Single() as FieldSymbol;
-            Assert.Equal("Foo", mem1.Type.Name);
+            Assert.Equal("Goo", mem1.Type.Name);
             Assert.Equal(TypeKind.Error, mem1.Type.TypeKind);
 
             var type3 = ns.GetTypeMembers("S").Single() as NamedTypeSymbol;
-            var mem2 = type3.GetMembers("Foo").Single() as MethodSymbol;
+            var mem2 = type3.GetMembers("Goo").Single() as MethodSymbol;
             var param = mem2.Parameters[0];
-            Assert.Equal("Foo", param.Type.Name);
+            Assert.Equal("Goo", param.Type.Name);
             Assert.Equal(TypeKind.Error, param.Type.TypeKind);
         }
 
@@ -2713,6 +2713,28 @@ class Program
         }
 
         [Fact]
+        public void CS0214ERR_UnsafeNeeded04()
+        {
+            var text = @"
+namespace System
+{
+    public class TestType
+    {
+        public void TestMethod()
+        {
+            var x = stackalloc int[10];         // ERROR
+            Span<int> y = stackalloc int[10];   // OK
+        }
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (8,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //             var x = stackalloc int[10];    // ERROR
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int[10]").WithLocation(8, 21));
+        }
+
+        [Fact]
         public void CS0215ERR_OpTFRetType()
         {
             var text = @"class MyClass
@@ -2920,11 +2942,11 @@ public class A
             return s2;
         }
     }
-    public static void Foo(params int a) {}
+    public static void Goo(params int a) {}
 
     public static int Main()
     {
-        Foo(1);
+        Goo(1);
         return 1;
     }
 }
@@ -3121,7 +3143,7 @@ public class MyClass2 : MyClass
         {
             var text = @"namespace NS
 {
-  interface IFoo : INotExist {} // Extra CS0527
+  interface IGoo : INotExist {} // Extra CS0527
   interface IBar
   {
     string M(ref NoType p1, out NoType p2, params NOType[] ary);
@@ -3145,7 +3167,7 @@ public class MyClass2 : MyClass
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SingleTypeNameNotFound, Line = 12, Column = 14 });
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            var type1 = ns.GetTypeMembers("IFoo").Single() as NamedTypeSymbol;
+            var type1 = ns.GetTypeMembers("IGoo").Single() as NamedTypeSymbol;
             // bug: expected 1 but error symbol
             // Assert.Equal(1, type1.Interfaces.Count());
 
@@ -3357,10 +3379,18 @@ class BAttribute : System.Attribute { }
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialModifierConflict, Line = 3, Column = 30 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialModifierConflict, Line = 9, Column = 32 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialModifierConflict, Line = 12, Column = 32 });
+            var comp = CreateStandardCompilation(text);
+            comp.VerifyDiagnostics(
+                // (3,30): error CS0262: Partial declarations of 'I' have conflicting accessibility modifiers
+                //     public partial interface I { }
+                Diagnostic(ErrorCode.ERR_PartialModifierConflict, "I").WithArguments("NS.I").WithLocation(3, 30),
+                // (9,32): error CS0262: Partial declarations of 'A.C' have conflicting accessibility modifiers
+                //         internal partial class C { }
+                Diagnostic(ErrorCode.ERR_PartialModifierConflict, "C").WithArguments("NS.A.C").WithLocation(9, 32),
+                // (12,32): error CS0262: Partial declarations of 'A.S' have conflicting accessibility modifiers
+                //         private partial struct S { }
+                Diagnostic(ErrorCode.ERR_PartialModifierConflict, "S").WithArguments("NS.A.S").WithLocation(12, 32)
+                );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
@@ -3449,8 +3479,8 @@ class BAttribute : System.Attribute { }
         partial struct S<T2> { }
     }
 
-    internal partial interface IFoo<T, V> { } // CS0264.cs
-    partial interface IFoo<T, U> { }
+    internal partial interface IGoo<T, V> { } // CS0264.cs
+    partial interface IGoo<T, U> { }
 }
 ";
 
@@ -5080,12 +5110,12 @@ class Test
     Class1 var;
 }
 ";
-            comp = CreateStandardCompilation(new SyntaxTree[] { Parse(text, "foo.cs") }, new List<MetadataReference> { ref1 });
+            comp = CreateStandardCompilation(new SyntaxTree[] { Parse(text, "goo.cs") }, new List<MetadataReference> { ref1 });
             comp.VerifyDiagnostics(
-                // foo.cs(8,5): warning CS0436: The type 'Class1' in 'foo.cs' conflicts with the imported type 'Class1' in 'MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'foo.cs'.
+                // goo.cs(8,5): warning CS0436: The type 'Class1' in 'goo.cs' conflicts with the imported type 'Class1' in 'MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'goo.cs'.
                 //     Class1 var;
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Class1").WithArguments("foo.cs", "Class1", "MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Class1"),
-                // foo.cs(8,12): warning CS0169: The field 'Test.var' is never used
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Class1").WithArguments("goo.cs", "Class1", "MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Class1"),
+                // goo.cs(8,12): warning CS0169: The field 'Test.var' is never used
                 //     Class1 var;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "var").WithArguments("Test.var")
                 );
@@ -7746,7 +7776,7 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
         [Fact]
         public void CS0503ERR_AbstractNotVirtual01()
         {
-            var text = @"namespace NS
+            var source = @"namespace NS
 {
     abstract public class clx
     {
@@ -7757,14 +7787,24 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
     } // class clx
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractNotVirtual, Line = 5, Column = 40 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractNotVirtual, Line = 6, Column = 41 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractNotVirtual, Line = 7, Column = 40 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractNotVirtual, Line = 8, Column = 53 });
 
-            var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            // TODO...
+            var comp = CreateStandardCompilation(source).VerifyDiagnostics(
+                // (7,40): error CS0503: The abstract property 'clx.P' cannot be marked virtual
+                //         virtual abstract public object P { get; set; }
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P").WithArguments("property", "NS.clx.P").WithLocation(7, 40),
+                // (6,41): error CS0503: The abstract method 'clx.M2<T>(T)' cannot be marked virtual
+                //         abstract virtual protected void M2<T>(T t);
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M2").WithArguments("method", "NS.clx.M2<T>(T)").WithLocation(6, 41),
+                // (5,40): error CS0503: The abstract method 'clx.M1()' cannot be marked virtual
+                //         abstract virtual internal void M1();
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M1").WithArguments("method", "NS.clx.M1()").WithLocation(5, 40),
+                // (8,53): error CS0503: The abstract event 'clx.E' cannot be marked virtual
+                //         virtual abstract public event System.Action E;
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "E").WithArguments("event", "NS.clx.E").WithLocation(8, 53));
+
+            var nsNamespace = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
+            var clxClass = nsNamespace.GetMembers("clx").Single() as NamedTypeSymbol;
+            Assert.Equal(9, clxClass.GetMembers().Length);
         }
 
         [Fact]
@@ -7831,7 +7871,7 @@ public class cly : clx
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideNonVirtual, Line = 13, Column = 29 });
         }
 
-        private static readonly string s_typeWithMixedProperty = @"
+        private const string s_typeWithMixedProperty = @"
 .class public auto ansi beforefieldinit Base_VirtGet_Set
        extends [mscorlib]System.Object
 {
@@ -8664,7 +8704,7 @@ struct S6<T>
         {
             var text = @"namespace NS
 {
-    public interface IFoo
+    public interface IGoo
     {
         interface IBar { }
         public class cly {}
@@ -8692,11 +8732,11 @@ struct S6<T>
         {
             var text = @"namespace NS
 {
-    public interface IFoo
+    public interface IGoo
     {
         string field1;
         const ulong field2 = 0;
-        public IFoo field3;
+        public IGoo field3;
     }
 }
 ";
@@ -8714,10 +8754,10 @@ struct S6<T>
         {
             var text = @"namespace NS
 {
-    public interface IFoo
+    public interface IGoo
     {
-         public IFoo() {}
-         internal IFoo(object p1, ref  long p2) { }
+         public IGoo() {}
+         internal IGoo(object p1, ref  long p2) { }
     }
 }
 ";
@@ -8738,7 +8778,7 @@ struct S6<T>
 
     public struct S : object, C
     {
-        interface IFoo : C
+        interface IGoo : C
         {
         }
     }
@@ -8758,12 +8798,12 @@ struct S6<T>
         {
             var text = @"namespace NS
 {
-    public interface IFoo {}
+    public interface IGoo {}
     public interface IBar { }
-    public class C : IFoo, IFoo
+    public class C : IGoo, IGoo
     {
     }
-    struct S : IBar, IFoo, IBar
+    struct S : IBar, IGoo, IBar
     {
     }
 }
@@ -8807,7 +8847,7 @@ struct S6<T>
         {
             var text = @"namespace NS
 {
-    public interface IFoo
+    public interface IGoo
     {
         int M1() { return 0; }    // CS0531
         void M2<T>(T t) { }
@@ -8935,21 +8975,21 @@ class C
             var text = @"
 abstract public class B1
 {
-    public abstract float foo { set; }
+    public abstract float goo { set; }
 }
 
 abstract class A1 : B1
 {
-    new protected enum foo { } // CS0533
+    new protected enum goo { } // CS0533
 
     abstract public class B2
     {
-        protected abstract void foo();
+        protected abstract void goo();
     }
 
     abstract class A2 : B2
     {
-        new public delegate object foo(); // CS0533
+        new public delegate object goo(); // CS0533
     }
 }
 
@@ -8957,28 +8997,28 @@ namespace NS
 {
     abstract public class B3
     {
-        public abstract void foo();
+        public abstract void goo();
     }
 
     abstract class A3 : B3
     {
-        new protected double[] foo;  // CS0533
+        new protected double[] goo;  // CS0533
     }
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (31,32): error CS0533: 'A3.foo' hides inherited abstract member 'B3.foo()'
-                //         new protected double[] foo;  // CS0533
-                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "foo").WithArguments("NS.A3.foo", "NS.B3.foo()").WithLocation(31, 32),
-                // (9,24): error CS0533: 'A1.foo' hides inherited abstract member 'B1.foo'
-                //     new protected enum foo { } // CS0533
-                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "foo").WithArguments("A1.foo", "B1.foo").WithLocation(9, 24),
-                // (18,36): error CS0533: 'A1.A2.foo' hides inherited abstract member 'A1.B2.foo()'
-                //         new public delegate object foo(); // CS0533
-                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "foo").WithArguments("A1.A2.foo", "A1.B2.foo()").WithLocation(18, 36),
-                // (31,32): warning CS0649: Field 'A3.foo' is never assigned to, and will always have its default value null
-                //         new protected double[] foo;  // CS0533
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "foo").WithArguments("NS.A3.foo", "null").WithLocation(31, 32));
+                // (31,32): error CS0533: 'A3.goo' hides inherited abstract member 'B3.goo()'
+                //         new protected double[] goo;  // CS0533
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "goo").WithArguments("NS.A3.goo", "NS.B3.goo()").WithLocation(31, 32),
+                // (9,24): error CS0533: 'A1.goo' hides inherited abstract member 'B1.goo'
+                //     new protected enum goo { } // CS0533
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "goo").WithArguments("A1.goo", "B1.goo").WithLocation(9, 24),
+                // (18,36): error CS0533: 'A1.A2.goo' hides inherited abstract member 'A1.B2.goo()'
+                //         new public delegate object goo(); // CS0533
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "goo").WithArguments("A1.A2.goo", "A1.B2.goo()").WithLocation(18, 36),
+                // (31,32): warning CS0649: Field 'A3.goo' is never assigned to, and will always have its default value null
+                //         new protected double[] goo;  // CS0533
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "goo").WithArguments("NS.A3.goo", "null").WithLocation(31, 32));
         }
 
         [WorkItem(540464, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540464")]
@@ -9881,7 +9921,7 @@ class B
         {
             var text = @"namespace NS
 {
-    public sealed class Foo
+    public sealed class Goo
     {
         public virtual void M1() { }
         internal virtual void M2<X>(X x) { }
@@ -10666,7 +10706,7 @@ using System.Runtime.InteropServices;
 public class C
 {
     [DllImport(""KERNEL32.DLL"")]
-    extern int Foo();   // CS0601
+    extern int Goo();   // CS0601
 
     [DllImport(""KERNEL32.DLL"")]
     static void Bar() { }   // CS0601
@@ -10812,7 +10852,7 @@ class Class2 { }
         {
             var text = @"namespace x
 {
-    class Foo
+    class Goo
     {
         private virtual void vf() { }
     }
@@ -10859,7 +10899,7 @@ class B
         {
             var text = @"namespace x
 {
-    abstract class Foo
+    abstract class Goo
     {
         private virtual void M1<T>(T x) { }
         private abstract int P { get; set; }
@@ -11058,9 +11098,10 @@ public class Test
                 // (2,39): error CS0643: 'AllowMultiple' duplicate named attribute argument
                 // [AttributeUsage(AllowMultiple = true, AllowMultiple = false)]
                 Diagnostic(ErrorCode.ERR_DuplicateNamedAttributeArgument, "AllowMultiple = false").WithArguments("AllowMultiple").WithLocation(2, 39),
-                // (2,2): error CS7036: There is no argument given that corresponds to the required formal parameter 'validOn' of 'System.AttributeUsageAttribute.AttributeUsageAttribute(System.AttributeTargets)'
+                // (2,2): error CS7036: There is no argument given that corresponds to the required formal parameter 'validOn' of 'AttributeUsageAttribute.AttributeUsageAttribute(AttributeTargets)'
                 // [AttributeUsage(AllowMultiple = true, AllowMultiple = false)]
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AttributeUsage(AllowMultiple = true, AllowMultiple = false)").WithArguments("validOn", "System.AttributeUsageAttribute.AttributeUsageAttribute(System.AttributeTargets)").WithLocation(2, 2));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AttributeUsage(AllowMultiple = true, AllowMultiple = false)").WithArguments("validOn", "System.AttributeUsageAttribute.AttributeUsageAttribute(System.AttributeTargets)").WithLocation(2, 2)
+                );
         }
 
         [Fact]
@@ -11332,16 +11373,16 @@ public class A4 : Attribute
         {
             var text = @"namespace NS
 {
-    public interface IFoo<T>
+    public interface IGoo<T>
     {
         void M(T t);
         void M(ref T t);
         void M(out T t);
     }
 
-    internal class CFoo
+    internal class CGoo
     {
-        private struct SFoo
+        private struct SGoo
         {
             void M<T>(T t) { }
             void M<T>(ref T t) { }
@@ -11369,24 +11410,25 @@ public class A4 : Attribute
             var comp = CreateStandardCompilation(text);
 
             comp.VerifyDiagnostics(
-                // (7,14): error CS0663: 'NS.IFoo<T>' cannot define overloaded methods that differ only on ref and out
-                Diagnostic(ErrorCode.ERR_OverloadRefOut, "M").WithArguments("NS.IFoo<T>"),
-                // (24,20): error CS0663: 'NS.CFoo' cannot define overloaded methods that differ only on ref and out
-                Diagnostic(ErrorCode.ERR_OverloadRefOut, "RetInt").WithArguments("NS.CFoo"),
-                // (16,18): error CS0663: 'NS.CFoo.SFoo' cannot define overloaded methods that differ only on ref and out
-                Diagnostic(ErrorCode.ERR_OverloadRefOut, "M").WithArguments("NS.CFoo.SFoo"),
-
-                // Dev10 stops after reporting the overload problems.  However, it produces the errors below once those problems are fixed.
-
+                // (7,14): error CS0663: 'IGoo<T>' cannot define an overloaded method that differs only on parameter modifiers 'out' and 'ref'
+                //         void M(out T t);
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("NS.IGoo<T>", "method", "out", "ref").WithLocation(7, 14),
+                // (24,20): error CS0663: 'CGoo' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'out'
+                //         public int RetInt(byte b, ref int j)
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "RetInt").WithArguments("NS.CGoo", "method", "ref", "out").WithLocation(24, 20),
+                // (16,18): error CS0663: 'CGoo.SGoo' cannot define an overloaded method that differs only on parameter modifiers 'out' and 'ref'
+                //             void M<T>(out T t) { }
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("NS.CGoo.SGoo", "method", "out", "ref").WithLocation(16, 18),
                 // (21,20): error CS0269: Use of unassigned out parameter 'i'
-                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "i").WithArguments("i"),
+                //             return i;
+                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "i").WithArguments("i").WithLocation(21, 20),
                 // (21,13): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "return i;").WithArguments("i"),
+                //             return i;
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "return i;").WithArguments("i").WithLocation(21, 13),
                 // (16,18): error CS0177: The out parameter 't' must be assigned to before control leaves the current method
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("t"));
-
-            var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            // TODO...
+                //             void M<T>(out T t) { }
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("t").WithLocation(16, 18)
+            );
         }
 
         [Fact]
@@ -11651,12 +11693,12 @@ class TestClass
         {
             var text = @"namespace NS
 {
-    public class Foo
+    public class Goo
     {
         void Field2 = 0;
         public void Field1;
 
-        public struct SFoo
+        public struct SGoo
         {
             void Field1;
             internal void Field2;
@@ -11681,12 +11723,12 @@ class TestClass
                 // (5,23): error CS0029: Cannot implicitly convert type 'int' to 'void'
                 //         void Field2 = 0;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "void"),
-                // (10,18): warning CS0169: The field 'NS.Foo.SFoo.Field1' is never used
+                // (10,18): warning CS0169: The field 'NS.Goo.SGoo.Field1' is never used
                 //             void Field1;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "Field1").WithArguments("NS.Foo.SFoo.Field1"),
-                // (11,27): warning CS0649: Field 'NS.Foo.SFoo.Field2' is never assigned to, and will always have its default value 
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Field1").WithArguments("NS.Goo.SGoo.Field1"),
+                // (11,27): warning CS0649: Field 'NS.Goo.SGoo.Field2' is never assigned to, and will always have its default value 
                 //             internal void Field2;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field2").WithArguments("NS.Foo.SFoo.Field2", "")
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field2").WithArguments("NS.Goo.SGoo.Field2", "")
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -11701,16 +11743,16 @@ class TestClass
 {
     using System;
 
-    interface IFoo<T>
+    interface IGoo<T>
     {
         Void M(T t);
     }
 
-    class Foo
+    class Goo
     {
         extern Void GetVoid();
 
-        struct SFoo : IFoo<Void>
+        struct SGoo : IGoo<Void>
         {
         }
     }
@@ -11719,8 +11761,8 @@ class TestClass
                 Diagnostic(ErrorCode.ERR_SystemVoid, "Void"),
                 Diagnostic(ErrorCode.ERR_SystemVoid, "Void"),
                 Diagnostic(ErrorCode.ERR_SystemVoid, "Void"),
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFoo<Void>").WithArguments("NS.Foo.SFoo", "NS.IFoo<System.Void>.M(System.Void)"),
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "GetVoid").WithArguments("NS.Foo.GetVoid()"));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IGoo<Void>").WithArguments("NS.Goo.SGoo", "NS.IGoo<System.Void>.M(System.Void)"),
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "GetVoid").WithArguments("NS.Goo.GetVoid()"));
         }
 
         [Fact]
@@ -11838,13 +11880,13 @@ class C5<T> where T : I
         {
             var text = @"namespace NS
 {
-    class Foo<T>
+    class Goo<T>
     {
         public abstract T field;
 
-        struct SFoo 
+        struct SGoo 
         {
-            abstract internal Foo<object> field;
+            abstract internal Goo<object> field;
         }
     }
 }
@@ -11855,14 +11897,14 @@ class C5<T> where T : I
                 //         public abstract T field;
                 Diagnostic(ErrorCode.ERR_AbstractField, "field"),
                 // (10,43): error CS0681: The modifier 'abstract' is not valid on fields. Try using a property instead.
-                //             abstract internal Foo<object> field;
+                //             abstract internal Goo<object> field;
                 Diagnostic(ErrorCode.ERR_AbstractField, "field"),
-                // (6,27): warning CS0649: Field 'NS.Foo<T>.field' is never assigned to, and will always have its default value 
+                // (6,27): warning CS0649: Field 'NS.Goo<T>.field' is never assigned to, and will always have its default value 
                 //         public abstract T field;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("NS.Foo<T>.field", ""),
-                // (10,43): warning CS0649: Field 'NS.Foo<T>.SFoo.field' is never assigned to, and will always have its default value null
-                //             abstract internal Foo<object> field;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("NS.Foo<T>.SFoo.field", "null")
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("NS.Goo<T>.field", ""),
+                // (10,43): warning CS0649: Field 'NS.Goo<T>.SGoo.field' is never assigned to, and will always have its default value null
+                //             abstract internal Goo<object> field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("NS.Goo<T>.SGoo.field", "null")
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -11997,7 +12039,7 @@ class C : I
         {
             var text = @"namespace NS
 {
-    interface IFoo<T, V> : V
+    interface IGoo<T, V> : V
     {
     }
 
@@ -12042,7 +12084,7 @@ class C : I
         {
             var text = @"namespace NS
 {
-    interface IFoo<T, V>
+    interface IGoo<T, V>
     {
         void M<T>();
     }
@@ -12072,7 +12114,7 @@ class C : I
         {
             var text = @"namespace NS
 {
-    interface IFoo
+    interface IGoo
     {
         void M<M>(M m); // OK (constraint applies to types but not methods)
     }
@@ -12330,7 +12372,7 @@ public partial class C
         {
             var text = @"namespace NS
 {
-    public static class Foo
+    public static class Goo
     {
         int i;
         void M() { }
@@ -12349,12 +12391,12 @@ public partial class C
 ";
             var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
-                // (5,13): error CS0708: 'NS.Foo.i': cannot declare instance members in a static class
+                // (5,13): error CS0708: 'NS.Goo.i': cannot declare instance members in a static class
                 //         int i;
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "i").WithArguments("NS.Foo.i"),
-                // (7,25): error CS0708: 'NS.Foo.P': cannot declare instance members in a static class
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "i").WithArguments("NS.Goo.i"),
+                // (7,25): error CS0708: 'NS.Goo.P': cannot declare instance members in a static class
                 //         internal object P { get; set; }
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "P").WithArguments("NS.Foo.P"),
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "P").WithArguments("NS.Goo.P"),
                 // (8,29): error CS0708: 'E': cannot declare instance members in a static class
                 //         event System.Action E;
                 Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "E").WithArguments("E"),
@@ -12373,15 +12415,15 @@ public partial class C
                 // (16,32): warning CS0067: The event 'NS.Bar<T>.E' is never used
                 //         event System.Action<T> E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("NS.Bar<T>.E"),
-                // (8,29): warning CS0067: The event 'NS.Foo.E' is never used
+                // (8,29): warning CS0067: The event 'NS.Goo.E' is never used
                 //         event System.Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("NS.Foo.E"),
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("NS.Goo.E"),
                 // (14,11): error CS0708: 'M': cannot declare instance members in a static class
                 //         T M(T x) { return x; }
                 Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "M").WithArguments("M"),
-                // (5,13): warning CS0169: The field 'NS.Foo.i' is never used
+                // (5,13): warning CS0169: The field 'NS.Goo.i' is never used
                 //         int i;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("NS.Foo.i"),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("NS.Goo.i"),
                 // (13,11): warning CS0169: The field 'NS.Bar<T>.field' is never used
                 //         T field;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("NS.Bar<T>.field"));
@@ -12550,11 +12592,11 @@ static class D : B { }
     {
     }
 
-    interface IFoo<T, V>
+    interface IGoo<T, V>
     {
     }
 
-    static class D<V> : IFoo<string, V>
+    static class D<V> : IGoo<string, V>
     {
     }
 }
@@ -12563,7 +12605,7 @@ static class D : B { }
                 // (7,29): error CS0714: 'NS.C': static classes cannot implement interfaces
                 Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "I").WithArguments("NS.C", "NS.I"),
                 // (15,25): error CS0714: 'NS.D<V>': static classes cannot implement interfaces
-                Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "IFoo<string, V>").WithArguments("NS.D<V>", "NS.IFoo<string, V>"));
+                Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "IGoo<string, V>").WithArguments("NS.D<V>", "NS.IGoo<string, V>"));
         }
 
         [Fact]
@@ -12878,7 +12920,7 @@ static class S
     {
     }
 
-    interface IFoo<T>
+    interface IGoo<T>
     {
         void M(D<T> d); // Dev10 no error?
     }
@@ -12934,7 +12976,7 @@ class C
     {
     }
 
-    interface IFoo<T>
+    interface IGoo<T>
     {
         D<T> M(); // Dev10 no error?
     }
@@ -13321,7 +13363,7 @@ namespace NS
         }
 
         [Fact]
-        public void CS0753ERR_PartialMethodOnlyMethods()
+        public void CS067ERR_ERR_PartialMisplaced()
         {
             var text = @"
 partial class C
@@ -13337,18 +13379,18 @@ partial class C
 ";
             var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
-                   // (5,17): error CS0753: Only methods, classes, structs, or interfaces may be partial
-                   //     partial int f;
-                   Diagnostic(ErrorCode.ERR_PartialMethodOnlyMethods, "f"),
-                   // (6,20): error CS0753: Only methods, classes, structs, or interfaces may be partial
-                   //     partial object P { get { return null; } }
-                   Diagnostic(ErrorCode.ERR_PartialMethodOnlyMethods, "P"),
-                  // (7,17): error CS0753: Only methods, classes, structs, or interfaces may be partial
-                  //     partial int this[int index]
-                  Diagnostic(ErrorCode.ERR_PartialMethodOnlyMethods, "this"),
-                   // (5,17): warning CS0169: The field 'C.f' is never used
-                   //     partial int f;
-                   Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("C.f"));
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                //     partial int f;
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
+                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                //     partial object P { get { return null; } }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
+                // (6,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                //     partial int this[int index]
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(6, 5),
+                // (4,17): warning CS0169: The field 'C.f' is never used
+                //     partial int f;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("C.f").WithLocation(4, 17));
         }
 
         [Fact]
@@ -13693,25 +13735,25 @@ public partial class C
         {
             var text = @"interface IFace<T>
 {
-    void Foo(ref T x);
-    void Foo(out int x);
+    void Goo(ref T x);
+    void Goo(out int x);
 }
 
 class A : IFace<int>
 {
-    void IFace<int>.Foo(ref int x)
+    void IFace<int>.Goo(ref int x)
     {
     }
 
-    void IFace<int>.Foo(out int x)
+    void IFace<int>.Goo(out int x)
     {
         x = 0;
     }
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitImplCollisionOnRefOut, Line = 1, Column = 11 }, //error for IFace<int, int>.Foo(ref int)
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitImplCollisionOnRefOut, Line = 1, Column = 11 } //error for IFace<int, int>.Foo(out int)
+                new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitImplCollisionOnRefOut, Line = 1, Column = 11 }, //error for IFace<int, int>.Goo(ref int)
+                new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitImplCollisionOnRefOut, Line = 1, Column = 11 } //error for IFace<int, int>.Goo(out int)
                 );
         }
 
@@ -13826,8 +13868,9 @@ namespace TestNamespace
 }";
 
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (8,17): error CS0851: Cannot define overloaded constructor 'TestNamespace.MyClass' because it differs from another constructor only on ref and out
-                Diagnostic(ErrorCode.ERR_OverloadRefOutCtor, "MyClass").WithArguments("TestNamespace.MyClass"));
+                // (8,17): error CS0663: 'MyClass' cannot define an overloaded constructor that differs only on parameter modifiers 'out' and 'ref'
+                //         public  MyClass(out int num)
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "MyClass").WithArguments("TestNamespace.MyClass", "constructor", "out", "ref").WithLocation(8, 17));
         }
 
         [Fact]
@@ -13962,11 +14005,11 @@ static class B {
         {
             var text = @"static class Test
 {
-    static void ExtMethod(int i, this Foo1 c) // CS1100
+    static void ExtMethod(int i, this Goo1 c) // CS1100
     {
     }
 }
-class Foo1
+class Goo1
 {
 }";
             var compilation = CreateStandardCompilation(text);
@@ -14349,7 +14392,7 @@ using X = ABC.X<int>;";
         public void CS1542ERR_AddModuleAssembly()
         {
             //CSC /addmodule:cs1542.dll /TARGET:library text1.cs
-            var text = @"public class Foo : IFoo
+            var text = @"public class Goo : IGoo
 {
     public void M0() { }
 }";
@@ -14358,8 +14401,8 @@ using X = ABC.X<int>;";
             CreateStandardCompilation(text, references: new[] { ref1 }).VerifyDiagnostics(
                 // error CS1542: 'NoMsCorLibRef.mod' cannot be added to this assembly because it already is an assembly
                 Diagnostic(ErrorCode.ERR_AddModuleAssembly).WithArguments(@"NoMsCorLibRef.mod"),
-                // (1,20): error CS0246: The type or namespace name 'IFoo' could not be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IFoo").WithArguments("IFoo"));
+                // (1,20): error CS0246: The type or namespace name 'IGoo' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IGoo").WithArguments("IGoo"));
         }
 
         [Fact, WorkItem(544910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544910")]
@@ -14703,11 +14746,11 @@ class AAttribute : Attribute { }
         {
             var text = @"unsafe struct s
     {
-        public fixed foo _bufferFoo[10]; // error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+        public fixed goo _bufferGoo[10]; // error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
         public fixed bar _bufferBar[10]; // error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
     }
 
-    struct foo
+    struct goo
     {
         public int ABC;
     }
@@ -14719,14 +14762,14 @@ class AAttribute : Attribute { }
 ";
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (3,22): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
-                //         public fixed foo _bufferFoo[10]; // error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
-                Diagnostic(ErrorCode.ERR_IllegalFixedType, "foo"),
+                //         public fixed goo _bufferGoo[10]; // error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+                Diagnostic(ErrorCode.ERR_IllegalFixedType, "goo"),
                 // (4,22): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
                 //         public fixed bar _bufferBar[10]; // error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
                 Diagnostic(ErrorCode.ERR_IllegalFixedType, "bar"),
-                // (9,20): warning CS0649: Field 'foo.ABC' is never assigned to, and will always have its default value 0
+                // (9,20): warning CS0649: Field 'goo.ABC' is never assigned to, and will always have its default value 0
                 //         public int ABC;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ABC").WithArguments("foo.ABC", "0"));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ABC").WithArguments("goo.ABC", "0"));
         }
 
 
@@ -14990,14 +15033,14 @@ public class TestUnsafe
 {
     public class A { }
     interface I { }
-    interface IFoo<T> : I  { }
+    interface IGoo<T> : I  { }
 
     public class MyClass : I, A { }   // CS1722
     public class MyClass2 : A, I { }   // OK
 
     class Test
     {
-        class C : IFoo<int>, A , I { } // CS1722
+        class C : IGoo<int>, A , I { } // CS1722
     }
 }";
 
@@ -15070,14 +15113,14 @@ using System.Runtime.CompilerServices;
             var text = @"class A 
 {
     static int Age;
-    public void Foo(int Para1 = Age)
+    public void Goo(int Para1 = Age)
     { }
 }
 ";
             var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics(
                 // (4,33): error CS1736: Default parameter value for 'Para1' must be a compile-time constant
-                //     public void Foo(int Para1 = Age)
+                //     public void Goo(int Para1 = Age)
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "Age").WithArguments("Para1"),
                 // (3,16): warning CS0169: The field 'A.Age' is never used
                 //     static int Age;
@@ -15134,7 +15177,7 @@ class NamedExample
         {
             var text = @"class A 
 {
-    public void Foo(int Para1 = 1, int Para2)
+    public void Goo(int Para1 = 1, int Para2)
     { }
 }
 ";
@@ -15147,9 +15190,9 @@ class NamedExample
         {
             var text = @"class A 
 {
-    public void Foo(ref int Para1 = 1)
+    public void Goo(ref int Para1 = 1)
     { }
-    public void Foo1(out int Para2 = 1)
+    public void Goo1(out int Para2 = 1)
     {
         Para2 = 2;
     }
@@ -15185,14 +15228,14 @@ class NamedExample
 using System.Runtime.InteropServices;
 class A 
 {
-    public void foo([OptionalAttribute]int p = 1)
+    public void goo([OptionalAttribute]int p = 1)
     { }
     public static void Main() { }
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (5,22): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
-                //     public void foo([OptionalAttribute]int p = 1)
+                //     public void goo([OptionalAttribute]int p = 1)
                 Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "OptionalAttribute")
                 );
         }
@@ -15329,7 +15372,7 @@ using System.Runtime.InteropServices;
 [assembly: Guid(""A7721B07-2448-447A-BA36-64682CBEF136"")]
 namespace NS
 {
-    [TypeIdentifier(""Foo2"", ""Bar2"")]
+    [TypeIdentifier(""Goo2"", ""Bar2"")]
     public delegate void MyDel();
 }
 ";
@@ -15544,14 +15587,14 @@ using System.Runtime.InteropServices;
 namespace ClassLibrary3
 {
     [ComImport, Guid(""b2496f7a-5d40-4abe-ad14-462f257a8ed5"")]
-    public interface IFoo
+    public interface IGoo
     {
-        IBar<string> foo();
+        IBar<string> goo();
     }
     [ComImport, Guid(""b2496f7a-5d40-4abe-ad14-462f257a8ed6"")]
     public interface IBar<T>
     {
-        List<IFoo> GetList();
+        List<IGoo> GetList();
     }
 
 }
@@ -15565,17 +15608,17 @@ namespace ConsoleApplication1
     {
         static void Main(string[] args)
         {
-            IFoo x = (IFoo)new object();
+            IGoo x = (IGoo)new object();
         }
     }
-    class foo : IBar<string>, IFoo
+    class goo : IBar<string>, IGoo
     {
         public List<string> GetList()
         {
             throw new NotImplementedException();
         }
 
-        List<IFoo> IBar<string>.GetList()
+        List<IGoo> IBar<string>.GetList()
         {
             throw new NotImplementedException();
         }
@@ -15598,23 +15641,23 @@ class MyClass
     public enum E { None }
     
     // No error:
-    public void Foo1(int? x = default(int)) { }
-    public void Foo2(E? x = default(E)) { }
-    public void Foo3(DateTime? x = default(DateTime?)) { }
-    public void Foo4(DateTime? x = new DateTime?()) { }
+    public void Goo1(int? x = default(int)) { }
+    public void Goo2(E? x = default(E)) { }
+    public void Goo3(DateTime? x = default(DateTime?)) { }
+    public void Goo4(DateTime? x = new DateTime?()) { }
 
     // Error:
-    public void Foo11(DateTime? x = default(DateTime)) { }
-    public void Foo12(DateTime? x = new DateTime()) { }
+    public void Goo11(DateTime? x = default(DateTime)) { }
+    public void Goo12(DateTime? x = new DateTime()) { }
 }";
             var comp = CreateStandardCompilation(text);
 
             comp.VerifyDiagnostics(
     // (13,33): error CS1770: A value of type 'DateTime' cannot be used as default parameter for nullable parameter 'x' because 'DateTime' is not a simple type
-    //     public void Foo11(DateTime? x = default(DateTime)) { }
+    //     public void Goo11(DateTime? x = default(DateTime)) { }
     Diagnostic(ErrorCode.ERR_NoConversionForNubDefaultParam, "x").WithArguments("System.DateTime", "x").WithLocation(13, 33),
     // (14,33): error CS1770: A value of type 'DateTime' cannot be used as default parameter for nullable parameter 'x' because 'DateTime' is not a simple type
-    //     public void Foo12(DateTime? x = new DateTime()) { }
+    //     public void Goo12(DateTime? x = new DateTime()) { }
     Diagnostic(ErrorCode.ERR_NoConversionForNubDefaultParam, "x").WithArguments("System.DateTime", "x").WithLocation(14, 33)
                 );
         }
@@ -15739,15 +15782,15 @@ public interface ISomeInterface
         [Fact]
         public void CS1961ERR_UnexpectedVariance()
         {
-            var text = @"interface Foo<out T> 
+            var text = @"interface Goo<out T> 
 {
     T Bar();
     void Baz(T t);
 }";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (4,14): error CS1961: Invalid variance: The type parameter 'T' must be contravariantly valid on 'Foo<T>.Baz(T)'. 'T' is covariant.
+                // (4,14): error CS1961: Invalid variance: The type parameter 'T' must be contravariantly valid on 'Goo<T>.Baz(T)'. 'T' is covariant.
                 //     void Baz(T t);
-                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T").WithArguments("Foo<T>.Baz(T)", "T", "covariant", "contravariantly").WithLocation(4, 14));
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T").WithArguments("Goo<T>.Baz(T)", "T", "covariant", "contravariantly").WithLocation(4, 14));
         }
 
         [Fact]
@@ -15850,7 +15893,7 @@ class A : Attribute
             var text = @"
 namespace N1
 {
-   class A { public int Foo() { return 2; }}
+   class A { public int Goo() { return 2; }}
 }
 ";
             var expectedDiagnostics = new[]
@@ -15964,16 +16007,16 @@ class A : C {
             var text = @"using System;
 using System;
 
-namespace Foo.Bar
+namespace Goo.Bar
 {
     class A { }
 }
 
 namespace testns
 {
-    using Foo.Bar;
+    using Goo.Bar;
     using System;
-    using Foo.Bar;
+    using Goo.Bar;
 
     class B : A { }
 }";
@@ -15982,9 +16025,9 @@ namespace testns
                 // (2,7): warning CS0105: The using directive for 'System' appeared previously in this namespace
                 // using System;
                 Diagnostic(ErrorCode.WRN_DuplicateUsing, "System").WithArguments("System"),
-                // (13,11): warning CS0105: The using directive for 'Foo.Bar' appeared previously in this namespace
-                //     using Foo.Bar;
-                Diagnostic(ErrorCode.WRN_DuplicateUsing, "Foo.Bar").WithArguments("Foo.Bar"),
+                // (13,11): warning CS0105: The using directive for 'Goo.Bar' appeared previously in this namespace
+                //     using Goo.Bar;
+                Diagnostic(ErrorCode.WRN_DuplicateUsing, "Goo.Bar").WithArguments("Goo.Bar"),
                 // (1,1): info CS8019: Unnecessary using directive.
                 // using System;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"),
@@ -15995,8 +16038,8 @@ namespace testns
                 //     using System;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"),
                 // (13,5): info CS8019: Unnecessary using directive.
-                //     using Foo.Bar;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Foo.Bar;"));
+                //     using Goo.Bar;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Goo.Bar;"));
 
             // TODO...
             // var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -16814,14 +16857,14 @@ namespace System
             // TODO (tomat):
             // We should report a path to an assembly rather than the assembly name when reporting an error.
 
-            CreateStandardCompilation(new SyntaxTree[] { Parse(text, "foo.cs") }).VerifyDiagnostics(
-                // foo.cs(6,15): warning CS0436: The type 'System.Int32' in 'foo.cs' conflicts with the imported type 'int' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'foo.cs'.
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Int32").WithArguments("foo.cs", "System.Int32", RuntimeCorLibName.FullName, "int"),
-                // foo.cs(9,13): warning CS0436: The type 'System.Int32' in 'foo.cs' conflicts with the imported type 'int' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'foo.cs'.
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Int32").WithArguments("foo.cs", "System.Int32", RuntimeCorLibName.FullName, "int"),
-                // foo.cs(9,23): warning CS0436: The type 'System.Int32' in 'foo.cs' conflicts with the imported type 'int' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'foo.cs'.
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "System.Int32").WithArguments("foo.cs", "System.Int32", RuntimeCorLibName.FullName, "int"),
-                // foo.cs(9,19): warning CS0219: The variable 'x' is assigned but its value is never used
+            CreateStandardCompilation(new SyntaxTree[] { Parse(text, "goo.cs") }).VerifyDiagnostics(
+                // goo.cs(6,15): warning CS0436: The type 'System.Int32' in 'goo.cs' conflicts with the imported type 'int' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'goo.cs'.
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Int32").WithArguments("goo.cs", "System.Int32", RuntimeCorLibName.FullName, "int"),
+                // goo.cs(9,13): warning CS0436: The type 'System.Int32' in 'goo.cs' conflicts with the imported type 'int' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'goo.cs'.
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Int32").WithArguments("goo.cs", "System.Int32", RuntimeCorLibName.FullName, "int"),
+                // goo.cs(9,23): warning CS0436: The type 'System.Int32' in 'goo.cs' conflicts with the imported type 'int' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'goo.cs'.
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "System.Int32").WithArguments("goo.cs", "System.Int32", RuntimeCorLibName.FullName, "int"),
+                // goo.cs(9,19): warning CS0219: The variable 'x' is assigned but its value is never used
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x"));
         }
 
@@ -16838,15 +16881,15 @@ namespace System
             Console.WriteLine(""hello"");
         }
     }
-    class Foo : object {}
+    class Goo : object {}
     class Bar : Object {}
 }";
             // TODO (tomat):
             // We should report a path to an assembly rather than the assembly name when reporting an error.
 
-            CreateStandardCompilation(new SyntaxTree[] { Parse(text, "foo.cs") }).VerifyDiagnostics(
-                // foo.cs(11,17): warning CS0436: The type 'System.Object' in 'foo.cs' conflicts with the imported type 'object' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'foo.cs'.
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Object").WithArguments("foo.cs", "System.Object", RuntimeCorLibName.FullName, "object"));
+            CreateStandardCompilation(new SyntaxTree[] { Parse(text, "goo.cs") }).VerifyDiagnostics(
+                // goo.cs(11,17): warning CS0436: The type 'System.Object' in 'goo.cs' conflicts with the imported type 'object' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'goo.cs'.
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Object").WithArguments("goo.cs", "System.Object", RuntimeCorLibName.FullName, "object"));
         }
 
         /// <summary>
@@ -17045,7 +17088,7 @@ class C
         {
             var text = @"namespace NS
 {
-    sealed class Foo
+    sealed class Goo
     {
         protected int i = 0;
         protected internal void M() { }
@@ -17607,11 +17650,11 @@ public class B : A
             var compilation = CreateStandardCompilation(
 @"interface IFace
 {
-    int Foo(int x = 1);
+    int Goo(int x = 1);
 }
 class B : IFace
 {
-    int IFace.Foo(int x = 2)
+    int IFace.Goo(int x = 2)
     {
         return 0;
     }
@@ -18300,7 +18343,7 @@ public interface I : I1, I2
 {
 }
 
-public class Foo
+public class Goo
 {
     static void Main() { }
 }";
@@ -18331,7 +18374,7 @@ class Derived : Base<NotFound>{}";
             var text = @"using NSA = A;
 namespace A
 {
-    class Foo { }
+    class Goo { }
 }
 namespace B
 {
@@ -18339,16 +18382,16 @@ namespace B
     {
         class NSA
         {
-            public NSA(int Foo) { this.Foo = Foo; }
-            int Foo;
+            public NSA(int Goo) { this.Goo = Goo; }
+            int Goo;
         }
         static int Main()
         {
-            NSA::Foo foo = new NSA::Foo(); // shouldn't error here
-            foo = Xyzzy;
+            NSA::Goo goo = new NSA::Goo(); // shouldn't error here
+            goo = Xyzzy;
             return 0;
         }
-        static NSA::Foo Xyzzy = null; // shouldn't error here
+        static NSA::Goo Xyzzy = null; // shouldn't error here
     }
 }";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
@@ -19029,10 +19072,10 @@ class Program
 {
     static void Main()
     {
-        Foo(new A.C());
+        Goo(new A.C());
     }
 
-    static void Foo<T>(I<T> x) { }
+    static void Goo<T>(I<T> x) { }
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
@@ -19057,11 +19100,11 @@ class Program
 {
     static void Main()
     {
-        Foo(new A.C());
+        Goo(new A.C());
     }
 
-    static void Foo<T>(I<T> x) { }
-    static void Foo<T>(J<T> x) { }
+    static void Goo<T>(I<T> x) { }
+    static void Goo<T>(J<T> x) { }
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text); // no errors
@@ -19184,11 +19227,13 @@ static class A
     public static int f1 { get { return 1; } }
 }
 ";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, Line = 3, Column = 22 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_InvalidExprTerm, Line = 3, Column = 25 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_InvalidExprTerm, Line = 3, Column = 30 }
-            );
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (3,22): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //     object F = new { f1<int> = 1 };
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "f1<int> = 1").WithLocation(3, 22),
+                // (3,22): error CS0307: The property 'ClassA.f1' cannot be used with type arguments
+                //     object F = new { f1<int> = 1 };
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "f1<int>").WithArguments("ClassA.f1", "property").WithLocation(3, 22));
         }
 
         [Fact]
@@ -19545,7 +19590,7 @@ namespace ForwardingNamespace
             var compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader: false);
 
             compilation.VerifyDiagnostics(
-                // (8,29): error CS8206: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (8,29): error CS8329: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             new Destination.TestClass();
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestClass").WithArguments("ForwarderModule.dll", "Forwarder, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Destination.TestClass", "Destination1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Destination2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 29),
                 // (8,29): error CS0234: The type or namespace name 'TestClass' does not exist in the namespace 'Destination' (are you missing an assembly reference?)
@@ -19608,7 +19653,7 @@ namespace ForwardingNamespace
             var compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader: false);
 
             compilation.VerifyDiagnostics(
-                // (8,29): error CS8206: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (8,29): error CS8329: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             new Destination.TestClass();
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestClass").WithArguments("ForwarderModule.dll", "Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Destination.TestClass", "Destination1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Destination2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 29),
                 // (8,29): error CS0234: The type or namespace name 'TestClass' does not exist in the namespace 'Destination' (are you missing an assembly reference?)
@@ -19678,7 +19723,7 @@ namespace A
             var referenceC2 = CompileIL(codeC2, prependDefaultHeader: false);
 
             CreateStandardCompilation(codeA, references: new MetadataReference[] { referenceB, referenceC2 }, assemblyName: "A").VerifyDiagnostics(
-                // (10,13): error CS8206: Module 'CModule.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (10,13): error CS8329: Module 'CModule.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             ClassB.MethodB(null);
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "ClassB.MethodB").WithArguments("CModule.dll", "C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C.ClassC", "D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
@@ -19780,7 +19825,7 @@ namespace C
 
             var ilModule = GetILModuleReference(ilSource, prependDefaultHeader: false);
             CreateStandardCompilation(string.Empty, references: new MetadataReference[] { ilModule }, assemblyName: "Forwarder").VerifyDiagnostics(
-                // error CS8206: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // error CS8329: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies).WithArguments("ForwarderModule.dll", "Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Testspace.TestType", "D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
         }
 
@@ -19857,7 +19902,7 @@ namespace UserSpace
                 assemblyName: "UserAssembly");
 
             userCompilation.VerifyDiagnostics(
-                // (8,37): error CS8206: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (8,37): error CS8329: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             var obj = new Testspace.TestType();
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestType").WithArguments("ForwarderModule.dll", "Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Testspace.TestType", "D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 37),
                 // (8,37): error CS0234: The type or namespace name 'TestType' does not exist in the namespace 'Testspace' (are you missing an assembly reference?)
@@ -19922,7 +19967,7 @@ namespace UserSpace
                 assemblyName: "UserAssembly");
 
             userCompilation.VerifyDiagnostics(
-                // (8,37): error CS8206: Module 'module12L.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D4, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (8,37): error CS8329: Module 'module12L.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D4, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             var obj = new Testspace.TestType();
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestType").WithArguments("module12L.dll", "Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Testspace.TestType", "D3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D4, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 // (8,37): error CS0234: The type or namespace name 'TestType' does not exist in the namespace 'Testspace' (are you missing an assembly reference?)
@@ -20002,7 +20047,7 @@ namespace A
 }";
 
             CreateStandardCompilation(codeA, references: new MetadataReference[] { referenceB, referenceC2, referenceD, referenceE }, assemblyName: "A").VerifyDiagnostics(
-                // (11,13): error CS8206: Module 'C.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'E, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (11,13): error CS8329: Module 'C.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'E, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             ClassB.MethodB(obj);
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "ClassB.MethodB").WithArguments("C.dll", "C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C.ClassC", "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "E, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(11, 13));
         }

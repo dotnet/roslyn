@@ -4,10 +4,14 @@
     <id>Microsoft.CodeAnalysis.VisualBasic</id>
     <summary>
       .NET Compiler Platform ("Roslyn") support for Visual Basic, Microsoft.CodeAnalysis.VisualBasic.dll.
+    </summary>
+    <description>
+      .NET Compiler Platform ("Roslyn") support for Visual Basic, Microsoft.CodeAnalysis.VisualBasic.dll.
 
       More details at https://aka.ms/roslyn-packages
-    </summary>
-    <description>$commitPathMessage$</description>
+
+      $commitPathMessage$
+    </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Common" version="$version$" />
     </dependencies>

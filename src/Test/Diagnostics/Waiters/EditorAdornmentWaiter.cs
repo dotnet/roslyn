@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading;
@@ -16,7 +16,7 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
             var task = base.CreateWaitTask();
             return task.SafeContinueWith(_ =>
                 {
-                    Action a = () => { };
+                    void a() { }
                     Dispatcher.CurrentDispatcher.Invoke(a, DispatcherPriority.ApplicationIdle);
                 },
                 CancellationToken.None,

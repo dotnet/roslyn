@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System
 Imports System.Collections.Concurrent
@@ -8,6 +8,7 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -633,7 +634,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If method.IsPartial() Then
                             Dim impl = method.PartialImplementationPart
                             If impl IsNot method Then
-                                If CType(method, SourceMethodSymbol).SetDiagnostics(ImmutableArray(Of Diagnostic).Empty) AndAlso impl Is Nothing Then
+                                If CType(method, SourceMethodSymbol).SetDiagnostics(ImmutableArray(Of Diagnostic).Empty) Then
                                     method.DeclaringCompilation.SymbolDeclaredEvent(method)
                                 End If
 
@@ -1221,8 +1222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 End If
                                 Return semanticModel
                             End Function)
-                        Dim symbolToProduce = If(method.PartialDefinitionPart, method)
-                        compilation.EventQueue.TryEnqueue(New SymbolDeclaredCompilationEvent(compilation, symbolToProduce, lazySemanticModel))
+                        compilation.EventQueue.TryEnqueue(New SymbolDeclaredCompilationEvent(compilation, method, lazySemanticModel))
                     End If
                 End If
             End If

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _notificationService = notificationService;
         }
 
-        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
+        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Microsoft.CodeAnalysis.Workspace workspace)
         {
             var visualStudioWorkspace = workspace as VisualStudioWorkspaceImpl;
             if (visualStudioWorkspace == null)

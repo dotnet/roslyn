@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -733,7 +734,7 @@ HandleAsAGeneralExpression:
                 ' The process of populating the graph also seeds type hints for type parameters referenced by explicitly typed
                 ' lambda parameters. Also, hints sometimes have restrictions placed on them that limit what conversions the dominant type
                 ' algorithm can consider when it processes them. The restrictions are generally driven by the context in which type
-                ' parameters are used. For example if a type parameter is used as a type parameter of another type (something like IFoo(of T)),
+                ' parameters are used. For example if a type parameter is used as a type parameter of another type (something like IGoo(of T)),
                 ' then the dominant type algorithm is not allowed to consider any conversions. There are similar restrictions for
                 ' Array co-variance.
 
@@ -1376,7 +1377,7 @@ HandleAsAGeneralExpression:
 
                 If argumentType Is Nothing OrElse argumentType.IsVoidType() Then
                     ' We should never be able to infer a value from something that doesn't provide a value, e.g:
-                    ' Foo(Of T) can't be passed Sub bar(), as in Foo(Bar())  
+                    ' Goo(Of T) can't be passed Sub bar(), as in Goo(Bar())  
                     Return False
                 End If
 
@@ -1440,7 +1441,7 @@ HandleAsAGeneralExpression:
                     Return True
 
                 ElseIf parameterType.Kind = SymbolKind.NamedType Then
-                    ' e.g. handle foo(of T)(x as Bar(Of T)) We need to dig into Bar(Of T)
+                    ' e.g. handle goo(of T)(x as Bar(Of T)) We need to dig into Bar(Of T)
 
                     Dim parameterTypeAsNamedType = DirectCast(parameterType, NamedTypeSymbol)
 

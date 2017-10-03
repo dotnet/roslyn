@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -211,21 +211,21 @@ static class S
             var source =
 @"static class S
 {
-    static void Foo(this string s) { }
+    static void Goo(this string s) { }
     static void Main() { 
         string s = null;
-        s.Foo();
+        s.Goo();
     }
 }";
             var compilation = CreateStandardCompilation(source);
             var syntaxTree = compilation.SyntaxTrees.Single();
-            var fooSymbol = (MethodSymbol)compilation.GetSemanticModel(syntaxTree).GetSymbolInfo(
+            var gooSymbol = (MethodSymbol)compilation.GetSemanticModel(syntaxTree).GetSymbolInfo(
                 syntaxTree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single()).Symbol;
-            Assert.True(fooSymbol.IsExtensionMethod);
-            Assert.Equal(MethodKind.ReducedExtension, fooSymbol.MethodKind);
-            var fooOriginal = fooSymbol.ReducedFrom;
-            Assert.True(fooOriginal.IsExtensionMethod);
-            Assert.Equal(MethodKind.Ordinary, fooOriginal.MethodKind);
+            Assert.True(gooSymbol.IsExtensionMethod);
+            Assert.Equal(MethodKind.ReducedExtension, gooSymbol.MethodKind);
+            var gooOriginal = gooSymbol.ReducedFrom;
+            Assert.True(gooOriginal.IsExtensionMethod);
+            Assert.Equal(MethodKind.Ordinary, gooOriginal.MethodKind);
         }
 
         [Fact]
@@ -273,15 +273,15 @@ static class Program
 {
     static void Main()
     {
-        ""ABC"".Foo();
-        Action a = ""123"".Foo;
+        ""ABC"".Goo();
+        Action a = ""123"".Goo;
         a();
         a = new Action(a);
         a();
-        a = new Action(""xyz"".Foo);
+        a = new Action(""xyz"".Goo);
         a();
     }
-    static void Foo(this string x)
+    static void Goo(this string x)
     {
         Console.WriteLine(x);
     }
@@ -305,15 +305,15 @@ static class Program
 {
     static void Main()
     {
-        0.Foo();
+        0.Goo();
     }
 
-    static void Foo(this long x)
+    static void Goo(this long x)
     {
         Console.WriteLine(""long"");
     }
 
-    static void Foo(this object x)
+    static void Goo(this object x)
     {
         Console.WriteLine(""object"");
     }
@@ -334,15 +334,15 @@ static class Program
 {
     static void Main()
     {
-        0.Foo();
+        0.Goo();
     }
 
-    static void Foo(this DayOfWeek x)
+    static void Goo(this DayOfWeek x)
     {
         Console.WriteLine(""DayOfWeek"");
     }
 
-    static void Foo(this object x)
+    static void Goo(this object x)
     {
         Console.WriteLine(""object"");
     }
@@ -363,13 +363,13 @@ static class Program
 {
     static void Main()
     {
-        Bar(x => x.Foo);
+        Bar(x => x.Goo);
     }
 
     static void Bar(Func<int, Action> x) { Console.WriteLine(1); }
     static void Bar(Func<object, Action> x) { Console.WriteLine(2); }
 
-    static void Foo<T>(this T x) { }
+    static void Goo<T>(this T x) { }
 }
 ";
             CompileAndVerify(source, expectedOutput: "2");
@@ -387,14 +387,14 @@ static class Program
 {
     static void Main()
     {
-        Bar(y => new TypedReference().Foo(y));
+        Bar(y => new TypedReference().Goo(y));
     }
 
     static void Bar(Action<string> a) { Console.WriteLine(1); }
     static void Bar(Action<int> a) { Console.WriteLine(2); }
 
-    static void Foo<T>(this T x, string y) { }
-    static void Foo(this TypedReference x, int y) { }
+    static void Goo<T>(this T x, string y) { }
+    static void Goo(this TypedReference x, int y) { }
 }
 ";
             CompileAndVerify(source, expectedOutput: "2");
@@ -414,28 +414,28 @@ static class Program
     static void Main()
     {
         string s;
-        bool x = s.Foo is Action;
+        bool x = s.Goo is Action;
 
         int i;
-        bool y = i.Foo is Action;
+        bool y = i.Goo is Action;
     }
 
-    static void Foo(this string x) { }
+    static void Goo(this string x) { }
 }
 ";
             var compilation = CreateStandardCompilation(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
                 // (9,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
-                //         bool x = s.Foo is Action;
-                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "s.Foo is Action").WithLocation(9, 18),
+                //         bool x = s.Goo is Action;
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "s.Goo is Action").WithLocation(9, 18),
                 // (12,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
-                //         bool y = i.Foo is Action;
-                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "i.Foo is Action").WithLocation(12, 18),
+                //         bool y = i.Goo is Action;
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "i.Goo is Action").WithLocation(12, 18),
                 // (9,18): error CS0165: Use of unassigned local variable 's'
-                //         bool x = s.Foo is Action;
+                //         bool x = s.Goo is Action;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(9, 18),
                 // (12,18): error CS0165: Use of unassigned local variable 'i'
-                //         bool y = i.Foo is Action;
+                //         bool y = i.Goo is Action;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i").WithLocation(12, 18)
                 );
         }
@@ -448,15 +448,15 @@ static class Program
 @"
 namespace N
 {
-    static void Foo(this int x) { }
+    static void Goo(this int x) { }
 }
 ";
             var compilation = CreateStandardCompilation(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
                 // (4,17): error CS0116: A namespace does not directly contain members such as fields or methods
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Foo"),
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Goo"),
                 // (4,17): error CS1106: Extension methods must be defined in a non-generic static class
-                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "Foo"));
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "Goo"));
         }
 
         [WorkItem(541189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541189")]
@@ -472,17 +472,17 @@ static class Program
 {
     static void Main()
     {
-        """".Foo(1);
+        """".Goo(1);
     }
 
-    public static void Foo(this string x, object y) { Console.WriteLine(1); }
+    public static void Goo(this string x, object y) { Console.WriteLine(1); }
 }
 
 namespace N
 {
     static class C
     {
-        public static void Foo(this string x, int y) { Console.WriteLine(2); }
+        public static void Goo(this string x, int y) { Console.WriteLine(2); }
     }
 }";
             CompileAndVerify(source, expectedOutput: "1");
@@ -501,17 +501,17 @@ static class Program
 {
     static void Main()
     {
-        """".Foo();
+        """".Goo();
     }
 
-    public static void Foo(this string x) { Console.WriteLine(1); }
+    public static void Goo(this string x) { Console.WriteLine(1); }
 }
 
 namespace N
 {
     static class C
     {
-        public static void Foo(this string x) { Console.WriteLine(2); }
+        public static void Goo(this string x) { Console.WriteLine(2); }
     }
 }
 ";
@@ -2915,12 +2915,12 @@ public delegate void VoidDelegate();
 
 static class C
 {
-    public static void Foo(this int x)
+    public static void Goo(this int x)
     {
         VoidDelegate v;
-        v = x.Foo; // CS1113
-        v = new VoidDelegate(x.Foo); // Roslyn reports CS0123
-        v += x.Foo; // Roslyn reports CS0019
+        v = x.Goo; // CS1113
+        v = new VoidDelegate(x.Goo); // Roslyn reports CS0123
+        v += x.Goo; // Roslyn reports CS0019
     }
 }
 ";
@@ -2928,12 +2928,12 @@ static class C
             // because we detect the condition for CS1113 and then indicate that no conversion exists,
             // resulting in various cascaded errors.
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
-                // (9,13): error CS1113: Extension method 'C.Foo(int)' defined on value type 'int' cannot be used to create delegates
-                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "x.Foo").WithArguments("C.Foo(int)", "int").WithLocation(9, 13),
-                // (10,13): error CS1113: Extension method 'C.Foo(int)' defined on value type 'int' cannot be used to create delegates
-                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "new VoidDelegate(x.Foo)").WithArguments("C.Foo(int)", "int").WithLocation(10, 13),
-                // (11,14): error CS1113: Extension method 'C.Foo(int)' defined on value type 'int' cannot be used to create delegates
-                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "x.Foo").WithArguments("'C.Foo(int)", "int").WithLocation(11, 14));
+                // (9,13): error CS1113: Extension method 'C.Goo(int)' defined on value type 'int' cannot be used to create delegates
+                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "x.Goo").WithArguments("C.Goo(int)", "int").WithLocation(9, 13),
+                // (10,13): error CS1113: Extension method 'C.Goo(int)' defined on value type 'int' cannot be used to create delegates
+                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "new VoidDelegate(x.Goo)").WithArguments("C.Goo(int)", "int").WithLocation(10, 13),
+                // (11,14): error CS1113: Extension method 'C.Goo(int)' defined on value type 'int' cannot be used to create delegates
+                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "x.Goo").WithArguments("'C.Goo(int)", "int").WithLocation(11, 14));
         }
 
         [Fact]
@@ -2944,9 +2944,9 @@ public delegate void VoidDelegate();
 
 static class DevDivBugs142219
 {
-    public static void Foo<T>(this T x)
+    public static void Goo<T>(this T x)
     {
-        VoidDelegate f = x.Foo; // CS1113
+        VoidDelegate f = x.Goo; // CS1113
     }
     public static void Bar<T>(this T x) where T : class
     {
@@ -2955,9 +2955,9 @@ static class DevDivBugs142219
 }
 ";
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
-                // (8,26): error CS1113: Extension method 'DevDivBugs142219.Foo<T>(T)' defined on value type 'T' cannot be used to create delegates
-                //         VoidDelegate f = x.Foo; // CS1113
-                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "x.Foo").WithArguments("DevDivBugs142219.Foo<T>(T)", "T"));
+                // (8,26): error CS1113: Extension method 'DevDivBugs142219.Goo<T>(T)' defined on value type 'T' cannot be used to create delegates
+                //         VoidDelegate f = x.Goo; // CS1113
+                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "x.Goo").WithArguments("DevDivBugs142219.Goo<T>(T)", "T"));
         }
 
         [ClrOnlyFact]
@@ -3346,7 +3346,7 @@ class Program
 {
     static void Main()
     {
-        1.Foo();
+        1.Goo();
     }
 }
 
@@ -3354,7 +3354,7 @@ namespace N
 {
     static class S
     {
-        public static void Foo(this int x)
+        public static void Goo(this int x)
         {
             Console.Write(x);
         }
@@ -3374,8 +3374,8 @@ class Program
 {
     static void Main()
     {
-        1.Foo();
-        Foo(1);
+        1.Goo();
+        Goo(1);
     }
 }
 
@@ -3383,7 +3383,7 @@ namespace N
 {
     static class S
     {
-        public static void Foo(this int x)
+        public static void Goo(this int x)
         {
             Console.Write(x);
         }
@@ -3391,9 +3391,9 @@ namespace N
 }";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (10,9): error CS0103: The name 'Foo' does not exist in the current context
-                //         Foo(1);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(10, 9));
+                // (10,9): error CS0103: The name 'Goo' does not exist in the current context
+                //         Goo(1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo").WithArguments("Goo").WithLocation(10, 9));
         }
 
         [ClrOnlyFact]
@@ -3409,7 +3409,7 @@ class Program
 {
     static void Main()
     {
-        1.Foo();
+        1.Goo();
     }
 }
 
@@ -3417,7 +3417,7 @@ namespace N
 {
     static class S
     {
-        public static void Foo(this int x)
+        public static void Goo(this int x)
         {
             Console.WriteLine(x);
         }
@@ -3437,7 +3437,7 @@ class Program
 {
     static void Main()
     {
-        1.Foo();
+        1.Goo();
     }
 }
 
@@ -3445,23 +3445,23 @@ namespace N
 {
     static class S
     {
-        public static void Foo(this int x)
+        public static void Goo(this int x)
         {
         }
     }
 
     static class R
     {
-        public static void Foo(this int x)
+        public static void Goo(this int x)
         {
         }
     }
 }";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (9,11): error CS0121: The call is ambiguous between the following methods or properties: 'S.Foo(int)' and 'R.Foo(int)'
-                //         1.Foo();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("N.S.Foo(int)", "N.R.Foo(int)").WithLocation(9, 11));
+                // (9,11): error CS0121: The call is ambiguous between the following methods or properties: 'S.Goo(int)' and 'R.Goo(int)'
+                //         1.Goo();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("N.S.Goo(int)", "N.R.Goo(int)").WithLocation(9, 11));
         }
 
         [ClrOnlyFact]
@@ -3480,7 +3480,7 @@ namespace K
     {
         static void Main()
         {
-            1.Foo();
+            1.Goo();
         }
     }
 }
@@ -3489,7 +3489,7 @@ namespace N
 {
     static class S
     {
-        public static void Foo(this int x)
+        public static void Goo(this int x)
         {
             Console.WriteLine(""S"");
         }
@@ -3497,7 +3497,7 @@ namespace N
 
     static class R
     {
-        public static void Foo(this int x)
+        public static void Goo(this int x)
         {
             Console.WriteLine(""R"");
         }
@@ -3521,7 +3521,7 @@ namespace K
     {
         static void Main()
         {
-            1.Foo();
+            1.Goo();
         }
     }
 }
@@ -3530,7 +3530,7 @@ namespace N
 {
     static class S
     {
-        public static void Foo(this int x)
+        public static void Goo(this int x)
         {
             Console.WriteLine(""S"");
         }
@@ -3538,7 +3538,7 @@ namespace N
 
     static class R
     {
-        public static void Foo(this int x)
+        public static void Goo(this int x)
         {
             Console.WriteLine(""R"");
         }
@@ -3546,9 +3546,9 @@ namespace N
 }";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (13,15): error CS0121: The call is ambiguous between the following methods or properties: 'S.Foo(int)' and 'R.Foo(int)'
-                //             1.Foo();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("N.S.Foo(int)", "N.R.Foo(int)").WithLocation(13, 15));
+                // (13,15): error CS0121: The call is ambiguous between the following methods or properties: 'S.Goo(int)' and 'R.Goo(int)'
+                //             1.Goo();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("N.S.Goo(int)", "N.R.Goo(int)").WithLocation(13, 15));
         }
 
         [Fact, WorkItem(1010648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1010648")]
@@ -3563,26 +3563,26 @@ namespace N
     {
         static void Main()
         {
-            1.Foo();
+            1.Goo();
         }
 
-        public static void Foo(this int x)
+        public static void Goo(this int x)
         {
         }
     }
 
     static class R
     {
-        public static void Foo(this int x)
+        public static void Goo(this int x)
         {
         }
     }
 }";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (10,15): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Foo(int)' and 'R.Foo(int)'
-                //             1.Foo();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("N.Program.Foo(int)", "N.R.Foo(int)").WithLocation(10, 15),
+                // (10,15): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Goo(int)' and 'R.Goo(int)'
+                //             1.Goo();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("N.Program.Goo(int)", "N.R.Goo(int)").WithLocation(10, 15),
                 // (4,5): hidden CS8019: Unnecessary using directive.
                 //     using Program;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static Program;").WithLocation(4, 5));
@@ -3599,7 +3599,7 @@ namespace K
     {
         static void Main()
         {
-            1.Foo();
+            1.Goo();
         }
     }
 }
@@ -3608,16 +3608,16 @@ namespace N
 {
     static class S
     {
-        public static void Foo(this int x)
+        public static void Goo(this int x)
         {
         }
     }
 }";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (9,15): error CS1061: 'int' does not contain a definition for 'Foo' and no extension method 'Foo' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
-                //             1.Foo();
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Foo").WithArguments("int", "Foo").WithLocation(9, 15),
+                // (9,15): error CS1061: 'int' does not contain a definition for 'Goo' and no extension method 'Goo' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                //             1.Goo();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Goo").WithArguments("int", "Goo").WithLocation(9, 15),
                 // (4,5): hidden CS8019: Unnecessary using directive.
                 //     using X = N.S;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = N.S;").WithLocation(4, 5));

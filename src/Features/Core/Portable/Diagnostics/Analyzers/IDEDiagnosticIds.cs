@@ -45,6 +45,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UseExplicitTupleNameDiagnosticId = "IDE0033";
 
         public const string UseDefaultLiteralDiagnosticId = "IDE0034";
+        public const string ValidateFormatStringDiagnosticID = "IDE0035";
+
+        public const string RemoveUnreachableCodeDiagnosticId = "IDE0035";
+
+        public const string OrderModifiersDiagnosticId = "IDE0036";
+
+        public const string UseInferredMemberNameDiagnosticId = "IDE0037";
+
+        public const string InlineIsTypeWithoutNameCheckDiagnosticsId = "IDE0038";
+
+        public const string UseLocalFunctionDiagnosticId = "IDE0039";
+
+        public const string AddAccessibilityModifiersDiagnosticId = "IDE0040";
+
+        public const string UseIsNullCheckDiagnosticId = "IDE0041";
+
+        public const string UseDeconstructionDiagnosticId = "IDE0042";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
