@@ -30,3 +30,11 @@ The solution is to copy the command-line options into a test file (for instance,
 If you have access to a command-line, simply running `csc.exe` will print out the version of the compiler.
 
 For environments where you cannot use the command-line, you can include `#error version` in your program and the compiler and language versions will be printed as an error message. (Note this only works with C# 7.1 or later)
+
+# Investigating regressions and back compat issues
+
+Those are scenarios where you need to compile the same code with different versions of the compiler.
+
+The latest native compiler (pre-Roslyn) is part of the .NET Framework, so you can run it from `c:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe`.
+
+For trying various Roslyn versions, you can create a new project with your code, and add a reference to the `Microsoft.Net.Compilers`. By choosing the source (nuget.org or myget.org) and the package version (see [versioning help](https://github.com/dotnet/roslyn/wiki/NuGet-packages#versioning)), you will be able to control what version of the compiler is used. Note that you need to _Build_ your project to compile the code with the desired compiler version (the IDE may show squiggles and use a different version).
