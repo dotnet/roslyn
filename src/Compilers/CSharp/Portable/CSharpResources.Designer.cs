@@ -14705,6 +14705,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Non-nullable {0} &apos;{1}&apos; is uninitialized..
+        /// </summary>
+        internal static string WRN_UninitializedNonNullableField {
+            get {
+                return ResourceManager.GetString("WRN_UninitializedNonNullableField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Non-nullable field is uninitialized..
+        /// </summary>
+        internal static string WRN_UninitializedNonNullableField_Title {
+            get {
+                return ResourceManager.GetString("WRN_UninitializedNonNullableField_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to XML comment on &apos;{1}&apos; has a paramref tag for &apos;{0}&apos;, but there is no parameter by that name.
         /// </summary>
         internal static string WRN_UnmatchedParamRefTag {
