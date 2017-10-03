@@ -2135,52 +2135,6 @@ class C
   IL_0016:  ret
 }
 ", sequencePoints: "C.M", source: source);
-
-            v.VerifyPdb(@"<symbols>
-  <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
-  </files>
-  <methods>
-    <method containingType=""C"" name=""M"">
-      <customDebugInfo>
-        <using>
-          <namespace usingCount=""0"" />
-        </using>
-        <encLocalSlotMap>
-          <slot kind=""0"" offset=""15"" />
-          <slot kind=""1"" offset=""31"" />
-        </encLocalSlotMap>
-        <encLambdaMap>
-          <methodOrdinal>0</methodOrdinal>
-          <lambda offset=""121"" />
-        </encLambdaMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""19"" document=""1"" />
-        <entry offset=""0x3"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""20"" document=""1"" />
-        <entry offset=""0x8"" hidden=""true"" document=""1"" />
-        <entry offset=""0xb"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""10"" document=""1"" />
-        <entry offset=""0xc"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""20"" document=""1"" />
-        <entry offset=""0xe"" hidden=""true"" document=""1"" />
-        <entry offset=""0xf"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""33"" document=""1"" />
-        <entry offset=""0x16"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x17"">
-        <local name=""i"" il_index=""0"" il_start=""0x0"" il_end=""0x17"" attributes=""0"" />
-      </scope>
-    </method>
-    <method containingType=""C"" name=""&lt;M&gt;g__local|0_0"">
-      <customDebugInfo>
-        <forward declaringType=""C"" methodName=""M"" />
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x1"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""24"" document=""1"" />
-      </sequencePoints>
-    </method>
-  </methods>
-</symbols>");
         }
 
         [Fact]
