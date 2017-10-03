@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// This class defines all of the common stuff that is shared between the Vbc and Csc tasks.
     /// This class is not instantiatable as a Task just by itself.
     /// </summary>
-    public abstract class InteractiveCompiler : ToolTask
+    public abstract class InteractiveCompiler : ManagedToolTask
     {
         internal readonly PropertyDictionary _store = new PropertyDictionary();
 
@@ -180,28 +180,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
         #endregion
 
-        private DotnetHost _dotnetHostInfo;
-        private DotnetHost DotnetHostInfo
-        {
-            get
-            {
-                if (_dotnetHostInfo is null)
-                {
-                    CommandLineBuilderExtension commandLineBuilder = new CommandLineBuilderExtension();
-                    AddCommandLineCommands(commandLineBuilder);
-                    var commandLine = commandLineBuilder.ToString();
-
-                    _dotnetHostInfo = ManagedCompiler.CreateDotnetHostInfo(ToolPath, ToolExe, ToolName, commandLine);
-                }
-                return _dotnetHostInfo;
-            }
-        }
-
         #region Tool Members
 
-        protected abstract string ToolNameWithoutExtension { get; }
+        // See ManagedCompiler.cs on the logic of this property
+        private bool HasToolBeenOverridden => !(string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName);
 
-        protected sealed override string ToolName => ManagedCompiler.GenerateToolName(ToolNameWithoutExtension);
+        protected override bool IsManagedTask => !HasToolBeenOverridden;
+
+        protected sealed override string PathToManagedTool => Utilities.GenerateFullPathToTool(ToolName);
+
+        protected sealed override string PathToNativeTool => Path.Combine(ToolPath ?? "", ToolExe);
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
@@ -215,29 +203,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         public string GenerateCommandLineContents() => GenerateCommandLineCommands();
 
-        protected override string GenerateCommandLineCommands()
+        protected sealed override string CommandLineArguments
         {
-            return DotnetHostInfo.CommandLineArgs;
-        }
-
-        /// <summary>
-        /// Return the path to the tool to execute.
-        /// </summary>
-        protected override string GenerateFullPathToTool()
-        {
-            var pathToTool = DotnetHostInfo.PathToToolOpt;
-
-            if (null == pathToTool)
+            get
             {
-                Log.LogErrorWithCodeFromResources("General_ToolFileNotFound", ToolName);
+                var builder = new CommandLineBuilderExtension();
+                AddCommandLineCommands(builder);
+                return builder.ToString();
             }
-
-            return pathToTool;
         }
 
         public string GenerateResponseFileContents() => GenerateResponseFileCommands();
 
-        protected override string GenerateResponseFileCommands()
+        protected sealed override string GenerateResponseFileCommands()
         {
             var commandLineBuilder = new CommandLineBuilderExtension();
             AddResponseFileCommands(commandLineBuilder);

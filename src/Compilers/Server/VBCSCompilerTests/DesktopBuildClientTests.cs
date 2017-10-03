@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             public bool TryConnectToNamedPipeWithSpinWait(int timeoutMs, CancellationToken cancellationToken)
             {
-                using (var pipeStream = new NamedPipeClientStream(".", _pipeName, PipeDirection.InOut, PipeOptions.Asynchronous))
+                using (var connection = BuildServerConnection.TryConnectToServer(_pipeName, timeoutMs, cancellationToken))
                 {
-                    return BuildServerConnection.TryConnectToNamedPipeWithSpinWait(pipeStream, timeoutMs, cancellationToken);
+                    return connection != null;
                 }
             }
         }
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 return true;
             }
 
-            [ConditionalFact(typeof(WindowsOnly))]
+            [Fact]
             public void ConnectToServerFails()
             {
                 // Create and grab the mutex for the server. This should make
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 }
             }
 
-            [ConditionalFact(typeof(WindowsOnly))]
+            [Fact]
             public async Task ConnectToPipeWithSpinWait()
             {
                 // No server should be started with the current pipe name
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.False(ranLocal);
             }
 
-            [ConditionalFact(typeof(WindowsOnly))]
+            [Fact]
             public void FallbackToCsc()
             {
                 _allowServer = false;
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.Equal(0, _serverDataList.Count);
             }
 
-            [ConditionalFact(typeof(WindowsOnly))]
+            [Fact]
             [WorkItem(7866, "https://github.com/dotnet/roslyn/issues/7866")]
             public void RunServerCompilationThrows()
             {

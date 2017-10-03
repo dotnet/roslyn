@@ -24,11 +24,11 @@ ROOT_PATH="$(get_repo_dir)"
 BINARIES_PATH="${ROOT_PATH}"/Binaries
 BOOTSTRAP_PATH="${BINARIES_PATH}"/Bootstrap
 SRC_PATH="${ROOT_PATH}"/src
-BUILD_LOG_PATH="${BINARIES_PATH}"/Build.binlog
 TARGET_FRAMEWORK=netcoreapp2.0
 
 BUILD_CONFIGURATION=Debug
 CLEAN_RUN=false
+SKIP_RESTORE=false
 SKIP_TESTS=false
 SKIP_COMMIT_PRINTING=false
 
@@ -70,6 +70,10 @@ do
         CLEAN_RUN=true
         shift 1
         ;;
+        --skiprestore)
+        SKIP_RESTORE=true
+        shift 1
+        ;;
         --skiptests)
         SKIP_TESTS=true
         shift 1
@@ -99,26 +103,27 @@ fi
 FORCE_DOWNLOAD=true
 source "${ROOT_PATH}"/build/scripts/obtain_dotnet.sh
 
-RUNTIME_ID="$(dotnet --info | awk '/RID:/{print $2;}')"
-echo "Using Runtime Identifier: ${RUNTIME_ID}"
+if [[ "${SKIP_RESTORE}" == false ]]
+then
+    RESTORE_ARGS="-v Minimal --disable-parallel"
+    echo "Restoring BaseToolset.csproj"
+    dotnet restore ${RESTORE_ARGS} "${ROOT_PATH}"/build/ToolsetPackages/BaseToolset.csproj
+    echo "Restoring CoreToolset.csproj"
+    dotnet restore ${RESTORE_ARGS} "${ROOT_PATH}"/build/ToolsetPackages/CoreToolset.csproj
+    echo "Restoring CrossPlatform.sln"
+    dotnet restore ${RESTORE_ARGS} "${ROOT_PATH}"/CrossPlatform.sln
+fi
 
-RESTORE_ARGS="-r ${RUNTIME_ID} -v Minimal --disable-parallel"
-echo "Restoring BaseToolset.csproj"
-dotnet restore ${RESTORE_ARGS} "${ROOT_PATH}"/build/ToolsetPackages/BaseToolset.csproj
-echo "Restoring CoreToolset.csproj"
-dotnet restore ${RESTORE_ARGS} "${ROOT_PATH}"/build/ToolsetPackages/CoreToolset.csproj
-echo "Restoring CrossPlatform.sln"
-dotnet restore ${RESTORE_ARGS} "${ROOT_PATH}"/CrossPlatform.sln
+BUILD_ARGS="--no-restore -c ${BUILD_CONFIGURATION} /nologo /maxcpucount:1"
+BOOTSTRAP_BUILD_ARGS="${BUILD_ARGS} /p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP"
 
-BUILD_ARGS="--no-restore -c ${BUILD_CONFIGURATION} /nologo /consoleloggerparameters:Verbosity=minimal;summary /bl:${BUILD_LOG_PATH} /maxcpucount:1"
-PUBLISH_ARGS="-f ${TARGET_FRAMEWORK} -r ${RUNTIME_ID} ${BUILD_ARGS}"
+echo "Building bootstrap toolset"
+dotnet publish "${ROOT_PATH}"/src/Compilers/CSharp/csc -o "${BOOTSTRAP_PATH}/bincore" --framework ${TARGET_FRAMEWORK} ${BOOTSTRAP_BUILD_ARGS} "/bl:${BINARIES_PATH}/BootstrapCsc.binlog"
+dotnet publish "${ROOT_PATH}"/src/Compilers/VisualBasic/vbc -o "${BOOTSTRAP_PATH}/bincore" --framework ${TARGET_FRAMEWORK} ${BOOTSTRAP_BUILD_ARGS} "/bl:${BINARIES_PATH}/BootstrapVbc.binlog"
+dotnet publish "${ROOT_PATH}"/src/Compilers/Server/VBCSCompiler -o "${BOOTSTRAP_PATH}/bincore" --framework ${TARGET_FRAMEWORK} ${BOOTSTRAP_BUILD_ARGS} "/bl:${BINARIES_PATH}/BootstrapVBCSCompiler.binlog"
+dotnet publish "${ROOT_PATH}"/src/Compilers/Core/MSBuildTask -o "${BOOTSTRAP_PATH}" ${BOOTSTRAP_BUILD_ARGS} "/bl:${BINARIES_PATH}/BoostrapMSBuildTask.binlog"
 
-echo "Building bootstrap csc"
-dotnet publish "${SRC_PATH}"/Compilers/CSharp/csc -o "${BOOTSTRAP_PATH}"/csc ${PUBLISH_ARGS}
-echo "Building bootstrap vbc"
-dotnet publish "${SRC_PATH}"/Compilers/VisualBasic/vbc -o "${BOOTSTRAP_PATH}"/vbc ${PUBLISH_ARGS}
-rm -rf "${BINARIES_PATH:?}"/"${BUILD_CONFIGURATION}"
-BUILD_ARGS+=" /p:CscToolPath=${BOOTSTRAP_PATH}/csc /p:CscToolExe=csc /p:VbcToolPath=${BOOTSTRAP_PATH}/vbc /p:VbcToolExe=vbc"
+BUILD_ARGS+=" /bl:${BINARIES_PATH}/Build.binlog /p:BootstrapBuildPath=${BOOTSTRAP_PATH}"
 
 echo "Building CrossPlatform.sln"
 dotnet build "${ROOT_PATH}"/CrossPlatform.sln ${BUILD_ARGS}
@@ -128,3 +133,6 @@ then
     echo "Running tests"
     "${ROOT_PATH}"/build/scripts/tests.sh "${BUILD_CONFIGURATION}"
 fi
+
+echo "Killing VBCSCompiler"
+dotnet exec "${BOOTSTRAP_PATH}"/bincore/VBCSCompiler.dll -shutdown

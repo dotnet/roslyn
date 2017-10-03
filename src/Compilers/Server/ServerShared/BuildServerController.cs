@@ -99,22 +99,25 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     : Timeout.Infinite;
                 using (var client = await ConnectForShutdownAsync(pipeName, realTimeout).ConfigureAwait(false))
                 {
-                    var request = BuildRequest.CreateShutdown();
-                    await request.WriteAsync(client, cancellationToken).ConfigureAwait(false);
-                    var response = await BuildResponse.ReadAsync(client, cancellationToken).ConfigureAwait(false);
-                    var shutdownResponse = (ShutdownBuildResponse)response;
-
-                    if (waitForProcess)
+                    if (client != null)
                     {
-                        try
+                        var request = BuildRequest.CreateShutdown();
+                        await request.WriteAsync(client, cancellationToken).ConfigureAwait(false);
+                        var response = await BuildResponse.ReadAsync(client, cancellationToken).ConfigureAwait(false);
+                        var shutdownResponse = (ShutdownBuildResponse)response;
+
+                        if (waitForProcess)
                         {
-                            var process = Process.GetProcessById(shutdownResponse.ServerProcessId);
-                            process.WaitForExit();
-                        }
-                        catch (Exception)
-                        {
-                            // There is an inherent race here with the server process.  If it has already shutdown
-                            // by the time we try to access it then the operation has succeed.
+                            try
+                            {
+                                var process = Process.GetProcessById(shutdownResponse.ServerProcessId);
+                                process.WaitForExit();
+                            }
+                            catch (Exception)
+                            {
+                                // There is an inherent race here with the server process.  If it has already shutdown
+                                // by the time we try to access it then the operation has succeed.
+                            }
                         }
                     }
                 }

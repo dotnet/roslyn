@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
@@ -13,6 +14,7 @@ using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CompilerServer;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
 using static Microsoft.CodeAnalysis.CommandLine.NativeMethods;
@@ -54,7 +56,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
     internal sealed class BuildServerConnection
     {
-        internal const string ServerName = "VBCSCompiler.exe";
+        internal const string ServerNameDesktop = "VBCSCompiler.exe";
+        internal const string ServerNameCoreClr = "VBCSCompiler.dll";
 
         // Spend up to 1s connecting to existing process (existing processes should be always responsive).
         internal const int TimeOutMsExistingProcess = 1000;
@@ -66,28 +69,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Determines if the compiler server is supported in this environment.
         /// </summary>
         internal static bool IsCompilerServerSupported => 
-            PlatformInformation.IsWindows &&
-            GetRuntimeDirectoryOpt() != null &&
             GetPipeNameForPathOpt("") != null;
-
-        internal static string GetRuntimeDirectoryOpt()
-        {
-            Type runtimeEnvironmentType;
-            try
-            {
-                runtimeEnvironmentType = Type.GetType("System.Runtime.InteropServices.RuntimeEnvironment", throwOnError: false);
-            }
-            catch
-            {
-                return null;
-            }
-
-            return (string)runtimeEnvironmentType
-                ?.GetTypeInfo()
-                .GetDeclaredMethod("GetRuntimeDirectory")
-                ?.Invoke(obj: null, parameters: null);
-        }
-
 
         public static Task<BuildResponse> RunServerCompilation(
             RequestLanguage language,
@@ -166,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     bool wasServerRunning = WasServerMutexOpen(serverMutexName);
                     var timeout = wasServerRunning ? timeoutExistingProcess : timeoutNewProcess;
 
-                    NamedPipeClientStream pipe = null;
+                    Stream pipe = null;
 
                     if (wasServerRunning || tryCreateServerFunc(clientDir, pipeName))
                     {
@@ -203,18 +185,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Try to compile using the server. Returns a null-containing Task if a response
         /// from the server cannot be retrieved.
         /// </summary>
-        private static async Task<BuildResponse> TryCompile(NamedPipeClientStream pipeStream,
+        private static async Task<BuildResponse> TryCompile(Stream stream,
                                                             BuildRequest request,
                                                             CancellationToken cancellationToken)
         {
             BuildResponse response;
-            using (pipeStream)
+            using (stream)
             {
                 // Write the request
                 try
                 {
                     Log("Begin writing request");
-                    await request.WriteAsync(pipeStream, cancellationToken).ConfigureAwait(false);
+                    await request.WriteAsync(stream, cancellationToken).ConfigureAwait(false);
                     Log("End writing request");
                 }
                 catch (Exception e)
@@ -228,9 +210,17 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                 Log("Begin reading response");
 
-                var responseTask = BuildResponse.ReadAsync(pipeStream, serverCts.Token);
-                var monitorTask = CreateMonitorDisconnectTask(pipeStream, "client", serverCts.Token);
-                await Task.WhenAny(responseTask, monitorTask).ConfigureAwait(false);
+                var responseTask = BuildResponse.ReadAsync(stream, serverCts.Token);
+                if (stream is PipeStream pipeStream)
+                {
+                    var monitorTask = CreateMonitorDisconnectTask(pipeStream, "client", serverCts.Token);
+                    await Task.WhenAny(responseTask, monitorTask).ConfigureAwait(false);
+                }
+                else
+                {
+                    // TODO(ashauck): Monitor disconnect task
+                    await Task.WhenAny(responseTask).ConfigureAwait(false);
+                }
 
                 Log("End reading response");
 
@@ -296,6 +286,38 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
 
         /// <summary>
+        /// The IsConnected property on named pipes does not detect when the client has disconnected
+        /// if we don't attempt any new I/O after the client disconnects. We start an async I/O here
+        /// which serves to check the pipe for disconnection.
+        /// </summary>
+        internal static async Task CreateMonitorDisconnectTask(
+            Socket socket,
+            string identifier = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var buffer = new ArraySegment<byte>(Array.Empty<byte>());
+
+            while (!cancellationToken.IsCancellationRequested && socket.Connected)
+            {
+                // Wait a tenth of a second before trying again
+                await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+
+                try
+                {
+                    Log($"Before poking pipe {identifier}.");
+                    await SocketHelper.ReceiveAsync(socket, buffer, SocketFlags.Peek).ConfigureAwait(false);
+                    Log($"After poking pipe {identifier}.");
+                }
+                catch (Exception e)
+                {
+                    // It is okay for this call to fail.  Errors will be reflected in the
+                    // IsConnected property which will be read on the next iteration of the
+                    LogException(e, $"Error poking pipe {identifier}.");
+                }
+            }
+        }
+
+        /// <summary>
         /// Connect to the pipe for a given directory and return it.
         /// Throws on cancellation.
         /// </summary>
@@ -305,51 +327,59 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <returns>
         /// An open <see cref="NamedPipeClientStream"/> to the server process or null on failure.
         /// </returns>
-        private static NamedPipeClientStream TryConnectToServer(
+        internal static Stream TryConnectToServer(
             string pipeName,
             int timeoutMs,
             CancellationToken cancellationToken)
         {
-            NamedPipeClientStream pipeStream;
-            try
+            if (PlatformInformation.IsWindows)
             {
-                // Machine-local named pipes are named "\\.\pipe\<pipename>".
-                // We use the SHA1 of the directory the compiler exes live in as the pipe name.
-                // The NamedPipeClientStream class handles the "\\.\pipe\" part for us.
-                Log("Attempt to open named pipe '{0}'", pipeName);
-
-                pipeStream = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
-                cancellationToken.ThrowIfCancellationRequested();
-
-                Log("Attempt to connect named pipe '{0}'", pipeName);
-                if (!TryConnectToNamedPipeWithSpinWait(pipeStream, timeoutMs, cancellationToken))
+                NamedPipeClientStream pipeStream;
+                try
                 {
-                    Log($"Connecting to server timed out after {timeoutMs} ms");
+                    // Machine-local named pipes are named "\\.\pipe\<pipename>".
+                    // We use the SHA1 of the directory the compiler exes live in as the pipe name.
+                    // The NamedPipeClientStream class handles the "\\.\pipe\" part for us.
+                    Log("Attempt to open named pipe '{0}'", pipeName);
+
+                    pipeStream = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    Log("Attempt to connect named pipe '{0}'", pipeName);
+                    if (!TryConnectToNamedPipeWithSpinWait(pipeStream, timeoutMs, cancellationToken))
+                    {
+                        Log($"Connecting to server timed out after {timeoutMs} ms");
+                        return null;
+                    }
+                    Log("Named pipe '{0}' connected", pipeName);
+
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    // Verify that we own the pipe.
+                    if (!CheckPipeConnectionOwnership(pipeStream))
+                    {
+                        Log("Owner of named pipe is incorrect");
+                        return null;
+                    }
+
+                    return pipeStream;
+                }
+                catch (Exception e) when (!(e is TaskCanceledException))
+                {
+                    LogException(e, "Exception while connecting to process");
                     return null;
                 }
-                Log("Named pipe '{0}' connected", pipeName);
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Verify that we own the pipe.
-                if (!CheckPipeConnectionOwnership(pipeStream))
-                {
-                    Log("Owner of named pipe is incorrect");
-                    return null;
-                }
-
-                return pipeStream;
             }
-            catch (Exception e) when (!(e is TaskCanceledException))
+            else
             {
-                LogException(e, "Exception while connecting to process");
-                return null;
+                return UnixDomainSocket.CreateClient(pipeName);
             }
         }
 
-        internal static bool TryConnectToNamedPipeWithSpinWait(NamedPipeClientStream pipeStream,
-                                                               int timeoutMs,
-                                                               CancellationToken cancellationToken)
+        private static bool TryConnectToNamedPipeWithSpinWait(
+            NamedPipeClientStream pipeStream,
+            int timeoutMs,
+            CancellationToken cancellationToken)
         {
             Debug.Assert(timeoutMs == Timeout.Infinite || timeoutMs > 0);
 
@@ -399,8 +429,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static bool TryCreateServerCore(string clientDir, string pipeName)
         {
+#if NET46
             // The server should be in the same directory as the client
-            string expectedPath = Path.Combine(clientDir, ServerName);
+            string expectedPath = Path.Combine(clientDir, ServerNameDesktop);
 
             if (!File.Exists(expectedPath))
                 return false;
@@ -446,6 +477,16 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 Log("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
             }
             return success;
+#else
+            string expectedPath = Path.Combine(clientDir, ServerNameCoreClr);
+            if (!File.Exists(expectedPath))
+                throw new Exception(expectedPath);
+
+            var pathToDotnet = Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet";
+            // TODO: try/catch (Win32Exception)
+            Process.Start(pathToDotnet, $@"""{expectedPath}"" ""-pipename:{pipeName}""");
+            return true;
+#endif
         }
 
         /// <summary>
@@ -503,17 +544,26 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             var basePipeName = GetBasePipeName(compilerExeDirectory);
 
-            // Prefix with username and elevation
-            var currentIdentity = WindowsIdentity.GetCurrent();
-            var principal = new WindowsPrincipal(currentIdentity);
-            var isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
-            var userName = GetUserName();
-            if (userName == null)
+            if (PlatformInformation.IsWindows)
             {
-                return null;
-            }
+                // Prefix with username and elevation
+                var currentIdentity = WindowsIdentity.GetCurrent();
+                var principal = new WindowsPrincipal(currentIdentity);
+                var isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
+                var userName = GetUserName();
+                if (userName == null)
+                {
+                    return null;
+                }
 
-            return $"{userName}.{isAdmin}.{basePipeName}";
+                return $"{userName}.{isAdmin}.{basePipeName}";
+            }
+            else
+            {
+                // Prefix with UID (includes "elevation" - root is uid 0)
+                var uid = UnixDomainSocket.GetEUid();
+                return $"{uid}.{basePipeName}";
+            }
         }
 
         internal static string GetBasePipeName(string compilerExeDirectory)
@@ -565,6 +615,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         public static string GetTempPath(string workingDir)
         {
+            if (PlatformInformation.IsUnix)
+            {
+                return Path.GetTempPath();
+            }
             var tmp = Environment.GetEnvironmentVariable("TMP");
             if (Path.IsPathRooted(tmp))
             {
