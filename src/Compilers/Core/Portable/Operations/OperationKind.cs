@@ -75,9 +75,8 @@ namespace Microsoft.CodeAnalysis
         ConversionExpression = 0x102,
         /// <summary>Indicates an <see cref="IInvocationExpression"/>.</summary>
         InvocationExpression = 0x103,
-        // https://github.com/dotnet/roslyn/issues/22006
-        // /// <summary>Indicates an <see cref="IArrayElementReferenceExpression"/>.</summary>
-        // ArrayElementReferenceExpression = 0x104,
+        /// <summary>Indicates an <see cref="IArrayElementReferenceExpression"/>.</summary>
+        ArrayElementReferenceExpression = 0x104,
         /// <summary>Indicates an <see cref="ILocalReferenceExpression"/>.</summary>
         LocalReferenceExpression = 0x105,
         /// <summary>Indicates an <see cref="IParameterReferenceExpression"/>.</summary>
