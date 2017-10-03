@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis
         private readonly SolutionServices _solutionServices;
         private readonly ImmutableDictionary<DocumentId, DocumentState> _documentStates;
         private readonly ImmutableDictionary<DocumentId, TextDocumentState> _additionalDocumentStates;
-        private readonly IReadOnlyList<DocumentId> _documentIds;
-        private readonly IReadOnlyList<DocumentId> _additionalDocumentIds;
+        private readonly ImmutableList<DocumentId> _documentIds;
+        private readonly ImmutableList<DocumentId> _additionalDocumentIds;
         private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentVersion;
         private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentTopLevelChangeVersion;
 
@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis
             ProjectInfo projectInfo,
             HostLanguageServices languageServices,
             SolutionServices solutionServices,
-            IEnumerable<DocumentId> documentIds,
-            IEnumerable<DocumentId> additionalDocumentIds,
+            ImmutableList<DocumentId> documentIds,
+            ImmutableList<DocumentId> additionalDocumentIds,
             ImmutableDictionary<DocumentId, DocumentState> documentStates,
             ImmutableDictionary<DocumentId, TextDocumentState> additionalDocumentStates,
             AsyncLazy<VersionStamp> lazyLatestDocumentVersion,
@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis
         {
             _solutionServices = solutionServices;
             _languageServices = languageServices;
-            _documentIds = documentIds.ToImmutableReadOnlyListOrEmpty();
-            _additionalDocumentIds = additionalDocumentIds.ToImmutableReadOnlyListOrEmpty();
+            _documentIds = documentIds;
+            _additionalDocumentIds = additionalDocumentIds;
             _documentStates = documentStates;
             _additionalDocumentStates = additionalDocumentStates;
             _lazyLatestDocumentVersion = lazyLatestDocumentVersion;
@@ -72,8 +72,8 @@ namespace Microsoft.CodeAnalysis
 
             var projectInfoFixed = FixProjectInfo(projectInfo);
 
-            _documentIds = projectInfoFixed.Documents.Select(d => d.Id).ToImmutableArray();
-            _additionalDocumentIds = projectInfoFixed.AdditionalDocuments.Select(d => d.Id).ToImmutableArray();
+            _documentIds = projectInfoFixed.Documents.Select(d => d.Id).ToImmutableList();
+            _additionalDocumentIds = projectInfoFixed.AdditionalDocuments.Select(d => d.Id).ToImmutableList();
 
             var parseOptions = projectInfoFixed.ParseOptions;
             var docStates = ImmutableDictionary.CreateRange<DocumentId, DocumentState>(
@@ -341,8 +341,8 @@ namespace Microsoft.CodeAnalysis
 
         private ProjectState With(
             ProjectInfo projectInfo = null,
-            ImmutableArray<DocumentId> documentIds = default,
-            ImmutableArray<DocumentId> additionalDocumentIds = default,
+            ImmutableList<DocumentId> documentIds = default,
+            ImmutableList<DocumentId> additionalDocumentIds = default,
             ImmutableDictionary<DocumentId, DocumentState> documentStates = null,
             ImmutableDictionary<DocumentId, TextDocumentState> additionalDocumentStates = null,
             AsyncLazy<VersionStamp> latestDocumentVersion = null,
@@ -352,8 +352,8 @@ namespace Microsoft.CodeAnalysis
                 projectInfo ?? _projectInfo,
                 _languageServices,
                 _solutionServices,
-                documentIds.IsDefault ? _documentIds : documentIds,
-                additionalDocumentIds.IsDefault ? _additionalDocumentIds : additionalDocumentIds,
+                documentIds ?? _documentIds,
+                additionalDocumentIds ?? _additionalDocumentIds,
                 documentStates ?? _documentStates,
                 additionalDocumentStates ?? _additionalDocumentStates,
                 latestDocumentVersion ?? _lazyLatestDocumentVersion,
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis
 
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
-                documentIds: this.DocumentIds.ToImmutableArray().Add(document.Id),
+                documentIds: _documentIds.Add(document.Id),
                 documentStates: this.DocumentStates.Add(document.Id, document));
         }
 
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis
 
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
-                additionalDocumentIds: this.AdditionalDocumentIds.ToImmutableArray().Add(document.Id),
+                additionalDocumentIds: _additionalDocumentIds.Add(document.Id),
                 additionalDocumentStates: this.AdditionalDocumentStates.Add(document.Id, document));
         }
 
@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis
 
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
-                documentIds: this.DocumentIds.ToImmutableArray().Remove(documentId),
+                documentIds: _documentIds.Remove(documentId),
                 documentStates: this.DocumentStates.Remove(documentId));
         }
 
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis
 
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
-                additionalDocumentIds: this.AdditionalDocumentIds.ToImmutableArray().Remove(documentId),
+                additionalDocumentIds: _additionalDocumentIds.Remove(documentId),
                 additionalDocumentStates: this.AdditionalDocumentStates.Remove(documentId));
         }
 
@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis
         {
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()).WithDocuments(SpecializedCollections.EmptyEnumerable<DocumentInfo>()),
-                documentIds: ImmutableArray.Create<DocumentId>(),
+                documentIds: ImmutableList<DocumentId>.Empty,
                 documentStates: ImmutableDictionary<DocumentId, DocumentState>.Empty);
         }
 
