@@ -15,7 +15,7 @@ If you're not sure what's causing your crashes, then you can capture dumps local
 
 # Performance Issues
 
-- If necessary, start a second Visual Studio instance (with no solution open) just to capture the trace. The trace will include information for the other Visual Studio session as well.
+- If necessary, start a second Visual Studio instance (with no solution open) just to capture the trace. You can target the data collection from the other Visual Studio.
 - Aim for 30 seconds to 2 minutes.
 - Perform the action that is causing performance issues while the trace is recording. If typing is delayed, type during the trace. If opening a file is slow, open a bunch of files. Etc.
 - File new feedback issues instead of commenting on existing issues.
