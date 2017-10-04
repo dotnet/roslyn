@@ -21,15 +21,15 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public Task<IList<DesignerAttributeDocumentData>> ScanDesignerAttributesAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async () =>
+            return RunServiceAsync(async token =>
             {
-                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetDesignerAttributesAsync, projectId.DebugName, cancellationToken))
+                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetDesignerAttributesAsync, projectId.DebugName, token))
                 {
-                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(token).ConfigureAwait(false);
                     var project = solution.GetProject(projectId);
 
                     var data = await AbstractDesignerAttributeService.TryAnalyzeProjectInCurrentProcessAsync(
-                        project, cancellationToken).ConfigureAwait(false);
+                        project, token).ConfigureAwait(false);
 
                     if (data.Count == 0)
                     {

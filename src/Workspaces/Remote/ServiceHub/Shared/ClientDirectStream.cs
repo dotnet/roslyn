@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             // 4KB buffer size
             private const int BUFFERSIZE = 4 * 1024;
+            private const int ConnectWithoutTimeout = 1;
+
+            private static readonly TimeSpan ConnectRetryIntervalMs = TimeSpan.FromMilliseconds(20);
+
+            private const int ERROR_SEM_TIMEOUT_HRESULT = unchecked((int)0x80070079);
 
             private readonly string _name;
             private readonly NamedPipeClientStream _pipe;
@@ -51,9 +56,46 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public string Name => _name;
 
-            public Task ConnectAsync(CancellationToken cancellationToken)
+            public async Task ConnectAsync(CancellationToken cancellationToken)
             {
-                return _pipe.ConnectAsync(cancellationToken);
+                while (true)
+                {
+                    try
+                    {
+                        // Try connecting without wait.
+                        // Connecting with anything else will consume CPU causing a spin wait.
+                        _pipe.Connect(ConnectWithoutTimeout);
+                        return;
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // Prefer to throw OperationCanceledException if the caller requested cancellation.
+                        cancellationToken.ThrowIfCancellationRequested();
+                        throw;
+                    }
+                    catch (IOException ex) when (ex.HResult == ERROR_SEM_TIMEOUT_HRESULT)
+                    {
+                        // Ignore and retry.
+                    }
+                    catch (TimeoutException)
+                    {
+                        // Ignore and retry.
+                    }
+
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    try
+                    {
+                        await Task.Delay(ConnectRetryIntervalMs, cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        // To be consistent as to what type of exception is thrown when cancellation is requested,
+                        // always throw OperationCanceledException.
+                        cancellationToken.ThrowIfCancellationRequested();
+                        throw;
+                    }
+                }
             }
 
             public override long Position
