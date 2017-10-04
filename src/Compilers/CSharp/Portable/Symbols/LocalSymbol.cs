@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case LocalDeclarationKind.UsingVariable:
                         return false;
                     default:
-                        return true;
+                        return RefKind != RefKind.RefReadOnly;
                 }
             }
         }

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -7,6 +7,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
+    <CompilerTrait(CompilerFeature.IOperation)>
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
@@ -519,7 +520,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IEndStatement (OperationKind.None) (Syntax: 'End')
+IEndStatement (OperationKind.EndStatement) (Syntax: 'End')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -547,7 +548,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If i = 0 Th ... End If')
           Instance Receiver: null
       Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If i = 0 Th ... End If')
-      IEndStatement (OperationKind.None) (Syntax: 'End')
+      IEndStatement (OperationKind.EndStatement) (Syntax: 'End')
   IfFalse: null
 ]]>.Value
 
@@ -570,7 +571,7 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IStopStatement (OperationKind.None) (Syntax: 'Stop')
+IStopStatement (OperationKind.StopStatement) (Syntax: 'Stop')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -598,7 +599,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If i = 0 Th ... End If')
           Instance Receiver: null
       Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If i = 0 Th ... End If')
-      IStopStatement (OperationKind.None) (Syntax: 'Stop')
+      IStopStatement (OperationKind.StopStatement) (Syntax: 'Stop')
   IfFalse: null
 ]]>.Value
 
@@ -624,7 +625,11 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ICatchClause (Exception type: System.Exception, Exception local: ex As System.Exception) (OperationKind.None) (Syntax: 'Catch ex As ...  Is Nothing')
+ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'Catch ex As ...  Is Nothing')
+  Locals: Local_1: ex As System.Exception
+  ExceptionDeclarationOrExpression: IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'ex')
+      Variables: Local_1: ex As System.Exception
+      Initializer: null
   Filter: IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'ex Is Nothing')
       Left: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'ex')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)

@@ -822,22 +822,22 @@ public class ITest : ITest.Test{
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void HidingMethodWithRefReadOnlyParameter()
+        public void HidingMethodWithInParameter()
         {
             var code = @"
 interface A
 {
-    void M(ref readonly int x);
+    void M(in int x);
 }
 interface B : A
 {
-    void M(ref readonly int x);
+    void M(in int x);
 }";
 
             var comp = CreateStandardCompilation(code).VerifyDiagnostics(
-                // (8,10): warning CS0108: 'B.M(ref readonly int)' hides inherited member 'A.M(ref readonly int)'. Use the new keyword if hiding was intended.
-                //     void M(ref readonly int x);
-                Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M(ref readonly int)", "A.M(ref readonly int)").WithLocation(8, 10));
+                // (8,10): warning CS0108: 'B.M(in int)' hides inherited member 'A.M(in int)'. Use the new keyword if hiding was intended.
+                //     void M(in int x);
+                Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M(in int)", "A.M(in int)").WithLocation(8, 10));
 
             var aMethod = comp.GetMember<MethodSymbol>("A.M");
             var bMethod = comp.GetMember<MethodSymbol>("B.M");
@@ -1025,16 +1025,16 @@ interface B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void HidingMethodWithRefReadOnlyParameterAndNewKeyword()
+        public void HidingMethodWithInParameterAndNewKeyword()
         {
             var code = @"
 interface A
 {
-    void M(ref readonly int x);
+    void M(in int x);
 }
 interface B : A
 {
-    new void M(ref readonly int x);
+    new void M(in int x);
 }";
 
             var comp = CreateStandardCompilation(code).VerifyDiagnostics();
@@ -1103,16 +1103,16 @@ interface B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void ImplementingMethodWithRefReadOnlyParameter()
+        public void ImplementingMethodWithInParameter()
         {
             var code = @"
 interface A
 {
-    void M(ref readonly int x);
+    void M(in int x);
 }
 class B : A
 {
-    public void M(ref readonly int x) { }
+    public void M(in int x) { }
 }";
 
             var comp = CreateStandardCompilation(code).VerifyDiagnostics();
@@ -1161,7 +1161,7 @@ class B : A
             var code = @"
 interface A
 {
-    void M(ref readonly int x);
+    void M(in int x);
 }
 class B : A
 {
@@ -1169,9 +1169,9 @@ class B : A
 }";
 
             var comp = CreateStandardCompilation(code).VerifyDiagnostics(
-                // (6,11): error CS0535: 'B' does not implement interface member 'A.M(ref readonly int)'
+                // (6,11): error CS0535: 'B' does not implement interface member 'A.M(in int)'
                 // class B : A
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "A").WithArguments("B", "A.M(ref readonly int)").WithLocation(6, 11));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "A").WithArguments("B", "A.M(in int)").WithLocation(6, 11));
         }
 
         [Fact]
@@ -1181,7 +1181,7 @@ class B : A
             var text = @"
 interface BaseInterface
 {
-    ref readonly int Method1(ref readonly int a);
+    ref readonly int Method1(in int a);
     ref readonly int Property1 { get; }
     ref readonly int this[int a] { get; }
 }
@@ -1189,7 +1189,7 @@ interface BaseInterface
 class DerivedClass : BaseInterface
 {
     protected int field;
-    public ref readonly int Method1(ref readonly int a) { return ref field; }
+    public ref readonly int Method1(in int a) { return ref field; }
     public ref readonly int Property1 { get { return ref field; } }
     public ref readonly int this[int a] { get { return ref field; } }
 }";
@@ -1199,24 +1199,24 @@ class DerivedClass : BaseInterface
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void MethodImplementationsShouldPreserveReadOnlyRefnessInParameters()
+        public void MethodImplementationsShouldPreserveRefKindInParameters()
         {
             var text = @"
 interface BaseInterface
 {
     void Method1(ref int x);
-    void Method2(ref readonly int x);
+    void Method2(in int x);
 }
 class ChildClass : BaseInterface
 {
-    public void Method1(ref readonly int x) { }
+    public void Method1(in int x) { }
     public void Method2(ref int x) { }
 }";
 
             var comp = CreateStandardCompilation(text).VerifyDiagnostics(
-                // (7,20): error CS0535: 'ChildClass' does not implement interface member 'BaseInterface.Method2(ref readonly int)'
+                // (7,20): error CS0535: 'ChildClass' does not implement interface member 'BaseInterface.Method2(in int)'
                 // class ChildClass : BaseInterface
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "BaseInterface").WithArguments("ChildClass", "BaseInterface.Method2(ref readonly int)").WithLocation(7, 20),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "BaseInterface").WithArguments("ChildClass", "BaseInterface.Method2(in int)").WithLocation(7, 20),
                 // (7,20): error CS0535: 'ChildClass' does not implement interface member 'BaseInterface.Method1(ref int)'
                 // class ChildClass : BaseInterface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "BaseInterface").WithArguments("ChildClass", "BaseInterface.Method1(ref int)").WithLocation(7, 20));
@@ -1323,11 +1323,11 @@ class B : A
             var code = @"
 interface A
 {
-    int this[ref readonly int p] { get; }
+    int this[in int p] { get; }
 }
 class B : A
 {
-    public int this[ref readonly int p] { get { return p; } }
+    public int this[in int p] { get { return p; } }
 }";
 
             var comp = CreateStandardCompilation(code).VerifyDiagnostics();
@@ -1340,7 +1340,7 @@ class B : A
             var code = @"
 interface A
 {
-    int this[ref readonly int p] { get; }
+    int this[in int p] { get; }
 }
 class B : A
 {
@@ -1348,9 +1348,9 @@ class B : A
 }";
 
             var comp = CreateStandardCompilation(code).VerifyDiagnostics(
-                // (6,11): error CS0535: 'B' does not implement interface member 'A.this[ref readonly int]'
+                // (6,11): error CS0535: 'B' does not implement interface member 'A.this[in int]'
                 // class B : A
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "A").WithArguments("B", "A.this[ref readonly int]").WithLocation(6, 11));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "A").WithArguments("B", "A.this[in int]").WithLocation(6, 11));
         }
 
         [Fact]
@@ -1364,7 +1364,7 @@ interface A
 }
 class B : A
 {
-    public int this[ref readonly int p] { get { return p; } }
+    public int this[in int p] { get { return p; } }
 }";
 
             var comp = CreateStandardCompilation(code).VerifyDiagnostics(

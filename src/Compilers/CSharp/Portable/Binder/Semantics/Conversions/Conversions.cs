@@ -304,17 +304,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var spanType = _binder.GetWellKnownType(WellKnownType.System_Span_T, ref useSiteDiagnostics).Construct(sourceExpression.ElementType);
-                    var spanConversion = ClassifyImplicitConversionFromType(spanType, destination, ref useSiteDiagnostics);
-
-                    if (spanConversion.Exists)
+                    var spanType = _binder.GetWellKnownType(WellKnownType.System_Span_T, ref useSiteDiagnostics);
+                    if (spanType.TypeKind == TypeKind.Struct && spanType.IsByRefLikeType)
                     {
-                        // Report errors if Span ctor is missing, or using an older C# version
-                        Binder.CheckFeatureAvailability(sourceExpression.Syntax, MessageID.IDS_FeatureRefStructs, ref useSiteDiagnostics);
-                        Binder.GetWellKnownTypeMember(_binder.Compilation, WellKnownMember.System_Span_T__ctor, out DiagnosticInfo memberDiagnosticInfo);
-                        HashSetExtensions.InitializeAndAdd(ref useSiteDiagnostics, memberDiagnosticInfo);
+                        var spanType_T = spanType.Construct(sourceExpression.ElementType);
+                        var spanConversion = ClassifyImplicitConversionFromType(spanType_T, destination, ref useSiteDiagnostics);
 
-                        return Conversion.MakeStackAllocToSpanType(spanConversion);
+                        if (spanConversion.Exists)
+                        {
+                            // Report errors if Span ctor is missing, or using an older C# version
+                            Binder.CheckFeatureAvailability(sourceExpression.Syntax, MessageID.IDS_FeatureRefStructs, ref useSiteDiagnostics);
+                            Binder.GetWellKnownTypeMember(_binder.Compilation, WellKnownMember.System_Span_T__ctor, out DiagnosticInfo memberDiagnosticInfo);
+                            HashSetExtensions.InitializeAndAdd(ref useSiteDiagnostics, memberDiagnosticInfo);
+
+                            return Conversion.MakeStackAllocToSpanType(spanConversion);
+                        }
                     }
                 }
             }

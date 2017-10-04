@@ -192,49 +192,52 @@ partial class C
             comp.VerifyDiagnostics(
                 // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
                 //     partial public static int operator + (C c1, C c2) { return 0; }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial"),
-                // (12,12): error CS1004: Duplicate 'public' modifier
-                //     public public public static int operator & (C c1, C c2) { return 0; }
-                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public"),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                //     partial public static int operator + (C c1, C c2) { return 0; }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
                 // (5,34): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract public int operator - (C c1, C c2) { return 0; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("abstract"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("abstract").WithLocation(5, 34),
                 // (5,34): error CS0558: User-defined operator 'C.operator -(C, C)' must be declared static and public
                 //     abstract public int operator - (C c1, C c2) { return 0; }
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "-").WithArguments("C.operator -(C, C)"),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "-").WithArguments("C.operator -(C, C)").WithLocation(5, 34),
                 // (6,32): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed public int operator << (C c1, int c2) { return 0; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "<<").WithArguments("sealed"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "<<").WithArguments("sealed").WithLocation(6, 32),
                 // (6,32): error CS0558: User-defined operator 'C.operator <<(C, int)' must be declared static and public
                 //     sealed public int operator << (C c1, int c2) { return 0; }
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "<<").WithArguments("C.operator <<(C, int)"),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "<<").WithArguments("C.operator <<(C, int)").WithLocation(6, 32),
                 // (7,36): error CS0106: The modifier 'new' is not valid for this item
                 //     new public static int operator >> (C c1, int c2) { return 0; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, ">>").WithArguments("new"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, ">>").WithArguments("new").WithLocation(7, 36),
                 // (8,41): error CS0106: The modifier 'readonly' is not valid for this item
                 //     readonly public static int operator * (C c1, C c2) { return 0; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "*").WithArguments("readonly"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "*").WithArguments("readonly").WithLocation(8, 41),
                 // (9,41): error CS0106: The modifier 'volatile' is not valid for this item
                 //     volatile public static int operator % (C c1, C c2) { return 0; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "%").WithArguments("volatile"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "%").WithArguments("volatile").WithLocation(9, 41),
                 // (10,33): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual public int operator - (C c1) { return 0; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("virtual"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("virtual").WithLocation(10, 33),
                 // (10,33): error CS0558: User-defined operator 'C.operator -(C)' must be declared static and public
                 //     virtual public int operator - (C c1) { return 0; }
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "-").WithArguments("C.operator -(C)"),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "-").WithArguments("C.operator -(C)").WithLocation(10, 33),
                 // (11,34): error CS0106: The modifier 'override' is not valid for this item
                 //     override public int operator ~ (C c1) { return 0; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "~").WithArguments("override"),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "~").WithArguments("override").WithLocation(11, 34),
                 // (11,34): error CS0558: User-defined operator 'C.operator ~(C)' must be declared static and public
                 //     override public int operator ~ (C c1) { return 0; }
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "~").WithArguments("C.operator ~(C)"),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "~").WithArguments("C.operator ~(C)").WithLocation(11, 34),
+                // (12,12): error CS1004: Duplicate 'public' modifier
+                //     public public public static int operator & (C c1, C c2) { return 0; }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(12, 12),
                 // (13,39): error CS0179: 'C.operator ^(C, C)' cannot be extern and declare a body
                 //     extern static public int operator ^ (C c1, C c2) { return 1; }
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "^").WithArguments("C.operator ^(C, C)"),
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "^").WithArguments("C.operator ^(C, C)").WithLocation(13, 39),
                 // (14,32): error CS0501: 'C.operator +(C)' must declare a body because it is not marked abstract, extern, or partial
                 //     static public int operator + (C c1);
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "+").WithArguments("C.operator +(C)")
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "+").WithArguments("C.operator +(C)").WithLocation(14, 32)
                 );
         }
 

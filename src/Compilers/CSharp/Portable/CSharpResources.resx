@@ -1356,9 +1356,6 @@
   <data name="WRN_AlwaysNull_Title" xml:space="preserve">
     <value>The result of the expression is always 'null'</value>
   </data>
-  <data name="ERR_AddrOnReadOnlyLocal" xml:space="preserve">
-    <value>Cannot take the address of a read-only local variable</value>
-  </data>
   <data name="ERR_RefReturnThis" xml:space="preserve">
     <value>Cannot return 'this' by reference.</value>
   </data>
@@ -4818,7 +4815,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference</value>
   </data>
   <data name="ERR_RefReturnLvalueExpected" xml:space="preserve">
-    <value>An expression cannot be used in this context because it may not be returned by reference</value>
+    <value>An expression cannot be used in this context because it may not be passed or returned by reference</value>
   </data>
   <data name="ERR_RefReturnNonreturnableLocal" xml:space="preserve">
     <value>Cannot return '{0}' by reference because it was initialized to a value that cannot be returned by reference</value>
@@ -5186,11 +5183,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TypeReserved" xml:space="preserve">
     <value>The type name '{0}' is reserved to be used by the compiler.</value>
   </data>
-  <data name="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
-    <value>The first parameter of the reference extension method '{0}' must be a value type or a generic type constrained to struct.</value>
-  </data>
-  <data name="ERR_RefReadOnlyExtensionMustBeValueType" xml:space="preserve">
-    <value>The first parameter of the readonly reference extension method '{0}' must be a value type.</value>
+  <data name="ERR_InExtensionMustBeValueType" xml:space="preserve">
+    <value>The first parameter of an 'in' extension method '{0}' must be a value type.</value>
   </data>
   <data name="ERR_BadParameterModifiersOrder" xml:space="preserve">
     <value>The parameter modifier '{0}' cannot be used after the modifier '{1}'</value>
@@ -5212,5 +5206,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_StackAllocExpression" xml:space="preserve">
     <value>stackalloc {0}[{1}]</value>
+  </data>
+  <data name="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
+    <value>The first parameter of a 'ref' extension method '{0}' must be a value type or a generic type constrained to struct.</value>
   </data>
 </root>

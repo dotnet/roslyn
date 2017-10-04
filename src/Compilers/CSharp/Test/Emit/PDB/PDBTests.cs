@@ -2078,6 +2078,67 @@ class Program
 
         [Fact]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
+        public void ConditionalBeforeLocalFunction()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int i = 0;
+        if (i != 0)
+        {
+            return;
+        }
+
+        string local()
+        {
+            throw null;
+        }
+
+        System.Console.Write(1);
+    }
+}
+";
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[]{ MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+
+            v.VerifyIL("C.M", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (int V_0, //i
+                bool V_1)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: int i = 0;
+  IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
+  // sequence point: if (i != 0)
+  IL_0003:  ldloc.0
+  IL_0004:  ldc.i4.0
+  IL_0005:  cgt.un
+  IL_0007:  stloc.1
+  // sequence point: <hidden>
+  IL_0008:  ldloc.1
+  IL_0009:  brfalse.s  IL_000e
+  // sequence point: {
+  IL_000b:  nop
+  // sequence point: return;
+  IL_000c:  br.s       IL_0016
+  // sequence point: <hidden>
+  IL_000e:  nop
+  // sequence point: System.Console.Write(1);
+  IL_000f:  ldc.i4.1
+  IL_0010:  call       ""void System.Console.Write(int)""
+  IL_0015:  nop
+  // sequence point: }
+  IL_0016:  ret
+}
+", sequencePoints: "C.M", source: source);
+        }
+
+        [Fact]
+        [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ConditionalInAsyncMethodWithExplicitReturn()
         {
             var source = @"

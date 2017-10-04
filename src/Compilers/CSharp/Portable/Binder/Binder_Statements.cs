@@ -200,6 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression argument = (node.Expression == null)
                 ? BadExpression(node)
                 : binder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+            argument = ValidateEscape(argument, ExternalScope, isByRef: false, diagnostics: diagnostics);
+
             if (!argument.HasAnyErrors)
             {
                 argument = binder.GenerateConversionForAssignment(elementType, argument, diagnostics);
@@ -773,7 +775,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                valueKind = BindValueKind.RefOrOut;
+                valueKind = variableRefKind == RefKind.RefReadOnly
+                    ? BindValueKind.ReadonlyRef
+                    : BindValueKind.RefOrOut;
+
                 if (initializer == null)
                 {
                     Error(diagnostics, ErrorCode.ERR_ByReferenceVariableMustBeInitialized, node);
@@ -836,19 +841,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // might own nested scope.
             bool hasErrors = localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
-            if (localSymbol.RefKind == RefKind.RefReadOnly)
+            var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
+            if (containingMethod != null && containingMethod.IsAsync && localSymbol.RefKind != RefKind.None)
             {
-                Debug.Assert(typeSyntax.Parent is RefTypeSyntax);
-                var refKeyword = typeSyntax.Parent.GetFirstToken();
-                diagnostics.Add(ErrorCode.ERR_UnexpectedToken, refKeyword.GetLocation(), refKeyword.ToString());
-            }
-            else
-            {
-                var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
-                if (containingMethod != null && containingMethod.IsAsync && localSymbol.RefKind != RefKind.None)
-                {
-                    Error(diagnostics, ErrorCode.ERR_BadAsyncLocalType, declarator);
-                }
+                Error(diagnostics, ErrorCode.ERR_BadAsyncLocalType, declarator);
             }
 
             EqualsValueClauseSyntax equalsClauseSyntax = declarator.Initializer;
@@ -1716,7 +1712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Parameter {0} is declared as type '{1}{2}' but should be '{3}{4}'
                         Error(diagnostics, ErrorCode.ERR_BadParamType, lambdaParameterLocation,
-                            i + 1, lambdaRefKind.ToPrefix(), distinguisher.First, delegateRefKind.ToPrefix(), distinguisher.Second);
+                            i + 1, lambdaRefKind.ToParameterPrefix(), distinguisher.First, delegateRefKind.ToParameterPrefix(), distinguisher.Second);
                     }
                     else if (lambdaRefKind != delegateRefKind)
                     {
