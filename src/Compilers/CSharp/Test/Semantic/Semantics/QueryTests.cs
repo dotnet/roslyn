@@ -1647,7 +1647,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: ?, Is
                   IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument) (Syntax: 'new int[] { 1 }')
                     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'new int[] { 1 }')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                      Operand: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new int[] { 1 }')
+                      Operand: IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new int[] { 1 }')
                           Dimension Sizes(1):
                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'new int[] { 1 }')
                           Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{ 1 }')
@@ -2623,6 +2623,8 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: ?, Is
             IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'from y in Main')
               Children(1):
                   IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Main')
+                    Children(1):
+                        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'Main')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: 'y')
@@ -3460,6 +3462,8 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: X, Is
                 IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'x.ToString()')
                   ReturnedValue: IInvocationExpression ( ? Program.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'x.ToString()')
                       Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'x.ToString')
+                          Children(1):
+                              IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'x')
                       Arguments(0)
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -3927,7 +3931,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
           IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument) (Syntax: 'from a in new[] { 1 }')
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: 'from a in new[] { 1 }')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-              Operand: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new[] { 1 }')
+              Operand: IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'new[] { 1 }')
                   Dimension Sizes(1):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'new[] { 1 }')
                   Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{ 1 }')
@@ -3972,35 +3976,36 @@ class Query
     public static void Main(string[] args)
     {
         List<int> c = new List<int>() { 1, 2, 3, 4, 5, 6, 7 };
-        var r = from i in c /*<bind>*/select i + 1/*</bind>*/;
+        var r = /*<bind>*/from i in c select i + 1/*</bind>*/;
     }
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression (System.Collections.Generic.IEnumerable<System.Int32> System.Linq.Enumerable.Select<System.Int32, System.Int32>(this System.Collections.Generic.IEnumerable<System.Int32> source, System.Func<System.Int32, System.Int32> selector)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: 'select i + 1')
-  Instance Receiver: null
-  Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument) (Syntax: 'from i in c')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: 'from i in c')
-          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand: ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument) (Syntax: 'i + 1')
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func<System.Int32, System.Int32>) (Syntax: 'i + 1')
-          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'i + 1')
-              IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'i + 1')
-                IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'i + 1')
-                  ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
-                      Left: IOperation:  (OperationKind.None) (Syntax: 'i')
-                      Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: 'from i in c select i + 1')
+  Expression: IInvocationExpression (System.Collections.Generic.IEnumerable<System.Int32> System.Linq.Enumerable.Select<System.Int32, System.Int32>(this System.Collections.Generic.IEnumerable<System.Int32> source, System.Func<System.Int32, System.Int32> selector)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: 'select i + 1')
+      Instance Receiver: null
+      Arguments(2):
+          IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument) (Syntax: 'from i in c')
+            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: 'from i in c')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+              Operand: ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument) (Syntax: 'i + 1')
+            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func<System.Int32, System.Int32>) (Syntax: 'i + 1')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'i + 1')
+                  IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'i + 1')
+                    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'i + 1')
+                      ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+                          Left: IOperation:  (OperationKind.None) (Syntax: 'i')
+                          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<SelectClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -4016,16 +4021,37 @@ class Query
     public static void Main(string[] args)
     {
         List<int> c = new List<int>() { 1, 2, 3, 4, 5, 6, 7 };
-        var r = /*<bind>*/from i in c/*</bind>*/ select i + 1;
+        var r = /*<bind>*/from i in c select i + 1/*</bind>*/;
     }
 }
+
 ";
             string expectedOperationTree = @"
-ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c')
+ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: 'from i in c select i + 1')
+  Expression: IInvocationExpression (System.Collections.Generic.IEnumerable<System.Int32> System.Linq.Enumerable.Select<System.Int32, System.Int32>(this System.Collections.Generic.IEnumerable<System.Int32> source, System.Func<System.Int32, System.Int32> selector)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: 'select i + 1')
+      Instance Receiver: null
+      Arguments(2):
+          IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument) (Syntax: 'from i in c')
+            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: 'from i in c')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+              Operand: ILocalReferenceExpression: c (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'c')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument) (Syntax: 'i + 1')
+            IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func<System.Int32, System.Int32>) (Syntax: 'i + 1')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Operand: IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'i + 1')
+                  IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'i + 1')
+                    IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'i + 1')
+                      ReturnedValue: IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'i + 1')
+                          Left: IOperation:  (OperationKind.None) (Syntax: 'i')
+                          Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<FromClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -4051,6 +4077,52 @@ IOperation:  (OperationKind.None) (Syntax: 'i')
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(21484, "https://github.com/dotnet/roslyn/issues/21484")]
+        public void QueryOnTypeExpression()
+        {
+            var code = @"
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void M<T>() where T : IEnumerable
+    {
+        var query1 = from object a in IEnumerable select 1;
+        var query2 = from b in IEnumerable select 2;
+
+        var query3 = from int c in IEnumerable<int> select 3;
+        var query4 = from d in IEnumerable<int> select 4;
+
+        var query5 = from object d in T select 5;
+        var query6 = from d in T select 6;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(code);
+            comp.VerifyDiagnostics(
+                // (10,22): error CS0120: An object reference is required for the non-static field, method, or property 'Enumerable.Cast<object>(IEnumerable)'
+                //         var query1 = from object a in IEnumerable select 1;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "from object a in IEnumerable").WithArguments("System.Linq.Enumerable.Cast<object>(System.Collections.IEnumerable)").WithLocation(10, 22),
+                // (11,32): error CS1934: Could not find an implementation of the query pattern for source type 'IEnumerable'.  'Select' not found.  Consider explicitly specifying the type of the range variable 'b'.
+                //         var query2 = from b in IEnumerable select 2;
+                Diagnostic(ErrorCode.ERR_QueryNoProviderCastable, "IEnumerable").WithArguments("System.Collections.IEnumerable", "Select", "b").WithLocation(11, 32),
+                // (13,22): error CS0120: An object reference is required for the non-static field, method, or property 'Enumerable.Cast<int>(IEnumerable)'
+                //         var query3 = from int c in IEnumerable<int> select 3;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "from int c in IEnumerable<int>").WithArguments("System.Linq.Enumerable.Cast<int>(System.Collections.IEnumerable)").WithLocation(13, 22),
+                // (14,49): error CS1936: Could not find an implementation of the query pattern for source type 'IEnumerable<int>'.  'Select' not found.
+                //         var query4 = from d in IEnumerable<int> select 4;
+                Diagnostic(ErrorCode.ERR_QueryNoProvider, "select 4").WithArguments("System.Collections.Generic.IEnumerable<int>", "Select").WithLocation(14, 49),
+                // (16,22): error CS0120: An object reference is required for the non-static field, method, or property 'Enumerable.Cast<object>(IEnumerable)'
+                //         var query5 = from object d in T select 5;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "from object d in T").WithArguments("System.Linq.Enumerable.Cast<object>(System.Collections.IEnumerable)").WithLocation(16, 22),
+                // (17,32): error CS1936: Could not find an implementation of the query pattern for source type 'T'.  'Select' not found.
+                //         var query6 = from d in T select 6;
+                Diagnostic(ErrorCode.ERR_QueryNoProvider, "T").WithArguments("T", "Select").WithLocation(17, 32)
+                );
         }
     }
 }

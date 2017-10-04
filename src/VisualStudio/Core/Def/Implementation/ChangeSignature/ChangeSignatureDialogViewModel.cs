@@ -467,6 +467,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                             return "out";
                         case RefKind.Ref:
                             return "ref";
+                        case RefKind.In:
+                            return "in";
                     }
 
                     if (_parameter.IsParams)

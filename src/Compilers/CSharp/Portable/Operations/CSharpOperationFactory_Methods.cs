@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Semantics
@@ -36,14 +37,54 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             var value = Create(expression);
 
+            // put argument syntax to argument operation
+            var argument = value.Syntax?.Parent as ArgumentSyntax;
+
+            // if argument syntax doesn't exist, this operation is implicit
             return new CSharpArgument(kind,
                 parameter,
                 value,
                 semanticModel: _semanticModel,
-                syntax: value.Syntax,
+                syntax: argument ?? value.Syntax,
                 type: value.Type,
                 constantValue: default,
-                isImplicit: expression.WasCompilerGenerated);
+                isImplicit: expression.WasCompilerGenerated || argument == null);
+        }
+
+        private IVariableDeclaration CreateVariableDeclarationInternal(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
+        {
+            return OperationFactory.CreateVariableDeclaration(boundLocalDeclaration.LocalSymbol, Create(boundLocalDeclaration.InitializerOpt), _semanticModel, syntax);
+        }
+
+        private IVariableDeclaration CreateVariableDeclaration(BoundLocal boundLocal)
+        {
+            return OperationFactory.CreateVariableDeclaration(boundLocal.LocalSymbol, initialValue: null, semanticModel: _semanticModel, syntax: boundLocal.Syntax);
+        }
+
+        private IOperation CreateBoundCallInstanceOperation(BoundCall boundCall)
+        {
+            if (boundCall.Method == null || boundCall.Method.IsStatic)
+            {
+                return null;
+            }
+
+            return Create(boundCall.ReceiverOpt);
+        }
+
+        private IEventReferenceExpression CreateBoundEventAccessOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
+        {
+            SyntaxNode syntax = boundEventAssignmentOperator.Syntax;
+            // BoundEventAssignmentOperator doesn't hold on to BoundEventAccess provided during binding.
+            // Based on the implementation of those two bound node types, the following data can be retrieved w/o changing BoundEventAssignmentOperator:
+            //  1. the type of BoundEventAccess is the type of the event symbol.
+            //  2. the constant value of BoundEventAccess is always null.
+            //  3. the syntax of the boundEventAssignmentOperator is always AssignmentExpressionSyntax, so the syntax for the event reference would be the LHS of the assignment.
+            IEventSymbol @event = boundEventAssignmentOperator.Event;
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundEventAssignmentOperator.Event.IsStatic ? null : boundEventAssignmentOperator.ReceiverOpt));
+            SyntaxNode eventAccessSyntax = ((AssignmentExpressionSyntax)syntax).Left;
+            bool isImplicit = boundEventAssignmentOperator.WasCompilerGenerated;
+
+            return new LazyEventReferenceExpression(@event, instance, @event, _semanticModel, eventAccessSyntax, @event.Type, ConvertToOptional(null), isImplicit);
         }
 
         private ImmutableArray<IArgument> DeriveArguments(
@@ -120,17 +161,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
 
             return builder.ToImmutableAndFree();
-        }
-
-        private static ITypeSymbol GetArrayCreationElementType(BoundArrayCreation creation)
-        {
-            IArrayTypeSymbol arrayType = creation.Type as IArrayTypeSymbol;
-            if ((object)arrayType != null)
-            {
-                return arrayType.ElementType;
-            }
-
-            return null;
         }
 
         private ImmutableArray<ISwitchCase> GetSwitchStatementCases(BoundSwitchStatement statement)

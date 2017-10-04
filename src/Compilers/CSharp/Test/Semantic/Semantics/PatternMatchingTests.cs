@@ -55,7 +55,7 @@ public class Vec
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "f").WithArguments("local functions", "7.0").WithLocation(12, 13),
                 // (13,9): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         ref int i3 = ref i1; // ref locals
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7.0").WithLocation(13, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(13, 9),
                 // (13,22): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         ref int i3 = ref i1; // ref locals
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(13, 22),
@@ -4675,7 +4675,7 @@ class C
                 // (7,38): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.Write(null is Missing);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(7, 38),
-                // (8,16): error CS8119: The switch expression must be a value; found <null>.
+                // (8,16): error CS8119: The switch expression must be a value; found '<null>'.
                 //         switch(null)
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "null").WithArguments("<null>").WithLocation(8, 16),
                 // (10,18): error CS0103: The name 'Missing' does not exist in the current context
@@ -4683,7 +4683,10 @@ class C
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(10, 18),
                 // (11,18): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
                 //             case Missing y:
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
                 );
         }
 
@@ -4709,7 +4712,7 @@ public class Program46
     private static object M() => null;
 }";
             CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
-                // (6,17): error CS8119: The switch expression must be a value; found lambda expression.
+                // (6,17): error CS8119: The switch expression must be a value; found 'lambda expression'.
                 //         switch ((() => 1))
                 Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "(() => 1)").WithArguments("lambda expression").WithLocation(6, 17),
                 // (10,18): error CS0150: A constant value is expected
@@ -4717,7 +4720,10 @@ public class Program46
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M").WithLocation(10, 18),
                 // (11,18): error CS0150: A constant value is expected
                 //             case ((int)M()):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "((int)M())").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "((int)M())").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
                 );
         }
 
@@ -5962,7 +5968,10 @@ public class Program
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("int?", "long").WithLocation(13, 18),
                 // (14,17): error CS0103: The name 'b' does not exist in the current context
                 //         switch (b) { case long m: break; }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(14, 17)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(14, 17),
+                // (14,35): warning CS0162: Unreachable code detected
+                //         switch (b) { case long m: break; }
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 35)
                 );
         }
 

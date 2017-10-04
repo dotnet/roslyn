@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -39,7 +39,7 @@ IDoLoopStatement (DoLoopKind: DoWhileBottomLoop) (LoopKind.Do) (OperationKind.Lo
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'sum += ids(i)')
         Expression: ICompoundAssignmentExpression (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'sum += ids(i)')
             Left: ILocalReferenceExpression: sum (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'sum')
-            Right: IArrayElementReferenceExpression (OperationKind.None) (Syntax: 'ids(i)')
+            Right: IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.Int32) (Syntax: 'ids(i)')
                 Array reference: ILocalReferenceExpression: ids (OperationKind.LocalReferenceExpression, Type: System.Int32()) (Syntax: 'ids')
                 Indices(1):
                     ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
@@ -927,7 +927,7 @@ IWhileLoopStatement (LoopKind.While) (OperationKind.LoopStatement, IsInvalid) (S
                     Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'While Syste ... End While')
-      ITryStatement (OperationKind.None) (Syntax: 'Try ... End Try')
+      ITryStatement (OperationKind.TryStatement) (Syntax: 'Try ... End Try')
         Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Try ... End Try')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'y = CSByte(x / 2)')
               Expression: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.SByte) (Syntax: 'y = CSByte(x / 2)')

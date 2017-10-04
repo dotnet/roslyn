@@ -132,20 +132,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                  TypeOf (node) Is OrderingSyntax)
         End Function
 
-        Friend Enum GetOperationOptions
-            Lowest
-            Highest
-            Parent
-        End Enum
-
         Protected Overrides Function GetOperationCore(node As SyntaxNode, cancellationToken As CancellationToken) As IOperation
             Dim vbnode = DirectCast(node, VisualBasicSyntaxNode)
             CheckSyntaxNode(vbnode)
 
-            Return GetOperationWorker(vbnode, GetOperationOptions.Highest, cancellationToken)
+            Return GetOperationWorker(vbnode, cancellationToken)
         End Function
 
-        Friend Overridable Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
+        Friend Overridable Function GetOperationWorker(node As VisualBasicSyntaxNode, cancellationToken As CancellationToken) As IOperation
             Return Nothing
         End Function
 

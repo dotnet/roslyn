@@ -121,6 +121,14 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterIn()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    void Goo(in $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterThis_InBogusMethod()
         {
             await VerifyAbsenceAsync(
@@ -631,6 +639,142 @@ class Program
     void Helper(Program x) { }
 }
 ", matchPriority: SymbolMatchPriority.Keyword);
+        }
+
+        [Fact]
+        public async Task TestExtensionMethods_FirstParameter_AfterRefKeyword_InClass()
+        {
+            await VerifyKeywordAsync(@"
+public static class Extensions
+{
+    public static void Extension(ref $$");
+
+            await VerifyKeywordAsync(@"
+public static class Extensions
+{
+    public static void Extension(ref $$ object obj, int x) { }
+}");
+        }
+
+        [Fact]
+        public async Task TestExtensionMethods_FirstParameter_AfterInKeyword_InClass()
+        {
+            await VerifyKeywordAsync(@"
+public static class Extensions
+{
+    public static void Extension(in $$");
+
+            await VerifyKeywordAsync(@"
+public static class Extensions
+{
+    public static void Extension(in $$ object obj, int x) { }
+}");
+        }
+
+        [Fact]
+        public async Task TestExtensionMethods_SecondParameter_AfterRefKeyword_InClass()
+        {
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public static void Extension(int x, ref $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public static void Extension(int x, ref $$ object obj) { }
+}");
+        }
+
+        [Fact]
+        public async Task TestExtensionMethods_SecondParameter_AfterInKeywords_InClass()
+        {
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public static void Extension(int x, in $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public static void Extension(int x, in $$ object obj) { }
+}");
+        }
+
+        [Fact]
+        public async Task TestExtensionMethods_FirstParameter_AfterRefKeyword_OutsideClass()
+        {
+            await VerifyAbsenceAsync("public static void Extension(ref $$");
+
+            await VerifyAbsenceAsync("public static void Extension(ref $$ object obj, int x) { }");
+        }
+
+        [Fact]
+        public async Task TestExtensionMethods_FirstParameter_AfterInKeywords_OutsideClass()
+        {
+            await VerifyAbsenceAsync("public static void Extension(in $$");
+
+            await VerifyAbsenceAsync("public static void Extension(in $$ object obj, int x) { }");
+        }
+
+        [Fact]
+        public async Task TestExtensionMethods_FirstParameter_AfterRefKeyword_NonStaticClass()
+        {
+            await VerifyAbsenceAsync(@"
+public class Extensions
+{
+    public static void Extension(ref $$");
+
+            await VerifyAbsenceAsync(@"
+public class Extensions
+{
+    public static void Extension(ref $$ object obj, int x) { }
+}");
+        }
+
+        [Fact]
+        public async Task TestExtensionMethods_FirstParameter_AfterInKeywords_NonStaticClass()
+        {
+            await VerifyAbsenceAsync(@"
+public class Extensions
+{
+    public static void Extension(in $$");
+
+            await VerifyAbsenceAsync(@"
+public class Extensions
+{
+    public static void Extension(in $$ object obj, int x) { }
+}");
+        }
+
+        [Fact]
+        public async Task TestExtensionMethods_FirstParameter_AfterRefKeyword_NonStaticMethod()
+        {
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public void Extension(ref $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public void Extension(ref $$ object obj, int x) { }
+}");
+        }
+
+        [Fact]
+        public async Task TestExtensionMethods_FirstParameter_AfterInKeywords_NonStaticMethod()
+        {
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public void Extension(in $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
+    public void Extension(in $$ object obj, int x) { }
+}");
         }
     }
 }

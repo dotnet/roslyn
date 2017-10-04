@@ -22,6 +22,19 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
     internal static class WatsonReporter
     {
         /// <summary>
+        /// hold onto last issue we reported. we use hash
+        /// since exception callstack could be quite big
+        /// </summary>
+        private static int s_lastExceptionReported;
+
+#if DEBUG
+        /// <summary>
+        /// in debug, we also hold onto reported string to make debugging easier
+        /// </summary>
+        private static string s_lastExceptionReportedDebug;
+#endif
+
+        /// <summary>
         /// The default callback to pass to <see cref="TelemetrySessionExtensions.PostFault(TelemetrySession, string, string, Exception, Func{IFaultUtility, int})"/>.
         /// Returning "0" signals that we should send data to Watson; any other value will cancel the Watson report.
         /// </summary>
@@ -60,6 +73,26 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             {
                 return;
             }
+
+            // this is a poor man's check whether we are called for same issues repeatedly
+            // one of problem of NFW compared to FW is that since we don't crash at an issue, same issue
+            // might happen repeatedly. especially in short amount of time. reporting all those issues
+            // are meaningless so we do cheap check to see we just reported same issue and
+            // bail out.
+            // I think this should be actually done by PostFault itself and I talked to them about it.
+            // but until they do something, we will do very simple throuttle ourselves.
+            var currentExceptionString = $"{exception.GetType().ToString()} {(exception.StackTrace ?? exception.ToString())}";
+            var currentException = currentExceptionString.GetHashCode();
+            if (s_lastExceptionReported == currentException)
+            {
+                return;
+            }
+
+#if DEBUG
+            s_lastExceptionReportedDebug = currentExceptionString;
+#endif
+
+            s_lastExceptionReported = currentException;
 
             TelemetryService.DefaultSession.PostFault(
                 eventName: FunctionId.NonFatalWatson.GetEventName(),

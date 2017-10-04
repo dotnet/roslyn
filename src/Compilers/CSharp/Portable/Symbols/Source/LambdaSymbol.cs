@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<TypeSymbol> parameterTypes, 
             ImmutableArray<RefKind> parameterRefKinds,
             RefKind refKind,
-            TypeSymbol returnType)
+            TypeSymbol returnType,
+            DiagnosticBag diagnostics)
         {
             _containingSymbol = containingSymbol;
             _messageID = unboundLambda.Data.MessageID;
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _isSynthesized = unboundLambda.WasCompilerGenerated;
             _isAsync = unboundLambda.IsAsync;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
-            _parameters = MakeParameters(compilation, unboundLambda, parameterTypes, parameterRefKinds);
+            _parameters = MakeParameters(compilation, unboundLambda, parameterTypes, parameterRefKinds, diagnostics);
         }
 
         public LambdaSymbol(
@@ -175,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (object)this.ReturnType != null && this.ReturnType.SpecialType == SpecialType.System_Void; }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return _refKind; }
         }
@@ -314,7 +315,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation,
             UnboundLambda unboundLambda,
             ImmutableArray<TypeSymbol> parameterTypes,
-            ImmutableArray<RefKind> parameterRefKinds)
+            ImmutableArray<RefKind> parameterRefKinds,
+            DiagnosticBag diagnostics)
         {
             Debug.Assert(parameterTypes.Length == parameterRefKinds.Length);
 
@@ -360,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     type = new ExtendedErrorTypeSymbol(compilation, name: string.Empty, arity: 0, errorInfo: null);
                     refKind = RefKind.None;
                 }
-
+                
                 var name = unboundLambda.ParameterName(p);
                 var location = unboundLambda.ParameterLocation(p);
                 var locations = ImmutableArray.Create<Location>(location);

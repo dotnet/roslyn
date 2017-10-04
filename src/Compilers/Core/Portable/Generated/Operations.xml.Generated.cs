@@ -234,15 +234,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseArrayCreationExpression : Operation, IArrayCreationExpression
     {
-        protected BaseArrayCreationExpression(ITypeSymbol elementType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseArrayCreationExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.ArrayCreationExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            ElementType = elementType;
         }
-        /// <summary>
-        /// Element type of the created array instance.
-        /// </summary>
-        public ITypeSymbol ElementType { get; }
         protected abstract ImmutableArray<IOperation> DimensionSizesImpl { get; }
         protected abstract IArrayInitializer InitializerImpl { get; }
         public override IEnumerable<IOperation> Children
@@ -279,8 +274,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class ArrayCreationExpression : BaseArrayCreationExpression, IArrayCreationExpression
     {
-        public ArrayCreationExpression(ITypeSymbol elementType, ImmutableArray<IOperation> dimensionSizes, IArrayInitializer initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(elementType, semanticModel, syntax, type, constantValue, isImplicit)
+        public ArrayCreationExpression(ImmutableArray<IOperation> dimensionSizes, IArrayInitializer initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             DimensionSizesImpl = dimensionSizes;
             InitializerImpl = initializer;
@@ -298,7 +293,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         private readonly Lazy<ImmutableArray<IOperation>> _lazyDimensionSizes;
         private readonly Lazy<IArrayInitializer> _lazyInitializer;
 
-        public LazyArrayCreationExpression(ITypeSymbol elementType, Lazy<ImmutableArray<IOperation>> dimensionSizes, Lazy<IArrayInitializer> initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(elementType, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyArrayCreationExpression(Lazy<ImmutableArray<IOperation>> dimensionSizes, Lazy<IArrayInitializer> initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyDimensionSizes = dimensionSizes;
             _lazyInitializer = initializer ?? throw new System.ArgumentNullException(nameof(initializer));
@@ -315,9 +311,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal abstract partial class BaseArrayElementReferenceExpression : Operation, IArrayElementReferenceExpression
     {
         protected BaseArrayElementReferenceExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            // https://github.com/dotnet/roslyn/issues/22006
-            //base(OperationKind.ArrayElementReferenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
-            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+            base(OperationKind.ArrayElementReferenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -538,24 +532,22 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal abstract partial class BaseAwaitExpression : Operation, IAwaitExpression
     {
         protected BaseAwaitExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            // https://github.com/dotnet/roslyn/issues/22007
-            // base(OperationKind.AwaitExpression, semanticModel, syntax, type, constantValue, isImplicit)
-            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+            base(OperationKind.AwaitExpression, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
-        protected abstract IOperation AwaitedValueImpl { get; }
+        protected abstract IOperation ExpressionImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
-                yield return AwaitedValue;
+                yield return Expression;
             }
         }
         /// <summary>
-        /// Value to be awaited.
+        /// Awaited expression.
         /// </summary>
-        public IOperation AwaitedValue => Operation.SetParentOperation(AwaitedValueImpl, this);
+        public IOperation Expression => Operation.SetParentOperation(ExpressionImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitAwaitExpression(this);
@@ -571,13 +563,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class AwaitExpression : BaseAwaitExpression, IAwaitExpression
     {
-        public AwaitExpression(IOperation awaitedValue, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public AwaitExpression(IOperation expression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            AwaitedValueImpl = awaitedValue;
+            ExpressionImpl = expression;
         }
 
-        protected override IOperation AwaitedValueImpl { get; }
+        protected override IOperation ExpressionImpl { get; }
     }
 
     /// <summary>
@@ -585,14 +577,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LazyAwaitExpression : BaseAwaitExpression, IAwaitExpression
     {
-        private readonly Lazy<IOperation> _lazyAwaitedValue;
+        private readonly Lazy<IOperation> _lazyExpression;
 
-        public LazyAwaitExpression(Lazy<IOperation> awaitedValue, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyAwaitExpression(Lazy<IOperation> expression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            _lazyAwaitedValue = awaitedValue ?? throw new System.ArgumentNullException(nameof(awaitedValue));
+            _lazyExpression = expression ?? throw new System.ArgumentNullException(nameof(expression));
         }
 
-        protected override IOperation AwaitedValueImpl => _lazyAwaitedValue.Value;
+        protected override IOperation ExpressionImpl => _lazyExpression.Value;
     }
 
     /// <summary>
@@ -827,41 +819,49 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseCatchClause : Operation, ICatchClause
     {
-        protected BaseCatchClause(ITypeSymbol caughtType, ILocalSymbol exceptionLocal, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            // https://github.com/dotnet/roslyn/issues/22008   
-            // base(OperationKind.CatchClause, semanticModel, syntax, type, constantValue, isImplicit)
-            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+        protected BaseCatchClause(ITypeSymbol exceptionType, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.CatchClause, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            CaughtType = caughtType;
-            ExceptionLocal = exceptionLocal;
+            ExceptionType = exceptionType;
+            Locals = locals;
         }
-
-        protected abstract IBlockStatement HandlerImpl { get; }
         /// <summary>
-        /// Type of exception to be handled.
+        /// Type of the exception handled by the catch clause.
         /// </summary>
-        public ITypeSymbol CaughtType { get; }
+        public ITypeSymbol ExceptionType { get; }
+        /// <summary>
+        /// Locals declared by the <see cref="ExceptionDeclarationOrExpression"/> and/or <see cref="Filter"/> clause.
+        /// </summary>
+        public ImmutableArray<ILocalSymbol> Locals { get; }
+        protected abstract IOperation ExceptionDeclarationOrExpressionImpl { get; }
         protected abstract IOperation FilterImpl { get; }
-        /// <summary>
-        /// Symbol for the local catch variable bound to the caught exception.
-        /// </summary>
-        public ILocalSymbol ExceptionLocal { get; }
+        protected abstract IBlockStatement HandlerImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
             {
+                yield return ExceptionDeclarationOrExpression;
                 yield return Filter;
                 yield return Handler;
             }
         }
         /// <summary>
-        /// Body of the exception handler.
+        /// Optional source for exception. This could be any of the following operation:
+        /// 1. Declaration for the local catch variable bound to the caught exception (C# and VB) OR
+        /// 2. Type expression for the caught expression type (C#) OR
+        /// 3. Null, indicating no expression (C#)
+        /// 4. Reference to an existing local or parameter (VB) OR
+        /// 5. An error expression (VB)
         /// </summary>
-        public IBlockStatement Handler => Operation.SetParentOperation(HandlerImpl, this);
+        public IOperation ExceptionDeclarationOrExpression => Operation.SetParentOperation(ExceptionDeclarationOrExpressionImpl, this);
         /// <summary>
         /// Filter expression to be executed to determine whether to handle the exception.
         /// </summary>
         public IOperation Filter => Operation.SetParentOperation(FilterImpl, this);
+        /// <summary>
+        /// Body of the exception handler.
+        /// </summary>
+        public IBlockStatement Handler => Operation.SetParentOperation(HandlerImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitCatchClause(this);
@@ -877,15 +877,17 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class CatchClause : BaseCatchClause, ICatchClause
     {
-        public CatchClause(IBlockStatement handler, ITypeSymbol caughtType, IOperation filter, ILocalSymbol exceptionLocal, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(caughtType, exceptionLocal, semanticModel, syntax, type, constantValue, isImplicit)
+        public CatchClause(IOperation exceptionDeclarationOrExpression, ITypeSymbol exceptionType, ImmutableArray<ILocalSymbol> locals, IOperation filter, IBlockStatement handler, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(exceptionType, locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            HandlerImpl = handler;
+            ExceptionDeclarationOrExpressionImpl = exceptionDeclarationOrExpression;
             FilterImpl = filter;
+            HandlerImpl = handler;
         }
 
         protected override IBlockStatement HandlerImpl { get; }
         protected override IOperation FilterImpl { get; }
+        protected override IOperation ExceptionDeclarationOrExpressionImpl { get; }
     }
 
     /// <summary>
@@ -893,18 +895,21 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LazyCatchClause : BaseCatchClause, ICatchClause
     {
-        private readonly Lazy<IBlockStatement> _lazyHandler;
+        private readonly Lazy<IOperation> _lazyExceptionDeclarationOrExpression;
         private readonly Lazy<IOperation> _lazyFilter;
+        private readonly Lazy<IBlockStatement> _lazyHandler;
 
-        public LazyCatchClause(Lazy<IBlockStatement> handler, ITypeSymbol caughtType, Lazy<IOperation> filter, ILocalSymbol exceptionLocal, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(caughtType, exceptionLocal, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyCatchClause(Lazy<IOperation> exceptionDeclarationOrExpression, ITypeSymbol exceptionType, ImmutableArray<ILocalSymbol> locals, Lazy<IOperation> filter, Lazy<IBlockStatement> handler, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(exceptionType, locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            _lazyHandler = handler ?? throw new System.ArgumentNullException(nameof(handler));
+            _lazyExceptionDeclarationOrExpression = exceptionDeclarationOrExpression ?? throw new System.ArgumentNullException(nameof(exceptionDeclarationOrExpression));
             _lazyFilter = filter ?? throw new System.ArgumentNullException(nameof(filter));
+            _lazyHandler = handler ?? throw new System.ArgumentNullException(nameof(handler));
         }
 
-        protected override IBlockStatement HandlerImpl => _lazyHandler.Value;
-
+        protected override IOperation ExceptionDeclarationOrExpressionImpl => _lazyExceptionDeclarationOrExpression.Value;
         protected override IOperation FilterImpl => _lazyFilter.Value;
+        protected override IBlockStatement HandlerImpl => _lazyHandler.Value;
     }
 
     /// <summary>
@@ -1276,9 +1281,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class EndStatement : Operation, IEndStatement
     {
         public EndStatement(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            // https://github.com/dotnet/roslyn/issues/22004
-            // base(OperationKind.EndStatement, semanticModel, syntax, type, constantValue, isImplicit)
-            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+            base(OperationKind.EndStatement, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
         public override IEnumerable<IOperation> Children
@@ -4220,9 +4223,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class StopStatement : Operation, IStopStatement
     {
         public StopStatement(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            // https://github.com/dotnet/roslyn/issues/21297
-            // base(OperationKind.StopStatement, semanticModel, syntax, type, constantValue, isImplicit)
-            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+            base(OperationKind.StopStatement, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
         public override IEnumerable<IOperation> Children
@@ -4416,15 +4417,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal abstract partial class BaseTryStatement : Operation, ITryStatement
     {
         protected BaseTryStatement(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            // https://github.com/dotnet/roslyn/issues/22008
-            // base(OperationKind.TryStatement, semanticModel, syntax, type, constantValue, isImplicit)
-            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+            base(OperationKind.TryStatement, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
         protected abstract IBlockStatement BodyImpl { get; }
         protected abstract ImmutableArray<ICatchClause> CatchesImpl { get; }
-        protected abstract IBlockStatement FinallyHandlerImpl { get; }
+        protected abstract IBlockStatement FinallyImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -4434,7 +4433,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 {
                     yield return catche;
                 }
-                yield return FinallyHandler;
+                yield return Finally;
             }
         }
         /// <summary>
@@ -4448,7 +4447,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Finally handler of the try.
         /// </summary>
-        public IBlockStatement FinallyHandler => Operation.SetParentOperation(FinallyHandlerImpl, this);
+        public IBlockStatement Finally => Operation.SetParentOperation(FinallyImpl, this);
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitTryStatement(this);
@@ -4469,12 +4468,12 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             BodyImpl = body;
             CatchesImpl = catches;
-            FinallyHandlerImpl = finallyHandler;
+            FinallyImpl = finallyHandler;
         }
 
         protected override IBlockStatement BodyImpl { get; }
         protected override ImmutableArray<ICatchClause> CatchesImpl { get; }
-        protected override IBlockStatement FinallyHandlerImpl { get; }
+        protected override IBlockStatement FinallyImpl { get; }
     }
 
     /// <summary>
@@ -4497,7 +4496,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         protected override ImmutableArray<ICatchClause> CatchesImpl => _lazyCatches.Value;
 
-        protected override IBlockStatement FinallyHandlerImpl => _lazyFinallyHandler.Value;
+        protected override IBlockStatement FinallyImpl => _lazyFinallyHandler.Value;
     }
 
     /// <summary>

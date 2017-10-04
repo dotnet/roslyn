@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenReceiver: rewrittenReceiver,
                 method: method,
                 rewrittenArguments: rewrittenArguments,
-                argumentRefKinds: ImmutableArray<RefKind>.Empty,
+                argumentRefKinds: default(ImmutableArray<RefKind>),
                 invokedAsExtensionMethod: false,
                 resultKind: LookupResultKind.Viable,
                 type: type);
@@ -391,10 +391,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ArrayBuilder<LocalSymbol> temporariesBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
             rewrittenArguments = _factory.MakeTempsForDiscardArguments(rewrittenArguments, temporariesBuilder);
+            ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
 
             if (CanSkipRewriting(rewrittenArguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var isComReceiver))
             {
                 temps = temporariesBuilder.ToImmutableAndFree();
+                argumentRefKindsOpt = GetEffectiveArgumentRefKinds(argumentRefKindsOpt, parameters);
+
                 return rewrittenArguments;
             }
 
@@ -447,7 +450,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We start by binding everything that is not obviously reorderable as a temporary, and
             // then run an optimizer to remove unnecessary temporaries.
 
-            ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
             BoundExpression[] actualArguments = new BoundExpression[parameters.Length]; // The actual arguments that will be passed; one actual argument per formal parameter.
             ArrayBuilder<BoundAssignmentOperator> storesToTemps = ArrayBuilder<BoundAssignmentOperator>.GetInstance(rewrittenArguments.Length);
             ArrayBuilder<RefKind> refKinds = ArrayBuilder<RefKind>.GetInstance(parameters.Length, RefKind.None);
@@ -455,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step one: Store everything that is non-trivial into a temporary; record the
             // stores in storesToTemps and make the actual argument a reference to the temp.
             // Do not yet attempt to deal with params arrays or optional arguments.
-            BuildStoresToTemps(expanded, argsToParamsOpt, argumentRefKindsOpt, rewrittenArguments, actualArguments, refKinds, storesToTemps);
+            BuildStoresToTemps(expanded, argsToParamsOpt, parameters, argumentRefKindsOpt, rewrittenArguments, actualArguments, refKinds, storesToTemps);
 
 
             // all the formal arguments, except missing optionals, are now in place. 
@@ -490,6 +492,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             refKinds.Free();
 
             return actualArguments.AsImmutableOrNull();
+        }
+
+        /// <summary>
+        /// Patch refKinds for arguments that match 'In' parameters to have effective RefKind.
+        /// For the purpose of further analysis we will mark the arguments as -
+        /// - In        if was originally passed as None
+        /// - StrictIn  if was originally passed as In
+        /// Here and in the layers after the lowering we only care about None/notNone differences for the arguments
+        /// Except for async stack spilling which needs to know whether arguments were originally passed as "In" and must obey "no copying" rule.
+        /// </summary>
+        private static ImmutableArray<RefKind> GetEffectiveArgumentRefKinds(ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<ParameterSymbol> parameters)
+        {
+            ArrayBuilder<RefKind> refKindsBuilder = null;
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                var paramRefKind = parameters[i].RefKind;
+                if (paramRefKind == RefKind.In)
+                {
+                    var argRefKind = argumentRefKindsOpt.IsDefault ? RefKind.None : argumentRefKindsOpt[i];
+
+                    if (refKindsBuilder == null)
+                    {
+                        if (!argumentRefKindsOpt.IsDefault)
+                        {
+                            Debug.Assert(!argumentRefKindsOpt.IsEmpty);
+                            refKindsBuilder = ArrayBuilder<RefKind>.GetInstance(parameters.Length);
+                            refKindsBuilder.AddRange(argumentRefKindsOpt);
+                        }
+                        else
+                        {
+                            refKindsBuilder = ArrayBuilder<RefKind>.GetInstance(parameters.Length, fillWithValue: RefKind.None);
+                        }
+                    }
+
+                    refKindsBuilder[i] = argRefKind == RefKind.None ? paramRefKind : RefKindExtensions.StrictIn;
+                }
+            }
+
+            if (refKindsBuilder != null)
+            {
+                argumentRefKindsOpt = refKindsBuilder.ToImmutableAndFree();
+            }
+
+            // NOTE: we may have more arguments than parameters in a case of arglist. That is ok.
+            Debug.Assert(argumentRefKindsOpt.IsDefault || argumentRefKindsOpt.Length >= parameters.Length);
+            return argumentRefKindsOpt;
         }
 
         internal static ImmutableArray<IArgument> MakeArgumentsInEvaluationOrder(
@@ -605,6 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void BuildStoresToTemps(
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
+            ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<RefKind> argumentRefKinds,
             ImmutableArray<BoundExpression> rewrittenArguments,
             /* out */ BoundExpression[] arguments,
@@ -618,7 +667,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundExpression argument = rewrittenArguments[a];
                 int p = (!argsToParamsOpt.IsDefault) ? argsToParamsOpt[a] : a;
-                RefKind refKind = argumentRefKinds.RefKinds(a);
+                RefKind argRefKind = argumentRefKinds.RefKinds(a);
+                RefKind paramRefKind = parameters[p].RefKind;
+
+                // Patch refKinds for arguments that match 'In' parameters to have effective RefKind
+                // For the purpose of further analysis we will mark the arguments as -
+                // - In        if was originally passed as None
+                // - StrictIn  if was originally passed as In
+                // Here and in the layers after the lowering we only care about None/notNone differences for the arguments
+                // Except for async stack spilling which needs to know whether arguments were originally passed as "In" and must obey "no copying" rule.
+                if (paramRefKind == RefKind.In)
+                {
+                    argRefKind = argRefKind == RefKind.None ? paramRefKind : RefKindExtensions.StrictIn;
+                }
+
                 Debug.Assert(arguments[p] == null);
 
                 // Unfortunately, we violate the specification and allow:
@@ -648,15 +710,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if (IsSafeForReordering(argument, refKind))
+                if (IsSafeForReordering(argument, argRefKind))
                 {
                     arguments[p] = argument;
-                    refKinds[p] = refKind;
+                    refKinds[p] = argRefKind;
                 }
                 else
                 {
                     BoundAssignmentOperator assignment;
-                    var temp = _factory.StoreToTemp(argument, out assignment, refKind: refKind);
+                    var temp = _factory.StoreToTemp(argument, out assignment, refKind: argRefKind);
                     storesToTemps.Add(assignment);
                     arguments[p] = temp;
                 }

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -48,14 +48,14 @@ class C
 {
     static void Main()
     {
-        /*<bind>*/(int, int) t = (1, 2)/*</bind>*/;
+        /*<bind>*/(int, int) t = (1, 2);/*</bind>*/
         Console.WriteLine(t);
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(int, int)  ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(int, int)  ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(int, int) t = (1, 2);')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (1, 2)')
     Variables: Local_1: (System.Int32, System.Int32) t
     Initializer: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
         Elements(2):
@@ -64,7 +64,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -109,14 +109,14 @@ class C
 {
     static void Main()
     {
-        /*<bind>*/(uint, uint) t = (1, 2)/*</bind>*/;
+        /*<bind>*/(uint, uint) t = (1, 2);/*</bind>*/
         Console.WriteLine(t);
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(uint, uint ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(uint, uint ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(uint, uint) t = (1, 2);')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (1, 2)')
     Variables: Local_1: (System.UInt32, System.UInt32) t
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.UInt32, System.UInt32)) (Syntax: '(1, 2)')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -131,7 +131,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -180,14 +180,14 @@ class C
     {
         int a = 1;
         int b = 2;
-        /*<bind>*/(long, long) t = (a, b)/*</bind>*/;
+        /*<bind>*/(long, long) t = (a, b);/*</bind>*/
         Console.WriteLine(t);
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(long, long ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(long, long ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(long, long) t = (a, b);')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (a, b)')
     Variables: Local_1: (System.Int64, System.Int64) t
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int64, System.Int64)) (Syntax: '(a, b)')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -202,7 +202,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -247,14 +247,14 @@ class C
 {
     static void Main()
     {
-        /*<bind>*/(uint, string) t = (1, null)/*</bind>*/;
+        /*<bind>*/(uint, string) t = (1, null);/*</bind>*/
         Console.WriteLine(t);
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(uint, stri ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(uint, stri ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(uint, stri ...  (1, null);')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (1, null)')
     Variables: Local_1: (System.UInt32, System.String) t
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.UInt32, System.String)) (Syntax: '(1, null)')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -269,7 +269,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -310,14 +310,14 @@ class C
 {
     static void Main()
     {
-        /*<bind>*/var t = (A: 1, B: 2)/*</bind>*/;
+        /*<bind>*/var t = (A: 1, B: 2);/*</bind>*/
         Console.WriteLine(t);
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var t = (A: ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'var t = (A: ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var t = (A: 1, B: 2);')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (A: 1, B: 2)')
     Variables: Local_1: (System.Int32 A, System.Int32 B) t
     Initializer: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 A, System.Int32 B)) (Syntax: '(A: 1, B: 2)')
         Elements(2):
@@ -326,7 +326,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -367,14 +367,14 @@ class C
 {
     static void Main()
     {
-        /*<bind>*/(int A, int B) t = (1, 2)/*</bind>*/;
+        /*<bind>*/(int A, int B) t = (1, 2);/*</bind>*/
         Console.WriteLine(t);
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(int A, int ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(int A, int ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(int A, int ... t = (1, 2);')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (1, 2)')
     Variables: Local_1: (System.Int32 A, System.Int32 B) t
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int32 A, System.Int32 B)) (Syntax: '(1, 2)')
         Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -385,7 +385,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -437,14 +437,14 @@ class C
 {
     static void Main()
     {
-        /*<bind>*/(short, string) t = (A: 1, B: null)/*</bind>*/;
+        /*<bind>*/(short, string) t = (A: 1, B: null);/*</bind>*/
         Console.WriteLine(t);
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(short, str ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(short, str ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(short, str ... , B: null);')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (A: 1, B: null)')
     Variables: Local_1: (System.Int16, System.String) t
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int16, System.String)) (Syntax: '(A: 1, B: null)')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -466,7 +466,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "B: null").WithArguments("B", "(short, string)").WithLocation(8, 46)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -559,14 +559,14 @@ class C
 
     public void M(C c1)
     {
-        /*<bind>*/(short, string) t = (new C(0), c1)/*</bind>*/;
+        /*<bind>*/(short, string) t = (new C(0), c1);/*</bind>*/
         Console.WriteLine(t);
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(short, str ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(short, str ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(short, str ...  C(0), c1);')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (new C(0), c1)')
     Variables: Local_1: (System.Int16, System.String) t
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int16, System.String)) (Syntax: '(new C(0), c1)')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -587,7 +587,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -662,14 +662,14 @@ class C
 
     public void M(C c1)
     {
-        /*<bind>*/C t = (0, null)/*</bind>*/;
+        /*<bind>*/C t = (0, null);/*</bind>*/
         Console.WriteLine(t);
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'C t = (0, n ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'C t = (0, n ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'C t = (0, null);')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = (0, null)')
     Variables: Local_1: C t
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: C C.op_Implicit((System.Int32, System.String) x)) (OperationKind.ConversionExpression, Type: C) (Syntax: '(0, null)')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C C.op_Implicit((System.Int32, System.String) x))
@@ -684,7 +684,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -754,14 +754,14 @@ class C
 
     public void M(C c1)
     {
-        /*<bind>*/(int, string) t = c1/*</bind>*/;
+        /*<bind>*/(int, string) t = c1;/*</bind>*/
         Console.WriteLine(t);
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(int, strin ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(int, strin ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(int, string) t = c1;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't = c1')
     Variables: Local_1: (System.Int32, System.String) t
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: (System.Int32, System.String) C.op_Implicit(C c)) (OperationKind.ConversionExpression, Type: (System.Int32, System.String)) (Syntax: 'c1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: (System.Int32, System.String) C.op_Implicit(C c))
@@ -769,7 +769,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -862,14 +862,14 @@ class C
 
     public void M(C c1)
     {
-        /*<bind>*/(short, string) t = (new C(0), c1)/*</bind>*/;
+        /*<bind>*/(short, string) t = (new C(0), c1);/*</bind>*/
         Console.WriteLine(t);
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: '(short, str ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: '(short, str ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: '(short, str ...  C(0), c1);')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 't = (new C(0), c1)')
     Variables: Local_1: (System.Int16, System.String) t
     Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.Int16, System.String), IsInvalid) (Syntax: '(new C(0), c1)')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -890,7 +890,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "new C(0)").WithArguments("C", "short").WithLocation(29, 40)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -990,7 +990,7 @@ IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 
   LoopControlVariable: IOperation:  (OperationKind.None) (Syntax: 'var (x, y)')
   Collection: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'new Point[] ... int(0, 1) }')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand: IArrayCreationExpression (Element Type: Point) (OperationKind.ArrayCreationExpression, Type: Point[]) (Syntax: 'new Point[] ... int(0, 1) }')
+      Operand: IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: Point[]) (Syntax: 'new Point[] ... int(0, 1) }')
           Dimension Sizes(1):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'new Point[] ... int(0, 1) }')
           Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{ new Point(0, 1) }')
