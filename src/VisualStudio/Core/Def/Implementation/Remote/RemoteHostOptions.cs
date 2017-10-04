@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         // use 64bit OOP
         public static readonly Option<bool> OOP64Bit = new Option<bool>(
-            nameof(InternalFeatureOnOffOptions), nameof(OOP64Bit), defaultValue: false,
+            nameof(InternalFeatureOnOffOptions), nameof(OOP64Bit), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(OOP64Bit)));
 
         public static readonly Option<bool> RemoteHostTest = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(RemoteHostTest), defaultValue: false);
