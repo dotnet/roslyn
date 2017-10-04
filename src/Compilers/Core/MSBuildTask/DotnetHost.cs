@@ -32,16 +32,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             var pathToToolOpt = Utilities.GenerateFullPathToTool(toolName);
             // Desktop executes tool directly, only prepend if we're on CLI
-            if (IsCliHost(out string pathToDotnet))
+            if (pathToToolOpt != null && IsCliHost(out string pathToDotnet))
             {
-                if (pathToToolOpt != null)
-                {
-                    commandLineArgs = PrependFileToArgs(pathToToolOpt, commandLineArgs);
-                    pathToToolOpt = pathToDotnet;
-                }
+                commandLineArgs = PrependFileToArgs(pathToToolOpt, commandLineArgs);
+                pathToToolOpt = pathToDotnet;
             }
 
-            return new DotnetHost(toolName, pathToToolOpt, commandLineArgs, isManagedTool: true);
+            return new DotnetHost(pathToToolOpt, commandLineArgs, isManagedTool: true);
         }
 
         private static bool IsCliHost(out string pathToDotnet)

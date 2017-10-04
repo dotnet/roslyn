@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.IO;
 using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -201,7 +202,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     {
                         // Explicitly provided ToolPath or ToolExe, don't try to
                         // figure anything out
-                        _dotnetHostInfo = DotnetHost.CreateNativeToolInvocation(ToolName, Path.Combine(ToolPath, ToolExe), commandLine);
+                        _dotnetHostInfo = DotnetHost.CreateNativeToolInvocation(Path.Combine(ToolPath, ToolExe), commandLine);
                     }
                 }
                 return _dotnetHostInfo;
