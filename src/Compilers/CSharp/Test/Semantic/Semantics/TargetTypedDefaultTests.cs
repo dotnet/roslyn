@@ -2630,5 +2630,20 @@ class C
                 Diagnostic(ErrorCode.ERR_BadSKknown, "System").WithArguments("System", "namespace", "type").WithLocation(6, 17)
                 );
         }
+
+        [Fact]
+        public void DefaultNullableParameter()
+        {
+            var text = @"
+class C
+{
+    static void Main() => A();
+
+    static void A(int? x = default) => System.Console.WriteLine(x?.ToString() ?? ""null"");
+}";
+            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "null");
+        }
     }
 }
