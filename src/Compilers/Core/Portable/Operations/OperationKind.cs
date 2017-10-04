@@ -64,6 +64,8 @@ namespace Microsoft.CodeAnalysis
         // https://github.com/dotnet/roslyn/issues/22005
         // /// <summary>Indicates an <see cref="IWithStatement"/>.</summary>
         // WithStatement = 0x52,
+        /// <summary>Indicates an <see cref="IRaiseEventStatement"/>.</summary>
+        RaiseEventStatement = 0x53,
 
         // Expressions
 
@@ -176,8 +178,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>Indicates an <see cref="IOmittedArgumentExpression"/>.</summary>
         OmittedArgumentExpression = 0x300,
-        /// <summary>Indicates an <see cref="IRaiseEventExpression"/>.</summary>
-        RaiseEventExpression = 0x301,
+
+        // Unused 0x301
         
         // https://github.com/dotnet/roslyn/issues/21294
         // /// <summary>Indicates an <see cref="IPlaceholderExpression"/>.</summary>

@@ -2546,7 +2546,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# or VB method invocation.
     /// </summary>
-    internal abstract partial class BaseInvocationExpression : Operation, IHasArgumentsExpression, IInvocationExpression
+    internal abstract partial class BaseInvocationExpression : Operation, IHasArguments, IInvocationExpression
     {
         protected BaseInvocationExpression(IMethodSymbol targetMethod, bool isVirtual, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.InvocationExpression, semanticModel, syntax, type, constantValue, isImplicit)
@@ -2600,7 +2600,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# or VB method invocation.
     /// </summary>
-    internal sealed partial class InvocationExpression : BaseInvocationExpression, IHasArgumentsExpression, IInvocationExpression
+    internal sealed partial class InvocationExpression : BaseInvocationExpression, IHasArguments, IInvocationExpression
     {
         public InvocationExpression(IMethodSymbol targetMethod, IOperation instance, bool isVirtual, ImmutableArray<IArgument> argumentsInEvaluationOrder, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
@@ -2616,7 +2616,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# or VB method invocation.
     /// </summary>
-    internal sealed partial class LazyInvocationExpression : BaseInvocationExpression, IHasArgumentsExpression, IInvocationExpression
+    internal sealed partial class LazyInvocationExpression : BaseInvocationExpression, IHasArguments, IInvocationExpression
     {
         private readonly Lazy<IOperation> _lazyInstance;
         private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInEvaluationOrder;
@@ -2633,12 +2633,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a VB raise event expression.
+    /// Represents a VB raise event statement.
     /// </summary>
-    internal abstract partial class BaseRaiseEventExpression : Operation, IHasArgumentsExpression, IRaiseEventExpression
+    internal abstract partial class BaseRaiseEventStatement : Operation, IHasArguments, IRaiseEventStatement
     {
-        protected BaseRaiseEventExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-                    base(OperationKind.RaiseEventExpression, semanticModel, syntax, type, constantValue, isImplicit)
+        protected BaseRaiseEventStatement(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+                    base(OperationKind.RaiseEventStatement, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -2665,20 +2665,20 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitRaiseEventExpression(this);
+            visitor.VisitRaiseEventStatement(this);
         }
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitRaiseEventExpression(this, argument);
+            return visitor.VisitRaiseEventStatement(this, argument);
         }
     }
 
     /// <summary>
-    /// Represents a VB raise event expression.
+    /// Represents a VB raise event statement.
     /// </summary>
-    internal sealed partial class RaiseEventExpression : BaseRaiseEventExpression, IHasArgumentsExpression, IRaiseEventExpression
+    internal sealed partial class RaiseEventStatement : BaseRaiseEventStatement, IHasArguments, IRaiseEventStatement
     {
-        public RaiseEventExpression(IEventReferenceExpression eventReference, ImmutableArray<IArgument> argumentsInEvaluationOrder, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : 
+        public RaiseEventStatement(IEventReferenceExpression eventReference, ImmutableArray<IArgument> argumentsInEvaluationOrder, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : 
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             EventReferenceImpl = eventReference;
@@ -2691,14 +2691,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents a VB raise event expression.
+    /// Represents a VB raise event statement.
     /// </summary>
-    internal sealed partial class LazyRaiseEventExpression : BaseRaiseEventExpression, IHasArgumentsExpression, IRaiseEventExpression
+    internal sealed partial class LazyRaiseEventStatement : BaseRaiseEventStatement, IHasArguments, IRaiseEventStatement
     {
         private readonly Lazy<IEventReferenceExpression> _lazyEventReference;
         private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInEvaluationOrder;
 
-        public LazyRaiseEventExpression(Lazy<IEventReferenceExpression> eventReference, Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : 
+        public LazyRaiseEventStatement(Lazy<IEventReferenceExpression> eventReference, Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : 
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyEventReference = eventReference;
@@ -3302,7 +3302,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a new/New expression.
     /// </summary>
-    internal abstract partial class BaseObjectCreationExpression : Operation, IHasArgumentsExpression, IObjectCreationExpression
+    internal abstract partial class BaseObjectCreationExpression : Operation, IHasArguments, IObjectCreationExpression
     {
         protected BaseObjectCreationExpression(IMethodSymbol constructor, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.ObjectCreationExpression, semanticModel, syntax, type, constantValue, isImplicit)
@@ -3351,7 +3351,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a new/New expression.
     /// </summary>
-    internal sealed partial class ObjectCreationExpression : BaseObjectCreationExpression, IHasArgumentsExpression, IObjectCreationExpression
+    internal sealed partial class ObjectCreationExpression : BaseObjectCreationExpression, IHasArguments, IObjectCreationExpression
     {
         public ObjectCreationExpression(IMethodSymbol constructor, IObjectOrCollectionInitializerExpression initializer, ImmutableArray<IArgument> argumentsInEvaluationOrder, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(constructor, semanticModel, syntax, type, constantValue, isImplicit)
@@ -3367,7 +3367,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a new/New expression.
     /// </summary>
-    internal sealed partial class LazyObjectCreationExpression : BaseObjectCreationExpression, IHasArgumentsExpression, IObjectCreationExpression
+    internal sealed partial class LazyObjectCreationExpression : BaseObjectCreationExpression, IHasArguments, IObjectCreationExpression
     {
         private readonly Lazy<IObjectOrCollectionInitializerExpression> _lazyInitializer;
         private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInEvaluationOrder;
@@ -3782,7 +3782,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a property.
     /// </summary>
-    internal abstract partial class BasePropertyReferenceExpression : MemberReferenceExpression, IPropertyReferenceExpression, IHasArgumentsExpression
+    internal abstract partial class BasePropertyReferenceExpression : MemberReferenceExpression, IPropertyReferenceExpression, IHasArguments
     {
         protected BasePropertyReferenceExpression(IPropertySymbol property, ISymbol member, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(member, OperationKind.PropertyReferenceExpression, semanticModel, syntax, type, constantValue, isImplicit)
@@ -3827,7 +3827,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a property.
     /// </summary>
-    internal sealed partial class PropertyReferenceExpression : BasePropertyReferenceExpression, IPropertyReferenceExpression, IHasArgumentsExpression
+    internal sealed partial class PropertyReferenceExpression : BasePropertyReferenceExpression, IPropertyReferenceExpression, IHasArguments
     {
         public PropertyReferenceExpression(IPropertySymbol property, IOperation instance, ISymbol member, ImmutableArray<IArgument> argumentsInEvaluationOrder, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(property, member, semanticModel, syntax, type, constantValue, isImplicit)
@@ -3851,7 +3851,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a property.
     /// </summary>
-    internal sealed partial class LazyPropertyReferenceExpression : BasePropertyReferenceExpression, IPropertyReferenceExpression, IHasArgumentsExpression
+    internal sealed partial class LazyPropertyReferenceExpression : BasePropertyReferenceExpression, IPropertyReferenceExpression, IHasArguments
     {
         private readonly Lazy<IOperation> _lazyInstance;
         private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInEvaluationOrder;

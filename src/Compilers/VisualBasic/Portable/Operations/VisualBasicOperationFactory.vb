@@ -1317,13 +1317,57 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyExpressionStatement(expression, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function CreateBoundRaiseEventStatementOperation(boundRaiseEventStatement As BoundRaiseEventStatement) As IExpressionStatement
-            Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() GetRaiseEventExpression(boundRaiseEventStatement))
+        Private Function CreateBoundRaiseEventStatementOperation(boundRaiseEventStatement As BoundRaiseEventStatement) As IOperation
             Dim syntax As SyntaxNode = boundRaiseEventStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundRaiseEventStatement.WasCompilerGenerated
-            Return New LazyExpressionStatement(expression, _semanticModel, syntax, type, constantValue, isImplicit)
+
+            Dim eventInvocation = TryCast(boundRaiseEventStatement.EventInvocation, BoundCall)
+
+            ' Return an invalid statement for invalid raise event statement
+            If eventInvocation Is Nothing OrElse eventInvocation.ReceiverOpt Is Nothing
+                Debug.Assert(boundRaiseEventStatement.HasErrors)
+                Dim children As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() ImmutableArray.Create(Of IOperation)(Create(boundRaiseEventStatement.EventInvocation)))
+                return New LazyInvalidStatement(children, _semanticModel, syntax, type, constantValue, isImplicit)
+            End If 
+            
+            Dim receiver = eventInvocation.ReceiverOpt
+            Dim eventSymbol = boundRaiseEventStatement.EventSymbol
+            Dim eventReferenceSyntax = receiver.Syntax
+            Dim eventReferenceType As ITypeSymbol = eventSymbol.Type
+            Dim eventReferenceConstantValue As [Optional](Of Object) = ConvertToOptional(receiver.ConstantValueOpt)
+            dim eventReferenceIsImplicit as Boolean = eventInvocation.WasCompilerGenerated
+            
+            Dim boundInstance As BoundNode
+            If receiver.Kind = BoundKind.FieldAccess
+                Dim eventFieldAccess = CType(eventInvocation.ReceiverOpt, BoundFieldAccess)
+                Debug.Assert(eventFieldAccess.FieldSymbol.AssociatedSymbol = eventSymbol)
+
+                boundInstance = eventFieldAccess.ReceiverOpt
+            Else 
+                boundInstance = receiver
+            End If
+
+            Dim eventReferenceInstance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() If(eventSymbol.IsShared, Nothing, Create(boundInstance)))
+            
+            Dim EventReference As Lazy(Of IEventReferenceExpression) = New Lazy(Of IEventReferenceExpression)(Function() As IEventReferenceExpression
+                                                                                                                  Return New LazyEventReferenceExpression(eventSymbol, 
+                                                                                                                                                          eventReferenceInstance, 
+                                                                                                                                                          eventSymbol, 
+                                                                                                                                                          _semanticModel, 
+                                                                                                                                                          eventReferenceSyntax, 
+                                                                                                                                                          eventReferenceType, 
+                                                                                                                                                          eventReferenceConstantValue, 
+                                                                                                                                                          eventReferenceIsImplicit)
+                                                                                                              End Function)
+
+            Dim argumentsInEvaluationOrder As Lazy(Of ImmutableArray(Of IArgument)) = New Lazy(Of ImmutableArray(Of IArgument))(
+                Function()
+                    Return DeriveArguments(eventInvocation.Arguments, eventInvocation.Method.Parameters)
+                End Function)
+
+            Return New LazyRaiseEventStatement(eventReference, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundAddHandlerStatementOperation(boundAddHandlerStatement As BoundAddHandlerStatement) As IExpressionStatement

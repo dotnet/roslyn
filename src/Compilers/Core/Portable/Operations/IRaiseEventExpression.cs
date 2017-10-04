@@ -3,13 +3,13 @@
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a raise event expression.
+    /// Represents a raise event statement.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IRaiseEventExpression : IHasArgumentsExpression
+    public interface IRaiseEventStatement : IHasArguments
     {     
         /// <summary>
         /// Reference to the event to be raised.

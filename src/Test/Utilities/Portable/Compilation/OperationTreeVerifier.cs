@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArguments(operation);
         }
 
-        private void VisitArguments(IHasArgumentsExpression operation)
+        private void VisitArguments(IHasArguments operation)
         {
             VisitArray(operation.ArgumentsInEvaluationOrder, "Arguments", logElementCount: true);
         }
@@ -1441,9 +1441,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Expression, "Expression");
         }
 
-        public override void VisitRaiseEventExpression(IRaiseEventExpression operation)
+        public override void VisitRaiseEventStatement(IRaiseEventStatement operation)
         {
-            LogString(nameof(IRaiseEventExpression));
+            LogString(nameof(IRaiseEventStatement));
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.EventReference, header: "Event Reference");

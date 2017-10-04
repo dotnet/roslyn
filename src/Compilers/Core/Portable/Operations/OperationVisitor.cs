@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
         
-        public virtual void VisitRaiseEventExpression(IRaiseEventExpression operation)
+        public virtual void VisitRaiseEventStatement(IRaiseEventStatement operation)
         {
             DefaultVisit(operation);
         }
@@ -980,7 +980,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
         
-        public virtual TResult VisitRaiseEventExpression(IRaiseEventExpression operation, TArgument argument)
+        public virtual TResult VisitRaiseEventStatement(IRaiseEventStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument); 
         }
