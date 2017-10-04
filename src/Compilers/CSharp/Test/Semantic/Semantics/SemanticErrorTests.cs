@@ -5334,6 +5334,29 @@ class Program
         }
 
         [Fact]
+        public void CS7104WRN_FilterIsConstantFalse3()
+        {
+            var text = @"
+using System;
+class A : Exception { }
+
+class Program
+{
+    static void M()
+    {
+        try { }
+        catch (A) when (false) { }
+        finally { }
+    }
+}
+";
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (11,25): warning CS7104: Filter expression is a constant 'false', consider removing the catch clause
+                //         catch (A) when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(10, 25));
+        }
+
+        [Fact]
         public void CS7105WRN_FilterIsConstantRedundantTryCatch1()
         {
             var text = @"

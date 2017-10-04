@@ -2650,7 +2650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we suggest different actions
                 var errorCode = boundFilter.ConstantValue.BooleanValue
                     ? ErrorCode.WRN_FilterIsConstantTrue
-                    : (filter.Parent.Parent as TryStatementSyntax).Catches.Count == 1
+                    : ((filter.Parent.Parent as TryStatementSyntax).Catches.Count == 1) && ((filter.Parent.Parent as TryStatementSyntax).Finally != null)
                         ? ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch
                         : ErrorCode.WRN_FilterIsConstantFalse;
 
