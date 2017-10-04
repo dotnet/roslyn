@@ -2,7 +2,7 @@
 
 # Crashes
 
-Log crash dumps and attach them to your feedback issue
+If you have a set of steps that reproduces the crash every time, then just reporting those steps should be sufficient. If you're not sure what's causing your crashes, then you can capture dumps locally each time Visual Studio crashes and then attach those to feedback items.
 
 ```
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\devenv.exe]
