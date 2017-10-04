@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             IsManagedTool = isManagedTool;
         }
 
-        public static DotnetHost CreateUnmanagedToolInvocation(string pathToTool, string commandLineArgs)
+        public static DotnetHost CreateNativeToolInvocation(string pathToTool, string commandLineArgs)
         {
             return new DotnetHost(pathToTool, commandLineArgs, isManagedTool: false);
         }

@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     {
                         // Explicitly provided ToolPath or ToolExe, don't try to
                         // figure anything out
-                        _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolName, Path.Combine(ToolPath, ToolExe), commandLine);
+                        _dotnetHostInfo = DotnetHost.CreateNativeToolInvocation(ToolName, Path.Combine(ToolPath, ToolExe), commandLine);
                     }
                 }
                 return _dotnetHostInfo;
