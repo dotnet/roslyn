@@ -871,6 +871,36 @@ class Test
         }
 
         [Fact]
+        public void ObsoleteHasErrorEqualsTrue()
+        {
+            var text = @"public ref struct S {}";
+
+            CompileAndVerify(text, verify: false, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("S");
+                Assert.True(type.IsByRefLikeType);
+
+                var attributes = type.GetAttributes();
+
+                Assert.Equal(2, attributes.Length);
+
+                var attributeType = attributes[0].AttributeClass;
+                Assert.Equal("System.Runtime.CompilerServices.IsByRefLikeAttribute", attributeType.ToDisplayString());
+                var assemblyName = module.ContainingAssembly.Name;
+                Assert.Equal(assemblyName, attributeType.ContainingAssembly.Name);
+                var accessibility = Accessibility.Internal;
+                Assert.Equal(accessibility, attributeType.DeclaredAccessibility);
+
+                var attribute = attributes[1];
+                Assert.Equal("System.ObsoleteAttribute", attribute.AttributeClass.ToDisplayString());
+                TypedConstant[] constructorArguments = attribute.ConstructorArguments.ToArray();
+                Assert.Equal(2, constructorArguments.Length);
+                Assert.Equal("Types with embedded references are not supported in this version of your compiler.", constructorArguments[0].Value);
+                Assert.Equal(true, constructorArguments[1].Value);
+            });
+        }
+
+        [Fact]
         public void ObsoleteInWrongPlaces()
         {
 
@@ -1032,7 +1062,7 @@ namespace System
                 var attribute = attributes[1];
                 Assert.Equal("System.ObsoleteAttribute", attribute.AttributeClass.ToDisplayString());
                 Assert.Equal("Types with embedded references are not supported in this version of your compiler.", attribute.ConstructorArguments.ElementAt(0).Value);
-                Assert.Equal(false, attribute.ConstructorArguments.ElementAt(1).Value);
+                Assert.Equal(true, attribute.ConstructorArguments.ElementAt(1).Value); // error=true
             }
         }
 
