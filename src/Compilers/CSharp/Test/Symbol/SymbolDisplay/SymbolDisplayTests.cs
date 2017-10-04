@@ -4802,6 +4802,8 @@ class C
 
             public INamedTypeSymbol TupleUnderlyingType => wrappedTuple.TupleUnderlyingType;
 
+            public bool IsByRefLikeType => wrappedTuple.IsByRefLikeType;
+
             public ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat format = null)
             {
                 return SymbolDisplay.ToDisplayParts(this, format);

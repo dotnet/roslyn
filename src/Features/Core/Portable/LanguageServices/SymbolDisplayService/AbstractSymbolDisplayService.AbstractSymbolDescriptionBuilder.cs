@@ -198,7 +198,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             {
                 if (symbol.GetAttributes().Any(x => x.AttributeClass.MetadataName == "ObsoleteAttribute"))
                 {
-                    AddDeprecatedPrefix();
+                    var typeSymbol = symbol as ITypeSymbol;
+                    if (typeSymbol == null || !typeSymbol.IsByRefLikeType)
+                    {
+                        AddDeprecatedPrefix();
+                    }
                 }
 
                 if (symbol is IDynamicTypeSymbol)

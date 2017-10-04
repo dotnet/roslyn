@@ -528,6 +528,12 @@ Done:
             End Get
         End Property
 
+        Private ReadOnly Property ITypeSymbol_IsByRefLikeType As Boolean Implements ITypeSymbol.IsByRefLikeType
+            Get
+                Return False
+            End Get
+        End Property
+
 #End Region
 
 #Region "Interface checks"
