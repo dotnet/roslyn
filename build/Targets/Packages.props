@@ -69,8 +69,8 @@
     <MicrosoftVisualStudioComponentModelHostVersion>15.0.26730-alpha</MicrosoftVisualStudioComponentModelHostVersion>
     <MicrosoftVisualStudioCompositionVersion>15.0.71</MicrosoftVisualStudioCompositionVersion>
     <MicrosoftVisualStudioCoreUtilityVersion>15.0.26730-alpha</MicrosoftVisualStudioCoreUtilityVersion>
-    <MicrosoftVisualStudioDebuggerEngineVersion>15.0.26725-gamma</MicrosoftVisualStudioDebuggerEngineVersion>
-    <MicrosoftVisualStudioDebuggerMetadataVersion>15.0.26725-gamma</MicrosoftVisualStudioDebuggerMetadataVersion>
+    <MicrosoftVisualStudioDebuggerEngineVersion>15.0.26811-vsucorediag</MicrosoftVisualStudioDebuggerEngineVersion>
+    <MicrosoftVisualStudioDebuggerMetadataVersion>15.0.26811-vsucorediag</MicrosoftVisualStudioDebuggerMetadataVersion>
     <MicrosoftVisualStudioDebuggerInterop100Version>10.0.30319</MicrosoftVisualStudioDebuggerInterop100Version>
     <MicrosoftVisualStudioDesignerInterfacesVersion>1.1.4322</MicrosoftVisualStudioDesignerInterfacesVersion>
     <MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>15.0.26730-alpha</MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>
