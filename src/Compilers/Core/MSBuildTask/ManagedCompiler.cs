@@ -440,13 +440,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                         if (ToolExe != _dotnetHostInfo.ToolNameOpt)
                         {
-                            _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolPath, commandLine);
+                            _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolNameWithoutExtension, ToolPath, commandLine);
                         }
                     }
                     else
                     {
                         // Explicitly provided ToolPath, don't try to figure anything out
-                        _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolPath, commandLine);
+                        _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolNameWithoutExtension, ToolPath, commandLine);
                     }
                 }
                 return _dotnetHostInfo;

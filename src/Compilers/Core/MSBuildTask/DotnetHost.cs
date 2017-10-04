@@ -19,9 +19,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             CommandLineArgs = commandLineArgs;
         }
 
-        public static DotnetHost CreateUnmanagedToolInvocation(string pathToTool, string commandLineArgs)
+        public static DotnetHost CreateUnmanagedToolInvocation(string toolNameWithoutExtension, string pathToTool, string commandLineArgs)
         {
-            return new DotnetHost(null, pathToTool, commandLineArgs);
+            string toolName;
+            if (CoreClrShim.IsRunningOnCoreClr)
+            {
+                // Almost certainly will not work, but compute it anyway for consistency.
+                toolName = $"{toolNameWithoutExtension}.dll";
+            }
+            else
+            {
+                toolName = $"{toolNameWithoutExtension}.exe";
+            }
+            return new DotnetHost(toolName, pathToTool, commandLineArgs);
         }
 
         public static DotnetHost CreateManagedToolInvocation(string toolNameWithoutExtension, string commandLineArgs)
