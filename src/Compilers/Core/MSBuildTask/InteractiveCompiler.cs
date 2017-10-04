@@ -190,20 +190,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     AddCommandLineCommands(commandLineBuilder);
                     var commandLine = commandLineBuilder.ToString();
 
-                    if (string.IsNullOrEmpty(ToolPath))
+                    // ToolExe delegates back to ToolName if the override is not
+                    // set.  So, if ToolExe != ToolName, we know ToolExe is
+                    // explicitly overriden - so use it as a native invocation.
+                    if (string.IsNullOrEmpty(ToolPath) || ToolExe == ToolName)
                     {
-                        _dotnetHostInfo = DotnetHost.CreateManagedToolInvocation(ToolNameWithoutExtension, commandLine);
-
-                        // See comment in ManagedCompiler.cs on why this if statement is here.
-                        if (ToolExe != _dotnetHostInfo.ToolNameOpt)
-                        {
-                            _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolPath, commandLine);
-                        }
+                        _dotnetHostInfo = DotnetHost.CreateManagedToolInvocation(ToolName, commandLine);
                     }
                     else
                     {
-                        // Explicitly provided ToolPath, don't try to figure anything out
-                        _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolPath, commandLine);
+                        // Explicitly provided ToolPath or ToolExe, don't try to
+                        // figure anything out
+                        _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolName, Path.Combine(ToolPath, ToolExe), commandLine);
                     }
                 }
                 return _dotnetHostInfo;
@@ -214,7 +212,20 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected abstract string ToolNameWithoutExtension { get; }
 
-        protected sealed override string ToolName => DotnetHostInfo.ToolNameOpt;
+        protected sealed override string ToolName
+        {
+            get
+            {
+                if (CoreClrShim.IsRunningOnCoreClr)
+                {
+                    return $"{ToolNameWithoutExtension}.dll";
+                }
+                else
+                {
+                    return $"{ToolNameWithoutExtension}.exe";
+                }
+            }
+        }
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {

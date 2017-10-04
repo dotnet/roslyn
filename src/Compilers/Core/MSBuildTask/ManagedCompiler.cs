@@ -421,32 +421,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     var commandLine = commandLineBuilder.ToString();
 
                     // ToolExe delegates back to ToolName if the override is not
-                    // set.
-                    // So, we can't check if it's unset, as that will recur
-                    // and stackoverflow.
-                    // However, checking only ToolPath is inadequate, as some
-                    // callers only set ToolExe, and not ToolPath (e.g. CLI).
-                    // So, do the check after _dotnetHostInfo is assigned, and
-                    // if ToolExe routes back here and returns
-                    // _dotnetHostInfo.ToolName, we know that ToolExe is unset.
-                    // So, if it does *not* return such, we know ToolExe is
-                    // explicitly overriden - so swap out the DotnetHost with
-                    // the passthrough implementation, as otherwise the command
-                    // line would be incorrect (it would have csc.dll in the
-                    // arguments).
-                    if (string.IsNullOrEmpty(ToolPath))
+                    // set.  So, if ToolExe != ToolName, we know ToolExe is
+                    // explicitly overriden - so use it as a native invocation.
+                    if (string.IsNullOrEmpty(ToolPath) || ToolExe == ToolName)
                     {
-                        _dotnetHostInfo = DotnetHost.CreateManagedToolInvocation(ToolNameWithoutExtension, commandLine);
-
-                        if (ToolExe != _dotnetHostInfo.ToolNameOpt)
-                        {
-                            _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolExe, commandLine);
-                        }
+                        _dotnetHostInfo = DotnetHost.CreateManagedToolInvocation(ToolName, commandLine);
                     }
                     else
                     {
-                        // Explicitly provided ToolPath, don't try to figure anything out
-                        _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(Path.Combine(ToolPath, ToolExe), commandLine);
+                        // Explicitly provided ToolPath or ToolExe, don't try to
+                        // figure anything out
+                        _dotnetHostInfo = DotnetHost.CreateUnmanagedToolInvocation(ToolName, Path.Combine(ToolPath, ToolExe), commandLine);
                     }
                 }
                 return _dotnetHostInfo;
@@ -455,7 +440,20 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected abstract string ToolNameWithoutExtension { get; }
 
-        protected sealed override string ToolName => DotnetHostInfo.ToolNameOpt;
+        protected sealed override string ToolName
+        {
+            get
+            {
+                if (CoreClrShim.IsRunningOnCoreClr)
+                {
+                    return $"{ToolNameWithoutExtension}.dll";
+                }
+                else
+                {
+                    return $"{ToolNameWithoutExtension}.exe";
+                }
+            }
+        }
 
         /// <summary>
         /// Return the path to the tool to execute.
