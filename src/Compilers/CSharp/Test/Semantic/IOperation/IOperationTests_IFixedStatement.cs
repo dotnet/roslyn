@@ -330,9 +330,7 @@ IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'fixed (int* ... }')
                   Operand: 
                     IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32**, IsInvalid) (Syntax: '&p1')
                       Reference: 
-                        IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32*, IsInvalid, IsImplicit) (Syntax: 'p1')
-                          Children(1):
-                              ILocalReferenceExpression: p1 (OperationKind.LocalReferenceExpression, Type: System.Int32*, IsInvalid) (Syntax: 'p1')
+                        ILocalReferenceExpression: p1 (OperationKind.LocalReferenceExpression, Type: System.Int32*, IsInvalid) (Syntax: 'p1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(15,22): error CS0266: Cannot implicitly convert type 'int**' to 'int'. An explicit conversion exists (are you missing a cast?)

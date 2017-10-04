@@ -308,7 +308,7 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.In
   Dimension Sizes(1):
       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsImplicit) (Syntax: 'x(0)')
         Left: 
-          IArrayElementReferenceExpression (OperationKind.None) (Syntax: 'x(0)')
+          IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.Int32) (Syntax: 'x(0)')
             Array reference: 
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32()) (Syntax: 'x')
             Indices(1):
@@ -625,7 +625,7 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.In
   Dimension Sizes(2):
       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsImplicit) (Syntax: 'x(0)')
         Left: 
-          IArrayElementReferenceExpression (OperationKind.None) (Syntax: 'x(0)')
+          IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.Int32) (Syntax: 'x(0)')
             Array reference: 
               IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32()) (Syntax: 'x')
             Indices(1):
@@ -634,7 +634,7 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.In
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'x(0)')
       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsImplicit) (Syntax: 'x(1)')
         Left: 
-          IArrayElementReferenceExpression (OperationKind.None) (Syntax: 'x(1)')
+          IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.Int32) (Syntax: 'x(1)')
             Array reference: 
               IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32()) (Syntax: 'x')
             Indices(1):

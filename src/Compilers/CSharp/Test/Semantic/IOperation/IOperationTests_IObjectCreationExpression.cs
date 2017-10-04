@@ -417,7 +417,7 @@ IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreation
                 Initializers(2):
                     ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '[0] = 1')
                       Left: 
-                        IArrayElementReferenceExpression (OperationKind.None) (Syntax: '[0]')
+                        IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.Int32) (Syntax: '[0]')
                           Array reference: 
                             IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: System.Int32[], IsImplicit) (Syntax: 'a')
                           Indices(1):
@@ -426,7 +426,7 @@ IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreation
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                     ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '[1] = 2')
                       Left: 
-                        IArrayElementReferenceExpression (OperationKind.None) (Syntax: '[1]')
+                        IArrayElementReferenceExpression (OperationKind.ArrayElementReferenceExpression, Type: System.Int32) (Syntax: '[1]')
                           Array reference: 
                             IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: System.Int32[], IsImplicit) (Syntax: 'a')
                           Indices(1):

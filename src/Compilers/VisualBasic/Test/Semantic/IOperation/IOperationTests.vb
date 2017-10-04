@@ -674,7 +674,13 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ICatchClause (Exception type: System.Exception, Exception local: ex As System.Exception) (OperationKind.None) (Syntax: 'Catch ex As ...  Is Nothing')
+ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'Catch ex As ...  Is Nothing')
+  Locals: Local_1: ex As System.Exception
+  ExceptionDeclarationOrExpression: 
+    IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'ex')
+      Variables: Local_1: ex As System.Exception
+      Initializer: 
+        null
   Filter: 
     IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'ex Is Nothing')
       Left: 
