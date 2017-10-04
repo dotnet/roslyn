@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     public enum PdbValidationOptions
     {
         Default = 0,
+        SkipConversionValidation = 1,
         ExcludeDocuments = PdbToXmlOptions.ExcludeDocuments,
         ExcludeMethods = PdbToXmlOptions.ExcludeMethods,
         ExcludeSequencePoints = PdbToXmlOptions.ExcludeSequencePoints,

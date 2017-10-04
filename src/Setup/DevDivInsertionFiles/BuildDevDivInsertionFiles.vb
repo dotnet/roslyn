@@ -326,6 +326,7 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll",
         "Microsoft.CodeAnalysis.Workspaces.dll",
         "Microsoft.DiaSymReader.dll",
+        "Microsoft.DiaSymReader.Converter.dll",
         "Microsoft.DiaSymReader.Converter.Xml.dll",
         "Microsoft.DiaSymReader.Native.amd64.dll",
         "Microsoft.DiaSymReader.Native.x86.dll",

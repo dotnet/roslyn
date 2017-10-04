@@ -437,7 +437,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.SkipConversionValidation) ' TODO: https://github.com/dotnet/roslyn/issues/18004
         End Sub
 
         <Fact()>
@@ -4255,7 +4255,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.SkipConversionValidation) ' TODO: https://github.com/dotnet/roslyn/issues/18004
         End Sub
 
         <WorkItem(876518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876518")>
@@ -4549,7 +4549,7 @@ End Class"
             </asyncInfo>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.SkipConversionValidation) ' TODO: ResumableLocals conversion (https://github.com/dotnet/symreader-converter/issues/80)
         End Sub
 
         <Fact>
@@ -4602,7 +4602,7 @@ End Class"
             </asyncInfo>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.SkipConversionValidation) ' TODO: ResumableLocals conversion (https://github.com/dotnet/symreader-converter/issues/80)
         End Sub
 
     End Class

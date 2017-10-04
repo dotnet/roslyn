@@ -284,7 +284,7 @@ public class C
       </scope>
     </method>
   </methods>
-</symbols>", format: DebugInformationFormat.Pdb);
+</symbols>", format: DebugInformationFormat.Pdb, options: PdbValidationOptions.SkipConversionValidation);
 
             var release = CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseWinMD);
             release.VerifyPdb(@"
@@ -316,7 +316,7 @@ public class C
       </scope>
     </method>
   </methods>
-</symbols>", format: DebugInformationFormat.Pdb);
+</symbols>", format: DebugInformationFormat.Pdb, options: PdbValidationOptions.SkipConversionValidation);
         }
 
         [Fact, WorkItem(1067635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067635")]
@@ -354,7 +354,7 @@ public class C
       </scope>
     </method>
   </methods>
-</symbols>", format: DebugInformationFormat.Pdb);
+</symbols>", format: DebugInformationFormat.Pdb, options: PdbValidationOptions.SkipConversionValidation);
 
             var release = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseWinMD);
             release.VerifyPdb(
@@ -374,7 +374,7 @@ public class C
       </sequencePoints>
     </method>
   </methods>
-</symbols>", format: DebugInformationFormat.Pdb);
+</symbols>", format: DebugInformationFormat.Pdb, options: PdbValidationOptions.SkipConversionValidation);
         }
 
         [Fact]
@@ -6443,8 +6443,10 @@ class C
       </customDebugInfo>
     </method>
   </methods>
-</symbols>");
-
+</symbols>",
+            // When converting from Portable to Windows the PDB writer doesn't create an entry for the Main method 
+            // and thus there is no entry point record either.
+            options: PdbValidationOptions.SkipConversionValidation); 
         }
 
         [Fact]
