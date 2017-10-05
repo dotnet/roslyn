@@ -111,6 +111,25 @@ namespace Microsoft.CodeAnalysis.Remote
             _solutionInfo = info;
         }
 
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                // guard us from double disposing. this can happen in unit test
+                // due to how we create test mock service hub stream that tied to
+                // remote host service
+                return;
+            }
+
+            _disposed = true;
+            Rpc.Dispose();
+            _shutdownCancellationSource.Dispose();
+
+            Dispose(false);
+
+            Logger.TraceInformation($"{DebugInstanceString} Service instance disposed");
+        }
+
         protected virtual void OnDisconnected(JsonRpcDisconnectedEventArgs e)
         {
             // do nothing
@@ -214,37 +233,5 @@ namespace Microsoft.CodeAnalysis.Remote
 
             return false;
         }
-
-        public void Dispose()
-        {
-            if (_disposed)
-            {
-#if DEBUG
-                // we are seeing double dispose of shutdownCancellationSource sometimes in unit tests and 
-                // we are trying to figure out how that is happening.
-                var local = _lastDiposedCallstack;
-                FailFast.OnFatalException(new Exception("crash"));
-                GC.KeepAlive(local);
-#endif
-
-                return;
-            }
-
-#if DEBUG
-            _lastDiposedCallstack = new StackTrace().ToString();
-#endif
-
-            _disposed = true;
-            Rpc.Dispose();
-            _shutdownCancellationSource.Dispose();
-
-            Dispose(false);
-
-            Logger.TraceInformation($"{DebugInstanceString} Service instance disposed");
-        }
-
-#if DEBUG
-        private string _lastDiposedCallstack;
-#endif
     }
 }
