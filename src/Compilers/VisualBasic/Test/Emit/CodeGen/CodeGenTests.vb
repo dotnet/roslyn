@@ -13665,5 +13665,47 @@ End Module
 }
 ]]>)
         End Sub
+
+        <Fact, WorkItem(22533, "https://github.com/dotnet/roslyn/issues/22533")>
+        Public Sub TestDoubleConversionEmitted()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module Program
+    Function M() As Boolean
+        Dim dValue As Double = 600.1
+        Dim mbytDeciWgt As Byte = 1
+
+        Return CDbl(dValue) > CDbl(dValue + CDbl(10 ^ -mbytDeciWgt))
+    End Function
+End Module
+    </file>
+</compilation>).
+            VerifyIL("Program.M",
+            <![CDATA[
+{
+  // Code size       34 (0x22)
+  .maxstack  4
+  .locals init (Byte V_0) //mbytDeciWgt
+  IL_0000:  ldc.r8     600.1
+  IL_0009:  ldc.i4.1
+  IL_000a:  stloc.0
+  IL_000b:  dup
+  IL_000c:  ldc.r8     10
+  IL_0015:  ldloc.0
+  IL_0016:  neg
+  IL_0017:  conv.ovf.i2
+  IL_0018:  conv.r8
+  IL_0019:  call       "Function System.Math.Pow(Double, Double) As Double"
+  IL_001e:  add
+  IL_001f:  cgt
+  IL_0021:  ret
+}
+]]>)
+            ' BUG Missing conv.r8 after `add`
+
+        End Sub
     End Class
 End Namespace
