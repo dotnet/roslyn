@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         accessibility: DetermineMaximalAccessibility(_state),
                         modifiers: new DeclarationModifiers(isStatic: _state.IsStatic, isUnsafe: generateUnsafe),
                         type: _state.TypeMemberType,
-                        returnsByRef: _returnsByRef,
+                        refKind: _returnsByRef ? RefKind.Ref : RefKind.None,
                         explicitInterfaceImplementations: default,
                         name: _state.IdentifierToken.ValueText,
                         isIndexer: _state.IsIndexer,

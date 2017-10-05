@@ -1018,7 +1018,7 @@ class C
 
     public static class S1Ext
     {
-        public static void RoExtension(ref readonly this S1 self)
+        public static void RoExtension(in this S1 self)
         {
             // do nothing
         }
@@ -1062,7 +1062,7 @@ class C
   IL_0045:  br.s       IL_004d
   IL_0047:  ldloc.0
   IL_0048:  ldflda     ""S1 C1.field""
-  IL_004d:  call       ""void S1Ext.RoExtension(ref readonly S1)""
+  IL_004d:  call       ""void S1Ext.RoExtension(in S1)""
   IL_0052:  ldloc.0
   IL_0053:  ldflda     ""S1 C1.field""
   IL_0058:  ldfld      ""int S1.value""
@@ -1113,7 +1113,7 @@ class C
     }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, expectedOutput: "042", verify: false);
+            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, expectedOutput: "00", verify: false);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("Program.Test", @"
@@ -1124,8 +1124,8 @@ class C
   IL_0000:  ldarg.0
   IL_0001:  brtrue.s   IL_000b
   IL_0003:  ldarg.1
-  IL_0004:  ldflda     ""S1 C1.field1""
-  IL_0009:  br.s       IL_0014
+  IL_0004:  ldfld      ""S1 C1.field1""
+  IL_0009:  br.s       IL_0011
   IL_000b:  ldarg.1
   IL_000c:  ldfld      ""S1 C1.field""
   IL_0011:  stloc.0

@@ -9376,6 +9376,7 @@ class C
     static void Main()
     {
         Test1(Nullable((a: 1, b: (a: 1, b: 2))), (a: 1, b: (object)1));
+        Test1((a: 1, b: (a: 1, b: 2)), Nullable((a: 1, b: (object)1)));
     }
 
     static T? Nullable<T>(T x) where T : struct
@@ -9395,7 +9396,10 @@ class C
             comp.VerifyDiagnostics(
                 // (6,15): error CS1503: Argument 1: cannot convert from '(int a, (int a, int b) b)?' to '(int, object)'
                 //         Test1(Nullable((a: 1, b: (a: 1, b: 2))), (a: 1, b: (object)1));
-                Diagnostic(ErrorCode.ERR_BadArgType, "Nullable((a: 1, b: (a: 1, b: 2)))").WithArguments("1", "(int a, (int a, int b) b)?", "(int, object)").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_BadArgType, "Nullable((a: 1, b: (a: 1, b: 2)))").WithArguments("1", "(int a, (int a, int b) b)?", "(int, object)").WithLocation(6, 15),
+                // (7,40): error CS1503: Argument 2: cannot convert from '(int a, object b)?' to '(int, (int a, int b))'
+                //         Test1((a: 1, b: (a: 1, b: 2)), Nullable((a: 1, b: (object)1)));
+                Diagnostic(ErrorCode.ERR_BadArgType, "Nullable((a: 1, b: (object)1))").WithArguments("2", "(int a, object b)?", "(int, (int a, int b))").WithLocation(7, 40)
                 );
         }
 
@@ -23886,10 +23890,10 @@ public class C
             var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "4");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20583")]
+        [Fact]
         [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
         [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
-        public void MoreGenericTieBreaker_02()
+        public void MoreGenericTieBreaker_02a1()
         {
             var source =
 @"using System;
@@ -23912,7 +23916,156 @@ public class C
                 expectedOutput: @"12");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20583")]
+        [Fact]
+        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        public void MoreGenericTieBreaker_02a2()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        // var b = (1, 2, 3, 4, 5, 6, 7, 8);
+        var b = new ValueTuple<int, int, int, int, int, int, int, ValueTuple<int>>(1, 2, 3, 4, 5, 6, 7, new ValueTuple<int>(8));
+        M1(ref b);
+        M2(ref b); // ok, should select M2<T1, T2, T3, T4, T5, T6, T7, T8>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, ValueTuple<T8>> a)
+    }
+    public static void M1<T1, T2, T3, T4, T5, T6, T7, TRest>(ref ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> a) where TRest : struct { Console.Write(1); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, T8>(ref ValueTuple<T1, T2, T3, T4, T5, T6, T7, ValueTuple<T8>> a) { Console.Write(2); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(ref ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> a) where TRest : struct { Console.Write(3); }
+}
+";
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                expectedOutput: @"12");
+        }
+
+        [Fact]
+        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        public void MoreGenericTieBreaker_02a3()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        I<ValueTuple<int, int, int, int, int, int, int, ValueTuple<int>>> b = null;
+        M1(b);
+        M2(b); 
+    }
+    public static void M1<T1, T2, T3, T4, T5, T6, T7, TRest>(I<ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>> a) where TRest : struct { Console.Write(1); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, T8>(I<ValueTuple<T1, T2, T3, T4, T5, T6, T7, ValueTuple<T8>>> a) { Console.Write(2); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(I<ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>> a) where TRest : struct { Console.Write(3); }
+}
+
+public interface I<in T>{}
+";
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                expectedOutput: @"12");
+        }
+
+        [Fact]
+        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        public void MoreGenericTieBreaker_02a4()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        I<ValueTuple<int, int, int, int, int, int, int, ValueTuple<int>>> b = null;
+        M1(b);
+        M2(b); 
+    }
+    public static void M1<T1, T2, T3, T4, T5, T6, T7, TRest>(I<ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>> a) where TRest : struct { Console.Write(1); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, T8>(I<ValueTuple<T1, T2, T3, T4, T5, T6, T7, ValueTuple<T8>>> a) { Console.Write(2); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(I<ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>> a) where TRest : struct { Console.Write(3); }
+}
+
+public interface I<out T>{}
+";
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                expectedOutput: @"12");
+        }
+
+        [Fact]
+        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        public void MoreGenericTieBreaker_02a5()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        M1((1, 2, 3, 4, 5, 6, 7, 8));
+        M2((1, 2, 3, 4, 5, 6, 7, 8));
+    }
+    public static void M1<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> a) where TRest : struct { Console.Write(1); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, T8>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, ValueTuple<T8>> a) { Console.Write(2); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> a) where TRest : struct { Console.Write(3); }
+}
+";
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                expectedOutput: @"12");
+        }
+
+        [Fact]
+        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        public void MoreGenericTieBreaker_02a6()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        M2((()=>1, ()=>2, ()=>3, ()=>4, ()=>5, ()=>6, ()=>7, ()=>8));
+    }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, T8>(ValueTuple<Func<T1>, Func<T2>, Func<T3>, Func<T4>, Func<T5>, Func<T6>, Func<T7>, ValueTuple<Func<T8>>> a) { Console.Write(2); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<Func<T1>, Func<T2>, Func<T3>, Func<T4>, Func<T5>, Func<T6>, Func<T7>, TRest> a) where TRest : struct { Console.Write(3); }
+}
+";
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                expectedOutput: @"2");
+        }
+
+        [Fact]
+        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        public void MoreGenericTieBreaker_02a7()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        M1((()=>1, ()=>2, ()=>3, ()=>4, ()=>5, ()=>6, ()=>7, ()=>8));
+    }
+    public static void M1<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<Func<T1>, Func<T2>, Func<T3>, Func<T4>, Func<T5>, Func<T6>, Func<T7>, TRest> a) where TRest : struct { Console.Write(1); }
+}
+";
+            CreateStandardCompilation(source, references: s_valueTupleRefs).VerifyDiagnostics(
+                // (6,9): error CS0411: The type arguments for method 'C.M1<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<Func<T1>, Func<T2>, Func<T3>, Func<T4>, Func<T5>, Func<T6>, Func<T7>, TRest>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1((()=>1, ()=>2, ()=>3, ()=>4, ()=>5, ()=>6, ()=>7, ()=>8));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T1, T2, T3, T4, T5, T6, T7, TRest>(System.ValueTuple<System.Func<T1>, System.Func<T2>, System.Func<T3>, System.Func<T4>, System.Func<T5>, System.Func<T6>, System.Func<T7>, TRest>)").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
         [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
         [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
         public void MoreGenericTieBreaker_02b()

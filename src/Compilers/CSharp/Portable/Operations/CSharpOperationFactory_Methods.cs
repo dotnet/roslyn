@@ -51,9 +51,14 @@ namespace Microsoft.CodeAnalysis.Semantics
                 isImplicit: expression.WasCompilerGenerated || argument == null);
         }
 
-        private IVariableDeclaration CreateVariableDeclaration(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
+        private IVariableDeclaration CreateVariableDeclarationInternal(BoundLocalDeclaration boundLocalDeclaration, SyntaxNode syntax)
         {
             return OperationFactory.CreateVariableDeclaration(boundLocalDeclaration.LocalSymbol, Create(boundLocalDeclaration.InitializerOpt), _semanticModel, syntax);
+        }
+
+        private IVariableDeclaration CreateVariableDeclaration(BoundLocal boundLocal)
+        {
+            return OperationFactory.CreateVariableDeclaration(boundLocal.LocalSymbol, initialValue: null, semanticModel: _semanticModel, syntax: boundLocal.Syntax);
         }
 
         private IOperation CreateBoundCallInstanceOperation(BoundCall boundCall)
@@ -156,17 +161,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
 
             return builder.ToImmutableAndFree();
-        }
-
-        private static ITypeSymbol GetArrayCreationElementType(BoundArrayCreation creation)
-        {
-            IArrayTypeSymbol arrayType = creation.Type as IArrayTypeSymbol;
-            if ((object)arrayType != null)
-            {
-                return arrayType.ElementType;
-            }
-
-            return null;
         }
 
         private ImmutableArray<ISwitchCase> GetSwitchStatementCases(BoundSwitchStatement statement)

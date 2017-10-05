@@ -31,12 +31,10 @@ namespace Microsoft.CodeAnalysis
         {
             using (Logger.LogBlock(FunctionId.ProjectState_ComputeChecksumsAsync, FilePath, cancellationToken))
             {
-                // get states by id order to have deterministic checksum
-                var orderedDocumentIds = ChecksumCache.GetOrCreate(DocumentIds, _ => DocumentIds.OrderBy(id => id.Id).ToImmutableArray());
-                var documentChecksumsTasks = orderedDocumentIds.Select(id => DocumentStates[id].GetChecksumAsync(cancellationToken));
-
-                var orderedAdditionalDocumentIds = ChecksumCache.GetOrCreate(AdditionalDocumentIds, _ => AdditionalDocumentIds.OrderBy(id => id.Id).ToImmutableArray());
-                var additionalDocumentChecksumTasks = orderedAdditionalDocumentIds.Select(id => AdditionalDocumentStates[id].GetChecksumAsync(cancellationToken));
+                // Here, we use the _documentStates and _additionalDocumentStates and visit them in order; we ensure that those are
+                // sorted by ID so we have a consistent sort.
+                var documentChecksumsTasks = _documentStates.Select(pair => pair.Value.GetChecksumAsync(cancellationToken));
+                var additionalDocumentChecksumTasks = _additionalDocumentStates.Select(pair => pair.Value.GetChecksumAsync(cancellationToken));
 
                 var serializer = new Serializer(_solutionServices.Workspace);
 

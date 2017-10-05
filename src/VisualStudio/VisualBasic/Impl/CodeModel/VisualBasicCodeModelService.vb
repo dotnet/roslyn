@@ -1422,7 +1422,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Case Accessibility.ProtectedOrInternal, Accessibility.ProtectedOrFriend
                     access = access Or EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected
                 Case Accessibility.ProtectedAndInternal, Accessibility.ProtectedAndFriend
-                    ' PROTOTYPE: there is no appropriate mapping for private protected in EnvDTE.vsCMAccess
+                    ' there is no appropriate mapping for private protected in EnvDTE.vsCMAccess
+                    ' See https://github.com/dotnet/roslyn/issues/22406
                     access = access Or EnvDTE.vsCMAccess.vsCMAccessProject
                 Case Accessibility.Public
                     access = access Or EnvDTE.vsCMAccess.vsCMAccessPublic

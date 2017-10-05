@@ -19,10 +19,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
+            var syntaxTree = context.SyntaxTree;
             return
                 IsValidContextInForEachClause(context) ||
                 IsValidContextInFromClause(context, cancellationToken) ||
                 IsValidContextInJoinClause(context, cancellationToken) ||
+                syntaxTree.IsParameterModifierContext(position, context.LeftToken, cancellationToken) ||
+                syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken, cancellationToken) ||
+                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
+                context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
                 context.TargetToken.IsTypeParameterVarianceContext();
         }
 

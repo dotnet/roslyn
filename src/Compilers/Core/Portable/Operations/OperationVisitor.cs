@@ -130,14 +130,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        // https://github.com/dotnet/roslyn/issues/22008
-        internal virtual void VisitTryStatement(ITryStatement operation)
+        public virtual void VisitTryStatement(ITryStatement operation)
         {
             DefaultVisit(operation);
         }
 
-        // https://github.com/dotnet/roslyn/issues/22008
-        internal virtual void VisitCatchClause(ICatchClause operation)
+        public virtual void VisitCatchClause(ICatchClause operation)
         {
             DefaultVisit(operation);
         }
@@ -164,14 +162,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        // https://github.com/dotnet/roslyn/issues/21297
-        internal virtual void VisitStopStatement(IStopStatement operation)
+        public virtual void VisitStopStatement(IStopStatement operation)
         {
             DefaultVisit(operation);
         }
 
-        // https://github.com/dotnet/roslyn/issues/22004
-        internal virtual void VisitEndStatement(IEndStatement operation)
+        public virtual void VisitEndStatement(IEndStatement operation)
         {
             DefaultVisit(operation);
         }
@@ -191,8 +187,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        // https://github.com/dotnet/roslyn/issues/22006
-        internal virtual void VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation)
+        public virtual void VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -310,8 +305,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        // https://github.com/dotnet/roslyn/issues/22007
-        internal virtual void VisitAwaitExpression(IAwaitExpression operation)
+        public virtual void VisitAwaitExpression(IAwaitExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -626,14 +620,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        // https://github.com/dotnet/roslyn/issues/22008
-        internal virtual TResult VisitTryStatement(ITryStatement operation, TArgument argument)
+        public virtual TResult VisitTryStatement(ITryStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
 
-        // https://github.com/dotnet/roslyn/issues/22008
-        internal virtual TResult VisitCatchClause(ICatchClause operation, TArgument argument)
+        public virtual TResult VisitCatchClause(ICatchClause operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -660,14 +652,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        // https://github.com/dotnet/roslyn/issues/21297
-        internal virtual TResult VisitStopStatement(IStopStatement operation, TArgument argument)
+        public virtual TResult VisitStopStatement(IStopStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
 
-        // https://github.com/dotnet/roslyn/issues/22004
-        internal virtual TResult VisitEndStatement(IEndStatement operation, TArgument argument)
+        public virtual TResult VisitEndStatement(IEndStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -687,8 +677,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        // https://github.com/dotnet/roslyn/issues/22006
-        internal virtual TResult VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation, TArgument argument)
+        public virtual TResult VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -806,8 +795,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        // https://github.com/dotnet/roslyn/issues/22007
-        internal virtual TResult VisitAwaitExpression(IAwaitExpression operation, TArgument argument)
+        public virtual TResult VisitAwaitExpression(IAwaitExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

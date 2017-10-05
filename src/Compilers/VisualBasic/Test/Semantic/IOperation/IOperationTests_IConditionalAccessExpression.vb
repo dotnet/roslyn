@@ -23,9 +23,12 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IConditionalAccessExpression (OperationKind.ConditionalAccessExpression, Type: System.Void) (Syntax: 'o?.ToString()')
-  Expression: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
-  WhenNotNull: IInvocationExpression (virtual Function System.Object.ToString() As System.String) (OperationKind.InvocationExpression, Type: System.String) (Syntax: '.ToString()')
-      Instance Receiver: IPlaceholderExpression (OperationKind.None) (Syntax: 'o?.ToString()')
+  Expression: 
+    ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
+  WhenNotNull: 
+    IInvocationExpression (virtual Function System.Object.ToString() As System.String) (OperationKind.InvocationExpression, Type: System.String) (Syntax: '.ToString()')
+      Instance Receiver: 
+        IPlaceholderExpression (OperationKind.None, IsImplicit) (Syntax: 'o?.ToString()')
       Arguments(0)
 ]]>.Value
 
@@ -52,9 +55,12 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IConditionalAccessExpression (OperationKind.ConditionalAccessExpression, Type: System.Nullable(Of System.Int32)) (Syntax: 'c1?.Prop1')
-  Expression: ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C1) (Syntax: 'c1')
-  WhenNotNull: IPropertyReferenceExpression: ReadOnly Property C1.Prop1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.Prop1')
-      Instance Receiver: IPlaceholderExpression (OperationKind.None) (Syntax: 'c1?.Prop1')
+  Expression: 
+    ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C1) (Syntax: 'c1')
+  WhenNotNull: 
+    IPropertyReferenceExpression: ReadOnly Property C1.Prop1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.Prop1')
+      Instance Receiver: 
+        IPlaceholderExpression (OperationKind.None, IsImplicit) (Syntax: 'c1?.Prop1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

@@ -1100,6 +1100,7 @@
     <Field Name="RefOrOutKeyword" Type="SyntaxToken" Optional="true">
       <Kind Name="RefKeyword"/>
       <Kind Name="OutKeyword"/>
+      <Kind Name="InKeyword"/>
       <PropertyComment>
         <summary>SyntaxToken representing the optional ref or out keyword.</summary>
       </PropertyComment>

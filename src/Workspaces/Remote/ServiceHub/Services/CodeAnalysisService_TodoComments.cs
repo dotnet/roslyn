@@ -1,10 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
@@ -12,7 +8,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.TodoComments;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -29,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return await RunServiceAsync(async () =>
             {
-                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetTodoCommentsAsync, documentId.ProjectId.DebugName, cancellationToken))
+                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetTodoCommentsAsync, documentId.DebugName, cancellationToken))
                 {
                     var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                     var document = solution.GetDocument(documentId);

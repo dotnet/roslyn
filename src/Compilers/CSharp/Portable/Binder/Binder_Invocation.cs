@@ -980,7 +980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     CheckFeatureAvailability(receiverArgument.Syntax, MessageID.IDS_FeatureRefExtensionMethods, diagnostics);
                 }
-                else if (receiverParameter.RefKind == RefKind.RefReadOnly)
+                else if (receiverParameter.RefKind == RefKind.In)
                 {
                     CheckFeatureAvailability(receiverArgument.Syntax, MessageID.IDS_FeatureRefExtensionMethods, diagnostics);
                 }

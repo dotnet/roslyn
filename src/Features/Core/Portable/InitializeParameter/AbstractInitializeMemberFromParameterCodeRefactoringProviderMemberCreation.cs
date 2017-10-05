@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         Accessibility.Public,
                         new DeclarationModifiers(),
                         parameter.Type,
-                        returnsByRef: false,
+                        RefKind.None,
                         explicitInterfaceImplementations: default,
                         name: uniqueName,
                         parameters: default,

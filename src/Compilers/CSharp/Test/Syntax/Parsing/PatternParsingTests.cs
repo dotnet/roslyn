@@ -917,5 +917,121 @@ case null && B:
             }
             EOF();
         }
+
+        [Fact, WorkItem(21515, "https://github.com/dotnet/roslyn/issues/21515")]
+        public void PatternExpressionPrecedence07()
+        {
+            // This should actually be error-free.
+            UsingStatement(@"switch (array) {
+case KeyValuePair<string, DateTime>[] pairs1:
+case KeyValuePair<String, DateTime>[] pairs2:
+    break;
+}");
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "array");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.DeclarationPattern);
+                        {
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.GenericName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "KeyValuePair");
+                                    N(SyntaxKind.TypeArgumentList);
+                                    {
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.StringKeyword);
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "DateTime");
+                                        }
+                                        N(SyntaxKind.GreaterThanToken);
+                                    }
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "pairs1");
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.DeclarationPattern);
+                        {
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.GenericName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "KeyValuePair");
+                                    N(SyntaxKind.TypeArgumentList);
+                                    {
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "String");
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "DateTime");
+                                        }
+                                        N(SyntaxKind.GreaterThanToken);
+                                    }
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "pairs2");
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
     }
 }

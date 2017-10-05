@@ -421,7 +421,7 @@ $$");
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyAsParameterModifierInMethods()
         {
-            await VerifyKeywordAsync(@"
+            await VerifyAbsenceAsync(@"
 class Program
 {
     public static void Test(ref $$ p) { }
@@ -432,7 +432,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyAsParameterModifierInSecondParameter()
         {
-            await VerifyKeywordAsync(@"
+            await VerifyAbsenceAsync(@"
 class Program
 {
     public static void Test(int p1, ref $$ p2) { }
@@ -443,7 +443,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyAsParameterModifierInDelegates()
         {
-            await VerifyKeywordAsync(@"
+            await VerifyAbsenceAsync(@"
 public delegate int Delegate(ref $$ int p);");
         }
 
@@ -451,7 +451,7 @@ public delegate int Delegate(ref $$ int p);");
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyAsParameterModifierInLocalFunctions()
         {
-            await VerifyKeywordAsync(@"
+            await VerifyAbsenceAsync(@"
 class Program
 {
     public static void Test()
@@ -465,7 +465,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyAsParameterModifierInLambdaExpressions()
         {
-            await VerifyKeywordAsync(@"
+            await VerifyAbsenceAsync(@"
 public delegate int Delegate(ref readonly int p);
 
 class Program
@@ -481,7 +481,7 @@ class Program
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyAsParameterModifierInAnonymousMethods()
         {
-            await VerifyKeywordAsync(@"
+            await VerifyAbsenceAsync(@"
 public delegate int Delegate(ref readonly int p);
 
 class Program

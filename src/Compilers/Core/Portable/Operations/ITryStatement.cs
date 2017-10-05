@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    internal interface ITryStatement : IOperation // https://github.com/dotnet/roslyn/issues/22008
+    public interface ITryStatement : IOperation
     {
         /// <summary>
         /// Body of the try, over which the handlers are active.
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Finally handler of the try.
         /// </summary>
-        IBlockStatement FinallyHandler { get; }
+        IBlockStatement Finally { get; }
     }
 }
 

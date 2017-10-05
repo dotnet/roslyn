@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -27,9 +27,12 @@ public class C1
 ";
             string expectedOperationTree = @"
 IConditionalAccessExpression (OperationKind.ConditionalAccessExpression, Type: System.String) (Syntax: 'o?.ToString()')
-  Expression: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
-  WhenNotNull: IInvocationExpression (virtual System.String System.Object.ToString()) (OperationKind.InvocationExpression, Type: System.String) (Syntax: '.ToString()')
-      Instance Receiver: IConditionalAccessInstanceExpression (OperationKind.ConditionalAccessInstanceExpression, Type: System.Object) (Syntax: 'o')
+  Expression: 
+    ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
+  WhenNotNull: 
+    IInvocationExpression (virtual System.String System.Object.ToString()) (OperationKind.InvocationExpression, Type: System.String) (Syntax: '.ToString()')
+      Instance Receiver: 
+        IConditionalAccessInstanceExpression (OperationKind.ConditionalAccessInstanceExpression, Type: System.Object, IsImplicit) (Syntax: 'o')
       Arguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -56,9 +59,12 @@ public class C1
 ";
             string expectedOperationTree = @"
 IConditionalAccessExpression (OperationKind.ConditionalAccessExpression, Type: System.Int32?) (Syntax: 'c1?.Prop1')
-  Expression: ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C1) (Syntax: 'c1')
-  WhenNotNull: IPropertyReferenceExpression: System.Int32 C1.Prop1 { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.Prop1')
-      Instance Receiver: IConditionalAccessInstanceExpression (OperationKind.ConditionalAccessInstanceExpression, Type: C1) (Syntax: 'c1')
+  Expression: 
+    ILocalReferenceExpression: c1 (OperationKind.LocalReferenceExpression, Type: C1) (Syntax: 'c1')
+  WhenNotNull: 
+    IPropertyReferenceExpression: System.Int32 C1.Prop1 { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.Prop1')
+      Instance Receiver: 
+        IConditionalAccessInstanceExpression (OperationKind.ConditionalAccessInstanceExpression, Type: C1, IsImplicit) (Syntax: 'c1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
