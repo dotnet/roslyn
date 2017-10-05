@@ -657,7 +657,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim syntax As SyntaxNode = boundDelegateCreationExpression.Syntax
             Dim type As ITypeSymbol = boundDelegateCreationExpression.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundDelegateCreationExpression.ConstantValueOpt)
-            Dim isImplicit As Boolean = boundDelegateCreationExpression.WasCompilerGenerated OrElse boundDelegateCreationExpression.Syntax.Kind() = SyntaxKind.AddressOfExpression
+
+            ' The operand for this is going to be using the same syntax node as this, and since that node can be Explicit, this node cannot be.
+            Dim isImplicit As Boolean = True
 
             Dim target As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() CreateBoundDelegateCreationExpressionChildOperation(boundDelegateCreationExpression))
 
