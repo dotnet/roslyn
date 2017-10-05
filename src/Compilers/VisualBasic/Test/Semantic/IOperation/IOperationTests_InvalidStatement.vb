@@ -25,10 +25,12 @@ End Class
 IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim x, 1 As Integer')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x')
     Variables: Local_1: x As System.Int32
-    Initializer: null
+    Initializer: 
+      null
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: '')
     Variables: Local_1:  As System.Int32
-    Initializer: null
+    Initializer: 
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -454,7 +456,8 @@ End Module]]>.Value
 IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Case 0')
   Children(1):
       ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause, IsInvalid) (Syntax: '0')
-        Value: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+        Value: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

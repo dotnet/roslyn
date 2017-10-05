@@ -30,10 +30,12 @@ class Program
 IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int x, ( 1 );')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x')
     Variables: Local_1: System.Int32 x
-    Initializer: null
+    Initializer: 
+      null
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: '( 1 ')
     Variables: Local_1: System.Int32 
-    Initializer: null
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1001: Identifier expected
@@ -77,18 +79,23 @@ class Program
 ";
             string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (Pro ... }')
-  Switch expression: IInvalidExpression (OperationKind.InvalidExpression, Type: Program, IsInvalid) (Syntax: 'Program')
+  Switch expression: 
+    IInvalidExpression (OperationKind.InvalidExpression, Type: Program, IsInvalid, IsImplicit) (Syntax: 'Program')
       Children(1):
           IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Program')
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase, IsInvalid) (Syntax: 'case 1: ... break;')
           Clauses:
               IPatternCaseClause (Label Symbol: case 1:) (CaseKind.Pattern) (OperationKind.CaseClause, IsInvalid) (Syntax: 'case 1:')
-                Pattern: IConstantPattern (OperationKind.ConstantPattern, IsInvalid) (Syntax: 'case 1:')
-                    Value: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, IsInvalid) (Syntax: '1')
+                Pattern: 
+                  IConstantPattern (OperationKind.ConstantPattern, IsInvalid) (Syntax: 'case 1:')
+                    Value: 
+                      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, IsInvalid, IsImplicit) (Syntax: '1')
                         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-                Guard Expression: null
+                        Operand: 
+                          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                Guard Expression: 
+                  null
           Body:
               IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
 ";

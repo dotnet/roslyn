@@ -706,7 +706,8 @@ class C
             string expectedOperationTree = @"
 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String[], IsInvalid) (Syntax: 'new string[]')
   Dimension Sizes(0)
-  Initializer: null
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1586: Array creation must have array size or array initializer
