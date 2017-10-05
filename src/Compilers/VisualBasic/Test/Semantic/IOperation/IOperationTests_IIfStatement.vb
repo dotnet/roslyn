@@ -796,27 +796,27 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'If () Then' ... End If')
-  Condition:
+  Condition: 
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '()')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand:
+      Operand: 
         IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: ?, IsInvalid) (Syntax: '()')
-          Operand:
+          Operand: 
             IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
               Children(0)
-  IfTrue:
+  IfTrue: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'If () Then' ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... ("Result1")')
-        Expression:
+        Expression: 
           IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... ("Result1")')
-            Instance Receiver:
+            Instance Receiver: 
               null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result1"')
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result1") (Syntax: '"Result1"')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  IfFalse:
+  IfFalse: 
     null
 ]]>.Value
 

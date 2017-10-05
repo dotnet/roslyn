@@ -24,35 +24,35 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>) (Syntax: 'New With {. ...  = .b + .a}')
   Initializers(3):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1) (Syntax: '.a = 1')
-        Left:
+        Left: 
           IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'a')
-            Instance Receiver:
+            Instance Receiver: 
               null
-        Right:
+        Right: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.b = .a')
-        Left:
+        Left: 
           IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.b As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'b')
-            Instance Receiver:
+            Instance Receiver: 
               null
-        Right:
+        Right: 
           IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.a')
-            Instance Receiver:
+            Instance Receiver: 
               null
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.c = .b + .a')
-        Left:
+        Left: 
           IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.c As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'c')
-            Instance Receiver:
+            Instance Receiver: 
               null
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '.b + .a')
-            Left:
+            Left: 
               IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.b As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.b')
-                Instance Receiver:
+                Instance Receiver: 
                   null
-            Right:
+            Right: 
               IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.a')
-                Instance Receiver:
+                Instance Receiver: 
                   null
 ]]>.Value
 
@@ -75,21 +75,21 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As ?, b As ?>, IsInvalid) (Syntax: 'New With {. ... s, .b = .a}')
   Initializers(2):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.a = sss')
-        Left:
+        Left: 
           IPropertyReferenceExpression: Property <anonymous type: a As ?, b As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
-            Instance Receiver:
+            Instance Receiver: 
               null
-        Right:
+        Right: 
           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'sss')
             Children(0)
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?) (Syntax: '.b = .a')
-        Left:
+        Left: 
           IPropertyReferenceExpression: Property <anonymous type: a As ?, b As ?>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'b')
-            Instance Receiver:
+            Instance Receiver: 
               null
-        Right:
+        Right: 
           IPropertyReferenceExpression: Property <anonymous type: a As ?, b As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: '.a')
-            Instance Receiver:
+            Instance Receiver: 
               null
 ]]>.Value
 
@@ -120,49 +120,49 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim v1 As O ... h {.a = tr}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'v1')
       Variables: Local_1: v1 As System.Object
-      Initializer:
+      Initializer: 
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New With {.a = tr}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand:
+          Operand: 
             IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.TypedReference>, IsInvalid) (Syntax: 'New With {.a = tr}')
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.TypedReference, IsInvalid) (Syntax: '.a = tr')
-                    Left:
+                    Left: 
                       IPropertyReferenceExpression: Property <anonymous type: a As System.TypedReference>.a As System.TypedReference (Static) (OperationKind.PropertyReferenceExpression, Type: System.TypedReference) (Syntax: 'a')
-                        Instance Receiver:
+                        Instance Receiver: 
                           null
-                    Right:
+                    Right: 
                       IParameterReferenceExpression: tr (OperationKind.ParameterReferenceExpression, Type: System.TypedReference, IsInvalid) (Syntax: 'tr')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim v2 As O ... a = {{tr}}}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'v2')
       Variables: Local_1: v2 As System.Object
-      Initializer:
+      Initializer: 
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New With {.a = {{tr}}}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand:
+          Operand: 
             IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.TypedReference(,)>, IsInvalid) (Syntax: 'New With {.a = {{tr}}}')
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.TypedReference(,), IsInvalid) (Syntax: '.a = {{tr}}')
-                    Left:
+                    Left: 
                       IPropertyReferenceExpression: Property <anonymous type: a As System.TypedReference(,)>.a As System.TypedReference(,) (Static) (OperationKind.PropertyReferenceExpression, Type: System.TypedReference(,)) (Syntax: 'a')
-                        Instance Receiver:
+                        Instance Receiver: 
                           null
-                    Right:
+                    Right: 
                       IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.TypedReference(,), IsInvalid) (Syntax: '{{tr}}')
                         Dimension Sizes(2):
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '{{tr}}')
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '{{tr}}')
-                        Initializer:
+                        Initializer: 
                           IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid, IsImplicit) (Syntax: '{{tr}}')
                             Element Values(1):
                                 IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{tr}')
                                   Element Values(1):
                                       IParameterReferenceExpression: tr (OperationKind.ParameterReferenceExpression, Type: System.TypedReference, IsInvalid) (Syntax: 'tr')
   ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
-    Statement:
+    Statement: 
       null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
-    ReturnedValue:
+    ReturnedValue: 
       null
 ]]>.Value
 
@@ -242,21 +242,21 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: b As ?, c As ?>, IsInvalid) (Syntax: 'New With {. ... c, .c = .b}')
   Initializers(2):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.b = .c')
-        Left:
+        Left: 
           IPropertyReferenceExpression: Property <anonymous type: b As ?, c As ?>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'b')
-            Instance Receiver:
+            Instance Receiver: 
               null
-        Right:
+        Right: 
           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.c')
             Children(0)
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?) (Syntax: '.c = .b')
-        Left:
+        Left: 
           IPropertyReferenceExpression: Property <anonymous type: b As ?, c As ?>.c As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'c')
-            Instance Receiver:
+            Instance Receiver: 
               null
-        Right:
+        Right: 
           IPropertyReferenceExpression: Property <anonymous type: b As ?, c As ?>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: '.b')
-            Instance Receiver:
+            Instance Receiver: 
               null
 ]]>.Value
 
@@ -283,19 +283,19 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: b As ?, c As System.Int32>, IsInvalid) (Syntax: 'New With {. ... .c, .c = 1}')
   Initializers(2):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.b = .c')
-        Left:
+        Left: 
           IPropertyReferenceExpression: Property <anonymous type: b As ?, c As System.Int32>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'b')
-            Instance Receiver:
+            Instance Receiver: 
               null
-        Right:
+        Right: 
           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.c')
             Children(0)
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1) (Syntax: '.c = 1')
-        Left:
+        Left: 
           IPropertyReferenceExpression: Property <anonymous type: b As ?, c As System.Int32>.c As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'c')
-            Instance Receiver:
+            Instance Receiver: 
               null
-        Right:
+        Right: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
@@ -575,14 +575,14 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.Object>) (Syntax: 'New With {.a = Nothing}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: '.a = Nothing')
-        Left:
+        Left: 
           IPropertyReferenceExpression: Property <anonymous type: a As System.Object>.a As System.Object (Static) (OperationKind.PropertyReferenceExpression, Type: System.Object) (Syntax: 'a')
-            Instance Receiver:
+            Instance Receiver: 
               null
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
 ]]>.Value
 
@@ -946,38 +946,38 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key x As System.String, Key a As System.String>, IsInvalid) (Syntax: 'New With {' ... ).Invoke()}')
   Initializers(2):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, Constant: "--value--") (Syntax: 'Key .x = "--value--"')
-        Left:
+        Left: 
           IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.String, Key a As System.String>.x As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'x')
-            Instance Receiver:
+            Instance Receiver: 
               null
-        Right:
+        Right: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "--value--") (Syntax: '"--value--"')
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid) (Syntax: 'Key .a = Di ... )).Invoke()')
-        Left:
+        Left: 
           IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.String, Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'a')
-            Instance Receiver:
+            Instance Receiver: 
               null
-        Right:
+        Right: 
           IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
-            Instance Receiver:
+            Instance Receiver: 
               IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
-                Target:
+                Target: 
                   IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nd Function')
                     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Function()  ... nd Function')
                       Locals: Local_1: <anonymous local> As System.String
                       IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Return .x.ToString()')
-                        ReturnedValue:
+                        ReturnedValue: 
                           IInvocationExpression (virtual Function System.String.ToString() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: '.x.ToString()')
-                            Instance Receiver:
+                            Instance Receiver: 
                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.String, Key a As System.String>.x As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String, IsInvalid) (Syntax: '.x')
-                                Instance Receiver:
+                                Instance Receiver: 
                                   null
                             Arguments(0)
                       ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
-                        Statement:
+                        Statement: 
                           null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-                        ReturnedValue:
+                        ReturnedValue: 
                           ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
@@ -1011,23 +1011,23 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key a As System.String>, IsInvalid) (Syntax: 'New With {' ... ).Invoke()}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid) (Syntax: 'Key .a = Di ... )).Invoke()')
-        Left:
+        Left: 
           IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'a')
-            Instance Receiver:
+            Instance Receiver: 
               null
-        Right:
+        Right: 
           IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
-            Instance Receiver:
+            Instance Receiver: 
               IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
-                Target:
+                Target: 
                   IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nd Function')
                     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Function()  ... nd Function')
                       Locals: Local_1: <anonymous local> As System.String
                       IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Return .a.ToString()')
-                        ReturnedValue:
+                        ReturnedValue: 
                           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: '.a.ToString()')
                             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            Operand:
+                            Operand: 
                               IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.a.ToString()')
                                 Children(1):
                                     IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '.a.ToString')
@@ -1037,10 +1037,10 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                                                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.a')
                                                   Children(0)
                       ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
-                        Statement:
+                        Statement: 
                           null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-                        ReturnedValue:
+                        ReturnedValue: 
                           ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
@@ -1074,23 +1074,23 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key a As System.String>, IsInvalid) (Syntax: 'New With {' ... ).Invoke()}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid) (Syntax: 'Key .a = Di ... )).Invoke()')
-        Left:
+        Left: 
           IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'a')
-            Instance Receiver:
+            Instance Receiver: 
               null
-        Right:
+        Right: 
           IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
-            Instance Receiver:
+            Instance Receiver: 
               IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
-                Target:
+                Target: 
                   IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nd Function')
                     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Function()  ... nd Function')
                       Locals: Local_1: <anonymous local> As System.String
                       IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Return .x.ToString()')
-                        ReturnedValue:
+                        ReturnedValue: 
                           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: '.x.ToString()')
                             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            Operand:
+                            Operand: 
                               IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x.ToString()')
                                 Children(1):
                                     IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '.x.ToString')
@@ -1100,10 +1100,10 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                                                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x')
                                                   Children(0)
                       ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
-                        Statement:
+                        Statement: 
                           null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-                        ReturnedValue:
+                        ReturnedValue: 
                           ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
@@ -1139,32 +1139,32 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key a As System.String>, IsInvalid) (Syntax: 'New With {' ... ).Invoke()}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid) (Syntax: 'Key .a = Di ... )).Invoke()')
-        Left:
+        Left: 
           IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'a')
-            Instance Receiver:
+            Instance Receiver: 
               null
-        Right:
+        Right: 
           IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
-            Instance Receiver:
+            Instance Receiver: 
               IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
-                Target:
+                Target: 
                   IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nd Function')
                     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Function()  ... nd Function')
                       Locals: Local_1: <anonymous local> As System.String
                       IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Return Dire ... )).Invoke()')
-                        ReturnedValue:
+                        ReturnedValue: 
                           IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
-                            Instance Receiver:
+                            Instance Receiver: 
                               IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
-                                Target:
+                                Target: 
                                   IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nd Function')
                                     IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Function()  ... nd Function')
                                       Locals: Local_1: <anonymous local> As System.String
                                       IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Return .x.ToString()')
-                                        ReturnedValue:
+                                        ReturnedValue: 
                                           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: '.x.ToString()')
                                             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                            Operand:
+                                            Operand: 
                                               IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x.ToString()')
                                                 Children(1):
                                                     IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '.x.ToString')
@@ -1174,17 +1174,17 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
                                                                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x')
                                                                   Children(0)
                                       ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
-                                        Statement:
+                                        Statement: 
                                           null
                                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-                                        ReturnedValue:
+                                        ReturnedValue: 
                                           ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
                             Arguments(0)
                       ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
-                        Statement:
+                        Statement: 
                           null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-                        ReturnedValue:
+                        ReturnedValue: 
                           ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value

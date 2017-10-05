@@ -36,15 +36,15 @@ class C
 ";
             string expectedOperationTree = @"
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void) (Syntax: 't.MyEvent += Handler')
-  Event Reference:
+  Event Reference: 
     IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 't.MyEvent')
-      Instance Receiver:
+      Instance Receiver: 
         ILocalReferenceExpression: t (OperationKind.LocalReferenceExpression, Type: Test) (Syntax: 't')
-  Handler:
+  Handler: 
     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler, IsImplicit) (Syntax: 'Handler')
-      Target:
+      Target: 
         IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'Handler')
-          Instance Receiver:
+          Instance Receiver: 
             IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {
@@ -83,7 +83,7 @@ class C
 ";
             string expectedOperationTree = @"
 IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'Handler')
-  Instance Receiver:
+  Instance Receiver: 
     IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -163,15 +163,15 @@ class C
 ";
             string expectedOperationTree = @"
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void) (Syntax: 'Test.MyEvent += Handler')
-  Event Reference:
+  Event Reference: 
     IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 'Test.MyEvent')
-      Instance Receiver:
+      Instance Receiver: 
         null
-  Handler:
+  Handler: 
     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler, IsImplicit) (Syntax: 'Handler')
-      Target:
+      Target: 
         IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'Handler')
-          Instance Receiver:
+          Instance Receiver: 
             IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {
@@ -209,15 +209,15 @@ class C
 ";
             string expectedOperationTree = @"
 IEventAssignmentExpression (EventRemove)) (OperationKind.EventAssignmentExpression, Type: System.Void) (Syntax: 'Test.MyEvent -= Handler')
-  Event Reference:
+  Event Reference: 
     IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 'Test.MyEvent')
-      Instance Receiver:
+      Instance Receiver: 
         null
-  Handler:
+  Handler: 
     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler, IsImplicit) (Syntax: 'Handler')
-      Target:
+      Target: 
         IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'Handler')
-          Instance Receiver:
+          Instance Receiver: 
             IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {
@@ -256,13 +256,13 @@ class C
 ";
             string expectedOperationTree = @"
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: 't.MyEvent += Handler')
-  Event Reference:
+  Event Reference: 
     IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler, IsInvalid) (Syntax: 't.MyEvent')
-      Instance Receiver:
+      Instance Receiver: 
         ILocalReferenceExpression: t (OperationKind.LocalReferenceExpression, Type: Test, IsInvalid) (Syntax: 't')
-  Handler:
+  Handler: 
     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler, IsInvalid, IsImplicit) (Syntax: 'Handler')
-      Target:
+      Target: 
         IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Handler')
           Children(1):
               IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsInvalid, IsImplicit) (Syntax: 'Handler')
@@ -306,15 +306,15 @@ class C
 ";
             string expectedOperationTree = @"
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: 't.MyEvent += Handler')
-  Event Reference:
+  Event Reference: 
     IEventReferenceExpression: event System.EventHandler Test.MyEvent (Static) (OperationKind.EventReferenceExpression, Type: System.EventHandler, IsInvalid) (Syntax: 't.MyEvent')
-      Instance Receiver:
+      Instance Receiver: 
         null
-  Handler:
+  Handler: 
     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler, IsImplicit) (Syntax: 'Handler')
-      Target:
+      Target: 
         IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'Handler')
-          Instance Receiver:
+          Instance Receiver: 
             IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {
@@ -356,15 +356,15 @@ class C
 ";
             string expectedOperationTree = @"
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: 'Test.MyEvent += Handler')
-  Event Reference:
+  Event Reference: 
     IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler, IsInvalid) (Syntax: 'Test.MyEvent')
-      Instance Receiver:
+      Instance Receiver: 
         IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Test')
-  Handler:
+  Handler: 
     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler, IsImplicit) (Syntax: 'Handler')
-      Target:
+      Target: 
         IMethodReferenceExpression: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'Handler')
-          Instance Receiver:
+          Instance Receiver: 
             IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {
@@ -402,15 +402,15 @@ class Test
 ";
             string expectedOperationTree = @"
 IEventAssignmentExpression (EventAdd)) (OperationKind.EventAssignmentExpression, Type: System.Void) (Syntax: 'MyEvent += Handler')
-  Event Reference:
+  Event Reference: 
     IEventReferenceExpression: event System.EventHandler Test.MyEvent (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 'MyEvent')
-      Instance Receiver:
+      Instance Receiver: 
         IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Test, IsImplicit) (Syntax: 'MyEvent')
-  Handler:
+  Handler: 
     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler, IsImplicit) (Syntax: 'Handler')
-      Target:
+      Target: 
         IMethodReferenceExpression: void Test.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'Handler')
-          Instance Receiver:
+          Instance Receiver: 
             IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Test, IsImplicit) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {

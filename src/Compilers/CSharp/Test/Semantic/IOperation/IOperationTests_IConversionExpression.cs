@@ -3238,10 +3238,10 @@ class Program
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Action<stri ... jectAction;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'stringActio ... bjectAction')
     Variables: Local_1: System.Action<System.String> stringAction
-    Initializer:
+    Initializer: 
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action<System.String>, IsImplicit) (Syntax: 'objectAction')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-        Operand:
+        Operand: 
           ILocalReferenceExpression: objectAction (OperationKind.LocalReferenceExpression, Type: System.Action<System.Object>) (Syntax: 'objectAction')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -3268,10 +3268,10 @@ class Program
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Action<int> ... jectAction;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'intAction = objectAction')
     Variables: Local_1: System.Action<System.Int32> intAction
-    Initializer:
+    Initializer: 
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action<System.Int32>, IsInvalid, IsImplicit) (Syntax: 'objectAction')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand:
+        Operand: 
           ILocalReferenceExpression: objectAction (OperationKind.LocalReferenceExpression, Type: System.Action<System.Object>, IsInvalid) (Syntax: 'objectAction')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -4964,7 +4964,7 @@ class Program
             string expectedOperationTree = @"
 IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action<System.String>) (Syntax: '(Action<str ... bjectAction')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-  Operand:
+  Operand: 
     ILocalReferenceExpression: objectAction (OperationKind.LocalReferenceExpression, Type: System.Action<System.Object>) (Syntax: 'objectAction')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -4990,7 +4990,7 @@ class Program
             string expectedOperationTree = @"
 IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action<System.Int32>, IsInvalid) (Syntax: '(Action<int ... bjectAction')
   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  Operand:
+  Operand: 
     ILocalReferenceExpression: objectAction (OperationKind.LocalReferenceExpression, Type: System.Action<System.Object>, IsInvalid) (Syntax: 'objectAction')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {

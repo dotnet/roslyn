@@ -676,24 +676,24 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ICatchClause (Exception type: System.Exception) (OperationKind.CatchClause) (Syntax: 'Catch ex As ...  Is Nothing')
   Locals: Local_1: ex As System.Exception
-  ExceptionDeclarationOrExpression:
+  ExceptionDeclarationOrExpression: 
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'ex')
       Variables: Local_1: ex As System.Exception
-      Initializer:
+      Initializer: 
         null
-  Filter:
+  Filter: 
     IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'ex Is Nothing')
-      Left:
+      Left: 
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'ex')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand:
+          Operand: 
             ILocalReferenceExpression: ex (OperationKind.LocalReferenceExpression, Type: System.Exception) (Syntax: 'ex')
-      Right:
+      Right: 
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand:
+          Operand: 
             ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
-  Handler:
+  Handler: 
     IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Catch ex As ...  Is Nothing')
 ]]>.Value
 

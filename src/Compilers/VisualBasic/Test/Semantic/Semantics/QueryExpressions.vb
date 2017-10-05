@@ -66,18 +66,18 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble) (Syntax: 'From s In q')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function QueryAble.Select(x As System.Func(Of System.Int32, System.Int32)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'From s In q')
-      Instance Receiver:
+      Instance Receiver: 
         ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'From s In q')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 'From s In q')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'From s In q')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'From s In q')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'From s In q')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsImplicit) (Syntax: 's')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -162,39 +162,39 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble) (Syntax: 'From s In q ... here 10 > s')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function QueryAble.Where(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Where 10 > s')
-      Instance Receiver:
+      Instance Receiver: 
         IInvocationExpression ( Function QueryAble.Where(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Where s > 0')
-          Instance Receiver:
+          Instance Receiver: 
             ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
           Arguments(1):
               IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's > 0')
                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Boolean), IsImplicit) (Syntax: 's > 0')
-                  Target:
+                  Target: 
                     IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's > 0')
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 0')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 0')
-                          ReturnedValue:
+                          ReturnedValue: 
                             IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 0')
-                              Left:
+                              Left: 
                                 IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 0')
-                              Right:
+                              Right: 
                                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: '10 > s')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Boolean), IsImplicit) (Syntax: '10 > s')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: '10 > s')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '10 > s')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: '10 > s')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '10 > s')
-                          Left:
+                          Left: 
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
-                          Right:
+                          Right: 
                             IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: '10 > s')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -274,7 +274,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble, IsInvalid) (Syntax: 'From s In q Where s > 0')
-  Expression:
+  Expression: 
     IInvalidExpression (OperationKind.InvalidExpression, Type: QueryAble, IsInvalid, IsImplicit) (Syntax: 'Where s > 0')
       Children(2):
           IOperation:  (OperationKind.None, IsInvalid, IsImplicit) (Syntax: 'Where s > 0')
@@ -283,11 +283,11 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Query
           IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As ?) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's > 0')
             IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 0')
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 0')
-                ReturnedValue:
+                ReturnedValue: 
                   IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 0')
-                    Left:
+                    Left: 
                       IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 0')
-                    Right:
+                    Right: 
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ]]>.Value
 
@@ -333,7 +333,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble, IsInvalid) (Syntax: 'From s In q Where s > 0')
-  Expression:
+  Expression: 
     IInvalidExpression (OperationKind.InvalidExpression, Type: QueryAble, IsInvalid, IsImplicit) (Syntax: 'Where s > 0')
       Children(2):
           IOperation:  (OperationKind.None, IsInvalid, IsImplicit) (Syntax: 'Where s > 0')
@@ -342,11 +342,11 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Query
           IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As ?) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's > 0')
             IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 0')
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 0')
-                ReturnedValue:
+                ReturnedValue: 
                   IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 0')
-                    Left:
+                    Left: 
                       IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 0')
-                    Right:
+                    Right: 
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ]]>.Value
 
@@ -395,7 +395,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble, IsInvalid) (Syntax: 'From s In q Where s > 0')
-  Expression:
+  Expression: 
     IInvalidExpression (OperationKind.InvalidExpression, Type: QueryAble, IsInvalid, IsImplicit) (Syntax: 'Where s > 0')
       Children(2):
           IOperation:  (OperationKind.None, IsInvalid, IsImplicit) (Syntax: 'Where s > 0')
@@ -404,11 +404,11 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Query
           IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As ?) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's > 0')
             IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 0')
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 0')
-                ReturnedValue:
+                ReturnedValue: 
                   IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 0')
-                    Left:
+                    Left: 
                       IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 0')
-                    Right:
+                    Right: 
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ]]>.Value
 
@@ -554,38 +554,38 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: C) (Syntax: 'From z In N ... z.ToUpper()')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function C.Select(ByRef f As System.Func(Of System.String, System.String)) As C) (OperationKind.InvocationExpression, Type: C, IsImplicit) (Syntax: 'Select z.ToUpper()')
-      Instance Receiver:
+      Instance Receiver: 
         IInvocationExpression ( Function C.Select(ByRef f As System.Func(Of System.Int32, System.String)) As C) (OperationKind.InvocationExpression, Type: C, IsImplicit) (Syntax: 'Select z = z.ToString()')
-          Instance Receiver:
+          Instance Receiver: 
             IInvocationExpression ( Function C.Select(f As System.Func(Of System.Int32, System.Int32)) As C) (OperationKind.InvocationExpression, Type: C, IsImplicit) (Syntax: 'Select z')
-              Instance Receiver:
+              Instance Receiver: 
                 IObjectCreationExpression (Constructor: Sub C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'New C')
                   Arguments(0)
-                  Initializer:
+                  Initializer: 
                     null
               Arguments(1):
                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: f) (OperationKind.Argument, IsImplicit) (Syntax: 'z')
                     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 'z')
-                      Target:
+                      Target: 
                         IAnonymousFunctionExpression (Symbol: Function (z As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'z')
                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'z')
                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'z')
-                              ReturnedValue:
+                              ReturnedValue: 
                                 IParameterReferenceExpression: z (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'z')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Arguments(1):
               IArgument (ArgumentKind.DefaultValue, Matching Parameter: f) (OperationKind.Argument, IsImplicit) (Syntax: 'z.ToString()')
                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.String), IsImplicit) (Syntax: 'z.ToString()')
-                  Target:
+                  Target: 
                     IAnonymousFunctionExpression (Symbol: Function (z As System.Int32) As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'z.ToString()')
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'z.ToString()')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'z.ToString()')
-                          ReturnedValue:
+                          ReturnedValue: 
                             IInvocationExpression (virtual Function System.Int32.ToString() As System.String) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'z.ToString()')
-                              Instance Receiver:
+                              Instance Receiver: 
                                 IParameterReferenceExpression: z (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'z.ToString()')
                               Arguments(0)
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -593,13 +593,13 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: C) (S
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: f) (OperationKind.Argument, IsImplicit) (Syntax: 'z.ToUpper()')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String, System.String), IsImplicit) (Syntax: 'z.ToUpper()')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (z As System.String) As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'z.ToUpper()')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'z.ToUpper()')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'z.ToUpper()')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IInvocationExpression ( Function System.String.ToUpper() As System.String) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'z.ToUpper()')
-                          Instance Receiver:
+                          Instance Receiver: 
                             IParameterReferenceExpression: z (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'z.ToUpper()')
                           Arguments(0)
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2125,60 +2125,60 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble) (Syntax: 'From s In q ... ere Two > 0')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function QueryAble.Where(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Where Two > 0')
-      Instance Receiver:
+      Instance Receiver: 
         IInvocationExpression ( Function QueryAble.Select(x As System.Func(Of System.Int32, System.Int32)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Select ind!Two')
-          Instance Receiver:
+          Instance Receiver: 
             IInvocationExpression ( Function QueryAble.Where(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Where Num2  ... 10 + Num1()')
-              Instance Receiver:
+              Instance Receiver: 
                 IInvocationExpression ( Function QueryAble.Select(x As System.Func(Of System.Int32, System.Int32)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Select Module1.Num2()')
-                  Instance Receiver:
+                  Instance Receiver: 
                     IInvocationExpression ( Function QueryAble.Where(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Where Num1 = -10')
-                      Instance Receiver:
+                      Instance Receiver: 
                         IInvocationExpression ( Function QueryAble.Select(x As System.Func(Of System.Int32, System.Int32)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Select Num1()')
-                          Instance Receiver:
+                          Instance Receiver: 
                             IInvocationExpression ( Function QueryAble.Where(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Where s > 0')
-                              Instance Receiver:
+                              Instance Receiver: 
                                 IInvocationExpression ( Function QueryAble.Select(x As System.Func(Of System.Int32, System.Int32)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Select s')
-                                  Instance Receiver:
+                                  Instance Receiver: 
                                     ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
                                   Arguments(1):
                                       IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's')
                                         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's')
-                                          Target:
+                                          Target: 
                                             IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's')
                                               IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's')
                                                 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's')
-                                                  ReturnedValue:
+                                                  ReturnedValue: 
                                                     IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               Arguments(1):
                                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's > 0')
                                     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Boolean), IsImplicit) (Syntax: 's > 0')
-                                      Target:
+                                      Target: 
                                         IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's > 0')
                                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 0')
                                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 0')
-                                              ReturnedValue:
+                                              ReturnedValue: 
                                                 IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 0')
-                                                  Left:
+                                                  Left: 
                                                     IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 0')
-                                                  Right:
+                                                  Right: 
                                                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
                                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Arguments(1):
                               IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'Num1()')
                                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 'Num1()')
-                                  Target:
+                                  Target: 
                                     IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Num1()')
                                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Num1()')
                                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Num1()')
-                                          ReturnedValue:
+                                          ReturnedValue: 
                                             IInvocationExpression (Function Module1.Num1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Num1()')
-                                              Instance Receiver:
+                                              Instance Receiver: 
                                                 null
                                               Arguments(0)
                                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2186,30 +2186,30 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Query
                       Arguments(1):
                           IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'Num1 = -10')
                             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Boolean), IsImplicit) (Syntax: 'Num1 = -10')
-                              Target:
+                              Target: 
                                 IAnonymousFunctionExpression (Symbol: Function (Num1 As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Num1 = -10')
                                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Num1 = -10')
                                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Num1 = -10')
-                                      ReturnedValue:
+                                      ReturnedValue: 
                                         IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'Num1 = -10')
-                                          Left:
+                                          Left: 
                                             IParameterReferenceExpression: Num1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'Num1 = -10')
-                                          Right:
+                                          Right: 
                                             IUnaryOperatorExpression (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperatorExpression, Type: System.Int32, Constant: -10) (Syntax: '-10')
-                                              Operand:
+                                              Operand: 
                                                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Arguments(1):
                       IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'Module1.Num2()')
                         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 'Module1.Num2()')
-                          Target:
+                          Target: 
                             IAnonymousFunctionExpression (Symbol: Function (Num1 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Module1.Num2()')
                               IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Module1.Num2()')
                                 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Module1.Num2()')
-                                  ReturnedValue:
+                                  ReturnedValue: 
                                     IInvocationExpression (Function Module1.Num2() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Module1.Num2()')
-                                      Instance Receiver:
+                                      Instance Receiver: 
                                         null
                                       Arguments(0)
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2217,23 +2217,23 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Query
               Arguments(1):
                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'Num2 = -10 + Num1()')
                     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Boolean), IsImplicit) (Syntax: 'Num2 = -10 + Num1()')
-                      Target:
+                      Target: 
                         IAnonymousFunctionExpression (Symbol: Function (Num2 As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Num2 = -10 + Num1()')
                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Num2 = -10 + Num1()')
                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Num2 = -10 + Num1()')
-                              ReturnedValue:
+                              ReturnedValue: 
                                 IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'Num2 = -10 + Num1()')
-                                  Left:
+                                  Left: 
                                     IParameterReferenceExpression: Num2 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'Num2 = -10 + Num1()')
-                                  Right:
+                                  Right: 
                                     IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '-10 + Num1()')
-                                      Left:
+                                      Left: 
                                         IUnaryOperatorExpression (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperatorExpression, Type: System.Int32, Constant: -10) (Syntax: '-10')
-                                          Operand:
+                                          Operand: 
                                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
-                                      Right:
+                                      Right: 
                                         IInvocationExpression (Function Module1.Num1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Num1()')
-                                          Instance Receiver:
+                                          Instance Receiver: 
                                             null
                                           Arguments(0)
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2241,13 +2241,13 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Query
           Arguments(1):
               IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'ind!Two')
                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 'ind!Two')
-                  Target:
+                  Target: 
                     IAnonymousFunctionExpression (Symbol: Function (Num2 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'ind!Two')
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'ind!Two')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'ind!Two')
-                          ReturnedValue:
+                          ReturnedValue: 
                             IPropertyReferenceExpression: Property Module1.Index.Item(x As System.String) As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'ind!Two')
-                              Instance Receiver:
+                              Instance Receiver: 
                                 ILocalReferenceExpression: ind (OperationKind.LocalReferenceExpression, Type: Module1.Index) (Syntax: 'ind')
                               Arguments(1):
                                   IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'Two')
@@ -2259,15 +2259,15 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Query
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 'Two > 0')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Boolean), IsImplicit) (Syntax: 'Two > 0')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (Two As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Two > 0')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Two > 0')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Two > 0')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'Two > 0')
-                          Left:
+                          Left: 
                             IParameterReferenceExpression: Two (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'Two > 0')
-                          Right:
+                          Right: 
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -3019,7 +3019,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble, IsInvalid) (Syntax: 'From s In q Where s')
-  Expression:
+  Expression: 
     IInvalidExpression (OperationKind.InvalidExpression, Type: QueryAble, IsInvalid, IsImplicit) (Syntax: 'Where s')
       Children(2):
           IOperation:  (OperationKind.None, IsInvalid, IsImplicit) (Syntax: 'Where s')
@@ -3028,7 +3028,7 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Query
           IAnonymousFunctionExpression (Symbol: Function (s As System.Nullable(Of System.Int32)) As ?) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, IsImplicit) (Syntax: 's')
             IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 's')
               IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 's')
-                ReturnedValue:
+                ReturnedValue: 
                   IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Nullable(Of System.Int32), IsInvalid) (Syntax: 's')
 ]]>.Value
 
@@ -3644,18 +3644,18 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: ?, IsInvalid) (Syntax: 'From s In q ... While s > 1')
-  Expression:
+  Expression: 
     IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Take While s > 1')
       Children(2):
           ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
           IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As ?) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's > 1')
             IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 1')
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 1')
-                ReturnedValue:
+                ReturnedValue: 
                   IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 1')
-                    Left:
+                    Left: 
                       IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 1')
-                    Right:
+                    Right: 
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
@@ -3692,18 +3692,18 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: ?, IsInvalid) (Syntax: 'From s In q ... While s > 1')
-  Expression:
+  Expression: 
     IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Skip While s > 1')
       Children(2):
           ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
           IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As ?) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's > 1')
             IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 1')
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 1')
-                ReturnedValue:
+                ReturnedValue: 
                   IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 1')
-                    Left:
+                    Left: 
                       IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 1')
-                    Right:
+                    Right: 
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
@@ -3814,22 +3814,22 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble) (Syntax: 'From s In q ... While s > 0')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function QueryAble.SkipWhile(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Skip While s > 0')
-      Instance Receiver:
+      Instance Receiver: 
         ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's > 0')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Boolean), IsImplicit) (Syntax: 's > 0')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's > 0')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 0')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 0')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 0')
-                          Left:
+                          Left: 
                             IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 0')
-                          Right:
+                          Right: 
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -3879,22 +3879,22 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble) (Syntax: 'From s In q ... While s > 0')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function QueryAble.TakeWhile(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Take While s > 0')
-      Instance Receiver:
+      Instance Receiver: 
         ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's > 0')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Boolean), IsImplicit) (Syntax: 's > 0')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's > 0')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 0')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 0')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 0')
-                          Left:
+                          Left: 
                             IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 0')
-                          Right:
+                          Right: 
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -3944,69 +3944,69 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble) (Syntax: 'From s In q ...  0 Select s')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function QueryAble.Select(x As System.Func(Of System.Int32, System.Int32)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Select s')
-      Instance Receiver:
+      Instance Receiver: 
         IInvocationExpression ( Function QueryAble.SkipWhile(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Skip While s > 0')
-          Instance Receiver:
+          Instance Receiver: 
             IInvocationExpression ( Function QueryAble.TakeWhile(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Take While 10 > s')
-              Instance Receiver:
+              Instance Receiver: 
                 IInvocationExpression ( Function QueryAble.SkipWhile(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Skip While s > 0')
-                  Instance Receiver:
+                  Instance Receiver: 
                     ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
                   Arguments(1):
                       IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's > 0')
                         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Boolean), IsImplicit) (Syntax: 's > 0')
-                          Target:
+                          Target: 
                             IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's > 0')
                               IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 0')
                                 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 0')
-                                  ReturnedValue:
+                                  ReturnedValue: 
                                     IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 0')
-                                      Left:
+                                      Left: 
                                         IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 0')
-                                      Right:
+                                      Right: 
                                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Arguments(1):
                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: '10 > s')
                     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Boolean), IsImplicit) (Syntax: '10 > s')
-                      Target:
+                      Target: 
                         IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: '10 > s')
                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '10 > s')
                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: '10 > s')
-                              ReturnedValue:
+                              ReturnedValue: 
                                 IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '10 > s')
-                                  Left:
+                                  Left: 
                                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
-                                  Right:
+                                  Right: 
                                     IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: '10 > s')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Arguments(1):
               IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's > 0')
                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Boolean), IsImplicit) (Syntax: 's > 0')
-                  Target:
+                  Target: 
                     IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's > 0')
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 0')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 0')
-                          ReturnedValue:
+                          ReturnedValue: 
                             IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 0')
-                              Left:
+                              Left: 
                                 IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 0')
-                              Right:
+                              Right: 
                                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -4042,7 +4042,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: ?, IsInvalid) (Syntax: 'From s In q Distinct')
-  Expression:
+  Expression: 
     IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Distinct')
       Children(1):
           ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
@@ -4133,9 +4133,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble) (Syntax: 'From s In q Distinct')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function QueryAble.Distinct() As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Distinct')
-      Instance Receiver:
+      Instance Receiver: 
         ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
       Arguments(0)
 ]]>.Value
@@ -4174,26 +4174,26 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble) (Syntax: 'From s In q ... ct Distinct')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function QueryAble.Distinct() As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Distinct')
-      Instance Receiver:
+      Instance Receiver: 
         IInvocationExpression ( Function QueryAble.Distinct() As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Distinct')
-          Instance Receiver:
+          Instance Receiver: 
             IInvocationExpression ( Function QueryAble.Select(x As System.Func(Of System.Int32, System.Int32)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Select s + 1')
-              Instance Receiver:
+              Instance Receiver: 
                 ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
               Arguments(1):
                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's + 1')
                     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's + 1')
-                      Target:
+                      Target: 
                         IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's + 1')
                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's + 1')
                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's + 1')
-                              ReturnedValue:
+                              ReturnedValue: 
                                 IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's + 1')
-                                  Left:
+                                  Left: 
                                     IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's + 1')
-                                  Right:
+                                  Right: 
                                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -4345,9 +4345,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble) (Syntax: 'From s In q ... 2:00:00 AM#')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function QueryAble.Skip(count As System.DateTime) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Skip #12:00:00 AM#')
-      Instance Receiver:
+      Instance Receiver: 
         ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
       Arguments(1):
           IArgument (ArgumentKind.Explicit, Matching Parameter: count) (OperationKind.Argument, IsImplicit) (Syntax: '#12:00:00 AM#')
@@ -4395,11 +4395,11 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble) (Syntax: 'From s In q ...  1 Select s')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function QueryAble.Select(x As System.Func(Of System.Int32, System.Int32)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Select s')
-      Instance Receiver:
+      Instance Receiver: 
         IInvocationExpression ( Function QueryAble.Take(count As System.Int32) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Take 1')
-          Instance Receiver:
+          Instance Receiver: 
             ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
           Arguments(1):
               IArgument (ArgumentKind.Explicit, Matching Parameter: count) (OperationKind.Argument, IsImplicit) (Syntax: '1')
@@ -4409,11 +4409,11 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Query
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -4850,18 +4850,18 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble) (Syntax: 'From s In q Order By s')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function QueryAble.OrderBy(x As System.Func(Of System.Int32, System.Int32)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 's')
-      Instance Receiver:
+      Instance Receiver: 
         ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -4922,18 +4922,18 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble) (Syntax: 'From s In q ...  Descending')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function QueryAble.OrderByDescending(x As System.Func(Of System.Int32, System.Int32)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 's Descending')
-      Instance Receiver:
+      Instance Receiver: 
         ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -4999,137 +4999,137 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble) (Syntax: 'From s In q ... Select s')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function QueryAble.Select(x As System.Func(Of System.Int32, System.Int32)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Select s')
-      Instance Receiver:
+      Instance Receiver: 
         IInvocationExpression ( Function QueryAble.OrderBy(x As System.Func(Of System.Int32, System.Int32)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 's Ascending')
-          Instance Receiver:
+          Instance Receiver: 
             IInvocationExpression ( Function QueryAble.ThenBy(x As System.Func(Of System.Int32, System.Byte)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 's')
-              Instance Receiver:
+              Instance Receiver: 
                 IInvocationExpression ( Function QueryAble.ThenByDescending(x As System.Func(Of System.Int32, System.Byte)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 's Descending')
-                  Instance Receiver:
+                  Instance Receiver: 
                     IInvocationExpression ( Function QueryAble.OrderByDescending(x As System.Func(Of System.Int32, System.Int32)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 's Descending')
-                      Instance Receiver:
+                      Instance Receiver: 
                         IInvocationExpression ( Function QueryAble.ThenBy(x As System.Func(Of System.Int32, System.Byte)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 's Ascending')
-                          Instance Receiver:
+                          Instance Receiver: 
                             IInvocationExpression ( Function QueryAble.ThenByDescending(x As System.Func(Of System.Int32, System.Byte)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 's Descending')
-                              Instance Receiver:
+                              Instance Receiver: 
                                 IInvocationExpression ( Function QueryAble.ThenBy(x As System.Func(Of System.Int32, System.Byte)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 's')
-                                  Instance Receiver:
+                                  Instance Receiver: 
                                     IInvocationExpression ( Function QueryAble.OrderBy(x As System.Func(Of System.Int32, System.Int32)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 's')
-                                      Instance Receiver:
+                                      Instance Receiver: 
                                         ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
                                       Arguments(1):
                                           IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's')
                                             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's')
-                                              Target:
+                                              Target: 
                                                 IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's')
                                                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's')
                                                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's')
-                                                      ReturnedValue:
+                                                      ReturnedValue: 
                                                         IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's')
                                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Arguments(1):
                                       IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's')
                                         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Byte), IsImplicit) (Syntax: 's')
-                                          Target:
+                                          Target: 
                                             IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Byte) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's')
                                               IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's')
                                                 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's')
-                                                  ReturnedValue:
+                                                  ReturnedValue: 
                                                     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, IsImplicit) (Syntax: 's')
                                                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                      Operand:
+                                                      Operand: 
                                                         IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               Arguments(1):
                                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's')
                                     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Byte), IsImplicit) (Syntax: 's')
-                                      Target:
+                                      Target: 
                                         IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Byte) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's')
                                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's')
                                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's')
-                                              ReturnedValue:
+                                              ReturnedValue: 
                                                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, IsImplicit) (Syntax: 's')
                                                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                                  Operand:
+                                                  Operand: 
                                                     IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's')
                                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Arguments(1):
                               IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's')
                                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Byte), IsImplicit) (Syntax: 's')
-                                  Target:
+                                  Target: 
                                     IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Byte) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's')
                                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's')
                                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's')
-                                          ReturnedValue:
+                                          ReturnedValue: 
                                             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, IsImplicit) (Syntax: 's')
                                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                              Operand:
+                                              Operand: 
                                                 IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's')
                                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       Arguments(1):
                           IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's')
                             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's')
-                              Target:
+                              Target: 
                                 IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's')
                                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's')
                                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's')
-                                      ReturnedValue:
+                                      ReturnedValue: 
                                         IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's')
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   Arguments(1):
                       IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's')
                         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Byte), IsImplicit) (Syntax: 's')
-                          Target:
+                          Target: 
                             IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Byte) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's')
                               IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's')
                                 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's')
-                                  ReturnedValue:
+                                  ReturnedValue: 
                                     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, IsImplicit) (Syntax: 's')
                                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                      Operand:
+                                      Operand: 
                                         IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Arguments(1):
                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's')
                     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Byte), IsImplicit) (Syntax: 's')
-                      Target:
+                      Target: 
                         IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Byte) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's')
                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's')
                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's')
-                              ReturnedValue:
+                              ReturnedValue: 
                                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, IsImplicit) (Syntax: 's')
                                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                  Operand:
+                                  Operand: 
                                     IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Arguments(1):
               IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's')
                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's')
-                  Target:
+                  Target: 
                     IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's')
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's')
-                          ReturnedValue:
+                          ReturnedValue: 
                             IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -5593,34 +5593,34 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)) (Syntax: 'From s1 In  ... s2 = s1 + 1')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Select(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)(selector As System.Func(Of System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>), IsImplicit) (Syntax: 's2 = s1 + 1')
-      Instance Receiver:
+      Instance Receiver: 
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New Integer() {1}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand:
+          Operand: 
             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1}')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {1}')
-              Initializer:
+              Initializer: 
                 IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{1}')
                   Element Values(1):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 's1 + 1')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>), IsImplicit) (Syntax: 's1 + 1')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32) As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's1 + 1')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1 + 1')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1 + 1')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 = s1 + 1')
                           Initializers(2):
                               IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1 + 1')
                               IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's1 + 1')
-                                Left:
+                                Left: 
                                   IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1 + 1')
-                                Right:
+                                Right: 
                                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -5651,63 +5651,63 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>)) (Syntax: 'From s1 In  ... 3 = s2 + s1')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>).Select(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>)(selector As System.Func(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>), IsImplicit) (Syntax: 's3 = s2 + s1')
-      Instance Receiver:
+      Instance Receiver: 
         IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Select(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)(selector As System.Func(Of System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>), IsImplicit) (Syntax: 's2 = s1 + 1')
-          Instance Receiver:
+          Instance Receiver: 
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New Integer() {1}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-              Operand:
+              Operand: 
                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1}')
                   Dimension Sizes(1):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {1}')
-                  Initializer:
+                  Initializer: 
                     IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{1}')
                       Element Values(1):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           Arguments(1):
               IArgument (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 's1 + 1')
                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>), IsImplicit) (Syntax: 's1 + 1')
-                  Target:
+                  Target: 
                     IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32) As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's1 + 1')
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1 + 1')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1 + 1')
-                          ReturnedValue:
+                          ReturnedValue: 
                             IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 = s1 + 1')
                               Initializers(2):
                                   IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1 + 1')
                                   IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's1 + 1')
-                                    Left:
+                                    Left: 
                                       IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1 + 1')
-                                    Right:
+                                    Right: 
                                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 's2 + s1')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>), IsImplicit) (Syntax: 's2 + s1')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's2 + s1')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's2 + s1')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's2 + s1')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>, IsImplicit) (Syntax: 's3 = s2 + s1')
                           Initializers(3):
                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's2 + s1')
-                                Instance Receiver:
+                                Instance Receiver: 
                                   IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's2 + s1')
                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's2 + s1')
-                                Instance Receiver:
+                                Instance Receiver: 
                                   IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's2 + s1')
                               IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's2 + s1')
-                                Left:
+                                Left: 
                                   IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's2 + s1')
-                                    Instance Receiver:
+                                    Instance Receiver: 
                                       IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's2 + s1')
-                                Right:
+                                Right: 
                                   IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's2 + s1')
-                                    Instance Receiver:
+                                    Instance Receiver: 
                                       IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's2 + s1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -5738,159 +5738,159 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32, Key s5 As System.Int32>)) (Syntax: 'From s1 In  ... 2 + s3 + s4')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>).Select(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32, Key s5 As System.Int32>)(selector As System.Func(Of <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32, Key s5 As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32, Key s5 As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32, Key s5 As System.Int32>), IsImplicit) (Syntax: 's5 = s1 + s2 + s3 + s4')
-      Instance Receiver:
+      Instance Receiver: 
         IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>).Select(Of <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>)(selector As System.Func(Of <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>), IsImplicit) (Syntax: 's4 = s1 + s2 + s3')
-          Instance Receiver:
+          Instance Receiver: 
             IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>).Select(Of <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>)(selector As System.Func(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>), IsImplicit) (Syntax: 's3 = s2 + s1')
-              Instance Receiver:
+              Instance Receiver: 
                 IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Select(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)(selector As System.Func(Of System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>), IsImplicit) (Syntax: 's2 = s1 + 1')
-                  Instance Receiver:
+                  Instance Receiver: 
                     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New Integer() {3}')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                      Operand:
+                      Operand: 
                         IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {3}')
                           Dimension Sizes(1):
                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {3}')
-                          Initializer:
+                          Initializer: 
                             IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{3}')
                               Element Values(1):
                                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
                   Arguments(1):
                       IArgument (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 's1 + 1')
                         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>), IsImplicit) (Syntax: 's1 + 1')
-                          Target:
+                          Target: 
                             IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32) As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's1 + 1')
                               IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1 + 1')
                                 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1 + 1')
-                                  ReturnedValue:
+                                  ReturnedValue: 
                                     IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's2 = s1 + 1')
                                       Initializers(2):
                                           IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1 + 1')
                                           IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's1 + 1')
-                                            Left:
+                                            Left: 
                                               IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1 + 1')
-                                            Right:
+                                            Right: 
                                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Arguments(1):
                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 's2 + s1')
                     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>), IsImplicit) (Syntax: 's2 + s1')
-                      Target:
+                      Target: 
                         IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's2 + s1')
                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's2 + s1')
                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's2 + s1')
-                              ReturnedValue:
+                              ReturnedValue: 
                                 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's3 = s2 + s1')
                                   Initializers(2):
                                       IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 's3 = s2 + s1')
                                       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's2 + s1')
-                                        Left:
+                                        Left: 
                                           IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's2 + s1')
-                                            Instance Receiver:
+                                            Instance Receiver: 
                                               IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's2 + s1')
-                                        Right:
+                                        Right: 
                                           IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's2 + s1')
-                                            Instance Receiver:
+                                            Instance Receiver: 
                                               IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's2 + s1')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Arguments(1):
               IArgument (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 's1 + s2 + s3')
                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>), IsImplicit) (Syntax: 's1 + s2 + s3')
-                  Target:
+                  Target: 
                     IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) As <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's1 + s2 + s3')
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1 + s2 + s3')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1 + s2 + s3')
-                          ReturnedValue:
+                          ReturnedValue: 
                             IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>, IsImplicit) (Syntax: 's4 = s1 + s2 + s3')
                               Initializers(2):
                                   IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, IsImplicit) (Syntax: 's4 = s1 + s2 + s3')
                                   IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3')
-                                    Left:
+                                    Left: 
                                       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's1 + s2')
-                                        Left:
+                                        Left: 
                                           IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3')
-                                            Instance Receiver:
+                                            Instance Receiver: 
                                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's1 + s2 + s3')
-                                                Instance Receiver:
+                                                Instance Receiver: 
                                                   IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3')
-                                        Right:
+                                        Right: 
                                           IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3')
-                                            Instance Receiver:
+                                            Instance Receiver: 
                                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's1 + s2 + s3')
-                                                Instance Receiver:
+                                                Instance Receiver: 
                                                   IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3')
-                                    Right:
+                                    Right: 
                                       IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.s3 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3')
-                                        Instance Receiver:
+                                        Instance Receiver: 
                                           IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32, Key s5 As System.Int32>), IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>) As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32, Key s5 As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's1 + s2 + s3 + s4')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1 + s2 + s3 + s4')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1 + s2 + s3 + s4')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32, Key s5 As System.Int32>, IsImplicit) (Syntax: 's5 = s1 + s2 + s3 + s4')
                           Initializers(5):
                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
-                                Instance Receiver:
+                                Instance Receiver: 
                                   IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                    Instance Receiver:
+                                    Instance Receiver: 
                                       IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                        Instance Receiver:
+                                        Instance Receiver: 
                                           IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
-                                Instance Receiver:
+                                Instance Receiver: 
                                   IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                    Instance Receiver:
+                                    Instance Receiver: 
                                       IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                        Instance Receiver:
+                                        Instance Receiver: 
                                           IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.s3 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
-                                Instance Receiver:
+                                Instance Receiver: 
                                   IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                    Instance Receiver:
+                                    Instance Receiver: 
                                       IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.s4 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
-                                Instance Receiver:
+                                Instance Receiver: 
                                   IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
                               IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
-                                Left:
+                                Left: 
                                   IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3')
-                                    Left:
+                                    Left: 
                                       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's1 + s2')
-                                        Left:
+                                        Left: 
                                           IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
-                                            Instance Receiver:
+                                            Instance Receiver: 
                                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                                Instance Receiver:
+                                                Instance Receiver: 
                                                   IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                                    Instance Receiver:
+                                                    Instance Receiver: 
                                                       IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                        Right:
+                                        Right: 
                                           IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
-                                            Instance Receiver:
+                                            Instance Receiver: 
                                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.$VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                                Instance Receiver:
+                                                Instance Receiver: 
                                                   IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                                    Instance Receiver:
+                                                    Instance Receiver: 
                                                       IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                    Right:
+                                    Right: 
                                       IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>.s3 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
-                                        Instance Receiver:
+                                        Instance Receiver: 
                                           IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.$VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                            Instance Receiver:
+                                            Instance Receiver: 
                                               IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
-                                Right:
+                                Right: 
                                   IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>.s4 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1 + s2 + s3 + s4')
-                                    Instance Receiver:
+                                    Instance Receiver: 
                                       IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It As <anonymous type: Key $VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, Key s3 As System.Int32>, Key s4 As System.Int32>) (Syntax: 's1 + s2 + s3 + s4')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -7358,16 +7358,16 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)) (Syntax: 'From s1 In  ... 1 Equals s2')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Join(Of System.Int32, System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)(inner As System.Collections.Generic.IEnumerable(Of System.Int32), outerKeySelector As System.Func(Of System.Int32, System.Int32), innerKeySelector As System.Func(Of System.Int32, System.Int32), resultSelector As System.Func(Of System.Int32, System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>), IsImplicit) (Syntax: 'Join s2 In  ... 1 Equals s2')
-      Instance Receiver:
+      Instance Receiver: 
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... er() {1, 3}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand:
+          Operand: 
             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1, 3}')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {1, 3}')
-              Initializer:
+              Initializer: 
                 IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{1, 3}')
                   Element Values(2):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -7376,11 +7376,11 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
           IArgument (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-              Operand:
+              Operand: 
                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {2, 3}')
                   Dimension Sizes(1):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {2, 3}')
-                  Initializer:
+                  Initializer: 
                     IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{2, 3}')
                       Element Values(2):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -7389,31 +7389,31 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: outerKeySelector) (OperationKind.Argument, IsImplicit) (Syntax: 's1')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's1')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's1')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: innerKeySelector) (OperationKind.Argument, IsImplicit) (Syntax: 's2')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's2')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s2 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's2')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's2')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's2')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IParameterReferenceExpression: s2 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's2')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'Join s2 In  ... 1 Equals s2')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>), IsImplicit) (Syntax: 'Join s2 In  ... 1 Equals s2')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32, s2 As System.Int32) As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Join s2 In  ... 1 Equals s2')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Join s2 In  ... 1 Equals s2')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Join s2 In  ... 1 Equals s2')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Join s2 In  ... 1 Equals s2')
                           Initializers(2):
                               IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'Join s2 In  ... 1 Equals s2')
@@ -7448,18 +7448,18 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>)) (Syntax: 'From s1 In  ... uals s2 * 2')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>).Join(Of System.Int32, System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>)(inner As System.Collections.Generic.IEnumerable(Of System.Int32), outerKeySelector As System.Func(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, System.Int32), innerKeySelector As System.Func(Of System.Int32, System.Int32), resultSelector As System.Func(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>), IsImplicit) (Syntax: 'Join s3 In  ... uals s2 * 2')
-      Instance Receiver:
+      Instance Receiver: 
         IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Join(Of System.Int32, System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)(inner As System.Collections.Generic.IEnumerable(Of System.Int32), outerKeySelector As System.Func(Of System.Int32, System.Int32), innerKeySelector As System.Func(Of System.Int32, System.Int32), resultSelector As System.Func(Of System.Int32, System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>), IsImplicit) (Syntax: 'Join s2 In  ... 1 Equals s2')
-          Instance Receiver:
+          Instance Receiver: 
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New Integer() {1}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-              Operand:
+              Operand: 
                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1}')
                   Dimension Sizes(1):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {1}')
-                  Initializer:
+                  Initializer: 
                     IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{1}')
                       Element Values(1):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -7467,11 +7467,11 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
               IArgument (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                  Operand:
+                  Operand: 
                     IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {2, 3}')
                       Dimension Sizes(1):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {2, 3}')
-                      Initializer:
+                      Initializer: 
                         IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{2, 3}')
                           Element Values(2):
                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -7480,35 +7480,35 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               IArgument (ArgumentKind.DefaultValue, Matching Parameter: outerKeySelector) (OperationKind.Argument, IsImplicit) (Syntax: 's1 + 1')
                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's1 + 1')
-                  Target:
+                  Target: 
                     IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's1 + 1')
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1 + 1')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1 + 1')
-                          ReturnedValue:
+                          ReturnedValue: 
                             IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's1 + 1')
-                              Left:
+                              Left: 
                                 IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1 + 1')
-                              Right:
+                              Right: 
                                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               IArgument (ArgumentKind.DefaultValue, Matching Parameter: innerKeySelector) (OperationKind.Argument, IsImplicit) (Syntax: 's2')
                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's2')
-                  Target:
+                  Target: 
                     IAnonymousFunctionExpression (Symbol: Function (s2 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's2')
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's2')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's2')
-                          ReturnedValue:
+                          ReturnedValue: 
                             IParameterReferenceExpression: s2 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's2')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'Join s2 In  ... 1 Equals s2')
                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>), IsImplicit) (Syntax: 'Join s2 In  ... 1 Equals s2')
-                  Target:
+                  Target: 
                     IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32, s2 As System.Int32) As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Join s2 In  ... 1 Equals s2')
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Join s2 In  ... 1 Equals s2')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Join s2 In  ... 1 Equals s2')
-                          ReturnedValue:
+                          ReturnedValue: 
                             IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Join s2 In  ... 1 Equals s2')
                               Initializers(2):
                                   IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsImplicit) (Syntax: 's1')
@@ -7519,11 +7519,11 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
           IArgument (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, IsImplicit) (Syntax: 's3 In New I ... er() {4, 5}')
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's3 In New I ... er() {4, 5}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-              Operand:
+              Operand: 
                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {4, 5}')
                   Dimension Sizes(1):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {4, 5}')
-                  Initializer:
+                  Initializer: 
                     IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{4, 5}')
                       Element Values(2):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
@@ -7532,44 +7532,44 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: outerKeySelector) (OperationKind.Argument, IsImplicit) (Syntax: 's3')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, System.Int32), IsImplicit) (Syntax: 's3')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's3')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's3')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's3')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IBinaryOperatorExpression (BinaryOperatorKind.Multiply, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's2 * 2')
-                          Left:
+                          Left: 
                             IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's3')
-                              Instance Receiver:
+                              Instance Receiver: 
                                 IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 's3')
-                          Right:
+                          Right: 
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: innerKeySelector) (OperationKind.Argument, IsImplicit) (Syntax: 's2 * 2')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's2 * 2')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s3 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's2 * 2')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's2 * 2')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's2 * 2')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IParameterReferenceExpression: s3 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's2 * 2')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'Join s3 In  ... uals s2 * 2')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>), IsImplicit) (Syntax: 'Join s3 In  ... uals s2 * 2')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function ($VB$It1 As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, s3 As System.Int32) As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Join s3 In  ... uals s2 * 2')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Join s3 In  ... uals s2 * 2')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Join s3 In  ... uals s2 * 2')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key s3 As System.Int32>, IsImplicit) (Syntax: 'Join s3 In  ... uals s2 * 2')
                           Initializers(3):
                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Join s3 In  ... uals s2 * 2')
-                                Instance Receiver:
+                                Instance Receiver: 
                                   IParameterReferenceExpression: $VB$It1 (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 'Join s3 In  ... uals s2 * 2')
                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Join s3 In  ... uals s2 * 2')
-                                Instance Receiver:
+                                Instance Receiver: 
                                   IParameterReferenceExpression: $VB$It1 (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 'Join s3 In  ... uals s2 * 2')
                               IParameterReferenceExpression: s3 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'Join s3 In  ... uals s2 * 2')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -8487,7 +8487,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: ?, IsInvalid) (Syntax: 'From s1 In  ... 1 Equals t1')
-  Expression:
+  Expression: 
     IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Join t1 In  ... 1 Equals t1')
       Children(5):
           ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
@@ -8495,17 +8495,17 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: ?, Is
           IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32) As ?) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's1')
             IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1')
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1')
-                ReturnedValue:
+                ReturnedValue: 
                   IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1')
           IAnonymousFunctionExpression (Symbol: Function (t1 As System.Int32) As ?) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 't1')
             IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 't1')
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 't1')
-                ReturnedValue:
+                ReturnedValue: 
                   IParameterReferenceExpression: t1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 't1')
           IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32, t1 As System.Int32) As <anonymous type: Key s1 As System.Int32, Key t1 As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, IsImplicit) (Syntax: 'Join t1 In  ... 1 Equals t1')
             IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Join t1 In  ... 1 Equals t1')
               IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Join t1 In  ... 1 Equals t1')
-                ReturnedValue:
+                ReturnedValue: 
                   IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key t1 As System.Int32>, IsInvalid, IsImplicit) (Syntax: 'Join t1 In  ... 1 Equals t1')
                     Initializers(2):
                         IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'Join t1 In  ... 1 Equals t1')
@@ -8691,16 +8691,16 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)) (Syntax: 'From s1 In  ...  Into Group')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).GroupBy(Of System.Int32, <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)(keySelector As System.Func(Of System.Int32, System.Int32), resultSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32), <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>), IsImplicit) (Syntax: 'Group By s1 Into Group')
-      Instance Receiver:
+      Instance Receiver: 
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... 3, 4, 2, 3}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand:
+          Operand: 
             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer ... 3, 4, 2, 3}')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6, IsImplicit) (Syntax: 'New Integer ... 3, 4, 2, 3}')
-              Initializer:
+              Initializer: 
                 IArrayInitializer (6 elements) (OperationKind.ArrayInitializer) (Syntax: '{1, 2, 3, 4, 2, 3}')
                   Element Values(6):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -8712,21 +8712,21 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
       Arguments(2):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument, IsImplicit) (Syntax: 's1')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's1')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's1')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'Group By s1 Into Group')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32), <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>), IsImplicit) (Syntax: 'Group By s1 Into Group')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32, $VB$ItAnonymous As System.Collections.Generic.IEnumerable(Of System.Int32)) As <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Group By s1 Into Group')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Group By s1 Into Group')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Group By s1 Into Group')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group By s1 Into Group')
                           Initializers(2):
                               IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'Group By s1 Into Group')
@@ -8762,16 +8762,16 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key Count As System.Int32>)) (Syntax: 'From s1 In  ... nto Count()')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).GroupBy(Of System.Int32, <anonymous type: Key s1 As System.Int32, Key Count As System.Int32>)(keySelector As System.Func(Of System.Int32, System.Int32), resultSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32), <anonymous type: Key s1 As System.Int32, Key Count As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key Count As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key Count As System.Int32>), IsImplicit) (Syntax: 'Group By s1 Into Count()')
-      Instance Receiver:
+      Instance Receiver: 
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... 3, 4, 2, 3}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand:
+          Operand: 
             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer ... 3, 4, 2, 3}')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6, IsImplicit) (Syntax: 'New Integer ... 3, 4, 2, 3}')
-              Initializer:
+              Initializer: 
                 IArrayInitializer (6 elements) (OperationKind.ArrayInitializer) (Syntax: '{1, 2, 3, 4, 2, 3}')
                   Element Values(6):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -8783,26 +8783,26 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
       Arguments(2):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument, IsImplicit) (Syntax: 's1')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's1')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's1')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'Group By s1 Into Count()')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32), <anonymous type: Key s1 As System.Int32, Key Count As System.Int32>), IsImplicit) (Syntax: 'Group By s1 Into Count()')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32, $VB$ItAnonymous As System.Collections.Generic.IEnumerable(Of System.Int32)) As <anonymous type: Key s1 As System.Int32, Key Count As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Group By s1 Into Count()')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Group By s1 Into Count()')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Group By s1 Into Count()')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key Count As System.Int32>, IsImplicit) (Syntax: 'Group By s1 Into Count()')
                           Initializers(2):
                               IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'Group By s1 Into Count()')
                               IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Count() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
-                                Instance Receiver:
+                                Instance Receiver: 
                                   IParameterReferenceExpression: $VB$ItAnonymous (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group By s1 Into Count()')
                                 Arguments(0)
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -8839,16 +8839,16 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)) (Syntax: 'From s1 In  ...  Into Group')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).GroupBy(Of System.Int32, System.Int32, <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)(keySelector As System.Func(Of System.Int32, System.Int32), elementSelector As System.Func(Of System.Int32, System.Int32), resultSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32), <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>), IsImplicit) (Syntax: 'Group s1 By ...  Into Group')
-      Instance Receiver:
+      Instance Receiver: 
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... 3, 4, 2, 3}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand:
+          Operand: 
             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer ... 3, 4, 2, 3}')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6, IsImplicit) (Syntax: 'New Integer ... 3, 4, 2, 3}')
-              Initializer:
+              Initializer: 
                 IArrayInitializer (6 elements) (OperationKind.ArrayInitializer) (Syntax: '{1, 2, 3, 4, 2, 3}')
                   Element Values(6):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -8860,31 +8860,31 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
       Arguments(3):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument, IsImplicit) (Syntax: 's1')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's1')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's1')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: elementSelector) (OperationKind.Argument, IsImplicit) (Syntax: 's1')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's1')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's1')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'Group s1 By ...  Into Group')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32), <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>), IsImplicit) (Syntax: 'Group s1 By ...  Into Group')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32, $VB$ItAnonymous As System.Collections.Generic.IEnumerable(Of System.Int32)) As <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Group s1 By ...  Into Group')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Group s1 By ...  Into Group')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Group s1 By ...  Into Group')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group s1 By ...  Into Group')
                           Initializers(2):
                               IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'Group s1 By ...  Into Group')
@@ -8923,16 +8923,16 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>)) (Syntax: 'From s1 In  ... (), Max(s1)')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).GroupBy(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, <anonymous type: Key s1 As System.Int32, Key s1str As System.String>, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>)(keySelector As System.Func(Of System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>), elementSelector As System.Func(Of System.Int32, <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), resultSelector As System.Func(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>), IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
-      Instance Receiver:
+      Instance Receiver: 
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... 3, 4, 2, 3}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand:
+          Operand: 
             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer ... 3, 4, 2, 3}')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6, IsImplicit) (Syntax: 'New Integer ... 3, 4, 2, 3}')
-              Initializer:
+              Initializer: 
                 IArrayInitializer (6 elements) (OperationKind.ArrayInitializer) (Syntax: '{1, 2, 3, 4, 2, 3}')
                   Element Values(6):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -8944,74 +8944,74 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
       Arguments(3):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument, IsImplicit) (Syntax: 's1 Mod 2')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>), IsImplicit) (Syntax: 's1 Mod 2')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32) As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's1 Mod 2')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1 Mod 2')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1 Mod 2')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
                           Initializers(2):
                               IBinaryOperatorExpression (BinaryOperatorKind.Remainder, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's1 Mod 2')
-                                Left:
+                                Left: 
                                   IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1 Mod 2')
-                                Right:
+                                Right: 
                                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
                               IBinaryOperatorExpression (BinaryOperatorKind.Remainder, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's1 Mod 3')
-                                Left:
+                                Left: 
                                   IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1 Mod 2')
-                                Right:
+                                Right: 
                                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: elementSelector) (OperationKind.Argument, IsImplicit) (Syntax: 's1')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), IsImplicit) (Syntax: 's1')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32) As <anonymous type: Key s1 As System.Int32, Key s1str As System.String>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's1')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s1str As System.String>, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
                           Initializers(2):
                               IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1')
                               IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 'CStr(s1)')
                                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                Operand:
+                                Operand: 
                                   IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>), IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>, $VB$ItAnonymous As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>)) As <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Group s1, s ... (), Max(s1)')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Group s1, s ... (), Max(s1)')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32, Key gr As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), Key c As System.Int32, Key Max As System.Int32>, IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
                           Initializers(5):
                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Group s1, s ... (), Max(s1)')
-                                Instance Receiver:
+                                Instance Receiver: 
                                   IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 'Group s1, s ... (), Max(s1)')
                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Group s1, s ... (), Max(s1)')
-                                Instance Receiver:
+                                Instance Receiver: 
                                   IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s2 As System.Int32>) (Syntax: 'Group s1, s ... (), Max(s1)')
                               IParameterReferenceExpression: $VB$ItAnonymous (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>), IsImplicit) (Syntax: 'Group s1, s ... (), Max(s1)')
                               IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>).Count() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
-                                Instance Receiver:
+                                Instance Receiver: 
                                   IParameterReferenceExpression: $VB$ItAnonymous (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>)) (Syntax: 'Group s1, s ... (), Max(s1)')
                                 Arguments(0)
                               IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>).Max(selector As System.Func(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>, System.Int32)) As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsImplicit) (Syntax: 'Max(s1)')
-                                Instance Receiver:
+                                Instance Receiver: 
                                   IParameterReferenceExpression: $VB$ItAnonymous (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>)) (Syntax: 'Group s1, s ... (), Max(s1)')
                                 Arguments(1):
                                     IArgument (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 's1')
                                       IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key s1 As System.Int32, Key s1str As System.String>, System.Int32), IsImplicit) (Syntax: 's1')
-                                        Target:
+                                        Target: 
                                           IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key s1 As System.Int32, Key s1str As System.String>) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's1')
                                             IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1')
                                               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1')
-                                                ReturnedValue:
+                                                ReturnedValue: 
                                                   IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key s1str As System.String>.s1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's1')
-                                                    Instance Receiver:
+                                                    Instance Receiver: 
                                                       IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s1str As System.String>) (Syntax: 's1')
                                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -9049,20 +9049,20 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32), Key s1 As System.Int32>)) (Syntax: 'From s1 In  ... y Equals s1')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>).Join(Of System.Int32, System.Int32, <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32), Key s1 As System.Int32>)(inner As System.Collections.Generic.IEnumerable(Of System.Int32), outerKeySelector As System.Func(Of <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, System.Int32), innerKeySelector As System.Func(Of System.Int32, System.Int32), resultSelector As System.Func(Of <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, System.Int32, <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32), Key s1 As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32), Key s1 As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32), Key s1 As System.Int32>), IsImplicit) (Syntax: 'Join s1 In  ... y Equals s1')
-      Instance Receiver:
+      Instance Receiver: 
         IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).GroupBy(Of System.Int32, <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)(keySelector As System.Func(Of System.Int32, System.Int32), resultSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32), <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>), IsImplicit) (Syntax: 'Group By ke ...  Into Group')
-          Instance Receiver:
+          Instance Receiver: 
             IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Select(Of System.Int32)(selector As System.Func(Of System.Int32, System.Int32)) As System.Collections.Generic.IEnumerable(Of System.Int32)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Select s1 + 1')
-              Instance Receiver:
+              Instance Receiver: 
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... er() {1, 2}')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                  Operand:
+                  Operand: 
                     IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1, 2}')
                       Dimension Sizes(1):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {1, 2}')
-                      Initializer:
+                      Initializer: 
                         IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{1, 2}')
                           Element Values(2):
                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -9070,36 +9070,36 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
               Arguments(1):
                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 's1 + 1')
                     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's1 + 1')
-                      Target:
+                      Target: 
                         IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's1 + 1')
                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1 + 1')
                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1 + 1')
-                              ReturnedValue:
+                              ReturnedValue: 
                                 IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's1 + 1')
-                                  Left:
+                                  Left: 
                                     IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1 + 1')
-                                  Right:
+                                  Right: 
                                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Arguments(2):
               IArgument (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument, IsImplicit) (Syntax: '1')
                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: '1')
-                  Target:
+                  Target: 
                     IAnonymousFunctionExpression (Symbol: Function ($VB$ItAnonymous As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: '1')
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '1')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: '1')
-                          ReturnedValue:
+                          ReturnedValue: 
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'Group By ke ...  Into Group')
                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32), <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>), IsImplicit) (Syntax: 'Group By ke ...  Into Group')
-                  Target:
+                  Target: 
                     IAnonymousFunctionExpression (Symbol: Function (key As System.Int32, $VB$ItAnonymous As System.Collections.Generic.IEnumerable(Of System.Int32)) As <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Group By ke ...  Into Group')
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Group By ke ...  Into Group')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Group By ke ...  Into Group')
-                          ReturnedValue:
+                          ReturnedValue: 
                             IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group By ke ...  Into Group')
                               Initializers(2):
                                   IParameterReferenceExpression: key (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'Group By ke ...  Into Group')
@@ -9110,11 +9110,11 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
           IArgument (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, IsImplicit) (Syntax: 's1 In New I ... er() {1, 2}')
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... er() {1, 2}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-              Operand:
+              Operand: 
                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1, 2}')
                   Dimension Sizes(1):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {1, 2}')
-                  Initializer:
+                  Initializer: 
                     IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{1, 2}')
                       Element Values(2):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -9123,40 +9123,40 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: outerKeySelector) (OperationKind.Argument, IsImplicit) (Syntax: 'key')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, System.Int32), IsImplicit) (Syntax: 'key')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'key')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'key')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'key')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>.key As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'key')
-                          Instance Receiver:
+                          Instance Receiver: 
                             IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>) (Syntax: 'key')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: innerKeySelector) (OperationKind.Argument, IsImplicit) (Syntax: 's1')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's1')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's1')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'Join s1 In  ... y Equals s1')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, System.Int32, <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32), Key s1 As System.Int32>), IsImplicit) (Syntax: 'Join s1 In  ... y Equals s1')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function ($VB$It1 As <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, s1 As System.Int32) As <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32), Key s1 As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Join s1 In  ... y Equals s1')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Join s1 In  ... y Equals s1')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Join s1 In  ... y Equals s1')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32), Key s1 As System.Int32>, IsImplicit) (Syntax: 'Join s1 In  ... y Equals s1')
                           Initializers(3):
                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>.key As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Join s1 In  ... y Equals s1')
-                                Instance Receiver:
+                                Instance Receiver: 
                                   IParameterReferenceExpression: $VB$It1 (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>) (Syntax: 'Join s1 In  ... y Equals s1')
                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>.Group As System.Collections.Generic.IEnumerable(Of System.Int32) (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32)) (Syntax: 'Join s1 In  ... y Equals s1')
-                                Instance Receiver:
+                                Instance Receiver: 
                                   IParameterReferenceExpression: $VB$It1 (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key key As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>) (Syntax: 'Join s1 In  ... y Equals s1')
                               IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'Join s1 In  ... y Equals s1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -9359,19 +9359,19 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: ?, IsInvalid) (Syntax: 'From s1 In  ...  Into Group')
-  Expression:
+  Expression: 
     IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Group By s1 Into Group')
       Children(3):
           ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
           IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's1')
             IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1')
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1')
-                ReturnedValue:
+                ReturnedValue: 
                   IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1')
           IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32, $VB$ItAnonymous As ?) As <anonymous type: Key s1 As System.Int32, Key Group As ?>) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, IsImplicit) (Syntax: 'Group By s1 Into Group')
             IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Group By s1 Into Group')
               IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Group By s1 Into Group')
-                ReturnedValue:
+                ReturnedValue: 
                   IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key Group As ?>, IsInvalid, IsImplicit) (Syntax: 'Group By s1 Into Group')
                     Initializers(2):
                         IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'Group By s1 Into Group')
@@ -9739,16 +9739,16 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)) (Syntax: 'From s1 In  ...  Into Group')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).GroupJoin(Of System.Int32, System.Int32, <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)(inner As System.Collections.Generic.IEnumerable(Of System.Int32), outerKeySelector As System.Func(Of System.Int32, System.Int32), innerKeySelector As System.Func(Of System.Int32, System.Int32), resultSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32), <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>), IsImplicit) (Syntax: 'Group Join  ...  Into Group')
-      Instance Receiver:
+      Instance Receiver: 
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... er() {1, 3}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand:
+          Operand: 
             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1, 3}')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {1, 3}')
-              Initializer:
+              Initializer: 
                 IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{1, 3}')
                   Element Values(2):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -9757,11 +9757,11 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
           IArgument (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-              Operand:
+              Operand: 
                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {2, 3}')
                   Dimension Sizes(1):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {2, 3}')
-                  Initializer:
+                  Initializer: 
                     IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{2, 3}')
                       Element Values(2):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -9770,31 +9770,31 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: outerKeySelector) (OperationKind.Argument, IsImplicit) (Syntax: 's1')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's1')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's1')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: innerKeySelector) (OperationKind.Argument, IsImplicit) (Syntax: 's2')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's2')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s2 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's2')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's2')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's2')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IParameterReferenceExpression: s2 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's2')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32), <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>), IsImplicit) (Syntax: 'Group Join  ...  Into Group')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32, $VB$ItAnonymous As System.Collections.Generic.IEnumerable(Of System.Int32)) As <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Group Join  ...  Into Group')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Group Join  ...  Into Group')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key Group As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
                           Initializers(2):
                               IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'Group Join  ...  Into Group')
@@ -9837,18 +9837,18 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32), Key gr2 As System.Collections.Generic.IEnumerable(Of System.Int32)>)) (Syntax: 'From s1 In  ... gr2 = Group')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>).GroupJoin(Of System.Int32, System.Int32, <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32), Key gr2 As System.Collections.Generic.IEnumerable(Of System.Int32)>)(inner As System.Collections.Generic.IEnumerable(Of System.Int32), outerKeySelector As System.Func(Of <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>, System.Int32), innerKeySelector As System.Func(Of System.Int32, System.Int32), resultSelector As System.Func(Of <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>, System.Collections.Generic.IEnumerable(Of System.Int32), <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32), Key gr2 As System.Collections.Generic.IEnumerable(Of System.Int32)>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32), Key gr2 As System.Collections.Generic.IEnumerable(Of System.Int32)>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32), Key gr2 As System.Collections.Generic.IEnumerable(Of System.Int32)>), IsImplicit) (Syntax: 'Group Join  ... gr2 = Group')
-      Instance Receiver:
+      Instance Receiver: 
         IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).GroupJoin(Of System.Int32, System.Int32, <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>)(inner As System.Collections.Generic.IEnumerable(Of System.Int32), outerKeySelector As System.Func(Of System.Int32, System.Int32), innerKeySelector As System.Func(Of System.Int32, System.Int32), resultSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32), <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>), IsImplicit) (Syntax: 'Group Join  ... gr1 = Group')
-          Instance Receiver:
+          Instance Receiver: 
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New Integer() {1}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-              Operand:
+              Operand: 
                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1}')
                   Dimension Sizes(1):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {1}')
-                  Initializer:
+                  Initializer: 
                     IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{1}')
                       Element Values(1):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -9856,11 +9856,11 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
               IArgument (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                  Operand:
+                  Operand: 
                     IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {2, 3}')
                       Dimension Sizes(1):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {2, 3}')
-                      Initializer:
+                      Initializer: 
                         IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{2, 3}')
                           Element Values(2):
                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -9869,35 +9869,35 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               IArgument (ArgumentKind.DefaultValue, Matching Parameter: outerKeySelector) (OperationKind.Argument, IsImplicit) (Syntax: 's1 + 1')
                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's1 + 1')
-                  Target:
+                  Target: 
                     IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's1 + 1')
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1 + 1')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1 + 1')
-                          ReturnedValue:
+                          ReturnedValue: 
                             IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's1 + 1')
-                              Left:
+                              Left: 
                                 IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1 + 1')
-                              Right:
+                              Right: 
                                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               IArgument (ArgumentKind.DefaultValue, Matching Parameter: innerKeySelector) (OperationKind.Argument, IsImplicit) (Syntax: 's2')
                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's2')
-                  Target:
+                  Target: 
                     IAnonymousFunctionExpression (Symbol: Function (s2 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's2')
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's2')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's2')
-                          ReturnedValue:
+                          ReturnedValue: 
                             IParameterReferenceExpression: s2 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's2')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'Group Join  ... gr1 = Group')
                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32), <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>), IsImplicit) (Syntax: 'Group Join  ... gr1 = Group')
-                  Target:
+                  Target: 
                     IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32, $VB$ItAnonymous As System.Collections.Generic.IEnumerable(Of System.Int32)) As <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Group Join  ... gr1 = Group')
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Group Join  ... gr1 = Group')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Group Join  ... gr1 = Group')
-                          ReturnedValue:
+                          ReturnedValue: 
                             IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group Join  ... gr1 = Group')
                               Initializers(2):
                                   IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'Group Join  ... gr1 = Group')
@@ -9908,11 +9908,11 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
           IArgument (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, IsImplicit) (Syntax: 's3 In New I ... er() {4, 5}')
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's3 In New I ... er() {4, 5}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-              Operand:
+              Operand: 
                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {4, 5}')
                   Dimension Sizes(1):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {4, 5}')
-                  Initializer:
+                  Initializer: 
                     IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{4, 5}')
                       Element Values(2):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
@@ -9921,50 +9921,50 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: outerKeySelector) (OperationKind.Argument, IsImplicit) (Syntax: 's3')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>, System.Int32), IsImplicit) (Syntax: 's3')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's3')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's3')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's3')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IBinaryOperatorExpression (BinaryOperatorKind.Multiply, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '(s1 + 1) * 2')
-                          Left:
+                          Left: 
                             IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Int32) (Syntax: '(s1 + 1)')
-                              Operand:
+                              Operand: 
                                 IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 's1 + 1')
-                                  Left:
+                                  Left: 
                                     IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>.s1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's3')
-                                      Instance Receiver:
+                                      Instance Receiver: 
                                         IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>) (Syntax: 's3')
-                                  Right:
+                                  Right: 
                                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-                          Right:
+                          Right: 
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: innerKeySelector) (OperationKind.Argument, IsImplicit) (Syntax: '(s1 + 1) * 2')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: '(s1 + 1) * 2')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s3 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: '(s1 + 1) * 2')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '(s1 + 1) * 2')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: '(s1 + 1) * 2')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IParameterReferenceExpression: s3 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: '(s1 + 1) * 2')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'Group Join  ... gr2 = Group')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>, System.Collections.Generic.IEnumerable(Of System.Int32), <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32), Key gr2 As System.Collections.Generic.IEnumerable(Of System.Int32)>), IsImplicit) (Syntax: 'Group Join  ... gr2 = Group')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>, $VB$ItAnonymous As System.Collections.Generic.IEnumerable(Of System.Int32)) As <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32), Key gr2 As System.Collections.Generic.IEnumerable(Of System.Int32)>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Group Join  ... gr2 = Group')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Group Join  ... gr2 = Group')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Group Join  ... gr2 = Group')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32), Key gr2 As System.Collections.Generic.IEnumerable(Of System.Int32)>, IsImplicit) (Syntax: 'Group Join  ... gr2 = Group')
                           Initializers(3):
                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>.s1 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Group Join  ... gr2 = Group')
-                                Instance Receiver:
+                                Instance Receiver: 
                                   IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>) (Syntax: 'Group Join  ... gr2 = Group')
                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>.gr1 As System.Collections.Generic.IEnumerable(Of System.Int32) (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32)) (Syntax: 'Group Join  ... gr2 = Group')
-                                Instance Receiver:
+                                Instance Receiver: 
                                   IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key gr1 As System.Collections.Generic.IEnumerable(Of System.Int32)>) (Syntax: 'Group Join  ... gr2 = Group')
                               IParameterReferenceExpression: $VB$ItAnonymous (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Group Join  ... gr2 = Group')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -10011,36 +10011,36 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>)) (Syntax: 'From s1 In  ...  s3 = Group')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>).Select(Of <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>)(selector As System.Func(Of <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>, <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>), IsImplicit) (Syntax: 'From s1 In  ...  s3 = Group')
-      Instance Receiver:
+      Instance Receiver: 
         ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>)) (Syntax: 'From s1 In  ...  s3 = Group')
-          Expression:
+          Expression: 
             IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).GroupJoin(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>, System.Int32, <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>)(inner As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>), outerKeySelector As System.Func(Of System.Int32, System.Int32), innerKeySelector As System.Func(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>, System.Int32), resultSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>), <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>), IsImplicit) (Syntax: 'Group Join ...  s3 = Group')
-              Instance Receiver:
+              Instance Receiver: 
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New Integer() {1}')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                  Operand:
+                  Operand: 
                     IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1}')
                       Dimension Sizes(1):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {1}')
-                      Initializer:
+                      Initializer: 
                         IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{1}')
                           Element Values(1):
                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
               Arguments(4):
                   IArgument (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, IsImplicit) (Syntax: 'Join ... 2 Equals s4')
                     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>).Join(Of System.Int32, System.Int32, <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)(inner As System.Collections.Generic.IEnumerable(Of System.Int32), outerKeySelector As System.Func(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>, System.Int32), innerKeySelector As System.Func(Of System.Int32, System.Int32), resultSelector As System.Func(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>, System.Int32, <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>), IsImplicit) (Syntax: 'Join ... 2 Equals s4')
-                      Instance Receiver:
+                      Instance Receiver: 
                         IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Join(Of System.Int32, System.Int32, <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>)(inner As System.Collections.Generic.IEnumerable(Of System.Int32), outerKeySelector As System.Func(Of System.Int32, System.Int32), innerKeySelector As System.Func(Of System.Int32, System.Int32), resultSelector As System.Func(Of System.Int32, System.Int32, <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>), IsImplicit) (Syntax: 'Join ... 2 Equals s3')
-                          Instance Receiver:
+                          Instance Receiver: 
                             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's2 In New Integer() {1}')
                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                              Operand:
+                              Operand: 
                                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1}')
                                   Dimension Sizes(1):
                                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {1}')
-                                  Initializer:
+                                  Initializer: 
                                     IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{1}')
                                       Element Values(1):
                                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -10048,11 +10048,11 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                               IArgument (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, IsImplicit) (Syntax: 's3 In New Integer() {1}')
                                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's3 In New Integer() {1}')
                                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                  Operand:
+                                  Operand: 
                                     IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1}')
                                       Dimension Sizes(1):
                                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {1}')
-                                      Initializer:
+                                      Initializer: 
                                         IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{1}')
                                           Element Values(1):
                                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -10060,31 +10060,31 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               IArgument (ArgumentKind.DefaultValue, Matching Parameter: outerKeySelector) (OperationKind.Argument, IsImplicit) (Syntax: 's2')
                                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's2')
-                                  Target:
+                                  Target: 
                                     IAnonymousFunctionExpression (Symbol: Function (s2 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's2')
                                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's2')
                                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's2')
-                                          ReturnedValue:
+                                          ReturnedValue: 
                                             IParameterReferenceExpression: s2 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's2')
                                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               IArgument (ArgumentKind.DefaultValue, Matching Parameter: innerKeySelector) (OperationKind.Argument, IsImplicit) (Syntax: 's3')
                                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's3')
-                                  Target:
+                                  Target: 
                                     IAnonymousFunctionExpression (Symbol: Function (s3 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's3')
                                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's3')
                                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's3')
-                                          ReturnedValue:
+                                          ReturnedValue: 
                                             IParameterReferenceExpression: s3 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's3')
                                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'Join ... 2 Equals s3')
                                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32, <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>), IsImplicit) (Syntax: 'Join ... 2 Equals s3')
-                                  Target:
+                                  Target: 
                                     IAnonymousFunctionExpression (Symbol: Function (s2 As System.Int32, s3 As System.Int32) As <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Join ... 2 Equals s3')
                                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Join ... 2 Equals s3')
                                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Join ... 2 Equals s3')
-                                          ReturnedValue:
+                                          ReturnedValue: 
                                             IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>, IsImplicit) (Syntax: 'Join ... 2 Equals s3')
                                               Initializers(2):
                                                   IParameterReferenceExpression: s2 (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsImplicit) (Syntax: 's2')
@@ -10095,11 +10095,11 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                           IArgument (ArgumentKind.Explicit, Matching Parameter: inner) (OperationKind.Argument, IsImplicit) (Syntax: 's4 In New Integer() {1}')
                             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's4 In New Integer() {1}')
                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                              Operand:
+                              Operand: 
                                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1}')
                                   Dimension Sizes(1):
                                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {1}')
-                                  Initializer:
+                                  Initializer: 
                                     IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{1}')
                                       Element Values(1):
                                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -10107,40 +10107,40 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           IArgument (ArgumentKind.DefaultValue, Matching Parameter: outerKeySelector) (OperationKind.Argument, IsImplicit) (Syntax: 's2')
                             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>, System.Int32), IsImplicit) (Syntax: 's2')
-                              Target:
+                              Target: 
                                 IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's2')
                                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's2')
                                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's2')
-                                      ReturnedValue:
+                                      ReturnedValue: 
                                         IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's2')
-                                          Instance Receiver:
+                                          Instance Receiver: 
                                             IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>) (Syntax: 's2')
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           IArgument (ArgumentKind.DefaultValue, Matching Parameter: innerKeySelector) (OperationKind.Argument, IsImplicit) (Syntax: 's4')
                             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's4')
-                              Target:
+                              Target: 
                                 IAnonymousFunctionExpression (Symbol: Function (s4 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's4')
                                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's4')
                                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's4')
-                                      ReturnedValue:
+                                      ReturnedValue: 
                                         IParameterReferenceExpression: s4 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's4')
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'Join ... 2 Equals s4')
                             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>, System.Int32, <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>), IsImplicit) (Syntax: 'Join ... 2 Equals s4')
-                              Target:
+                              Target: 
                                 IAnonymousFunctionExpression (Symbol: Function ($VB$It1 As <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>, s4 As System.Int32) As <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Join ... 2 Equals s4')
                                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Join ... 2 Equals s4')
                                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Join ... 2 Equals s4')
-                                      ReturnedValue:
+                                      ReturnedValue: 
                                         IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>, IsImplicit) (Syntax: 'Join ... 2 Equals s4')
                                           Initializers(3):
                                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Join ... 2 Equals s4')
-                                                Instance Receiver:
+                                                Instance Receiver: 
                                                   IParameterReferenceExpression: $VB$It1 (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>) (Syntax: 'Join ... 2 Equals s4')
                                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>.s3 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Join ... 2 Equals s4')
-                                                Instance Receiver:
+                                                Instance Receiver: 
                                                   IParameterReferenceExpression: $VB$It1 (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>) (Syntax: 'Join ... 2 Equals s4')
                                               IParameterReferenceExpression: s4 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'Join ... 2 Equals s4')
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -10149,33 +10149,33 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: outerKeySelector) (OperationKind.Argument, IsImplicit) (Syntax: 's1')
                     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's1')
-                      Target:
+                      Target: 
                         IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's1')
                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1')
                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1')
-                              ReturnedValue:
+                              ReturnedValue: 
                                 IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: innerKeySelector) (OperationKind.Argument, IsImplicit) (Syntax: 's2')
                     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>, System.Int32), IsImplicit) (Syntax: 's2')
-                      Target:
+                      Target: 
                         IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's2')
                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's2')
                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's2')
-                              ReturnedValue:
+                              ReturnedValue: 
                                 IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>.s2 As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 's2')
-                                  Instance Receiver:
+                                  Instance Receiver: 
                                     IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>) (Syntax: 's2')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'Group Join ...  s3 = Group')
                     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>), <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>), IsImplicit) (Syntax: 'Group Join ...  s3 = Group')
-                      Target:
+                      Target: 
                         IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32, $VB$ItAnonymous As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)) As <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Group Join ...  s3 = Group')
                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Group Join ...  s3 = Group')
                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Group Join ...  s3 = Group')
-                              ReturnedValue:
+                              ReturnedValue: 
                                 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>, IsImplicit) (Syntax: 'Group Join ...  s3 = Group')
                                   Initializers(2):
                                       IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'Group Join ...  s3 = Group')
@@ -10185,11 +10185,11 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 'From s1 In  ...  s3 = Group')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>, <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>), IsImplicit) (Syntax: 'From s1 In  ...  s3 = Group')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s1 As <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>) As <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'From s1 In  ...  s3 = Group')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'From s1 In  ...  s3 = Group')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'From s1 In  ...  s3 = Group')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key s1 As System.Int32, Key s3 As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32, Key s4 As System.Int32>)>, IsImplicit) (Syntax: 's1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -11087,7 +11087,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble(Of <anonymous type: Key s1 As System.Int32, Key Group As ?>), IsInvalid) (Syntax: 'From s1 In  ...  Into Group')
-  Expression:
+  Expression: 
     IInvalidExpression (OperationKind.InvalidExpression, Type: QueryAble(Of <anonymous type: Key s1 As System.Int32, Key Group As ?>), IsInvalid, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
       Children(5):
           IOperation:  (OperationKind.None, IsInvalid, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
@@ -11097,17 +11097,17 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Query
           IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32) As ?) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's1')
             IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's1')
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's1')
-                ReturnedValue:
+                ReturnedValue: 
                   IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's1')
           IAnonymousFunctionExpression (Symbol: Function (t1 As System.Int32) As ?) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 't1')
             IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 't1')
               IReturnStatement (OperationKind.ReturnStatement) (Syntax: 't1')
-                ReturnedValue:
+                ReturnedValue: 
                   IParameterReferenceExpression: t1 (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 't1')
           IAnonymousFunctionExpression (Symbol: Function (s1 As System.Int32, $VB$ItAnonymous As ?) As <anonymous type: Key s1 As System.Int32, Key Group As ?>) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
             IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Group Join  ...  Into Group')
               IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Group Join  ...  Into Group')
-                ReturnedValue:
+                ReturnedValue: 
                   IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key s1 As System.Int32, Key Group As ?>, IsInvalid, IsImplicit) (Syntax: 'Group Join  ...  Into Group')
                     Initializers(2):
                         IParameterReferenceExpression: s1 (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'Group Join  ...  Into Group')
@@ -11263,16 +11263,16 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Int32) (Syntax: 'Aggregate y ... nto Count()')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Count() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
-      Instance Receiver:
+      Instance Receiver: 
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'y In New In ... er() {3, 4}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand:
+          Operand: 
             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {3, 4}')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {3, 4}')
-              Initializer:
+              Initializer: 
                 IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{3, 4}')
                   Element Values(2):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
@@ -11305,34 +11305,34 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: <anonymous type: Key Count As System.Int32, Key Sum As System.Int32>) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
-  Expression:
+  Expression: 
     IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key Count As System.Int32, Key Sum As System.Int32>, IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
       Initializers(2):
           IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Count() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
-            Instance Receiver:
+            Instance Receiver: 
               IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                Operand:
+                Operand: 
                   IPlaceholderExpression (OperationKind.None, IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
             Arguments(0)
           IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Sum(selector As System.Func(Of System.Int32, System.Int32)) As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsImplicit) (Syntax: 'Sum(y \ 2)')
-            Instance Receiver:
+            Instance Receiver: 
               IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                Operand:
+                Operand: 
                   IPlaceholderExpression (OperationKind.None, IsImplicit) (Syntax: 'Aggregate y ...  Sum(y \ 2)')
             Arguments(1):
                 IArgument (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 'y \ 2')
                   IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 'y \ 2')
-                    Target:
+                    Target: 
                       IAnonymousFunctionExpression (Symbol: Function (y As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'y \ 2')
                         IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'y \ 2')
                           IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'y \ 2')
-                            ReturnedValue:
+                            ReturnedValue: 
                               IBinaryOperatorExpression (BinaryOperatorKind.IntegerDivide, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'y \ 2')
-                                Left:
+                                Left: 
                                   IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y \ 2')
-                                Right:
+                                Right: 
                                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -11363,20 +11363,20 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Int32) (Syntax: 'Aggregate x ...  Sum(x + y)')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>).Sum(selector As System.Func(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>, System.Int32)) As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsImplicit) (Syntax: 'Sum(x + y)')
-      Instance Receiver:
+      Instance Receiver: 
         IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>).Where(predicate As System.Func(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>, System.Boolean)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>), IsImplicit) (Syntax: 'Where x > y')
-          Instance Receiver:
+          Instance Receiver: 
             IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).SelectMany(Of System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>)(collectionSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32)), resultSelector As System.Func(Of System.Int32, System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>), IsImplicit) (Syntax: 'y In New In ... er() {1, 3}')
-              Instance Receiver:
+              Instance Receiver: 
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'x In New In ... er() {3, 4}')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                  Operand:
+                  Operand: 
                     IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {3, 4}')
                       Dimension Sizes(1):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {3, 4}')
-                      Initializer:
+                      Initializer: 
                         IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{3, 4}')
                           Element Values(2):
                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
@@ -11384,18 +11384,18 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
               Arguments(2):
                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: collectionSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'New Integer() {1, 3}')
                     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32)), IsImplicit) (Syntax: 'New Integer() {1, 3}')
-                      Target:
+                      Target: 
                         IAnonymousFunctionExpression (Symbol: Function (x As System.Int32) As System.Collections.Generic.IEnumerable(Of System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'New Integer() {1, 3}')
                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'New Integer() {1, 3}')
                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'New Integer() {1, 3}')
-                              ReturnedValue:
+                              ReturnedValue: 
                                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'y In New In ... er() {1, 3}')
                                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                  Operand:
+                                  Operand: 
                                     IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1, 3}')
                                       Dimension Sizes(1):
                                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {1, 3}')
-                                      Initializer:
+                                      Initializer: 
                                         IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{1, 3}')
                                           Element Values(2):
                                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -11404,11 +11404,11 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'Aggregate x ...  Sum(x + y)')
                     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>), IsImplicit) (Syntax: 'Aggregate x ...  Sum(x + y)')
-                      Target:
+                      Target: 
                         IAnonymousFunctionExpression (Symbol: Function (x As System.Int32, y As System.Int32) As <anonymous type: Key x As System.Int32, Key y As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Aggregate x ...  Sum(x + y)')
                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Aggregate x ...  Sum(x + y)')
                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Aggregate x ...  Sum(x + y)')
-                              ReturnedValue:
+                              ReturnedValue: 
                                 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'y In New In ... er() {1, 3}')
                                   Initializers(2):
                                       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'Aggregate x ...  Sum(x + y)')
@@ -11418,38 +11418,38 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
           Arguments(1):
               IArgument (ArgumentKind.DefaultValue, Matching Parameter: predicate) (OperationKind.Argument, IsImplicit) (Syntax: 'x > y')
                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>, System.Boolean), IsImplicit) (Syntax: 'x > y')
-                  Target:
+                  Target: 
                     IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key x As System.Int32, Key y As System.Int32>) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'x > y')
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'x > y')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x > y')
-                          ReturnedValue:
+                          ReturnedValue: 
                             IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x > y')
-                              Left:
+                              Left: 
                                 IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x > y')
-                                  Instance Receiver:
+                                  Instance Receiver: 
                                     IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>) (Syntax: 'x > y')
-                              Right:
+                              Right: 
                                 IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.y As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x > y')
-                                  Instance Receiver:
+                                  Instance Receiver: 
                                     IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>) (Syntax: 'x > y')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 'x + y')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>, System.Int32), IsImplicit) (Syntax: 'x + y')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key x As System.Int32, Key y As System.Int32>) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'x + y')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'x + y')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x + y')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y')
-                          Left:
+                          Left: 
                             IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x + y')
-                              Instance Receiver:
+                              Instance Receiver: 
                                 IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>) (Syntax: 'x + y')
-                          Right:
+                          Right: 
                             IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.y As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x + y')
-                              Instance Receiver:
+                              Instance Receiver: 
                                 IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>) (Syntax: 'x + y')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -11482,38 +11482,38 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>)) (Syntax: 'Aggregate x ... Where(True)')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>).Where(predicate As System.Func(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, System.Boolean)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>), IsImplicit) (Syntax: 'Where(True)')
-      Instance Receiver:
+      Instance Receiver: 
         IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>).SelectMany(Of System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>)(collectionSelector As System.Func(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>, System.Collections.Generic.IEnumerable(Of System.Int32)), resultSelector As System.Func(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>, System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>), IsImplicit) (Syntax: 'z In New Integer() {3}')
-          Instance Receiver:
+          Instance Receiver: 
             IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).SelectMany(Of System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>)(collectionSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32)), resultSelector As System.Func(Of System.Int32, System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>), IsImplicit) (Syntax: 'y In New Integer() {2}')
-              Instance Receiver:
+              Instance Receiver: 
                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'x In New Integer() {1}')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                  Operand:
+                  Operand: 
                     IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1}')
                       Dimension Sizes(1):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {1}')
-                      Initializer:
+                      Initializer: 
                         IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{1}')
                           Element Values(1):
                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
               Arguments(2):
                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: collectionSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'New Integer() {2}')
                     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32)), IsImplicit) (Syntax: 'New Integer() {2}')
-                      Target:
+                      Target: 
                         IAnonymousFunctionExpression (Symbol: Function (x As System.Int32) As System.Collections.Generic.IEnumerable(Of System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'New Integer() {2}')
                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'New Integer() {2}')
                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'New Integer() {2}')
-                              ReturnedValue:
+                              ReturnedValue: 
                                 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'y In New Integer() {2}')
                                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                  Operand:
+                                  Operand: 
                                     IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {2}')
                                       Dimension Sizes(1):
                                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {2}')
-                                      Initializer:
+                                      Initializer: 
                                         IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{2}')
                                           Element Values(1):
                                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -11521,11 +11521,11 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'Aggregate x ... Where(True)')
                     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>), IsImplicit) (Syntax: 'Aggregate x ... Where(True)')
-                      Target:
+                      Target: 
                         IAnonymousFunctionExpression (Symbol: Function (x As System.Int32, y As System.Int32) As <anonymous type: Key x As System.Int32, Key y As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Aggregate x ... Where(True)')
                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Aggregate x ... Where(True)')
                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Aggregate x ... Where(True)')
-                              ReturnedValue:
+                              ReturnedValue: 
                                 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'y In New Integer() {2}')
                                   Initializers(2):
                                       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsImplicit) (Syntax: 'x')
@@ -11535,18 +11535,18 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
           Arguments(2):
               IArgument (ArgumentKind.DefaultValue, Matching Parameter: collectionSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'New Integer() {3}')
                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>, System.Collections.Generic.IEnumerable(Of System.Int32)), IsImplicit) (Syntax: 'New Integer() {3}')
-                  Target:
+                  Target: 
                     IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key x As System.Int32, Key y As System.Int32>) As System.Collections.Generic.IEnumerable(Of System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'New Integer() {3}')
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'New Integer() {3}')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'New Integer() {3}')
-                          ReturnedValue:
+                          ReturnedValue: 
                             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'z In New Integer() {3}')
                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                              Operand:
+                              Operand: 
                                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {3}')
                                   Dimension Sizes(1):
                                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {3}')
-                                  Initializer:
+                                  Initializer: 
                                     IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{3}')
                                       Element Values(1):
                                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
@@ -11554,18 +11554,18 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'Aggregate x ... Where(True)')
                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>, System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>), IsImplicit) (Syntax: 'Aggregate x ... Where(True)')
-                  Target:
+                  Target: 
                     IAnonymousFunctionExpression (Symbol: Function ($VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, z As System.Int32) As <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Aggregate x ... Where(True)')
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Aggregate x ... Where(True)')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Aggregate x ... Where(True)')
-                          ReturnedValue:
+                          ReturnedValue: 
                             IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, IsImplicit) (Syntax: 'z In New Integer() {3}')
                               Initializers(3):
                                   IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Aggregate x ... Where(True)')
-                                    Instance Receiver:
+                                    Instance Receiver: 
                                       IParameterReferenceExpression: $VB$It1 (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>) (Syntax: 'Aggregate x ... Where(True)')
                                   IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.y As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'Aggregate x ... Where(True)')
-                                    Instance Receiver:
+                                    Instance Receiver: 
                                       IParameterReferenceExpression: $VB$It1 (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>) (Syntax: 'Aggregate x ... Where(True)')
                                   IParameterReferenceExpression: z (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'Aggregate x ... Where(True)')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -11573,11 +11573,11 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: predicate) (OperationKind.Argument, IsImplicit) (Syntax: 'True')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, System.Boolean), IsImplicit) (Syntax: 'True')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'True')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'True')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'True')
-                      ReturnedValue:
+                      ReturnedValue: 
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -11617,18 +11617,18 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable(Of System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>))) (Syntax: 'From x In N ... Where(True)')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Select(Of System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>))(selector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>))) As System.Collections.Generic.IEnumerable(Of System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>))) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>)), IsImplicit) (Syntax: 'Aggregate x ... Where(True)')
-      Instance Receiver:
+      Instance Receiver: 
         IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Select(Of System.Int32)(selector As System.Func(Of System.Int32, System.Int32)) As System.Collections.Generic.IEnumerable(Of System.Int32)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Select x + 1')
-          Instance Receiver:
+          Instance Receiver: 
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'x In New In ... er() {3, 4}')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-              Operand:
+              Operand: 
                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {3, 4}')
                   Dimension Sizes(1):
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {3, 4}')
-                  Initializer:
+                  Initializer: 
                     IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{3, 4}')
                       Element Values(2):
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
@@ -11636,78 +11636,78 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
           Arguments(1):
               IArgument (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 'x + 1')
                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 'x + 1')
-                  Target:
+                  Target: 
                     IAnonymousFunctionExpression (Symbol: Function (x As System.Int32) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'x + 1')
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'x + 1')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x + 1')
-                          ReturnedValue:
+                          ReturnedValue: 
                             IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + 1')
-                              Left:
+                              Left: 
                                 IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x + 1')
-                              Right:
+                              Right: 
                                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 'New Integer() {1}')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>)), IsImplicit) (Syntax: 'New Integer() {1}')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function ($VB$ItAnonymous As System.Int32) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>)) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'New Integer() {1}')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'New Integer() {1}')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'New Integer() {1}')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>).Where(predicate As System.Func(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>, System.Boolean)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>), IsImplicit) (Syntax: 'Where(True)')
-                          Instance Receiver:
+                          Instance Receiver: 
                             IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>).Select(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>)(selector As System.Func(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>), IsImplicit) (Syntax: 'w = x + y + z')
-                              Instance Receiver:
+                              Instance Receiver: 
                                 IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>).Select(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>)(selector As System.Func(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>, <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>), IsImplicit) (Syntax: 'Select x, y, z')
-                                  Instance Receiver:
+                                  Instance Receiver: 
                                     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>).Take(count As System.Int32) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>), IsImplicit) (Syntax: 'Take 100')
-                                      Instance Receiver:
+                                      Instance Receiver: 
                                         IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>).Skip(count As System.Int32) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>), IsImplicit) (Syntax: 'Skip 0')
-                                          Instance Receiver:
+                                          Instance Receiver: 
                                             IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>).SkipWhile(predicate As System.Func(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>, System.Boolean)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>), IsImplicit) (Syntax: 'Skip While False')
-                                              Instance Receiver:
+                                              Instance Receiver: 
                                                 IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>).TakeWhile(predicate As System.Func(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>, System.Boolean)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>), IsImplicit) (Syntax: 'Take While True')
-                                                  Instance Receiver:
+                                                  Instance Receiver: 
                                                     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>).Distinct() As System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>), IsImplicit) (Syntax: 'Distinct')
-                                                      Instance Receiver:
+                                                      Instance Receiver: 
                                                         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>), IsImplicit) (Syntax: 'Order By x')
                                                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                                          Operand:
+                                                          Operand: 
                                                             IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>).OrderBy(Of System.Int32)(keySelector As System.Func(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>, System.Int32)) As System.Linq.IOrderedEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Linq.IOrderedEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>), IsImplicit) (Syntax: 'x')
-                                                              Instance Receiver:
+                                                              Instance Receiver: 
                                                                 IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>).Where(predicate As System.Func(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>, System.Boolean)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>), IsImplicit) (Syntax: 'Where True')
-                                                                  Instance Receiver:
+                                                                  Instance Receiver: 
                                                                     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>).SelectMany(Of System.Int32, <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>)(collectionSelector As System.Func(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>, System.Collections.Generic.IEnumerable(Of System.Int32)), resultSelector As System.Func(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>, System.Int32, <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>), IsImplicit) (Syntax: 'z In New Integer() {3}')
-                                                                      Instance Receiver:
+                                                                      Instance Receiver: 
                                                                         IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).SelectMany(Of System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>)(collectionSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32)), resultSelector As System.Func(Of System.Int32, System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>), IsImplicit) (Syntax: 'y In New Integer() {2}')
-                                                                          Instance Receiver:
+                                                                          Instance Receiver: 
                                                                             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'x In New Integer() {1}')
                                                                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                                                              Operand:
+                                                                              Operand: 
                                                                                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {1}')
                                                                                   Dimension Sizes(1):
                                                                                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {1}')
-                                                                                  Initializer:
+                                                                                  Initializer: 
                                                                                     IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{1}')
                                                                                       Element Values(1):
                                                                                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                                                                           Arguments(2):
                                                                               IArgument (ArgumentKind.DefaultValue, Matching Parameter: collectionSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'New Integer() {2}')
                                                                                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32)), IsImplicit) (Syntax: 'New Integer() {2}')
-                                                                                  Target:
+                                                                                  Target: 
                                                                                     IAnonymousFunctionExpression (Symbol: Function (x As System.Int32) As System.Collections.Generic.IEnumerable(Of System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'New Integer() {2}')
                                                                                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'New Integer() {2}')
                                                                                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'New Integer() {2}')
-                                                                                          ReturnedValue:
+                                                                                          ReturnedValue: 
                                                                                             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'y In New Integer() {2}')
                                                                                               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                                                                              Operand:
+                                                                                              Operand: 
                                                                                                 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {2}')
                                                                                                   Dimension Sizes(1):
                                                                                                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {2}')
-                                                                                                  Initializer:
+                                                                                                  Initializer: 
                                                                                                     IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{2}')
                                                                                                       Element Values(1):
                                                                                                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -11715,11 +11715,11 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                                                                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                                               IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'Aggregate x ... Where(True)')
                                                                                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>), IsImplicit) (Syntax: 'Aggregate x ... Where(True)')
-                                                                                  Target:
+                                                                                  Target: 
                                                                                     IAnonymousFunctionExpression (Symbol: Function (x As System.Int32, y As System.Int32) As <anonymous type: Key x As System.Int32, Key y As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Aggregate x ... Where(True)')
                                                                                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Aggregate x ... Where(True)')
                                                                                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Aggregate x ... Where(True)')
-                                                                                          ReturnedValue:
+                                                                                          ReturnedValue: 
                                                                                             IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'y In New Integer() {2}')
                                                                                               Initializers(2):
                                                                                                   IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsImplicit) (Syntax: 'x')
@@ -11729,18 +11729,18 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                                                       Arguments(2):
                                                                           IArgument (ArgumentKind.DefaultValue, Matching Parameter: collectionSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'New Integer() {3}')
                                                                             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>, System.Collections.Generic.IEnumerable(Of System.Int32)), IsImplicit) (Syntax: 'New Integer() {3}')
-                                                                              Target:
+                                                                              Target: 
                                                                                 IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key x As System.Int32, Key y As System.Int32>) As System.Collections.Generic.IEnumerable(Of System.Int32)) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'New Integer() {3}')
                                                                                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'New Integer() {3}')
                                                                                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'New Integer() {3}')
-                                                                                      ReturnedValue:
+                                                                                      ReturnedValue: 
                                                                                         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'z In New Integer() {3}')
                                                                                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                                                                          Operand:
+                                                                                          Operand: 
                                                                                             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {3}')
                                                                                               Dimension Sizes(1):
                                                                                                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {3}')
-                                                                                              Initializer:
+                                                                                              Initializer: 
                                                                                                 IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{3}')
                                                                                                   Element Values(1):
                                                                                                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
@@ -11748,11 +11748,11 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                                                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                                           IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'Aggregate x ... Where(True)')
                                                                             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>, System.Int32, <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>), IsImplicit) (Syntax: 'Aggregate x ... Where(True)')
-                                                                              Target:
+                                                                              Target: 
                                                                                 IAnonymousFunctionExpression (Symbol: Function ($VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, z As System.Int32) As <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Aggregate x ... Where(True)')
                                                                                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Aggregate x ... Where(True)')
                                                                                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Aggregate x ... Where(True)')
-                                                                                      ReturnedValue:
+                                                                                      ReturnedValue: 
                                                                                         IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>, IsImplicit) (Syntax: 'z In New Integer() {3}')
                                                                                           Initializers(2):
                                                                                               IParameterReferenceExpression: $VB$It1 (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'z In New Integer() {3}')
@@ -11762,26 +11762,26 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                                                   Arguments(1):
                                                                       IArgument (ArgumentKind.DefaultValue, Matching Parameter: predicate) (OperationKind.Argument, IsImplicit) (Syntax: 'True')
                                                                         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>, System.Boolean), IsImplicit) (Syntax: 'True')
-                                                                          Target:
+                                                                          Target: 
                                                                             IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'True')
                                                                               IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'True')
                                                                                 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'True')
-                                                                                  ReturnedValue:
+                                                                                  ReturnedValue: 
                                                                                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
                                                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                               Arguments(1):
                                                                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument, IsImplicit) (Syntax: 'x')
                                                                     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>, System.Int32), IsImplicit) (Syntax: 'x')
-                                                                      Target:
+                                                                      Target: 
                                                                         IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'x')
                                                                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'x')
                                                                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x')
-                                                                              ReturnedValue:
+                                                                              ReturnedValue: 
                                                                                 IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                                                                                  Instance Receiver:
+                                                                                  Instance Receiver: 
                                                                                     IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>.$VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>) (Syntax: 'x')
-                                                                                      Instance Receiver:
+                                                                                      Instance Receiver: 
                                                                                         IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>) (Syntax: 'x')
                                                                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -11789,22 +11789,22 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                                   Arguments(1):
                                                       IArgument (ArgumentKind.DefaultValue, Matching Parameter: predicate) (OperationKind.Argument, IsImplicit) (Syntax: 'True')
                                                         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>, System.Boolean), IsImplicit) (Syntax: 'True')
-                                                          Target:
+                                                          Target: 
                                                             IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'True')
                                                               IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'True')
                                                                 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'True')
-                                                                  ReturnedValue:
+                                                                  ReturnedValue: 
                                                                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
                                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                               Arguments(1):
                                                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: predicate) (OperationKind.Argument, IsImplicit) (Syntax: 'False')
                                                     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>, System.Boolean), IsImplicit) (Syntax: 'False')
-                                                      Target:
+                                                      Target: 
                                                         IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'False')
                                                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'False')
                                                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'False')
-                                                              ReturnedValue:
+                                                              ReturnedValue: 
                                                                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'False')
                                                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -11821,72 +11821,72 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
                                   Arguments(1):
                                       IArgument (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 'x')
                                         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>, <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>), IsImplicit) (Syntax: 'x')
-                                          Target:
+                                          Target: 
                                             IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>) As <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'x')
                                               IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'x')
                                                 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x')
-                                                  ReturnedValue:
+                                                  ReturnedValue: 
                                                     IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, IsImplicit) (Syntax: 'Select x, y, z')
                                                       Initializers(3):
                                                           IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                                                            Instance Receiver:
+                                                            Instance Receiver: 
                                                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>.$VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>) (Syntax: 'x')
-                                                                Instance Receiver:
+                                                                Instance Receiver: 
                                                                   IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>) (Syntax: 'x')
                                                           IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.y As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                                                            Instance Receiver:
+                                                            Instance Receiver: 
                                                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>.$VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32> (OperationKind.PropertyReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>) (Syntax: 'x')
-                                                                Instance Receiver:
+                                                                Instance Receiver: 
                                                                   IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>) (Syntax: 'x')
                                                           IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>.z As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                                                            Instance Receiver:
+                                                            Instance Receiver: 
                                                               IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key $VB$It1 As <anonymous type: Key x As System.Int32, Key y As System.Int32>, Key z As System.Int32>) (Syntax: 'x')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                               Arguments(1):
                                   IArgument (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 'x + y + z')
                                     IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>, <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>), IsImplicit) (Syntax: 'x + y + z')
-                                      Target:
+                                      Target: 
                                         IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>) As <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'x + y + z')
                                           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'x + y + z')
                                             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x + y + z')
-                                              ReturnedValue:
+                                              ReturnedValue: 
                                                 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>, IsImplicit) (Syntax: 'w = x + y + z')
                                                   Initializers(4):
                                                       IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.x As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x + y + z')
-                                                        Instance Receiver:
+                                                        Instance Receiver: 
                                                           IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>) (Syntax: 'x + y + z')
                                                       IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.y As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x + y + z')
-                                                        Instance Receiver:
+                                                        Instance Receiver: 
                                                           IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>) (Syntax: 'x + y + z')
                                                       IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.z As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x + y + z')
-                                                        Instance Receiver:
+                                                        Instance Receiver: 
                                                           IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>) (Syntax: 'x + y + z')
                                                       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y + z')
-                                                        Left:
+                                                        Left: 
                                                           IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y')
-                                                            Left:
+                                                            Left: 
                                                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.x As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x + y + z')
-                                                                Instance Receiver:
+                                                                Instance Receiver: 
                                                                   IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>) (Syntax: 'x + y + z')
-                                                            Right:
+                                                            Right: 
                                                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.y As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x + y + z')
-                                                                Instance Receiver:
+                                                                Instance Receiver: 
                                                                   IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>) (Syntax: 'x + y + z')
-                                                        Right:
+                                                        Right: 
                                                           IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>.z As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x + y + z')
-                                                            Instance Receiver:
+                                                            Instance Receiver: 
                                                               IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32>) (Syntax: 'x + y + z')
                                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           Arguments(1):
                               IArgument (ArgumentKind.DefaultValue, Matching Parameter: predicate) (OperationKind.Argument, IsImplicit) (Syntax: 'True')
                                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>, System.Boolean), IsImplicit) (Syntax: 'True')
-                                  Target:
+                                  Target: 
                                     IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key x As System.Int32, Key y As System.Int32, Key z As System.Int32, Key w As System.Int32>) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'True')
                                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'True')
                                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'True')
-                                          ReturnedValue:
+                                          ReturnedValue: 
                                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
                                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -14556,22 +14556,22 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble) (Syntax: 'From s In q ... Where s > 0')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function QueryAble.Where(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Where s > 0')
-      Instance Receiver:
+      Instance Receiver: 
         ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's > 0')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Boolean), IsImplicit) (Syntax: 's > 0')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's > 0')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 0')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 0')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 0')
-                          Left:
+                          Left: 
                             IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 0')
-                          Right:
+                          Right: 
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -14612,39 +14612,39 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble) (Syntax: 'From s In q ... here 10 > s')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function QueryAble.Where(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Where 10 > s')
-      Instance Receiver:
+      Instance Receiver: 
         IInvocationExpression ( Function QueryAble.Where(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Where s > 0')
-          Instance Receiver:
+          Instance Receiver: 
             ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
           Arguments(1):
               IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's > 0')
                 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Boolean), IsImplicit) (Syntax: 's > 0')
-                  Target:
+                  Target: 
                     IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's > 0')
                       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 0')
                         IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 0')
-                          ReturnedValue:
+                          ReturnedValue: 
                             IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 0')
-                              Left:
+                              Left: 
                                 IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 0')
-                              Right:
+                              Right: 
                                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: '10 > s')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Boolean), IsImplicit) (Syntax: '10 > s')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: '10 > s')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '10 > s')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: '10 > s')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '10 > s')
-                          Left:
+                          Left: 
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
-                          Right:
+                          Right: 
                             IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: '10 > s')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -14685,22 +14685,22 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: QueryAble) (Syntax: 'From s In q Where s > 0')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function QueryAble.Where(x As System.Func(Of System.Int32, System.Boolean)) As QueryAble) (OperationKind.InvocationExpression, Type: QueryAble, IsImplicit) (Syntax: 'Where s > 0')
-      Instance Receiver:
+      Instance Receiver: 
         ILocalReferenceExpression: q (OperationKind.LocalReferenceExpression, Type: QueryAble) (Syntax: 'q')
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsImplicit) (Syntax: 's > 0')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int32, System.Boolean), IsImplicit) (Syntax: 's > 0')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (s As System.Int32) As System.Boolean) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 's > 0')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 's > 0')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 's > 0')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's > 0')
-                          Left:
+                          Left: 
                             IParameterReferenceExpression: s (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 's > 0')
-                          Right:
+                          Right: 
                             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

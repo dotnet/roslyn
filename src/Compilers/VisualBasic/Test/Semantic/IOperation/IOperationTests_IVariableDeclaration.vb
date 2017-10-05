@@ -1324,10 +1324,10 @@ End Module]]>.Value
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1 = 1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Object
-    Initializer:
+    Initializer: 
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: '1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand:
+        Operand: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
@@ -1350,17 +1350,17 @@ End Module]]>.Value
 IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1 = 1, i2 = 2')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Object
-    Initializer:
+    Initializer: 
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: '1')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand:
+        Operand: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Object
-    Initializer:
+    Initializer: 
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: '2')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand:
+        Operand: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ]]>.Value
 
@@ -1439,12 +1439,12 @@ End Module]]>.Value
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1 = Int1()')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Object
-    Initializer:
+    Initializer: 
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'Int1()')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand:
+        Operand: 
           IInvocationExpression (Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Int1()')
-            Instance Receiver:
+            Instance Receiver: 
               null
             Arguments(0)
 ]]>.Value
@@ -1472,22 +1472,22 @@ End Module]]>.Value
 IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Static i1 = ... i2 = Int1()')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Object
-    Initializer:
+    Initializer: 
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'Int1()')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand:
+        Operand: 
           IInvocationExpression (Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Int1()')
-            Instance Receiver:
+            Instance Receiver: 
               null
             Arguments(0)
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Object
-    Initializer:
+    Initializer: 
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'Int1()')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand:
+        Operand: 
           IInvocationExpression (Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'Int1()')
-            Instance Receiver:
+            Instance Receiver: 
               null
             Arguments(0)
 ]]>.Value

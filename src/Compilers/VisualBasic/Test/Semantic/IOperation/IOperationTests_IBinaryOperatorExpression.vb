@@ -258,335 +258,335 @@ IBlockStatement (26 statements, 3 locals) (OperationKind.BlockStatement) (Syntax
     IVariableDeclaration (2 variables) (OperationKind.VariableDeclaration) (Syntax: 'x, y As New Integer')
       Variables: Local_1: x As System.Int32
         Local_2: y As System.Int32
-      Initializer:
+      Initializer: 
         IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
           Arguments(0)
-          Initializer:
+          Initializer: 
             null
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim r As Integer')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'r')
       Variables: Local_1: r As System.Int32
-      Initializer:
+      Initializer: 
         null
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x + y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x + y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y')
-            Left:
+            Left: 
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Right:
+            Right: 
               ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x - y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x - y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.Subtract, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x - y')
-            Left:
+            Left: 
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Right:
+            Right: 
               ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x * y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x * y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.Multiply, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x * y')
-            Left:
+            Left: 
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Right:
+            Right: 
               ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x / y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x / y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x / y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.Divide, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Double) (Syntax: 'x / y')
-                Left:
+                Left: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x \ y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x \ y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.IntegerDivide, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x \ y')
-            Left:
+            Left: 
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Right:
+            Right: 
               ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x Mod y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x Mod y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.Remainder, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x Mod y')
-            Left:
+            Left: 
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Right:
+            Right: 
               ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x ^ y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x ^ y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x ^ y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.Power, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Double) (Syntax: 'x ^ y')
-                Left:
+                Left: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x = y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x = y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x = y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x = y')
-                Left:
+                Left: 
                   ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x <> y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x <> y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x <> y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.NotEquals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x <> y')
-                Left:
+                Left: 
                   ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x < y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x < y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x < y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x < y')
-                Left:
+                Left: 
                   ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x > y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x > y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x > y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x > y')
-                Left:
+                Left: 
                   ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x <= y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x <= y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x <= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x <= y')
-                Left:
+                Left: 
                   ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x >= y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x >= y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x >= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x >= y')
-                Left:
+                Left: 
                   ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x Like y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x Like y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x Like y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.Like, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x Like y')
-                Left:
+                Left: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x & y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x & y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x & y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: 'x & y')
-                Left:
+                Left: 
                   IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x And y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x And y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.And, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x And y')
-            Left:
+            Left: 
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Right:
+            Right: 
               ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x Or y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x Or y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.Or, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x Or y')
-            Left:
+            Left: 
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Right:
+            Right: 
               ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x Xor y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x Xor y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.ExclusiveOr, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x Xor y')
-            Left:
+            Left: 
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Right:
+            Right: 
               ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x << 2')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x << 2')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.LeftShift, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x << 2')
-            Left:
+            Left: 
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Right:
+            Right: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x >> 3')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x >> 3')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.RightShift, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x >> 3')
-            Left:
+            Left: 
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Right:
+            Right: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = DirectC ... Object) = y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = DirectC ... Object) = y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast( ... Object) = y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.ObjectValueEquals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Object) (Syntax: 'DirectCast( ... Object) = y')
-                Left:
+                Left: 
                   IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'DirectCast(x, Object)')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = DirectC ... bject) <> y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = DirectC ... bject) <> y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast( ... bject) <> y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.ObjectValueNotEquals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Object) (Syntax: 'DirectCast( ... bject) <> y')
-                Left:
+                Left: 
                   IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'DirectCast(x, Object)')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
-    Statement:
+    Statement: 
       null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
-    ReturnedValue:
+    ReturnedValue: 
       null
 ]]>.Value
 
@@ -638,335 +638,335 @@ IBlockStatement (26 statements, 3 locals) (OperationKind.BlockStatement) (Syntax
     IVariableDeclaration (2 variables) (OperationKind.VariableDeclaration) (Syntax: 'x, y As New Integer')
       Variables: Local_1: x As System.Int32
         Local_2: y As System.Int32
-      Initializer:
+      Initializer: 
         IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
           Arguments(0)
-          Initializer:
+          Initializer: 
             null
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim r As Integer')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'r')
       Variables: Local_1: r As System.Int32
-      Initializer:
+      Initializer: 
         null
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x + y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x + y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x + y')
-            Left:
+            Left: 
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Right:
+            Right: 
               ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x - y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x - y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.Subtract) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x - y')
-            Left:
+            Left: 
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Right:
+            Right: 
               ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x * y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x * y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x * y')
-            Left:
+            Left: 
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Right:
+            Right: 
               ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x / y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x / y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x / y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.Divide) (OperationKind.BinaryOperatorExpression, Type: System.Double) (Syntax: 'x / y')
-                Left:
+                Left: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x \ y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x \ y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.IntegerDivide) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x \ y')
-            Left:
+            Left: 
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Right:
+            Right: 
               ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x Mod y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x Mod y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.Remainder) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x Mod y')
-            Left:
+            Left: 
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Right:
+            Right: 
               ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x ^ y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x ^ y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x ^ y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.Power) (OperationKind.BinaryOperatorExpression, Type: System.Double) (Syntax: 'x ^ y')
-                Left:
+                Left: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x = y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x = y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x = y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x = y')
-                Left:
+                Left: 
                   ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x <> y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x <> y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x <> y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x <> y')
-                Left:
+                Left: 
                   ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x < y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x < y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x < y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x < y')
-                Left:
+                Left: 
                   ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x > y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x > y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x > y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x > y')
-                Left:
+                Left: 
                   ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x <= y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x <= y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x <= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x <= y')
-                Left:
+                Left: 
                   ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x >= y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x >= y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x >= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x >= y')
-                Left:
+                Left: 
                   ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x Like y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x Like y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x Like y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.Like) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x Like y')
-                Left:
+                Left: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x & y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x & y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x & y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.Concatenate) (OperationKind.BinaryOperatorExpression, Type: System.String) (Syntax: 'x & y')
-                Left:
+                Left: 
                   IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x And y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x And y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.And) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x And y')
-            Left:
+            Left: 
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Right:
+            Right: 
               ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x Or y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x Or y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.Or) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x Or y')
-            Left:
+            Left: 
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Right:
+            Right: 
               ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x Xor y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x Xor y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.ExclusiveOr) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x Xor y')
-            Left:
+            Left: 
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Right:
+            Right: 
               ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x << 2')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x << 2')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.LeftShift) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x << 2')
-            Left:
+            Left: 
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Right:
+            Right: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x >> 3')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x >> 3')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.RightShift) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'x >> 3')
-            Left:
+            Left: 
               ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Right:
+            Right: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = DirectC ... Object) = y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = DirectC ... Object) = y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast( ... Object) = y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.ObjectValueEquals) (OperationKind.BinaryOperatorExpression, Type: System.Object) (Syntax: 'DirectCast( ... Object) = y')
-                Left:
+                Left: 
                   IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'DirectCast(x, Object)')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = DirectC ... bject) <> y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = DirectC ... bject) <> y')
-        Left:
+        Left: 
           ILocalReferenceExpression: r (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast( ... bject) <> y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.ObjectValueNotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Object) (Syntax: 'DirectCast( ... bject) <> y')
-                Left:
+                Left: 
                   IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'DirectCast(x, Object)')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-                Right:
+                Right: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
-    Statement:
+    Statement: 
       null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
-    ReturnedValue:
+    ReturnedValue: 
       null
 ]]>.Value
 
@@ -1002,134 +1002,134 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IBlockStatement (10 statements) (OperationKind.BlockStatement) (Syntax: 'Sub M(x As  ... End Sub')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x = y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x = y')
-        Left:
+        Left: 
           IParameterReferenceExpression: r (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x = y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked, CompareText) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x = y')
-                Left:
+                Left: 
                   IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'x')
-                Right:
+                Right: 
                   IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x <> y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x <> y')
-        Left:
+        Left: 
           IParameterReferenceExpression: r (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x <> y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.NotEquals, Checked, CompareText) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x <> y')
-                Left:
+                Left: 
                   IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'x')
-                Right:
+                Right: 
                   IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x < y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x < y')
-        Left:
+        Left: 
           IParameterReferenceExpression: r (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x < y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.LessThan, Checked, CompareText) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x < y')
-                Left:
+                Left: 
                   IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'x')
-                Right:
+                Right: 
                   IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x > y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x > y')
-        Left:
+        Left: 
           IParameterReferenceExpression: r (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x > y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.GreaterThan, Checked, CompareText) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x > y')
-                Left:
+                Left: 
                   IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'x')
-                Right:
+                Right: 
                   IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x <= y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x <= y')
-        Left:
+        Left: 
           IParameterReferenceExpression: r (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x <= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.LessThanOrEqual, Checked, CompareText) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x <= y')
-                Left:
+                Left: 
                   IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'x')
-                Right:
+                Right: 
                   IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = x >= y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = x >= y')
-        Left:
+        Left: 
           IParameterReferenceExpression: r (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x >= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.GreaterThanOrEqual, Checked, CompareText) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x >= y')
-                Left:
+                Left: 
                   IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'x')
-                Right:
+                Right: 
                   IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = DirectC ... Object) = y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = DirectC ... Object) = y')
-        Left:
+        Left: 
           IParameterReferenceExpression: r (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast( ... Object) = y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.ObjectValueEquals, Checked, CompareText) (OperationKind.BinaryOperatorExpression, Type: System.Object) (Syntax: 'DirectCast( ... Object) = y')
-                Left:
+                Left: 
                   IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'DirectCast(x, Object)')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'x')
-                Right:
+                Right: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = DirectC ... bject) <> y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'r = DirectC ... bject) <> y')
-        Left:
+        Left: 
           IParameterReferenceExpression: r (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast( ... bject) <> y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.ObjectValueNotEquals, Checked, CompareText) (OperationKind.BinaryOperatorExpression, Type: System.Object) (Syntax: 'DirectCast( ... bject) <> y')
-                Left:
+                Left: 
                   IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'DirectCast(x, Object)')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'x')
-                Right:
+                Right: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'y')
   ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
-    Statement:
+    Statement: 
       null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
-    ReturnedValue:
+    ReturnedValue: 
       null
 ]]>.Value
 
@@ -1168,118 +1168,118 @@ IBlockStatement (12 statements, 2 locals) (OperationKind.BlockStatement) (Syntax
     IVariableDeclaration (2 variables) (OperationKind.VariableDeclaration) (Syntax: 'x, y As New Integer')
       Variables: Local_1: x As System.Int32
         Local_2: y As System.Int32
-      Initializer:
+      Initializer: 
         IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
           Arguments(0)
-          Initializer:
+          Initializer: 
             null
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x += y')
-    Expression:
+    Expression: 
       ICompoundAssignmentExpression (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'x += y')
-        Left:
+        Left: 
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-        Right:
+        Right: 
           ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x -= y')
-    Expression:
+    Expression: 
       ICompoundAssignmentExpression (BinaryOperatorKind.Subtract, Checked) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'x -= y')
-        Left:
+        Left: 
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-        Right:
+        Right: 
           ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x *= y')
-    Expression:
+    Expression: 
       ICompoundAssignmentExpression (BinaryOperatorKind.Multiply, Checked) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'x *= y')
-        Left:
+        Left: 
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-        Right:
+        Right: 
           ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x /= y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'x /= y')
-        Left:
+        Left: 
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x /= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.Divide, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Double, IsImplicit) (Syntax: 'x /= y')
-                Left:
+                Left: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       IOperation:  (OperationKind.None, IsImplicit) (Syntax: 'x')
-                Right:
+                Right: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x \= y')
-    Expression:
+    Expression: 
       ICompoundAssignmentExpression (BinaryOperatorKind.IntegerDivide, Checked) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'x \= y')
-        Left:
+        Left: 
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-        Right:
+        Right: 
           ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x ^= y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'x ^= y')
-        Left:
+        Left: 
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x ^= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.Power, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Double, IsImplicit) (Syntax: 'x ^= y')
-                Left:
+                Left: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       IOperation:  (OperationKind.None, IsImplicit) (Syntax: 'x')
-                Right:
+                Right: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x &= y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'x &= y')
-        Left:
+        Left: 
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x &= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperatorExpression, Type: System.String, IsImplicit) (Syntax: 'x &= y')
-                Left:
+                Left: 
                   IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       IOperation:  (OperationKind.None, IsImplicit) (Syntax: 'x')
-                Right:
+                Right: 
                   IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x <<= 2')
-    Expression:
+    Expression: 
       ICompoundAssignmentExpression (BinaryOperatorKind.LeftShift, Checked) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'x <<= 2')
-        Left:
+        Left: 
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-        Right:
+        Right: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x >>= 3')
-    Expression:
+    Expression: 
       ICompoundAssignmentExpression (BinaryOperatorKind.RightShift, Checked) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'x >>= 3')
-        Left:
+        Left: 
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-        Right:
+        Right: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
   ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
-    Statement:
+    Statement: 
       null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
-    ReturnedValue:
+    ReturnedValue: 
       null
 ]]>.Value
 
@@ -1316,118 +1316,118 @@ IBlockStatement (12 statements, 2 locals) (OperationKind.BlockStatement) (Syntax
     IVariableDeclaration (2 variables) (OperationKind.VariableDeclaration) (Syntax: 'x, y As New Integer')
       Variables: Local_1: x As System.Int32
         Local_2: y As System.Int32
-      Initializer:
+      Initializer: 
         IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
           Arguments(0)
-          Initializer:
+          Initializer: 
             null
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x += y')
-    Expression:
+    Expression: 
       ICompoundAssignmentExpression (BinaryOperatorKind.Add) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'x += y')
-        Left:
+        Left: 
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-        Right:
+        Right: 
           ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x -= y')
-    Expression:
+    Expression: 
       ICompoundAssignmentExpression (BinaryOperatorKind.Subtract) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'x -= y')
-        Left:
+        Left: 
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-        Right:
+        Right: 
           ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x *= y')
-    Expression:
+    Expression: 
       ICompoundAssignmentExpression (BinaryOperatorKind.Multiply) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'x *= y')
-        Left:
+        Left: 
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-        Right:
+        Right: 
           ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x /= y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'x /= y')
-        Left:
+        Left: 
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x /= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.Divide) (OperationKind.BinaryOperatorExpression, Type: System.Double, IsImplicit) (Syntax: 'x /= y')
-                Left:
+                Left: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       IOperation:  (OperationKind.None, IsImplicit) (Syntax: 'x')
-                Right:
+                Right: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x \= y')
-    Expression:
+    Expression: 
       ICompoundAssignmentExpression (BinaryOperatorKind.IntegerDivide) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'x \= y')
-        Left:
+        Left: 
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-        Right:
+        Right: 
           ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x ^= y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'x ^= y')
-        Left:
+        Left: 
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x ^= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.Power) (OperationKind.BinaryOperatorExpression, Type: System.Double, IsImplicit) (Syntax: 'x ^= y')
-                Left:
+                Left: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, IsImplicit) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       IOperation:  (OperationKind.None, IsImplicit) (Syntax: 'x')
-                Right:
+                Right: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Double, IsImplicit) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x &= y')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'x &= y')
-        Left:
+        Left: 
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'x &= y')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.Concatenate) (OperationKind.BinaryOperatorExpression, Type: System.String, IsImplicit) (Syntax: 'x &= y')
-                Left:
+                Left: 
                   IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 'x')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       IOperation:  (OperationKind.None, IsImplicit) (Syntax: 'x')
-                Right:
+                Right: 
                   IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 'y')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x <<= 2')
-    Expression:
+    Expression: 
       ICompoundAssignmentExpression (BinaryOperatorKind.LeftShift) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'x <<= 2')
-        Left:
+        Left: 
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-        Right:
+        Right: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x >>= 3')
-    Expression:
+    Expression: 
       ICompoundAssignmentExpression (BinaryOperatorKind.RightShift) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'x >>= 3')
-        Left:
+        Left: 
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-        Right:
+        Right: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
   ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
-    Statement:
+    Statement: 
       null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
-    ReturnedValue:
+    ReturnedValue: 
       null
 ]]>.Value
 
@@ -1844,84 +1844,84 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IBlockStatement (6 statements) (OperationKind.BlockStatement) (Syntax: 'Sub M(c1 As ... End Sub')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = c1 Is c2')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean) (Syntax: 'r = c1 Is c2')
-        Left:
+        Left: 
           IParameterReferenceExpression: r (OperationKind.ParameterReferenceExpression, Type: System.Boolean) (Syntax: 'r')
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.Equals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'c1 Is c2')
-            Left:
+            Left: 
               IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'c1')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                Operand:
+                Operand: 
                   IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c1')
-            Right:
+            Right: 
               IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'c2')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                Operand:
+                Operand: 
                   IParameterReferenceExpression: c2 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c2')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = c1 IsNot c2')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean) (Syntax: 'r = c1 IsNot c2')
-        Left:
+        Left: 
           IParameterReferenceExpression: r (OperationKind.ParameterReferenceExpression, Type: System.Boolean) (Syntax: 'r')
-        Right:
+        Right: 
           IBinaryOperatorExpression (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'c1 IsNot c2')
-            Left:
+            Left: 
               IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'c1')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                Operand:
+                Operand: 
                   IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c1')
-            Right:
+            Right: 
               IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'c2')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                Operand:
+                Operand: 
                   IParameterReferenceExpression: c2 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c2')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = DirectC ... bject) = c2')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean) (Syntax: 'r = DirectC ... bject) = c2')
-        Left:
+        Left: 
           IParameterReferenceExpression: r (OperationKind.ParameterReferenceExpression, Type: System.Boolean) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsImplicit) (Syntax: 'DirectCast( ... bject) = c2')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.ObjectValueEquals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Object) (Syntax: 'DirectCast( ... bject) = c2')
-                Left:
+                Left: 
                   IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'DirectCast(c1, Object)')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c1')
-                Right:
+                Right: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'c2')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       IParameterReferenceExpression: c2 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c2')
   IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'r = DirectC ... ject) <> c2')
-    Expression:
+    Expression: 
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean) (Syntax: 'r = DirectC ... ject) <> c2')
-        Left:
+        Left: 
           IParameterReferenceExpression: r (OperationKind.ParameterReferenceExpression, Type: System.Boolean) (Syntax: 'r')
-        Right:
+        Right: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsImplicit) (Syntax: 'DirectCast( ... ject) <> c2')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.ObjectValueNotEquals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Object) (Syntax: 'DirectCast( ... ject) <> c2')
-                Left:
+                Left: 
                   IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'DirectCast(c1, Object)')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c1')
-                Right:
+                Right: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'c2')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       IParameterReferenceExpression: c2 (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c2')
   ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
-    Statement:
+    Statement: 
       null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
-    ReturnedValue:
+    ReturnedValue: 
       null
 ]]>.Value
 

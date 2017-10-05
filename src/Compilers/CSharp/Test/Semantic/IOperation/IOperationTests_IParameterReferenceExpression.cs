@@ -155,27 +155,27 @@ class Class1
 ";
             string expectedOperationTree = @"
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable<System.String>) (Syntax: 'from cust i ... t cust.Name')
-  Expression:
+  Expression: 
     IInvocationExpression (System.Collections.Generic.IEnumerable<System.String> System.Linq.Enumerable.Select<Customer, System.String>(this System.Collections.Generic.IEnumerable<Customer> source, System.Func<Customer, System.String> selector)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable<System.String>, IsImplicit) (Syntax: 'select cust.Name')
-      Instance Receiver:
+      Instance Receiver: 
         null
       Arguments(2):
           IArgument (ArgumentKind.Explicit, Matching Parameter: source) (OperationKind.Argument, IsImplicit) (Syntax: 'from cust in customers')
             IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<Customer>, IsImplicit) (Syntax: 'from cust in customers')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-              Operand:
+              Operand: 
                 IParameterReferenceExpression: customers (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.List<Customer>) (Syntax: 'customers')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 'cust.Name')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func<Customer, System.String>, IsImplicit) (Syntax: 'cust.Name')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'cust.Name')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'cust.Name')
                     IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'cust.Name')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IPropertyReferenceExpression: System.String Customer.Name { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'cust.Name')
-                          Instance Receiver:
+                          Instance Receiver: 
                             IOperation:  (OperationKind.None) (Syntax: 'cust')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -289,17 +289,17 @@ class Class
 ";
             string expectedOperationTree = @"
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action) (Syntax: 'new Action( ... })')
-  Target:
+  Target: 
     IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: '() => ... }')
       IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
         IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a();')
-          Expression:
+          Expression: 
             IInvocationExpression (virtual void System.Action.Invoke()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'a()')
-              Instance Receiver:
+              Instance Receiver: 
                 IParameterReferenceExpression: a (OperationKind.ParameterReferenceExpression, Type: System.Action) (Syntax: 'a')
               Arguments(0)
         IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '{ ... }')
-          ReturnedValue:
+          ReturnedValue: 
             null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -330,9 +330,9 @@ class Class
 ";
             string expectedOperationTree = @"
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Class.Delegate) (Syntax: 'new Delegate(Method2)')
-  Target:
+  Target: 
     IMethodReferenceExpression: void Class.Method2(System.Int32 x, System.Int32 y) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'Method2')
-      Instance Receiver:
+      Instance Receiver: 
         IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class, IsImplicit) (Syntax: 'Method2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;

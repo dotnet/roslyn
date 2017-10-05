@@ -48,129 +48,129 @@ IBlockStatement (9 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim x1 = New F()')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x1')
       Variables: Local_1: x1 As F
-      Initializer:
+      Initializer: 
         IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F) (Syntax: 'New F()')
           Arguments(0)
-          Initializer:
+          Initializer: 
             null
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim x2 = Ne ... .Field = 2}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x2')
       Variables: Local_1: x2 As F
-      Initializer:
+      Initializer: 
         IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F) (Syntax: 'New F() Wit ... .Field = 2}')
           Arguments(0)
-          Initializer:
+          Initializer: 
             IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F) (Syntax: 'With {.Field = 2}')
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.Field = 2')
-                    Left:
+                    Left: 
                       IFieldReferenceExpression: F.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
-                        Instance Receiver:
+                        Instance Receiver: 
                           IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, IsImplicit) (Syntax: 'New F() Wit ... .Field = 2}')
-                    Right:
+                    Right: 
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim x3 = Ne ... erty1 = ""}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x3')
       Variables: Local_1: x3 As F
-      Initializer:
+      Initializer: 
         IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F) (Syntax: 'New F() Wit ... erty1 = ""}')
           Arguments(0)
-          Initializer:
+          Initializer: 
             IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F) (Syntax: 'With {.Property1 = ""}')
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void) (Syntax: '.Property1 = ""')
-                    Left:
+                    Left: 
                       IPropertyReferenceExpression: Property F.Property1 As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Property1')
-                        Instance Receiver:
+                        Instance Receiver: 
                           IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, IsImplicit) (Syntax: 'New F() Wit ... erty1 = ""}')
-                    Right:
+                    Right: 
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "") (Syntax: '""')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim x4 = Ne ... .Field = 2}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x4')
       Variables: Local_1: x4 As F
-      Initializer:
+      Initializer: 
         IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F) (Syntax: 'New F() Wit ... .Field = 2}')
           Arguments(0)
-          Initializer:
+          Initializer: 
             IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F) (Syntax: 'With {.Prop ... .Field = 2}')
               Initializers(2):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void) (Syntax: '.Property1 = ""')
-                    Left:
+                    Left: 
                       IPropertyReferenceExpression: Property F.Property1 As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Property1')
-                        Instance Receiver:
+                        Instance Receiver: 
                           IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, IsImplicit) (Syntax: 'New F() Wit ... .Field = 2}')
-                    Right:
+                    Right: 
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "") (Syntax: '""')
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.Field = 2')
-                    Left:
+                    Left: 
                       IFieldReferenceExpression: F.Field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'Field')
-                        Instance Receiver:
+                        Instance Receiver: 
                           IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, IsImplicit) (Syntax: 'New F() Wit ... .Field = 2}')
-                    Right:
+                    Right: 
                       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim x5 = Ne ... ld = True}}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x5')
       Variables: Local_1: x5 As F
-      Initializer:
+      Initializer: 
         IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F) (Syntax: 'New F() Wit ... ld = True}}')
           Arguments(0)
-          Initializer:
+          Initializer: 
             IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F) (Syntax: 'With {.Prop ... ld = True}}')
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void) (Syntax: '.Property2  ... eld = True}')
-                    Left:
+                    Left: 
                       IPropertyReferenceExpression: Property F.Property2 As B (OperationKind.PropertyReferenceExpression, Type: B) (Syntax: 'Property2')
-                        Instance Receiver:
+                        Instance Receiver: 
                           IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, IsImplicit) (Syntax: 'New F() Wit ... ld = True}}')
-                    Right:
+                    Right: 
                       IObjectCreationExpression (Constructor: Sub B..ctor()) (OperationKind.ObjectCreationExpression, Type: B) (Syntax: 'New B() Wit ... eld = True}')
                         Arguments(0)
-                        Initializer:
+                        Initializer: 
                           IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: B) (Syntax: 'With {.Field = True}')
                             Initializers(1):
                                 ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean) (Syntax: '.Field = True')
-                                  Left:
+                                  Left: 
                                     IFieldReferenceExpression: B.Field As System.Boolean (OperationKind.FieldReferenceExpression, Type: System.Boolean) (Syntax: 'Field')
-                                      Instance Receiver:
+                                      Instance Receiver: 
                                         IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: B, IsImplicit) (Syntax: 'New B() Wit ... eld = True}')
-                                  Right:
+                                  Right: 
                                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim e1 = Ne ... perty2 = 1}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'e1')
       Variables: Local_1: e1 As F
-      Initializer:
+      Initializer: 
         IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, IsInvalid) (Syntax: 'New F() Wit ... perty2 = 1}')
           Arguments(0)
-          Initializer:
+          Initializer: 
             IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, IsInvalid) (Syntax: 'With {.Property2 = 1}')
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Void, IsInvalid) (Syntax: '.Property2 = 1')
-                    Left:
+                    Left: 
                       IPropertyReferenceExpression: Property F.Property2 As B (OperationKind.PropertyReferenceExpression, Type: B) (Syntax: 'Property2')
-                        Instance Receiver:
+                        Instance Receiver: 
                           IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: F, IsInvalid, IsImplicit) (Syntax: 'New F() Wit ... perty2 = 1}')
-                    Right:
+                    Right: 
                       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: B, IsInvalid, IsImplicit) (Syntax: '1')
                         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Operand:
+                        Operand: 
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim e2 = Ne ... ) From {""}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'e2')
       Variables: Local_1: e2 As F
-      Initializer:
+      Initializer: 
         IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, IsInvalid) (Syntax: 'New F() From {""}')
           Arguments(0)
-          Initializer:
+          Initializer: 
             IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: F, IsInvalid) (Syntax: 'From {""}')
               Initializers(1):
                   IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '""')
                     Children(1):
                         ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "", IsInvalid) (Syntax: '""')
   ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
-    Statement:
+    Statement: 
       null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
-    ReturnedValue:
+    ReturnedValue: 
       null
 ]]>.Value
 
@@ -244,20 +244,20 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of System.Collections.Generic.List(Of System.Int32))..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List(Of System.Collections.Generic.List(Of System.Int32))) (Syntax: 'New List(Of ... om {field}}')
   Arguments(0)
-  Initializer:
+  Initializer: 
     IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List(Of System.Collections.Generic.List(Of System.Int32))) (Syntax: 'From {{x, y ... om {field}}')
       Initializers(2):
           ICollectionElementInitializerExpression (AddMethod: Sub System.Collections.Generic.List(Of System.Collections.Generic.List(Of System.Int32)).Add(item As System.Collections.Generic.List(Of System.Int32))) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit) (Syntax: '{x, y}.ToList')
             Arguments(1):
                 IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).ToList() As System.Collections.Generic.List(Of System.Int32)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.List(Of System.Int32)) (Syntax: '{x, y}.ToList')
-                  Instance Receiver:
+                  Instance Receiver: 
                     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: '{x, y}')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                      Operand:
+                      Operand: 
                         IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: '{x, y}')
                           Dimension Sizes(1):
                               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '{x, y}')
-                          Initializer:
+                          Initializer: 
                             IArrayInitializer (2 elements) (OperationKind.ArrayInitializer, IsImplicit) (Syntax: '{x, y}')
                               Element Values(2):
                                   IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
@@ -267,13 +267,13 @@ IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of S
             Arguments(1):
                 IObjectCreationExpression (Constructor: Sub System.Collections.Generic.List(Of System.Int32)..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List(Of System.Int32)) (Syntax: 'New List(Of ... rom {field}')
                   Arguments(0)
-                  Initializer:
+                  Initializer: 
                     IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List(Of System.Int32)) (Syntax: 'From {field}')
                       Initializers(1):
                           ICollectionElementInitializerExpression (AddMethod: Sub System.Collections.Generic.List(Of System.Int32).Add(item As System.Int32)) (IsDynamic: False) (OperationKind.CollectionElementInitializerExpression, Type: System.Void, IsImplicit) (Syntax: 'field')
                             Arguments(1):
                                 IFieldReferenceExpression: C.field As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'field')
-                                  Instance Receiver:
+                                  Instance Receiver: 
                                     IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'field')
 ]]>.Value
 

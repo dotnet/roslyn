@@ -30,19 +30,19 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each s  ... Next')
   Locals: Local_1: s As System.String
-  LoopControlVariable:
+  LoopControlVariable: 
     ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's As String')
-  Collection:
+  Collection: 
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'arr')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand:
+      Operand: 
         ILocalReferenceExpression: arr (OperationKind.LocalReferenceExpression, Type: System.String()) (Syntax: 'arr')
-  Body:
+  Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each s  ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(s)')
-        Expression:
+        Expression: 
           IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(s)')
-            Instance Receiver:
+            Instance Receiver: 
               null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 's')
@@ -178,39 +178,39 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each x  ... Next y, x')
   Locals: Local_1: x As System.String
-  LoopControlVariable:
+  LoopControlVariable: 
     ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'x As String')
-  Collection:
+  Collection: 
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'S')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand:
+      Operand: 
         ILocalReferenceExpression: S (OperationKind.LocalReferenceExpression, Type: System.String()) (Syntax: 'S')
-  Body:
+  Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each x  ... Next y, x')
       IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each y  ... Next y, x')
         Locals: Local_1: y As System.Char
-        LoopControlVariable:
+        LoopControlVariable: 
           ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Char) (Syntax: 'y As Char')
-        Collection:
+        Collection: 
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'x')
-        Body:
+        Body: 
           IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'For Each y  ... Next y, x')
             IIfStatement (OperationKind.IfStatement) (Syntax: 'If y = "B"c ... End If')
-              Condition:
+              Condition: 
                 IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'y = "B"c')
-                  Left:
+                  Left: 
                     ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Char) (Syntax: 'y')
-                  Right:
+                  Right: 
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Char, Constant: B) (Syntax: '"B"c')
-              IfTrue:
+              IfTrue: 
                 IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If y = "B"c ... End If')
                   IBranchStatement (BranchKind.Continue, Label: continue) (OperationKind.BranchStatement) (Syntax: 'Continue For')
-              IfFalse:
+              IfFalse: 
                 null
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... riteLine(y)')
-              Expression:
+              Expression: 
                 IInvocationExpression (Sub System.Console.WriteLine(value As System.Char)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(y)')
-                  Instance Receiver:
+                  Instance Receiver: 
                     null
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'y')
@@ -250,19 +250,19 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each y  ... Next')
   Locals: Local_1: y As System.Int32
-  LoopControlVariable:
+  LoopControlVariable: 
     ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y As Integer')
-  Collection:
+  Collection: 
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'x')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand:
+      Operand: 
         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32()) (Syntax: 'x')
-  Body:
+  Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each y  ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... riteLine(y)')
-        Expression:
+        Expression: 
           IInvocationExpression (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(y)')
-            Instance Receiver:
+            Instance Receiver: 
               null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'y')
@@ -295,27 +295,27 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each x  ... Next')
   Locals: Local_1: x As System.String
-  LoopControlVariable:
+  LoopControlVariable: 
     ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'x As String')
-  Collection:
+  Collection: 
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'S')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand:
+      Operand: 
         ILocalReferenceExpression: S (OperationKind.LocalReferenceExpression, Type: System.String()) (Syntax: 'S')
-  Body:
+  Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each x  ... Next')
       IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each y  ... Next')
         Locals: Local_1: y As System.Char
-        LoopControlVariable:
+        LoopControlVariable: 
           ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Char) (Syntax: 'y As Char')
-        Collection:
+        Collection: 
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'x')
-        Body:
+        Body: 
           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each y  ... Next')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... riteLine(y)')
-              Expression:
+              Expression: 
                 IInvocationExpression (Sub System.Console.WriteLine(value As System.Char)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(y)')
-                  Instance Receiver:
+                  Instance Receiver: 
                     null
                   Arguments(1):
                       IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'y')
@@ -358,22 +358,22 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each x  ... Next')
   Locals: Local_1: x As System.Object
-  LoopControlVariable:
+  LoopControlVariable: 
     ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
-  Collection:
+  Collection: 
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'New Enumerable()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand:
+      Operand: 
         IObjectCreationExpression (Constructor: Sub Enumerable..ctor()) (OperationKind.ObjectCreationExpression, Type: Enumerable) (Syntax: 'New Enumerable()')
           Arguments(0)
-          Initializer:
+          Initializer: 
             null
-  Body:
+  Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each x  ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... riteLine(x)')
-        Expression:
+        Expression: 
           IInvocationExpression (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(x)')
-            Instance Receiver:
+            Instance Receiver: 
               null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
@@ -450,22 +450,22 @@ End Structure
             Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each x  ... Next')
   Locals: Local_1: x As System.Object
-  LoopControlVariable:
+  LoopControlVariable: 
     ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
-  Collection:
+  Collection: 
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'New Enumerable()')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand:
+      Operand: 
         IObjectCreationExpression (Constructor: Sub Enumerable..ctor()) (OperationKind.ObjectCreationExpression, Type: Enumerable) (Syntax: 'New Enumerable()')
           Arguments(0)
-          Initializer:
+          Initializer: 
             null
-  Body:
+  Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each x  ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... riteLine(x)')
-        Expression:
+        Expression: 
           IInvocationExpression (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... riteLine(x)')
-            Instance Receiver:
+            Instance Receiver: 
               null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
@@ -714,19 +714,19 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each x  ... Next')
   Locals: Local_1: x As System.Object
-  LoopControlVariable:
+  LoopControlVariable: 
     ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'x')
-  Collection:
+  Collection: 
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'o')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand:
+      Operand: 
         ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
-  Body:
+  Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each x  ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(x)')
-        Expression:
+        Expression: 
           IInvocationExpression (Sub System.Console.WriteLine(value As System.Object)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(x)')
-            Instance Receiver:
+            Instance Receiver: 
               null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
@@ -838,19 +838,19 @@ End Class
 
             Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each el ... ambda_local')
-  LoopControlVariable:
+  LoopControlVariable: 
     ILocalReferenceExpression: element_lambda_local (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'element_lambda_local')
-  Collection:
+  Collection: 
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'arr')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand:
+      Operand: 
         ILocalReferenceExpression: arr (OperationKind.LocalReferenceExpression, Type: System.Int32()) (Syntax: 'arr')
-  Body:
+  Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each el ... ambda_local')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... mbda_local)')
-        Expression:
+        Expression: 
           IInvocationExpression (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... mbda_local)')
-            Instance Receiver:
+            Instance Receiver: 
               null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'element_lambda_local')
@@ -927,39 +927,39 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each s  ... Next')
   Locals: Local_1: s As System.String
-  LoopControlVariable:
+  LoopControlVariable: 
     ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's As String')
-  Collection:
+  Collection: 
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'arr')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand:
+      Operand: 
         ILocalReferenceExpression: arr (OperationKind.LocalReferenceExpression, Type: System.String()) (Syntax: 'arr')
-  Body:
+  Body: 
     IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: 'For Each s  ... Next')
       IIfStatement (OperationKind.IfStatement) (Syntax: 'If (s = "on ... End If')
-        Condition:
+        Condition: 
           IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean) (Syntax: '(s = "one")')
-            Operand:
+            Operand: 
               IBinaryOperatorExpression (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 's = "one"')
-                Left:
+                Left: 
                   ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
-                Right:
+                Right: 
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "one") (Syntax: '"one"')
-        IfTrue:
+        IfTrue: 
           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If (s = "on ... End If')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Throw New Exception')
-              Expression:
+              Expression: 
                 IThrowExpression (OperationKind.ThrowExpression, Type: System.Exception) (Syntax: 'Throw New Exception')
                   IObjectCreationExpression (Constructor: Sub System.Exception..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Exception) (Syntax: 'New Exception')
                     Arguments(0)
-                    Initializer:
+                    Initializer: 
                       null
-        IfFalse:
+        IfFalse: 
           null
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(s)')
-        Expression:
+        Expression: 
           IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(s)')
-            Instance Receiver:
+            Instance Receiver: 
               null
             Arguments(1):
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 's')
@@ -990,31 +990,31 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each o  ... Next')
   Locals: Local_1: o As System.Object
-  LoopControlVariable:
+  LoopControlVariable: 
     ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
-  Collection:
+  Collection: 
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'c')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand:
+      Operand: 
         IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: System.Object()) (Syntax: 'c')
-  Body:
+  Body: 
     IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For Each o  ... Next')
       IIfStatement (OperationKind.IfStatement) (Syntax: 'If o IsNot  ... Return True')
-        Condition:
+        Condition: 
           IBinaryOperatorExpression (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'o IsNot Nothing')
-            Left:
+            Left: 
               ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
-            Right:
+            Right: 
               IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand:
+                Operand: 
                   ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
-        IfTrue:
+        IfTrue: 
           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If o IsNot  ... Return True')
             IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return True')
-              ReturnedValue:
+              ReturnedValue: 
                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
-        IfFalse:
+        IfFalse: 
           null
   NextVariables(0)
 ]]>.Value
@@ -1040,20 +1040,20 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each X  ... Next X')
-  LoopControlVariable:
+  LoopControlVariable: 
     IFieldReferenceExpression: C.X As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'X')
-      Instance Receiver:
+      Instance Receiver: 
         IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'X')
-  Collection:
+  Collection: 
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'args')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand:
+      Operand: 
         IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.Int32()) (Syntax: 'args')
-  Body:
+  Body: 
     IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For Each X  ... Next X')
   NextVariables(1):
       IFieldReferenceExpression: C.X As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'X')
-        Instance Receiver:
+        Instance Receiver: 
           IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'X')
 ]]>.Value
 
@@ -1080,20 +1080,20 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'For Each c. ... Next c.X')
-  LoopControlVariable:
+  LoopControlVariable: 
     IFieldReferenceExpression: C.X As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'c.X')
-      Instance Receiver:
+      Instance Receiver: 
         IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
-  Collection:
+  Collection: 
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'args')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-      Operand:
+      Operand: 
         IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.Int32()) (Syntax: 'args')
-  Body:
+  Body: 
     IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'For Each c. ... Next c.X')
   NextVariables(1):
       IFieldReferenceExpression: C.X As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'c.X')
-        Instance Receiver:
+        Instance Receiver: 
           IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
 ]]>.Value
 

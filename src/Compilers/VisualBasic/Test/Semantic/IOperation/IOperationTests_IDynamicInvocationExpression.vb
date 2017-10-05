@@ -468,13 +468,13 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression (virtual Sub C.MySubDelegate.Invoke(x As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'd(o)')
-  Instance Receiver:
+  Instance Receiver: 
     IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: C.MySubDelegate) (Syntax: 'd')
   Arguments(1):
       IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'o')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'o')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand:
+          Operand: 
             IParameterReferenceExpression: o (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'o')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

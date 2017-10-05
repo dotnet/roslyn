@@ -145,14 +145,14 @@ End Class
 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: M()) (Syntax: 'New M(dimension) {}')
   Dimension Sizes(1):
       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsImplicit) (Syntax: 'dimension')
-        Left:
+        Left: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsImplicit) (Syntax: 'dimension')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IParameterReferenceExpression: dimension (OperationKind.ParameterReferenceExpression, Type: System.UInt16) (Syntax: 'dimension')
-        Right:
+        Right: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'dimension')
-  Initializer:
+  Initializer: 
     IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: '{}')
       Element Values(0)
 ]]>.Value
@@ -236,20 +236,20 @@ End Class]]>.Value
 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: C()) (Syntax: 'New C(1) {N ... C, Nothing}')
   Dimension Sizes(1):
       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
-        Left:
+        Left: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        Right:
+        Right: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-  Initializer:
+  Initializer: 
     IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{New C, Nothing}')
       Element Values(2):
           IObjectCreationExpression (Constructor: Sub C..ctor()) (OperationKind.ObjectCreationExpression, Type: C) (Syntax: 'New C')
             Arguments(0)
-            Initializer:
+            Initializer: 
               null
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C, Constant: null, IsImplicit) (Syntax: 'Nothing')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
 ]]>.Value
 
@@ -434,14 +434,14 @@ End Class
 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.String()) (Syntax: '{"hello", a, Nothing}')
   Dimension Sizes(1):
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '{"hello", a, Nothing}')
-  Initializer:
+  Initializer: 
     IArrayInitializer (3 elements) (OperationKind.ArrayInitializer, IsImplicit) (Syntax: '{"hello", a, Nothing}')
       Element Values(3):
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "hello") (Syntax: '"hello"')
           ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'a')
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Nothing')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
 ]]>.Value
 
@@ -505,7 +505,7 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.By
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Byte(,, ... {4, 5, 6}}}')
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Byte(,, ... {4, 5, 6}}}')
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: 'New Byte(,, ... {4, 5, 6}}}')
-  Initializer:
+  Initializer: 
     IArrayInitializer (2 elements) (OperationKind.ArrayInitializer) (Syntax: '{{{1, 2, 3} ... {4, 5, 6}}}')
       Element Values(2):
           IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{{1, 2, 3}}')
@@ -514,15 +514,15 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.By
                   Element Values(3):
                       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, Constant: 1, IsImplicit) (Syntax: '1')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Operand:
+                        Operand: 
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
                       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, Constant: 2, IsImplicit) (Syntax: '2')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Operand:
+                        Operand: 
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
                       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, Constant: 3, IsImplicit) (Syntax: '3')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Operand:
+                        Operand: 
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
           IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{{4, 5, 6}}')
             Element Values(1):
@@ -530,15 +530,15 @@ IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.By
                   Element Values(3):
                       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, Constant: 4, IsImplicit) (Syntax: '4')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Operand:
+                        Operand: 
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: '4')
                       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, Constant: 5, IsImplicit) (Syntax: '5')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Operand:
+                        Operand: 
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
                       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Byte, Constant: 6, IsImplicit) (Syntax: '6')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Operand:
+                        Operand: 
                           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 6) (Syntax: '6')
 ]]>.Value
 
@@ -982,12 +982,12 @@ End Class]]>.Value
 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: C(), IsInvalid) (Syntax: 'New C() {1}')
   Dimension Sizes(1):
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'New C() {1}')
-  Initializer:
+  Initializer: 
     IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{1}')
       Element Values(1):
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: C, IsInvalid, IsImplicit) (Syntax: '1')
             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ]]>.Value
 
@@ -1013,14 +1013,14 @@ End Class]]>.Value
 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: C(), IsInvalid) (Syntax: 'New C(c) {}')
   Dimension Sizes(1):
       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'c')
-        Left:
+        Left: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'c')
             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
-        Right:
+        Right: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'c')
-  Initializer:
+  Initializer: 
     IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: '{}')
       Element Values(0)
 ]]>.Value
@@ -1124,17 +1124,17 @@ End Class]]>.Value
 IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: C(), IsInvalid) (Syntax: 'New C(M()) {}')
   Dimension Sizes(1):
       IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M()')
-        Left:
+        Left: 
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M()')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand:
+            Operand: 
               IInvocationExpression ( Function C.M() As System.Object) (OperationKind.InvocationExpression, Type: System.Object, IsInvalid) (Syntax: 'M()')
-                Instance Receiver:
+                Instance Receiver: 
                   IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
                 Arguments(0)
-        Right:
+        Right: 
           ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'M()')
-  Initializer:
+  Initializer: 
     IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: '{}')
       Element Values(0)
 ]]>.Value

@@ -100,23 +100,23 @@ End Class
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable(Of System.String)) (Syntax: 'From cust I ... t cust.Name')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of Customer).Select(Of System.String)(selector As System.Func(Of Customer, System.String)) As System.Collections.Generic.IEnumerable(Of System.String)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of System.String), IsImplicit) (Syntax: 'Select cust.Name')
-      Instance Receiver:
+      Instance Receiver: 
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of Customer), IsImplicit) (Syntax: 'cust In customers')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand:
+          Operand: 
             IParameterReferenceExpression: customers (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.List(Of Customer)) (Syntax: 'customers')
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: selector) (OperationKind.Argument, IsImplicit) (Syntax: 'cust.Name')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of Customer, System.String), IsImplicit) (Syntax: 'cust.Name')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (cust As Customer) As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'cust.Name')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'cust.Name')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'cust.Name')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IPropertyReferenceExpression: Property Customer.Name As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'cust.Name')
-                          Instance Receiver:
+                          Instance Receiver: 
                             IParameterReferenceExpression: cust (OperationKind.ParameterReferenceExpression, Type: Customer) (Syntax: 'cust.Name')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -147,16 +147,16 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Int32) (Syntax: 'Aggregate y ... nto Count()')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Count() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
-      Instance Receiver:
+      Instance Receiver: 
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'y In New Integer() {x}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand:
+          Operand: 
             IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'New Integer() {x}')
               Dimension Sizes(1):
                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {x}')
-              Initializer:
+              Initializer: 
                 IArrayInitializer (1 elements) (OperationKind.ArrayInitializer) (Syntax: '{x}')
                   Element Values(1):
                       IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
@@ -188,23 +188,23 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Linq.IOrderedEnumerable(Of System.String)) (Syntax: 'From y In x ... By y.Length')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.String).OrderBy(Of System.Int32)(keySelector As System.Func(Of System.String, System.Int32)) As System.Linq.IOrderedEnumerable(Of System.String)) (OperationKind.InvocationExpression, Type: System.Linq.IOrderedEnumerable(Of System.String), IsImplicit) (Syntax: 'y.Length')
-      Instance Receiver:
+      Instance Receiver: 
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.String), IsImplicit) (Syntax: 'y In x')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand:
+          Operand: 
             IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'x')
       Arguments(1):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument, IsImplicit) (Syntax: 'y.Length')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String, System.Int32), IsImplicit) (Syntax: 'y.Length')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (y As System.String) As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'y.Length')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'y.Length')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'y.Length')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IPropertyReferenceExpression: ReadOnly Property System.String.Length As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'y.Length')
-                          Instance Receiver:
+                          Instance Receiver: 
                             IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'y.Length')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -235,21 +235,21 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (Syntax: 'From y In x ... nto Count()')
-  Expression:
+  Expression: 
     IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.String).GroupBy(Of <anonymous type: Key w As System.String(), Key z As System.String>, <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)(keySelector As System.Func(Of System.String, <anonymous type: Key w As System.String(), Key z As System.String>), resultSelector As System.Func(Of <anonymous type: Key w As System.String(), Key z As System.String>, System.Collections.Generic.IEnumerable(Of System.String), <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>)) (OperationKind.InvocationExpression, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>), IsImplicit) (Syntax: 'Group By w  ... nto Count()')
-      Instance Receiver:
+      Instance Receiver: 
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable(Of System.String), IsImplicit) (Syntax: 'y In x')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand:
+          Operand: 
             IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'x')
       Arguments(2):
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument, IsImplicit) (Syntax: 'x')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String, <anonymous type: Key w As System.String(), Key z As System.String>), IsImplicit) (Syntax: 'x')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function (y As System.String) As <anonymous type: Key w As System.String(), Key z As System.String>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'x')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'x')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String>, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
                           Initializers(2):
                               IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'x')
@@ -258,21 +258,21 @@ ITranslatedQueryExpression (OperationKind.TranslatedQueryExpression, Type: Syste
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgument (ArgumentKind.DefaultValue, Matching Parameter: resultSelector) (OperationKind.Argument, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
             IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of <anonymous type: Key w As System.String(), Key z As System.String>, System.Collections.Generic.IEnumerable(Of System.String), <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>), IsImplicit) (Syntax: 'Group By w  ... nto Count()')
-              Target:
+              Target: 
                 IAnonymousFunctionExpression (Symbol: Function ($VB$It As <anonymous type: Key w As System.String(), Key z As System.String>, $VB$ItAnonymous As System.Collections.Generic.IEnumerable(Of System.String)) As <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>) (OperationKind.AnonymousFunctionExpression, Type: null, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Group By w  ... nto Count()')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Group By w  ... nto Count()')
-                      ReturnedValue:
+                      ReturnedValue: 
                         IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String, Key Count As System.Int32>, IsImplicit) (Syntax: 'Group By w  ... nto Count()')
                           Initializers(3):
                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key w As System.String(), Key z As System.String>.w As System.String() (OperationKind.PropertyReferenceExpression, Type: System.String()) (Syntax: 'Group By w  ... nto Count()')
-                                Instance Receiver:
+                                Instance Receiver: 
                                   IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String>) (Syntax: 'Group By w  ... nto Count()')
                               IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key w As System.String(), Key z As System.String>.z As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Group By w  ... nto Count()')
-                                Instance Receiver:
+                                Instance Receiver: 
                                   IParameterReferenceExpression: $VB$It (OperationKind.ParameterReferenceExpression, Type: <anonymous type: Key w As System.String(), Key z As System.String>) (Syntax: 'Group By w  ... nto Count()')
                               IInvocationExpression ( Function System.Collections.Generic.IEnumerable(Of System.String).Count() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsImplicit) (Syntax: 'Count()')
-                                Instance Receiver:
+                                Instance Receiver: 
                                   IParameterReferenceExpression: $VB$ItAnonymous (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.IEnumerable(Of System.String), IsImplicit) (Syntax: 'Group By w  ... nto Count()')
                                 Arguments(0)
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -390,18 +390,18 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... nction() x)')
-  Target:
+  Target: 
     IAnonymousFunctionExpression (Symbol: Function () As System.Object) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function() x')
       IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Function() x')
         Locals: Local_1: <anonymous local> As System.Object
         IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'x')
-          ReturnedValue:
+          ReturnedValue: 
             IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
         ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Function() x')
-          Statement:
+          Statement: 
             null
         IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Function() x')
-          ReturnedValue:
+          ReturnedValue: 
             ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object, IsImplicit) (Syntax: 'Function() x')
 ]]>.Value
 
@@ -424,9 +424,9 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... essOf Me.M)')
-  Target:
+  Target: 
     IMethodReferenceExpression: Sub Class1.M(x As System.Object, y As System.EventArgs) (OperationKind.MethodReferenceExpression, Type: System.EventHandler) (Syntax: 'AddressOf Me.M')
-      Instance Receiver:
+      Instance Receiver: 
         IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class1) (Syntax: 'Me')
 ]]>.Value
 
@@ -527,12 +527,12 @@ End Class
 
             Dim expectedOperationTree = <![CDATA[
 IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'd(x)')
-  Expression:
+  Expression: 
     IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'd')
   Arguments(1):
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'x')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand:
+        Operand: 
           IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
   ArgumentNames(0)
   ArgumentRefKinds: null
@@ -589,12 +589,12 @@ End Class
 
             Dim expectedOperationTree = <![CDATA[
 IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: System.Object) (Syntax: 'x(y)')
-  Expression:
+  Expression: 
     IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Arguments(1):
       IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'y')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand:
+        Operand: 
           IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
   ArgumentNames(0)
   ArgumentRefKinds: null

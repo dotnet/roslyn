@@ -637,39 +637,39 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case ... End Select')
-  Switch expression:
+  Switch expression: 
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand:
+      Operand: 
         ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
   Sections:
       ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'Case Functi ... e("Failed")')
           Clauses:
               ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause) (Syntax: 'Function() 5')
-                Value:
+                Value: 
                   IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'Function() 5')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
+                    Operand: 
                       IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: Function <generated method>() As System.Int32, IsImplicit) (Syntax: 'Function() 5')
-                        Target:
+                        Target: 
                           IAnonymousFunctionExpression (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function() 5')
                             IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Function() 5')
                               Locals: Local_1: <anonymous local> As System.Int32
                               IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: '5')
-                                ReturnedValue:
+                                ReturnedValue: 
                                   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
                               ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Function() 5')
-                                Statement:
+                                Statement: 
                                   null
                               IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Function() 5')
-                                ReturnedValue:
+                                ReturnedValue: 
                                   ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32, IsImplicit) (Syntax: 'Function() 5')
           Body:
               IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Case Functi ... e("Failed")')
                 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... e("Failed")')
-                  Expression:
+                  Expression: 
                     IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... e("Failed")')
-                      Instance Receiver:
+                      Instance Receiver: 
                         null
                       Arguments(1):
                           IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Failed"')
@@ -682,9 +682,9 @@ ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'Select Case
           Body:
               IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Case Else ... Succeeded")')
                 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... Succeeded")')
-                  Expression:
+                  Expression: 
                     IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... Succeeded")')
-                      Instance Receiver:
+                      Instance Receiver: 
                         null
                       Arguments(1):
                           IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Succeeded"')

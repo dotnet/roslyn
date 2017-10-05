@@ -162,10 +162,10 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIsTypeExpression (OperationKind.IsTypeExpression, Type: System.Boolean) (Syntax: 'TypeOf oT Is TRef')
-  Operand:
+  Operand: 
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'TypeOf oT Is TRef')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand:
+      Operand: 
         ILocalReferenceExpression: oT (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'oT')
   IsType: TRef
 ]]>.Value
@@ -199,10 +199,10 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIsTypeExpression (OperationKind.IsTypeExpression, Type: System.Boolean) (Syntax: 'TypeOf oT Is TVal')
-  Operand:
+  Operand: 
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'TypeOf oT Is TVal')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand:
+      Operand: 
         ILocalReferenceExpression: oT (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'oT')
   IsType: TVal
 ]]>.Value
@@ -236,10 +236,10 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIsTypeExpression (OperationKind.IsTypeExpression, Type: System.Boolean) (Syntax: 'TypeOf vVal Is TRef')
-  Operand:
+  Operand: 
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'TypeOf vVal Is TRef')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand:
+      Operand: 
         ILocalReferenceExpression: vVal (OperationKind.LocalReferenceExpression, Type: TVal) (Syntax: 'vVal')
   IsType: TRef
 ]]>.Value
@@ -273,10 +273,10 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IIsTypeExpression (OperationKind.IsTypeExpression, Type: System.Boolean) (Syntax: 'TypeOf oT Is String')
-  Operand:
+  Operand: 
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'TypeOf oT Is String')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand:
+      Operand: 
         ILocalReferenceExpression: oT (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'oT')
   IsType: System.String
 ]]>.Value
