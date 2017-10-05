@@ -18,7 +18,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' A map from Operator name to number of parameters and kind.
         ''' </summary>
-        Private Shared ReadOnly s_operatorNames As Dictionary(Of String, OperatorInfo)
+        Private Shared ReadOnly s_operatorNames As New Dictionary(Of String, OperatorInfo)(IdentifierComparison.Comparer) From
+            {
+                {WellKnownMemberNames.OnesComplementOperatorName, New OperatorInfo(UnaryOperatorKind.Not)},
+                {WellKnownMemberNames.TrueOperatorName, New OperatorInfo(UnaryOperatorKind.IsTrue)},
+                {WellKnownMemberNames.FalseOperatorName, New OperatorInfo(UnaryOperatorKind.IsFalse)},
+                {WellKnownMemberNames.UnaryPlusOperatorName, New OperatorInfo(UnaryOperatorKind.Plus)},
+                {WellKnownMemberNames.AdditionOperatorName, New OperatorInfo(BinaryOperatorKind.Add)},
+                {WellKnownMemberNames.UnaryNegationOperatorName, New OperatorInfo(UnaryOperatorKind.Minus)},
+                {WellKnownMemberNames.SubtractionOperatorName, New OperatorInfo(BinaryOperatorKind.Subtract)},
+                {WellKnownMemberNames.MultiplyOperatorName, New OperatorInfo(BinaryOperatorKind.Multiply)},
+                {WellKnownMemberNames.DivisionOperatorName, New OperatorInfo(BinaryOperatorKind.Divide)},
+                {WellKnownMemberNames.IntegerDivisionOperatorName, New OperatorInfo(BinaryOperatorKind.IntegerDivide)},
+                {WellKnownMemberNames.ModulusOperatorName, New OperatorInfo(BinaryOperatorKind.Modulo)},
+                {WellKnownMemberNames.ExponentOperatorName, New OperatorInfo(BinaryOperatorKind.Power)},
+                {WellKnownMemberNames.EqualityOperatorName, New OperatorInfo(BinaryOperatorKind.Equals)},
+                {WellKnownMemberNames.InequalityOperatorName, New OperatorInfo(BinaryOperatorKind.NotEquals)},
+                {WellKnownMemberNames.LessThanOperatorName, New OperatorInfo(BinaryOperatorKind.LessThan)},
+                {WellKnownMemberNames.GreaterThanOperatorName, New OperatorInfo(BinaryOperatorKind.GreaterThan)},
+                {WellKnownMemberNames.LessThanOrEqualOperatorName, New OperatorInfo(BinaryOperatorKind.LessThanOrEqual)},
+                {WellKnownMemberNames.GreaterThanOrEqualOperatorName, New OperatorInfo(BinaryOperatorKind.GreaterThanOrEqual)},
+                {WellKnownMemberNames.LikeOperatorName, New OperatorInfo(BinaryOperatorKind.Like)},
+                {WellKnownMemberNames.ConcatenateOperatorName, New OperatorInfo(BinaryOperatorKind.Concatenate)},
+                {WellKnownMemberNames.BitwiseAndOperatorName, New OperatorInfo(BinaryOperatorKind.And)},
+                {WellKnownMemberNames.BitwiseOrOperatorName, New OperatorInfo(BinaryOperatorKind.Or)},
+                {WellKnownMemberNames.ExclusiveOrOperatorName, New OperatorInfo(BinaryOperatorKind.Xor)},
+                {WellKnownMemberNames.LeftShiftOperatorName, New OperatorInfo(BinaryOperatorKind.LeftShift)},
+                {WellKnownMemberNames.RightShiftOperatorName, New OperatorInfo(BinaryOperatorKind.RightShift)},
+                {WellKnownMemberNames.ImplicitConversionName, New OperatorInfo(UnaryOperatorKind.Implicit)},
+                {WellKnownMemberNames.ExplicitConversionName, New OperatorInfo(UnaryOperatorKind.Explicit)}, ' These cannot be declared in source, but can be imported.
+                {WellKnownMemberNames.LogicalNotOperatorName, New OperatorInfo(UnaryOperatorKind.Not)},
+                {WellKnownMemberNames.LogicalAndOperatorName, New OperatorInfo(BinaryOperatorKind.And)},
+                {WellKnownMemberNames.LogicalOrOperatorName, New OperatorInfo(BinaryOperatorKind.Or)},
+                {WellKnownMemberNames.UnsignedLeftShiftOperatorName, New OperatorInfo(BinaryOperatorKind.LeftShift)},
+                {WellKnownMemberNames.UnsignedRightShiftOperatorName, New OperatorInfo(BinaryOperatorKind.RightShift)}
+            }
 
         ''' <summary>
         ''' Operator kind and expected number of parameters.
@@ -82,47 +116,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return Nothing
         End Function
-
-        Shared Sub New()
-            Dim operators As New Dictionary(Of String, OperatorInfo)(IdentifierComparison.Comparer)
-
-            operators.Add(WellKnownMemberNames.OnesComplementOperatorName, New OperatorInfo(UnaryOperatorKind.Not))
-            operators.Add(WellKnownMemberNames.TrueOperatorName, New OperatorInfo(UnaryOperatorKind.IsTrue))
-            operators.Add(WellKnownMemberNames.FalseOperatorName, New OperatorInfo(UnaryOperatorKind.IsFalse))
-            operators.Add(WellKnownMemberNames.UnaryPlusOperatorName, New OperatorInfo(UnaryOperatorKind.Plus))
-            operators.Add(WellKnownMemberNames.AdditionOperatorName, New OperatorInfo(BinaryOperatorKind.Add))
-            operators.Add(WellKnownMemberNames.UnaryNegationOperatorName, New OperatorInfo(UnaryOperatorKind.Minus))
-            operators.Add(WellKnownMemberNames.SubtractionOperatorName, New OperatorInfo(BinaryOperatorKind.Subtract))
-            operators.Add(WellKnownMemberNames.MultiplyOperatorName, New OperatorInfo(BinaryOperatorKind.Multiply))
-            operators.Add(WellKnownMemberNames.DivisionOperatorName, New OperatorInfo(BinaryOperatorKind.Divide))
-            operators.Add(WellKnownMemberNames.IntegerDivisionOperatorName, New OperatorInfo(BinaryOperatorKind.IntegerDivide))
-            operators.Add(WellKnownMemberNames.ModulusOperatorName, New OperatorInfo(BinaryOperatorKind.Modulo))
-            operators.Add(WellKnownMemberNames.ExponentOperatorName, New OperatorInfo(BinaryOperatorKind.Power))
-            operators.Add(WellKnownMemberNames.EqualityOperatorName, New OperatorInfo(BinaryOperatorKind.Equals))
-            operators.Add(WellKnownMemberNames.InequalityOperatorName, New OperatorInfo(BinaryOperatorKind.NotEquals))
-            operators.Add(WellKnownMemberNames.LessThanOperatorName, New OperatorInfo(BinaryOperatorKind.LessThan))
-            operators.Add(WellKnownMemberNames.GreaterThanOperatorName, New OperatorInfo(BinaryOperatorKind.GreaterThan))
-            operators.Add(WellKnownMemberNames.LessThanOrEqualOperatorName, New OperatorInfo(BinaryOperatorKind.LessThanOrEqual))
-            operators.Add(WellKnownMemberNames.GreaterThanOrEqualOperatorName, New OperatorInfo(BinaryOperatorKind.GreaterThanOrEqual))
-            operators.Add(WellKnownMemberNames.LikeOperatorName, New OperatorInfo(BinaryOperatorKind.Like))
-            operators.Add(WellKnownMemberNames.ConcatenateOperatorName, New OperatorInfo(BinaryOperatorKind.Concatenate))
-            operators.Add(WellKnownMemberNames.BitwiseAndOperatorName, New OperatorInfo(BinaryOperatorKind.And))
-            operators.Add(WellKnownMemberNames.BitwiseOrOperatorName, New OperatorInfo(BinaryOperatorKind.Or))
-            operators.Add(WellKnownMemberNames.ExclusiveOrOperatorName, New OperatorInfo(BinaryOperatorKind.Xor))
-            operators.Add(WellKnownMemberNames.LeftShiftOperatorName, New OperatorInfo(BinaryOperatorKind.LeftShift))
-            operators.Add(WellKnownMemberNames.RightShiftOperatorName, New OperatorInfo(BinaryOperatorKind.RightShift))
-            operators.Add(WellKnownMemberNames.ImplicitConversionName, New OperatorInfo(UnaryOperatorKind.Implicit))
-            operators.Add(WellKnownMemberNames.ExplicitConversionName, New OperatorInfo(UnaryOperatorKind.Explicit))
-
-            ' These cannot be declared in source, but can be imported.
-            operators.Add(WellKnownMemberNames.LogicalNotOperatorName, New OperatorInfo(UnaryOperatorKind.Not))
-            operators.Add(WellKnownMemberNames.LogicalAndOperatorName, New OperatorInfo(BinaryOperatorKind.And))
-            operators.Add(WellKnownMemberNames.LogicalOrOperatorName, New OperatorInfo(BinaryOperatorKind.Or))
-            operators.Add(WellKnownMemberNames.UnsignedLeftShiftOperatorName, New OperatorInfo(BinaryOperatorKind.LeftShift))
-            operators.Add(WellKnownMemberNames.UnsignedRightShiftOperatorName, New OperatorInfo(BinaryOperatorKind.RightShift))
-
-            s_operatorNames = operators
-        End Sub
 
         Friend Shared Function GetOperatorTokenKind(name As String) As SyntaxKind
             Dim opInfo As OperatorInfo = GetOperatorInfo(name)
