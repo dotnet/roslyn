@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Rpc.Dispose();
             _shutdownCancellationSource.Dispose();
 
-            Dispose(false);
+            Dispose(disposing: true);
 
             Logger.TraceInformation($"{DebugInstanceString} Service instance disposed");
         }
