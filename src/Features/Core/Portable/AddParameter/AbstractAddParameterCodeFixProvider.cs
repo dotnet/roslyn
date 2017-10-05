@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         private int NonParamsParameterCount(IMethodSymbol method)
             => method.IsParams() ? method.Parameters.Length - 1 : method.Parameters.Length;
 
-        private async Task<Document> FixAsync(
+        private async Task<Solution> FixAsync(
             Document invocationDocument,
             IMethodSymbol method,
             TArgumentSyntax argument,
@@ -260,28 +260,43 @@ namespace Microsoft.CodeAnalysis.AddParameter
             TTypeSyntax newTypeArgument,
             CancellationToken cancellationToken)
         {
-            var methodDeclaration = await method.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-            var methodDeclarationRoot = methodDeclaration.SyntaxTree.GetRoot(cancellationToken);
-            var methodDocument = invocationDocument.Project.Solution.GetDocument(methodDeclaration.SyntaxTree);
-            var syntaxFacts = methodDocument.GetLanguageService<ISyntaxFactsService>();
-            var editor = new SyntaxEditor(methodDeclarationRoot, methodDocument.Project.Solution.Workspace);
-            var parameterDeclaration = default(SyntaxNode);
-            var insertionIndex = default(int);
-            var newTypeParameter = newTypeArgument == null ? null : CreateTypeParameterSymbol(method);
+            var newSolution = invocationDocument.Project.Solution;
+            
+            //method.DeclaringSyntaxReferences does no longer return the two locations for partial methods so this is no longer true:
+            //https://stackoverflow.com/a/38294041
+            //Therefore we need this ugly hack:
+            var methodSymbolReferences =
+                Enumerable.Repeat(method, 1)
+                .Union(Enumerable.Repeat(method.PartialDefinitionPart, 1)
+                .Union(Enumerable.Repeat(method.PartialImplementationPart, 1)))
+                .Where(methodSymbol => methodSymbol != null)
+                .Distinct().ToImmutableArray();
 
-            if (argument != null)
+            foreach (var methodSymbol in methodSymbolReferences)
             {
-                (parameterDeclaration, insertionIndex) = await CreateParameterDeclarationAsync(editor, invocationDocument, method, methodDeclaration, argumentList, argument, newTypeArgument, newTypeParameter, cancellationToken).ConfigureAwait(false);
+                var methodDeclaration = await methodSymbol.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                var methodDeclarationRoot = methodDeclaration.SyntaxTree.GetRoot(cancellationToken);
+                var methodDocument = invocationDocument.Project.Solution.GetDocument(methodDeclaration.SyntaxTree);
+                var syntaxFacts = methodDocument.GetLanguageService<ISyntaxFactsService>();
+                var editor = new SyntaxEditor(methodDeclarationRoot, methodDocument.Project.Solution.Workspace);
+                var parameterDeclaration = default(SyntaxNode);
+                var insertionIndex = default(int);
+                var newTypeParameter = newTypeArgument == null ? null : CreateTypeParameterSymbol(method);
+
+                if (argument != null)
+                {
+                    (parameterDeclaration, insertionIndex) = await CreateParameterDeclarationAsync(editor, invocationDocument, method, methodDeclaration, argumentList, argument, newTypeArgument, newTypeParameter, cancellationToken).ConfigureAwait(false);
+                }
+
+                AddParameter(
+                    syntaxFacts, editor, method, methodDeclaration, argument,
+                    insertionIndex, parameterDeclaration, newTypeParameter, cancellationToken);
+
+                var newRoot = editor.GetChangedRoot();
+                newSolution = newSolution.WithDocumentSyntaxRoot(methodDocument.Id, newRoot);
             }
 
-            AddParameter(
-                syntaxFacts, editor, method, methodDeclaration, argument,
-                insertionIndex, parameterDeclaration, newTypeParameter, cancellationToken);
-
-            var newRoot = editor.GetChangedRoot();
-            var newDocument = methodDocument.WithSyntaxRoot(newRoot);
-
-            return newDocument;
+            return newSolution;
         }
 
         private async Task<(SyntaxNode parameterDeclaration, int insertionIndex)> CreateParameterDeclarationAsync(
@@ -676,12 +691,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return false;
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CodeAction.SolutionChangeAction
         {
             public MyCodeAction(
                 string title,
-                Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                Func<CancellationToken, Task<Solution>> createChangedSolution)
+                : base(title, createChangedSolution)
             {
             }
         }

@@ -1378,7 +1378,6 @@ class C1 : I1
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-        [Trait("TODO", "Fix all partial definitions")]
         public async Task TestInvocationPartialClasses()
         {
             var code =
@@ -1427,7 +1426,7 @@ namespace N1
 {
     partial class C1
     {
-        partial void PartialM() { }
+        partial void PartialM(int v) { }
         void M1()
         {
             PartialM(1);
