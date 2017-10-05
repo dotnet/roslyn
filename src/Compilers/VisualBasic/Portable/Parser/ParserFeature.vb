@@ -34,6 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Tuples
         IOperation
         InferredTupleNames
+
         LeadingDigitSeparator
         NonTrailingNamedArguments
         PrivateProtected
@@ -94,6 +95,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case Feature.InferredTupleNames
                     Return LanguageVersion.VisualBasic15_3
+
+                Case Feature.OptionalParameterDefault
+                    Return LanguageVersion.VisualBasic15_3 ' PROTOTYPE: Temporary Langauge Version
 
                 Case Feature.LeadingDigitSeparator,
                     Feature.NonTrailingNamedArguments,
@@ -173,6 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case Feature.OptionalParameterDefault ' PROTOTYPE: VB Language Feature
                     Return ERRID.FEATURE_OptionalParameterDefault
+
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
