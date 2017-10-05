@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -626,13 +627,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             // If s2 is private or internal, and within the same assembly as s1,
                             // then this is at least as restrictive as s1's internal.
-                            if ((acc2 == Accessibility.Private || acc2 == Accessibility.Internal) && s2.ContainingAssembly.HasInternalAccessTo(s1.ContainingAssembly))
+                            if ((acc2 == Accessibility.Private || acc2 == Accessibility.Internal || acc2 == Accessibility.ProtectedAndInternal) && s2.ContainingAssembly.HasInternalAccessTo(s1.ContainingAssembly))
                             {
                                 return true;
                             }
 
                             break;
                         }
+
+                    case Accessibility.ProtectedAndInternal:
+                        // Since s1 is private protected, s2 must pass the test for being both more restrictive than internal and more restrictive than protected.
+                        // We first do the "internal" test (copied from above), then if it passes we continue with the "protected" test.
+
+                        if ((acc2 == Accessibility.Private || acc2 == Accessibility.Internal || acc2 == Accessibility.ProtectedAndInternal) && s2.ContainingAssembly.HasInternalAccessTo(s1.ContainingAssembly))
+                        {
+                            // passed the internal test; now do the test for the protected case
+                            goto case Accessibility.Protected;
+                        }
+
+                        break;
 
                     case Accessibility.Protected:
                         {
@@ -654,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     }
                                 }
                             }
-                            else if (acc2 == Accessibility.Protected)
+                            else if (acc2 == Accessibility.Protected || acc2 == Accessibility.ProtectedAndInternal)
                             {
                                 // if s2 is protected, and it's parent is a subclass (or the same as) s1's parent
                                 // then this is at least as restrictive as s1's protected
@@ -718,6 +731,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                     break;
 
+                                case Accessibility.ProtectedAndInternal:
+                                    // if s2 is private protected, and it's parent is a subclass (or the same as) s1's parent
+                                    // or its in the same assembly as s1, then this is at least as restrictive as s1's protected
+                                    if (s2.ContainingAssembly.HasInternalAccessTo(s1.ContainingAssembly) ||
+                                        parent1.IsAccessibleViaInheritance(s2.ContainingType, ref useSiteDiagnostics))
+                                    {
+                                        return true;
+                                    }
+
+                                    break;
+
                                 case Accessibility.ProtectedOrInternal:
                                     // if s2 is internal protected, and it's parent is a subclass (or the same as) s1's parent
                                     // and its in the same assembly as s1, then this is at least as restrictive as s1's protected
@@ -736,7 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (acc2 == Accessibility.Private)
                         {
                             // if s2 is private, and it is within s1's parent, then this is at
-                            // least as restrictive as s1's private.                           
+                            // least as restrictive as s1's private.
                             NamedTypeSymbol parent1 = s1.ContainingType;
 
                             if ((object)parent1 == null)
@@ -760,6 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(acc1);
                 }
             }
+
             return false;
         }
 
@@ -917,9 +942,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if the type is one of the restricted types, namely: <see cref="T:System.TypedReference"/>, 
         /// <see cref="T:System.ArgIterator"/>, or <see cref="T:System.RuntimeArgumentHandle"/>.
+        /// or a ref-like type.
         /// </summary>
 #pragma warning restore RS0010
-        internal static bool IsRestrictedType(this TypeSymbol type)
+        internal static bool IsRestrictedType(this TypeSymbol type,
+                                                bool ignoreSpanLikeTypes = false)
         {
             // See Dev10 C# compiler, "type.cpp", bool Type::isSpecialByRefType() const
             Debug.Assert((object)type != null);
@@ -930,7 +957,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SpecialType.System_RuntimeArgumentHandle:
                     return true;
             }
-            return false;
+
+            return ignoreSpanLikeTypes? 
+                        false:
+                        type.IsByRefLikeType;
         }
 
         public static bool IsIntrinsicType(this TypeSymbol type)
@@ -1273,6 +1303,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (name.Length == length) && (string.Compare(name, 0, namespaceName, offset, length, comparison) == 0);
         }
 
+        internal static bool IsSpanType(this TypeSymbol type)
+        {
+            if ((type as NamedTypeSymbol)?.Arity != 1)
+            {
+                // must be a generic type of arity '1'
+                return false;
+            }
+
+            if (type.Name != "Span" && type.Name != "ReadOnlySpan")
+            {
+                // must be called "Span" or "ReadOnlySpan"
+                return false;
+            }
+
+            var ns = type.ContainingSymbol as NamespaceSymbol;
+            if (ns?.Name != "System")
+            {
+                // must be in "System" namespace
+                return false;
+            }
+
+            // the "System" must be in the global namespace
+            return ns.ContainingNamespace?.IsGlobalNamespace == true;
+        }
+
         internal static bool IsNonGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)
         {
             var namedType = type as NamedTypeSymbol;
@@ -1496,6 +1551,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return new Cci.TypeReferenceWithAttributes(typeRef);
+        }
+
+        internal static bool IsWellKnownTypeInAttribute(this ITypeSymbol typeSymbol)
+        {
+            if (typeSymbol.Name != "InAttribute" || typeSymbol.ContainingType != null)
+            {
+                return false;
+            }
+
+            var interopServicesNamespace = typeSymbol.ContainingNamespace;
+            if (interopServicesNamespace?.Name != "InteropServices")
+            {
+                return false;
+            }
+
+            var runtimeNamespace = interopServicesNamespace.ContainingNamespace;
+            if (runtimeNamespace?.Name != "Runtime")
+            {
+                return false;
+            }
+
+            var systemNamespace = runtimeNamespace.ContainingNamespace;
+            if (systemNamespace?.Name != "System")
+            {
+                return false;
+            }
+
+            var globalNamespace = systemNamespace.ContainingNamespace;
+
+            return globalNamespace != null && globalNamespace.IsGlobalNamespace;
         }
     }
 }

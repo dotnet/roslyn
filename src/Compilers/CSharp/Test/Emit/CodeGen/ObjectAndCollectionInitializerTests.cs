@@ -114,13 +114,13 @@ public class Base
 
     public static void Main()
     {
-        MemberInitializerTest<Base>.Foo();
+        MemberInitializerTest<Base>.Goo();
     }
 }
 
 public class MemberInitializerTest<T> where T: Base, new()
 {   
-    public static void Foo()
+    public static void Goo()
     {
         var i = new T() { x = 1, y = 2 };
         System.Console.WriteLine(i.x);
@@ -131,7 +131,7 @@ public class MemberInitializerTest<T> where T: Base, new()
             string expectedOutput = @"1
 2";
             var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("MemberInitializerTest<T>.Foo", @"
+            compVerifier.VerifyIL("MemberInitializerTest<T>.Goo", @"
 {
   // Code size       61 (0x3d)
   .maxstack  3
@@ -165,11 +165,11 @@ class MemberInitializerTest
 {
     static int Main()
     {
-        Console.WriteLine(Foo<S>());
+        Console.WriteLine(Goo<S>());
         return 0;
     }
 
-    static byte Foo<T>() where T : I, new()
+    static byte Goo<T>() where T : I, new()
     {
         var b = new T { X = 1 };
         return b.X;
@@ -188,7 +188,7 @@ struct S : I
 ";
             string expectedOutput = "1";
             var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("MemberInitializerTest.Foo<T>", @"
+            compVerifier.VerifyIL("MemberInitializerTest.Goo<T>", @"
 {
   // Code size       36 (0x24)
   .maxstack  2
@@ -219,11 +219,11 @@ class MemberInitializerTest
 {
     static int Main()
     {
-        Console.WriteLine(Foo<S>().Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        Console.WriteLine(Goo<S>().Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
         return 0;
     }
 
-    static Decimal? Foo<T>() where T : I, new()
+    static Decimal? Goo<T>() where T : I, new()
     {
         var b = new T { X = 1.1M };
         return b.X;
@@ -241,7 +241,7 @@ struct S : I
 }";
             string expectedOutput = "1.1";
             var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("MemberInitializerTest.Foo<T>", @"
+            compVerifier.VerifyIL("MemberInitializerTest.Goo<T>", @"
 {
   // Code size       51 (0x33)
   .maxstack  6
@@ -399,10 +399,10 @@ public class MemberInitializerTest
 
     public static void Main()
     {
-        Foo();
+        Goo();
     }
 
-    public static void Foo(MemberInitializerTest nullArg = null)
+    public static void Goo(MemberInitializerTest nullArg = null)
     {
         MemberInitializerTest m = new MemberInitializerTest() { x = -1, y = -1, z = -1 };
 
@@ -431,7 +431,7 @@ public class MemberInitializerTest
 -1
 -1";
             var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("MemberInitializerTest.Foo", @"
+            compVerifier.VerifyIL("MemberInitializerTest.Goo", @"
 {
   // Code size      108 (0x6c)
   .maxstack  3
@@ -833,12 +833,12 @@ public class Test
     public int x, y;
     public static void Main()
     {
-        Test m = new Test() { x = Foo(out m), y = m.x };
+        Test m = new Test() { x = Goo(out m), y = m.x };
         System.Console.WriteLine(m.x);  // Print 1
         System.Console.WriteLine(m.y);  // Print 0
     }
 
-    public static int Foo(out Test m)
+    public static int Goo(out Test m)
     {
         m = new Test() { x = 0 };
         return 1;
@@ -856,7 +856,7 @@ public class Test
   IL_0000:  newobj     ""Test..ctor()""
   IL_0005:  dup
   IL_0006:  ldloca.s   V_0
-  IL_0008:  call       ""int Test.Foo(out Test)""
+  IL_0008:  call       ""int Test.Goo(out Test)""
   IL_000d:  stfld      ""int Test.x""
   IL_0012:  dup
   IL_0013:  ldloc.0

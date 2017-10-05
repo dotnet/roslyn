@@ -34,20 +34,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         static CompilerServerUnitTests()
         {
             var basePath = Path.GetDirectoryName(typeof(CompilerServerUnitTests).Assembly.Location);
-            if (!File.Exists(Path.Combine(basePath, CompilerServerExeName)) ||
-                !File.Exists(Path.Combine(basePath, CSharpClientExeName)) ||
-                !File.Exists(Path.Combine(basePath, BasicClientExeName)))
-            {
-                IsRunningAgainstInstallation = true;
-
-                // VBCSCompiler is used as a DLL in these tests, need to hook the resolve to the installed location.
-                AppDomain.CurrentDomain.AssemblyResolve += OnAssemblyResolve;
-                basePath = DesktopTestHelpers.GetMSBuildDirectory();
-                if (basePath == null)
-                {
-                    return;
-                }
-            }
 
             CompilerDirectory = basePath;
             CSharpCompilerClientExecutable = Path.Combine(basePath, CSharpClientExeName);
@@ -222,7 +208,7 @@ End Module")
 
         #endregion
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public async Task FallbackToCsc()
         {
             // Verify csc will fall back to command line when server fails to process
@@ -234,7 +220,7 @@ End Module")
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public async Task CscFallBackOutputNoUtf8()
         {
             // Verify csc will fall back to command line when server fails to process
@@ -250,7 +236,7 @@ End Module")
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public async Task CscFallBackOutputUtf8()
         {
             var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
@@ -273,7 +259,7 @@ End Module")
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public async Task VbcFallbackNoUtf8()
         {
             var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText("♕").Path;
@@ -295,7 +281,7 @@ End Module")
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public async Task VbcFallbackUtf8()
         {
             var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText("♕").Path;
@@ -320,7 +306,7 @@ End Module")
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public async Task FallbackToVbc()
         {
             using (var serverData = ServerUtil.CreateServerFailsConnection())
@@ -331,7 +317,7 @@ End Module")
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task HelloWorldCS()
         {
@@ -343,7 +329,7 @@ End Module")
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(946954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946954")]
         public void CompilerBinariesAreNotX86()
         {
@@ -358,7 +344,7 @@ End Module")
         /// The test should pass on x86 or amd64, but can only fail on
         /// amd64.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Platformx86MscorlibCsc()
         {
@@ -374,7 +360,7 @@ End Module")
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Platformx86MscorlibVbc()
         {
@@ -390,7 +376,7 @@ End Module")
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task ExtraMSCorLibCS()
         {
@@ -405,7 +391,7 @@ End Module")
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task HelloWorldVB()
         {
@@ -420,7 +406,7 @@ End Module")
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task ExtraMSCorLibVB()
         {
@@ -435,7 +421,7 @@ End Module")
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task CompileErrorsCS()
         {
@@ -463,7 +449,7 @@ class Hello
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task CompileErrorsVB()
         {
@@ -493,7 +479,7 @@ End Class"}};
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MissingFileErrorCS()
         {
@@ -511,7 +497,7 @@ End Class"}};
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MissingReferenceErrorCS()
         {
@@ -530,7 +516,7 @@ End Class"}};
         }
 
         [WorkItem(546067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546067")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task InvalidMetadataFileErrorCS()
         {
@@ -554,7 +540,7 @@ End Class"}};
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MissingFileErrorVB()
         {
@@ -572,7 +558,7 @@ End Class"}};
             }
         }
 
-        [Fact(), WorkItem(761131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761131")]
+        [ConditionalFact(typeof(DesktopOnly)), WorkItem(761131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761131")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MissingReferenceErrorVB()
         {
@@ -602,7 +588,7 @@ End Module"}};
         }
 
         [WorkItem(546067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546067")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task InvalidMetadataFileErrorVB()
         {
@@ -630,7 +616,7 @@ End Module"}};
             }
         }
 
-        [Fact()]
+        [ConditionalFact(typeof(DesktopOnly), Skip = "https://github.com/dotnet/roslyn/issues/20345")]
         [WorkItem(723280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/723280")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task ReferenceCachingVB()
@@ -754,7 +740,7 @@ End Module
             GC.KeepAlive(rootDirectory);
         }
 
-        [Fact()]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(723280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/723280")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task ReferenceCachingCS()
@@ -936,7 +922,7 @@ End Module";
 
         [WorkItem(997372, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/997372")]
         [WorkItem(761326, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/761326")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MultipleSimultaneousCompiles()
         {
@@ -965,7 +951,7 @@ End Module";
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task UseLibVariableCS()
         {
@@ -1015,7 +1001,7 @@ class Hello
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task UseLibVariableVB()
         {
@@ -1069,7 +1055,7 @@ End Module
         }
 
         [WorkItem(545446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
-        [Fact()]
+        [ConditionalFact(typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_Off_Shared()
         {
@@ -1094,7 +1080,7 @@ End Module
         }
 
         [WorkItem(545446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
-        [Fact()]
+        [ConditionalFact(typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_Off_Share()
         {
@@ -1122,7 +1108,7 @@ End Module
         }
 
         [WorkItem(545446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
-        [Fact()]
+        [ConditionalFact(typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_On_Shared_CS()
         {
@@ -1146,7 +1132,7 @@ End Module
         }
 
         [WorkItem(545446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545446")]
-        [Fact()]
+        [ConditionalFact(typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_On_Shared_VB()
         {
@@ -1174,7 +1160,7 @@ End Module
         }
 
         [WorkItem(871477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/871477")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task AssemblyIdentityComparer1()
         {
@@ -1232,7 +1218,7 @@ class Program
         }
 
         [WorkItem(979588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/979588")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public async Task Utf8OutputInRspFileCsc()
         {
             using (var serverData = ServerUtil.CreateServer())
@@ -1259,7 +1245,7 @@ class Program
         }
 
         [WorkItem(979588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/979588")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public async Task Utf8OutputInRspFileVbc()
         {
             using (var serverData = ServerUtil.CreateServer())
@@ -1287,7 +1273,7 @@ class Program
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void BadKeepAlive1()
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive", _tempDirectory.Path);
@@ -1298,10 +1284,10 @@ class Program
             Assert.Equal("", result.Errors);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void BadKeepAlive2()
         {
-            var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:foo", _tempDirectory.Path);
+            var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:goo", _tempDirectory.Path);
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);
@@ -1309,7 +1295,7 @@ class Program
             Assert.Equal("", result.Errors);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void BadKeepAlive3()
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:-100", _tempDirectory.Path);
@@ -1320,7 +1306,7 @@ class Program
             Assert.Equal("", result.Errors);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void BadKeepAlive4()
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:9999999999", _tempDirectory.Path);
@@ -1331,7 +1317,7 @@ class Program
             Assert.Equal("", result.Errors);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(1024619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024619")]
         public async Task Bug1024619_01()
         {
@@ -1364,7 +1350,7 @@ class Program
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(1024619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024619")]
         public async Task Bug1024619_02()
         {
@@ -1399,7 +1385,7 @@ class Program
         }
 
         [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=406649")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void MissingCompilerAssembly_CompilerServer()
         {
             var dir = Temp.CreateDirectory();
@@ -1416,7 +1402,7 @@ class Program
 
         [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=406649")]
         [WorkItem(19213, "https://github.com/dotnet/roslyn/issues/19213")]
-        [Fact(Skip = "19213")]
+        [ConditionalFact(typeof(DesktopOnly), Skip = "19213")]
         public async Task MissingCompilerAssembly_CompilerServerHost()
         {
             var host = new TestableCompilerServerHost((request, cancellationToken) =>

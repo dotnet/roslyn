@@ -8,7 +8,6 @@ using System.Runtime.Remoting;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Nerdbank;
@@ -20,6 +19,7 @@ namespace Roslyn.Test.Utilities.Remote
     internal sealed class InProcRemoteHostClient : RemoteHostClient
     {
         private readonly InProcRemoteServices _inprocServices;
+        private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
         private readonly JsonRpc _rpc;
 
         public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, bool runCacheCleanup, CancellationToken cancellationToken)
@@ -27,8 +27,9 @@ namespace Roslyn.Test.Utilities.Remote
             var inprocServices = new InProcRemoteServices(runCacheCleanup);
 
             var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownRemoteHostServices.RemoteHostService, cancellationToken).ConfigureAwait(false);
+            var remotableDataRpc = new RemotableDataJsonRpc(workspace, inprocServices.Logger, await inprocServices.RequestServiceAsync(WellKnownServiceHubServices.SnapshotService, cancellationToken).ConfigureAwait(false));
 
-            var instance = new InProcRemoteHostClient(workspace, inprocServices, remoteHostStream);
+            var instance = new InProcRemoteHostClient(workspace, inprocServices, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc), remoteHostStream);
 
             // make sure connection is done right
             var current = $"VS ({Process.GetCurrentProcess().Id})";
@@ -38,16 +39,23 @@ namespace Roslyn.Test.Utilities.Remote
             // TODO: change this to non fatal watson and make VS to use inproc implementation
             Contract.ThrowIfFalse(host == current.ToString());
 
-            instance.Connected();
+            instance.Started();
 
             // return instance
             return instance;
         }
 
-        private InProcRemoteHostClient(Workspace workspace, InProcRemoteServices inprocServices, Stream stream) :
+        private InProcRemoteHostClient(
+            Workspace workspace,
+            InProcRemoteServices inprocServices,
+            ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc,
+            Stream stream) :
             base(workspace)
         {
+            Contract.ThrowIfNull(remotableDataRpc);
+
             _inprocServices = inprocServices;
+            _remotableDataRpc = remotableDataRpc;
 
             _rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target: this);
             _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
@@ -65,33 +73,31 @@ namespace Roslyn.Test.Utilities.Remote
             _inprocServices.RegisterService(name, serviceCreator);
         }
 
-        protected override async Task<Session> TryCreateServiceSessionAsync(string serviceName, Optional<Func<CancellationToken, Task<PinnedRemotableDataScope>>> getSnapshotAsync, object callbackTarget, CancellationToken cancellationToken)
+        public override async Task<Connection> TryCreateConnectionAsync(
+            string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
-            // get stream from service hub to communicate snapshot/asset related information
-            // this is the back channel the system uses to move data between VS and remote host
-            var snapshotStream = getSnapshotAsync.Value == null ? null : await _inprocServices.RequestServiceAsync(WellKnownServiceHubServices.SnapshotService, cancellationToken).ConfigureAwait(false);
-
             // get stream from service hub to communicate service specific information 
             // this is what consumer actually use to communicate information
             var serviceStream = await _inprocServices.RequestServiceAsync(serviceName, cancellationToken).ConfigureAwait(false);
 
-            return await JsonRpcSession.CreateAsync(getSnapshotAsync, callbackTarget, serviceStream, snapshotStream, cancellationToken).ConfigureAwait(false);
+            return new JsonRpcConnection(_inprocServices.Logger, callbackTarget, serviceStream, _remotableDataRpc.TryAddReference());
         }
 
-        protected override void OnConnected()
+        protected override void OnStarted()
         {
         }
 
-        protected override void OnDisconnected()
+        protected override void OnStopped()
         {
             // we are asked to disconnect. unsubscribe and dispose to disconnect
             _rpc.Disconnected -= OnRpcDisconnected;
             _rpc.Dispose();
+            _remotableDataRpc.Dispose();
         }
 
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
         {
-            Disconnected();
+            Stopped();
         }
 
         public class ServiceProvider : IServiceProvider
@@ -103,7 +109,7 @@ namespace Roslyn.Test.Utilities.Remote
             public ServiceProvider(bool runCacheCleanup)
             {
                 _storage = runCacheCleanup ?
-                    new AssetStorage(cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1)) :
+                    new AssetStorage(cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1), gcAfter: TimeSpan.FromMinutes(5)) :
                     new AssetStorage();
             }
 
@@ -142,6 +148,7 @@ namespace Roslyn.Test.Utilities.Remote
             }
 
             public AssetStorage AssetStorage => _serviceProvider.AssetStorage;
+            public TraceSource Logger { get; } = new TraceSource("Default");
 
             public void RegisterService(string name, Func<Stream, IServiceProvider, ServiceHubServiceBase> serviceCreator)
             {

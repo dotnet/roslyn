@@ -97,8 +97,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                                         new string[] { @"\\\\""abc def""", @"\\\\\""abc", @"def"" q a r " });
             VerifyCommandLineSplitter(@"abc #Comment ignored",
                                         new string[] { @"abc" }, removeHashComments: true);
-            VerifyCommandLineSplitter(@"""foo bar"";""baz"" ""tree""",
-                                        new string[] { @"""foo bar"";""baz""", "tree" });
+            VerifyCommandLineSplitter(@"""goo bar"";""baz"" ""tree""",
+                                        new string[] { @"""goo bar"";""baz""", "tree" });
             VerifyCommandLineSplitter(@"/reference:""a, b"" ""test""",
                                         new string[] { @"/reference:""a, b""", "test" });
             VerifyCommandLineSplitter(@"fo""o ba""r",
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             string source = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"" >
-  <Include Path=""foo.ruleset"" Action=""Default"" />
+  <Include Path=""goo.ruleset"" Action=""Default"" />
   <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
     <Rule Id=""CA1013"" Action=""Warning"" />
   </Rules>
@@ -444,16 +444,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var ruleSet = ParseRuleSet(source);
             Assert.True(ruleSet.Includes.Count() == 1);
             Assert.Equal(ruleSet.Includes.First().Action, ReportDiagnostic.Default);
-            Assert.Equal(ruleSet.Includes.First().IncludePath, "foo.ruleset");
+            Assert.Equal(ruleSet.Includes.First().IncludePath, "goo.ruleset");
         }
 
+#pragma warning disable CA2243 // Attribute string literals should parse correctly
         [WorkItem(1184500, "DevDiv 1184500")]
+#pragma warning restore CA2243 // Attribute string literals should parse correctly
         [Fact]
         public void TestRuleSetInclude1()
         {
             string source = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RuleSet Name=""Ruleset1"" Description=""Test"" ToolsVersion=""12.0"" >
-  <Include Path=""foo.ruleset"" Action=""Default"" />
+  <Include Path=""goo.ruleset"" Action=""Default"" />
   <Rules AnalyzerId=""Microsoft.Analyzers.ManagedCodeAnalysis"" RuleNamespace=""Microsoft.Rules.Managed"">
     <Rule Id=""CA1013"" Action=""Warning"" />
   </Rules>

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -61,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasSignature = true;
                     var paren = (ParenthesizedLambdaExpressionSyntax)syntax;
                     parameterSyntaxList = paren.ParameterList.Parameters;
+                    CheckParanthesizedLambdaParameters(parameterSyntaxList.Value, diagnostics);
                     isAsync = (paren.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword);
                     break;
                 case SyntaxKind.AnonymousMethodExpression:
@@ -123,30 +125,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type = BindType(typeSyntax, diagnostics);
                         foreach (var modifier in p.Modifiers)
                         {
-                            SyntaxKind modifierKind = modifier.Kind();
-                            if (modifierKind == SyntaxKind.ThisKeyword)
+                            var modKind = modifier.Kind();
+
+                            switch (modifier.Kind())
                             {
-                                Error(diagnostics, ErrorCode.ERR_ThisInBadContext, modifier);
-                                break;
-                            }
-                            else if (modifierKind == SyntaxKind.RefKeyword)
-                            {
-                                refKind = RefKind.Ref;
-                                allValue = false;
-                                break;
-                            }
-                            else if (modifierKind == SyntaxKind.OutKeyword)
-                            {
-                                refKind = RefKind.Out;
-                                allValue = false;
-                                break;
-                            }
-                            else if (modifierKind == SyntaxKind.ParamsKeyword)
-                            {
-                                // This was a parse error in the native compiler; 
-                                // it is a semantic analysis error in Roslyn. See comments to
-                                // changeset 1674 for details.
-                                Error(diagnostics, ErrorCode.ERR_IllegalParams, p);
+                                case SyntaxKind.RefKeyword:
+                                    refKind = RefKind.Ref;
+                                    allValue = false;
+                                    break;
+
+                                case SyntaxKind.OutKeyword:
+                                    refKind = RefKind.Out;
+                                    allValue = false;
+                                    break;
+
+                                case SyntaxKind.ReadOnlyKeyword:
+                                    Debug.Assert(refKind == RefKind.Ref || syntax.HasErrors);
+                                    refKind = RefKind.RefReadOnly;
+                                    allValue = false;
+                                    break;
+
+                                case SyntaxKind.ParamsKeyword:
+                                    // This was a parse error in the native compiler; 
+                                    // it is a semantic analysis error in Roslyn. See comments to
+                                    // changeset 1674 for details.
+                                    Error(diagnostics, ErrorCode.ERR_IllegalParams, p);
+                                    break;
+
+                                case SyntaxKind.ThisKeyword:
+                                    Error(diagnostics, ErrorCode.ERR_ThisInBadContext, modifier);
+                                    break;
                             }
                         }
                     }
@@ -178,6 +186,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             namesBuilder.Free();
 
             return Tuple.Create(refKinds, types, names, isAsync);
+        }
+
+        private void CheckParanthesizedLambdaParameters(
+            SeparatedSyntaxList<ParameterSyntax> parameterSyntaxList, DiagnosticBag diagnostics)
+        {
+            if (parameterSyntaxList.Count > 0)
+            {
+                var hasTypes = parameterSyntaxList[0].Type != null;
+
+                for (int i = 1, n = parameterSyntaxList.Count; i < n; i++)
+                {
+                    var parameter = parameterSyntaxList[i];
+
+                    // Ignore parameters with missing names.  We'll have already reported an error
+                    // about them in the parser.
+                    if (!parameter.Identifier.IsMissing)
+                    {
+                        var thisParameterHasType = parameter.Type != null;
+                        if (hasTypes != thisParameterHasType)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_InconsistentLambdaParameterUsage,
+                                parameter.Type?.GetLocation() ?? parameter.Identifier.GetLocation());
+                        }
+                    }
+                }
+            }
         }
 
         private UnboundLambda BindAnonymousFunction(CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
@@ -219,14 +253,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    if (pNames.Contains(name))
+                    if (!pNames.Add(name))
                     {
                         // The parameter name '{0}' is a duplicate
                         diagnostics.Add(ErrorCode.ERR_DuplicateParamName, lambda.ParameterLocation(i), name);
                     }
                     else
                     {
-                        pNames.Add(name);
                         binder.ValidateLambdaParameterNameConflictsInScope(lambda.ParameterLocation(i), name, diagnostics);
                     }
                 }

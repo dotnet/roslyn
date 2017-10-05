@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 #else
 #endif
 #pragma warning disable 99999
-#foo
+#goo
 
 #endregion
 
@@ -1244,7 +1244,7 @@ namespace NS
 {
     void Test() 
     {
-        var foo = @""Foo
+        var goo = @""Goo
 
 ";
             AssertSmartIndent(
@@ -1482,7 +1482,7 @@ class Program
     {
         switch (args[0])
         {
-            case ""foo"":
+            case ""goo"":
 
             case ""bar"":
                 break;
@@ -1501,7 +1501,7 @@ class Program
         {
             var code = @"class Program
 {
-    static void Foo<T1,                 
+    static void Goo<T1,                 
 T2>() { }
 }";
             AssertSmartIndent(
@@ -1517,11 +1517,11 @@ T2>() { }
         {
             var code = @"class Program
 {
-        static void Foo<T1, T2>(T1 t1, T2 t2) { }
+        static void Goo<T1, T2>(T1 t1, T2 t2) { }
 
         static void Main(string[] args)
         {
-            Foo<int, 
+            Goo<int, 
             int>(4, 2);
         }
 }";
@@ -1659,7 +1659,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        using (var var = new FooClass(() =>
+        using (var var = new GooClass(() =>
         {
 
         }))
@@ -1669,9 +1669,9 @@ class Program
     }
 }
  
-class FooClass : IDisposable
+class GooClass : IDisposable
 {
-    public FooClass(Action a)
+    public GooClass(Action a)
     {
     }
  
@@ -1695,7 +1695,7 @@ class FooClass : IDisposable
 {
     static void Main(string[] args)
     {
-        using (var var = new FooClass(() =>
+        using (var var = new GooClass(() =>
 
     }
 }";
@@ -1716,7 +1716,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        using (var var = new FooClass(() =>
+        using (var var = new GooClass(() =>
         {
 
         }))
@@ -1726,9 +1726,9 @@ class Program
     }
 }
 
-class FooClass : IDisposable
+class GooClass : IDisposable
 {
-    public FooClass(Action a)
+    public GooClass(Action a)
     {
     }
 
@@ -1752,7 +1752,7 @@ class FooClass : IDisposable
 {
     static void Main(string[] args)
     {
-        using (var var = new FooClass(
+        using (var var = new GooClass(
             () =>
 
     }
@@ -1873,7 +1873,7 @@ class Class
 {
     static void Main(string[] args)
     {
-#line ""Foo.aspx"", 27
+#line ""Goo.aspx"", 27
             {|S1:[|
 $$Console.WriteLine();|]|}
 #line default
@@ -1891,7 +1891,7 @@ $$Console.WriteLine();|]|}
 {
     static void Main(string[] args)
     {
-#line ""Foo.aspx"", 27
+#line ""Goo.aspx"", 27
             {|S1:[|Console.WriteLine();
 $$|]|}
 #line default
@@ -1909,7 +1909,7 @@ $$|]|}
 {
     static void Main(string[] args)
     {
-#line ""Foo.aspx"", 27
+#line ""Goo.aspx"", 27
             {|S1:[|Console.Wri
 $$teLine();|]|}
 #line default
@@ -1932,7 +1932,7 @@ $$teLine();|]|}
 {
     static void Main(string[] args)
     {
-#line ""Foo.aspx"", 27
+#line ""Goo.aspx"", 27
             {|S1:[|
               Console.Wri
 $$teLine();|]|}
@@ -1956,7 +1956,7 @@ $$teLine();|]|}
 {
     static void Main(string[] args)
     {
-#line ""Foo.aspx"", 27
+#line ""Goo.aspx"", 27
             {|S1:[|
               Console.WriteLine();
 $$
@@ -1976,7 +1976,7 @@ $$
 {
     static void Main(string[] args)
     {
-#line ""Foo.aspx"", 27
+#line ""Goo.aspx"", 27
             {|S1:[|Console.WriteLine();
 $$
 |]|}
@@ -2006,7 +2006,7 @@ $$
 {
     static void Main(string[] args)
     {
-#line ""Foo.aspx"", 27
+#line ""Goo.aspx"", 27
             {|S1:[|var q = from
 $$
 |]|}
@@ -2025,7 +2025,7 @@ $$
 {
     static void Main(string[] args)
     {
-#line ""Foo.aspx"", 27
+#line ""Goo.aspx"", 27
             {|S1:[|
               var q = from
 $$
@@ -2046,7 +2046,7 @@ $$
 {
     static void Main(string[] args)
     {
-#line ""Foo.aspx"", 27
+#line ""Goo.aspx"", 27
                     {|S1:[|if (true)
         {
 $$
@@ -2066,7 +2066,7 @@ $$
         {
             static void Main(string[] args)
             {
-        #line ""Foo.aspx"", 27
+        #line ""Goo.aspx"", 27
                             {|S1:[|if (true)
                 {
                 }
@@ -2091,7 +2091,7 @@ $$
         {
             static void Main(string[] args)
             {
-        #line ""Foo.aspx"", 27
+        #line ""Goo.aspx"", 27
                             {|S1:[|
             if (true)
             {
@@ -2118,7 +2118,7 @@ class Program
 {
     static void Main(string[] args)
     {
-#line ""Foo.aspx"", 27
+#line ""Goo.aspx"", 27
             {|S1:[|switch (10)
             {
                 case 10:
@@ -2145,7 +2145,7 @@ class Program
 {
     static void Main(string[] args)
     {
-#line ""Foo.aspx"", 27
+#line ""Goo.aspx"", 27
             {|S1:[|switch (10)
             {
                 case 10:
@@ -2168,7 +2168,7 @@ $$
         {
             static void Main(string[] args)
             {
-        #line ""Foo.aspx"", 27
+        #line ""Goo.aspx"", 27
             {|S1:[|
 $$|]|}
         #line default
@@ -2699,9 +2699,7 @@ class C
                     var projectedDocument =
                         workspace.CreateProjectionBufferDocument(HtmlMarkup, workspace.Documents, LanguageNames.CSharp);
 
-                    var provider = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>()
-                                        as TestFormattingRuleFactoryServiceFactory.Factory;
-                    if (provider != null)
+                    if (workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>() is TestFormattingRuleFactoryServiceFactory.Factory provider)
                     {
                         provider.BaseIndentation = BaseIndentationOfNugget;
                         provider.TextSpan = subjectDocument.SelectedSpans.Single();

@@ -7,7 +7,7 @@ namespace Roslyn.Test.Performance.Utilities
 {
     public abstract class VsPerfTest : PerfTest
     {
-        private static readonly string _rootSuffix = "RoslynPerf";
+        private const string _rootSuffix = "RoslynPerf";
 
         private readonly ILogger _logger;
         private readonly string _testTemplateName;

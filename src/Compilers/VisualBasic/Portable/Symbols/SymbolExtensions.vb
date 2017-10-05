@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Case TypeKind.Module
                             Return "module"
                         Case TypeKind.Delegate
-                            ' Dev10 error message format "... delegate Class foo ..." instead of "... delegate foo ..."               
+                            ' Dev10 error message format "... delegate Class goo ..." instead of "... delegate goo ..."               
                             Return "delegate Class"
                         Case Else
                             'TODO: do we need string s for ByRef, Array, TypeParameter etc?
@@ -360,21 +360,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
+        ''' Does symbol or its containing type have Microsoft.CodeAnalysis.Embedded() attribute
+        ''' </summary>
+        <Extension()>
+        Friend Function IsHiddenByCodeAnalysisEmbeddedAttribute(symbol As Symbol) As Boolean
+            ' Only upper-level types should be checked 
+            Dim upperLevelType = GetUpperLevelNamedTypeSymbol(symbol)
+            Return upperLevelType IsNot Nothing AndAlso upperLevelType.HasCodeAnalysisEmbeddedAttribute
+        End Function
+
+        ''' <summary>
         ''' Does symbol or its containing type have Microsoft.VisualBasic.Embedded() attribute
         ''' </summary>
         <Extension()>
-        Friend Function IsHiddenByEmbeddedAttribute(symbol As Symbol) As Boolean
+        Friend Function IsHiddenByVisualBasicEmbeddedAttribute(symbol As Symbol) As Boolean
             ' Only upper-level types should be checked 
+            Dim upperLevelType = GetUpperLevelNamedTypeSymbol(symbol)
+            Return upperLevelType IsNot Nothing AndAlso upperLevelType.HasVisualBasicEmbeddedAttribute
+        End Function
+
+        ''' <summary>
+        ''' Gets the upper-level named type symbol, or returns Nothing if it does not exist.
+        ''' </summary>
+        <Extension()>
+        Friend Function GetUpperLevelNamedTypeSymbol(symbol As Symbol) As NamedTypeSymbol
             Dim upperLevelType = If(symbol.Kind = SymbolKind.NamedType, DirectCast(symbol, NamedTypeSymbol), symbol.ContainingType)
             If upperLevelType Is Nothing Then
-                Return False
+                Return Nothing
             End If
 
             While upperLevelType.ContainingType IsNot Nothing
                 upperLevelType = upperLevelType.ContainingType
             End While
 
-            Return upperLevelType.HasEmbeddedAttribute
+            Return upperLevelType
         End Function
 
         <Extension>
@@ -422,6 +441,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End While
 
             Return member
+        End Function
+
+        <Extension>
+        Friend Function ContainsTupleNames(member As Symbol) As Boolean
+            Select Case member.Kind
+                Case SymbolKind.Method
+                    Dim method = DirectCast(member, MethodSymbol)
+                    Return method.ReturnType.ContainsTupleNames() OrElse ContainsTupleNames(method.Parameters)
+                Case SymbolKind.Property
+                    Dim [property] = DirectCast(member, PropertySymbol)
+                    Return [property].Type.ContainsTupleNames() OrElse ContainsTupleNames([property].Parameters)
+                Case SymbolKind.Event
+                    ' We don't check the event Type directly because materializing it requires checking the tuple names in the type (to validate interface implementations)
+                    Return ContainsTupleNames(DirectCast(member, EventSymbol).DelegateParameters)
+                Case Else
+                    '  We currently don't need to use this method for other kinds of symbols
+                    Throw ExceptionUtilities.UnexpectedValue(member.Kind)
+            End Select
+        End Function
+
+        Private Function ContainsTupleNames(parameters As ImmutableArray(Of ParameterSymbol)) As Boolean
+            Return parameters.Any(Function(p) p.Type.ContainsTupleNames())
         End Function
     End Module
 End Namespace

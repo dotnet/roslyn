@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.Cci
@@ -454,8 +455,8 @@ namespace Microsoft.Cci
 
         // Well known dummy cor library types whose refs are used for attaching assembly attributes off within net modules
         // There is no guarantee the types actually exist in a cor library
-        internal static readonly string dummyAssemblyAttributeParentNamespace = "System.Runtime.CompilerServices";
-        internal static readonly string dummyAssemblyAttributeParentName = "AssemblyAttributesGoHere";
+        internal const string dummyAssemblyAttributeParentNamespace = "System.Runtime.CompilerServices";
+        internal const string dummyAssemblyAttributeParentName = "AssemblyAttributesGoHere";
         internal static readonly string[,] dummyAssemblyAttributeParentQualifier = { { "", "M" }, { "S", "SM" } };
         private readonly TypeReferenceHandle[,] _dummyAssemblyAttributeParent = { { default(TypeReferenceHandle), default(TypeReferenceHandle) }, { default(TypeReferenceHandle), default(TypeReferenceHandle) } };
 
@@ -597,7 +598,7 @@ namespace Microsoft.Cci
 
         protected ImmutableArray<IParameterDefinition> GetParametersToEmit(IMethodDefinition methodDef)
         {
-            if (methodDef.ParameterCount == 0 && !(methodDef.ReturnValueIsMarshalledExplicitly || IteratorHelper.EnumerableIsNotEmpty(methodDef.ReturnValueAttributes)))
+            if (methodDef.ParameterCount == 0 && !(methodDef.ReturnValueIsMarshalledExplicitly || IteratorHelper.EnumerableIsNotEmpty(methodDef.GetReturnValueAttributes(Context))))
             {
                 return ImmutableArray<IParameterDefinition>.Empty;
             }
@@ -610,7 +611,7 @@ namespace Microsoft.Cci
             ArrayBuilder<IParameterDefinition> builder = null;
             var parameters = methodDef.Parameters;
 
-            if (methodDef.ReturnValueIsMarshalledExplicitly || IteratorHelper.EnumerableIsNotEmpty(methodDef.ReturnValueAttributes))
+            if (methodDef.ReturnValueIsMarshalledExplicitly || IteratorHelper.EnumerableIsNotEmpty(methodDef.GetReturnValueAttributes(Context)))
             {
                 builder = ArrayBuilder<IParameterDefinition>.GetInstance(parameters.Length + 1);
                 builder.Add(new ReturnValueParameter(methodDef));
@@ -1757,8 +1758,15 @@ namespace Microsoft.Cci
             rootBuilder.Serialize(metadataBuilder, methodBodyStreamRva: 0, mappedFieldDataStreamRva: 0);
             metadataSizes = rootBuilder.Sizes;
 
-            ilBuilder.WriteContentTo(ilStream);
-            metadataBuilder.WriteContentTo(metadataStream);
+            try
+            {
+                ilBuilder.WriteContentTo(ilStream);
+                metadataBuilder.WriteContentTo(metadataStream);
+            }
+            catch (Exception e) when (!(e is OperationCanceledException))
+            {
+                throw new PeWritingException(e);
+            }
 
             if (portablePdbStreamOpt != null)
             {
@@ -1769,7 +1777,15 @@ namespace Microsoft.Cci
 
                 var portablePdbBlob = new BlobBuilder();
                 portablePdbBuilder.Serialize(portablePdbBlob);
-                portablePdbBlob.WriteContentTo(portablePdbStreamOpt);
+
+                try
+                {
+                    portablePdbBlob.WriteContentTo(portablePdbStreamOpt);
+                }
+                catch (Exception e) when (!(e is OperationCanceledException))
+                {
+                    throw new PdbWritingException(e);
+                }
             }
         }
 
@@ -2605,7 +2621,7 @@ namespace Microsoft.Cci
             foreach (IEventDefinition eventDef in this.GetEventDefs())
             {
                 var association = GetEventDefinitionHandle(eventDef);
-                foreach (IMethodReference accessorMethod in eventDef.Accessors)
+                foreach (IMethodReference accessorMethod in eventDef.GetAccessors(Context))
                 {
                     MethodSemanticsAttributes semantics;
                     if (accessorMethod == eventDef.Adder)
@@ -3616,7 +3632,7 @@ namespace Microsoft.Cci
             return pooled.ToStringAndFree();
         }
 
-        private void SerializePermissionSet(IEnumerable<ICustomAttribute> permissionSet, BlobBuilder writer)
+        private void SerializePermissionSet(ImmutableArray<ICustomAttribute> permissionSet, BlobBuilder writer)
         {
             EmitContext context = this.Context;
             foreach (ICustomAttribute customAttribute in permissionSet)

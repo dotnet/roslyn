@@ -73,7 +73,7 @@ class D
 
 class E
 {
-    void Foo()
+    void Goo()
     {
         D local = new D();
         local.cfield.MyEvent +$$
@@ -94,7 +94,7 @@ class E
             var markup = @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         int x = 7;
         x +$$
@@ -112,7 +112,7 @@ class C
                 var expectedCode = @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         int x = 7;
         x +=    
@@ -131,7 +131,7 @@ class C
 {
     public event System.Action MyEvent;
 
-    void Foo()
+    void Goo()
     {
         MyEvent +$$
     }
@@ -157,7 +157,7 @@ class C
 {
     public event System.Action MyEvent;
 
-    void Foo()
+    void Goo()
     {
         MyEvent +$$
     }
@@ -205,7 +205,7 @@ class C
 {
     public event System.Action MyEvent;
 
-    void Foo()
+    void Goo()
     {
         Action a = () => MyEvent +$$
     }
@@ -456,10 +456,10 @@ class C
     event System.Action MyEvent;
     void M()
     {
-        Foo(() => MyEvent +$$)
+        Goo(() => MyEvent +$$)
     }
 
-    private void Foo(Action a)
+    private void Goo(Action a)
     {
     }
 }";
@@ -475,7 +475,7 @@ class C
     event System.Action MyEvent;
     void M()
     {
-        Foo(() => MyEvent += C_MyEvent;)
+        Goo(() => MyEvent += C_MyEvent;)
     }
 
     private void C_MyEvent()
@@ -483,7 +483,7 @@ class C
         throw new System.NotImplementedException();
     }
 
-    private void Foo(Action a)
+    private void Goo(Action a)
     {
     }
 }";
@@ -778,7 +778,7 @@ class Program : Base
 {
     void Main(string[] args)
     {
-        var foo = Console_CancelKeyPress + 23;
+        var goo = Console_CancelKeyPress + 23;
         System.Console.CancelKeyPress +$$
     }
 }";

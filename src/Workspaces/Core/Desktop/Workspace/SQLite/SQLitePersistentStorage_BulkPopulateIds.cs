@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
@@ -52,7 +53,12 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // the current string table, it will keep having problems trying to bulk populate.
                 if (fetchStringTable)
                 {
-                    FetchStringTable(connection);
+                    if (!TryFetchStringTable(connection))
+                    {
+                        // Weren't able to fetch the string table.  Have to try this again
+                        // later once the DB frees up.
+                        return;
+                    }
                 }
 
                 if (!BulkPopulateProjectIdsWorker(connection, project))

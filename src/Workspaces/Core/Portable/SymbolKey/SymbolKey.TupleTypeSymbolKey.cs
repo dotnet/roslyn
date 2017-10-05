@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis
                 var elementLocations = reader.ReadLocationArray();
                 if (elementLocations.All(loc => loc == null))
                 {
-                    elementLocations = default(ImmutableArray<Location>);
+                    elementLocations = default;
                 }
 
                 return elementLocations;

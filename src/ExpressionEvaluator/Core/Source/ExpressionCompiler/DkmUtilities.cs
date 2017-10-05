@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +7,8 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Clr.NativeCompilation;
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     // DkmClrNcModuleInstance.GetMetaDataBytesPtr not implemented in Dev14.
                     throw new NotImplementedMetadataException(e);
                 }
-                catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, module.FullName))
+                catch (Exception e) when (DkmExceptionUtilities.IsBadOrMissingMetadataException(e))
                 {
                     continue;
                 }
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     Debug.Assert(size > 0);
                     block = GetMetadataBlock(ptr, size);
                 }
-                catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, missingAssemblyIdentity.GetDisplayName()))
+                catch (Exception e) when (DkmExceptionUtilities.IsBadOrMissingMetadataException(e))
                 {
                     continue;
                 }
@@ -127,7 +129,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         Debug.Assert(size > 0);
                         reader = new MetadataReader((byte*)ptr, (int)size);
                     }
-                    catch (Exception e) when (MetadataUtilities.IsBadOrMissingMetadataException(e, module.FullName))
+                    catch (Exception e) when (DkmExceptionUtilities.IsBadOrMissingMetadataException(e))
                     {
                         continue;
                     }

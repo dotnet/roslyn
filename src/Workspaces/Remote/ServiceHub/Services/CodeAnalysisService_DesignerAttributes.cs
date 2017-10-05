@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttributes;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -18,17 +19,26 @@ namespace Microsoft.CodeAnalysis.Remote
         /// 
         /// This will be called by ServiceHub/JsonRpc framework
         /// </summary>
-        public async Task<IList<DesignerAttributeDocumentData>> ScanDesignerAttributesAsync(ProjectId projectId)
+        public Task<IList<DesignerAttributeDocumentData>> ScanDesignerAttributesAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
-            using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetDesignerAttributesAsync, projectId.DebugName, CancellationToken))
+            return RunServiceAsync(async token =>
             {
-                var solution = await GetSolutionAsync().ConfigureAwait(false);
-                var project = solution.GetProject(projectId);
-                var data = await AbstractDesignerAttributeService.TryAnalyzeProjectInCurrentProcessAsync(
-                    project, CancellationToken).ConfigureAwait(false);
+                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetDesignerAttributesAsync, projectId.DebugName, token))
+                {
+                    var solution = await GetSolutionAsync(token).ConfigureAwait(false);
+                    var project = solution.GetProject(projectId);
 
-                return data.Values.ToList();
-            }
+                    var data = await AbstractDesignerAttributeService.TryAnalyzeProjectInCurrentProcessAsync(
+                        project, token).ConfigureAwait(false);
+
+                    if (data.Count == 0)
+                    {
+                        return SpecializedCollections.EmptyList<DesignerAttributeDocumentData>();
+                    }
+
+                    return data.Values.ToList();
+                }
+            }, cancellationToken);
         }
     }
 }

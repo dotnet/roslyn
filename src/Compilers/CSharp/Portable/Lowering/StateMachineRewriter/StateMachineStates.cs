@@ -4,8 +4,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static class StateMachineStates
     {
-        internal readonly static int FinishedStateMachine = -2;
-        internal readonly static int NotStartedStateMachine = -1;
-        internal readonly static int FirstUnusedState = 0;
+        internal const int FinishedStateMachine = -2;
+        internal const int NotStartedStateMachine = -1;
+        internal const int FirstUnusedState = 0;
     }
 }

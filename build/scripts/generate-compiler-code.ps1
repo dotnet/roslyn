@@ -10,7 +10,7 @@ $ErrorActionPreference="Stop"
 function Run-Tool($tool, $toolArgs) {
     $toolName = Split-Path -leaf $tool
     Write-Host "Running $toolName"
-    Exec-Command $tool $toolArgs | Out-Host
+    Exec-Console $tool $toolArgs
 }
 
 function Run-LanguageCore($language, $languageSuffix, $languageDir, $syntaxTool, $errorFactsTool, $generatedDir, $generatedTestDir) {
@@ -141,6 +141,6 @@ try {
     exit 0
 }
 catch {
-  Write-Host $_
-  exit 1
+    Write-Host $_
+    exit 1
 }

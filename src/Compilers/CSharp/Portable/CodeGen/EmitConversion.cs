@@ -111,6 +111,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     _builder.EmitNumericConversion(fromPredefTypeKind, toPredefTypeKind, conversion.Checked);
                     break;
+                case ConversionKind.PinnedObjectToPointer:
+                    // CLR allows unsafe conversion from(O) to native int/uint.
+                    // The conversion does not change the representation of the value, 
+                    // but the value will not be reported to subsequent GC operations (and therefore will not be updated by such operations)
+                    _builder.EmitOpCode(ILOpCode.Conv_u);
+                    break;
                 case ConversionKind.NullToPointer:
                     throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind); // Should be handled by caller.
                 case ConversionKind.ImplicitNullable:

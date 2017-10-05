@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                                                                      default(CancellationToken)));
             }
 
-            [Fact]
+            [ConditionalFact(typeof(DesktopOnly))]
             public void OnlyStartsOneServer()
             {
                 var ranLocal = false;

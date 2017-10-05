@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -1570,11 +1570,11 @@ S[0]");
 }");
         }
 
-        [WorkItem(542277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542277")]
         /// <summary>
         /// Access fields on constrained generic types.
         /// </summary>
         [ClrOnlyFact]
+        [WorkItem(542277, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542277")]
         public void Fields()
         {
             var source =
@@ -4334,10 +4334,10 @@ class Program
 {
     static void Main()
     {
-        Foo<int>(null);
+        Goo<int>(null);
     }
-    static void Foo<T>(object x) { }
-    static void Foo<T>(C<T> x) where T : class { }
+    static void Goo<T>(object x) { }
+    static void Goo<T>(C<T> x) where T : class { }
 }";
             CreateStandardCompilation(source).VerifyDiagnostics();
         }
@@ -4716,11 +4716,11 @@ abstract class E : D, IB
 @"using System;
 abstract class A
 {
-    public abstract void Foo<T>() where T : IComparable<T>;
+    public abstract void Goo<T>() where T : IComparable<T>;
 }
 class B<S> : A
 {
-    public override void Foo<T>()
+    public override void Goo<T>()
     {
         Console.WriteLine(typeof(S));
         Console.WriteLine(typeof(T));
@@ -4730,7 +4730,7 @@ class P
 {
     static void Main()
     {
-        new B<string>().Foo<int>();
+        new B<string>().Goo<int>();
     }
 }
 ";
@@ -4828,12 +4828,12 @@ using System;
 
 abstract class A<T>
 {
-    public abstract void Foo<S>() where S : T, new();
+    public abstract void Goo<S>() where S : T, new();
 }
 
 class B : A<S>
 {
-    public override void Foo<S>()
+    public override void Goo<S>()
     {
         var s = new S();
         s.X = 5;
@@ -4842,7 +4842,7 @@ class B : A<S>
 
     static void Main()
     {
-        new B().Foo<S>();
+        new B().Goo<S>();
     }
 }
 
@@ -5043,8 +5043,8 @@ interface _<in T> : X<T> { }
 
 class C
 {
-    static void Foo<T>() where T : class, X<_<X<T>>> {
-        Foo<X<_<X<X<_<X<X<X<_<X<_<X<T>>>>>>>>>>>>>();
+    static void Goo<T>() where T : class, X<_<X<T>>> {
+        Goo<X<_<X<X<_<X<X<X<_<X<_<X<T>>>>>>>>>>>>>();
     }
 
     static void Main()
@@ -5453,7 +5453,7 @@ class D2 : D<A>
             var source = @"
 class A
 {
-    public virtual T? Foo<T>() where T : struct 
+    public virtual T? Goo<T>() where T : struct 
     { 
         return null; 
     }
@@ -5461,7 +5461,7 @@ class A
 
 class B : A
 {
-    public override T? Foo<T>()
+    public override T? Goo<T>()
     {
         return null;
     }
@@ -5477,7 +5477,7 @@ class B : A
             var source = @"
 class A
 {
-    public virtual T? Foo<T>()
+    public virtual T? Goo<T>()
     { 
         return null; 
     }
@@ -5485,7 +5485,7 @@ class A
 
 class B : A
 {
-    public override T? Foo<T>()
+    public override T? Goo<T>()
     {
         return null;
     }
@@ -5493,11 +5493,11 @@ class B : A
 ";
             CreateStandardCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (4,23): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
-                //     public virtual T? Foo<T>()
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Foo").WithArguments("System.Nullable<T>", "T", "T"),
+                //     public virtual T? Goo<T>()
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Goo").WithArguments("System.Nullable<T>", "T", "T"),
                 // (12,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
-                //     public override T? Foo<T>()
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Foo").WithArguments("System.Nullable<T>", "T", "T"));
+                //     public override T? Goo<T>()
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Goo").WithArguments("System.Nullable<T>", "T", "T"));
         }
 
         [WorkItem(543710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543710")]
@@ -5508,11 +5508,11 @@ class B : A
 @"using System;
 public abstract class Base1<T>
 {
-    public virtual void Foo<G>(G d) where G : struct, T { Console.WriteLine(""Base1""); }
+    public virtual void Goo<G>(G d) where G : struct, T { Console.WriteLine(""Base1""); }
 }
 public class Base2 : Base1<Object>
 {
-    public override void Foo<G>(G d) { Console.WriteLine(""Base2""); }
+    public override void Goo<G>(G d) { Console.WriteLine(""Base2""); }
 }",
                 compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             var csVerifier = CompileAndVerify(csCompilation);
@@ -5521,7 +5521,7 @@ public class Base2 : Base1<Object>
             var vbCompilation = CreateVisualBasicCompilation("InheritedObjectConstraint2VB",
 @"Imports System
 Class Derived : Inherits Base2
-    Public Overrides Sub Foo(Of G As Structure)(ByVal d As G)
+    Public Overrides Sub Goo(Of G As Structure)(ByVal d As G)
         Console.WriteLine(""Derived"")
     End Sub
 End Class
@@ -5529,7 +5529,7 @@ End Class
 Module Program
     Sub Main
         Dim x As Base1(Of Object) = New Derived
-        x.Foo(1)
+        x.Goo(1)
     End Sub
 End Module",
                 compilationOptions: new Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
@@ -5593,15 +5593,23 @@ class B : A<S>
 }";
             CreateCompilation(source).VerifyDiagnostics(
                 // (2,16): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // abstract class A<T>
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Object").WithLocation(2, 16),
                 // (1,8): error CS0518: Predefined type 'System.ValueType' is not defined or imported
+                // struct S { }
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "S").WithArguments("System.ValueType").WithLocation(1, 8),
                 // (4,23): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //     internal abstract void M<U>() where U : struct, T;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void").WithLocation(4, 23),
                 // (8,23): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //     internal override void M<U>() { }
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void").WithLocation(8, 23),
                 // (2,16): error CS1729: 'object' does not contain a constructor that takes 0 arguments
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "A").WithArguments("object", "0").WithLocation(2, 16));
+                // abstract class A<T>
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "A").WithArguments("object", "0").WithLocation(2, 16),
+                // (6,7): error CS0518: Predefined type 'System.Void' is not defined or imported
+                // class B : A<S>
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.Void").WithLocation(6, 7));
         }
 
         [WorkItem(11243, "DevDiv_Projects/Roslyn")]

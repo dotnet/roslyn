@@ -74,7 +74,7 @@ Return 1
         <Fact>
         Public Sub MeKeyword()
             Dim source = <text>
-Sub Foo
+Sub Goo
     Me.Bar
 End Sub
 
@@ -82,7 +82,7 @@ Sub Bar
     System.Console.WriteLine(1+1)
 End Sub
 
-Me.Foo
+Me.Goo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
@@ -95,7 +95,7 @@ Me.Foo
         <Fact>
         Public Sub MyBaseAndMyClassKeyword()
             Dim source = <text>
-Sub Foo
+Sub Goo
     MyClass.Bar
 End Sub
 
@@ -103,7 +103,7 @@ Sub Bar
     System.Console.WriteLine(1+1)
 End Sub
 
-MyBase.Foo
+MyBase.Goo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
@@ -116,11 +116,11 @@ MyBase.Foo
         <Fact>
         Public Sub SubStatement()
             Dim source = <text>
-Sub Foo
+Sub Goo
     System.Console.WriteLine(1+1)
 End Sub
 
-Foo
+Goo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
@@ -134,23 +134,23 @@ Foo
             Dim source =
     <compilation>
         <file>
-Sub Foo
+Sub Goo
     System.Console.WriteLine(1+1)
 End Sub
     </file>
     </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_InvalidInNamespace, "Sub Foo"))
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_InvalidInNamespace, "Sub Goo"))
         End Sub
 
         <Fact>
         Public Sub FunctionStatement()
             Dim source = <text>
-Function Foo As Integer
+Function Goo As Integer
     Return 3
 End Function
 
-System.Console.WriteLine(Foo)
+System.Console.WriteLine(Goo)
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
@@ -261,7 +261,7 @@ Next
             Assert.Empty(model.LookupLabels(source.Length - 1))
         End Sub
 
-        <WorkItem(3795, "https:'github.com/dotnet/roslyn/issues/3795")>
+        <WorkItem(3795, "https://github.com/dotnet/roslyn/issues/3795")>
         <Fact>
         Public Sub ErrorInUsing()
             Dim submission = VisualBasicCompilation.CreateScriptCompilation("sub1", Parse("Imports Unknown", options:=TestOptions.Script), {MscorlibRef})

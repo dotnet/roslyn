@@ -20,7 +20,7 @@ namespace Roslyn.Utilities
 
         public static Task<T> DefaultOrResult<T>(T value)
         {
-            if (EqualityComparer<T>.Default.Equals(value, default(T)))
+            if (EqualityComparer<T>.Default.Equals(value, default))
             {
                 return Default<T>();
             }
@@ -55,7 +55,7 @@ namespace Roslyn.Utilities
 
         private static class Empty<T>
         {
-            public static readonly Task<T> Default = Task.FromResult<T>(default(T));
+            public static readonly Task<T> Default = Task.FromResult<T>(default);
             public static readonly Task<IEnumerable<T>> EmptyEnumerable = Task.FromResult<IEnumerable<T>>(SpecializedCollections.EmptyEnumerable<T>());
             public static readonly Task<ImmutableArray<T>> EmptyImmutableArray = Task.FromResult(ImmutableArray<T>.Empty);
             public static readonly Task<IList<T>> EmptyList = Task.FromResult(SpecializedCollections.EmptyList<T>());

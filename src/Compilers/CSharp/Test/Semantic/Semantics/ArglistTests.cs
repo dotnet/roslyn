@@ -1314,7 +1314,7 @@ class A
 using System;
 class C
 {
-    static void Foo()
+    static void Goo()
     {
         RuntimeArgumentHandle rah = default(RuntimeArgumentHandle);
         ArgIterator ai = default(ArgIterator);
@@ -1490,7 +1490,7 @@ using System.Threading;
 
 namespace ConsoleApplication21
 {
-    public unsafe class FooBar : IDisposable
+    public unsafe class GooBar : IDisposable
     {
         public void Dispose()
         {
@@ -1505,9 +1505,9 @@ namespace ConsoleApplication21
 }
 ";
             CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-    // (12,44): error CS7036: There is no argument given that corresponds to the required formal parameter 'context' of 'FooBar.AllocateNativeOverlapped(IOCompletionCallback, object, byte[])'
+    // (12,44): error CS7036: There is no argument given that corresponds to the required formal parameter 'context' of 'GooBar.AllocateNativeOverlapped(IOCompletionCallback, object, byte[])'
     //             NativeOverlapped* overlapped = AllocateNativeOverlapped(() => { });
-    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AllocateNativeOverlapped").WithArguments("context", "ConsoleApplication21.FooBar.AllocateNativeOverlapped(System.Threading.IOCompletionCallback, object, byte[])").WithLocation(12, 44)
+    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AllocateNativeOverlapped").WithArguments("context", "ConsoleApplication21.GooBar.AllocateNativeOverlapped(System.Threading.IOCompletionCallback, object, byte[])").WithLocation(12, 44)
 );
         }
 

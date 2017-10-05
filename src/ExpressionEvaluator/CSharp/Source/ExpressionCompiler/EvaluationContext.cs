@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 
@@ -30,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal readonly CSharpCompilation Compilation;
 
         private readonly MethodSymbol _currentFrame;
+        private readonly MethodSymbol _currentSourceMethod;
         private readonly ImmutableArray<LocalSymbol> _locals;
         private readonly ImmutableSortedSet<int> _inScopeHoistedLocalSlots;
         private readonly MethodDebugInfo<TypeSymbol, LocalSymbol> _methodDebugInfo;
@@ -38,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             MethodContextReuseConstraints? methodContextReuseConstraints,
             CSharpCompilation compilation,
             MethodSymbol currentFrame,
+            MethodSymbol currentSourceMethod,
             ImmutableArray<LocalSymbol> locals,
             ImmutableSortedSet<int> inScopeHoistedLocalSlots,
             MethodDebugInfo<TypeSymbol, LocalSymbol> methodDebugInfo)
@@ -48,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             this.MethodContextReuseConstraints = methodContextReuseConstraints;
             this.Compilation = compilation;
             _currentFrame = currentFrame;
+            _currentSourceMethod = currentSourceMethod;
             _locals = locals;
             _inScopeHoistedLocalSlots = inScopeHoistedLocalSlots;
             _methodDebugInfo = methodDebugInfo;
@@ -92,6 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 null,
                 compilation,
                 currentFrame,
+                null,
                 default(ImmutableArray<LocalSymbol>),
                 ImmutableSortedSet<int>.Empty,
                 MethodDebugInfo<TypeSymbol, LocalSymbol>.None);
@@ -179,6 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             int localSignatureToken)
         {
             var methodHandle = (MethodDefinitionHandle)MetadataTokens.Handle(methodToken);
+            var currentSourceMethod = compilation.GetSourceMethod(moduleVersionId, methodHandle);
             var localSignatureHandle = (localSignatureToken != 0) ? (StandaloneSignatureHandle)MetadataTokens.Handle(localSignatureToken) : default(StandaloneSignatureHandle);
 
             var currentFrame = compilation.GetMethod(moduleVersionId, methodHandle);
@@ -210,6 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 new MethodContextReuseConstraints(moduleVersionId, methodToken, methodVersion, reuseSpan),
                 compilation,
                 currentFrame,
+                currentSourceMethod,
                 localsBuilder.ToImmutableAndFree(),
                 inScopeHoistedLocals,
                 debugInfo);
@@ -220,6 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new CompilationContext(
                 this.Compilation,
                 _currentFrame,
+                _currentSourceMethod,
                 _locals,
                 _inScopeHoistedLocalSlots,
                 _methodDebugInfo);

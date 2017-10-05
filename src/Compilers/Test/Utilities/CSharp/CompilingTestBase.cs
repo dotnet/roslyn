@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestErrors(string code, params string[] errors)
         {
             var compilation = CreateStandardCompilation(code);
-            var method = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
+            var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
             var factory = compilation.GetBinderFactory(method.SyntaxTree);
             var bodyBlock = (BlockSyntax)method.BodySyntax;
             var parameterBinderContext = factory.GetBinder(bodyBlock);
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestWarnings(string code, params string[] expectedWarnings)
         {
             var compilation = CreateStandardCompilation(code);
-            var method = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
+            var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
             var factory = compilation.GetBinderFactory(method.SyntaxTree);
             var bodyBlock = (BlockSyntax)method.BodySyntax;
             var parameterBinderContext = factory.GetBinder(bodyBlock);

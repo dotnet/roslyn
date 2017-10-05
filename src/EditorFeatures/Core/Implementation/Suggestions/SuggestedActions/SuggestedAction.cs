@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             var snapshot = SubjectBuffer.CurrentSnapshot;
             using (new CaretPositionRestorer(SubjectBuffer, EditHandler.AssociatedViewService))
             {
-                Func<Document> getFromDocument = () => SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                Document getFromDocument() => SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 InvokeCore(getFromDocument, progressTracker, cancellationToken);
             }
         }
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     }
                 }
 
-                return default(ImageMoniker);
+                return default;
             }
         }
 

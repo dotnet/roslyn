@@ -1,80 +1,70 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class AbstractDocCommentCompletionProvider : CommonCompletionProvider
+    using static DocumentationCommentXmlNames;
+
+    internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : CommonCompletionProvider
+        where TSyntax : SyntaxNode
     {
         // Tag names
-        protected const string CDataPrefixTagName = "![CDATA[";
-        protected const string CTagName = "c";
-        protected const string CodeTagName = "code";
-        protected const string CommentPrefixTagName = "!--";
-        protected const string CompletionListTagName = "completionlist";
-        protected const string DescriptionTagName = "description";
-        protected const string ExampleTagName = "example";
-        protected const string ExceptionTagName = "exception";
-        protected const string IncludeTagName = "include";
-        protected const string ItemTagName = "item";
-        protected const string ListTagName = "list";
-        protected const string ListHeaderTagName = "listheader";
-        protected const string ParaTagName = "para";
-        protected const string ParamTagName = "param";
-        protected const string ParamRefTagName = "paramref";
-        protected const string PermissionTagName = "permission";
-        protected const string RemarksTagName = "remarks";
-        protected const string ReturnsTagName = "returns";
-        protected const string SeeTagName = "see";
-        protected const string SeeAlsoTagName = "seealso";
-        protected const string SummaryTagName = "summary";
-        protected const string TermTagName = "term";
-        protected const string TypeParamTagName = "typeparam";
-        protected const string TypeParamRefTagName = "typeparamref";
-        protected const string ValueTagName = "value";
+        private static readonly ImmutableArray<string> s_alwaysVisibleTagNames = ImmutableArray.Create(SeeElementName, SeeAlsoElementName);
+        private static readonly ImmutableArray<string> s_listTagNames = ImmutableArray.Create(ListHeaderElementName, TermElementName, ItemElementName, DescriptionElementName);
+        private static readonly ImmutableArray<string> s_listHeaderTagNames = ImmutableArray.Create(TermElementName, DescriptionElementName);
+        private static readonly ImmutableArray<string> s_nestedTagNames = ImmutableArray.Create(CElementName, CodeElementName, ParaElementName, ListElementName);
+        private static readonly ImmutableArray<string> s_topLevelRepeatableTagNames = ImmutableArray.Create(ExceptionElementName, IncludeElementName, PermissionElementName);
+        private static readonly ImmutableArray<string> s_topLevelSingleUseTagNames = ImmutableArray.Create(SummaryElementName, RemarksElementName, ExampleElementName, CompletionListElementName);
 
-        // Attribute names
-        protected const string CrefAttributeName = "cref";
-        protected const string FileAttributeName = "file";
-        protected const string NameAttributeName = "name";
-        protected const string PathAttributeName = "path";
-        protected const string TypeAttributeName = "type";
-
-        private readonly Dictionary<string, string[]> _tagMap =
-            new Dictionary<string, string[]>
+        private static readonly Dictionary<string, (string tagOpen, string textBeforeCaret, string textAfterCaret, string tagClose)> s_tagMap =
+            new Dictionary<string, (string tagOpen, string textBeforeCaret, string textAfterCaret, string tagClose)>
             {
-                { ExceptionTagName,      new[] { $"<{ExceptionTagName} {CrefAttributeName}=\"",      "\"" } },
-                { CommentPrefixTagName,  new[] { $"<{CommentPrefixTagName}",                         "-->" } },
-                { CDataPrefixTagName,    new[] { $"<{CDataPrefixTagName}",                           "]]>" } },
-                { IncludeTagName,        new[] { $"<{IncludeTagName} {FileAttributeName}=\'",        $"\' {PathAttributeName}=\'[@name=\"\"]\'/>" } },
-                { PermissionTagName,     new[] { $"<{PermissionTagName} {CrefAttributeName}=\"",     "\"" } },
-                { SeeTagName,            new[] { $"<{SeeTagName} {CrefAttributeName}=\"",            "\"/>" } },
-                { SeeAlsoTagName,        new[] { $"<{SeeAlsoTagName} {CrefAttributeName}=\"",        "\"/>" } },
-                { ListTagName,           new[] { $"<{ListTagName} {TypeAttributeName}=\"",           "\"" } },
-                { ParamRefTagName,       new[] { $"<{ParamRefTagName} {NameAttributeName}=\"",       "\"/>" } },
-                { TypeParamRefTagName,   new[] { $"<{TypeParamRefTagName} {NameAttributeName}=\"",   "\"/>" } },
-                { CompletionListTagName, new[] { $"<{CompletionListTagName} {CrefAttributeName}=\"", "\"/>" } },
+                //                                        tagOpen                                  textBeforeCaret       $$  textAfterCaret                            tagClose
+                { ExceptionElementName,              ($"<{ExceptionElementName}",              $" {CrefAttributeName}=\"",  "\"",                                      null) },
+                { IncludeElementName,                ($"<{IncludeElementName}",                $" {FileAttributeName}=\'", $"\' {PathAttributeName}=\'[@name=\"\"]\'", "/>") },
+                { PermissionElementName,             ($"<{PermissionElementName}",             $" {CrefAttributeName}=\"",  "\"",                                      null) },
+                { SeeElementName,                    ($"<{SeeElementName}",                    $" {CrefAttributeName}=\"",  "\"",                                      "/>") },
+                { SeeAlsoElementName,                ($"<{SeeAlsoElementName}",                $" {CrefAttributeName}=\"",  "\"",                                      "/>") },
+                { ListElementName,                   ($"<{ListElementName}",                   $" {TypeAttributeName}=\"",  "\"",                                      null) },
+                { ParameterReferenceElementName,     ($"<{ParameterReferenceElementName}",     $" {NameAttributeName}=\"",  "\"",                                      "/>") },
+                { TypeParameterReferenceElementName, ($"<{TypeParameterReferenceElementName}", $" {NameAttributeName}=\"",  "\"",                                      "/>") },
+                { CompletionListElementName,         ($"<{CompletionListElementName}",         $" {CrefAttributeName}=\"",  "\"",                                      "/>") },
             };
 
-        private readonly string[][] _attributeMap =
+        private static readonly string[][] s_attributeMap =
             new[]
             {
-                new[] { ExceptionTagName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
-                new[] { PermissionTagName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
-                new[] { SeeTagName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
-                new[] { SeeAlsoTagName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
-                new[] { ListTagName, TypeAttributeName, $"{TypeAttributeName}=\"", "\"" },
-                new[] { ParamTagName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
-                new[] { IncludeTagName, FileAttributeName, $"{FileAttributeName}=\"", "\"" },
-                new[] { IncludeTagName, PathAttributeName, $"{PathAttributeName}=\"", "\"" }
+                new[] { ExceptionElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
+                new[] { PermissionElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
+                new[] { SeeElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
+                new[] { SeeElementName, LangwordAttributeName, $"{LangwordAttributeName}=\"", "\"" },
+                new[] { SeeAlsoElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
+                new[] { ListElementName, TypeAttributeName, $"{TypeAttributeName}=\"", "\"" },
+                new[] { ParameterElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
+                new[] { ParameterReferenceElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
+                new[] { TypeParameterElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
+                new[] { TypeParameterReferenceElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
+                new[] { IncludeElementName, FileAttributeName, $"{FileAttributeName}=\"", "\"" },
+                new[] { IncludeElementName, PathAttributeName, $"{PathAttributeName}=\"", "\"" }
             };
+
+        private static readonly ImmutableArray<string> s_listTypeValues = ImmutableArray.Create("bullet", "number", "table");
+
+        private readonly CompletionItemRules defaultRules;
+
+        protected AbstractDocCommentCompletionProvider(CompletionItemRules defaultRules)
+        {
+            this.defaultRules = defaultRules ?? throw new ArgumentNullException(nameof(defaultRules)); ;
+        }
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -94,87 +84,165 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTrigger trigger, CancellationToken cancellationToken);
 
-        protected CompletionItem GetItem(string n)
+        protected abstract IEnumerable<string> GetExistingTopLevelElementNames(TSyntax syntax);
+
+        protected abstract IEnumerable<string> GetExistingTopLevelAttributeValues(TSyntax syntax, string tagName, string attributeName);
+
+        private CompletionItem GetItem(string name)
         {
-            if (_tagMap.ContainsKey(n))
+            if (s_tagMap.TryGetValue(name, out var values))
             {
-                var value = _tagMap[n];
-                return CreateCompletionItem(n, value[0], value[1]);
+                return CreateCompletionItem(name,
+                    beforeCaretText: values.tagOpen + values.textBeforeCaret,
+                    afterCaretText: values.textAfterCaret + values.tagClose);
             }
 
-            return CreateCompletionItem(n);
+            return CreateCompletionItem(name);
         }
 
-        protected IEnumerable<CompletionItem> GetAttributeItem(string n)
+        protected IEnumerable<CompletionItem> GetAttributeItems(string tagName, ISet<string> existingAttributes)
         {
-            var items = _attributeMap.Where(x => x[0] == n).Select(x => CreateCompletionItem(x[1], x[2], x[3]));
-
-            return items.Any() ? items : SpecializedCollections.SingletonEnumerable(CreateCompletionItem(n));
+            return s_attributeMap.Where(x => x[0] == tagName && !existingAttributes.Contains(x[1]))
+                                 .Select(x => CreateCompletionItem(x[1], x[2], x[3]));
         }
 
         protected IEnumerable<CompletionItem> GetAlwaysVisibleItems()
         {
-            return new[] { SeeTagName, SeeAlsoTagName, CDataPrefixTagName, CommentPrefixTagName }.Select(GetItem);
+            return new[] { GetCDataItem(), GetCommentItem(), GetItem(SeeElementName), GetItem(SeeAlsoElementName) };
         }
 
-        protected IEnumerable<string> NestedTagNames
+        private CompletionItem GetCommentItem()
         {
-            get { return new[] { CTagName, CodeTagName, ParaTagName, ListTagName }; }
+            const string prefix = "!--";
+            const string suffix = "-->";
+            return CreateCompletionItem(prefix, "<" + prefix, suffix);
         }
 
-        protected IEnumerable<CompletionItem> GetNestedTags(ISymbol declaredSymbol)
+        private CompletionItem GetCDataItem()
         {
-            return NestedTagNames.Select(GetItem)
-                                 .Concat(GetParamRefItems(declaredSymbol))
-                                 .Concat(GetTypeParamRefItems(declaredSymbol));
+            const string prefix = "![CDATA[";
+            const string suffix = "]]>";
+            return CreateCompletionItem(prefix, "<" + prefix, suffix);
         }
 
-        private IEnumerable<CompletionItem> GetParamRefItems(ISymbol declaredSymbol)
+        protected IEnumerable<CompletionItem> GetNestedItems(ISymbol symbol)
         {
-            var parameters = declaredSymbol?.GetParameters().Select(p => p.Name).ToSet();
+            var items = s_nestedTagNames.Select(GetItem);
 
-            if (parameters == null)
+            if (symbol != null)
             {
-                return SpecializedCollections.EmptyEnumerable<CompletionItem>();
+                items = items.Concat(GetParamRefItems(symbol))
+                             .Concat(GetTypeParamRefItems(symbol));
             }
 
-            return parameters.Select(p => CreateCompletionItem(
-                displayText: FormatParameter(ParamRefTagName, p),
-                beforeCaretText: FormatParameterRefTag(ParamRefTagName, p),
+            items = items.Concat(GetKeywordNames().Select(CreateLangwordCompletionItem));
+
+            return items;
+        }
+
+        private IEnumerable<CompletionItem> GetParamRefItems(ISymbol symbol)
+        {
+            var names = symbol.GetParameters().Select(p => p.Name);
+
+            return names.Select(p => CreateCompletionItem(
+                displayText: FormatParameter(ParameterReferenceElementName, p),
+                beforeCaretText: FormatParameterRefTag(ParameterReferenceElementName, p),
                 afterCaretText: string.Empty));
         }
 
-        private IEnumerable<CompletionItem> GetTypeParamRefItems(ISymbol declaredSymbol)
+        private IEnumerable<CompletionItem> GetTypeParamRefItems(ISymbol symbol)
         {
-            var typeParameters = declaredSymbol?.GetTypeParameters().Select(t => t.Name).ToSet();
+            var names = symbol.GetAllTypeParameters().Select(t => t.Name);
 
-            if (typeParameters == null)
-            {
-                return SpecializedCollections.EmptyEnumerable<CompletionItem>();
-            }
-
-            return typeParameters.Select(t => CreateCompletionItem(
-                displayText: FormatParameter(TypeParamRefTagName, t),
-                beforeCaretText: FormatParameterRefTag(TypeParamRefTagName, t),
+            return names.Select(t => CreateCompletionItem(
+                displayText: FormatParameter(TypeParameterReferenceElementName, t),
+                beforeCaretText: FormatParameterRefTag(TypeParameterReferenceElementName, t),
                 afterCaretText: string.Empty));
         }
 
-        protected IEnumerable<CompletionItem> GetTopLevelRepeatableItems()
+        protected IEnumerable<CompletionItem> GetAttributeValueItems(ISymbol symbol, string tagName, string attributeName)
         {
-            return new[] { ExceptionTagName, IncludeTagName, PermissionTagName }.Select(GetItem);
+            if (attributeName == NameAttributeName && symbol != null)
+            {
+                if (tagName == ParameterElementName || tagName == ParameterReferenceElementName)
+                {
+                    return symbol.GetParameters()
+                                 .Select(parameter => CreateCompletionItem(parameter.Name));
+                }
+                else if (tagName == TypeParameterElementName)
+                {
+                    return symbol.GetTypeParameters()
+                                 .Select(typeParameter => CreateCompletionItem(typeParameter.Name));
+                }
+                else if (tagName == TypeParameterReferenceElementName)
+                {
+                    return symbol.GetAllTypeParameters()
+                                 .Select(typeParameter => CreateCompletionItem(typeParameter.Name));
+                }
+            }
+            else if (attributeName == LangwordAttributeName && tagName == SeeElementName)
+            {
+                return GetKeywordNames().Select(CreateCompletionItem);
+            }
+            else if (attributeName == TypeAttributeName && tagName == ListElementName)
+            {
+                return s_listTypeValues.Select(CreateCompletionItem);
+            }
+
+            return SpecializedCollections.EmptyEnumerable<CompletionItem>();
+        }
+
+        protected abstract IEnumerable<string> GetKeywordNames();
+
+        protected IEnumerable<CompletionItem> GetTopLevelItems(ISymbol symbol, TSyntax syntax)
+        {
+            var items = new List<CompletionItem>();
+
+            var existingTopLevelTags = new HashSet<string>(GetExistingTopLevelElementNames(syntax));
+
+            items.AddRange(s_topLevelSingleUseTagNames.Except(existingTopLevelTags).Select(GetItem));
+            items.AddRange(s_topLevelRepeatableTagNames.Select(GetItem));
+
+            if (symbol != null)
+            {
+                items.AddRange(GetParameterItems(symbol.GetParameters(), syntax, ParameterElementName));
+                items.AddRange(GetParameterItems(symbol.GetTypeParameters(), syntax, TypeParameterElementName));
+
+                var property = symbol as IPropertySymbol;
+                if (property != null && !existingTopLevelTags.Contains(ValueElementName))
+                {
+                    items.Add(GetItem(ValueElementName));
+                }
+
+                var method = symbol as IMethodSymbol;
+                var returns = method != null && !method.ReturnsVoid;
+                if (returns && !existingTopLevelTags.Contains(ReturnsElementName))
+                {
+                    items.Add(GetItem(ReturnsElementName));
+                }
+            }
+
+            return items;
         }
 
         protected IEnumerable<CompletionItem> GetListItems()
         {
-            return new[] { ListHeaderTagName, TermTagName, ItemTagName, DescriptionTagName }.Select(GetItem);
+            return s_listTagNames.Select(GetItem);
         }
 
         protected IEnumerable<CompletionItem> GetListHeaderItems()
         {
-            return new[] { TermTagName, DescriptionTagName }.Select(GetItem);
+            return s_listHeaderTagNames.Select(GetItem);
         }
 
-        protected string FormatParameter(string kind, string name)
+        private IEnumerable<CompletionItem> GetParameterItems<TSymbol>(ImmutableArray<TSymbol> symbols, TSyntax syntax, string tagName) where TSymbol : ISymbol
+        {
+            var names = symbols.Select(p => p.Name).ToSet();
+            names.RemoveAll(GetExistingTopLevelAttributeValues(syntax, tagName, NameAttributeName).WhereNotNull());
+            return names.Select(name => CreateCompletionItem(FormatParameter(tagName, name)));
+        }
+
+        private string FormatParameter(string kind, string name)
         {
             return $"{kind} {NameAttributeName}=\"{name}\"";
         }
@@ -184,12 +252,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return $"<{kind} {NameAttributeName}=\"{name}\"/>";
         }
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitChar = default(char?), CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitChar = default, CancellationToken cancellationToken = default)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            bool includesCommitCharacter = true;
 
-            var beforeCaretText = XmlDocCommentCompletionItem.GetBeforeCaretText(item);
-            var afterCaretText = XmlDocCommentCompletionItem.GetAfterCaretText(item);
+            string beforeCaretText, afterCaretText;
+            if (commitChar == ' ' && XmlDocCommentCompletionItem.TryGetInsertionTextOnSpace(item, out beforeCaretText, out afterCaretText))
+            {
+                includesCommitCharacter = false;
+            }
+            else
+            {
+                beforeCaretText = XmlDocCommentCompletionItem.GetBeforeCaretText(item);
+                afterCaretText = XmlDocCommentCompletionItem.GetAfterCaretText(item);
+            }
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var itemSpan = item.Span;
             var replacementSpan = TextSpan.FromBounds(text[itemSpan.Start - 1] == '<' && beforeCaretText[0] == '<' ? itemSpan.Start - 1 : itemSpan.Start, itemSpan.End);
@@ -210,34 +288,56 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return CompletionChange.Create(
                 new TextChange(replacementSpan, replacementText),
-                newPosition, includesCommitCharacter: true);
+                newPosition, includesCommitCharacter);
         }
 
-        private TextSpan ComputeReplacementSpan(CompletionItem completionItem, SourceText text)
+        private CompletionItem CreateCompletionItem(string displayText)
         {
-            var currentSpan = completionItem.Span;
-            var beforeCaretText = XmlDocCommentCompletionItem.GetBeforeCaretText(completionItem);
-            return TextSpan.FromBounds(text[currentSpan.Start - 1] == '<' && beforeCaretText[0] == '<' ? currentSpan.Start - 1 : currentSpan.Start, currentSpan.End);
+            return CreateCompletionItem(
+                displayText: displayText,
+                beforeCaretText: displayText,
+                afterCaretText: string.Empty);
         }
 
-        protected CompletionItem CreateCompletionItem(string displayText)
+        private CompletionItem CreateLangwordCompletionItem(string displayText)
         {
-            return CreateCompletionItem(displayText, displayText, string.Empty);
+            return CreateCompletionItem(
+                displayText: displayText,
+                beforeCaretText: "<see langword=\"" + displayText + "\"/>",
+                afterCaretText: string.Empty);
         }
 
-        protected CompletionItem CreateCompletionItem(string displayText, string beforeCaretText, string afterCaretText)
+        protected CompletionItem CreateCompletionItem(string displayText,
+            string beforeCaretText, string afterCaretText,
+            string beforeCaretTextOnSpace = null, string afterCaretTextOnSpace = null)
         {
             return XmlDocCommentCompletionItem.Create(
-                displayText, beforeCaretText, afterCaretText, 
+                displayText, beforeCaretText, afterCaretText,
+                beforeCaretTextOnSpace, afterCaretTextOnSpace,
                 rules: GetCompletionItemRules(displayText));
         }
 
-        internal static readonly CharacterSetModificationRule WithoutQuoteRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '"');
-        internal static readonly CharacterSetModificationRule WithoutSpaceRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ' ');
+        private static readonly CharacterSetModificationRule WithoutQuoteRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '"');
+        private static readonly CharacterSetModificationRule WithoutSpaceRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ' ');
 
         internal static readonly ImmutableArray<CharacterSetModificationRule> FilterRules = ImmutableArray.Create(
             CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '!', '-', '['));
 
-        protected abstract CompletionItemRules GetCompletionItemRules(string displayText);
+        private CompletionItemRules GetCompletionItemRules(string displayText)
+        {
+            var commitRules = defaultRules.CommitCharacterRules;
+
+            if (displayText.Contains("\""))
+            {
+                commitRules = commitRules.Add(WithoutQuoteRule);
+            }
+
+            if (displayText.Contains(" "))
+            {
+                commitRules = commitRules.Add(WithoutSpaceRule);
+            }
+
+            return defaultRules.WithCommitCharacterRules(commitRules);
+        }
     }
 }

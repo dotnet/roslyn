@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 
@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IConditionalAccessExpression : IOperation
     {
         /// <summary>
-        /// Expression to be evaluated if the conditional instance is non null.
+        /// Expression that will be evaulated and accessed if non null.
         /// </summary>
-        IOperation ConditionalValue { get; }
+        IOperation Expression { get; }
         /// <summary>
-        /// Expresson that is conditionally accessed.
+        /// Expression to be evaluated if <see cref="Expression"/> is non null.
         /// </summary>
-        IOperation ConditionalInstance { get; }
+        IOperation WhenNotNull { get; }
     }
 }
 

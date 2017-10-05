@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -14,22 +15,25 @@ namespace Microsoft.CodeAnalysis.Remote
     internal partial class CodeAnalysisService : IRemoteDocumentHighlights
     {
         public async Task<IList<SerializableDocumentHighlights>> GetDocumentHighlightsAsync(
-            DocumentId documentId, int position, DocumentId[] documentIdsToSearch)
+            DocumentId documentId, int position, DocumentId[] documentIdsToSearch, CancellationToken cancellationToken)
         {
-            // NOTE: In projection scenarios, we might get a set of documents to search
-            // that are not all the same language and might not exist in the OOP process
-            // (like the JS parts of a .cshtml file). Filter them out here.  This will
-            // need to be revisited if we someday support FAR between these languages.
-            var solution = await GetSolutionAsync().ConfigureAwait(false);
-            var document = solution.GetDocument(documentId);
-            var documentsToSearch = ImmutableHashSet.CreateRange(
-                documentIdsToSearch.Select(solution.GetDocument).WhereNotNull());
+            return await RunServiceAsync(async token =>
+            {
+                // NOTE: In projection scenarios, we might get a set of documents to search
+                // that are not all the same language and might not exist in the OOP process
+                // (like the JS parts of a .cshtml file). Filter them out here.  This will
+                // need to be revisited if we someday support FAR between these languages.
+                var solution = await GetSolutionAsync(token).ConfigureAwait(false);
+                var document = solution.GetDocument(documentId);
+                var documentsToSearch = ImmutableHashSet.CreateRange(
+                    documentIdsToSearch.Select(solution.GetDocument).WhereNotNull());
 
-            var service = document.GetLanguageService<IDocumentHighlightsService>();
-            var result = await service.GetDocumentHighlightsAsync(
-                document, position, documentsToSearch, CancellationToken).ConfigureAwait(false);
+                var service = document.GetLanguageService<IDocumentHighlightsService>();
+                var result = await service.GetDocumentHighlightsAsync(
+                    document, position, documentsToSearch, token).ConfigureAwait(false);
 
-            return result.SelectAsArray(SerializableDocumentHighlights.Dehydrate);
+                return result.SelectAsArray(SerializableDocumentHighlights.Dehydrate);
+            }, cancellationToken).ConfigureAwait(false);
         }
     }
 }

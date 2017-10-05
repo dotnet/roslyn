@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         internal IEnumerable<DocumentSnapshotSpan> _spansTagged;
         internal ImmutableArray<ITagSpan<TTag>>.Builder tagSpans = ImmutableArray.CreateBuilder<ITagSpan<TTag>>();
 
-        public IEnumerable<DocumentSnapshotSpan> SpansToTag { get; }
+        public ImmutableArray<DocumentSnapshotSpan> SpansToTag { get; }
         public SnapshotPoint? CaretPosition { get; }
 
         /// <summary>
@@ -46,15 +46,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             Document document, ITextSnapshot snapshot,
             SnapshotPoint? caretPosition = null,
             TextChangeRange? textChangeRange = null,
-            CancellationToken cancellationToken = default(CancellationToken))
-            : this(null, new[] { new DocumentSnapshotSpan(document, snapshot.GetFullSpan()) },
+            CancellationToken cancellationToken = default)
+            : this(null, ImmutableArray.Create(new DocumentSnapshotSpan(document, snapshot.GetFullSpan())),
                   caretPosition, textChangeRange, null, cancellationToken)
         {
         }
 
         internal TaggerContext(
             object state,
-            IEnumerable<DocumentSnapshotSpan> spansToTag,
+            ImmutableArray<DocumentSnapshotSpan> spansToTag,
             SnapshotPoint? caretPosition,
             TextChangeRange? textChangeRange,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> existingTags,

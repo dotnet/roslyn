@@ -51,7 +51,9 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         {
             faultInjector?.OnNewConnection();
 
-            var flags = OpenFlags.SQLITE_OPEN_CREATE | OpenFlags.SQLITE_OPEN_READWRITE;
+            // Enable shared cache so that multiple connections inside of same process share cache
+            // see https://sqlite.org/threadsafe.html for more detail
+            var flags = OpenFlags.SQLITE_OPEN_CREATE | OpenFlags.SQLITE_OPEN_READWRITE | OpenFlags.SQLITE_OPEN_SHAREDCACHE;
             var result = (Result)raw.sqlite3_open_v2(databasePath, out var handle, (int)flags, vfs: null);
 
             if (result != Result.OK)
@@ -203,7 +205,14 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         private Stream ReadBlob_InTransaction(string tableName, string columnName, long rowId)
         {
             const int ReadOnlyFlags = 0;
-            ThrowIfNotOk(raw.sqlite3_blob_open(_handle, "main", tableName, columnName, rowId, ReadOnlyFlags, out var blob));
+            var result = raw.sqlite3_blob_open(_handle, "main", tableName, columnName, rowId, ReadOnlyFlags, out var blob);
+            if (result == raw.SQLITE_ERROR)
+            {
+                // can happen when rowId points to a row that hasn't been written to yet.
+                return null;
+            }
+
+            ThrowIfNotOk(result);
             try
             {
                 return ReadBlob(blob);
@@ -268,6 +277,8 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             => Throw(_handle, result);
 
         public static void Throw(sqlite3 handle, Result result)
-            => throw new SqlException(result, raw.sqlite3_errmsg(handle));
+            => throw new SqlException(result,
+                raw.sqlite3_errmsg(handle) + "\r\n" +
+                raw.sqlite3_errstr(raw.sqlite3_extended_errcode(handle)));
     }
 }

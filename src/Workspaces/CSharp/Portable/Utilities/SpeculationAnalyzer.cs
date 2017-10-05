@@ -122,8 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return speculativeModel;
             }
 
-            var typeNode = nodeToSpeculate as TypeSyntax;
-            if (typeNode != null)
+            if (nodeToSpeculate is TypeSyntax typeNode)
             {
                 var bindingOption = isInNamespaceOrTypeContext ?
                     SpeculativeBindingOption.BindAsTypeOrNamespace :
@@ -132,8 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return speculativeModel;
             }
 
-            var cref = nodeToSpeculate as CrefSyntax;
-            if (cref != null)
+            if (nodeToSpeculate is CrefSyntax cref)
             {
                 semanticModel.TryGetSpeculativeSemanticModel(position, cref, out speculativeModel);
                 return speculativeModel;
@@ -379,6 +377,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     }
                 }
             }
+            else if (currentOriginalNode.Kind() == SyntaxKind.CaseSwitchLabel)
+            {
+                var originalCaseSwitchLabel = (CaseSwitchLabelSyntax)currentOriginalNode;
+                var newCaseSwitchLabel = (CaseSwitchLabelSyntax)currentReplacedNode;
+
+                // If case label is changing, then need to check if the semantics will change for the switch expression.  
+                // e.g. if switch expression is "switch(x)" where "object x = 1f", then "case 1:" and "case (float) 1:" are different.
+                var originalCaseType = this.OriginalSemanticModel.GetTypeInfo(previousOriginalNode, this.CancellationToken).Type;
+                var newCaseType = this.SpeculativeSemanticModel.GetTypeInfo(previousReplacedNode, this.CancellationToken).Type;
+
+                if (originalCaseType == newCaseType)
+                    return false;
+
+                var oldSwitchStatement = (SwitchStatementSyntax)originalCaseSwitchLabel.Parent.Parent;
+                var newSwitchStatement = (SwitchStatementSyntax)newCaseSwitchLabel.Parent.Parent;
+
+                var originalConversion = this.OriginalSemanticModel.ClassifyConversion(oldSwitchStatement.Expression, originalCaseType);
+                var newConversion = this.SpeculativeSemanticModel.ClassifyConversion(newSwitchStatement.Expression, newCaseType);
+                
+                // if conversion only exists for either original or new, then semantics changed.
+                if (originalConversion.Exists != newConversion.Exists)
+                {
+                    return true;
+                }
+
+                // Same conversion cannot result in both originalCaseType and newCaseType, which means the semantics changed
+                // (since originalCaseType != newCaseType)
+                return originalConversion == newConversion;
+            }
             else if (currentOriginalNode.Kind() == SyntaxKind.SwitchStatement)
             {
                 var originalSwitchStatement = (SwitchStatementSyntax)currentOriginalNode;
@@ -395,11 +422,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     var newSwitchLabels = newSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
                     for (int i = 0; i < originalSwitchLabels.Length; i++)
                     {
-                        var originalSwitchLabel = originalSwitchLabels[i] as CaseSwitchLabelSyntax;
-                        if (originalSwitchLabel != null)
+                        if (originalSwitchLabels[i] is CaseSwitchLabelSyntax originalSwitchLabel)
                         {
-                            var newSwitchLabel = newSwitchLabels[i] as CaseSwitchLabelSyntax;
-                            if (newSwitchLabel != null && !ImplicitConversionsAreCompatible(originalSwitchLabel.Value, newSwitchLabel.Value))
+                            if (newSwitchLabels[i] is CaseSwitchLabelSyntax newSwitchLabel && !ImplicitConversionsAreCompatible(originalSwitchLabel.Value, newSwitchLabel.Value))
                             {
                                 return true;
                             }
@@ -443,6 +468,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 var replacedAnonymousObjectMemberDeclarator = (AnonymousObjectMemberDeclaratorSyntax)currentReplacedNode;
                 return ReplacementBreaksAnonymousObjectMemberDeclarator(originalAnonymousObjectMemberDeclarator, replacedAnonymousObjectMemberDeclarator);
+            }
+            else if (currentOriginalNode.Kind() == SyntaxKind.DefaultExpression)
+            {
+                return !TypesAreCompatible((ExpressionSyntax)currentOriginalNode, (ExpressionSyntax)currentReplacedNode);
             }
 
             return false;

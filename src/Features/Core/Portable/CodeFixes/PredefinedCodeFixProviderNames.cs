@@ -32,11 +32,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ImplementAbstractClass = nameof(ImplementAbstractClass);
         public const string ImplementInterface = nameof(ImplementInterface);
         public const string InsertMissingCast = nameof(InsertMissingCast);
+        public const string MakeMethodSynchronous = nameof(MakeMethodSynchronous);
         public const string MoveToTopOfFile = nameof(MoveToTopOfFile);
         public const string PopulateSwitch = nameof(PopulateSwitch);
         public const string QualifyMemberAccess = nameof(QualifyMemberAccess);
         public const string RemoveUnnecessaryCast = nameof(RemoveUnnecessaryCast);
         public const string RemoveUnnecessaryImports = nameof(RemoveUnnecessaryImports);
+        public const string RemoveUnreachableCode = nameof(RemoveUnreachableCode);
+        public const string RemoveUnusedLocalFunction = nameof(RemoveUnusedLocalFunction);
         public const string RemoveUnusedVariable = nameof(RemoveUnusedVariable);
         public const string RenameTracking = nameof(RenameTracking);
         public const string SimplifyNames = nameof(SimplifyNames);

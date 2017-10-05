@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -87,16 +87,10 @@ namespace Microsoft.CodeAnalysis.Text
         /// with the specified text's container, or the text's container isn't associated with a workspace,
         /// then the method returns false.
         /// </summary>
-        internal static async Task<Document> GetDocumentWithFrozenPartialSemanticsAsync(this SourceText text, CancellationToken cancellationToken)
+        internal static Document GetDocumentWithFrozenPartialSemantics(this SourceText text, CancellationToken cancellationToken)
         {
             var document = text.GetOpenDocumentInCurrentContextWithChanges();
-
-            if (document != null)
-            {
-                return await document.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            return null;
+            return document?.WithFrozenPartialSemantics(cancellationToken);
         }
 
         internal static bool CanApplyChangeDocumentToWorkspace(this ITextBuffer buffer)

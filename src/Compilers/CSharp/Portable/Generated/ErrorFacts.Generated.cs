@@ -1,4 +1,4 @@
-namespace Microsoft.CodeAnalysis.CSharp
+﻿namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static partial class ErrorFacts
     {
@@ -175,6 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_TupleLiteralNameMismatch:
                 case ErrorCode.WRN_Experimental:
                 case ErrorCode.WRN_DefaultInSwitch:
+                case ErrorCode.WRN_UnreferencedLocalFunction:
                     return true;
                 default:
                     return false;

@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
 {
     internal static class Extensions
     {
-        public static async Task<T> GetValueAsync<T>(this ISolutionSynchronizationService service, Checksum checksum)
+        public static async Task<T> GetValueAsync<T>(this IRemotableDataService service, Checksum checksum)
         {
-            var syncService = (SolutionSynchronizationServiceFactory.Service)service;
-            var syncObject = service.GetRemotableData(checksum, CancellationToken.None);
+            var syncService = (RemotableDataServiceFactory.Service)service;
+            var syncObject = syncService.GetRemotableData_TestOnly(checksum, CancellationToken.None);
 
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var writer = new ObjectWriter(stream))
@@ -36,17 +36,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
             }
         }
 
-        public static ChecksumObjectCollection<ProjectStateChecksums> ToProjectObjects(this ProjectChecksumCollection collection, ISolutionSynchronizationService service)
+        public static ChecksumObjectCollection<ProjectStateChecksums> ToProjectObjects(this ProjectChecksumCollection collection, IRemotableDataService service)
         {
             return new ChecksumObjectCollection<ProjectStateChecksums>(service, collection);
         }
 
-        public static ChecksumObjectCollection<DocumentStateChecksums> ToDocumentObjects(this DocumentChecksumCollection collection, ISolutionSynchronizationService service)
+        public static ChecksumObjectCollection<DocumentStateChecksums> ToDocumentObjects(this DocumentChecksumCollection collection, IRemotableDataService service)
         {
             return new ChecksumObjectCollection<DocumentStateChecksums>(service, collection);
         }
 
-        public static ChecksumObjectCollection<DocumentStateChecksums> ToDocumentObjects(this TextDocumentChecksumCollection collection, ISolutionSynchronizationService service)
+        public static ChecksumObjectCollection<DocumentStateChecksums> ToDocumentObjects(this TextDocumentChecksumCollection collection, IRemotableDataService service)
         {
             return new ChecksumObjectCollection<DocumentStateChecksums>(service, collection);
         }
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
     {
         public ImmutableArray<T> Children { get; }
 
-        public ChecksumObjectCollection(ISolutionSynchronizationService service, ChecksumCollection collection) : base(collection.Checksum, collection.GetWellKnownSynchronizationKind())
+        public ChecksumObjectCollection(IRemotableDataService service, ChecksumCollection collection) : base(collection.Checksum, collection.GetWellKnownSynchronizationKind())
         {
             // using .Result here since we don't want to convert all calls to this to async.
             // and none of ChecksumWithChildren actually use async

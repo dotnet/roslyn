@@ -2,7 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.NavigateTo;
 
@@ -11,33 +11,39 @@ namespace Microsoft.CodeAnalysis.Remote
     internal partial class CodeAnalysisService : IRemoteNavigateToSearchService
     {
         public async Task<IList<SerializableNavigateToSearchResult>> SearchDocumentAsync(
-            DocumentId documentId, string searchPattern)
+            DocumentId documentId, string searchPattern, CancellationToken cancellationToken)
         {
-            using (UserOperationBooster.Boost())
+            return await RunServiceAsync(async token =>
             {
-                var solution = await GetSolutionAsync().ConfigureAwait(false);
+                using (UserOperationBooster.Boost())
+                {
+                    var solution = await GetSolutionAsync(token).ConfigureAwait(false);
 
-                var project = solution.GetDocument(documentId);
-                var result = await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
-                    project, searchPattern, CancellationToken).ConfigureAwait(false);
+                    var project = solution.GetDocument(documentId);
+                    var result = await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
+                        project, searchPattern, token).ConfigureAwait(false);
 
-                return Convert(result);
-            }
+                    return Convert(result);
+                }
+            }, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<IList<SerializableNavigateToSearchResult>> SearchProjectAsync(
-            ProjectId projectId, string searchPattern)
+            ProjectId projectId, string searchPattern, CancellationToken cancellationToken)
         {
-            using (UserOperationBooster.Boost())
+            return await RunServiceAsync(async token =>
             {
-                var solution = await GetSolutionAsync().ConfigureAwait(false);
+                using (UserOperationBooster.Boost())
+                {
+                    var solution = await GetSolutionAsync(token).ConfigureAwait(false);
 
-                var project = solution.GetProject(projectId);
-                var result = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                    project, searchPattern, CancellationToken).ConfigureAwait(false);
+                    var project = solution.GetProject(projectId);
+                    var result = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
+                        project, searchPattern, token).ConfigureAwait(false);
 
-                return Convert(result);
-            }
+                    return Convert(result);
+                }
+            }, cancellationToken).ConfigureAwait(false);
         }
 
         private ImmutableArray<SerializableNavigateToSearchResult> Convert(

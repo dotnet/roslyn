@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -35,18 +35,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTyp
 {
     void Main()
     {
-        [|Foo<int>|] f;
+        [|Goo<int>|] f;
     }
 }",
 @"class Program
 {
     void Main()
     {
-        Foo<int> f;
+        Goo<int> f;
     }
 }
 
-internal class Foo<T>
+internal class Goo<T>
 {
 }",
 index: 1);
@@ -194,13 +194,13 @@ index: 2);
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    [|Foo|] f;
+    [|Goo|] f;
 }",
 @"class Class
 {
-    Foo f;
+    Goo f;
 
-    private class Foo
+    private class Goo
     {
     }
 }",
@@ -211,20 +211,27 @@ index: 2);
         public async Task TestGenerateClassFromFieldDeclarationIntoGlobalNamespace()
         {
             await TestAddDocumentInRegularAndScriptAsync(
-@"class Program { void Main ( ) { [|Foo|] f ; } } ",
-@"internal class Foo { } ",
+@"class Program { void Main ( ) { [|Goo|] f ; } } ",
+@"internal class Goo
+{
+}",
 expectedContainers: ImmutableArray<string>.Empty,
-expectedDocumentName: "Foo.cs");
+expectedDocumentName: "Goo.cs");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateClassFromFieldDeclarationIntoCustomNamespace()
         {
             await TestAddDocumentInRegularAndScriptAsync(
-@"class Class { [|TestNamespace|].Foo f; }",
-@"namespace TestNamespace { internal class Foo { } }",
+@"class Class { [|TestNamespace|].Goo f; }",
+@"namespace TestNamespace
+{
+    internal class Goo
+    {
+    }
+}",
 expectedContainers: ImmutableArray.Create("TestNamespace"),
-expectedDocumentName: "Foo.cs");
+expectedDocumentName: "Goo.cs");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -233,14 +240,14 @@ expectedDocumentName: "Foo.cs");
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    [|Foo|] f;
+    [|Goo|] f;
 }",
 @"class Class
 {
-    Foo f;
+    Goo f;
 }
 
-internal class Foo
+internal class Goo
 {
 }",
 index: 1);
@@ -252,15 +259,15 @@ index: 1);
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    Foo f = new [|Foo|]();
+    Goo f = new [|Goo|]();
 }",
 @"class Class
 {
-    Foo f = new Foo();
+    Goo f = new Goo();
 
-    private class Foo
+    private class Goo
     {
-        public Foo()
+        public Goo()
         {
         }
     }
@@ -341,17 +348,17 @@ index: 1);
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    void Method([|Foo|] f)
+    void Method([|Goo|] f)
     {
     }
 }",
 @"class Class
 {
-    void Method(Foo f)
+    void Method(Goo f)
     {
     }
 
-    private class Foo
+    private class Goo
     {
     }
 }",
@@ -364,17 +371,17 @@ index: 2);
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    [|Foo|] Method()
+    [|Goo|] Method()
     {
     }
 }",
 @"class Class
 {
-    Foo Method()
+    Goo Method()
     {
     }
 
-    private class Foo
+    private class Goo
     {
     }
 }",
@@ -647,7 +654,7 @@ parameters: new TestParameters(Options.Regular));
 {
     void Method()
     {
-        using ([|Foo|] f = new Foo())
+        using ([|Goo|] f = new Goo())
         {
         }
     }
@@ -656,12 +663,12 @@ parameters: new TestParameters(Options.Regular));
 {
     void Method()
     {
-        using (Foo f = new Foo())
+        using (Goo f = new Goo())
         {
         }
     }
 
-    private class Foo
+    private class Goo
     {
     }
 }",
@@ -723,13 +730,13 @@ index: 2);
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    [|@Foo|] c;
+    [|@Goo|] c;
 }",
 @"class Class
 {
-    @Foo c;
+    @Goo c;
 
-    private class Foo
+    private class Goo
     {
     }
 }",
@@ -865,14 +872,14 @@ index: 1);
 @"class C
 {
 #if true 
-    void Foo([|A|] x) { }
+    void Goo([|A|] x) { }
 #else
 #endif
 }",
 @"class C
 {
 #if true 
-    void Foo(A x) { }
+    void Goo(A x) { }
 
     private class A
     {
@@ -880,8 +887,7 @@ index: 1);
 #else
 #endif
 }",
-index: 2,
-ignoreTrivia: false);
+index: 2);
         }
 
         [WorkItem(538495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538495")]
@@ -916,7 +922,12 @@ index: 1);
         {
             await TestAddDocumentInRegularAndScriptAsync(
 @"class Class { static void Main(string[] args) { [|N|].C c; } }",
-@"namespace N { internal class C { } }",
+@"namespace N
+{
+    internal class C
+    {
+    }
+}",
 expectedContainers: ImmutableArray.Create("N"),
 expectedDocumentName: "C.cs");
         }
@@ -951,14 +962,14 @@ expectedDocumentName: "C.cs");
             await TestAsync(
 @"class A
 {
-    void Foo()
+    void Goo()
     {
         A[] x = new [|C|][] { };
     }
 }",
 @"class A
 {
-    void Foo()
+    void Goo()
     {
         A[] x = new C[] { };
     }
@@ -978,14 +989,14 @@ parseOptions: null);
             await TestAsync(
 @"class A
 {
-    void Foo()
+    void Goo()
     {
         A[][] x = new [|C|][][] { };
     }
 }",
 @"class A
 {
-    void Foo()
+    void Goo()
     {
         A[][] x = new C[][] { };
     }
@@ -1005,14 +1016,14 @@ parseOptions: null);
             await TestAsync(
 @"class A
 {
-    void Foo()
+    void Goo()
     {
         A[] x = new [|C|][][] { };
     }
 }",
 @"class A
 {
-    void Foo()
+    void Goo()
     {
         A[] x = new C[][] { };
     }
@@ -2653,7 +2664,6 @@ internal class T
     }
 }",
 index: 1,
-ignoreTrivia: false,
 options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error));
         }
 
@@ -2787,7 +2797,7 @@ index: 1);
 {
     void M(int i)
     {
-        [|Foo|] = 2;
+        [|Goo|] = 2;
     }
 }");
         }
@@ -2801,18 +2811,18 @@ index: 1);
 {
     void M(int i)
     {
-        [|Foo|].Bar = 2;
+        [|Goo|].Bar = 2;
     }
 }",
 @"class Class
 {
     void M(int i)
     {
-        Foo.Bar = 2;
+        Goo.Bar = 2;
     }
 }
 
-internal class Foo
+internal class Goo
 {
 }",
 index: 1);
@@ -2827,7 +2837,7 @@ index: 1);
 {
     void M(int i)
     {
-        x = [|Foo|];
+        x = [|Goo|];
     }
 }");
         }
@@ -2841,18 +2851,18 @@ index: 1);
 {
     void M(int i)
     {
-        x = [|Foo|].Bar;
+        x = [|Goo|].Bar;
     }
 }",
 @"class Class
 {
     void M(int i)
     {
-        x = Foo.Bar;
+        x = Goo.Bar;
     }
 }
 
-internal class Foo
+internal class Goo
 {
 }",
 index: 1);
@@ -2865,14 +2875,14 @@ index: 1);
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    [|@Foo|] f;
+    [|@Goo|] f;
 }",
 @"class Class
 {
-    @Foo f;
+    @Goo f;
 }
 
-internal class Foo
+internal class Goo
 {
 }",
 index: 1);
@@ -2903,9 +2913,17 @@ index: 1);
         public async Task TestGenerateIntoNewFile()
         {
             await TestAddDocumentInRegularAndScriptAsync(
-@"class Class { void F() { new [|Foo|].Bar(); } }",
-@"namespace Foo { internal class Bar { public Bar() { } } }",
-expectedContainers: ImmutableArray.Create("Foo"),
+@"class Class { void F() { new [|Goo|].Bar(); } }",
+@"namespace Goo
+{
+    internal class Bar
+    {
+        public Bar()
+        {
+        }
+    }
+}",
+expectedContainers: ImmutableArray.Create("Goo"),
 expectedDocumentName: "Bar.cs");
         }
 
@@ -2916,7 +2934,7 @@ expectedDocumentName: "Bar.cs");
             await TestSpansAsync(
 @"class Class
 {
-    void Foo()
+    void Goo()
     {
         [|Bar|] b;
     }
@@ -2962,7 +2980,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        using ([|Foo|] f = bar())
+        using ([|Goo|] f = bar())
         {
         }
     }
@@ -2975,13 +2993,13 @@ class Program
 {
     static void Main(string[] args)
     {
-        using (Foo f = bar())
+        using (Goo f = bar())
         {
         }
     }
 }
 
-internal class Foo
+internal class Goo
 {
 }",
 index: 1);
@@ -3262,7 +3280,7 @@ index: 1);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         [|A<T>|] a;
     }
@@ -3273,7 +3291,7 @@ class A
 }",
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         A<T> a;
     }
@@ -3330,14 +3348,14 @@ index: 1);
             await TestInRegularAndScriptAsync(
 @"class C<T1, T2>
 {
-    public void Foo()
+    public void Goo()
     {
         [|D<int, string>|] d;
     }
 }",
 @"class C<T1, T2>
 {
-    public void Foo()
+    public void Goo()
     {
         D<int, string> d;
     }
@@ -3356,7 +3374,7 @@ index: 2);
             await TestInRegularAndScriptAsync(
 @"class M<T, R>
 {
-    public void Foo()
+    public void Goo()
     {
         I<T, R> i = new [|C<int, string>|]();
     }
@@ -3367,7 +3385,7 @@ interface I<T, R>
 }",
 @"class M<T, R>
 {
-    public void Foo()
+    public void Goo()
     {
         I<T, R> i = new C<int, string>();
     }
@@ -3390,7 +3408,7 @@ index: 1);
             await TestInRegularAndScriptAsync(
 @"class M<T, R>
 {
-    public void Foo()
+    public void Goo()
     {
         I<T, R> i = new [|C<int, string>|]();
     }
@@ -3401,7 +3419,7 @@ interface I<T, R>
 }",
 @"class M<T, R>
 {
-    public void Foo()
+    public void Goo()
     {
         I<T, R> i = new C<int, string>();
     }
@@ -3424,14 +3442,14 @@ index: 2);
             await TestInRegularAndScriptAsync(
 @"class C<T1, T2>
 {
-    public void Foo(T1 t1, T2 t2)
+    public void Goo(T1 t1, T2 t2)
     {
         A a = new [|A|](t1, t2);
     }
 }",
 @"class C<T1, T2>
 {
-    public void Foo(T1 t1, T2 t2)
+    public void Goo(T1 t1, T2 t2)
     {
         A a = new A(t1, t2);
     }
@@ -3458,14 +3476,14 @@ index: 1);
             await TestInRegularAndScriptAsync(
 @"class C<T1, T2>
 {
-    public void Foo(T1 t1, T2 t2)
+    public void Goo(T1 t1, T2 t2)
     {
         A a = new [|A|](t1, t2);
     }
 }",
 @"class C<T1, T2>
 {
-    public void Foo(T1 t1, T2 t2)
+    public void Goo(T1 t1, T2 t2)
     {
         A a = new A(t1, t2);
     }
@@ -3647,14 +3665,14 @@ index: 1);
         public async Task TestBaseInterfaceAccessibilityConstraint1()
         {
             await TestInRegularAndScriptAsync(
-@"public class C : X, [|IFoo|]
+@"public class C : X, [|IGoo|]
 {
 }",
-@"public class C : X, IFoo
+@"public class C : X, IGoo
 {
 }
 
-internal interface IFoo
+internal interface IGoo
 {
 }",
 index: 1);
@@ -3664,10 +3682,10 @@ index: 1);
         public async Task TestAccessibilityConstraint2()
         {
             await TestInRegularAndScriptAsync(
-@"public interface C : [|IBar|], IFoo
+@"public interface C : [|IBar|], IGoo
 {
 }",
-@"public interface C : IBar, IFoo
+@"public interface C : IBar, IGoo
 {
 }
 
@@ -3681,14 +3699,14 @@ index: 1);
         public async Task TestAccessibilityConstraint3()
         {
             await TestInRegularAndScriptAsync(
-@"public interface C : IBar, [|IFoo|]
+@"public interface C : IBar, [|IGoo|]
 {
 }",
-@"public interface C : IBar, IFoo
+@"public interface C : IBar, IGoo
 {
 }
 
-public interface IFoo
+public interface IGoo
 {
 }",
 index: 1);
@@ -3698,8 +3716,8 @@ index: 1);
         public async Task TestDelegateReturnTypeAccessibilityConstraint()
         {
             await TestInRegularAndScriptAsync(
-@"public delegate [|D|] Foo();",
-@"public delegate D Foo();
+@"public delegate [|D|] Goo();",
+@"public delegate D Goo();
 
 public class D
 {
@@ -3711,8 +3729,8 @@ index: 1);
         public async Task TestDelegateParameterAccessibilityConstraint()
         {
             await TestInRegularAndScriptAsync(
-@"public delegate D Foo([|S|] d);",
-@"public delegate D Foo(S d);
+@"public delegate D Goo([|S|] d);",
+@"public delegate D Goo(S d);
 
 public class S
 {
@@ -3726,11 +3744,11 @@ index: 1);
             await TestInRegularAndScriptAsync(
 @"public class C
 {
-    public void Foo([|F|] f);
+    public void Goo([|F|] f);
 }",
 @"public class C
 {
-    public void Foo(F f);
+    public void Goo(F f);
 }
 
 public class F
@@ -3745,11 +3763,11 @@ index: 1);
             await TestInRegularAndScriptAsync(
 @"public class C
 {
-    public [|F|] Foo(Bar f);
+    public [|F|] Goo(Bar f);
 }",
 @"public class C
 {
-    public F Foo(Bar f);
+    public F Goo(Bar f);
 
     public class F
     {
@@ -3764,11 +3782,11 @@ index: 2);
             await TestInRegularAndScriptAsync(
 @"public class C
 {
-    public [|F|] Foo { get; }
+    public [|F|] Goo { get; }
 }",
 @"public class C
 {
-    public F Foo { get; }
+    public F Goo { get; }
 
     public class F
     {
@@ -3938,7 +3956,7 @@ index: 1);
 
 class Program
 {
-    static void Foo<T>() where T : class
+    static void Goo<T>() where T : class
     {
         A<T> a = new [|B<T>|]();
     }
@@ -3949,7 +3967,7 @@ class Program
 
 class Program
 {
-    static void Foo<T>() where T : class
+    static void Goo<T>() where T : class
     {
         A<T> a = new B<T>();
     }
@@ -4009,10 +4027,10 @@ class Program
 {
     static void Main()
     {
-        Foo<Program.[|S|]>();
+        Goo<Program.[|S|]>();
     }
 
-    static void Foo<T>() where T : struct
+    static void Goo<T>() where T : struct
     {
     }
 }",
@@ -4022,10 +4040,10 @@ class Program
 {
     static void Main()
     {
-        Foo<Program.S>();
+        Goo<Program.S>();
     }
 
-    static void Foo<T>() where T : struct
+    static void Goo<T>() where T : struct
     {
     }
 
@@ -4071,7 +4089,7 @@ index: 1);
 class A<T>
 {
     [[|C|]]
-    void Foo()
+    void Goo()
     {
     }
 }",
@@ -4087,7 +4105,7 @@ count: 3);
 
 public class C
 {
-    public void Foo(List<[|NewClass|]> x)
+    public void Goo(List<[|NewClass|]> x)
     {
     }
 }",
@@ -4095,7 +4113,7 @@ public class C
 
 public class C
 {
-    public void Foo(List<NewClass> x)
+    public void Goo(List<NewClass> x)
     {
     }
 }
@@ -4144,7 +4162,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        CustomConstantAttribute a = new [|FooAttribute|]();
+        CustomConstantAttribute a = new [|GooAttribute|]();
     }
 }",
 @"using System.Runtime.CompilerServices;
@@ -4153,11 +4171,11 @@ class Program
 {
     static void Main(string[] args)
     {
-        CustomConstantAttribute a = new FooAttribute();
+        CustomConstantAttribute a = new GooAttribute();
     }
 }
 
-internal class FooAttribute : CustomConstantAttribute
+internal class GooAttribute : CustomConstantAttribute
 {
 }",
 index: 1);
@@ -4168,8 +4186,8 @@ index: 1);
         public async Task TestDisplayStringForGlobalNamespace()
         {
             await TestSmartTagTextAsync(
-@"class C : [|Foo|]",
-string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", FeaturesResources.Global_Namespace));
+@"class C : [|Goo|]",
+string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo", FeaturesResources.Global_Namespace));
         }
 
         [WorkItem(543853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543853")]
@@ -4177,10 +4195,12 @@ string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", Featur
         public async Task TestAddDocumentForGlobalNamespace()
         {
             await TestAddDocumentInRegularAndScriptAsync(
-@"class C : [|Foo|]",
-"internal class Foo { }",
+@"class C : [|Goo|]",
+@"internal class Goo
+{
+}",
 ImmutableArray<string>.Empty,
-"Foo.cs");
+"Goo.cs");
         }
 
         [WorkItem(543886, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543886")]
@@ -4230,7 +4250,8 @@ index: 1);
     x, x)private class x
     {
     }
-}",
+}
+",
 index: 2);
         }
 
@@ -4239,15 +4260,15 @@ index: 2);
         public async Task TestNotOnAbstractClassCreation()
         {
             await TestMissingInRegularAndScriptAsync(
-@"abstract class Foo
+@"abstract class Goo
 {
 }
 
 class SomeClass
 {
-    void foo()
+    void goo()
     {
-        var q = new [|Foo|]();
+        var q = new [|Goo|]();
     }
 }");
         }
@@ -4263,7 +4284,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        [|Foo|] f;
+        [|Goo|] f;
 #line hidden
 #line 2 ""Default.aspx""
     }
@@ -4273,8 +4294,8 @@ class Program
             await TestExactActionSetOfferedAsync(code,
                 new[]
                 {
-                    string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Foo", FeaturesResources.Global_Namespace),
-                    string.Format(FeaturesResources.Generate_nested_0_1, "class", "Foo", "Program"),
+                    string.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Goo", FeaturesResources.Global_Namespace),
+                    string.Format(FeaturesResources.Generate_nested_0_1, "class", "Goo", "Program"),
                     FeaturesResources.Generate_new_type
                 });
 
@@ -4286,16 +4307,16 @@ class Program
 {
     static void Main(string[] args)
     {
-        [|Foo|] f;
+        [|Goo|] f;
 #line hidden
 #line 2 ""Default.aspx""
     }
 
-    private class Foo
+    private class Goo
     {
     }
 }
-", index: 1, ignoreTrivia: false);
+", index: 1);
         }
 
         [WorkItem(869506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869506")]
@@ -4344,7 +4365,7 @@ namespace A
 }
 ";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [WorkItem(932602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
@@ -4374,8 +4395,7 @@ namespace Namespace1.Namespace2
             await TestAddDocumentInRegularAndScriptAsync(code,
                 expected,
                 expectedContainers: ImmutableArray<string>.Empty,
-                expectedDocumentName: "ClassB.cs",
-                ignoreTrivia: false);
+                expectedDocumentName: "ClassB.cs");
         }
 
         [WorkItem(932602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
@@ -4405,8 +4425,7 @@ namespace Namespace1.Namespace2.Namespace3
             await TestAddDocumentInRegularAndScriptAsync(code,
                 expected,
                 expectedContainers: ImmutableArray.Create("Namespace1", "Namespace2"),
-                expectedDocumentName: "ClassB.cs",
-                ignoreTrivia: false);
+                expectedDocumentName: "ClassB.cs");
         }
 
         [WorkItem(612700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612700")]
@@ -4517,7 +4536,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var c = new [|Customer|](x: 1, y: ""Hello"") {Name = Foo, Age = DateTime.Today};
+        var c = new [|Customer|](x: 1, y: ""Hello"") {Name = Goo, Age = DateTime.Today};
     }
 }";
 
@@ -4527,7 +4546,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var c = new Customer(x: 1, y: ""Hello"") {Name = Foo, Age = DateTime.Today};
+        var c = new Customer(x: 1, y: ""Hello"") {Name = Goo, Age = DateTime.Today};
     }
 }
 
@@ -4794,17 +4813,16 @@ class Program
 {
     void Main ( )
     {
-        [|Foo|] f ;
+        [|Goo|] f ;
     }
 } ",
 @"// I am a banner
 
-internal class Foo
+internal class Goo
 {
 }",
 expectedContainers: ImmutableArray<string>.Empty,
-expectedDocumentName: "Foo.cs",
-ignoreTrivia: false);
+expectedDocumentName: "Goo.cs");
         }
 
         [WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")]
@@ -4817,15 +4835,14 @@ class Program
 {
     void Main ( )
     {
-        [|Foo|] f ;
+        [|Goo|] f ;
     }
 } ",
-@"internal class Foo
+@"internal class Goo
 {
 }",
 expectedContainers: ImmutableArray<string>.Empty,
-expectedDocumentName: "Foo.cs",
-ignoreTrivia: false);
+expectedDocumentName: "Goo.cs");
         }
 
         [WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")]
@@ -4840,24 +4857,23 @@ class Program
 {
     void Main (StackOverflowException e)
     {
-        var f = new [|Foo|](e);
+        var f = new [|Goo|](e);
     }
 }",
     @"// I am a banner
 using System;
 
-internal class Foo
+internal class Goo
 {
     private StackOverflowException e;
 
-    public Foo(StackOverflowException e)
+    public Goo(StackOverflowException e)
     {
         this.e = e;
     }
 }",
     expectedContainers: ImmutableArray<string>.Empty,
-    expectedDocumentName: "Foo.cs",
-    ignoreTrivia: false);
+    expectedDocumentName: "Goo.cs");
         }
     }
 
@@ -4876,14 +4892,14 @@ internal class Foo
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    public [|Foo|]
+    public [|Goo|]
 }",
 @"class Class
 {
-    public Foo
+    public Goo
 }
 
-internal class Foo
+internal class Goo
 {
 }",
 index: 1);

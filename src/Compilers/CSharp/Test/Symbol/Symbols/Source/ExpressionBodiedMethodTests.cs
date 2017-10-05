@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -15,34 +16,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
             var comp = CompileAndVerify(@"
 public partial class C
 {
-    static partial void foo() => System.Console.WriteLine(""test"");
+    static partial void goo() => System.Console.WriteLine(""test"");
 }
 
 public partial class C
 {
     public static void Main(string[] args)
     {
-        foo();
+        goo();
     }
-    static partial void foo();
+    static partial void goo();
 }
 ", sourceSymbolValidator: m =>
             {
-                var fooDef = m.GlobalNamespace
+                var gooDef = m.GlobalNamespace
                     .GetMember<NamedTypeSymbol>("C")
-                    .GetMember<SourceMemberMethodSymbol>("foo");
-                Assert.True(fooDef.IsPartial);
-                Assert.True(fooDef.IsPartialDefinition);
-                Assert.False(fooDef.IsPartialImplementation);
-                Assert.Null(fooDef.PartialDefinitionPart);
+                    .GetMember<SourceOrdinaryMethodSymbol>("goo");
+                Assert.True(gooDef.IsPartial);
+                Assert.True(gooDef.IsPartialDefinition);
+                Assert.False(gooDef.IsPartialImplementation);
+                Assert.Null(gooDef.PartialDefinitionPart);
 
-                var fooImpl = fooDef.PartialImplementationPart
-                    as SourceMemberMethodSymbol;
-                Assert.NotNull(fooImpl);
-                Assert.True(fooImpl.IsPartial);
-                Assert.True(fooImpl.IsPartialImplementation);
-                Assert.False(fooImpl.IsPartialDefinition);
-                Assert.True(fooImpl.IsExpressionBodied);
+                var gooImpl = gooDef.PartialImplementationPart
+                    as SourceOrdinaryMethodSymbol;
+                Assert.NotNull(gooImpl);
+                Assert.True(gooImpl.IsPartial);
+                Assert.True(gooImpl.IsPartialImplementation);
+                Assert.False(gooImpl.IsPartialDefinition);
+                Assert.True(gooImpl.IsExpressionBodied);
             },
 expectedOutput: "test");
         }
@@ -156,11 +157,11 @@ public class C {
             var comp = CreateCompilationWithMscorlib45(@"
 namespace MyNamespace
 {
-    public partial struct Foo
+    public partial struct Goo
     {
         public double Bar => 0;
     }
-    public partial struct Foo
+    public partial struct Goo
     {
     }
 }");
@@ -195,7 +196,7 @@ class C
             var global = comp.GlobalNamespace;
             var c = global.GetTypeMember("C");
 
-            var m = c.GetMember<SourceMethodSymbol>("M");
+            var m = c.GetMember<SourceMemberMethodSymbol>("M");
             Assert.False(m.IsImplicitlyDeclared);
             Assert.True(m.IsExpressionBodied);
 
@@ -228,7 +229,7 @@ class C : B
             var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
-    public void M() => System.Console.WriteLine(""foo"");
+    public void M() => System.Console.WriteLine(""goo"");
 }").VerifyDiagnostics();
         }
 
@@ -238,11 +239,11 @@ class C
             var comp = CreateCompilationWithMscorlib45(@"
 class C
 {
-    public int M() => System.Console.WriteLine(""foo"");
+    public int M() => System.Console.WriteLine(""goo"");
 }").VerifyDiagnostics(
     // (4,23): error CS0029: Cannot implicitly convert type 'void' to 'int'
-    //     public int M() => System.Console.WriteLine("foo");
-    Diagnostic(ErrorCode.ERR_NoImplicitConv, @"System.Console.WriteLine(""foo"")").WithArguments("void", "int").WithLocation(4, 23));
+    //     public int M() => System.Console.WriteLine("goo");
+    Diagnostic(ErrorCode.ERR_NoImplicitConv, @"System.Console.WriteLine(""goo"")").WithArguments("void", "int").WithLocation(4, 23));
         }
 
         [Fact]
@@ -265,7 +266,7 @@ internal interface K
 class C : I, J, K
 {
     public int M() => 10;
-    string I.N() => ""foo"";
+    string I.N() => ""goo"";
     string J.N() => ""bar"";
     public decimal O() => M();
 }");
@@ -276,25 +277,25 @@ class C : I, J, K
             var k = global.GetTypeMember("K");
             var c = global.GetTypeMember("C");
 
-            var iM = i.GetMember<SourceMethodSymbol>("M");
-            var iN = i.GetMember<SourceMethodSymbol>("N");
-            var jN = j.GetMember<SourceMethodSymbol>("N");
+            var iM = i.GetMember<SourceMemberMethodSymbol>("M");
+            var iN = i.GetMember<SourceMemberMethodSymbol>("N");
+            var jN = j.GetMember<SourceMemberMethodSymbol>("N");
 
-            var method = c.GetMember<SourceMethodSymbol>("M");
+            var method = c.GetMember<SourceMemberMethodSymbol>("M");
             var implements = method.ContainingType.FindImplementationForInterfaceMember(iM);
             Assert.Equal(implements, method);
 
-            method = (SourceMethodSymbol)c.GetMethod("I.N");
+            method = (SourceMemberMethodSymbol)c.GetMethod("I.N");
             implements = c.FindImplementationForInterfaceMember(iN);
             Assert.True(method.IsExplicitInterfaceImplementation);
             Assert.Equal(implements, method);
 
-            method = (SourceMethodSymbol)c.GetMethod("J.N");
+            method = (SourceMemberMethodSymbol)c.GetMethod("J.N");
             implements = c.FindImplementationForInterfaceMember(jN);
             Assert.True(method.IsExplicitInterfaceImplementation);
             Assert.Equal(implements, method);
 
-            method = c.GetMember<SourceMethodSymbol>("O");
+            method = c.GetMember<SourceMemberMethodSymbol>("O");
             Assert.False(method.IsExplicitInterfaceImplementation);
         }
 
@@ -308,7 +309,7 @@ abstract class A
 }
 abstract class B : A
 {
-    protected sealed override string Z() => ""foo"";
+    protected sealed override string Z() => ""goo"";
     protected abstract string Y();
 }    
 class C : B
@@ -337,8 +338,8 @@ class C : B
 4
 2
 8
-foo
-foo8");
+goo
+goo8");
         }
 
         [ClrOnlyFact]
@@ -375,6 +376,19 @@ class C
 {
     int field = 0;
     public ref int M() => ref field;
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void RefReadonlyReturningExpressionBodiedMethod()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+class C
+{
+    int field = 0;
+    public ref readonly int M() => ref field;
 }");
             comp.VerifyDiagnostics();
         }

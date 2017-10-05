@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -86,7 +86,8 @@ end class")
     end property|]
 end class",
 "class Class1
-    readonly property P as integer = 1
+    readonly property P as integer
+= 1
 end class")
         End Function
 
@@ -207,7 +208,7 @@ end class")
     [|dim i as integer|]
     property P as Integer
         get
-            Foo()
+            Goo()
             return i
         end get
     end property
@@ -221,7 +222,7 @@ end class")
     [|dim i as integer|]
     property P as Integer
         set
-            Foo()
+            Goo()
             i = value
         end set
     end property
@@ -239,7 +240,7 @@ end class")
         end get
 
         set
-            Foo()
+            Goo()
             i = value
         end set
     end property
@@ -463,7 +464,7 @@ end class")
 end class",
 "class Class1
     ReadOnly property P as Integer
-    public sub new(dim P as integer)
+ public sub new(dim P as integer)
         Me.P = 1
     end sub
 end class")
@@ -500,7 +501,7 @@ end class")
         get
             return i
  end property
-    public sub Foo()
+    public sub Goo()
         i = 1
     end sub
 end class")
@@ -515,7 +516,7 @@ end class")
         get
             return i
  \end property 
- public sub Foo()
+ public sub Goo()
         i = 1
     end sub
 end class")
@@ -534,14 +535,15 @@ end class")
             i = value
         end set
     end property
-    public sub Foo()
+    public sub Goo()
         i = 1
     end sub
 end class",
 "class Class1
     public property P as Integer
-    public sub Foo() P = 1 
- end sub
+    public sub Goo()
+        P = 1
+    end sub
 end class")
         End Function
 

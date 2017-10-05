@@ -24,6 +24,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -626,6 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ObjectCreationExpression:
                     var init = (BoundObjectCreationExpression)value;
                     return !init.Constructor.IsImplicitlyDeclared || init.InitializerExpressionOpt != null;
+                case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
                     return false;
                 default:
@@ -1502,7 +1504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected void VisitStatementsWithLocalFunctions(BoundBlock block)
+        private void VisitStatementsWithLocalFunctions(BoundBlock block)
         {
             // Visit the statements in two phases:
             //   1. Local function declarations
@@ -1525,8 +1527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (stmt.Kind == BoundKind.LocalFunctionStatement)
                     {
-                        VisitLocalFunctionStatement(
-                            (BoundLocalFunctionStatement)stmt);
+                        VisitAlways(stmt);
                     }
                 }
             }
@@ -1563,18 +1564,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             DeclareVariables(node.Locals);
             base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
-        }
-
-        private void CreateSlots(BoundPattern pattern)
-        {
-            if (pattern.Kind == BoundKind.DeclarationPattern)
-            {
-                var local = ((BoundDeclarationPattern)pattern).Variable as LocalSymbol;
-                if ((object)local != null)
-                {
-                    int slot = GetOrCreateSlot(local);
-                }
-            }
         }
 
         public override BoundNode VisitForStatement(BoundForStatement node)
@@ -1712,7 +1701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!string.IsNullOrEmpty(symbol.Name)) // avoid diagnostics for parser-inserted names
                 {
-                    Diagnostics.Add(ErrorCode.WRN_UnreferencedVar, symbol.Locations[0], symbol.Name);
+                    Diagnostics.Add(ErrorCode.WRN_UnreferencedLocalFunction, symbol.Locations[0], symbol.Name);
                 }
             }
         }
@@ -1890,39 +1879,49 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitAddressOfOperator(BoundAddressOfOperator node)
+        public override BoundNode VisitFixedLocalCollectionInitializer(BoundFixedLocalCollectionInitializer node)
         {
-            BoundExpression operand = node.Operand;
-            bool shouldReadOperand = false;
+            var initializer = node.Expression;
+
+            if (initializer.Kind == BoundKind.AddressOfOperator)
+            {
+                initializer = ((BoundAddressOfOperator)initializer).Operand;
+            }
 
             // If the node is a fixed statement address-of operator (e.g. fixed(int *p = &...)),
             // then we don't need to consider it for membership in unsafeAddressTakenVariables,
             // because it is either not a local/parameter/range variable (if the variable is
             // non-moveable) or it is and it has a RefKind other than None, in which case it can't
             // be referred to in a lambda (i.e. can't be captured).
-            if (!node.IsFixedStatementAddressOf)
-            {
-                Symbol variable = UseNonFieldSymbolUnsafely(operand);
-                if ((object)variable != null)
-                {
-                    // The goal here is to treat address-of as a read in cases where
-                    // we (a) care about a read happening (e.g. for DataFlowsIn) and
-                    // (b) have information indicating that this will not result in
-                    // a read to an unassigned variable (i.e. the operand is definitely
-                    // assigned).
-                    if (_unassignedVariableAddressOfSyntaxes?.Contains(node.Syntax as PrefixUnaryExpressionSyntax) == false)
-                    {
-                        shouldReadOperand = true;
-                    }
+            VisitAddressOfOperand(initializer, shouldReadOperand: false);
+            return null;
+        }
 
-                    if (!_unsafeAddressTakenVariables.ContainsKey(variable))
-                    {
-                        _unsafeAddressTakenVariables.Add(variable, node.Syntax.Location);
-                    }
+        public override BoundNode VisitAddressOfOperator(BoundAddressOfOperator node)
+        {
+            BoundExpression operand = node.Operand;
+            bool shouldReadOperand = false;
+
+            Symbol variable = UseNonFieldSymbolUnsafely(operand);
+            if ((object)variable != null)
+            {
+                // The goal here is to treat address-of as a read in cases where
+                // we (a) care about a read happening (e.g. for DataFlowsIn) and
+                // (b) have information indicating that this will not result in
+                // a read to an unassigned variable (i.e. the operand is definitely
+                // assigned).
+                if (_unassignedVariableAddressOfSyntaxes?.Contains(node.Syntax as PrefixUnaryExpressionSyntax) == false)
+                {
+                    shouldReadOperand = true;
+                }
+
+                if (!_unsafeAddressTakenVariables.ContainsKey(variable))
+                {
+                    _unsafeAddressTakenVariables.Add(variable, node.Syntax.Location);
                 }
             }
 
-            VisitAddressOfOperator(node, shouldReadOperand);
+            VisitAddressOfOperand(node.Operand, shouldReadOperand);
 
             return null;
         }

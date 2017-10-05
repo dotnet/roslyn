@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -28,8 +28,10 @@ Imports System.Collections.Generic
 Imports System.Linq
 Class Program
     Inherits Exception
+
     Public Sub New()
     End Sub
+
     Sub Main(args As String())
     End Sub
 End Class")
@@ -51,9 +53,11 @@ Imports System.Collections.Generic
 Imports System.Linq
 Class Program
     Inherits Exception
+
     Public Sub New(message As String)
         MyBase.New(message)
     End Sub
+
     Sub Main(args As String())
     End Sub
 End Class",
@@ -74,7 +78,6 @@ End Class",
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
-
 Class Program
     Inherits Exception
 
@@ -103,6 +106,7 @@ End Class",
 Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Runtime.Serialization
+
 Class Program
     Inherits Exception
 
@@ -194,7 +198,7 @@ End Structure")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestNotOfferedForIncorrectlyParentedInheritsStatement() As Task
             Await TestMissingInRegularAndScriptAsync(
-"Inherits [||]Foo")
+"Inherits [||]Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
@@ -214,19 +218,24 @@ End Class",
 Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Runtime.Serialization
+
 Class Program
     Inherits Exception
     Public Sub New()
     End Sub
+
     Public Sub New(message As String)
         MyBase.New(message)
     End Sub
+
     Public Sub New(message As String, innerException As Exception)
         MyBase.New(message, innerException)
     End Sub
+
     Protected Sub New(info As SerializationInfo, context As StreamingContext)
         MyBase.New(info, context)
     End Sub
+
     Sub Main(args As String())
     End Sub
 End Class",
@@ -258,8 +267,10 @@ Imports System.Collections.Generic
 Imports System.Linq
 Class Program
     Inherits Exception
+
     Public Sub New()
     End Sub
+
     Public Sub New(message As String)
         MyBase.New(message)
     End Sub
@@ -299,9 +310,11 @@ Class Program
 
     Public Sub New()
     End Sub
+
     Public Sub New(message As String)
         MyBase.New(message)
     End Sub
+
     Public Sub New(message As String, innerException As Exception)
         MyBase.New(message, innerException)
     End Sub
@@ -331,8 +344,10 @@ Imports System.Collections.Generic
 Imports System.Linq
 Class Program
     Inherits Exception
+
     Public Sub New()
     End Sub
+
     Sub Main(args As String())
     End Sub
 End Class")
@@ -365,8 +380,7 @@ Class Program
 
     Sub Main(args As String())
     End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")>
@@ -396,8 +410,7 @@ End Class
 Class B
     Friend Sub New(x As Integer)
     End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/15005"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
@@ -459,8 +472,7 @@ Class B
     End Sub
 End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
-index:=2,
-ignoreTrivia:=False)
+index:=2)
             Throw New Exception() ' (Skip:="https://github.com/dotnet/roslyn/issues/15005")
         End Function
 
@@ -523,8 +535,7 @@ Class B
     End Sub
 End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
-index:=2,
-ignoreTrivia:=False)
+index:=2)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>

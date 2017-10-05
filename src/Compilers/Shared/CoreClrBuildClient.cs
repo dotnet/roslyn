@@ -17,14 +17,16 @@ namespace Microsoft.CodeAnalysis.CommandLine
     {
         private readonly RequestLanguage _language;
         private readonly CompileFunc _compileFunc;
+        private readonly IAnalyzerAssemblyLoader _analyzerAssemblyLoader;
 
-        private CoreClrBuildClient(RequestLanguage language, CompileFunc compileFunc)
+        private CoreClrBuildClient(RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
         {
             _language = language;
             _compileFunc = compileFunc;
+            _analyzerAssemblyLoader = analyzerAssemblyLoader;
         }
 
-        internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc)
+        internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
         {
             // Register encodings for console
             // https://github.com/dotnet/roslyn/issues/10785 
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             // ends up giving us both CoreRun and the exe file.  Need to find a good way to remove the host
             // as well as the EXE argument.
             // https://github.com/dotnet/roslyn/issues/6677
-            var client = new CoreClrBuildClient(language, compileFunc);
+            var client = new CoreClrBuildClient(language, compileFunc, analyzerAssemblyLoader);
             var clientDir = AppContext.BaseDirectory;
             var workingDir = Directory.GetCurrentDirectory();
             var tempDir = Path.GetTempPath();
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         protected override int RunLocalCompilation(string[] arguments, BuildPaths buildPaths, TextWriter textWriter)
         {
-            return _compileFunc(arguments, buildPaths, textWriter, new CoreClrAnalyzerAssemblyLoader());
+            return _compileFunc(arguments, buildPaths, textWriter, _analyzerAssemblyLoader);
         }
 
         protected override string GetSessionKey(BuildPaths buildPaths)

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.InteropServices
 Imports System.Threading.Tasks
@@ -15,12 +15,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
         Public Sub TestFullName1()
             Dim code =
 <Code>
-using $$Foo;
+using $$Goo;
 </Code>
 
             Dim ex = Assert.Throws(Of COMException)(
                 Sub()
-                    TestName(code, "Foo")
+                    TestName(code, "Goo")
                 End Sub)
 
             Assert.Equal(E_FAIL, ex.ErrorCode)
@@ -34,12 +34,12 @@ using $$Foo;
         Public Sub TestName1()
             Dim code =
 <Code>
-using $$Foo;
+using $$Goo;
 </Code>
 
             Dim ex = Assert.Throws(Of COMException)(
                 Sub()
-                    TestName(code, "Foo")
+                    TestName(code, "Goo")
                 End Sub)
 
             Assert.Equal(E_FAIL, ex.ErrorCode)
@@ -53,10 +53,10 @@ using $$Foo;
         Public Sub TestNamespace1()
             Dim code =
 <Code>
-using $$Foo;
+using $$Goo;
 </Code>
 
-            TestNamespace(code, "Foo")
+            TestNamespace(code, "Goo")
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -65,11 +65,11 @@ using $$Foo;
 <Code>
 namespace Bar
 {
-    using $$Foo;
+    using $$Goo;
 }
 </Code>
 
-            TestNamespace(code, "Foo")
+            TestNamespace(code, "Goo")
         End Sub
 
 #End Region

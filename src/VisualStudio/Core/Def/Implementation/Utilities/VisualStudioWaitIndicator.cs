@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -48,17 +49,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
                 {
                     return WaitIndicatorResult.Canceled;
                 }
-                catch (AggregateException e)
+                catch (AggregateException aggregate) when (aggregate.InnerExceptions.All(e => e is OperationCanceledException))
                 {
-                    var operationCanceledException = e.InnerExceptions[0] as OperationCanceledException;
-                    if (operationCanceledException != null)
-                    {
-                        return WaitIndicatorResult.Canceled;
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    return WaitIndicatorResult.Canceled;
                 }
             }
         }

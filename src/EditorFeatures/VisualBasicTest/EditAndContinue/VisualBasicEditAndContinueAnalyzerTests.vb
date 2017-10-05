@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Differencing
@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         Public Sub ErrorSpans_TopLevel()
             Dim source = <![CDATA[
 <span>Option Strict Off</span>
-<span>Imports Z = Foo.Bar</span>
+<span>Imports Z = Goo.Bar</span>
 
 <<span>Assembly: A(1,2,3,4)</span>, <span>B</span>>
 
@@ -159,7 +159,7 @@ End Enum
     <A><span>Function M1()</span> As Integer
     End Function
 
-    <span>Function M2()</span> As Integer Implements I.Foo
+    <span>Function M2()</span> As Integer Implements I.Goo
     End Function
 
     <span>Function M3()</span> As Integer Handles I.E
@@ -405,7 +405,7 @@ End Class
         End Sub
 
         ''' <summary>
-        ''' Verifies that <see cref="CSharpEditAndContinueAnalyzer.GetDiagnosticSpanImpl"/> handles all <see cref="SyntaxKind"/> s.
+        ''' Verifies that <see cref="VisualBasicEditAndContinueAnalyzer.GetDiagnosticSpanImpl"/> handles all <see cref="SyntaxKind"/> s.
         ''' </summary>
         <Fact>
         Public Sub ErrorSpansAllKinds()
@@ -617,10 +617,10 @@ Class C
 
     Public Sub New()
         MyBase.New()
-        Foo()
+        Goo()
     End Sub
 
-    Public Sub Foo
+    Public Sub Goo
     End Sub
 End Class
 </text>.Value
@@ -651,7 +651,7 @@ End Class
                 Dim project = workspace.CurrentSolution.Projects.Single()
                 Dim newDocId = Microsoft.CodeAnalysis.DocumentId.CreateNewId(project.Id)
                 Dim oldSolution = workspace.CurrentSolution
-                Dim newSolution = oldSolution.AddDocument(newDocId, "foo.vb", SourceText.From(source2))
+                Dim newSolution = oldSolution.AddDocument(newDocId, "goo.vb", SourceText.From(source2))
 
                 workspace.TryApplyChanges(newSolution)
 

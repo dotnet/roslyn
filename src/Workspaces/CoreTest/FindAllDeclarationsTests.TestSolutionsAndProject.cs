@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             for (int i = 0; i < sourceTexts.Length; i++)
             {
                 var did = DocumentId.CreateNewId(pid);
-                solution = solution.AddDocument(did, "foo" + i + ".cs", SourceText.From(sourceTexts[i]));
+                solution = solution.AddDocument(did, "goo" + i + ".cs", SourceText.From(sourceTexts[i]));
             }
 
             return solution;
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 solution = solution
                     .AddProject(pid, "TestCases" + i, "TestCases" + i, LanguageNames.CSharp)
                     .AddMetadataReference(pid, MscorlibRef);
-                solution = solution.AddDocument(did, "foo" + i + ".cs", SourceText.From(sourceTexts[i]));
+                solution = solution.AddDocument(did, "goo" + i + ".cs", SourceText.From(sourceTexts[i]));
             }
 
             return solution;

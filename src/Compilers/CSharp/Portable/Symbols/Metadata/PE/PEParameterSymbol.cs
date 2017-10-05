@@ -4,11 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
@@ -218,7 +221,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (isByRef)
                 {
                     ParameterAttributes inOutFlags = _flags & (ParameterAttributes.Out | ParameterAttributes.In);
-                    refKind = (inOutFlags == ParameterAttributes.Out) ? RefKind.Out : RefKind.Ref;
+
+                    if (inOutFlags == ParameterAttributes.Out)
+                    {
+                        refKind = RefKind.Out;
+                    }
+                    else if (moduleSymbol.Module.HasIsReadOnlyAttribute(handle))
+                    {
+                        refKind = RefKind.RefReadOnly;
+                    }
+                    else
+                    {
+                        refKind = RefKind.Ref;
+                    }
                 }
 
                 // CONSIDER: Can we make parameter type computation lazy?
@@ -288,6 +303,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 _customModifiers = CSharpCustomModifier.Convert(customModifiers);
                 _refCustomModifiers = CSharpCustomModifier.Convert(refCustomModifiers);
+
+                if (this.RefKind != RefKind.RefReadOnly && _refCustomModifiers.Any(modifier => !modifier.IsOptional && modifier.Modifier.IsWellKnownTypeInAttribute()))
+                {
+                    // The modreq is only accepted on RefReadOnly symbols
+                    isBad = true;
+                }
 
                 Debug.Assert(_refCustomModifiers.IsEmpty || isByRef);
             }
@@ -778,7 +799,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return _lazyCustomAttributes;
         }
 
-        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
             foreach (CSharpAttributeData attribute in GetAttributes())
             {

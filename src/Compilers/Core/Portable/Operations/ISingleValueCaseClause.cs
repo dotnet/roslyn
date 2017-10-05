@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 
@@ -17,10 +17,5 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Case value.
         /// </summary>
         IOperation Value { get; }
-        /// <summary>
-        /// Relational operator used to compare the switch value with the case value.
-        /// </summary>
-        BinaryOperationKind Equality { get; }
     }
 }
-

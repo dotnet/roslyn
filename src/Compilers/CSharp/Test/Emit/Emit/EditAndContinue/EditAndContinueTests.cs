@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -3451,6 +3451,9 @@ class B : A<B>
 }");
             diff1.VerifyPdb(new[] { 0x06000001, 0x06000002, 0x06000003, 0x06000004 }, @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method token=""0x6000003"">
       <customDebugInfo>
@@ -3459,13 +3462,13 @@ class B : A<B>
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""19"" />
-        <entry offset=""0x7"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""22"" />
-        <entry offset=""0xd"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""24"" />
-        <entry offset=""0x14"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""14"" />
-        <entry offset=""0x1c"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""14"" />
-        <entry offset=""0x23"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x7"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""22"" document=""1"" />
+        <entry offset=""0xd"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x14"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x23"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x24"">
         <local name=""z"" il_index=""3"" il_start=""0x0"" il_end=""0x24"" attributes=""0"" />
@@ -3505,6 +3508,9 @@ class B : A<B>
 
             diff2.VerifyPdb(new[] { 0x06000001, 0x06000002, 0x06000003, 0x06000004 }, @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method token=""0x6000003"">
       <customDebugInfo>
@@ -3513,12 +3519,12 @@ class B : A<B>
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""24"" />
-        <entry offset=""0x8"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""19"" />
-        <entry offset=""0xe"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""14"" />
-        <entry offset=""0x16"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""14"" />
-        <entry offset=""0x1d"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x8"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""19"" document=""1"" />
+        <entry offset=""0xe"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x16"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x1d"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x1e"">
         <local name=""x"" il_index=""5"" il_start=""0x0"" il_end=""0x1e"" attributes=""0"" />
@@ -3559,6 +3565,9 @@ class B : A<B>
 }");
             diff3.VerifyPdb(new[] { 0x06000001, 0x06000002, 0x06000003, 0x06000004 }, @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method token=""0x6000004"">
       <customDebugInfo>
@@ -3567,12 +3576,12 @@ class B : A<B>
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""24"" />
-        <entry offset=""0x7"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""24"" />
-        <entry offset=""0xd"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""14"" />
-        <entry offset=""0x14"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""14"" />
-        <entry offset=""0x1b"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x7"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""24"" document=""1"" />
+        <entry offset=""0xd"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x14"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x1b"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x1c"">
         <local name=""c"" il_index=""2"" il_start=""0x0"" il_end=""0x1c"" attributes=""0"" />
@@ -3645,6 +3654,9 @@ class B : A<B>
 }");
             diff2.VerifyPdb(new[] { 0x06000002 }, @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method token=""0x6000002"">
       <customDebugInfo>
@@ -3653,10 +3665,10 @@ class B : A<B>
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""19"" />
-        <entry offset=""0x3"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""30"" />
-        <entry offset=""0x9"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x3"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x9"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xa"">
         <local name=""a"" il_index=""2"" il_start=""0x0"" il_end=""0xa"" attributes=""0"" />
@@ -5769,6 +5781,7 @@ class C
 }");
         }
 
+        /// <summary>
         /// Local names array (from PDB) may have fewer slots than method
         /// signature (from metadata) when the trailing slots are unnamed.
         /// </summary>
@@ -6877,6 +6890,154 @@ class C
             }
         }
 
+        [Fact]
+        public void BrokenOutputStreams()
+        {
+            var source0 =
+@"class C
+{
+    static string F()
+    {
+        return null;
+    }
+}";
+            var source1 =
+@"class C
+{
+    static string F()
+    {
+        var o = new { X = 1 };
+        return o.ToString();
+    }
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+            var bytes0 = compilation0.EmitToArray();
+            using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
+            {
+                var method0F = compilation0.GetMember<MethodSymbol>("C.F");
+                var generation0 = EmitBaseline.CreateInitialBaseline(
+                    md0,
+                    EmptyLocalsProvider);
+                var method1F = compilation1.GetMember<MethodSymbol>("C.F");
+
+                using (MemoryStream mdStream = new MemoryStream(), ilStream = new MemoryStream(), pdbStream = new MemoryStream())
+                {
+                    var updatedMethods = new List<MethodDefinitionHandle>();
+                    var isAddedSymbol = new Func<ISymbol, bool>(s => false);
+
+                    var badStream = new BrokenStream();
+                    badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
+
+                    var result = compilation1.EmitDifference(
+                        generation0,
+                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0F, method1F, syntaxMap: s => null, preserveLocalVariables: true)),
+                        isAddedSymbol,
+                        badStream,
+                        ilStream,
+                        pdbStream,
+                        updatedMethods,
+                        new CompilationTestData(),
+                        default);
+                    Assert.False(result.Success);
+                    result.Diagnostics.Verify(
+                        // error CS8104: An error occurred while writing the output file: System.IO.IOException: I/O error occurred.
+                        Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(badStream.ThrownException.ToString()).WithLocation(1, 1)
+                        );
+
+                    result = compilation1.EmitDifference(
+                        generation0,
+                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0F, method1F, syntaxMap: s => null, preserveLocalVariables: true)),
+                        isAddedSymbol,
+                        mdStream,
+                        badStream,
+                        pdbStream,
+                        updatedMethods,
+                        new CompilationTestData(),
+                        default);
+                    Assert.False(result.Success);
+                    result.Diagnostics.Verify(
+                        // error CS8104: An error occurred while writing the output file: System.IO.IOException: I/O error occurred.
+                        Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(badStream.ThrownException.ToString()).WithLocation(1, 1)
+                        );
+
+                    result = compilation1.EmitDifference(
+                        generation0,
+                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0F, method1F, syntaxMap: s => null, preserveLocalVariables: true)),
+                        isAddedSymbol,
+                        mdStream,
+                        ilStream,
+                        badStream,
+                        updatedMethods,
+                        new CompilationTestData(),
+                        default);
+                    Assert.False(result.Success);
+                    result.Diagnostics.Verify(
+                        // error CS0041: Unexpected error writing debug information -- 'I/O error occurred.'
+                        Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("I/O error occurred.").WithLocation(1, 1)
+                        );
+                }
+            }
+        }
+
+        [Fact]
+        public void BrokenPortablePdbStream()
+        {
+            var source0 =
+@"class C
+{
+    static string F()
+    {
+        return null;
+    }
+}";
+            var source1 =
+@"class C
+{
+    static string F()
+    {
+        var o = new { X = 1 };
+        return o.ToString();
+    }
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+            var bytes0 = compilation0.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
+            using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
+            {
+                var method0F = compilation0.GetMember<MethodSymbol>("C.F");
+                var generation0 = EmitBaseline.CreateInitialBaseline(
+                    md0,
+                    EmptyLocalsProvider);
+                var method1F = compilation1.GetMember<MethodSymbol>("C.F");
+
+                using (MemoryStream mdStream = new MemoryStream(), ilStream = new MemoryStream(), pdbStream = new MemoryStream())
+                {
+                    var updatedMethods = new List<MethodDefinitionHandle>();
+                    var isAddedSymbol = new Func<ISymbol, bool>(s => false);
+
+                    var badStream = new BrokenStream();
+                    badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
+
+                    var result = compilation1.EmitDifference(
+                        generation0,
+                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0F, method1F, syntaxMap: s => null, preserveLocalVariables: true)),
+                        isAddedSymbol,
+                        mdStream,
+                        ilStream,
+                        badStream,
+                        updatedMethods,
+                        new CompilationTestData(),
+                        default);
+                    Assert.False(result.Success);
+                    result.Diagnostics.Verify(
+                        // error CS0041: Unexpected error writing debug information -- 'I/O error occurred.'
+                        Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("I/O error occurred.").WithLocation(1, 1)
+                        );
+                }
+            }
+        }
+
         [Fact, WorkItem(923492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923492")]
         public void SymWriterErrors()
         {
@@ -6923,7 +7084,7 @@ class C
 {
     static void F()
     {
-        string foo = ""abc"";
+        string goo = ""abc"";
     }
 }";
             var source1 =
@@ -6931,7 +7092,7 @@ class C
 {
     static void F()
     {
-        float foo = 10;
+        float goo = 10;
     }
 }";
             var source2 =
@@ -6939,7 +7100,7 @@ class C
 {
     static void F()
     {
-        bool foo = true;
+        bool goo = true;
     }
 }";
             var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
@@ -7135,7 +7296,7 @@ public class B
             var source0 = @"
 public class C
 {    
-    public static void F(dynamic d) { d.Foo(); }
+    public static void F(dynamic d) { d.Goo(); }
 }";
             var source1 = @"
 public class C
@@ -7258,10 +7419,9 @@ class C
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
-            // TODO: better error code
             diff1.EmitResult.Diagnostics.Verify(
                 // (6,14): error CS7038: Failed to emit module 'Unable to read debug information of method 'C.F()' (token 0x06000001) from assembly 'PdbReadingErrorsAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null''.
-                Diagnostic(ErrorCode.ERR_ModuleEmitFailure, "F").WithArguments("Unable to read debug information of method 'C.F()' (token 0x06000001) from assembly 'PdbReadingErrorsAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'").WithLocation(6, 14));
+                Diagnostic(ErrorCode.ERR_InvalidDebugInfo, "F").WithArguments("C.F()", "100663297", "PdbReadingErrorsAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 14));
         }
 
         [Fact]
@@ -8049,7 +8209,7 @@ class C
             var v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.G", @"
 {
-  // Code size       72 (0x48)
+  // Code size       70 (0x46)
   .maxstack  2
   .locals init ((int, (bool, double))[] V_0,
                 int V_1,
@@ -8063,38 +8223,36 @@ class C
   IL_0007:  stloc.0
   IL_0008:  ldc.i4.0
   IL_0009:  stloc.1
-  IL_000a:  br.s       IL_0041
+  IL_000a:  br.s       IL_003f
   IL_000c:  ldloc.0
   IL_000d:  ldloc.1
   IL_000e:  ldelem     ""System.ValueTuple<int, (bool, double)>""
   IL_0013:  dup
   IL_0014:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
   IL_0019:  stloc.s    V_5
-  IL_001b:  dup
-  IL_001c:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
-  IL_0021:  stloc.2
-  IL_0022:  ldloc.s    V_5
-  IL_0024:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
-  IL_0029:  stloc.3
-  IL_002a:  ldloc.s    V_5
-  IL_002c:  ldfld      ""double System.ValueTuple<bool, double>.Item2""
-  IL_0031:  stloc.s    V_4
-  IL_0033:  pop
-  IL_0034:  nop
-  IL_0035:  ldloc.2
-  IL_0036:  call       ""void System.Console.WriteLine(int)""
-  IL_003b:  nop
-  IL_003c:  nop
-  IL_003d:  ldloc.1
-  IL_003e:  ldc.i4.1
-  IL_003f:  add
-  IL_0040:  stloc.1
-  IL_0041:  ldloc.1
-  IL_0042:  ldloc.0
-  IL_0043:  ldlen
-  IL_0044:  conv.i4
-  IL_0045:  blt.s      IL_000c
-  IL_0047:  ret
+  IL_001b:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
+  IL_0020:  stloc.2
+  IL_0021:  ldloc.s    V_5
+  IL_0023:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
+  IL_0028:  stloc.3
+  IL_0029:  ldloc.s    V_5
+  IL_002b:  ldfld      ""double System.ValueTuple<bool, double>.Item2""
+  IL_0030:  stloc.s    V_4
+  IL_0032:  nop
+  IL_0033:  ldloc.2
+  IL_0034:  call       ""void System.Console.WriteLine(int)""
+  IL_0039:  nop
+  IL_003a:  nop
+  IL_003b:  ldloc.1
+  IL_003c:  ldc.i4.1
+  IL_003d:  add
+  IL_003e:  stloc.1
+  IL_003f:  ldloc.1
+  IL_0040:  ldloc.0
+  IL_0041:  ldlen
+  IL_0042:  conv.i4
+  IL_0043:  blt.s      IL_000c
+  IL_0045:  ret
 }
 ");
 
@@ -8108,7 +8266,7 @@ class C
 
             diff1.VerifyIL("C.G", @"
 {
-  // Code size       80 (0x50)
+  // Code size       78 (0x4e)
   .maxstack  2
   .locals init ([unchanged] V_0,
                 [int] V_1,
@@ -8125,38 +8283,36 @@ class C
   IL_0007:  stloc.s    V_6
   IL_0009:  ldc.i4.0
   IL_000a:  stloc.s    V_7
-  IL_000c:  br.s       IL_0047
+  IL_000c:  br.s       IL_0045
   IL_000e:  ldloc.s    V_6
   IL_0010:  ldloc.s    V_7
   IL_0012:  ldelem     ""System.ValueTuple<int, (bool, double)>""
   IL_0017:  dup
   IL_0018:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
   IL_001d:  stloc.s    V_8
-  IL_001f:  dup
-  IL_0020:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
-  IL_0025:  stloc.2
-  IL_0026:  ldloc.s    V_8
-  IL_0028:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
-  IL_002d:  stloc.3
-  IL_002e:  ldloc.s    V_8
-  IL_0030:  ldfld      ""double System.ValueTuple<bool, double>.Item2""
-  IL_0035:  stloc.s    V_4
-  IL_0037:  pop
-  IL_0038:  nop
-  IL_0039:  ldloc.2
-  IL_003a:  call       ""void System.Console.WriteLine(int)""
-  IL_003f:  nop
-  IL_0040:  nop
-  IL_0041:  ldloc.s    V_7
-  IL_0043:  ldc.i4.1
-  IL_0044:  add
-  IL_0045:  stloc.s    V_7
-  IL_0047:  ldloc.s    V_7
-  IL_0049:  ldloc.s    V_6
-  IL_004b:  ldlen
-  IL_004c:  conv.i4
-  IL_004d:  blt.s      IL_000e
-  IL_004f:  ret
+  IL_001f:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
+  IL_0024:  stloc.2
+  IL_0025:  ldloc.s    V_8
+  IL_0027:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
+  IL_002c:  stloc.3
+  IL_002d:  ldloc.s    V_8
+  IL_002f:  ldfld      ""double System.ValueTuple<bool, double>.Item2""
+  IL_0034:  stloc.s    V_4
+  IL_0036:  nop
+  IL_0037:  ldloc.2
+  IL_0038:  call       ""void System.Console.WriteLine(int)""
+  IL_003d:  nop
+  IL_003e:  nop
+  IL_003f:  ldloc.s    V_7
+  IL_0041:  ldc.i4.1
+  IL_0042:  add
+  IL_0043:  stloc.s    V_7
+  IL_0045:  ldloc.s    V_7
+  IL_0047:  ldloc.s    V_6
+  IL_0049:  ldlen
+  IL_004a:  conv.i4
+  IL_004b:  blt.s      IL_000e
+  IL_004d:  ret
 }
 ");
 
@@ -8167,7 +8323,7 @@ class C
 
             diff2.VerifyIL("C.G", @"
 {
-  // Code size       66 (0x42)
+  // Code size       61 (0x3d)
   .maxstack  2
   .locals init ([unchanged] V_0,
                 [int] V_1,
@@ -8180,40 +8336,37 @@ class C
                 [unchanged] V_8,
                 (int, (bool, double))[] V_9,
                 int V_10,
-                System.ValueTuple<bool, double> V_11, //yz
-                System.ValueTuple<int, (bool, double)> V_12)
+                System.ValueTuple<bool, double> V_11) //yz
   IL_0000:  nop
   IL_0001:  nop
   IL_0002:  call       ""(int, (bool, double))[] C.F()""
   IL_0007:  stloc.s    V_9
   IL_0009:  ldc.i4.0
   IL_000a:  stloc.s    V_10
-  IL_000c:  br.s       IL_0039
+  IL_000c:  br.s       IL_0034
   IL_000e:  ldloc.s    V_9
   IL_0010:  ldloc.s    V_10
   IL_0012:  ldelem     ""System.ValueTuple<int, (bool, double)>""
-  IL_0017:  stloc.s    V_12
-  IL_0019:  ldloc.s    V_12
-  IL_001b:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
-  IL_0020:  stloc.2
-  IL_0021:  ldloc.s    V_12
-  IL_0023:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
-  IL_0028:  stloc.s    V_11
-  IL_002a:  nop
-  IL_002b:  ldloc.2
-  IL_002c:  call       ""void System.Console.WriteLine(int)""
-  IL_0031:  nop
-  IL_0032:  nop
-  IL_0033:  ldloc.s    V_10
-  IL_0035:  ldc.i4.1
-  IL_0036:  add
-  IL_0037:  stloc.s    V_10
-  IL_0039:  ldloc.s    V_10
-  IL_003b:  ldloc.s    V_9
-  IL_003d:  ldlen
-  IL_003e:  conv.i4
-  IL_003f:  blt.s      IL_000e
-  IL_0041:  ret
+  IL_0017:  dup
+  IL_0018:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
+  IL_001d:  stloc.2
+  IL_001e:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
+  IL_0023:  stloc.s    V_11
+  IL_0025:  nop
+  IL_0026:  ldloc.2
+  IL_0027:  call       ""void System.Console.WriteLine(int)""
+  IL_002c:  nop
+  IL_002d:  nop
+  IL_002e:  ldloc.s    V_10
+  IL_0030:  ldc.i4.1
+  IL_0031:  add
+  IL_0032:  stloc.s    V_10
+  IL_0034:  ldloc.s    V_10
+  IL_0036:  ldloc.s    V_9
+  IL_0038:  ldlen
+  IL_0039:  conv.i4
+  IL_003a:  blt.s      IL_000e
+  IL_003c:  ret
 }
 ");
         }

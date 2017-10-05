@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
@@ -164,6 +165,18 @@ namespace Microsoft.CodeAnalysis.AddImport
                     .ToImmutableArray();
             }
 
+            private void CalculateContext(
+                TSimpleNameSyntax nameNode, ISyntaxFactsService syntaxFacts, out string name, out int arity,
+                out bool inAttributeContext, out bool hasIncompleteParentMember, out bool looksGeneric)
+            {
+                // Has to be a simple identifier or generic name.
+                syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out name, out arity);
+
+                inAttributeContext = syntaxFacts.IsAttributeName(nameNode);
+                hasIncompleteParentMember = syntaxFacts.HasIncompleteParentMember(nameNode);
+                looksGeneric = syntaxFacts.LooksGeneric(nameNode);
+            }
+
             /// <summary>
             /// Searches for types that match the name the user has written.  Returns <see cref="SymbolReference"/>s
             /// to the <see cref="INamespaceSymbol"/>s or <see cref="INamedTypeSymbol"/>s those types are
@@ -177,9 +190,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                     return ImmutableArray<SymbolReference>.Empty;
                 }
 
-                CalculateContext(nameNode, _syntaxFacts, 
-                    out var name, out var arity,
-                    out var inAttributeContext, out var hasIncompleteParentMember);
+                CalculateContext(
+                    nameNode, _syntaxFacts, 
+                    out var name, out var arity, out var inAttributeContext, 
+                    out var hasIncompleteParentMember, out var looksGeneric);
 
                 if (ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken: searchScope.CancellationToken))
                 {
@@ -203,7 +217,8 @@ namespace Microsoft.CodeAnalysis.AddImport
                 // Only keep symbols which are accessible from the current location.
                 var accessibleTypeSymbols = typeSymbols.WhereAsArray(
                     s => ArityAccessibilityAndAttributeContextAreCorrect(
-                        s.Symbol, arity, inAttributeContext, hasIncompleteParentMember));
+                        s.Symbol, arity, inAttributeContext, 
+                        hasIncompleteParentMember, looksGeneric));
 
                 // These types may be contained within namespaces, or they may be nested 
                 // inside generic types.  Record these namespaces/types if it would be 
@@ -225,11 +240,25 @@ namespace Microsoft.CodeAnalysis.AddImport
                 ITypeSymbol symbol,
                 int arity,
                 bool inAttributeContext,
-                bool hasIncompleteParentMember)
+                bool hasIncompleteParentMember,
+                bool looksGeneric)
             {
-                return (arity == 0 || symbol.GetArity() == arity || hasIncompleteParentMember)
-                       && symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly)
-                       && (!inAttributeContext || symbol.IsAttribute());
+                if (inAttributeContext && !symbol.IsAttribute())
+                {
+                    return false;
+                }
+
+                if (!symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly))
+                {
+                    return false;
+                }
+
+                if (looksGeneric && symbol.GetTypeArguments().Length == 0)
+                {
+                    return false;
+                }
+
+                return arity == 0 || symbol.GetArity() == arity || hasIncompleteParentMember;
             }
 
             /// <summary>

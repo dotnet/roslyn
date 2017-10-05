@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Runtime.InteropServices;
@@ -19,6 +19,8 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [ComVisible(true)]
     public class AutomationObject
     {
@@ -163,6 +165,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetBooleanOption(CSharpFormattingOptions.IndentSwitchCaseSection); }
             set { SetBooleanOption(CSharpFormattingOptions.IndentSwitchCaseSection, value); }
+        }
+
+        public int Indent_CaseContentsWhenBlock
+        {
+            get { return GetBooleanOption(CSharpFormattingOptions.IndentSwitchCaseSectionWhenBlock); }
+            set { SetBooleanOption(CSharpFormattingOptions.IndentSwitchCaseSectionWhenBlock, value); }
         }
 
         public int Indent_CaseLabels

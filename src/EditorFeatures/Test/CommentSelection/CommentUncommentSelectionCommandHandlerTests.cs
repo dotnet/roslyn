@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
@@ -13,7 +14,6 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
-using Moq;
 using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -23,30 +23,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
 {
     public class CommentUncommentSelectionCommandHandlerTests
     {
-        private class MockCommentUncommentService : AbstractCommentUncommentService
+        private class MockCommentSelectionService : AbstractCommentSelectionService
         {
-            private readonly bool _supportBlockComments;
-
-            public MockCommentUncommentService(bool supportBlockComments)
+            public MockCommentSelectionService(bool supportsBlockComment)
             {
-                _supportBlockComments = supportBlockComments;
+                SupportsBlockComment = supportsBlockComment;
             }
 
-            public override string SingleLineCommentString
-            {
-                get { return "//"; }
-            }
-
-            public override bool SupportsBlockComment
-            {
-                get { return _supportBlockComments; }
-            }
+            public override string SingleLineCommentString => "//";
+            public override bool SupportsBlockComment { get; }
 
             public override string BlockCommentStartString
             {
                 get
                 {
-                    if (!_supportBlockComments)
+                    if (!this.SupportsBlockComment)
                     {
                         throw new NotSupportedException();
                     }
@@ -59,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
             {
                 get
                 {
-                    if (!_supportBlockComments)
+                    if (!this.SupportsBlockComment)
                     {
                         throw new NotSupportedException();
                     }
@@ -73,8 +64,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
         public void Create()
         {
             Assert.NotNull(
-                new MockCommentUncommentService(
-                    supportBlockComments: true));
+                new MockCommentSelectionService(
+                    supportsBlockComment: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
@@ -137,7 +128,7 @@ multiple lines";
         public void Comment_MultilineIndented()
         {
             var code = @"
-class Foo
+class Goo
 {
     |start|void M()
     {
@@ -204,7 +195,7 @@ class Foo
         public void Comment_SelectionEndsAtColumnZero()
         {
             var code = @"
-class Foo
+class Goo
 {
 |start|    void M()
     {
@@ -224,7 +215,7 @@ class Foo
         public void Comment_BoxSelectionAtStartOfLines()
         {
             var code = @"
-class Foo
+class Goo
 {
 |start||end|    void M()
 |start||end|    {
@@ -246,7 +237,7 @@ class Foo
         public void Comment_BoxSelectionIndentedAtStart()
         {
             var code = @"
-class Foo
+class Goo
 {
     |start||end|void M()
     |start||end|{
@@ -268,7 +259,7 @@ class Foo
         public void Comment_BoxSelectionBlock()
         {
             var code = @"
-class Foo
+class Goo
 {
     |start|v|end|oid M()
     |start|{|end|
@@ -294,7 +285,7 @@ class Foo
         public void Comment_BoxSelectionBlockWithoutSupport()
         {
             var code = @"
-class Foo
+class Goo
 {
     |start|v|end|oid M()
     |start|{|end|
@@ -314,7 +305,7 @@ class Foo
         [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
         public void Uncomment_NoSelection()
         {
-            var code = @"//Foo|start||end|Bar";
+            var code = @"//Goo|start||end|Bar";
             UncommentSelection(code, new[] { new TextChange(new TextSpan(0, 2), string.Empty) }, Span.FromBounds(0, 6), supportBlockComments: true);
         }
 
@@ -378,7 +369,7 @@ class C
         public void Uncomment_BoxSelection()
         {
             var code = @"
-class Foo
+class Goo
 {
     |start|/*v*/|end|oid M()
     |start|//{  |end|
@@ -554,13 +545,14 @@ class Foo
             var textUndoHistoryRegistry = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue<ITextUndoHistoryRegistry>();
             var editorOperationsFactory = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue<IEditorOperationsFactoryService>();
             var commandHandler = new CommentUncommentSelectionCommandHandler(TestWaitIndicator.Default, textUndoHistoryRegistry, editorOperationsFactory);
-            var service = new MockCommentUncommentService(supportBlockComments);
+            var service = new MockCommentSelectionService(supportBlockComments);
 
             var trackingSpans = new List<ITrackingSpan>();
             var textChanges = new List<TextChange>();
 
-            commandHandler.CollectEdits(service,
-                textView.Selection.GetSnapshotSpansOnBuffer(textView.TextBuffer), textChanges, trackingSpans, operation);
+            commandHandler.CollectEdits(
+                null, service, textView.Selection.GetSnapshotSpansOnBuffer(textView.TextBuffer),
+                textChanges, trackingSpans, operation, CancellationToken.None);
 
             Roslyn.Test.Utilities.AssertEx.SetEqual(expectedChanges, textChanges);
 

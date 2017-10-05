@@ -19,6 +19,8 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [ExportWorkspaceService(typeof(IDefinitionsAndReferencesFactory), ServiceLayer.Desktop), Shared]
     internal class VisualStudioDefinitionsAndReferencesFactory
         : DefaultDefinitionsAndReferencesFactory
@@ -95,8 +97,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 int lineNumber,
                 int charOffset) 
                 : base(tags, displayParts, ImmutableArray<TaggedText>.Empty,
-                       originationParts: default(ImmutableArray<TaggedText>),
-                       sourceSpans: default(ImmutableArray<DocumentSpan>),
+                       originationParts: default,
+                       sourceSpans: default,
                        properties: null,
                        displayIfNoReferences: true)
             {

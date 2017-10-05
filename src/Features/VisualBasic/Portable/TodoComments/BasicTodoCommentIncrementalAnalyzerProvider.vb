@@ -1,15 +1,29 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.TodoComments
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
-    <ExportLanguageService(GetType(ITodoCommentService), LanguageNames.VisualBasic), [Shared]>
+    <ExportLanguageServiceFactory(GetType(ITodoCommentService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicTodoCommentServiceFactory
+        Implements ILanguageServiceFactory
+
+        Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
+            Return New VisualBasicTodoCommentService(languageServices.WorkspaceServices.Workspace)
+        End Function
+
+    End Class
+
     Friend Class VisualBasicTodoCommentService
         Inherits AbstractTodoCommentService
+
+        Public Sub New(workspace As Workspace)
+            MyBase.New(workspace)
+        End Sub
 
         Protected Overrides Sub AppendTodoComments(commentDescriptors As IList(Of TodoCommentDescriptor), document As SyntacticDocument, trivia As SyntaxTrivia, todoList As List(Of TodoComment))
             If PreprocessorHasComment(trivia) Then
@@ -39,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
             ' 3 for REM
             Dim index = GetFirstCharacterIndex(message)
             If index >= message.Length OrElse
-                   index > message.Length - 3 Then
+                       index > message.Length - 3 Then
                 Return index
             End If
 
@@ -91,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
 
         Protected Overrides Function PreprocessorHasComment(trivia As SyntaxTrivia) As Boolean
             Return SyntaxFacts.IsPreprocessorDirective(CType(trivia.RawKind, SyntaxKind)) AndAlso
-                       trivia.GetStructure().DescendantTrivia().Any(Function(t) t.RawKind = SyntaxKind.CommentTrivia)
+                           trivia.GetStructure().DescendantTrivia().Any(Function(t) t.RawKind = SyntaxKind.CommentTrivia)
         End Function
 
         ' TODO: remove this if SyntaxFacts.IsSingleQuote become public

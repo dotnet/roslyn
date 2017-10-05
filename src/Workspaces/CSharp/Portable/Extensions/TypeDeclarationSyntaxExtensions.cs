@@ -239,8 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     foreach (var syntaxRef in typeSymbol.DeclaringSyntaxReferences)
                     {
-                        var typeDecl = syntaxRef.GetSyntax(cancellationToken) as TypeDeclarationSyntax;
-                        if (typeDecl != null && typeDecl.BaseList != null)
+                        if (syntaxRef.GetSyntax(cancellationToken) is TypeDeclarationSyntax typeDecl && typeDecl.BaseList != null)
                         {
                             baseListTypes = baseListTypes.Concat(typeDecl.BaseList.Types);
                         }

@@ -87,18 +87,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             // PERF: Run all analyzers at once using the new GetAnalysisResultAsync API.
             var analysisResult = await analyzerDriver.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
 
-            // REVIEW: the design of current analyzer engine is that, information/states in CompilationWithAnalyzer (more specifically AnalyzerManager singleton)
-            //         will live forever until analyzer references (analyzers), which is given to CompilationWithAnalyzer, go away.
-            //         that is not suitable for OOP since OOP will create new workspace
-            //         for each analysis but share all resources including analyzer references.
-            //         until, we address this issue, OOP will clear state every time analysis is done.
-            //
-            //         * NOTE * this only works for now since we don't run analysis on multiple threads.
-            //
-            //         best way to fix this is doing this - https://github.com/dotnet/roslyn/issues/2830
-            //         host should control lifetime of all information related to analyzer reference explicitly
-            CompilationWithAnalyzers.ClearAnalyzerState(analyzers);
-
             var builderMap = analysisResult.ToResultBuilderMap(_project, VersionStamp.Default, compilation, analysisResult.Analyzers, cancellationToken);
 
             return DiagnosticAnalysisResultMap.Create(
@@ -131,8 +119,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             foreach (var analyzerId in analyzerIds)
             {
-                DiagnosticAnalyzer analyzer;
-                if (analyzerMap.TryGetValue(analyzerId, out analyzer))
+                if (analyzerMap.TryGetValue(analyzerId, out var analyzer))
                 {
                     builder.Add(analyzer);
                 }

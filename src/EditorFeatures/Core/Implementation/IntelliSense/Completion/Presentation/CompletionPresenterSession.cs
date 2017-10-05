@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         public event EventHandler<CompletionItemEventArgs> ItemSelected;
         public event EventHandler<CompletionItemFilterStateChangedEventArgs> FilterStateChanged;
 
-        private readonly ICompletionSet _completionSet;
+        private readonly RoslynCompletionSet _completionSet;
 
         private ICompletionSession _editorSessionOpt;
         private bool _ignoreSelectionStatusChangedEvent;
@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         public ITextBuffer SubjectBuffer { get; }
 
         public CompletionPresenterSession(
-            ICompletionSetFactory completionSetFactory,
             ICompletionBroker completionBroker,
             IGlyphService glyphService,
             ITextView textView,
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             _textView = textView;
             SubjectBuffer = subjectBuffer;
 
-            _completionSet = completionSetFactory.CreateCompletionSet(this, textView, subjectBuffer);
+            _completionSet = new RoslynCompletionSet(this, textView, subjectBuffer);
             _completionSet.SelectionStatusChanged += OnCompletionSetSelectionStatusChanged;
         }
 
@@ -99,8 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                     triggerSpan.GetStartTrackingPoint(PointTrackingMode.Negative),
                     trackCaret: false);
 
-                var debugTextView = _textView as IDebuggerTextView;
-                if (debugTextView != null && !debugTextView.IsImmediateWindow)
+                if (_textView is IDebuggerTextView debugTextView && !debugTextView.IsImmediateWindow)
                 {
                     debugTextView.HACK_StartCompletionSession(_editorSessionOpt);
                 }
@@ -153,8 +151,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         internal void AugmentCompletionSession(IList<CompletionSet> completionSets)
         {
-            Contract.ThrowIfTrue(completionSets.Contains(_completionSet.CompletionSet));
-            completionSets.Add(_completionSet.CompletionSet);
+            Contract.ThrowIfTrue(completionSets.Contains(_completionSet));
+            completionSets.Add(_completionSet);
         }
 
         internal void OnIntelliSenseFiltersChanged(ImmutableDictionary<CompletionItemFilter, bool> filterStates)

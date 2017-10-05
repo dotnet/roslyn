@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Remote.DebugUtil;
@@ -130,8 +131,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // changed project
             foreach (var kv in newMap)
             {
-                ProjectStateChecksums oldProjectChecksums;
-                if (!oldMap.TryGetValue(kv.Key, out oldProjectChecksums))
+                if (!oldMap.TryGetValue(kv.Key, out var oldProjectChecksums))
                 {
                     continue;
                 }
@@ -302,8 +302,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // changed document
             foreach (var kv in newMap)
             {
-                DocumentStateChecksums oldDocumentChecksums;
-                if (!oldMap.TryGetValue(kv.Key, out oldDocumentChecksums))
+                if (!oldMap.TryGetValue(kv.Key, out var oldDocumentChecksums))
                 {
                     continue;
                 }

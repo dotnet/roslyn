@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Storage;
@@ -26,14 +25,11 @@ using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.ProjectSystem;
 using VSLangProj;
 using VSLangProj140;
-using OLEServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using OleInterop = Microsoft.VisualStudio.OLE.Interop;
-using Microsoft.CodeAnalysis.Esent;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -382,8 +378,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private string GetMetadataPath(MetadataReference metadataReference)
         {
-            var fileMetadata = metadataReference as PortableExecutableReference;
-            if (fileMetadata != null)
+            if (metadataReference is PortableExecutableReference fileMetadata)
             {
                 return fileMetadata.FilePath;
             }
@@ -1164,8 +1159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             uint canAddProjectReference = (uint)__VSREFERENCEQUERYRESULT.REFERENCE_UNKNOWN;
             uint canBeReferenced = (uint)__VSREFERENCEQUERYRESULT.REFERENCE_UNKNOWN;
 
-            var referencingProjectFlavor3 = referencingHierarchy as IVsProjectFlavorReferences3;
-            if (referencingProjectFlavor3 != null)
+            if (referencingHierarchy is IVsProjectFlavorReferences3 referencingProjectFlavor3)
             {
                 if (ErrorHandler.Failed(referencingProjectFlavor3.QueryAddProjectReferenceEx(referencedHierarchy, ContextFlags, out canAddProjectReference, out var unused)))
                 {
@@ -1181,8 +1175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            var referencedProjectFlavor3 = referencedHierarchy as IVsProjectFlavorReferences3;
-            if (referencedProjectFlavor3 != null)
+            if (referencedHierarchy is IVsProjectFlavorReferences3 referencedProjectFlavor3)
             {
                 if (ErrorHandler.Failed(referencedProjectFlavor3.QueryCanBeReferencedEx(referencingHierarchy, ContextFlags, out canBeReferenced, out var unused)))
                 {

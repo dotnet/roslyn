@@ -91,6 +91,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
+        public void LangVersionFlag()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.LangVersion = "iso-1";
+            Assert.Equal("/out:test.exe /langversion:iso-1 test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
         public void ChecksumAlgorithmOption()
         {
             var csc = new Csc();
@@ -303,6 +312,27 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             csc.RefOnly = true;
             Assert.Equal("/out:test.exe /refonly test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void SharedCompilationId()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.UseSharedCompilation = true;
+            csc.SharedCompilationId = "testPipeName";
+            Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.UseSharedCompilation = false;
+            csc.SharedCompilationId = "testPipeName";
+            Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.SharedCompilationId = "testPipeName";
+            Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
     }
 }

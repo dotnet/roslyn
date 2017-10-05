@@ -5,6 +5,7 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -25,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         ' TODO (tomat): Consider changing this to an empty name. This name shouldn't ever leak to the user in error messages.
-        Friend Shared ReadOnly ImplicitTypeName As String = "<invalid-global-code>"
+        Friend Const ImplicitTypeName As String = "<invalid-global-code>"
 
         Private Shared ReadOnly s_EmptyTypeSymbols() As TypeSymbol = Array.Empty(Of TypeSymbol)
 

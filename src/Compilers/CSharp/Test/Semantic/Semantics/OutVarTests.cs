@@ -41,9 +41,9 @@ public class Cls
 }";
             var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             compilation.VerifyDiagnostics(
-                // (6,29): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7 or greater.
+                // (6,29): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Test2(Test1(out int x1), x1);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x1").WithArguments("out variable declaration", "7").WithLocation(6, 29)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x1").WithArguments("out variable declaration", "7.0").WithLocation(6, 29)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -74,12 +74,12 @@ public class Cls
 }";
             var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             compilation.VerifyDiagnostics(
-                // (6,22): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7 or greater.
+                // (6,22): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Test(out int x1);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x1").WithArguments("out variable declaration", "7").WithLocation(6, 22),
-                // (11,33): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x1").WithArguments("out variable declaration", "7.0").WithLocation(6, 22),
+                // (11,33): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
                 //         var x = new Cls(out int x2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x2").WithArguments("out variable declaration", "7").WithLocation(11, 33),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "x2").WithArguments("out variable declaration", "7.0").WithLocation(11, 33),
                 // (6,9): error CS0103: The name 'Test' does not exist in the current context
                 //         Test(out int x1);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Test").WithArguments("Test").WithLocation(6, 9),
@@ -1015,7 +1015,9 @@ public class Cls
 
             var typeInfo = model.GetTypeInfo(decl);
             Assert.Equal(expectedType, typeInfo.Type);
-            Assert.Equal(expectedType, model.GetOperationInternal(decl)?.Type);
+
+            // skip cases where operation is not supported
+            AssertTypeFromOperation(model, expectedType, decl);
 
             // Note: the following assertion is not, in general, correct for declaration expressions,
             // even though this helper is used to handle declaration expressions.
@@ -1064,6 +1066,38 @@ public class Cls
             Assert.Equal(conversion, ((CSharpSemanticModel)model).ClassifyConversion(decl.Position, decl, model.Compilation.ObjectType, true));
 
             Assert.Null(model.GetDeclaredSymbol(decl));
+        }
+
+        private static void AssertTypeFromOperation(SemanticModel model, TypeSymbol expectedType, DeclarationExpressionSyntax decl)
+        {
+            // see https://github.com/dotnet/roslyn/issues/22175 for more detail.
+
+            // unlike GetSymbolInfo or GetTypeInfo, GetOperation doesn't use SemanticModel's recovery mode.
+            // what that means is that GetOperation might return null for ones GetSymbol/GetTypeInfo do return info from
+            // error recovery mode
+            var variableDeclarator = decl.Ancestors().OfType<VariableDeclaratorSyntax>().FirstOrDefault();
+            if (variableDeclarator?.ArgumentList?.FullSpan.Contains(decl.Span) == true)
+            {
+                // node in argument list is error case which operation doesn't support
+                return;
+            }
+
+            var foreachLoop = decl.Ancestors().OfType<ForEachVariableStatementSyntax>().FirstOrDefault();
+            if (foreachLoop?.Variable?.FullSpan.Contains(decl.Span) == true &&
+                foreachLoop?.Variable.IsKind(SyntaxKind.InvocationExpression) == true)
+            {
+                // invalid syntax case where operation is not supported
+                return;
+            }
+
+            var typeofExpression = decl.Ancestors().OfType<TypeOfExpressionSyntax>().FirstOrDefault();
+            if (typeofExpression?.Type?.FullSpan.Contains(decl.Span) == true)
+            {
+                // invalid syntax case where operation is not supported
+                return;
+            }
+
+            Assert.Equal(expectedType, model.GetOperationInternal(decl)?.Type);
         }
 
         private static void VerifyDataFlow(SemanticModel model, DeclarationExpressionSyntax decl, bool isDelegateCreation, bool isExecutableCode, IdentifierNameSyntax[] references, ISymbol symbol)
@@ -2363,7 +2397,7 @@ class Test : System.Attribute
     public Test(out int p) { p = 100; }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics(
                 // (4,11): error CS1041: Identifier expected; 'out' is a keyword
                 //     [Test(out var x3)]
@@ -2425,18 +2459,18 @@ class Test : System.Attribute
                 // (6,18): error CS0103: The name 'var' does not exist in the current context
                 //     [Test(p: out var x5)]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 18),
-                // (6,18): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
+                // (6,18): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //     [Test(p: out var x5)]
-                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "var").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "var").WithArguments("7.2").WithLocation(6, 18),
                 // (6,22): error CS0103: The name 'x5' does not exist in the current context
                 //     [Test(p: out var x5)]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(6, 22),
                 // (6,6): error CS1729: 'Test' does not contain a constructor that takes 3 arguments
                 //     [Test(p: out var x5)]
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test(p: out var x5)").WithArguments("Test", "3").WithLocation(6, 6),
-                // (7,18): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
+                // (7,18): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //     [Test(p: out int x6)]
-                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "int").WithLocation(7, 18),
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "int").WithArguments("7.2").WithLocation(7, 18),
                 // (7,22): error CS0103: The name 'x6' does not exist in the current context
                 //     [Test(p: out int x6)]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x6").WithArguments("x6").WithLocation(7, 22),
@@ -8650,7 +8684,7 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
-            
+
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -10414,10 +10448,7 @@ public class X
                 // (11,25): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     void Test4(bool p = x4 && TakeOutParam(4, out int x4))
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(11, 25),
-                // (11,21): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'bool'
-                //     void Test4(bool p = x4 && TakeOutParam(4, out int x4))
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p").WithArguments("?", "bool").WithLocation(11, 21),
-                // (15,50): error CS0128: A local variable named 'x5' is already defined in this scope
+                // (15,50): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //                         TakeOutParam(52, out int x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(15, 50),
                 // (14,25): error CS1736: Default parameter value for 'p' must be a compile-time constant
@@ -10525,10 +10556,7 @@ public class X
                 // (11,25): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     void Test4(bool p = x4 && TakeOutParam(4, out var x4))
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(11, 25),
-                // (11,21): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'bool'
-                //     void Test4(bool p = x4 && TakeOutParam(4, out var x4))
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p").WithArguments("?", "bool").WithLocation(11, 21),
-                // (15,50): error CS0128: A local variable named 'x5' is already defined in this scope
+                // (15,50): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //                         TakeOutParam(52, out var x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(15, 50),
                 // (14,25): error CS1736: Default parameter value for 'p' must be a compile-time constant
@@ -18573,12 +18601,12 @@ public class Cls
 }";
             var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
-                                                            parseOptions: TestOptions.Regular);
+                                                            parseOptions: TestOptions.Regular7_1);
 
             compilation.VerifyDiagnostics(
-                // (6,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
+                // (6,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         Test1(x: 1, out var y);
-                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "out var y").WithLocation(6, 21),
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "out var y").WithArguments("7.2").WithLocation(6, 21),
                 // (6,25): error CS1620: Argument 2 must be passed with the 'ref' keyword
                 //         Test1(x: 1, out var y);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "var y").WithArguments("2", "ref").WithLocation(6, 25)
@@ -19282,9 +19310,9 @@ public class Cls
                 // (10,28): error CS1003: Syntax error, ']' expected
                 //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(10, 28),
-                // (7,13): error CS0501: 'b(out var)' must declare a body because it is not marked abstract, extern, or partial
+                // (7,13): error CS08112: 'b(out var)' is a local function and must therefore always have a body.
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "b").WithArguments("b(out var)").WithLocation(7, 13),
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "b").WithArguments("b(out var)").WithLocation(7, 13),
                 // (7,19): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
                 Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(7, 19),
@@ -19309,9 +19337,9 @@ public class Cls
                 // (10,16): warning CS0168: The variable 'e' is declared but never used
                 //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(10, 16),
-                // (7,13): warning CS0168: The variable 'b' is declared but never used
+                // (7,13): warning CS8321: The local function 'b' is declared but never used
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "b").WithArguments("b").WithLocation(7, 13)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "b").WithArguments("b").WithLocation(7, 13)
                 );
         }
 
@@ -21611,7 +21639,7 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "StaticType").WithArguments("Cls.StaticType").WithLocation(6, 19)
                 );
         }
-        
+
         [Fact]
         public void GlobalCode_Catch_01()
         {
@@ -21805,34 +21833,11 @@ static bool TakeOutParam(object y, out int x)
                                         (int)ErrorCode.ERR_ConcreteMissingBody,
                                         (int)ErrorCode.ERR_PredefinedValueTupleTypeNotFound,
                                         (int)ErrorCode.ERR_TypeVarNotFound,
-                                        (int)ErrorCode.ERR_TupleElementNamesAttributeMissing
+                                        (int)ErrorCode.ERR_TupleElementNamesAttributeMissing,
+                                        (int)ErrorCode.ERR_MemberAlreadyExists
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (16,5): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                //     Dummy(x4);
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(16, 5),
-                // (47,9): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                //         Dummy(x9);
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(47, 9),
-                // (14,7): error CS0111: Type '<invalid-global-code>' already defines a member called 'when' with the same parameter types
-                // catch when (TakeOutParam(out var x4) && x4 > 0)
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "when").WithArguments("when", "<invalid-global-code>").WithLocation(14, 7),
-                // (26,7): error CS0111: Type '<invalid-global-code>' already defines a member called 'when' with the same parameter types
-                // catch when (TakeOutParam(out var x7) && x7 > 0)
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "when").WithArguments("when", "<invalid-global-code>").WithLocation(26, 7),
-                // (33,7): error CS0111: Type '<invalid-global-code>' already defines a member called 'when' with the same parameter types
-                // catch when (TakeOutParam(out var x8) && x8 > 0)
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "when").WithArguments("when", "<invalid-global-code>").WithLocation(33, 7),
-                // (41,7): error CS0111: Type '<invalid-global-code>' already defines a member called 'when' with the same parameter types
-                // catch when (TakeOutParam(out var x9) && x9 > 0)
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "when").WithArguments("when", "<invalid-global-code>").WithLocation(41, 7),
-                // (45,11): error CS0111: Type '<invalid-global-code>' already defines a member called 'when' with the same parameter types
-                //     catch when (TakeOutParam(out var x9) && x9 > 0) // 2
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "when").WithArguments("when", "<invalid-global-code>").WithLocation(45, 11),
-                // (75,9): error CS0111: Type '<invalid-global-code>' already defines a member called 'when' with the same parameter types
-                //         when (Dummy(TakeOutParam(out var x15), x15))
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "when").WithArguments("when", "<invalid-global-code>").WithLocation(75, 9)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -22212,22 +22217,14 @@ static bool TakeOutParam(object y, out bool x)
                                         (int)ErrorCode.ERR_PredefinedValueTupleTypeNotFound,
                                         (int)ErrorCode.ERR_TypeVarNotFound,
                                         (int)ErrorCode.ERR_TupleElementNamesAttributeMissing,
-                                        (int)ErrorCode.ERR_IdentifierExpectedKW
+                                        (int)ErrorCode.ERR_IdentifierExpectedKW,
+                                        (int)ErrorCode.ERR_MemberAlreadyExists,
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (22,5): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                //     Dummy(x4);
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(22, 5),
-                // (52,9): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                //         Dummy(x9);
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(52, 9),
                 // (20,42): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x4'
                 //         Dummy(TakeOutParam(true, out var x4) && x4)
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x4").WithArguments("<invalid-global-code>", "x4").WithLocation(20, 42),
-                // (83,13): error CS0111: Type '<invalid-global-code>' already defines a member called 'TakeOutParam' with the same parameter types
-                //             TakeOutParam(2, out var x14), 
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "TakeOutParam").WithArguments("TakeOutParam", "<invalid-global-code>").WithLocation(83, 13),
                 // (33,9): error CS0102: The type '<invalid-global-code>' already contains a definition for 'x7'
                 //     var x7 = 12;
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x7").WithArguments("<invalid-global-code>", "x7").WithLocation(33, 9),
@@ -22500,40 +22497,11 @@ static bool TakeOutParam(bool y, out bool x)
                                         (int)ErrorCode.ERR_PredefinedValueTupleTypeNotFound,
                                         (int)ErrorCode.ERR_TypeVarNotFound,
                                         (int)ErrorCode.ERR_TupleElementNamesAttributeMissing,
-                                        (int)ErrorCode.ERR_IdentifierExpectedKW
+                                        (int)ErrorCode.ERR_IdentifierExpectedKW,
+                                        (int)ErrorCode.ERR_MemberAlreadyExists
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (9,19): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                // foreach (var i in Dummy(TakeOutParam(true, out var x2) && x2))
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(9, 19),
-                // (15,19): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                // foreach (var i in Dummy(TakeOutParam(true, out var x4) && x4))
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(15, 19),
-                // (16,5): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                //     Dummy(x4);
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(16, 5),
-                // (21,19): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                // foreach (var i in Dummy(TakeOutParam(true, out var x7) && x7))
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(21, 19),
-                // (27,19): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                // foreach (var i in Dummy(TakeOutParam(true, out var x8) && x8))
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(27, 19),
-                // (32,20): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                // foreach (var i1 in Dummy(TakeOutParam(true, out var x9) && x9))
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(32, 20),
-                // (35,24): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                //     foreach (var i2 in Dummy(TakeOutParam(true, out var x9) && x9)) // 2
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(35, 24),
-                // (36,9): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                //         Dummy(x9);
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(36, 9),
-                // (57,19): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                // foreach (var i in Dummy(TakeOutParam(1, out var x14), 
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(57, 19),
-                // (65,21): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                //                     Dummy(TakeOutParam(1, out var x15), x15))
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(65, 21)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -22742,34 +22710,11 @@ static bool TakeOutParam(bool y, out bool x)
                                         (int)ErrorCode.ERR_PredefinedValueTupleTypeNotFound,
                                         (int)ErrorCode.ERR_TypeVarNotFound,
                                         (int)ErrorCode.ERR_TupleElementNamesAttributeMissing,
-                                        (int)ErrorCode.ERR_IdentifierExpectedKW
+                                        (int)ErrorCode.ERR_IdentifierExpectedKW,
+                                        (int)ErrorCode.ERR_MemberAlreadyExists
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (12,1): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                // Dummy((System.Func<object, bool>) (o => TakeOutParam(o, out var x6) && x6 > 0), (System.Func<object, bool>) (o => TakeOutParam(o, out var x6) && x6 > 0));
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(12, 1),
-                // (18,1): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                // Dummy(x7, 2); 
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(18, 1),
-                // (22,1): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                // Dummy(TakeOutParam(true, out var x9), 
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(22, 1),
-                // (26,1): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                // Dummy((System.Func<object, bool>) (o => TakeOutParam(o, out var x10) && 
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(26, 1),
-                // (32,1): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                // Dummy((System.Func<object, bool>) (o => TakeOutParam(o, out var x11) && 
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(32, 1),
-                // (35,1): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                // Dummy((System.Func<object, bool>) (o => TakeOutParam(o, out var x12) && 
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(35, 1),
-                // (20,79): error CS0111: Type '<invalid-global-code>' already defines a member called 'TakeOutParam' with the same parameter types
-                // Dummy(TakeOutParam(true, out var x8) && x8, (System.Func<object, bool>) (o => TakeOutParam(o, out var y8) && x8));
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "TakeOutParam").WithArguments("TakeOutParam", "<invalid-global-code>").WithLocation(20, 79),
-                // (23,43): error CS0111: Type '<invalid-global-code>' already defines a member called 'TakeOutParam' with the same parameter types
-                //         (System.Func<object, bool>) (o => TakeOutParam(o, out var x9) && 
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "TakeOutParam").WithArguments("TakeOutParam", "<invalid-global-code>").WithLocation(23, 43)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -23503,19 +23448,11 @@ static bool TakeOutParam<T>(T y, out T x)
                                         (int)ErrorCode.ERR_SingleTypeNameNotFound,
                                         (int)ErrorCode.ERR_ConcreteMissingBody,
                                         (int)ErrorCode.ERR_TypeVarNotFound,
-                                        (int)ErrorCode.ERR_DuplicateNameInClass
+                                        (int)ErrorCode.ERR_DuplicateNameInClass,
+                                        (int)ErrorCode.ERR_MemberAlreadyExists
                                       };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (16,5): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                //     Dummy(x4);
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(16, 5),
-                // (36,9): error CS0111: Type '<invalid-global-code>' already defines a member called 'Dummy' with the same parameter types
-                //         Dummy(x9);
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dummy").WithArguments("Dummy", "<invalid-global-code>").WithLocation(36, 9),
-                // (58,17): error CS0111: Type '<invalid-global-code>' already defines a member called 'TakeOutParam' with the same parameter types
-                //                 TakeOutParam(2, out var x14), 
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "TakeOutParam").WithArguments("TakeOutParam", "<invalid-global-code>").WithLocation(58, 17)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -30708,15 +30645,15 @@ System.Int32");
 
 public class C
 {
-    public string[] Foo2(out string x) { x = """"; return null; }
-    public string[] Foo3(bool b) { return null; }
+    public string[] Goo2(out string x) { x = """"; return null; }
+    public string[] Goo3(bool b) { return null; }
 
-    public string[] Foo5(string u) { return null; }
+    public string[] Goo5(string u) { return null; }
     
     public void Test()
     {
-        var t1 = Foo2(out var x1).Concat(Foo5(x1));
-        var t2 = Foo3(t1 is var x2).Concat(Foo5(x2.First()));
+        var t1 = Goo2(out var x1).Concat(Goo5(x1));
+        var t2 = Goo3(t1 is var x2).Concat(Goo5(x2.First()));
     }
 }
 ";
@@ -31362,9 +31299,6 @@ class C
                 // (6,61): error CS0103: The name 'z1' does not exist in the current context
                 //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(6, 61),
-                // (6,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(6, 56),
                 // (7,75): error CS0103: The name 'z2' does not exist in the current context
                 //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 75),
@@ -31374,21 +31308,18 @@ class C
                 // (7,61): error CS0103: The name 'z2' does not exist in the current context
                 //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 61),
-                // (7,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(7, 56),
                 // (9,17): error CS0103: The name 'z1' does not exist in the current context
                 //         int x = z1 + z2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(9, 17),
                 // (9,22): error CS0103: The name 'z2' does not exist in the current context
                 //         int x = z1 + z2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(9, 22),
-                // (6,14): warning CS0168: The variable 'Local2' is declared but never used
+                // (6,14): warning CS8321: The local function 'Local2' is declared but never used
                 //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local2").WithArguments("Local2").WithLocation(6, 14),
-                // (7,14): warning CS0168: The variable 'Local5' is declared but never used
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local2").WithArguments("Local2").WithLocation(6, 14),
+                // (7,14): warning CS8321: The local function  'Local5' is declared but never used
                 //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local5").WithArguments("Local5").WithLocation(7, 14)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local5").WithArguments("Local5").WithLocation(7, 14)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -32048,9 +31979,6 @@ class C
                 // (6,69): error CS0103: The name 'z1' does not exist in the current context
                 //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(6, 69),
-                // (6,64): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(6, 64),
                 // (7,83): error CS0103: The name 'z2' does not exist in the current context
                 //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 83),
@@ -32063,21 +31991,18 @@ class C
                 // (7,69): error CS0103: The name 'z2' does not exist in the current context
                 //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 69),
-                // (7,64): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(7, 64),
                 // (9,17): error CS0103: The name 'z1' does not exist in the current context
                 //         int x = z1 + z2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(9, 17),
                 // (9,22): error CS0103: The name 'z2' does not exist in the current context
                 //         int x = z1 + z2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(9, 22),
-                // (6,14): warning CS0168: The variable 'Local2' is declared but never used
+                // (6,14): warning CS8321: The local function 'Local2' is declared but never used
                 //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local2").WithArguments("Local2").WithLocation(6, 14),
-                // (7,14): warning CS0168: The variable 'Local5' is declared but never used
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local2").WithArguments("Local2").WithLocation(6, 14),
+                // (7,14): warning CS8321: The local function 'Local5' is declared but never used
                 //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local5").WithArguments("Local5").WithLocation(7, 14)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local5").WithArguments("Local5").WithLocation(7, 14)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -32620,7 +32545,7 @@ class C
 
             var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
             Assert.Equal("var", varType.ToString());
-            Assert.Null(model.GetAliasInfo(varType)); 
+            Assert.Null(model.GetAliasInfo(varType));
 
             var decl = GetOutVarDeclaration(tree, "x");
             Assert.Equal("var", model.GetTypeInfo(decl).Type.ToTestDisplayString()); // crashes
@@ -32656,7 +32581,7 @@ class C
 
             var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
             Assert.Equal("var", varType.ToString());
-            Assert.Null(model.GetAliasInfo(varType)); 
+            Assert.Null(model.GetAliasInfo(varType));
 
             var decl = GetOutVarDeclaration(tree, "x");
             Assert.Equal("var", model.GetTypeInfo(decl).Type.ToTestDisplayString()); // crashes
@@ -32762,7 +32687,7 @@ class C
 
             var varType = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Single();
             Assert.Equal("var", varType.ToString());
-            Assert.Null(model.GetAliasInfo(varType)); 
+            Assert.Null(model.GetAliasInfo(varType));
 
             var decl = GetOutVarDeclaration(tree, "x");
             Assert.Equal("var", model.GetTypeInfo(decl).Type.ToTestDisplayString()); // crashes

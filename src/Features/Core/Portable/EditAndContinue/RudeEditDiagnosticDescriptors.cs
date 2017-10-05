@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -79,6 +79,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             { GetDescriptorPair(RudeEditKind.InsertFile,                                FeaturesResources.Adding_a_new_file_will_prevent_the_debug_session_from_continuing) },
             { GetDescriptorPair(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, FeaturesResources.Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing) },
             { GetDescriptorPair(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, FeaturesResources.Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_will_prevent_the_debug_session_from_continuing) },
+            { GetDescriptorPair(RudeEditKind.SwitchBetweenLambdaAndLocalFunction, FeaturesResources.Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing ) },
+            { GetDescriptorPair(RudeEditKind.RefStruct, FeaturesResources.Using_ref_structs_will_prevent_the_debug_session_from_continuing) },
+            { GetDescriptorPair(RudeEditKind.ReadOnlyStruct, FeaturesResources.Using_readonly_structs_will_prevent_the_debug_session_from_continuing) },
+            { GetDescriptorPair(RudeEditKind.ReadOnlyReferences, FeaturesResources.Using_readonly_references_will_prevent_the_debug_session_from_continuing) },
             { GetDescriptorPair(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION,        FeaturesResources.Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_will_prevent_the_debug_session_from_continuing) },
 
             // VB specific,

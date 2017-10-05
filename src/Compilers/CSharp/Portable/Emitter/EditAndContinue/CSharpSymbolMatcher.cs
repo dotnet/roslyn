@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Concurrent;
@@ -651,12 +652,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             private T FindMatchingNamedTypeMember<T>(NamedTypeSymbol otherType, T sourceMember, Func<T, T, bool> predicate)
                 where T : Symbol
             {
-                Debug.Assert(!string.IsNullOrEmpty(sourceMember.Name));
+                Debug.Assert(!string.IsNullOrEmpty(sourceMember.MetadataName));
 
                 var otherMembersByName = _otherTypeMembers.GetOrAdd(otherType, GetOtherTypeMembers);
 
                 ImmutableArray<Cci.ITypeDefinitionMember> otherMembers;
-                if (otherMembersByName.TryGetValue(sourceMember.Name, out otherMembers))
+                if (otherMembersByName.TryGetValue(sourceMember.MetadataName, out otherMembers))
                 {
                     foreach (var otherMember in otherMembers)
                     {
@@ -740,7 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             private bool AreParametersEqual(ParameterSymbol parameter, ParameterSymbol other)
             {
                 Debug.Assert(parameter.Ordinal == other.Ordinal);
-                return StringOrdinalComparer.Equals(parameter.Name, other.Name) &&
+                return StringOrdinalComparer.Equals(parameter.MetadataName, other.MetadataName) &&
                     (parameter.RefKind == other.RefKind) &&
                     _comparer.Equals(parameter.Type, other.Type);
             }
@@ -756,7 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             private bool ArePropertiesEqual(PropertySymbol property, PropertySymbol other)
             {
-                Debug.Assert(StringOrdinalComparer.Equals(property.Name, other.Name));
+                Debug.Assert(StringOrdinalComparer.Equals(property.MetadataName, other.MetadataName));
                 return _comparer.Equals(property.Type, other.Type) &&
                     property.RefKind.Equals(other.RefKind) &&
                     property.Parameters.SequenceEqual(other.Parameters, AreParametersEqual);
@@ -819,7 +820,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     members.AddRange(synthesizedMembers);
                 }
 
-                var result = members.ToDictionary(s => ((Symbol)s).Name, StringOrdinalComparer.Instance);
+                var result = members.ToDictionary(s => ((Symbol)s).MetadataName, StringOrdinalComparer.Instance);
                 members.Free();
                 return result;
             }

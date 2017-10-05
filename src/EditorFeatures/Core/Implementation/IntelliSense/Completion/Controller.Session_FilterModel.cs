@@ -373,8 +373,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 if (bestFilterResult != null)
                 {
+                    // Only hard select this result if it's a prefix match
+                    // We need to do this so that 
+                    // * deleting and retyping a dot in a member access does not change the 
+                    //   text that originally appeared before the dot
+                    // * deleting through a word from the end keeps that word selected
+                    // This also preserves the behavior the VB had through Dev12.
+                    var hardSelect = bestFilterResult.Value.CompletionItem.FilterText.StartsWith(model.FilterText, StringComparison.CurrentCultureIgnoreCase);
                     return model.WithSelectedItem(bestFilterResult.Value.CompletionItem)
-                                .WithHardSelection(true)
+                                .WithHardSelection(hardSelect)
                                 .WithIsUnique(matchCount == 1);
                 }
                 else

@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics,
             out bool modifierErrors)
         {
-            var result = modifiers.ToDeclarationModifiers();
-            result = CheckModifiers(result, allowedModifiers, errorLocation, diagnostics, out modifierErrors);
+            var result = modifiers.ToDeclarationModifiers(diagnostics);
+            result = CheckModifiers(result, allowedModifiers, errorLocation, diagnostics, modifiers, out modifierErrors);
 
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)
             {
@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers allowedModifiers,
             Location errorLocation,
             DiagnosticBag diagnostics,
+            SyntaxTokenList? modifierTokensOpt,
             out bool modifierErrors)
         {
             modifierErrors = false;
@@ -41,16 +42,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers oneError = errorModifiers & ~(errorModifiers - 1);
                 Debug.Assert(oneError != DeclarationModifiers.None);
                 errorModifiers = errorModifiers & ~oneError;
+
                 switch (oneError)
                 {
                     case DeclarationModifiers.Partial:
-                        diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyMethods, errorLocation);
+                        // Provide a specialized error message in the case of partial.
+                        ReportPartialError(errorLocation, diagnostics, modifierTokensOpt);
                         break;
 
                     default:
                         diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, ConvertSingleModifierToSyntaxText(oneError));
                         break;
                 }
+
                 modifierErrors = true;
             }
 
@@ -58,8 +62,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (isMethod && ((result & (DeclarationModifiers.Partial | DeclarationModifiers.Private)) == (DeclarationModifiers.Partial | DeclarationModifiers.Private)))
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, errorLocation);
+                modifierErrors = true;
             }
+
+            if ((result & DeclarationModifiers.PrivateProtected) != 0)
+            {
+                modifierErrors |= !Binder.CheckFeatureAvailability(errorLocation.SourceTree, MessageID.IDS_FeaturePrivateProtected, diagnostics, errorLocation);
+            }
+
             return result;
+        }
+
+        private static void ReportPartialError(Location errorLocation, DiagnosticBag diagnostics, SyntaxTokenList? modifierTokensOpt)
+        {
+            if (modifierTokensOpt != null)
+            {
+                // If we can find the 'partial' token, report it on that.
+                var partialToken = modifierTokensOpt.Value.FirstOrNullable(t => t.Kind() == SyntaxKind.PartialKeyword);
+                if (partialToken != null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_PartialMisplaced, partialToken.Value.GetLocation());
+                    return;
+                }
+            }
+
+            diagnostics.Add(ErrorCode.ERR_PartialMisplaced, errorLocation);
         }
 
         private static string ConvertSingleModifierToSyntaxText(DeclarationModifiers modifier)
@@ -84,6 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return SyntaxFacts.GetText(SyntaxKind.ProtectedKeyword) + " " + SyntaxFacts.GetText(SyntaxKind.InternalKeyword);
                 case DeclarationModifiers.Private:
                     return SyntaxFacts.GetText(SyntaxKind.PrivateKeyword);
+                case DeclarationModifiers.PrivateProtected:
+                    return SyntaxFacts.GetText(SyntaxKind.PrivateKeyword) + " " + SyntaxFacts.GetText(SyntaxKind.ProtectedKeyword);
                 case DeclarationModifiers.ReadOnly:
                     return SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword);
                 case DeclarationModifiers.Const:
@@ -104,6 +133,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return SyntaxFacts.GetText(SyntaxKind.OverrideKeyword);
                 case DeclarationModifiers.Async:
                     return SyntaxFacts.GetText(SyntaxKind.AsyncKeyword);
+                case DeclarationModifiers.Ref:
+                    return SyntaxFacts.GetText(SyntaxKind.RefKeyword);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(modifier);
             }
@@ -149,29 +180,69 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return DeclarationModifiers.Fixed;
                 case SyntaxKind.VolatileKeyword:
                     return DeclarationModifiers.Volatile;
+                case SyntaxKind.RefKeyword:
+                    return DeclarationModifiers.Ref;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 
-        public static DeclarationModifiers ToDeclarationModifiers(this SyntaxTokenList modifiers)
+        public static DeclarationModifiers ToDeclarationModifiers(
+            this SyntaxTokenList modifiers, DiagnosticBag diagnostics)
         {
             var result = DeclarationModifiers.None;
-
+            bool seenNoDuplicates = true;
+            bool seenNoAccessibilityDuplicates = true;
+ 
             foreach (var modifier in modifiers)
             {
                 DeclarationModifiers one = ToDeclarationModifier(modifier.ContextualKind());
+
+                ReportDuplicateModifiers(
+                    modifier, one, result,
+                    ref seenNoDuplicates, ref seenNoAccessibilityDuplicates,
+                    diagnostics);
+
                 result |= one;
             }
 
-            // the two keywords "protected" and "internal" together are treated as one modifier.
-            if ((result & DeclarationModifiers.AccessibilityMask) == (DeclarationModifiers.Protected | DeclarationModifiers.Internal))
+            switch (result & DeclarationModifiers.AccessibilityMask)
             {
-                result &= ~DeclarationModifiers.AccessibilityMask;
-                result |= DeclarationModifiers.ProtectedInternal;
+                case DeclarationModifiers.Protected | DeclarationModifiers.Internal:
+                    // the two keywords "protected" and "internal" together are treated as one modifier.
+                    result &= ~DeclarationModifiers.AccessibilityMask;
+                    result |= DeclarationModifiers.ProtectedInternal;
+                    break;
+
+                case DeclarationModifiers.Private | DeclarationModifiers.Protected:
+                    // the two keywords "private" and "protected" together are treated as one modifier.
+                    result &= ~DeclarationModifiers.AccessibilityMask;
+                    result |= DeclarationModifiers.PrivateProtected;
+                    break;
             }
 
             return result;
+        }
+
+        private static void ReportDuplicateModifiers(
+            SyntaxToken modifierToken,
+            DeclarationModifiers modifierKind,
+            DeclarationModifiers allModifiers,
+            ref bool seenNoDuplicates,
+            ref bool seenNoAccessibilityDuplicates,
+            DiagnosticBag diagnostics)
+        {
+            if ((allModifiers & modifierKind) != 0)
+            {
+                if (seenNoDuplicates)
+                {
+                    diagnostics.Add(
+                        ErrorCode.ERR_DuplicateModifier,
+                        modifierToken.GetLocation(),
+                        SyntaxFacts.GetText(modifierToken.Kind()));
+                    seenNoDuplicates = false;
+                }
+            }
         }
 
         internal static CSDiagnosticInfo CheckAccessibility(DeclarationModifiers modifiers)
@@ -189,8 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // In a case of bogus accessibility (i.e. "public private"), defaults to public.
         internal static Accessibility EffectiveAccessibility(DeclarationModifiers modifiers)
         {
-            var acc = modifiers & DeclarationModifiers.AccessibilityMask;
-            switch (acc)
+            switch (modifiers & DeclarationModifiers.AccessibilityMask)
             {
                 case DeclarationModifiers.None:
                     return Accessibility.NotApplicable; // for explicit interface implementation
@@ -204,18 +274,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return Accessibility.Public;
                 case DeclarationModifiers.ProtectedInternal:
                     return Accessibility.ProtectedOrInternal;
+                case DeclarationModifiers.PrivateProtected:
+                    return Accessibility.ProtectedAndInternal;
                 default:
                     // This happens when you have a mix of accessibilities.
                     //
-                    // i.e.: public private void Foo()
+                    // i.e.: public private void Goo()
                     return Accessibility.Public;
             }
         }
 
         internal static bool IsValidAccessibility(DeclarationModifiers modifiers)
         {
-            var acc = modifiers & DeclarationModifiers.AccessibilityMask;
-            switch (acc)
+            switch (modifiers & DeclarationModifiers.AccessibilityMask)
             {
                 case DeclarationModifiers.None:
                 case DeclarationModifiers.Private:
@@ -223,12 +294,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case DeclarationModifiers.Internal:
                 case DeclarationModifiers.Public:
                 case DeclarationModifiers.ProtectedInternal:
+                case DeclarationModifiers.PrivateProtected:
                     return true;
 
                 default:
                     // This happens when you have a mix of accessibilities.
                     //
-                    // i.e.: public private void Foo()
+                    // i.e.: public private void Goo()
                     return false;
             }
         }

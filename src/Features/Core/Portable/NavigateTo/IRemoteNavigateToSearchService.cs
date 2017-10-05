@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
 
@@ -9,7 +10,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal interface IRemoteNavigateToSearchService
     {
-        Task<IList<SerializableNavigateToSearchResult>> SearchDocumentAsync(DocumentId documentId, string searchPattern);
-        Task<IList<SerializableNavigateToSearchResult>> SearchProjectAsync(ProjectId projectId, string searchPattern);
+        Task<IList<SerializableNavigateToSearchResult>> SearchDocumentAsync(DocumentId documentId, string searchPattern, CancellationToken cancellationToken);
+        Task<IList<SerializableNavigateToSearchResult>> SearchProjectAsync(ProjectId projectId, string searchPattern, CancellationToken cancellationToken);
     }
 }

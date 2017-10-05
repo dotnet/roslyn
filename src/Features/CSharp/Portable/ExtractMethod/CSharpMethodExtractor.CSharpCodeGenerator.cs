@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -247,8 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return SpecializedCollections.SingletonEnumerable<StatementSyntax>(SyntaxFactory.CheckedStatement(kind, SyntaxFactory.Block(statements)));
                 }
 
-                var block = statements.Single() as BlockSyntax;
-                if (block != null)
+                if (statements.Single() is BlockSyntax block)
                 {
                     return SpecializedCollections.SingletonEnumerable<StatementSyntax>(SyntaxFactory.CheckedStatement(kind, block));
                 }
@@ -279,8 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 if (count == 1)
                 {
-                    var returnStatement = statements.Single() as ReturnStatementSyntax;
-                    if (returnStatement != null && returnStatement.Expression == null)
+                    if (statements.Single() is ReturnStatementSyntax returnStatement && returnStatement.Expression == null)
                     {
                         return OperationStatus.NoActiveStatement;
                     }
@@ -593,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 foreach (var argument in this.AnalyzerResult.MethodParameters)
                 {
                     var modifier = GetParameterRefSyntaxKind(argument.ParameterModifier);
-                    var refOrOut = modifier == SyntaxKind.None ? default(SyntaxToken) : SyntaxFactory.Token(modifier);
+                    var refOrOut = modifier == SyntaxKind.None ? default : SyntaxFactory.Token(modifier);
 
                     arguments.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName(argument.Name)).WithRefOrOutKeyword(refOrOut));
                 }

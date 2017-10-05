@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
     void M()
     {
         [|int|] i;
-        if (Foo(int.TryParse(v, out i)))
+        if (Goo(int.TryParse(v, out i)))
         {
         }
     }
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 {
     void M()
     {
-        if (Foo(int.TryParse(v, out int i)))
+        if (Goo(int.TryParse(v, out int i)))
         {
         }
     }
@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -820,7 +820,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -850,7 +850,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
             }
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(15994, "https://github.com/dotnet/roslyn/issues/15994")]
@@ -929,7 +929,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(""Foo"");
+        Console.WriteLine(""Goo"");
 
         int [|result|];
         if (int.TryParse(""12"", out result))
@@ -944,14 +944,14 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(""Foo"");
+        Console.WriteLine(""Goo"");
 
         if (int.TryParse(""12"", out int result))
         {
 
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(15994, "https://github.com/dotnet/roslyn/issues/15994")]
@@ -965,13 +965,13 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(""Foo"");
+        Console.WriteLine(""Goo"");
 
 
 
 
 
-        // Foo
+        // Goo
 
 
 
@@ -988,13 +988,13 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(""Foo"");
+        Console.WriteLine(""Goo"");
 
 
 
 
 
-        // Foo
+        // Goo
 
 
 
@@ -1003,7 +1003,7 @@ class Program
 
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(15336, "https://github.com/dotnet/roslyn/issues/15336")]
@@ -1075,7 +1075,7 @@ using System;
 
 class C
 {
-    void Foo(string x)
+    void Goo(string x)
     {
         object [|s|] = null; 
         if (x != null || TryBaz(out s))
@@ -1101,7 +1101,7 @@ using System;
 
 class C
 {
-    void Foo(string x)
+    void Goo(string x)
     {
         object [|s|] = null; 
         if (x != null && TryBaz(out s))
@@ -1120,11 +1120,11 @@ using System;
 
 class C
 {
-    void Foo(string x)
+    void Goo(string x)
     {
         if (x != null && TryBaz(out object s))
         {
-            Console.WriteLine(s); 
+            Console.WriteLine(s);
         }
     }
 
@@ -1603,7 +1603,7 @@ class C
 {
     static void Main(string[] args)
     {
-        for ( ; TryExtractTokenFromEmail(out string token); )
+        for (; TryExtractTokenFromEmail(out string token);)
         {
         }
     }
@@ -1881,7 +1881,7 @@ class Demo
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string a; string [|b|];
         Method(out a, out b);
@@ -1890,12 +1890,12 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string a; 
         Method(out a, out string b);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(16676, "https://github.com/dotnet/roslyn/issues/16676")]
@@ -1906,7 +1906,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string a; /*leading*/ string [|b|]; // trailing
         Method(out a, out b);
@@ -1915,12 +1915,12 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string a; /*leading*/  // trailing
         Method(out a, out string b);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(16676, "https://github.com/dotnet/roslyn/issues/16676")]
@@ -1931,7 +1931,7 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string a;
         /*leading*/ string [|b|]; // trailing
@@ -1941,13 +1941,13 @@ class C
 @"
 class C
 {
-    void Foo()
+    void Goo()
     {
         string a;
         /*leading*/ // trailing
         Method(out a, out string b);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]

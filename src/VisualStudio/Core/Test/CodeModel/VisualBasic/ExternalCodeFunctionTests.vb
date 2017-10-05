@@ -15,12 +15,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
             Dim code =
 <Code>
 Class C
-    Sub $$Foo(string s)
+    Sub $$Goo(string s)
     End Sub
 End Class
 </Code>
 
-            TestFullName(code, "C.Foo")
+            TestFullName(code, "C.Goo")
         End Sub
 
 #End Region
@@ -32,12 +32,12 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub $$Foo(string s)
+    Sub $$Goo(string s)
     End Sub
 End Class
 </Code>
 
-            TestName(code, "Foo")
+            TestName(code, "Goo")
         End Sub
 
 #End Region

@@ -534,9 +534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return GetText(SyntaxKind.ProtectedKeyword)
 
                 Case Accessibility.ProtectedAndFriend
-                    ' NOTE: Following C# version of this method return Reflector's representation ('FamilyAndAssembly')
-                    ' TODO: revise
-                    Return "FamilyAndAssembly"
+                    Return GetText(SyntaxKind.PrivateKeyword) + " " + GetText(SyntaxKind.ProtectedKeyword)
 
                 Case Accessibility.ProtectedOrFriend
                     Return GetText(SyntaxKind.ProtectedKeyword) + " " + GetText(SyntaxKind.FriendKeyword)

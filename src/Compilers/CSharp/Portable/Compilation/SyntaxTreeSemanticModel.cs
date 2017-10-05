@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _binderFactory.GetBinder((CSharpSyntaxNode)token.Parent, position).WithAdditionalFlags(GetSemanticModelBinderFlags());
         }
 
-        internal override IOperation GetOperationWorker(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
+        internal override IOperation GetOperationWorker(CSharpSyntaxNode node, CancellationToken cancellationToken)
         {
             // in case this is right side of a qualified name or member access (or part of a cref)
             node = SyntaxFactory.GetStandaloneNode(node);
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var model = this.GetMemberModel(node);
             if (model != null)
             {
-                return model.GetOperationWorker(node, options, cancellationToken);
+                return model.GetOperationWorker(node, cancellationToken);
             }
             else
             {
@@ -948,7 +949,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AccessorDeclarationSyntax accessorDecl;
                     if ((memberDecl = node.Parent as MemberDeclarationSyntax) != null)
                     {
-                        var symbol = (SourceMethodSymbol)GetDeclaredSymbol(memberDecl);
+                        var symbol = (SourceMemberMethodSymbol)GetDeclaredSymbol(memberDecl);
                         if ((object)symbol == null)
                             return null;
 
@@ -956,7 +957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if ((accessorDecl = node.Parent as AccessorDeclarationSyntax) != null)
                     {
-                        var symbol = (SourceMethodSymbol)GetDeclaredSymbol(accessorDecl);
+                        var symbol = (SourceMemberMethodSymbol)GetDeclaredSymbol(accessorDecl);
                         if ((object)symbol == null)
                             return null;
 
@@ -1031,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.ArrowExpressionClause:
                     {
-                        SourceMethodSymbol symbol = null;
+                        SourceMemberMethodSymbol symbol = null;
                         MemberDeclarationSyntax memberSyntax;
                         AccessorDeclarationSyntax accessorSyntax;
 
@@ -1039,15 +1040,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (node.Parent is BasePropertyDeclarationSyntax)
                         {
-                            symbol = (SourceMethodSymbol)GetDeclaredSymbol(exprDecl);
+                            symbol = (SourceMemberMethodSymbol)GetDeclaredSymbol(exprDecl);
                         }
                         else if ((memberSyntax = node.Parent as MemberDeclarationSyntax) != null)
                         {
-                            symbol = (SourceMethodSymbol)GetDeclaredSymbol(memberSyntax);
+                            symbol = (SourceMemberMethodSymbol)GetDeclaredSymbol(memberSyntax);
                         }
                         else if ((accessorSyntax = node.Parent as AccessorDeclarationSyntax) != null)
                         {
-                            symbol = (SourceMethodSymbol)GetDeclaredSymbol(accessorSyntax);
+                            symbol = (SourceMemberMethodSymbol)GetDeclaredSymbol(accessorSyntax);
                         }
                         else
                         {
@@ -1095,7 +1096,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ThisConstructorInitializer:
                     {
                         var constructorDecl = (ConstructorDeclarationSyntax)node.Parent;
-                        var constructorSymbol = (SourceMethodSymbol)GetDeclaredSymbol(constructorDecl);
+                        var constructorSymbol = (SourceMemberMethodSymbol)GetDeclaredSymbol(constructorDecl);
                         if ((object)constructorSymbol == null)
                             return null;
 

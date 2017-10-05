@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1465,6 +1466,34 @@ label1:
             var model = (Microsoft.CodeAnalysis.SemanticModel)(compilation.GetSemanticModel(tree));
             var symbols = model.LookupLabels(source.ToString().IndexOf("label1;", StringComparison.Ordinal));
             Assert.True(symbols.IsEmpty);
+        }
+
+        [Fact]
+        public void GotoLabelShouldNotHaveColon()
+        {
+            var source = @"
+class Program
+{
+    static void M(object o)
+    {
+        switch (o)
+        {
+            case int i:
+                goto HERE;
+            default:
+@default:
+label1:
+                break;
+        }
+    }
+}
+";
+
+            var compilation = CreateStandardCompilation(source);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var symbols = model.LookupLabels(source.ToString().IndexOf("HERE", StringComparison.Ordinal));
+            AssertEx.SetEqual(new[] { "default", "case int i:", "label1" }, symbols.Select(s => s.ToTestDisplayString()));
         }
 
         [WorkItem(586815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586815")]

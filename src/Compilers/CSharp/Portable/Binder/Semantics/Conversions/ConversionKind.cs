@@ -43,10 +43,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         IntPtr,
         InterpolatedString, // a conversion from an interpolated string to IFormattable or FormattableString
         Deconstruction, // The Deconstruction conversion is not part of the language, it is an implementation detail 
+        StackAllocToPointerType,
+        StackAllocToSpanType,
 
         // IdentityValue is not a part of the language. 
         // It is used by lowering to ensure that trivially reduced expressions 
         // do not become exposed to mutations if used as receivers of struct methods.
-        IdentityValue,  
+        IdentityValue,
+
+        // PinnedObjectToPointer is not directly a part of the language
+        // It is used by lowering of "fixed" statements to represent conversion of an object reference (O) to an unmanaged pointer (*)
+        // The conversion is unsafe and makes sense only if (O) is pinned.
+        PinnedObjectToPointer,
     }
 }
