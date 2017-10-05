@@ -93,6 +93,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalVariable.RefKind; }
         }
 
+        internal override uint ValEscapeScope => _originalVariable.ValEscapeScope;
+
+        internal override uint RefEscapeScope => _originalVariable.RefEscapeScope;
+
         internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics)
         {
             return _originalVariable.GetConstantValue(node, inProgress, diagnostics);
