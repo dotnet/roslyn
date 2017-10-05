@@ -1149,7 +1149,7 @@ class Program
         double dValue = 600.1;
         int iValue = 600;
         byte mbytDeciWgt = 1;
-        bool value = ((double)dValue > (double)((double)iValue + (double)(10 ^ -mbytDeciWgt)));
+        bool value = ((double)dValue > (double)((double)iValue + (double)System.Math.Pow(10, -mbytDeciWgt)));
         return value;
     }
 }
@@ -1157,7 +1157,7 @@ class Program
             var comp = CompileAndVerify(source);
             comp.VerifyIL("Program.M",
 @"{
-  // Code size       31 (0x1f)
+  // Code size       43 (0x2b)
   .maxstack  4
   .locals init (int V_0, //iValue
                 byte V_1) //mbytDeciWgt
@@ -1169,15 +1169,16 @@ class Program
   IL_0011:  conv.r8
   IL_0012:  ldloc.0
   IL_0013:  conv.r8
-  IL_0014:  ldc.i4.s   10
-  IL_0016:  ldloc.1
-  IL_0017:  neg
-  IL_0018:  xor
-  IL_0019:  conv.r8
-  IL_001a:  add
-  IL_001b:  conv.r8
-  IL_001c:  cgt
-  IL_001e:  ret
+  IL_0014:  ldc.r8     10
+  IL_001d:  ldloc.1
+  IL_001e:  neg
+  IL_001f:  conv.r8
+  IL_0020:  call       ""double System.Math.Pow(double, double)""
+  IL_0025:  conv.r8
+  IL_0026:  add
+  IL_0027:  conv.r8
+  IL_0028:  cgt
+  IL_002a:  ret
 }");
         }
     }

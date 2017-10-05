@@ -13833,5 +13833,32 @@ End Module
 
         End Sub
 
+
+        <Fact, WorkItem(22533, "https://github.com/dotnet/roslyn/issues/22533")>
+        Public Sub TestExplicitConversionNotEmittedOnConstantValue()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Program
+    Sub M()
+        System.Console.WriteLine(DirectCast(DirectCast(Nothing, Integer?), Object))
+    End Sub
+End Module
+    </file>
+</compilation>).
+            VerifyIL("Program.M",
+            <![CDATA[
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldc.r4     600.1
+  IL_0005:  conv.r4
+  IL_0006:  ldc.r4     600.1
+  IL_000b:  cgt
+  IL_000d:  ret
+}
+]]>)
+
+        End Sub
     End Class
 End Namespace

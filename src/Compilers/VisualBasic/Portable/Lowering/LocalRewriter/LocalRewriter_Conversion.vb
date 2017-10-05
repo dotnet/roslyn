@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim result = DirectCast(Visit(node.Operand), BoundExpression)
 
-                If node.ExplicitCastInCode AndAlso IsFloatPointExpressionOfUnknownPrecision(result) Then
+                If node.ExplicitCastInCode AndAlso IsFloatingPointExpressionOfUnknownPrecision(result) Then
                     ' To force a value of a floating point type to the exact precision of its type, an explicit cast can be used.
                     ' It means that explicit casts to CDbl() or CSng() should be preserved on the node.
                     ' If original conversion has become something else with unknown precision, add an explicit identity cast.
@@ -126,13 +126,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return returnValue
         End Function
 
-        Private Shared Function IsFloatPointExpressionOfUnknownPrecision(rewrittenNode As BoundExpression) As Boolean
+        Private Shared Function IsFloatingPointExpressionOfUnknownPrecision(rewrittenNode As BoundExpression) As Boolean
             If rewrittenNode Is Nothing Then
                 Return False
             End If
 
-            Dim Type = rewrittenNode.Type
-            If Type.SpecialType <> SpecialType.System_Double AndAlso Type.SpecialType <> SpecialType.System_Single Then
+            ' Note: no special handling for node having a constant value because it cannot reach here
+
+            Dim type = rewrittenNode.Type
+            If type.SpecialType <> SpecialType.System_Double AndAlso type.SpecialType <> SpecialType.System_Single Then
                 Return False
             End If
 
@@ -149,12 +151,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case BoundKind.Sequence
                     Dim sequence = DirectCast(rewrittenNode, BoundSequence)
-                    Return IsFloatPointExpressionOfUnknownPrecision(sequence.ValueOpt)
+                    Return IsFloatingPointExpressionOfUnknownPrecision(sequence.ValueOpt)
 
                 Case BoundKind.Conversion
                     ' lowered conversions have definite precision unless they are implicit identity casts
-                    Dim Conversion = DirectCast(rewrittenNode, BoundConversion)
-                    Return Conversion.ConversionKind = ConversionKind.Identity AndAlso Not Conversion.ExplicitCastInCode
+                    Dim conversion = DirectCast(rewrittenNode, BoundConversion)
+                    Return conversion.ConversionKind = ConversionKind.Identity AndAlso Not conversion.ExplicitCastInCode
             End Select
 
             ' it is a float/double expression and we have no idea ...
