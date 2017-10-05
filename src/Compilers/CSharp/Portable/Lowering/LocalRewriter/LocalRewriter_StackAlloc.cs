@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var stackSize = RewriteStackAllocCountToSize(rewrittenCount, elementType);
                 return new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, stackAllocNode.Type);
             }
-            else if (type.IsSpanType())
+            else if (type.OriginalDefinition == _compilation.GetWellKnownType(WellKnownType.System_Span_T))
             {
                 var spanType = (NamedTypeSymbol)stackAllocNode.Type;
                 var countTemp = _factory.StoreToTemp(rewrittenCount, out BoundAssignmentOperator countTempAssignment);

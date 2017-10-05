@@ -2168,7 +2168,7 @@ public class Test
 
             CreateStandardCompilation(text).VerifyEmitDiagnostics(
                 // (11,12): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
-                //     public ref readonly int Method(ref readonly int x) => ref x;
+                //     public ref readonly int Method(in int x) => ref x;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "ref readonly int").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(11, 12),
                 // (11,36): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
                 //     public ref readonly int Method(in int x) => ref x;

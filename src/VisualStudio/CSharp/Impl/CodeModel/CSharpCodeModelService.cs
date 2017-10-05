@@ -1038,7 +1038,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 case Accessibility.ProtectedOrInternal:
                     return EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected;
                 case Accessibility.ProtectedAndInternal:
-                    // PROTOTYPE: there is no appropriate mapping for private protected in EnvDTE.vsCMAccess
+                    // there is no appropriate mapping for private protected in EnvDTE.vsCMAccess
+                    // See https://github.com/dotnet/roslyn/issues/22406
                     return EnvDTE.vsCMAccess.vsCMAccessProtected;
                 default:
                     throw Exceptions.ThrowEFail();

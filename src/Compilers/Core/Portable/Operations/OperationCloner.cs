@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new OmittedArgumentExpression(((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        internal override IOperation VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation, object argument)
+        public override IOperation VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation, object argument)
         {
             return new ArrayElementReferenceExpression(Visit(operation.ArrayReference), VisitArray(operation.Indices), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }

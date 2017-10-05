@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -26,7 +26,8 @@ class C
 ";
             string expectedOperationTree = @"
 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return;')
-  ReturnedValue: null
+  ReturnedValue: 
+    null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
             VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -47,7 +48,8 @@ class C
 ";
             string expectedOperationTree = @"
 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return true;')
-  ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
+  ReturnedValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -70,7 +72,8 @@ class C
 ";
             string expectedOperationTree = @"
 IReturnStatement (OperationKind.YieldReturnStatement) (Syntax: 'yield return 0;')
-  ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+  ReturnedValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -94,7 +97,8 @@ class C
 ";
             string expectedOperationTree = @"
 IReturnStatement (OperationKind.YieldBreakStatement) (Syntax: 'yield break;')
-  ReturnedValue: null
+  ReturnedValue: 
+    null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

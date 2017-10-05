@@ -57,6 +57,7 @@ Microsoft.CodeAnalysis.OperationKind.AnonymousFunctionExpression = 273 -> Micros
 Microsoft.CodeAnalysis.OperationKind.AnonymousObjectCreationExpression = 287 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.Argument = 1031 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.ArrayCreationExpression = 276 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.ArrayElementReferenceExpression = 260 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.ArrayInitializer = 1029 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.AwaitExpression = 279 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.BinaryOperatorExpression = 270 -> Microsoft.CodeAnalysis.OperationKind
@@ -211,6 +212,9 @@ Microsoft.CodeAnalysis.Semantics.IArgument.Value.get -> Microsoft.CodeAnalysis.I
 Microsoft.CodeAnalysis.Semantics.IArrayCreationExpression
 Microsoft.CodeAnalysis.Semantics.IArrayCreationExpression.DimensionSizes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.IArrayCreationExpression.Initializer.get -> Microsoft.CodeAnalysis.Semantics.IArrayInitializer
+Microsoft.CodeAnalysis.Semantics.IArrayElementReferenceExpression
+Microsoft.CodeAnalysis.Semantics.IArrayElementReferenceExpression.ArrayReference.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IArrayElementReferenceExpression.Indices.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.IArrayInitializer
 Microsoft.CodeAnalysis.Semantics.IArrayInitializer.ElementValues.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.IAssignmentExpression
@@ -520,6 +524,7 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitAnonymousFunction
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitAnonymousObjectCreationExpression(Microsoft.CodeAnalysis.Semantics.IAnonymousObjectCreationExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitArgument(Microsoft.CodeAnalysis.Semantics.IArgument operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitArrayCreationExpression(Microsoft.CodeAnalysis.Semantics.IArrayCreationExpression operation) -> void
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitArrayElementReferenceExpression(Microsoft.CodeAnalysis.Semantics.IArrayElementReferenceExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitArrayInitializer(Microsoft.CodeAnalysis.Semantics.IArrayInitializer operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitAwaitExpression(Microsoft.CodeAnalysis.Semantics.IAwaitExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitBinaryOperatorExpression(Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression operation) -> void
@@ -609,6 +614,7 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.Vi
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitAnonymousObjectCreationExpression(Microsoft.CodeAnalysis.Semantics.IAnonymousObjectCreationExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitArgument(Microsoft.CodeAnalysis.Semantics.IArgument operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitArrayCreationExpression(Microsoft.CodeAnalysis.Semantics.IArrayCreationExpression operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitArrayElementReferenceExpression(Microsoft.CodeAnalysis.Semantics.IArrayElementReferenceExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitArrayInitializer(Microsoft.CodeAnalysis.Semantics.IArrayInitializer operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitAwaitExpression(Microsoft.CodeAnalysis.Semantics.IAwaitExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitBinaryOperatorExpression(Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression operation, TArgument argument) -> TResult

@@ -3031,6 +3031,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            // Ref-like types cannot be boxed or unboxed
+            if (destination.IsRestrictedType())
+            {
+                return false;
+            }
+
             // SPEC: An unboxing conversion permits a reference type to be explicitly converted to a value-type. 
             // SPEC: An unboxing conversion exists from the types object and System.ValueType to any non-nullable-value-type, 
             var specialTypeSource = source.SpecialType;

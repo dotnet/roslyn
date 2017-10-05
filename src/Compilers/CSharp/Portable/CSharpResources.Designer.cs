@@ -5408,6 +5408,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The first parameter of an &apos;in&apos; extension method &apos;{0}&apos; must be a value type..
+        /// </summary>
+        internal static string ERR_InExtensionMustBeValueType {
+            get {
+                return ResourceManager.GetString("ERR_InExtensionMustBeValueType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot initialize a by-reference variable with a value.
         /// </summary>
         internal static string ERR_InitializeByReferenceVariableWithValue {
@@ -8270,7 +8279,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The first parameter of the reference extension method &apos;{0}&apos; must be a value type or a generic type constrained to struct..
+        ///   Looks up a localized string similar to The first parameter of a &apos;ref&apos; extension method &apos;{0}&apos; must be a value type or a generic type constrained to struct..
         /// </summary>
         internal static string ERR_RefExtensionMustBeValueTypeOrConstrainedToOne {
             get {
@@ -8338,15 +8347,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_RefReadonly2 {
             get {
                 return ResourceManager.GetString("ERR_RefReadonly2", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The first parameter of the readonly reference extension method &apos;{0}&apos; must be a value type..
-        /// </summary>
-        internal static string ERR_RefReadOnlyExtensionMustBeValueType {
-            get {
-                return ResourceManager.GetString("ERR_RefReadOnlyExtensionMustBeValueType", resourceCulture);
             }
         }
         
@@ -8450,7 +8450,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression cannot be used in this context because it may not be returned by reference.
+        ///   Looks up a localized string similar to An expression cannot be used in this context because it may not be passed or returned by reference.
         /// </summary>
         internal static string ERR_RefReturnLvalueExpected {
             get {

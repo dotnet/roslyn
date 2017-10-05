@@ -2062,16 +2062,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     if (this.TypeKind == TypeKind.Struct)
                     {
-                        if (this.IsSpanType())
-                        {
-                            isByRefLike = ThreeState.True;
-                        }
-                        else if (this.TypeKind == TypeKind.Struct)
-                        {
-                            var moduleSymbol = this.ContainingPEModule;
-                            var module = moduleSymbol.Module;
-                            isByRefLike = module.HasIsByRefLikeAttribute(_handle).ToThreeState();
-                        }
+                        var moduleSymbol = this.ContainingPEModule;
+                        var module = moduleSymbol.Module;
+                        isByRefLike = module.HasIsByRefLikeAttribute(_handle).ToThreeState();
                     }
 
                     uncommon.lazyIsByRefLike = isByRefLike;
@@ -2095,11 +2088,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     var isReadOnly = ThreeState.False;
 
-                    if (this.IsSpanType())
-                    {
-                        isReadOnly = ThreeState.True;
-                    }
-                    else if (this.TypeKind == TypeKind.Struct)
+                    if (this.TypeKind == TypeKind.Struct)
                     {
                         var moduleSymbol = this.ContainingPEModule;
                         var module = moduleSymbol.Module;
