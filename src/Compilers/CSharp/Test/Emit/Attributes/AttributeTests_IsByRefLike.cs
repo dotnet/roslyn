@@ -10,7 +10,6 @@ using Roslyn.Test.Utilities;
 using System.Collections.Immutable;
 using System.Linq;
 using Xunit;
-using System.Reflection.PortableExecutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1002,8 +1001,6 @@ namespace System
             bool hasObsolete = true)
         {
             var peType = (PENamedTypeSymbol)type;
-            var peModule = (PEModuleSymbol)peType.ContainingModule;
-
             Assert.True(peType.IsByRefLikeType);
 
             // Single(), as there is no [Obsolete] attribute returned
@@ -1012,6 +1009,7 @@ namespace System
             Assert.Equal(assemblyName, isByRefLikeAttribute.ContainingAssembly.Name);
             Assert.Equal(accessibility, isByRefLikeAttribute.DeclaredAccessibility);
 
+            var peModule = (PEModuleSymbol)peType.ContainingModule;
             var obsoleteAttribute = peModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(peType.Handle, ignoreByRefLikeMarker: false);
 
             if (hasObsolete)
