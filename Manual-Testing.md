@@ -128,6 +128,7 @@ When doing a test pass, copy this page and consider using these status indicator
 | | **Add argument name** [Visual Studio 2017 version 15.3 | | | N/A |
 | | **Fade and remove unreachable code** [Visual Studio 2017 version 15.5] | | | N/A |
 | | **Add missing file banner** [Visual Studio 2017 version 15.5] | | | N/A |
+| | **Deconstruct tuple declaration** [Visual Studio 2017 version 15.4] | | | N/A |
 
 ### IDE Features
 | Category | Feature/Description | C# Signoff/Notes | VB Signoff/Notes | F# Signoff/Notes |
