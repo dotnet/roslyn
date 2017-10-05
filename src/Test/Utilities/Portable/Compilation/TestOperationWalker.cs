@@ -512,9 +512,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitFieldInitializer(operation);
         }
 
-        public override void VisitLocalInitializer(ILocalInitializer operation)
+        public override void VisitVariableInitializer(IVariableInitializer operation)
         {
-            base.VisitLocalInitializer(operation);
+            base.VisitVariableInitializer(operation);
         }
 
         public override void VisitPropertyInitializer(IPropertyInitializer operation)

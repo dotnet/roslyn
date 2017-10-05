@@ -259,7 +259,7 @@ IBlockStatement (26 statements, 3 locals) (OperationKind.BlockStatement) (Syntax
       Variables: Local_1: x As System.Int32
         Local_2: y As System.Int32
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer) (Syntax: 'New Integer')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Integer')
           IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
             Arguments(0)
             Initializer: 
@@ -640,7 +640,7 @@ IBlockStatement (26 statements, 3 locals) (OperationKind.BlockStatement) (Syntax
       Variables: Local_1: x As System.Int32
         Local_2: y As System.Int32
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer) (Syntax: 'New Integer')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Integer')
           IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
             Arguments(0)
             Initializer: 
@@ -1171,7 +1171,7 @@ IBlockStatement (12 statements, 2 locals) (OperationKind.BlockStatement) (Syntax
       Variables: Local_1: x As System.Int32
         Local_2: y As System.Int32
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer) (Syntax: 'New Integer')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Integer')
           IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
             Arguments(0)
             Initializer: 
@@ -1320,7 +1320,7 @@ IBlockStatement (12 statements, 2 locals) (OperationKind.BlockStatement) (Syntax
       Variables: Local_1: x As System.Int32
         Local_2: y As System.Int32
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer) (Syntax: 'New Integer')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Integer')
           IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
             Arguments(0)
             Initializer: 
@@ -1590,7 +1590,7 @@ IBlockStatement (24 statements, 3 locals) (OperationKind.BlockStatement) (Syntax
       Variables: Local_1: x As B2
         Local_2: y As B2
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer) (Syntax: 'New B2()')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New B2()')
           IObjectCreationExpression (Constructor: Sub B2..ctor()) (OperationKind.ObjectCreationExpression, Type: B2) (Syntax: 'New B2()')
             Arguments(0)
             Initializer: 

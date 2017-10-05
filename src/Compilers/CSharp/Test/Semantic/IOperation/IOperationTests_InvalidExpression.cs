@@ -139,7 +139,7 @@ class Program
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'y = x.MissingField')
   Variables: Local_1: ? y
   Initializer: 
-    ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= x.MissingField')
+    IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= x.MissingField')
       IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x.MissingField')
         Children(1):
             ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
@@ -179,7 +179,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'y = x.i1')
     Variables: Local_1: System.String y
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid, IsImplicit) (Syntax: '= x.i1')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= x.i1')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'x.i1')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
@@ -225,7 +225,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'y = (Program)x.i1')
     Variables: Local_1: Program y
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= (Program)x.i1')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= (Program)x.i1')
         IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: Program, IsInvalid) (Syntax: '(Program)x.i1')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 

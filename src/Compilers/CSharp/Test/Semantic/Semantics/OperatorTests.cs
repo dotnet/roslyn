@@ -1824,7 +1824,7 @@ IBlockStatement (3 statements, 3 locals) (OperationKind.BlockStatement) (Syntax:
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x = xint + 123')
       Variables: Local_1: System.Int32 x
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= xint + 123')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= xint + 123')
           IBinaryOperatorExpression (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 X<System.Int32>.op_Addition(X<System.Int32> x, System.Int32 y)) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: 'xint + 123')
             Left: 
               IParameterReferenceExpression: xint (OperationKind.ParameterReferenceExpression, Type: X<System.Int32>) (Syntax: 'xint')
@@ -1834,7 +1834,7 @@ IBlockStatement (3 statements, 3 locals) (OperationKind.BlockStatement) (Syntax:
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'q = new Q<i ...  new int?()')
       Variables: Local_1: System.Int32? q
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= new Q<int ...  new int?()')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new Q<int ...  new int?()')
           IBinaryOperatorExpression (BinaryOperatorKind.Add, IsLifted) (OperatorMethod: System.Int32 Q<System.Int32>.op_Addition(Q<System.Int32> x, System.Int32 y)) (OperationKind.BinaryOperatorExpression, Type: System.Int32?) (Syntax: 'new Q<int>? ...  new int?()')
             Left: 
               IObjectCreationExpression (Constructor: Q<System.Int32>?..ctor()) (OperationKind.ObjectCreationExpression, Type: Q<System.Int32>?) (Syntax: 'new Q<int>?()')
@@ -1850,7 +1850,7 @@ IBlockStatement (3 statements, 3 locals) (OperationKind.BlockStatement) (Syntax:
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b = ... }')
       Variables: Local_1: System.Boolean[] b
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= ... }')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= ... }')
           IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Boolean[]) (Syntax: '{ ... }')
             Dimension Sizes(1):
                 ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 8, IsImplicit) (Syntax: '{ ... }')

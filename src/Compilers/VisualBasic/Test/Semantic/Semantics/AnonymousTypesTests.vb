@@ -127,7 +127,7 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'v1')
       Variables: Local_1: v1 As System.Object
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= New With {.a = tr}')
+        IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= New With {.a = tr}')
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New With {.a = tr}')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
@@ -144,7 +144,7 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'v2')
       Variables: Local_1: v2 As System.Object
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= New With {.a = {{tr}}}')
+        IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= New With {.a = {{tr}}}')
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New With {.a = {{tr}}}')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
@@ -734,7 +734,7 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'err')
       Variables: Local_1: err As <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= New With {<a/>.<_>}')
+        IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= New With {<a/>.<_>}')
           IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>, IsInvalid) (Syntax: 'New With {<a/>.<_>}')
             Initializers(1):
                 IOperation:  (OperationKind.None, IsInvalid) (Syntax: '<a/>.<_>')
@@ -742,7 +742,7 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'ok')
       Variables: Local_1: ok As <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= New With {<a/>.<__>}')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= New With {<a/>.<__>}')
           IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>) (Syntax: 'New With {<a/>.<__>}')
             Initializers(1):
                 IOperation:  (OperationKind.None) (Syntax: '<a/>.<__>')

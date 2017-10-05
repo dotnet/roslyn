@@ -587,7 +587,7 @@ IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement, IsInvalid
         IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b = !x.Equals(null)')
           Variables: Local_1: System.Boolean b
           Initializer: 
-            ILocalInitializer (OperationKind.LocalInitializer, IsImplicit) (Syntax: '= !x.Equals(null)')
+            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= !x.Equals(null)')
               IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Boolean, IsImplicit) (Syntax: '!x.Equals(null)')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 

@@ -1101,7 +1101,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     If boundCatchBlock.LocalOpt IsNot Nothing AndAlso
                         boundCatchBlock.ExceptionSourceOpt?.Kind = BoundKind.Local AndAlso
                         boundCatchBlock.LocalOpt Is DirectCast(boundCatchBlock.ExceptionSourceOpt, BoundLocal).LocalSymbol Then
-                        Return OperationFactory.CreateVariableDeclaration(Of EqualsValueSyntax)(boundCatchBlock.LocalOpt, initialValue:=Nothing, semanticModel:=_semanticModel, syntax:=boundCatchBlock.ExceptionSourceOpt.Syntax)
+                        Return OperationFactory.CreateVariableDeclaration(boundCatchBlock.LocalOpt, initializer:=Nothing, semanticModel:=_semanticModel, syntax:=boundCatchBlock.ExceptionSourceOpt.Syntax)
                     Else
                         Return Create(boundCatchBlock.ExceptionSourceOpt)
                     End If

@@ -39,7 +39,7 @@ IOperation:  (OperationKind.None) (Syntax: 'fixed(int * ... }')
         IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p = &i')
           Variables: Local_1: System.Int32* p
           Initializer: 
-            ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= &i')
+            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= &i')
               IOperation:  (OperationKind.None) (Syntax: '&i')
                 Children(1):
                     IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*) (Syntax: '&i')
@@ -110,7 +110,7 @@ IOperation:  (OperationKind.None) (Syntax: 'fixed (int* ... }')
         IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1 = &i1')
           Variables: Local_1: System.Int32* p1
           Initializer: 
-            ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= &i1')
+            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= &i1')
               IOperation:  (OperationKind.None) (Syntax: '&i1')
                 Children(1):
                     IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*) (Syntax: '&i1')
@@ -121,7 +121,7 @@ IOperation:  (OperationKind.None) (Syntax: 'fixed (int* ... }')
         IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p2 = &i2')
           Variables: Local_1: System.Int32* p2
           Initializer: 
-            ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= &i2')
+            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= &i2')
               IOperation:  (OperationKind.None) (Syntax: '&i2')
                 Children(1):
                     IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*) (Syntax: '&i2')
@@ -187,7 +187,7 @@ IOperation:  (OperationKind.None) (Syntax: 'fixed (int* ... }')
         IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1 = &i1')
           Variables: Local_1: System.Int32* p1
           Initializer: 
-            ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= &i1')
+            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= &i1')
               IOperation:  (OperationKind.None) (Syntax: '&i1')
                 Children(1):
                     IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*) (Syntax: '&i1')
@@ -201,7 +201,7 @@ IOperation:  (OperationKind.None) (Syntax: 'fixed (int* ... }')
               IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p2 = &i2')
                 Variables: Local_1: System.Int32* p2
                 Initializer: 
-                  ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= &i2')
+                  IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= &i2')
                     IOperation:  (OperationKind.None) (Syntax: '&i2')
                       Children(1):
                           IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*) (Syntax: '&i2')
@@ -262,7 +262,7 @@ IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'fixed (int* ... }')
         IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'p1 =')
           Variables: Local_1: System.Int32* p1
           Initializer: 
-            ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '=')
+            IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '=')
               IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
                 Children(0)
       IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
@@ -317,7 +317,7 @@ IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'fixed (int* ... }')
         IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1 = &i1')
           Variables: Local_1: System.Int32* p1
           Initializer: 
-            ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= &i1')
+            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= &i1')
               IOperation:  (OperationKind.None) (Syntax: '&i1')
                 Children(1):
                     IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*) (Syntax: '&i1')

@@ -236,11 +236,29 @@ Namespace Microsoft.CodeAnalysis.Semantics
             For Each base In statement.LocalDeclarations
                 If base.Kind = BoundKind.LocalDeclaration Then
                     Dim declaration = DirectCast(base, BoundLocalDeclaration)
-                    builder.Add(OperationFactory.CreateVariableDeclaration(Of EqualsValueSyntax)(declaration.LocalSymbol, Create(declaration.InitializerOpt), _semanticModel, declaration.Syntax))
+                    Dim initializer As IVariableInitializer = Nothing
+                    If declaration.InitializerOpt IsNot Nothing Then
+                        Debug.Assert(TypeOf declaration.Syntax Is ModifiedIdentifierSyntax)
+                        Dim variableDeclaratorSyntax = DirectCast(declaration.Syntax.Parent, VariableDeclaratorSyntax)
+                        Dim initializerSyntax As SyntaxNode = If(declaration.InitializedByAsNew,
+                            DirectCast(variableDeclaratorSyntax.AsClause, SyntaxNode),
+                            variableDeclaratorSyntax.Initializer)
+                        Dim isImplicit As Boolean = False
+                        If initializerSyntax Is Nothing Then
+                            initializerSyntax = declaration.InitializerOpt.Syntax
+                            isImplicit = True
+                        End If
+                        Dim initializerValue As IOperation = Create(declaration.InitializerOpt)
+                        initializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, isImplicit)
+                    End If
+                    builder.Add(OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, initializer, _semanticModel, declaration.Syntax))
                 ElseIf base.Kind = BoundKind.AsNewLocalDeclarations Then
                     Dim asNewDeclarations = DirectCast(base, BoundAsNewLocalDeclarations)
                     Dim localSymbols = asNewDeclarations.LocalDeclarations.SelectAsArray(Of ILocalSymbol)(Function(declaration) declaration.LocalSymbol)
-                    builder.Add(OperationFactory.CreateVariableDeclaration(Of EqualsValueSyntax)(localSymbols, Create(asNewDeclarations.Initializer), _semanticModel, asNewDeclarations.Syntax))
+                    Dim initializerSyntax As AsClauseSyntax = DirectCast(asNewDeclarations.Syntax, VariableDeclaratorSyntax).AsClause
+                    Dim initializerValue As IOperation = Create(asNewDeclarations.Initializer)
+                    Dim initializer As IVariableInitializer = OperationFactory.CreateVariableInitializer(initializerSyntax, initializerValue, _semanticModel, isImplicit:=False)
+                    builder.Add(OperationFactory.CreateVariableDeclaration(localSymbols, initializer, _semanticModel, asNewDeclarations.Syntax))
                 End If
             Next
 

@@ -310,7 +310,7 @@ IBlockStatement (3 statements, 3 locals) (OperationKind.BlockStatement) (Syntax:
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = new List<int>() { }')
       Variables: Local_1: System.Collections.Generic.List<System.Int32> i
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= new List<int>() { }')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new List<int>() { }')
           IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'new List<int>() { }')
             Arguments(0)
             Initializer: 
@@ -320,7 +320,7 @@ IBlockStatement (3 statements, 3 locals) (OperationKind.BlockStatement) (Syntax:
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = new Mem ... { x = { } }')
       Variables: Local_1: MemberInitializerTest j
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= new Membe ... { x = { } }')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new Membe ... { x = { } }')
           IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest) (Syntax: 'new MemberI ... { x = { } }')
             Arguments(0)
             Initializer: 
@@ -338,7 +338,7 @@ IBlockStatement (3 statements, 3 locals) (OperationKind.BlockStatement) (Syntax:
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'k = new Mem ... rTest() { }')
       Variables: Local_1: MemberInitializerTest k
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= new Membe ... rTest() { }')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new Membe ... rTest() { }')
           IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest) (Syntax: 'new MemberI ... rTest() { }')
             Arguments(0)
             Initializer: 
@@ -1925,7 +1925,7 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = new Mem ... { y = { } }')
       Variables: Local_1: MemberInitializerTest i
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= new Membe ... { y = { } }')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new Membe ... { y = { } }')
           IObjectCreationExpression (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreationExpression, Type: MemberInitializerTest) (Syntax: 'new MemberI ... { y = { } }')
             Arguments(0)
             Initializer: 
@@ -1986,7 +1986,7 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'collection  ... >() { { } }')
       Variables: Local_1: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>> collection
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= new List< ... >() { { } }')
+        IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= new List< ... >() { { } }')
           IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>, IsInvalid) (Syntax: 'new List<Li ... >() { { } }')
             Arguments(0)
             Initializer: 
@@ -2086,7 +2086,7 @@ IBlockStatement (3 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'coll = new B { 1 }')
       Variables: Local_1: B coll
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= new B { 1 }')
+        IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= new B { 1 }')
           IObjectCreationExpression (Constructor: B..ctor()) (OperationKind.ObjectCreationExpression, Type: B, IsInvalid) (Syntax: 'new B { 1 }')
             Arguments(0)
             Initializer: 
@@ -2099,7 +2099,7 @@ IBlockStatement (3 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'tc = new A  ... , ""hello"" }')
       Variables: Local_1: A tc
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= new A { 1, ""hello"" }')
+        IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= new A { 1, ""hello"" }')
           IObjectCreationExpression (Constructor: A..ctor()) (OperationKind.ObjectCreationExpression, Type: A, IsInvalid) (Syntax: 'new A { 1, ""hello"" }')
             Arguments(0)
             Initializer: 
@@ -2577,7 +2577,7 @@ IBlockStatement (5 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'coll1 = new B { 1 }')
       Variables: Local_1: B coll1
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= new B { 1 }')
+        IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= new B { 1 }')
           IObjectCreationExpression (Constructor: B..ctor()) (OperationKind.ObjectCreationExpression, Type: B, IsInvalid) (Syntax: 'new B { 1 }')
             Arguments(0)
             Initializer: 
@@ -2595,7 +2595,7 @@ IBlockStatement (5 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'coll2 = new C { 1 }')
       Variables: Local_1: C coll2
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= new C { 1 }')
+        IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= new C { 1 }')
           IObjectCreationExpression (Constructor: C..ctor()) (OperationKind.ObjectCreationExpression, Type: C, IsInvalid) (Syntax: 'new C { 1 }')
             Arguments(0)
             Initializer: 
@@ -2613,7 +2613,7 @@ IBlockStatement (5 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'coll3 = new ...  { 1, 2 } }')
       Variables: Local_1: D coll3
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= new D { { 1, 2 } }')
+        IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= new D { { 1, 2 } }')
           IObjectCreationExpression (Constructor: D..ctor()) (OperationKind.ObjectCreationExpression, Type: D, IsInvalid) (Syntax: 'new D { { 1, 2 } }')
             Arguments(0)
             Initializer: 
@@ -2635,7 +2635,7 @@ IBlockStatement (5 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'coll4 = new E { 1 }')
       Variables: Local_1: E coll4
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= new E { 1 }')
+        IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= new E { 1 }')
           IObjectCreationExpression (Constructor: E..ctor()) (OperationKind.ObjectCreationExpression, Type: E, IsInvalid) (Syntax: 'new E { 1 }')
             Arguments(0)
             Initializer: 

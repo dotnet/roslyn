@@ -6,18 +6,16 @@ namespace Microsoft.CodeAnalysis.Semantics
 {
     internal static class OperationFactory
     {
-        public static IVariableDeclaration CreateVariableDeclaration<TEqualsValueSyntax>(ILocalSymbol variable, IOperation initialValue, SemanticModel semanticModel, SyntaxNode syntax)
-            where TEqualsValueSyntax : SyntaxNode
+        public static IVariableDeclaration CreateVariableDeclaration(ILocalSymbol variable, IVariableInitializer initializer, SemanticModel semanticModel, SyntaxNode syntax)
         {
-            return CreateVariableDeclaration<TEqualsValueSyntax>(ImmutableArray.Create(variable), initialValue, semanticModel, syntax);
+            return CreateVariableDeclaration(ImmutableArray.Create(variable), initializer, semanticModel, syntax);
         }
 
-        public static VariableDeclaration CreateVariableDeclaration<TEqualsValueSyntax>(ImmutableArray<ILocalSymbol> variables, IOperation initialValue, SemanticModel semanticModel, SyntaxNode syntax)
-            where TEqualsValueSyntax : SyntaxNode
+        public static VariableDeclaration CreateVariableDeclaration(ImmutableArray<ILocalSymbol> variables, IVariableInitializer initializer, SemanticModel semanticModel, SyntaxNode syntax)
         {
             return new VariableDeclaration(
                 variables,
-                CreateLocalInitializer<TEqualsValueSyntax>(initialValue, semanticModel),
+                initializer,
                 semanticModel,
                 syntax,
                 type: null,
@@ -25,16 +23,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 isImplicit: false); // variable declaration is always explicit
         }
 
-        private static ILocalInitializer CreateLocalInitializer<TEqualsValueSyntax>(IOperation initialValue, SemanticModel semanticModel)
-            where TEqualsValueSyntax : SyntaxNode
+        public static IVariableInitializer CreateVariableInitializer(SyntaxNode syntax, IOperation initializerValue, SemanticModel semanticModel, bool isImplicit)
         {
-            if (initialValue == null)
-            {
-                return null;
-            }
-
-            var syntax = initialValue.Syntax.Parent as TEqualsValueSyntax ?? initialValue.Syntax;
-            return new LocalInitializer(initialValue, semanticModel, syntax, initialValue.Type, initialValue.ConstantValue, initialValue.IsImplicit);
+            return new VariableInitializer(initializerValue, semanticModel, syntax, initializerValue.Type, constantValue: default, isImplicit: isImplicit);
         }
 
         public static IConditionalExpression CreateConditionalExpression(IOperation condition, IOperation whenTrue, IOperation whenFalse, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)

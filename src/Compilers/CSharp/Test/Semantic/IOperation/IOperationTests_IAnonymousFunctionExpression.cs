@@ -34,7 +34,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x = () => F()')
     Variables: Local_1: System.Action x
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsImplicit) (Syntax: '= () => F()')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= () => F()')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsImplicit) (Syntax: '() => F()')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
@@ -116,7 +116,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'x = () => F()')
     Variables: Local_1: var x
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= () => F()')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= () => F()')
         IAnonymousFunctionExpression (Symbol: lambda expression) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: '() => F()')
           IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'F()')
             IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid, IsImplicit) (Syntax: 'F()')
@@ -159,7 +159,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'x = () => F()')
     Variables: Local_1: System.Action<System.Int32> x
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid, IsImplicit) (Syntax: '= () => F()')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= () => F()')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action<System.Int32>, IsInvalid, IsImplicit) (Syntax: '() => F()')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
@@ -209,7 +209,7 @@ class Program
             var lambdaSyntax = (LambdaExpressionSyntax)variableDeclaration.Declaration.Variables.Single().Initializer.Value;
 
             var variableDeclarationOperation = (IVariableDeclarationStatement)semanticModel.GetOperationInternal(variableDeclaration);
-            var variableTreeLambdaOperation = (IAnonymousFunctionExpression)((ILocalInitializer)variableDeclarationOperation.Declarations.Single().Initializer).Value;
+            var variableTreeLambdaOperation = (IAnonymousFunctionExpression)variableDeclarationOperation.Declarations.Single().Initializer.Value;
             var lambdaOperation = (IAnonymousFunctionExpression)semanticModel.GetOperationInternal(lambdaSyntax);
 
             // Assert that both ways of getting to the lambda (requesting the lambda directly, and requesting via the lambda syntax)
@@ -217,7 +217,7 @@ class Program
             Assert.Same(variableTreeLambdaOperation, lambdaOperation);
 
             var variableDeclarationOperationSecondRequest = (IVariableDeclarationStatement)semanticModel.GetOperationInternal(variableDeclaration);
-            var variableTreeLambdaOperationSecondRequest = (IAnonymousFunctionExpression)((ILocalInitializer)variableDeclarationOperation.Declarations.Single().Initializer).Value;
+            var variableTreeLambdaOperationSecondRequest = (IAnonymousFunctionExpression)variableDeclarationOperation.Declarations.Single().Initializer.Value;
             var lambdaOperationSecondRequest = (IAnonymousFunctionExpression)semanticModel.GetOperationInternal(lambdaSyntax);
 
             // Assert that, when request the variable declaration or the lambda for a second time, there is no rebinding of the

@@ -698,7 +698,7 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'Try'BIND:"T ... End Try')
         IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i')
           Variables: Local_1: i As System.Int32
           Initializer: 
-            ILocalInitializer (OperationKind.LocalInitializer, Constant: 0) (Syntax: '= 0')
+            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   Catch clauses(0)
   Finally: 
@@ -745,7 +745,7 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'Try'BIND:"T ... End Try')
               IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i')
                 Variables: Local_1: i As System.Int32
                 Initializer: 
-                  ILocalInitializer (OperationKind.LocalInitializer, Constant: 0) (Syntax: '= 0')
+                  IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
                     ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   Finally: 
     null
@@ -782,7 +782,7 @@ ITryStatement (OperationKind.TryStatement) (Syntax: 'Try'BIND:"T ... End Try')
         IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i')
           Variables: Local_1: i As System.Int32
           Initializer: 
-            ILocalInitializer (OperationKind.LocalInitializer, Constant: 0) (Syntax: '= 0')
+            IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 0')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ]]>.Value
 

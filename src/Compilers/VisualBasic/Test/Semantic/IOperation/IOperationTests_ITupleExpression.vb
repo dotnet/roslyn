@@ -50,7 +50,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (System.Int32, System.Int32)
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= (1, 2)')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (1, 2)')
         ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int32)) (Syntax: '(1, 2)')
           Elements(2):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -112,7 +112,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (System.UInt32, System.UInt32)
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= (1, 2)')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (1, 2)')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.UInt32, System.UInt32)) (Syntax: '(1, 2)')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
@@ -183,7 +183,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (System.UInt32, System.String)
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= (1, Nothing)')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (1, Nothing)')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (System.UInt32, System.String)) (Syntax: '(1, Nothing)')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
@@ -247,7 +247,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (A As System.Int32, B As System.Int32)
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= (A:=1, B:=2)')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (A:=1, B:=2)')
         ITupleExpression (OperationKind.TupleExpression, Type: (A As System.Int32, B As System.Int32)) (Syntax: '(A:=1, B:=2)')
           Elements(2):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -305,7 +305,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (A As System.Int32, B As System.Int32)
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= (1, 2)')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (1, 2)')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (A As System.Int32, B As System.Int32)) (Syntax: '(1, 2)')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
@@ -372,7 +372,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (A As System.Int16, B As System.String)
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= (A:=1, B:=Nothing)')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (A:=1, B:=Nothing)')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (A As System.Int16, B As System.String)) (Syntax: '(A:=1, B:=Nothing)')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
@@ -484,7 +484,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (A As System.Int16, B As System.String)
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= (New C(0), c1)')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (New C(0), c1)')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: (A As System.Int16, B As System.String)) (Syntax: '(New C(0), c1)')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
@@ -588,7 +588,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As C
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= (0, Nothing)')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= (0, Nothing)')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function C.op_Implicit(x As (System.Int32, System.String)) As C) (OperationKind.ConversionExpression, Type: C) (Syntax: '(0, Nothing)')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Implicit(x As (System.Int32, System.String)) As C)
           Operand: 
@@ -676,7 +676,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (System.Int32, System.String)
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= c1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= c1')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperatorMethod: Function C.op_Implicit(c As C) As (System.Int32, System.String)) (OperationKind.ConversionExpression, Type: (System.Int32, System.String)) (Syntax: 'c1')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: Function C.op_Implicit(c As C) As (System.Int32, System.String))
           Operand: 
@@ -778,7 +778,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 't')
     Variables: Local_1: t As (System.Int16, System.String)
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= (New C(0), c1)')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= (New C(0), c1)')
         ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, c1 As System.String), IsInvalid) (Syntax: '(New C(0), c1)')
           Elements(2):
               IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Int16, IsInvalid) (Syntax: 'New C(0)')

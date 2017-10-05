@@ -190,8 +190,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>Indicates an <see cref="IFieldInitializer"/>.</summary>
         FieldInitializer = 0x401,
-        /// <summary>Indicates an <see cref="ILocalInitializer"/>.</summary>
-        LocalInitializer = 0x402,
+        /// <summary>Indicates an <see cref="IVariableInitializer"/>.</summary>
+        VariableInitializer = 0x402,
         /// <summary>Indicates an <see cref="IPropertyInitializer"/>.</summary>
         PropertyInitializer = 0x403,
         /// <summary>Indicates an <see cref="IParameterInitializer"/>.</summary>

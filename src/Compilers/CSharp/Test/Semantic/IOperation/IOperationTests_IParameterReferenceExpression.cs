@@ -481,7 +481,7 @@ internal class Class
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p = array')
   Variables: Local_1: System.Int32* p
   Initializer: 
-    ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= array')
+    IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= array')
       IOperation:  (OperationKind.None) (Syntax: 'array')
         Children(1):
             IParameterReferenceExpression: array (OperationKind.ParameterReferenceExpression, Type: System.Int32[]) (Syntax: 'array')
@@ -581,7 +581,7 @@ class Class1
 IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'y = d[x]')
   Variables: Local_1: dynamic y
   Initializer: 
-    ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= d[x]')
+    IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= d[x]')
       IDynamicIndexerAccessExpression (OperationKind.DynamicIndexerAccessExpression, Type: dynamic) (Syntax: 'd[x]')
         Expression: 
           IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')

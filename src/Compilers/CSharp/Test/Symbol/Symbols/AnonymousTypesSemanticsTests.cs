@@ -139,7 +139,7 @@ IBlockStatement (4 statements, 4 locals) (OperationKind.BlockStatement) (Syntax:
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'v1 = new ... }')
       Variables: Local_1: System.Object v1
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer, IsImplicit) (Syntax: '= new ... }')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new ... }')
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'new ... }')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
@@ -173,7 +173,7 @@ IBlockStatement (4 statements, 4 locals) (OperationKind.BlockStatement) (Syntax:
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'v2 = new ... }')
       Variables: Local_1: System.Object v2
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer, IsImplicit) (Syntax: '= new ... }')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new ... }')
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'new ... }')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
@@ -220,7 +220,7 @@ IBlockStatement (4 statements, 4 locals) (OperationKind.BlockStatement) (Syntax:
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'v3 = new { }')
       Variables: Local_1: System.Object v3
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer, IsImplicit) (Syntax: '= new { }')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new { }')
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsImplicit) (Syntax: 'new { }')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
@@ -230,7 +230,7 @@ IBlockStatement (4 statements, 4 locals) (OperationKind.BlockStatement) (Syntax:
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'v4 = new { }')
       Variables: Local_1: <empty anonymous type> v4
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= new { }')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= new { }')
           IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <empty anonymous type>) (Syntax: 'new { }')
             Initializers(0)";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -1104,7 +1104,7 @@ IBlockStatement (2 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'v1 = new ... }')
       Variables: Local_1: System.Object v1
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer, IsInvalid, IsImplicit) (Syntax: '= new ... }')
+        IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= new ... }')
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'new ... }')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
@@ -1137,7 +1137,7 @@ IBlockStatement (2 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'v2 = new ... }')
       Variables: Local_1: System.Object v2
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer, IsInvalid, IsImplicit) (Syntax: '= new ... }')
+        IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= new ... }')
           IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'new ... }')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
@@ -1247,7 +1247,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'v1 = new { }')
     Variables: Local_1: <empty anonymous type> v1
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= new { }')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= new { }')
         IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <empty anonymous type>, IsInvalid) (Syntax: 'new { }')
           Initializers(0)
 ";

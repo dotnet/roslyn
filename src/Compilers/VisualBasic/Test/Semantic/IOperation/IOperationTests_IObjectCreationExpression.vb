@@ -49,7 +49,7 @@ IBlockStatement (9 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x1')
       Variables: Local_1: x1 As F
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= New F()')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= New F()')
           IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F) (Syntax: 'New F()')
             Arguments(0)
             Initializer: 
@@ -58,7 +58,7 @@ IBlockStatement (9 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x2')
       Variables: Local_1: x2 As F
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= New F() W ... .Field = 2}')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= New F() W ... .Field = 2}')
           IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F) (Syntax: 'New F() Wit ... .Field = 2}')
             Arguments(0)
             Initializer: 
@@ -75,7 +75,7 @@ IBlockStatement (9 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x3')
       Variables: Local_1: x3 As F
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= New F() W ... erty1 = ""}')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= New F() W ... erty1 = ""}')
           IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F) (Syntax: 'New F() Wit ... erty1 = ""}')
             Arguments(0)
             Initializer: 
@@ -92,7 +92,7 @@ IBlockStatement (9 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x4')
       Variables: Local_1: x4 As F
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= New F() W ... .Field = 2}')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= New F() W ... .Field = 2}')
           IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F) (Syntax: 'New F() Wit ... .Field = 2}')
             Arguments(0)
             Initializer: 
@@ -116,7 +116,7 @@ IBlockStatement (9 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x5')
       Variables: Local_1: x5 As F
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= New F() W ... ld = True}}')
+        IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= New F() W ... ld = True}}')
           IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F) (Syntax: 'New F() Wit ... ld = True}}')
             Arguments(0)
             Initializer: 
@@ -144,7 +144,7 @@ IBlockStatement (9 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'e1')
       Variables: Local_1: e1 As F
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= New F() W ... perty2 = 1}')
+        IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= New F() W ... perty2 = 1}')
           IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, IsInvalid) (Syntax: 'New F() Wit ... perty2 = 1}')
             Arguments(0)
             Initializer: 
@@ -164,7 +164,7 @@ IBlockStatement (9 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'e2')
       Variables: Local_1: e2 As F
       Initializer: 
-        ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= New F() From {""}')
+        IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= New F() From {""}')
           IObjectCreationExpression (Constructor: Sub F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, IsInvalid) (Syntax: 'New F() From {""}')
             Arguments(0)
             Initializer: 

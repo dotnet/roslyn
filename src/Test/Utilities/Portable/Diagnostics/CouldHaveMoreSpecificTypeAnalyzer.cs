@@ -95,14 +95,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 operationBlockContext.RegisterOperationAction(
                                     (operationContext) =>
                                     {
-                                        ILocalInitializer initializer = (ILocalInitializer)operationContext.Operation;
-                                        var locals = (initializer.Parent as IVariableDeclaration)?.Variables;
-                                        foreach (ILocalSymbol local in locals)
+                                        IVariableInitializer initializer = (IVariableInitializer)operationContext.Operation;
+                                        if (initializer.Parent is IVariableDeclaration variableDeclaration)
                                         {
-                                            AssignTo(local, local.Type, localsSourceTypes, initializer.Value);
+                                            foreach (ILocalSymbol local in variableDeclaration.Variables)
+                                            {
+                                                AssignTo(local, local.Type, localsSourceTypes, initializer.Value);
+                                            }
                                         }
                                     },
-                                    OperationKind.LocalInitializer);
+                                    OperationKind.VariableInitializer);
 
                                 // Report locals that could have more specific types.
                                 operationBlockContext.RegisterOperationBlockEndAction(

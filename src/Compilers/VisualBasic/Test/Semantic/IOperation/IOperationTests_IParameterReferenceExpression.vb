@@ -396,22 +396,21 @@ Class Class1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ILocalInitializer (OperationKind.LocalInitializer) (Syntax: 'New EventHa ... nction() x)')
-  IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... nction() x)')
-    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-    Operand: 
-      IAnonymousFunctionExpression (Symbol: Function () As System.Object) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function() x')
-        IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Function() x')
-          Locals: Local_1: <anonymous local> As System.Object
-          IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'x')
-            ReturnedValue: 
-              IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
-          ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Function() x')
-            Statement: 
-              null
-          IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Function() x')
-            ReturnedValue: 
-              ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object, IsImplicit) (Syntax: 'Function() x')
+IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... nction() x)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    IAnonymousFunctionExpression (Symbol: Function () As System.Object) (OperationKind.AnonymousFunctionExpression, Type: null) (Syntax: 'Function() x')
+      IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsImplicit) (Syntax: 'Function() x')
+        Locals: Local_1: <anonymous local> As System.Object
+        IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'x')
+          ReturnedValue: 
+            IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
+        ILabeledStatement (Label: exit) (OperationKind.LabeledStatement, IsImplicit) (Syntax: 'Function() x')
+          Statement: 
+            null
+        IReturnStatement (OperationKind.ReturnStatement, IsImplicit) (Syntax: 'Function() x')
+          ReturnedValue: 
+            ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object, IsImplicit) (Syntax: 'Function() x')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -432,13 +431,12 @@ Class Class1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ILocalInitializer (OperationKind.LocalInitializer) (Syntax: 'New EventHa ... essOf Me.M)')
-  IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... essOf Me.M)')
-    Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-    Operand: 
-      IOperation:  (OperationKind.None) (Syntax: 'AddressOf Me.M')
-        Children(1):
-            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class1) (Syntax: 'Me')
+IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... essOf Me.M)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    IOperation:  (OperationKind.None) (Syntax: 'AddressOf Me.M')
+      Children(1):
+          IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class1) (Syntax: 'Me')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -461,10 +459,9 @@ Class Class1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: 'New EventHandler(x)')
-  IInvalidExpression (OperationKind.InvalidExpression, Type: System.EventHandler, IsInvalid) (Syntax: 'New EventHandler(x)')
-    Children(1):
-        IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'x')
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.EventHandler, IsInvalid) (Syntax: 'New EventHandler(x)')
+  Children(1):
+      IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

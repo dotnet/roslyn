@@ -58,7 +58,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = 1')
     Variables: Local_1: System.Int32 i1
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, Constant: 1) (Syntax: '= 1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -88,7 +88,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 = ')
     Variables: Local_1: System.Int32 i1
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= ')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= ')
         IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
           Children(0)
 ";
@@ -155,12 +155,12 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = 2')
     Variables: Local_1: System.Int32 i1
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, Constant: 2) (Syntax: '= 2')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 2')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2 = 2')
     Variables: Local_1: System.Int32 i2
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, Constant: 2) (Syntax: '= 2')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 2')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -193,13 +193,13 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 = ')
     Variables: Local_1: System.Int32 i1
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= ')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= ')
         IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
           Children(0)
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2 = 2')
     Variables: Local_1: System.Int32 i2
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, Constant: 2) (Syntax: '= 2')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 2')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -270,7 +270,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = GetInt()')
     Variables: Local_1: System.Int32 i
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= GetInt()')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= GetInt()')
         IInvocationExpression (System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'GetInt()')
           Instance Receiver: 
             null
@@ -301,7 +301,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = GetInt()')
     Variables: Local_1: System.Int32 i
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= GetInt()')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= GetInt()')
         IInvocationExpression (System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'GetInt()')
           Instance Receiver: 
             null
@@ -309,7 +309,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = GetInt()')
     Variables: Local_1: System.Int32 j
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= GetInt()')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= GetInt()')
         IInvocationExpression (System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'GetInt()')
           Instance Receiver: 
             null
@@ -341,7 +341,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = i')
     Variables: Local_1: System.Int32 i1
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= i')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i')
         ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -370,12 +370,12 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = i')
     Variables: Local_1: System.Int32 i1
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= i')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i')
         ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2 = i1')
     Variables: Local_1: System.Int32 i2
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= i1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i1')
         ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -1488,7 +1488,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = 1')
     Variables: Local_1: System.Int32 i1
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, Constant: 1) (Syntax: '= 1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1521,12 +1521,12 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = 1')
     Variables: Local_1: System.Int32 i1
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, Constant: 1) (Syntax: '= 1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2 = 2')
     Variables: Local_1: System.Int32 i2
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, Constant: 2) (Syntax: '= 2')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 2')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1559,7 +1559,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 = ')
     Variables: Local_1: System.Int32 i1
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= ')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= ')
         IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
           Children(0)
 ";
@@ -1590,13 +1590,13 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 = ')
     Variables: Local_1: System.Int32 i1
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= ')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= ')
         IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
           Children(0)
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i2 = ')
     Variables: Local_1: System.Int32 i2
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= ')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= ')
         IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
           Children(0)
 ";
@@ -1748,7 +1748,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 = GetInt()')
     Variables: Local_1: System.Int32 i1
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= GetInt()')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= GetInt()')
         IInvocationExpression (System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'GetInt()')
           Instance Receiver: 
             null
@@ -1783,7 +1783,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 = GetInt()')
     Variables: Local_1: System.Int32 i1
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= GetInt()')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= GetInt()')
         IInvocationExpression (System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'GetInt()')
           Instance Receiver: 
             null
@@ -1791,7 +1791,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i2 = GetInt()')
     Variables: Local_1: System.Int32 i2
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= GetInt()')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= GetInt()')
         IInvocationExpression (System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'GetInt()')
           Instance Receiver: 
             null
@@ -1830,7 +1830,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = i')
     Variables: Local_1: System.Int32 i1
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, Constant: 1) (Syntax: '= i')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i')
         ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1863,12 +1863,12 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = i')
     Variables: Local_1: System.Int32 i1
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, Constant: 1) (Syntax: '= i')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i')
         ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2 = i1')
     Variables: Local_1: System.Int32 i2
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, Constant: 1) (Syntax: '= i1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i1')
         ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {

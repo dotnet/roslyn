@@ -240,7 +240,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= i1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i1')
         ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
 ]]>.Value
 
@@ -265,12 +265,12 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= i1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i1')
         ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i3')
     Variables: Local_1: i3 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= i1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i1')
         ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
 ]]>.Value
 
@@ -298,7 +298,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= ReturnInt()')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= ReturnInt()')
         IInvocationExpression (Function Program.ReturnInt() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'ReturnInt()')
           Instance Receiver: 
             null
@@ -329,7 +329,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= ReturnInt()')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= ReturnInt()')
         IInvocationExpression (Function Program.ReturnInt() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'ReturnInt()')
           Instance Receiver: 
             null
@@ -337,7 +337,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= ReturnInt()')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= ReturnInt()')
         IInvocationExpression (Function Program.ReturnInt() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'ReturnInt()')
           Instance Receiver: 
             null
@@ -366,7 +366,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1')
     Variables: Local_1: p1 As Program.C
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: 'New C')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New C')
         IObjectCreationExpression (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreationExpression, Type: Program.C) (Syntax: 'New C')
           Arguments(0)
           Initializer: 
@@ -394,7 +394,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As System.Int32
       Local_2: i2 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: 'New Integer')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Integer')
         IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
           Arguments(0)
           Initializer: 
@@ -422,7 +422,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As ?
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: 'New')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New')
         IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'New')
           Children(0)
 ]]>.Value
@@ -452,7 +452,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As ?
       Local_2: i2 As ?
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: 'New')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New')
         IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'New')
           Children(0)
 ]]>.Value
@@ -482,7 +482,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As System.Int32
       Local_2: i2 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: 'New Integer')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Integer')
         IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
           Arguments(0)
           Initializer: 
@@ -490,7 +490,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b1')
     Variables: Local_1: b1 As System.Boolean
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, Constant: False) (Syntax: '= False')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= False')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'False')
 ]]>.Value
 
@@ -519,7 +519,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As System.Int32
       Local_2: i2 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: 'New Integer')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Integer')
         IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
           Arguments(0)
           Initializer: 
@@ -550,7 +550,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1(2)')
     Variables: Local_1: i1 As System.Int32()
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: 'i1(2)')
+      IVariableInitializer (OperationKind.VariableInitializer, IsImplicit) (Syntax: 'i1(2)')
         IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: 'i1(2)')
           Dimension Sizes(1):
               IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
@@ -616,7 +616,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1(2)')
     Variables: Local_1: i1 As System.Int32()
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: 'As New Integer')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New Integer')
         IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32(), IsInvalid) (Syntax: 'As New Integer')
           Children(1):
               IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32, IsInvalid) (Syntax: 'New Integer')
@@ -718,7 +718,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, Constant: 1) (Syntax: '= 1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
@@ -750,12 +750,12 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, Constant: 1) (Syntax: '= 1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, Constant: 2) (Syntax: '= 2')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 2')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ]]>.Value
 
@@ -786,7 +786,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: 'i1')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New Integer')
         IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'i1')
           Children(0)
 ]]>.Value
@@ -819,7 +819,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As System.Int32
       Local_2: i2 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: 'i1')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New Integer')
         IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'i1')
           Children(0)
 ]]>.Value
@@ -860,7 +860,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, Constant: 1) (Syntax: '= 1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
@@ -888,12 +888,12 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, Constant: 1) (Syntax: '= 1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Object
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '= ')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= ')
         IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
           Children(0)
 ]]>.Value
@@ -926,7 +926,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, Constant: 1) (Syntax: '= i1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i1')
         ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i1')
 ]]>.Value
 
@@ -955,12 +955,12 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, Constant: 1) (Syntax: '= i1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i1')
         ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i3')
     Variables: Local_1: i3 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, Constant: 1) (Syntax: '= i1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i1')
         ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i1')
 ]]>.Value
 
@@ -995,7 +995,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Object
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid, IsImplicit) (Syntax: '= Int1()')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= Int1()')
         IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Int1()')
           Children(1):
               IInvocationExpression (Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'Int1()')
@@ -1032,7 +1032,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Object
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid, IsImplicit) (Syntax: '= Int1()')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= Int1()')
         IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Int1()')
           Children(1):
               IInvocationExpression (Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'Int1()')
@@ -1042,7 +1042,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Object
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid, IsImplicit) (Syntax: '= Int1()')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= Int1()')
         IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Int1()')
           Children(1):
               IInvocationExpression (Function Program.Int1() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'Int1()')
@@ -1078,7 +1078,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As ?
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: 'i1')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New')
         IInvalidExpression (OperationKind.InvalidExpression, Type: ?) (Syntax: 'i1')
           Children(0)
 ]]>.Value
@@ -1111,7 +1111,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As ?
       Local_2: i2 As ?
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: 'i1')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: 'As New')
         IInvalidExpression (OperationKind.InvalidExpression, Type: ?) (Syntax: 'i1')
           Children(0)
 ]]>.Value
@@ -1149,12 +1149,12 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, Constant: 1) (Syntax: '= 1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: '')
     Variables: Local_1:  As System.Object
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid, IsImplicit) (Syntax: '')
         IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
           Children(0)
 ]]>.Value
@@ -1266,7 +1266,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: 'New Integer')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Integer')
         IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
           Arguments(0)
           Initializer: 
@@ -1298,7 +1298,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As System.Int32
       Local_2: i2 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: 'New Integer')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Integer')
         IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
           Arguments(0)
           Initializer: 
@@ -1330,7 +1330,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
     Variables: Local_1: i1 As System.Int32
       Local_2: i2 As System.Int32
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: 'New Integer')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Integer')
         IObjectCreationExpression (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Int32) (Syntax: 'New Integer')
           Arguments(0)
           Initializer: 
@@ -1338,7 +1338,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b1')
     Variables: Local_1: b1 As System.Boolean
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, Constant: False) (Syntax: '= False')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= False')
         ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'False')
 ]]>.Value
 
@@ -1362,7 +1362,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Object
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= 1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '1')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
@@ -1389,7 +1389,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Object
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= 1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '1')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
@@ -1397,7 +1397,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Object
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= 2')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 2')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: '2')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
@@ -1425,7 +1425,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Object
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= i1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i1')
         ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'i1')
 ]]>.Value
 
@@ -1450,12 +1450,12 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Object
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= i1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i1')
         ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'i1')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i3')
     Variables: Local_1: i3 As System.Object
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= i1')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= i1')
         ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'i1')
 ]]>.Value
 
@@ -1483,7 +1483,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Object
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= Int1()')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= Int1()')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'Int1()')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
@@ -1517,7 +1517,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Object
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= Int1()')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= Int1()')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'Int1()')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
@@ -1528,7 +1528,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Object
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= Int1()')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= Int1()')
         IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'Int1()')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
@@ -1633,7 +1633,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Object
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '=')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '=')
         IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
           Children(0)
 ]]>.Value
@@ -1666,13 +1666,13 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
     Variables: Local_1: i1 As System.Object
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '=')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '=')
         IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
           Children(0)
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
     Variables: Local_1: i2 As System.Object
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer, IsInvalid) (Syntax: '=')
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '=')
         IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
           Children(0)
 ]]>.Value

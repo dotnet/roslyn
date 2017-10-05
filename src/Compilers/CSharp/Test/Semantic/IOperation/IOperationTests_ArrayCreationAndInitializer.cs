@@ -307,7 +307,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x = { 1, 2 }')
     Variables: Local_1: System.Int32[] x
     Initializer: 
-      ILocalInitializer (OperationKind.LocalInitializer) (Syntax: '= { 1, 2 }')
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= { 1, 2 }')
         IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: '{ 1, 2 }')
           Dimension Sizes(1):
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '{ 1, 2 }')
