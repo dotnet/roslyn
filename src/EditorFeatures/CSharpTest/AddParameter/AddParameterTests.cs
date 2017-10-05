@@ -758,8 +758,9 @@ class C1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestInvocationExtensionMethod()
         {
-            await TestAsync(
+            var code =
 @"
+namespace N {
 static class Extensions
 {
     public static void ExtensionM1(this object o)
@@ -772,8 +773,10 @@ class C1
     {
         new object().[|ExtensionM1|](1);
     }
-}",
+}}";
+            var fix =
 @"
+namespace N {
 static class Extensions
 {
     public static void ExtensionM1(this object o, int v)
@@ -786,7 +789,8 @@ class C1
     {
         new object().ExtensionM1(1);
     }
-}", null);
+}}";
+            await TestInRegularAndScriptAsync(code, fix);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1007,12 +1011,20 @@ class C1
         M1(1, 2);
     }
 }";
-            using (var workspace = CreateWorkspaceFromOptions(code, default))
-            {
-                var actions = await GetCodeActionsAsync(workspace, default);
-                Assert.True(actions.Length == 1);
-            }
+            var fix1 =
+@"
+class C1
+{
+    void M1(string s1, string s2) { }
+    void M1(int v, string s) { }
+    void M1(int i) { }
+    void M2()
+    {
+        M1(1, 2);
+    }
+}";
             await TestInRegularAndScriptAsync(code, fix0, 0);
+            await TestInRegularAndScriptAsync(code, fix1, 1);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1114,7 +1126,6 @@ class C1
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-        [Trait("TODO", "Fix broken")]
         public async Task TestInvocationCS0305()
         {
             var code =
@@ -1131,19 +1142,17 @@ class C1
 @"
 class C1
 {
-    void M1<T>(T i, bool v) { }
+    void M1<T, T1>(T i, T1 v) { }
     void M2()
     {
         M1<int, bool>(1, true);
     }
 }";
-            // Should be void M1<T, T1>(T i, T1 v) { }
             await TestInRegularAndScriptAsync(code, fix0, 0);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-        [Trait("TODO", "Fix broken")]
         public async Task TestInvocationCS0308()
         {
             var code =
@@ -1160,13 +1169,12 @@ class C1
 @"
 class C1
 {
-    void M1(int i, bool v) { }
+    void M1<T>(int i, T v) { }
     void M2()
     {
         M1<bool>(1, true);
     }
 }";
-            // Should be void M1<T>(int i, T v) { }
             await TestInRegularAndScriptAsync(code, fix0, 0);
         }
 
@@ -1192,7 +1200,6 @@ class C1 : I1
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-        [Trait("TODO", "Fix missing")]
         public async Task TestInvocationCS1503()
         {
             var code =
@@ -1207,13 +1214,23 @@ class C1 : I1
         }
     }
 ";
-            //Should fix second overload to void M1(double d, int v) { }
-            await TestMissingAsync(code);
+            var fix0 =
+@"
+    class C1
+    {
+        void M1(int i1, int i2) { }
+        void M1(double d, int v) { }
+        void M2()
+        {
+            M1(1.0, 1);
+        }
+    }
+";
+            await TestInRegularAndScriptAsync(code, fix0);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-        [Trait("TODO", "Fix missing")]
         public async Task TestInvocationCS1660()
         {
             var code =
@@ -1228,13 +1245,23 @@ class C1 : I1
         }
     }
 ";
-            //Should fix second overload to void M1(System.Action a, int v) { }
-            await TestMissingAsync(code);
+            var fix =
+@"
+    class C1
+    {
+        void M1(int i1, int i2) { }
+        void M1(System.Action a, int v) { }
+        void M2()
+        {
+            M1(()=> { }, 1);
+        }
+    }
+";
+            await TestInRegularAndScriptAsync(code, fix);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-        [Trait("TODO", "Fix missing")]
         public async Task TestInvocationCS1739()
         {
             var code =
@@ -1248,9 +1275,337 @@ class C1 : I1
         }
     }
 ";
-            // Should fix to: void M1(int i1, int i2) { }
-            await TestMissingAsync(code);
+            var fix =
+@"
+    class C1
+    {
+        void M1(int i1, int i2) { }
+        void M2()
+        {
+            M1(i2: 1);
+        }
+    }
+";
+            await TestInRegularAndScriptAsync(code, fix);
         }
 
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocationAddTypeParameter_AddTypeParameterIfUserSpecifiesOne_OnlyTypeArgument()
+        {
+            var code =
+@"
+    class C1
+    {
+        void M1() { }
+        void M2()
+        {
+            [|M1|]<bool>();
+        }
+    }
+";
+            var fix0 =
+@"
+    class C1
+    {
+        void M1<T>() { }
+        void M2()
+        {
+            M1<bool>();
+        }
+    }
+";
+            await TestInRegularAndScriptAsync(code, fix0);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocationAddTypeParameter_AddTypeParameterIfUserSpecifiesOne_TypeArgumentAndParameterArgument()
+        {
+            var code =
+@"
+    class C1
+    {
+        void M1() { }
+        void M2()
+        {
+            [|M1|]<bool>(true);
+        }
+    }
+";
+            var fix0 =
+@"
+    class C1
+    {
+        void M1<T>(T v) { }
+        void M2()
+        {
+            M1<bool>(true);
+        }
+    }
+";
+            await TestInRegularAndScriptAsync(code, fix0);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_ExisitingTypeArgumentIsNotGeneralized()
+        {
+            var code =
+@"
+    class C1
+    {
+        void M1<T>(T v) { }
+        void M2()
+        {
+            [|M1|](true, true);
+        }
+    }
+";
+            var fix0 =
+@"
+    class C1
+    {
+        void M1<T>(T v, bool v1) { }
+        void M2()
+        {
+            M1(true, true);
+        }
+    }
+";
+            await TestInRegularAndScriptAsync(code, fix0);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [Trait("TODO", "Fix all partial definitions")]
+        public async Task TestInvocationPartialClasses()
+        {
+            var code =
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        partial void PartialM();
+    }
+}
+        </Document>
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        partial void PartialM() { }
+        void M1()
+        {
+            [|PartialM|](1);
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            var fix0 =
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        partial void PartialM(int v);
+    }
+}
+        </Document>
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        partial void PartialM() { }
+        void M1()
+        {
+            PartialM(1);
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            await TestInRegularAndScriptAsync(code, fix0);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [Trait("TODO", "Code formatting")]
+        public async Task TestObjectCreationAddTypeParameter_AddTypeParameterIfUserSpecifiesOne_TypeParameterAndParameterArgument()
+        {
+            var code =
+@"
+    class C1
+    {
+        C1() { }
+        void M2()
+        {
+            var c = new [|C1<bool>|](true);
+        }
+    }
+";
+            var fix0 =
+@"
+    class C1<T>
+{
+        C1(T v) { }
+        void M2()
+        {
+            var c = new C1<bool>(true);
+        }
+    }
+";
+            await TestInRegularAndScriptAsync(code, fix0);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestObjectCreationAddTypeParameter_GeneralizeGenericArgument1()
+        {
+            var code =
+@"
+    class C1<T>
+    {
+        C1() { }
+        void M2()
+        {
+            var c = new [|C1<bool>|](true);
+        }
+    }
+";
+            var fix0 =
+@"
+    class C1<T>
+    {
+        C1(T v) { }
+        void M2()
+        {
+            var c = new C1<bool>(true);
+        }
+    }
+";
+            await TestInRegularAndScriptAsync(code, fix0);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestObjectCreationAddTypeParameter_GeneralizeGenericArgument2()
+        {
+            var code =
+@"
+    class C1<T>
+    {
+        C1() { }
+
+        void M1<U>() { }
+        void M2()
+        {
+            var c = new C1<bool>();
+            c.[|M1<int, bool>|]();
+        }
+    }
+";
+            var fix0 =
+@"
+    class C1<T>
+    {
+        C1() { }
+
+        void M1<U, T1>() { }
+        void M2()
+        {
+            var c = new C1<bool>();
+            c.M1<int, bool>();
+        }
+    }
+";
+            await TestInRegularAndScriptAsync(code, fix0);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestObjectCreationAddTypeParameter_GeneralizeGenericArgument3()
+        {
+            var code =
+@"
+    class C1<T>
+    {
+        C1() { }
+
+        void M1<U>() { }
+        void M2()
+        {
+            var c = new C1<bool>();
+            c.[|M1<int, string>|]();
+        }
+    }
+";
+            var fix0 =
+@"
+    class C1<T>
+    {
+        C1() { }
+
+        void M1<U, T1>() { }
+        void M2()
+        {
+            var c = new C1<bool>();
+            c.M1<int, string>();
+        }
+    }
+";
+            await TestInRegularAndScriptAsync(code, fix0);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestObjectCreationAddTypeParameter_GeneralizeGenericArgument4()
+        {
+            var code =
+@"
+    class C1<T> where T: struct
+    {
+        C1() { }
+
+        void M1<U>() where U : struct
+        {
+        }
+        void M2()
+        {
+            var c = new C1<bool>();
+            c.[|M1<int, string>|]();
+        }
+    }
+";
+            var fix0 =
+@"
+    class C1<T> where T: struct
+    {
+        C1() { }
+
+        void M1<U, T1>() where U : struct
+        {
+        }
+        void M2()
+        {
+            var c = new C1<bool>();
+            c.M1<int, string>();
+        }
+    }
+";
+            await TestInRegularAndScriptAsync(code, fix0);
+        }
     }
 }

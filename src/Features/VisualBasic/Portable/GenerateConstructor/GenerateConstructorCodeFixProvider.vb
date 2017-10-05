@@ -22,6 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
         Friend Shared ReadOnly AllDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30057, BC30272, BC30274, BC30389, BC30455, BC32006, BC30512, BC30387)
         Friend Shared ReadOnly TooManyArgumentsDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30057)
+        Friend Shared ReadOnly CannotConvertDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30512, BC32006)
     End Class
 
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.GenerateConstructor), [Shared]>

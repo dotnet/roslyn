@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
         ArgumentListSyntax,
         AttributeArgumentListSyntax,
         InvocationExpressionSyntax,
-        ObjectCreationExpressionSyntax>
+        ObjectCreationExpressionSyntax,
+        TypeSyntax>
     {
         private static readonly ImmutableArray<string> AddParameterFixableDiagnosticIds =
             GenerateConstructorDiagnosticIds.AllDiagnosticIds.Union(
@@ -28,9 +29,13 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
             Enumerable.Repeat("CS1593", 1)). // C# Delegate 'Action' does not take 1 arguments
             ToImmutableArray();
 
-        public override ImmutableArray<string> FixableDiagnosticIds => AddParameterFixableDiagnosticIds;
+        public override ImmutableArray<string> FixableDiagnosticIds 
+            => AddParameterFixableDiagnosticIds;
 
-        protected override ImmutableArray<string> TooManyArgumentsDiagnosticIds { get; } =
-            GenerateConstructorDiagnosticIds.TooManyArgumentsDiagnosticIds;
+        protected override ImmutableArray<string> TooManyArgumentsDiagnosticIds 
+            => GenerateConstructorDiagnosticIds.TooManyArgumentsDiagnosticIds;
+
+        protected override ImmutableArray<string> CannotConvertDiagnosticIds
+            => GenerateConstructorDiagnosticIds.CannotConvertDiagnosticIds;
     }
 }

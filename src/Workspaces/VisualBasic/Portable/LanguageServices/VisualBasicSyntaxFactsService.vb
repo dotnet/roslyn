@@ -1273,6 +1273,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(arguments.HasValue, arguments.Value, Nothing)
         End Function
 
+        Public Function GetTypeArgumentsOfInvocationExpression(invocationExpression As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetTypeArgumentsOfInvocationExpression
+            Dim arguments = TryCast(TryCast(invocationExpression, InvocationExpressionSyntax)?.Expression, GenericNameSyntax)?.TypeArgumentList?.Arguments
+            Return If(arguments.HasValue, arguments.Value, Nothing)
+        End Function
+
+        Public Function GetTypeArgumentsOfObjectCreationExpression(objectCreationExpression As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetTypeArgumentsOfObjectCreationExpression
+            Dim arguments = TryCast(TryCast(objectCreationExpression, ObjectCreationExpressionSyntax)?.Type, GenericNameSyntax)?.TypeArgumentList?.Arguments
+            Return If(arguments.HasValue, arguments.Value, Nothing)
+        End Function
+
         Public Function ConvertToSingleLine(node As SyntaxNode, Optional useElasticTrivia As Boolean = False) As SyntaxNode Implements ISyntaxFactsService.ConvertToSingleLine
             Return node.ConvertToSingleLine(useElasticTrivia)
         End Function

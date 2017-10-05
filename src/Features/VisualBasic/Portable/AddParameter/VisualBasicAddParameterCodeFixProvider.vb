@@ -17,12 +17,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddParameter
         ArgumentListSyntax,
         ArgumentListSyntax,
         InvocationExpressionSyntax,
-        ObjectCreationExpressionSyntax)
+        ObjectCreationExpressionSyntax,
+        TypeSyntax)
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) =
             GenerateConstructorDiagnosticIds.AllDiagnosticIds
 
         Protected Overrides ReadOnly Property TooManyArgumentsDiagnosticIds As ImmutableArray(Of String) =
             GenerateConstructorDiagnosticIds.TooManyArgumentsDiagnosticIds
+
+        Protected Overrides ReadOnly Property CannotConvertDiagnosticIds As ImmutableArray(Of String) =
+            GenerateConstructorDiagnosticIds.CannotConvertDiagnosticIds
+
     End Class
 End Namespace
