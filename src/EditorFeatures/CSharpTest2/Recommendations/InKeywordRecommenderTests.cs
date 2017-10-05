@@ -431,5 +431,157 @@ class Program
 @"static class C {
     static void Goo(this $$");
         }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInMethodFirstArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    void M() {
+        Call($$");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInMethodSecondArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    void M(object arg1) {
+        Call(arg1, $$");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInBaseCallFirstArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    public C() : base($$");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInBaseCallSecondArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    public C(object arg1) : base(arg1, $$");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInThisCallFirstArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    public C() : this($$");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInThisCallSecondArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    public C(object arg1) : this(arg1, $$");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInConstructorCallFirstArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    void M() {
+        new MyType($$");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInConstructorSecondArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    void M(object arg1) {
+        new MyType(arg1, $$");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInMethodFirstNamedArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    void M() {
+        Call(a: $$");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInMethodSecondNamedArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    void M(object arg1) {
+        Call(a: arg1, b: $$");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInBaseCallFirstNamedArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    public C() : base(a: $$");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInBaseCallSecondNamedArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    public C(object arg1) : base(a: arg1, b: $$");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInThisCallFirstNamedArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    public C() : this(a: $$");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInThisCallSecondNamedArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    public C(object arg1) : this(a: arg1, b: $$");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInConstructorCallFirstNamedArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    void M() {
+        new MyType(a: $$");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInConstructorSecondNamedArgumentModifier()
+        {
+            await VerifyKeywordAsync(@"
+class C {
+    void M(object arg1) {
+        new MyType(a: arg1, b: $$");
+        }
     }
 }

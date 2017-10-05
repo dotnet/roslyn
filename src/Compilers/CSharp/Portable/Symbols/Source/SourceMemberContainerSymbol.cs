@@ -327,7 +327,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (var i = 0; i < partCount; i++)
             {
-                var mods = declaration.Declarations[i].Modifiers;
+                var decl = declaration.Declarations[i];
+                var mods = decl.Modifiers;
 
                 if (partCount > 1 && (mods & DeclarationModifiers.Partial) == 0)
                 {
@@ -338,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     mods = ModifierUtils.CheckModifiers(
                         mods, allowedModifiers, declaration.Declarations[i].NameLocation, diagnostics,
-                        modifierTokensOpt: null, modifierErrors: out modifierErrors);
+                        modifierTokens: null, modifierErrors: out modifierErrors);
 
                     // It is an error for the same modifier to appear multiple times.
                     if (!modifierErrors)

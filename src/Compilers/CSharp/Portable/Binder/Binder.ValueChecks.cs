@@ -985,7 +985,7 @@ moreArguments:
                         goto moreArguments;
                     }
 
-                    RefKind effectiveRefKind = GetEffectiveRefKind(argIndex, argRefKindsOpt, parameters, argsToParamsOpt, ref inParametersMatchedWithArgs);
+                    RefKind effectiveRefKind = GetEffectiveRefKindAndMarkMatchedInParameter(argIndex, argRefKindsOpt, parameters, argsToParamsOpt, ref inParametersMatchedWithArgs);
 
                     // ref escape scope is the narrowest of 
                     // - ref escape of all byref arguments
@@ -1090,7 +1090,7 @@ moreArguments:
                         goto moreArguments;
                     }
 
-                    RefKind effectiveRefKind = GetEffectiveRefKind(argIndex, argRefKindsOpt, parameters, argsToParamsOpt, ref inParametersMatchedWithArgs);
+                    RefKind effectiveRefKind = GetEffectiveRefKindAndMarkMatchedInParameter(argIndex, argRefKindsOpt, parameters, argsToParamsOpt, ref inParametersMatchedWithArgs);
 
                     // ref escape scope is the narrowest of 
                     // - ref escape of all byref arguments
@@ -1275,11 +1275,14 @@ moreArguments:
 
         /// <summary>
         /// Gets "effective" ref kind of an argument. 
-        /// Generally we know if a formal argument is passed as ref/out by looking at the call site. 
-        /// However, to distinguish "in" and regular "val" parameters we need to take a look at corresponding parameter, if such exists. 
-        /// NOTE: there are cases like params/vararg, when a corresponding parameter may not exist, then it cannot be "in".
+        /// If the ref kind is 'in', marks that that correwsponding parameter was matched with a value
+        /// We need that to detect when there were optional 'in' parameters for which values were not supplied.
+        /// 
+        /// NOTE: Generally we know if a formal argument is passed as ref/out/in by looking at the call site. 
+        /// However, 'in' may also be passed as an ordinary val argument so we need to take a look at corresponding parameter, if such exists. 
+        /// There are cases like params/vararg, when a corresponding parameter may not exist, then val cannot become 'in'.
         /// </summary>
-        private static RefKind GetEffectiveRefKind(
+        private static RefKind GetEffectiveRefKindAndMarkMatchedInParameter(
             int argIndex, 
             ImmutableArray<RefKind> argRefKindsOpt, 
             ImmutableArray<ParameterSymbol> parameters, 
@@ -1287,7 +1290,7 @@ moreArguments:
             ref ArrayBuilder<bool> inParametersMatchedWithArgs)
         {
             var effectiveRefKind = argRefKindsOpt.IsDefault ? RefKind.None : argRefKindsOpt[argIndex];
-            if (effectiveRefKind == RefKind.None && argIndex < parameters.Length)
+            if ((effectiveRefKind == RefKind.None || effectiveRefKind == RefKind.In) && argIndex < parameters.Length)
             {
                 var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
 

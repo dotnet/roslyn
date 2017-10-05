@@ -200,6 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression argument = (node.Expression == null)
                 ? BadExpression(node)
                 : binder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+            argument = ValidateEscape(argument, ExternalScope, isByRef: false, diagnostics: diagnostics);
+
             if (!argument.HasAnyErrors)
             {
                 argument = binder.GenerateConversionForAssignment(elementType, argument, diagnostics);
