@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<EmbeddedText> embeddedTexts = null,
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
-            PdbValidationOptions options = 0,
+            PdbValidationOptions options = PdbValidationOptions.Default,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<EmbeddedText> embeddedTexts = null,
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
-            PdbValidationOptions options = 0,
+            PdbValidationOptions options = PdbValidationOptions.Default,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<EmbeddedText> embeddedTexts = null,
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
-            PdbValidationOptions options = 0,
+            PdbValidationOptions options = PdbValidationOptions.Default,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<EmbeddedText> embeddedTexts = null,
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
-            PdbValidationOptions options = 0,
+            PdbValidationOptions options = PdbValidationOptions.Default,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
@@ -132,7 +132,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string actualPdb = PdbToXmlConverter.DeltaPdbToXml(new ImmutableMemoryStream(diff.PdbDelta), methodTokens);
             var (actual, expected) = AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: diff.NextGeneration.InitialBaseline.HasPortablePdb, actualIsConverted: false);
 
-            AssertEx.AssertLinesEqual(expected, actual, $"PDB format: {format}{Environment.NewLine}", expectedValueSourcePath, expectedValueSourceLine, escapeQuotes: !expectedIsXmlLiteral);
+            AssertEx.AssertLinesEqual(
+                expected, 
+                actual, 
+                $"PDB format: {format}{Environment.NewLine}",
+                expectedValueSourcePath, 
+                expectedValueSourceLine, 
+                escapeQuotes: !expectedIsXmlLiteral);
         }
 
         public static void VerifyPdb(
@@ -141,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<EmbeddedText> embeddedTexts = null,
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
-            PdbValidationOptions options = 0,
+            PdbValidationOptions options = PdbValidationOptions.Default,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
@@ -155,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<EmbeddedText> embeddedTexts = null,
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
-            PdbValidationOptions options = 0,
+            PdbValidationOptions options = PdbValidationOptions.Default,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
@@ -178,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<EmbeddedText> embeddedTexts = null,
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
-            PdbValidationOptions options = 0,
+            PdbValidationOptions options = PdbValidationOptions.Default,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
@@ -192,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<EmbeddedText> embeddedTexts = null,
             IMethodSymbol debugEntryPoint = null,
             DebugInformationFormat format = 0,
-            PdbValidationOptions options = 0,
+            PdbValidationOptions options = PdbValidationOptions.Default,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
@@ -269,7 +275,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var actualPdb = XElement.Parse(PdbToXmlConverter.ToXml(pdbStream, peStream, pdbToXmlOptions, methodName: qualifiedMethodName)).ToString();
             var (actual, expected) = AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: isPortable, actualIsConverted: false);
 
-            AssertEx.AssertLinesEqual(expected, actual, $"PDB format: {(isPortable ? "Portable" : "Windows")}{Environment.NewLine}", expectedValueSourcePath, expectedValueSourceLine, escapeQuotes: !expectedIsXmlLiteral);
+            AssertEx.AssertLinesEqual(
+                expected, 
+                actual, 
+                $"PDB format: {(isPortable ? "Portable" : "Windows")}{Environment.NewLine}", 
+                expectedValueSourcePath,
+                expectedValueSourceLine, 
+                escapeQuotes: !expectedIsXmlLiteral);
         }
 
         private static void VerifyConvertedPdbMatchesExpectedXml(
@@ -466,7 +478,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Compilation compilation,
             IEnumerable<EmbeddedText> embeddedTexts = null,
             IMethodSymbol debugEntryPoint = null,
-            PdbValidationOptions options = 0,
+            PdbValidationOptions options = PdbValidationOptions.Default,
             string qualifiedMethodName = "",
             bool portable = false)
         {

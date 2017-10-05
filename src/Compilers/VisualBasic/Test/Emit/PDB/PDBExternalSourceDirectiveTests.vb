@@ -369,7 +369,7 @@ End Class
             </scope>
         </method>
     </methods>
-</symbols>, ' Since the CDI Is Not emitted to Portable PDB it won't be present in the converted Windows PDB.
+</symbols>, ' Since the CDI is not emitted to Portable PDB it won't be present in the converted Windows PDB.
             options:=PdbValidationOptions.SkipConversionValidation)
         End Sub
 
