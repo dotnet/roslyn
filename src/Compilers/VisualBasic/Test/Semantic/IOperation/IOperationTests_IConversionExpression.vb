@@ -1136,9 +1136,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action
     Initializer: 
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'AddressOf M2')
-        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
+      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'AddressOf M2')
+        Target: 
           IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf M2')
             Children(1):
                 IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M2')
@@ -1178,9 +1177,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action
     Initializer: 
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'AddressOf c1.M2')
-        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
+      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'AddressOf c1.M2')
+        Target: 
           IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf c1.M2')
             Children(1):
                 IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'c1.M2')
@@ -1310,9 +1308,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Func(Of System.Int64)
     Initializer: 
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.Int64), IsInvalid, IsImplicit) (Syntax: 'AddressOf M2')
-        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
+      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int64), IsInvalid, IsImplicit) (Syntax: 'AddressOf M2')
+        Target: 
           IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf M2')
             Children(1):
                 IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M2')
@@ -1350,9 +1347,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action
     Initializer: 
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'AddressOf')
-        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
+      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'AddressOf')
+        Target: 
           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'AddressOf')
             Children(1):
                 IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')

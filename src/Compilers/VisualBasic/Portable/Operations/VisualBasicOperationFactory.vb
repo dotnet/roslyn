@@ -617,21 +617,19 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyVisualBasicConversionExpression(operand, conversion, isExplicit, isTryCast, isChecked, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
-        Private Function IsDelegateCreationSyntax(conversionKind As ConversionKind, conversionSyntax As SyntaxNode, operandSyntax As SyntaxNode) As Boolean
-            ' An identity conversion is introduced by the compiler on top of New DelegateType(AddressOf Method). This node
-            ' only exists for the convenience of SemanticModel, so we want to classify it as a Delegate Creation
-            Dim validConversionKind = conversionKind = ConversionKind.Identity OrElse
-                                      (conversionKind And (Not ConversionKind.DelegateRelaxationLevelMask)) = 0
-
+        Private Shared Function IsDelegateCreationSyntax(conversionKind As ConversionKind, conversionSyntax As SyntaxNode, operandSyntax As SyntaxNode) As Boolean
             ' Any of the explicit cast types, as well as New DelegateType(AddressOf Method)
+            ' Additionally, AddressOf, if the child AddressOf is the same SyntaxNode (ie, an implicit delegate creation
             Dim validConversionSyntax = conversionSyntax.Kind() = SyntaxKind.CTypeExpression OrElse
                                         conversionSyntax.Kind() = SyntaxKind.DirectCastExpression OrElse
                                         conversionSyntax.Kind() = SyntaxKind.TryCastExpression OrElse
-                                        conversionSyntax.Kind() = SyntaxKind.ObjectCreationExpression
+                                        conversionSyntax.Kind() = SyntaxKind.ObjectCreationExpression OrElse
+                                        (conversionSyntax.Kind() = SyntaxKind.AddressOfExpression AndAlso
+                                         ReferenceEquals(conversionSyntax, operandSyntax))
 
             Dim validOperandSyntax = operandSyntax.Kind() = SyntaxKind.AddressOfExpression
 
-            Return validConversionKind AndAlso validConversionSyntax AndAlso validOperandSyntax
+            Return validConversionSyntax AndAlso validOperandSyntax
         End Function
 
         ''' <summary>

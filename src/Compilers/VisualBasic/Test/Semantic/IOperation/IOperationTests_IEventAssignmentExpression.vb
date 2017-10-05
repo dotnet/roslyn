@@ -192,9 +192,8 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Re
           Instance Receiver: 
             null
       Handler: 
-        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'AddressOf M')
-          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand: 
+        IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'AddressOf M')
+          Target: 
             IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf M')
               Children(1):
                   IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M')

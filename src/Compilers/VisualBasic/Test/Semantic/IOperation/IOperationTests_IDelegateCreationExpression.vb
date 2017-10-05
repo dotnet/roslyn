@@ -1885,9 +1885,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action
     Initializer: 
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
-        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
+      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
+        Target: 
           IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
             Children(1):
                 IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
@@ -1926,9 +1925,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Action(Of System.String)
     Initializer: 
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Action(Of System.String), IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
-        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
+      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.String), IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
+        Target: 
           IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
             Children(1):
                 IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
@@ -2003,9 +2001,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
     Variables: Local_1: a As System.Func(Of System.String)
     Initializer: 
-      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
-        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
+      IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.String), IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
+        Target: 
           IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
             Children(1):
                 IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
