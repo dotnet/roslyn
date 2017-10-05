@@ -26,7 +26,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IRaiseEventStatement (OperationKind.RaiseEventStatement) (Syntax: 'RaiseEvent TestEvent()')
   Event Reference: 
-    IEventReferenceExpression: Event TestClass.TestEvent As System.Action (OperationKind.EventReferenceExpression, Type: System.Action, IsImplicit) (Syntax: 'TestEvent')
+    IEventReferenceExpression: Event TestClass.TestEvent As System.Action (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
       Instance Receiver: 
         IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
   Arguments(0)
@@ -54,7 +54,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IRaiseEventStatement (OperationKind.RaiseEventStatement) (Syntax: 'RaiseEvent  ... ring.Empty)')
   Event Reference: 
-    IEventReferenceExpression: Event TestClass.MyEvent(x As System.String, y As System.Int32) (OperationKind.EventReferenceExpression, Type: TestClass.MyEventEventHandler, IsImplicit) (Syntax: 'MyEvent')
+    IEventReferenceExpression: Event TestClass.MyEvent(x As System.String, y As System.Int32) (OperationKind.EventReferenceExpression, Type: TestClass.MyEventEventHandler) (Syntax: 'MyEvent')
       Instance Receiver: 
         IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'MyEvent')
   Arguments(2):
@@ -92,7 +92,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IRaiseEventStatement (OperationKind.RaiseEventStatement) (Syntax: 'RaiseEvent TestEvent()')
   Event Reference: 
-    IEventReferenceExpression: Event TestClass.TestEvent As System.Action (Static) (OperationKind.EventReferenceExpression, Type: System.Action, IsImplicit) (Syntax: 'TestEvent')
+    IEventReferenceExpression: Event TestClass.TestEvent As System.Action (Static) (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
       Instance Receiver: 
         null
   Arguments(0)
@@ -250,7 +250,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IRaiseEventStatement (OperationKind.RaiseEventStatement) (Syntax: 'RaiseEvent TestEvent()')
   Event Reference: 
-    IEventReferenceExpression: Event TestClass.TestEvent As System.Action (OperationKind.EventReferenceExpression, Type: System.Action, IsImplicit) (Syntax: 'TestEvent')
+    IEventReferenceExpression: Event TestClass.TestEvent As System.Action (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
       Instance Receiver: 
         IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
   Arguments(0)
@@ -286,7 +286,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IRaiseEventStatement (OperationKind.RaiseEventStatement) (Syntax: 'RaiseEvent  ... g, Nothing)')
   Event Reference: 
-    IEventReferenceExpression: Event TestClass.TestEvent As System.EventHandler (OperationKind.EventReferenceExpression, Type: System.EventHandler, IsImplicit) (Syntax: 'TestEvent')
+    IEventReferenceExpression: Event TestClass.TestEvent As System.EventHandler (OperationKind.EventReferenceExpression, Type: System.EventHandler) (Syntax: 'TestEvent')
       Instance Receiver: 
         IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
   Arguments(2):
@@ -309,10 +309,33 @@ IRaiseEventStatement (OperationKind.RaiseEventStatement) (Syntax: 'RaiseEvent  .
             Dim expectedDiagnostics = String.Empty
             VerifyOperationTreeAndDiagnosticsForTest(Of RaiseEventStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+        
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub EventAccessFromRaiseEventShouldReturnEventReference()
+            Dim source = <![CDATA[
+Imports System
+
+Class TestClass   
+   Event TestEvent As Action
+
+    Sub M()
+        RaiseEvent TestEvent()'BIND:"TestEvent"
+    End Sub
+End Class]]>.Value
+            
+            Dim expectedOperationTree = <![CDATA[
+IEventReferenceExpression: Event TestClass.TestEvent As System.Action (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
+]]>.Value
+            Dim expectedDiagnostics = String.Empty
+            VerifyOperationTreeAndDiagnosticsForTest(Of IdentifierNameSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
-        Public Sub EventAccessFromRaiseCustomEventShouldNotReturnOperation()
+        Public Sub EventAccessFromRaiseCustomEventShouldReturnEventReference()
             Dim source = <![CDATA[
 Imports System
 
@@ -332,9 +355,14 @@ Class TestClass
         RaiseEvent TestEvent()'BIND:"TestEvent"
     End Sub
 End Class]]>.Value
-
+            
+            Dim expectedOperationTree = <![CDATA[
+IEventReferenceExpression: Event TestClass.TestEvent As System.Action (OperationKind.EventReferenceExpression, Type: System.Action) (Syntax: 'TestEvent')
+  Instance Receiver: 
+    IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
+]]>.Value
             Dim expectedDiagnostics = String.Empty
-            VerifyNoOperationTreeForTest(Of IdentifierNameSyntax)(source)
+            VerifyOperationTreeAndDiagnosticsForTest(Of IdentifierNameSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
     End Class
 End Namespace
