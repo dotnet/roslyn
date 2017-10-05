@@ -1075,7 +1075,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Initializer: 
       IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M2')
         Target: 
-          IMethodReferenceExpression: Sub Program.M2() (OperationKind.MethodReferenceExpression, Type: System.Action) (Syntax: 'AddressOf M2')
+          IMethodReferenceExpression: Sub Program.M2() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
             Instance Receiver: 
               IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M2')
 ]]>.Value
@@ -1106,7 +1106,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Initializer: 
       IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action(Of System.Int32), IsImplicit) (Syntax: 'AddressOf M2')
         Target: 
-          IMethodReferenceExpression: Sub Program.M2() (OperationKind.MethodReferenceExpression, Type: System.Action(Of System.Int32)) (Syntax: 'AddressOf M2')
+          IMethodReferenceExpression: Sub Program.M2() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
             Instance Receiver: 
               IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M2')
 ]]>.Value
@@ -1218,7 +1218,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Initializer: 
       IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M2')
         Target: 
-          IMethodReferenceExpression: Function Program.M2() As System.Int32 (OperationKind.MethodReferenceExpression, Type: System.Action) (Syntax: 'AddressOf M2')
+          IMethodReferenceExpression: Function Program.M2() As System.Int32 (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
             Instance Receiver: 
               IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M2')
 ]]>.Value
@@ -1244,7 +1244,7 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IMethodReferenceExpression: Function Program.M2() As System.Int32 (OperationKind.MethodReferenceExpression, Type: System.Action) (Syntax: 'AddressOf M2')
+IMethodReferenceExpression: Function Program.M2() As System.Int32 (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
   Instance Receiver: 
     IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M2')
 ]]>.Value
@@ -1278,7 +1278,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
     Initializer: 
       IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Func(Of System.Int64), IsImplicit) (Syntax: 'AddressOf M2')
         Target: 
-          IMethodReferenceExpression: Function Program.M2() As System.Int32 (OperationKind.MethodReferenceExpression, Type: System.Func(Of System.Int64)) (Syntax: 'AddressOf M2')
+          IMethodReferenceExpression: Function Program.M2() As System.Int32 (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M2')
             Instance Receiver: 
               IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsImplicit) (Syntax: 'M2')
 ]]>.Value

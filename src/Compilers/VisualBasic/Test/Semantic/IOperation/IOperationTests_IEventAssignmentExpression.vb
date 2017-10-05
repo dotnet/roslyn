@@ -38,7 +38,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'AddHandler  .
       Handler: 
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
           Target: 
-            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: System.Action) (Syntax: 'AddressOf M')
+            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
               Instance Receiver: 
                 IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
 ]]>.Value
@@ -77,7 +77,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'RemoveHandl .
       Handler: 
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
           Target: 
-            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: System.Action) (Syntax: 'AddressOf M')
+            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
               Instance Receiver: 
                 IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
 ]]>.Value
@@ -116,7 +116,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'AddHandler  .
       Handler: 
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
           Target: 
-            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: System.Action) (Syntax: 'AddressOf M')
+            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
               Instance Receiver: 
                 IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
 ]]>.Value
@@ -155,7 +155,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'RemoveHandl .
       Handler: 
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
           Target: 
-            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: System.Action) (Syntax: 'AddressOf M')
+            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
               Instance Receiver: 
                 IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
 ]]>.Value
@@ -237,7 +237,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'AddHandler  .
       Handler: 
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
           Target: 
-            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: System.Action) (Syntax: 'AddressOf M')
+            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
               Instance Receiver: 
                 IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
 ]]>.Value
@@ -279,7 +279,7 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Ad
       Handler: 
         IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M')
           Target: 
-            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: System.Action) (Syntax: 'AddressOf M')
+            IMethodReferenceExpression: Sub TestClass.M() (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf M')
               Instance Receiver: 
                 IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: TestClass, IsImplicit) (Syntax: 'M')
 ]]>.Value

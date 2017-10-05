@@ -425,7 +425,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IDelegateCreationExpression (OperationKind.DelegateCreationExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... essOf Me.M)')
   Target: 
-    IMethodReferenceExpression: Sub Class1.M(x As System.Object, y As System.EventArgs) (OperationKind.MethodReferenceExpression, Type: System.EventHandler) (Syntax: 'AddressOf Me.M')
+    IMethodReferenceExpression: Sub Class1.M(x As System.Object, y As System.EventArgs) (OperationKind.MethodReferenceExpression, Type: null) (Syntax: 'AddressOf Me.M')
       Instance Receiver: 
         IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Class1) (Syntax: 'Me')
 ]]>.Value

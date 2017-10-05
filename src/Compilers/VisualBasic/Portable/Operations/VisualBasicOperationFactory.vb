@@ -671,8 +671,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                                Not boundDelegateCreationExpression.SuppressVirtualCalls
             Dim instance As Lazy(Of IOperation) =
                         New Lazy(Of IOperation)(Function() Create(If(boundDelegateCreationExpression.ReceiverOpt, boundDelegateCreationExpression.MethodGroupOpt?.ReceiverOpt)))
+            ' The compiler creates a BoundDelegateCreationExpression node for the AddressOf expression, and that's the node we want to use for the operand
+            ' of the IDelegateCreationExpression parent
             Dim syntax As SyntaxNode = boundDelegateCreationExpression.Syntax
-            Dim type As ITypeSymbol = boundDelegateCreationExpression.Type
+            Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundDelegateCreationExpression.ConstantValueOpt)
             Dim isImplicit As Boolean = boundDelegateCreationExpression.WasCompilerGenerated
             Return New LazyMethodReferenceExpression(method, isVirtual, instance, _semanticModel, syntax, type, constantValue, isImplicit)
