@@ -1241,11 +1241,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EncReferenceToAddedMember = 7101,
         ERR_MutuallyExclusiveOptions = 7102,
         ERR_InvalidDebugInfo = 7103,
-        WRN_FilterIsConstantFalse = 7104,
-        WRN_FilterIsConstantFalseRedundantTryCatch = 7105,
         #endregion diagnostics introduced in C# 6
 
-        // huge gap here; unused 7106-8000
+        // huge gap here; unused 7104-8000
 
         #region more diagnostics introduced in Roslyn (C# 6)
         WRN_UnimplementedCommandLineSwitch = 8001,
@@ -1545,5 +1543,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidVersionFormatDeterministic = 8357,
 
         ERR_AttributeCtorInParameter = 8358,
+
+        #region diagnostics for FilterIsConstant warning message fix
+        WRN_FilterIsConstantFalse = 8355,
+        WRN_FilterIsConstantFalseRedundantTryCatch = 8356,
+        #endregion
     }
 }
