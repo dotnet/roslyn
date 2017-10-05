@@ -1547,6 +1547,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics for FilterIsConstant warning message fix
         WRN_FilterIsConstantFalse = 8355,
         WRN_FilterIsConstantFalseRedundantTryCatch = 8356,
-        #endregion
+        #endregion diagnostics for FilterIsConstant warning message fix
     }
 }
