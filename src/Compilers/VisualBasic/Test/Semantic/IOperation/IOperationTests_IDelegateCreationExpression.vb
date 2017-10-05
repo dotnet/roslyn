@@ -2092,6 +2092,49 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
+        Public Sub DelegateCreationExpression_ImplicitAddressOf_ConvertedToNonDelegateType()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+Module M1
+    Class C1
+    End Class
+    Sub Method1()
+        Dim a As String = AddressOf Method2'BIND:"Dim a As String = AddressOf Method2"
+    End Sub
+
+    Sub Method2(i As C1)
+    End Sub
+End Module]]>.Value
+
+            ' We don't expect a delegate creation here. This is documenting that we still have a conversion expression when the target type
+            ' isn't a delegate type
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim a As St ... sOf Method2')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
+    Variables: Local_1: a As System.String
+    Initializer: 
+      IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'AddressOf Method2')
+        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Method2')
+            Children(1):
+                IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Method2')
+                  Children(1):
+                      IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30581: 'AddressOf' expression cannot be converted to 'String' because 'String' is not a delegate type.
+        Dim a As String = AddressOf Method2'BIND:"Dim a As String = AddressOf Method2"
+                          ~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
         Public Sub DelegateCreationExpression_CTypeAddressOf()
             Dim source = <![CDATA[
 Option Strict On
@@ -3246,7 +3289,6 @@ BC30002: Type 'NonExistant' is not defined.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-
 #End Region
 
 #Region "Anonymous Delegates"
