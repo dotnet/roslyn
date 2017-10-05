@@ -1136,5 +1136,49 @@ class Program
   IL_001b:  ret
 }");
         }
+
+        [Fact, WorkItem(22533, "https://github.com/dotnet/roslyn/issues/22533")]
+        public void TestExplicitDoubleConversionEmitted()
+        {
+            var source = @"
+class Program
+{
+
+    static bool M()
+    {
+        double dValue = 600.1;
+        int iValue = 600;
+        byte mbytDeciWgt = 1;
+        bool value = ((double)dValue > (double)((double)iValue + (double)(10 ^ -mbytDeciWgt)));
+        return value;
+    }
+}
+";
+            var comp = CompileAndVerify(source);
+            comp.VerifyIL("Program.M",
+@"{
+  // Code size       31 (0x1f)
+  .maxstack  4
+  .locals init (int V_0, //iValue
+                byte V_1) //mbytDeciWgt
+  IL_0000:  ldc.r8     600.1
+  IL_0009:  ldc.i4     0x258
+  IL_000e:  stloc.0
+  IL_000f:  ldc.i4.1
+  IL_0010:  stloc.1
+  IL_0011:  conv.r8
+  IL_0012:  ldloc.0
+  IL_0013:  conv.r8
+  IL_0014:  ldc.i4.s   10
+  IL_0016:  ldloc.1
+  IL_0017:  neg
+  IL_0018:  xor
+  IL_0019:  conv.r8
+  IL_001a:  add
+  IL_001b:  conv.r8
+  IL_001c:  cgt
+  IL_001e:  ret
+}");
+        }
     }
 }
