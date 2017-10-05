@@ -512,6 +512,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitFieldInitializer(operation);
         }
 
+        public override void VisitLocalInitializer(ILocalInitializer operation)
+        {
+            base.VisitLocalInitializer(operation);
+        }
+
         public override void VisitPropertyInitializer(IPropertyInitializer operation)
         {
             var initializedProperty = operation.InitializedProperty;

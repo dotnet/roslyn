@@ -1,27 +1,40 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
     internal static class OperationFactory
     {
-        public static IVariableDeclaration CreateVariableDeclaration(ILocalSymbol variable, IOperation initialValue, SemanticModel semanticModel, SyntaxNode syntax)
+        public static IVariableDeclaration CreateVariableDeclaration<TEqualsValueSyntax>(ILocalSymbol variable, IOperation initialValue, SemanticModel semanticModel, SyntaxNode syntax)
+            where TEqualsValueSyntax : SyntaxNode
         {
-            return CreateVariableDeclaration(ImmutableArray.Create(variable), initialValue, semanticModel, syntax);
+            return CreateVariableDeclaration<TEqualsValueSyntax>(ImmutableArray.Create(variable), initialValue, semanticModel, syntax);
         }
 
-        public static VariableDeclaration CreateVariableDeclaration(ImmutableArray<ILocalSymbol> variables, IOperation initialValue, SemanticModel semanticModel, SyntaxNode syntax)
+        public static VariableDeclaration CreateVariableDeclaration<TEqualsValueSyntax>(ImmutableArray<ILocalSymbol> variables, IOperation initialValue, SemanticModel semanticModel, SyntaxNode syntax)
+            where TEqualsValueSyntax : SyntaxNode
         {
             return new VariableDeclaration(
                 variables,
-                initialValue,
+                CreateLocalInitializer<TEqualsValueSyntax>(initialValue, semanticModel),
                 semanticModel,
                 syntax,
                 type: null,
                 constantValue: default(Optional<object>),
                 isImplicit: false); // variable declaration is always explicit
+        }
+
+        private static ILocalInitializer CreateLocalInitializer<TEqualsValueSyntax>(IOperation initialValue, SemanticModel semanticModel)
+            where TEqualsValueSyntax : SyntaxNode
+        {
+            if (initialValue == null)
+            {
+                return null;
+            }
+
+            var syntax = initialValue.Syntax.Parent as TEqualsValueSyntax ?? initialValue.Syntax;
+            return new LocalInitializer(initialValue, semanticModel, syntax, initialValue.Type, initialValue.ConstantValue, initialValue.IsImplicit);
         }
 
         public static IConditionalExpression CreateConditionalExpression(IOperation condition, IOperation whenTrue, IOperation whenFalse, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)

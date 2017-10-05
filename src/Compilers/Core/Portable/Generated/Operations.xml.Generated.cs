@@ -1512,6 +1512,61 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents an initialization of a local.
+    /// </summary>
+    internal abstract partial class BaseLocalInitializer : SymbolInitializer, ILocalInitializer
+    {
+        public BaseLocalInitializer(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.LocalInitializer, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Value;
+            }
+        }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitLocalInitializer(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitLocalInitializer(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents an initialization of a local.
+    /// </summary>
+    internal sealed partial class LocalInitializer : BaseLocalInitializer, ILocalInitializer
+    {
+        public LocalInitializer(IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            ValueImpl = value;
+        }
+        protected override IOperation ValueImpl { get; }
+    }
+
+    /// <summary>
+    /// Represents an initialization of a local.
+    /// </summary>
+    internal sealed partial class LazyLocalInitializer : BaseLocalInitializer, ILocalInitializer
+    {
+        private readonly Lazy<IOperation> _lazyValue;
+
+        public LazyLocalInitializer(Lazy<IOperation> value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
+        }
+        protected override IOperation ValueImpl => _lazyValue.Value;
+    }
+
+    /// <summary>
     /// Represents an initialization of a field.
     /// </summary>
     internal abstract partial class BaseFieldInitializer : SymbolInitializer, IFieldInitializer

@@ -370,6 +370,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
+        public virtual void VisitLocalInitializer(ILocalInitializer operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitPropertyInitializer(IPropertyInitializer operation)
         {
             DefaultVisit(operation);
@@ -856,6 +861,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitFieldInitializer(IFieldInitializer operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitLocalInitializer(ILocalInitializer operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

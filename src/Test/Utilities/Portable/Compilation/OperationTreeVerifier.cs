@@ -1170,6 +1170,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitFieldInitializer(operation);
         }
 
+        public override void VisitLocalInitializer(ILocalInitializer operation)
+        {
+            LogString(nameof(ILocalInitializer));
+            LogCommonPropertiesAndNewLine(operation);
+
+            base.VisitLocalInitializer(operation);
+        }
+
         public override void VisitPropertyInitializer(IPropertyInitializer operation)
         {
             LogString(nameof(IPropertyInitializer));
