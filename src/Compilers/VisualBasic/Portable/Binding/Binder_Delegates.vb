@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 boundFirstArgument = boundConversion.Update(boundConversion.Operand,
                                                                             boundConversion.ConversionKind,
                                                                             boundConversion.Checked,
-                                                                            True,
+                                                                            True, ' ExplicitCastInCode
                                                                             boundConversion.ConstantValueOpt,
                                                                             boundConversion.ExtendedInfoOpt,
                                                                             boundConversion.Type)
