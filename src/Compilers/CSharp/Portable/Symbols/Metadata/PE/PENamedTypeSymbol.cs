@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var loadedCustomAttributes = ContainingPEModule.GetCustomAttributesForToken(
                     Handle,
                     out _,
-                    // Filter out [Extention]
+                    // Filter out [Extension]
                     MightContainExtensionMethods ? AttributeDescription.CaseSensitiveExtensionAttribute : default,
                     out _,
                     // Filter out [Obsolete], unless it was user defined
