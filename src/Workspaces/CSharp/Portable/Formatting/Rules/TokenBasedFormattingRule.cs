@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     attributeOwner is MemberDeclarationSyntax ||
                     attributeOwner is AccessorDeclarationSyntax)
                 {
-                    return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+                    return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
                 }
 
                 return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);

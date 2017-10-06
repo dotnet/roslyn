@@ -67,19 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 var tokens = memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
                 AddSuppressWrappingIfOnSingleLineOperation(list, tokens.Item1, tokens.Item2);
 
-                // Also, If the member is on single line with its attributes on it, then keep 
-                // it on a single line.  This is for code like the following:
-                //
-                //      [Import] public int Field1;
-                //      [Import] public int Field2;
-                var attributes = memberDeclNode.GetAttributes();
-                for (int i = 0; i < attributes.Count; ++i)
-                {
-                    AddSuppressWrappingIfOnSingleLineOperation(list,
-                        attributes[i].GetFirstToken(includeZeroWidth: true),
-                        node.GetLastToken(includeZeroWidth: true));
-                }
-
                 var propertyDeclNode = node as PropertyDeclarationSyntax;
                 if (propertyDeclNode?.Initializer != null && propertyDeclNode?.AccessorList != null)
                 {
