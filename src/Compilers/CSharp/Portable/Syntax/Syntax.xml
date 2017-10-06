@@ -652,8 +652,8 @@
       <FactoryComment>
         <summary>Creates an AssignmentExpressionSyntax node.</summary>
       </FactoryComment>
-    </Node>
-    <Node Name="ConditionalExpressionSyntax" Base="ExpressionSyntax">
+  </Node>
+  <Node Name="ConditionalExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="ConditionalExpression"/>
     <Field Name="Condition" Type="ExpressionSyntax">
       <PropertyComment>

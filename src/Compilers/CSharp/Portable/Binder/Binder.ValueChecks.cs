@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Expression capabilities and requirements.
         /// </summary>
         [Flags]
-        internal enum BindValueKind : byte
+        internal enum BindValueKind : ushort
         {
             ///////////////////
             // All expressions can be classified according to the following 4 capabilities:
@@ -69,6 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ///  local variable, parameter, field
             /// </summary>
             RefersToLocation = 4 << ValueKindInsignificantBits,
+
+            /// <summary>
+            /// Expression can be the LHS of a ref-assign operation.
+            /// Example:
+            ///  ref local, ref parameter, out parameter
+            /// </summary>
+            RefAssignable = 8 << ValueKindInsignificantBits,
 
             ///////////////////
             // The rest are just combinations of the above.
@@ -145,6 +152,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool RequiresAssignableVariable(BindValueKind kind)
         {
             return (kind & BindValueKind.Assignable) != 0;
+        }
+
+        private static bool RequiresRefAssignableVariable(BindValueKind kind)
+        {
+            return (kind & BindValueKind.RefAssignable) != 0;
         }
 
         private static bool RequiresRefOrOut(BindValueKind kind)
@@ -374,6 +386,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ThisReference:
                     var thisref = (BoundThisReference)expr;
 
+                    // `this` is never ref assignable
+                    if (RequiresRefAssignableVariable(valueKind))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                        return false;
+                    }
+
                     // We will already have given an error for "this" used outside of a constructor, 
                     // instance method, or instance accessor. Assume that "this" is a variable if it is in a struct.
 
@@ -418,6 +437,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.FieldAccess:
                     var fieldAccess = (BoundFieldAccess)expr;
                     return CheckFieldValueKind(node, fieldAccess, valueKind, checkingReceiver, diagnostics);
+
+                case BoundKind.AssignmentOperator:
+                    var assignment = (BoundAssignmentOperator)expr;
+                    return CheckSimpleAssignmentValueKind(node, assignment, valueKind, diagnostics);
             }
 
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
@@ -457,6 +480,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!localSymbol.IsWritable)
                 {
                     ReportReadonlyLocalError(node, localSymbol, valueKind, checkingReceiver, diagnostics);
+                    return false;
+                }
+            }
+            else if (RequiresRefAssignableVariable(valueKind))
+            {
+                if (!(localSymbol.RefKind == RefKind.Ref ||
+                      localSymbol.RefKind == RefKind.RefReadOnly))
+                {
+                    diagnostics.Add(ErrorCode.ERR_RefLocalOrParamExpected, node.Location, localSymbol);
                     return false;
                 }
             }
@@ -605,6 +637,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (RequiresRefAssignableVariable(valueKind))
+            {
+                Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                return false;
+            }
+
             // r/w fields that are static or belong to reference types are writeable and returnable
             if (fieldIsStatic || fieldSymbol.ContainingType.IsReferenceType)
             {
@@ -613,6 +651,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // for other fields defer to the receiver.
             return CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, valueKind, diagnostics);
+        }
+
+        private static bool CheckSimpleAssignmentValueKind(SyntaxNode node, BoundAssignmentOperator assignment, BindValueKind valueKind, DiagnosticBag diagnostics)
+        {
+            // Only ref-assigns produce LValues
+            if (assignment.RefKind != RefKind.None)
+            {
+                if (RequiresRefAssignableVariable(valueKind))
+                {
+                    return true;
+                }
+                if (RequiresAssignableVariable(valueKind))
+                {
+                    return assignment.RefKind != RefKind.RefReadOnly;
+                }
+            }
+
+            Error(diagnostics, GetStandardLvalueError(valueKind), node);
+            return false;
         }
 
         private static bool CheckFieldRefEscape(SyntaxNode node, BoundFieldAccess fieldAccess, uint escapeFrom, uint escapeTo, bool checkingReceiver, DiagnosticBag diagnostics)
@@ -768,6 +825,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (RequiresRefAssignableVariable(valueKind))
+            {
+                Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                return false;
+            }
+
             return true;
         }
 
@@ -907,6 +970,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ReportDiagnosticsIfObsolete(diagnostics, getMethod, node, receiver?.Kind == BoundKind.BaseReference);
                 }
+            }
+
+            if (RequiresRefAssignableVariable(valueKind))
+            {
+                Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                return false;
             }
 
             return true;
@@ -1397,6 +1466,9 @@ moreArguments:
                 case BindValueKind.RefReturn:
                 case BindValueKind.ReadonlyRef:
                     return ErrorCode.ERR_RefReturnThis;
+
+                case BindValueKind.RefAssignable:
+                    return ErrorCode.ERR_RefLocalOrParamExpected;
             }
 
             throw ExceptionUtilities.UnexpectedValue(kind);
@@ -1417,6 +1489,9 @@ moreArguments:
                 case BindValueKind.RefReturn:
                 case BindValueKind.ReadonlyRef:
                     return ErrorCode.ERR_RefReturnRangeVariable;
+
+                case BindValueKind.RefAssignable:
+                    return ErrorCode.ERR_RefLocalOrParamExpected;
             }
 
             if (RequiresReferenceToLocation(kind))
@@ -1463,6 +1538,9 @@ moreArguments:
                 case BindValueKind.RefReturn:
                 case BindValueKind.ReadonlyRef:
                     return ErrorCode.ERR_RefReturnLvalueExpected;
+
+                case BindValueKind.RefAssignable:
+                    return ErrorCode.ERR_RefLocalOrParamExpected;
             }
 
             if (RequiresReferenceToLocation(kind))

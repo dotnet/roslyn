@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.CSharp.Binder;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -201,6 +202,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol receiverType = expressionOpt.Type;
             return (object)receiverType != null && receiverType.Kind == SymbolKind.NamedType && ((NamedTypeSymbol)receiverType).IsComImport;
+        }
+
+        /// <summary>
+        /// Only valid for LValues.
+        /// </summary>
+        internal static RefKind GetLValueRefKind(this BoundExpression expr)
+        {
+            switch (expr.Kind)
+            {
+                case BoundKind.Local:
+                    return ((BoundLocal)expr).LocalSymbol.RefKind;
+                case BoundKind.Parameter:
+                    return ((BoundParameter)expr).ParameterSymbol.RefKind;
+                case BoundKind.PropertyAccess:
+                    return ((BoundPropertyAccess)expr).PropertySymbol.RefKind;
+                case BoundKind.ThisReference:
+                    var thisRef = (BoundThisReference)expr;
+                    return thisRef.Type.IsValueType
+                        ? thisRef.Type.IsReadOnly ? RefKind.RefReadOnly : RefKind.Ref
+                        : RefKind.None;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(expr.Kind);
+            }
         }
     }
 }

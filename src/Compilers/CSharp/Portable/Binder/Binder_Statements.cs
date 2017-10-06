@@ -1175,15 +1175,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindDeconstruction(node, diagnostics);
             }
 
-            var op1 = BindValue(node.Left, diagnostics, BindValueKind.Assignable); // , BIND_MEMBERSET);
-            var op2 = BindValue(node.Right, diagnostics, BindValueKind.RValue); // , BIND_RVALUEREQUIRED);
+            BindValueKind lhsKind;
+            BindValueKind rhsKind;
+            ExpressionSyntax rhsExpr;
+
+            if (node.Right.Kind() == SyntaxKind.RefExpression)
+            {
+                lhsKind = BindValueKind.RefAssignable;
+                rhsKind = BindValueKind.RefersToLocation;
+                rhsExpr = ((RefExpressionSyntax)node.Right).Expression;
+            }
+            else
+            {
+                lhsKind = BindValueKind.Assignable;
+                rhsKind = BindValueKind.RValue;
+                rhsExpr = node.Right;
+            }
+
+            var op1 = BindValue(node.Left, diagnostics, lhsKind);
+
+            var lhsRefKind = RefKind.None;
+            // If the LHS is a ref (not ref-readonly), the rhs
+            // must also be value-assignable
+            if (lhsKind == BindValueKind.RefAssignable && !op1.HasErrors)
+            {
+                // We should now know that op1 is a valid lvalue
+                lhsRefKind = op1.GetLValueRefKind();
+                if (lhsRefKind == RefKind.Ref || lhsRefKind == RefKind.Out)
+                {
+                    rhsKind |= BindValueKind.Assignable;
+                }
+            }
+
+            var op2 = BindValue(rhsExpr, diagnostics, rhsKind);
 
             if (op1.Kind == BoundKind.DiscardExpression)
             {
                 op1 = InferTypeForDiscardAssignment((BoundDiscardExpression)op1, op2, diagnostics);
             }
 
-            return BindAssignment(node, op1, op2, diagnostics);
+            return BindAssignment(node, op1, op2, lhsRefKind, diagnostics);
         }
 
         private BoundExpression InferTypeForDiscardAssignment(BoundDiscardExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
@@ -1202,7 +1233,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return op1.SetInferredType(inferredType);
         }
 
-        private BoundAssignmentOperator BindAssignment(SyntaxNode node, BoundExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
+        private BoundAssignmentOperator BindAssignment(
+            SyntaxNode node,
+            BoundExpression op1,
+            BoundExpression op2,
+            RefKind refKind,
+            DiagnosticBag diagnostics)
         {                      
             Debug.Assert(op1 != null);
             Debug.Assert(op2 != null);
@@ -1225,6 +1261,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     op2 = conversion;
                 }
 
+                if (refKind != RefKind.None)
+                {
+                    var leftEscape = GetRefEscape(op1, this.LocalScopeDepth);
+                    var rightEscape = GetRefEscape(op2, this.LocalScopeDepth);
+                    if (leftEscape < rightEscape)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RefAssignNarrower, node, op1.ExpressionSymbol.Name, op2.Syntax);
+                        op2 = ToBadExpression(op2);
+                    }
+                }
+
                 if (op1.Type.IsByRefLikeType)
                 {
                     var leftEscape = GetValEscape(op1, this.LocalScopeDepth);
@@ -1244,7 +1291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type = op1.Type;
             }
 
-            return new BoundAssignmentOperator(node, op1, op2, type, hasErrors: hasErrors);
+            return new BoundAssignmentOperator(node, op1, op2, refKind, type, hasErrors: hasErrors);
         }
 
         private static PropertySymbol GetPropertySymbol(BoundExpression expr, out BoundExpression receiver, out SyntaxNode propertySyntax)

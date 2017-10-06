@@ -39,6 +39,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="BoundTree\BoundNodes.xml" />
     <Content Include="Syntax\Syntax.xml" />
     <Content Include="UseSiteDiagnosticsCheckEnforcer\BaseLine.txt" />
     <Content Include="UseSiteDiagnosticsCheckEnforcer\Run.bat" />
@@ -51,9 +52,6 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <BoundTreeDefinition Include="BoundTree\BoundNodes.xml">
-      <SubType>Designer</SubType>
-    </BoundTreeDefinition>
     <EmbeddedResource Update="CSharpResources.resx">
       <SubType>Designer</SubType>
       <Generator>ResXFileCodeGenerator</Generator>

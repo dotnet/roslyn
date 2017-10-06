@@ -1219,6 +1219,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.Parameter:
+                    {
+                        var param = (BoundParameter)node;
+                        // Ref-reassignment does not assign the underlying value
+                        if (refKind == RefKind.None)
+                        {
+                            int slot = MakeSlot(param);
+                            SetSlotState(slot, written);
+                            if (written) NoteWrite(param, value, read);
+                        }
+                        break;
+                    }
+
                 case BoundKind.ThisReference:
                 case BoundKind.FieldAccess:
                 case BoundKind.EventAccess:

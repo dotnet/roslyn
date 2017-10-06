@@ -1551,5 +1551,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_ConditionalInInterpolation = 8361,
         ERR_CantUseVoidInArglist = 8362,
+
+        ERR_RefLocalOrParamExpected = 8363,
+        ERR_RefAssignNarrower = 8364,
     }
 }

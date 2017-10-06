@@ -143,8 +143,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         goto default;
                     }
-
-                    throw ExceptionUtilities.UnexpectedValue(assignment.IsRef);
+                    else
+                    {
+                        EmitAssignmentExpression(assignment, UseKind.UsedAsAddress);
+                        break;
+                    }
 
                 case BoundKind.ThrowExpression:
                     // emit value or address is the same here.
