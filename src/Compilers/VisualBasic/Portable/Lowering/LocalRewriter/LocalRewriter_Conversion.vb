@@ -19,11 +19,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     result = node.Update(
                         result,
                         node.ConversionKind,
-                        node.Checked,
-                        node.ExplicitCastInCode,
-                        node.ConstantValueOpt,
-                        node.ExtendedInfoOpt,
-                        node.Type)
+                        checked:=False,
+                        explicitCastInCode:=True,
+                        constantValueOpt:=node.ConstantValueOpt,
+                        extendedInfoOpt:=node.ExtendedInfoOpt,
+                        type:=node.Type)
                 End If
 
                 Return result
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If node.Operand.Kind = BoundKind.UserDefinedConversion Then
                 If _inExpressionLambda Then
                     Return node.Update(DirectCast(Visit(node.Operand), BoundExpression),
-                                       node.ConversionKind,
+                                       ConversionKind.Identity,
                                        node.Checked,
                                        node.ExplicitCastInCode,
                                        node.ConstantValueOpt,
@@ -133,8 +133,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Note: no special handling for node having a constant value because it cannot reach here
 
-            Dim type = rewrittenNode.Type
-            If type.SpecialType <> SpecialType.System_Double AndAlso type.SpecialType <> SpecialType.System_Single Then
+            Dim specialType = rewrittenNode.Type.SpecialType
+            If specialType <> SpecialType.System_Double AndAlso specialType <> SpecialType.System_Single Then
                 Return False
             End If
 
