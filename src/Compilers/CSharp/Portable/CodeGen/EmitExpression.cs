@@ -2166,7 +2166,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.Parameter:
                     {
                         var left = (BoundParameter)assignmentTarget;
-                        if (left.ParameterSymbol.RefKind != RefKind.None)
+                        if (left.ParameterSymbol.RefKind != RefKind.None &&
+                            assignmentOperator.RefKind == RefKind.None)
                         {
                             _builder.EmitLoadArgumentOpcode(ParameterSlot(left));
                             lhsUsesStack = true;
@@ -2319,6 +2320,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.InstrumentationPayloadRoot:
                     break;
 
+                case BoundKind.AssignmentOperator:
+                    var assignment = (BoundAssignmentOperator)assignmentTarget;
+                    if (!(assignment.RefKind == RefKind.Ref ||
+                          assignment.RefKind == RefKind.Out))
+                    {
+                        goto default;
+                    }
+                    EmitAssignmentExpression(assignment, UseKind.UsedAsAddress);
+                    break;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(assignmentTarget.Kind);
             }
@@ -2346,7 +2357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 AddExpressionTemp(temp);
 
                 // are we, by the way, ref-assigning to something that lives longer than encompassing expression?
-                if (((BoundLocal)assignmentOperator.Left).LocalSymbol.SynthesizedKind.IsLongLived())
+                if (assignmentOperator.Left is BoundLocal local && local.LocalSymbol.SynthesizedKind.IsLongLived())
                 {
                     var exprTempsAfter = _expressionTemps?.Count ?? 0;
 
@@ -2453,7 +2464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.Parameter:
-                    EmitParameterStore((BoundParameter)expression);
+                    EmitParameterStore((BoundParameter)expression, assignment.RefKind);
                     break;
 
                 case BoundKind.Dup:
@@ -2490,6 +2501,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.InstrumentationPayloadRoot:
                     EmitInstrumentationPayloadRootStore((BoundInstrumentationPayloadRoot)expression);
+                    break;
+
+                case BoundKind.AssignmentOperator:
+                    var nested = (BoundAssignmentOperator)expression;
+                    if (!(nested.RefKind == RefKind.Ref ||
+                          nested.RefKind == RefKind.Out))
+                    {
+                        goto default;
+                    }
+                    EmitIndirectStore(nested.Type, expression.Syntax);
                     break;
 
                 case BoundKind.PreviousSubmissionReference:
@@ -2611,19 +2632,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitSymbolToken(field, fieldAccess.Syntax);
         }
 
-        private void EmitParameterStore(BoundParameter parameter)
+        private void EmitParameterStore(BoundParameter parameter, RefKind assignmentRefKind)
         {
             int slot = ParameterSlot(parameter);
 
-            if (parameter.ParameterSymbol.RefKind == RefKind.None)
-            {
-                _builder.EmitStoreArgumentOpcode(slot);
-            }
-            else
+            if (parameter.ParameterSymbol.RefKind != RefKind.None &&
+                assignmentRefKind == RefKind.None)
             {
                 //NOTE: we should have the actual parameter already loaded, 
                 //now need to do a store to where it points to
                 EmitIndirectStore(parameter.ParameterSymbol.Type, parameter.Syntax);
+            }
+            else
+            {
+                _builder.EmitStoreArgumentOpcode(slot);
             }
         }
 

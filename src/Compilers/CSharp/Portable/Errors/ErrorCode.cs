@@ -1536,6 +1536,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EscapeLocal = 8352,
         ERR_EscapeStackAlloc = 8353,
         ERR_RefReturnThis = 8354,
+        ERR_RefLocalOrParamExpected = 8355,
+        ERR_RefAssignNarrower = 8356,
+
         #endregion diagnostics introduced for `ref readonly`, `ref ternary` and `ref-like` features in C# 7.2
     }
 }
