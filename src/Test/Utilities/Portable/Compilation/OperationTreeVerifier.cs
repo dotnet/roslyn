@@ -75,6 +75,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 LogString(", ");
                 LogType(operation.Type);
             }
+            else
+            {
+                // https://github.com/dotnet/roslyn/issues/22581 tracks enabling this assert
+                // Verify null type for non-Expression operations.
+                //Assert.Null(operation.Type);
+            }
 
             // ConstantValue
             if (operation.ConstantValue.HasValue)

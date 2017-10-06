@@ -240,10 +240,14 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     If declaration.InitializerOpt IsNot Nothing Then
                         Debug.Assert(TypeOf declaration.Syntax Is ModifiedIdentifierSyntax)
                         Dim initializerValue As IOperation = Create(declaration.InitializerOpt)
-                        Dim variableDeclaratorSyntax = DirectCast(declaration.Syntax.Parent, VariableDeclaratorSyntax)
-                        Dim initializerSyntax As SyntaxNode = If(declaration.InitializedByAsNew,
-                            DirectCast(variableDeclaratorSyntax.AsClause, SyntaxNode),
-                            variableDeclaratorSyntax.Initializer)
+                        Dim variableDeclaratorSyntax = TryCast(declaration.Syntax.Parent, VariableDeclaratorSyntax)
+                        Dim initializerSyntax As SyntaxNode = Nothing
+                        If variableDeclaratorSyntax IsNot Nothing Then
+                            initializerSyntax = If(declaration.InitializedByAsNew,
+                                DirectCast(variableDeclaratorSyntax.AsClause, SyntaxNode),
+                                variableDeclaratorSyntax.Initializer)
+                        End If
+
                         Dim isImplicit As Boolean = False
                         If initializerSyntax Is Nothing Then
                             ' There is no explicit syntax for the initializer, so we use the initializerValue's syntax and mark the operation as implicit.

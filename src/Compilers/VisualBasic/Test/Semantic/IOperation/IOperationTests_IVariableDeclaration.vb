@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Semantics
@@ -1727,6 +1727,190 @@ BC30203: Identifier expected.
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+#End Region
+
+#Region "Initializers"
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestGetOperationForEqualsValueVariableInitializer()
+            Dim source = <![CDATA[
+Class Test
+    Sub M()
+        Dim x = 1'BIND:"= 1"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
+  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestGetOperationForEqualsValueVariableInitializerWithMultipleLocals()
+            Dim source = <![CDATA[
+Class Test
+    Sub M()
+        Dim x, y = 1'BIND:"= 1"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= 1')
+  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC42024: Unused local variable: 'x'.
+        Dim x, y = 1'BIND:"= 1"
+            ~
+BC30671: Explicit initialization is not permitted with multiple variables declared with a single type specifier.
+        Dim x, y = 1'BIND:"= 1"
+            ~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestGetOperationForEqualsValueVariableDeclarationWithMultipleLocals()
+            Dim source = <![CDATA[
+Class Test
+    Sub M()
+        Dim x, y = 1'BIND:"Dim x, y = 1"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim x, y = 1')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'x')
+    Variables: Local_1: x As System.Object
+    Initializer: 
+      null
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'y')
+    Variables: Local_1: y As System.Int32
+    Initializer: 
+      IVariableInitializer (OperationKind.VariableInitializer, IsInvalid) (Syntax: '= 1')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC42024: Unused local variable: 'x'.
+        Dim x, y = 1'BIND:"Dim x, y = 1"
+            ~
+BC30671: Explicit initialization is not permitted with multiple variables declared with a single type specifier.
+        Dim x, y = 1'BIND:"Dim x, y = 1"
+            ~~~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestGetOperationForAsNewVariableInitializer()
+            Dim source = <![CDATA[
+Class Test
+    Sub M()
+        Dim x As New Test'BIND:"As New Test"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Test')
+  IObjectCreationExpression (Constructor: Sub Test..ctor()) (OperationKind.ObjectCreationExpression, Type: Test) (Syntax: 'New Test')
+    Arguments(0)
+    Initializer: 
+      null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AsNewClauseSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestGetOperationForAsNewVariableDeclaration()
+            Dim source = <![CDATA[
+Class Test
+    Sub M()
+        Dim x As New Test'BIND:"Dim x As New Test"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim x As New Test')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x')
+    Variables: Local_1: x As Test
+    Initializer: 
+      IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Test')
+        IObjectCreationExpression (Constructor: Sub Test..ctor()) (OperationKind.ObjectCreationExpression, Type: Test) (Syntax: 'New Test')
+          Arguments(0)
+          Initializer: 
+            null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestGetOperationForAsNewVariableInitializerWithMultipleLocals()
+            Dim source = <![CDATA[
+Class Test
+    Sub M()
+        Dim x, y As New Test'BIND:"As New Test"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Test')
+  IObjectCreationExpression (Constructor: Sub Test..ctor()) (OperationKind.ObjectCreationExpression, Type: Test) (Syntax: 'New Test')
+    Arguments(0)
+    Initializer: 
+      null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AsNewClauseSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub TestGetOperationForAsNewVariableDeclarationWithMultipleLocals()
+            Dim source = <![CDATA[
+Class Test
+    Sub M()
+        Dim x, y As New Test'BIND:"x, y As New Test"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableDeclaration (2 variables) (OperationKind.VariableDeclaration) (Syntax: 'x, y As New Test')
+  Variables: Local_1: x As Test
+    Local_2: y As Test
+  Initializer: 
+    IVariableInitializer (OperationKind.VariableInitializer) (Syntax: 'As New Test')
+      IObjectCreationExpression (Constructor: Sub Test..ctor()) (OperationKind.ObjectCreationExpression, Type: Test) (Syntax: 'New Test')
+        Arguments(0)
+        Initializer: 
+          null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of VariableDeclaratorSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
 #End Region
     End Class
 End Namespace

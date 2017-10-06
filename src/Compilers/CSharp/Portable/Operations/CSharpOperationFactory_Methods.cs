@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.Semantics
                 }
                 else
                 {
+                    Debug.Fail($"Unexpected syntax kind: {syntax.Kind()}");
+
                     // There is no explicit syntax for the initializer, so we use the initializerValue's syntax and mark the operation as implicit.
                     initializerSyntax = initializerValue.Syntax;
                     isImplicit = true;

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public static IVariableInitializer CreateVariableInitializer(SyntaxNode syntax, IOperation initializerValue, SemanticModel semanticModel, bool isImplicit)
         {
-            return new VariableInitializer(initializerValue, semanticModel, syntax, initializerValue.Type, constantValue: default, isImplicit: isImplicit);
+            return new VariableInitializer(initializerValue, semanticModel, syntax, type: null, constantValue: default, isImplicit: isImplicit);
         }
 
         public static IConditionalExpression CreateConditionalExpression(IOperation condition, IOperation whenTrue, IOperation whenFalse, ITypeSymbol resultType, SemanticModel semanticModel, SyntaxNode syntax, bool isImplicit)

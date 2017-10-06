@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -144,6 +144,27 @@ BC30046: Method cannot have both a ParamArray and Optional parameters.
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem(17813, "https://github.com/dotnet/roslyn/issues/17813")>
+        Public Sub AsNewFieldInitializer()
+            Dim source = <![CDATA[
+Class C
+    Dim x As New Object'BIND:"As New Object"
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IFieldInitializer (Field: C.x As System.Object) (OperationKind.FieldInitializer) (Syntax: 'As New Object')
+  IObjectCreationExpression (Constructor: Sub System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object) (Syntax: 'New Object')
+    Arguments(0)
+    Initializer: 
+      null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of AsNewClauseSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
