@@ -608,6 +608,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Shared Function IsDelegateCreation(conversionKind As ConversionKind, conversionSyntax As SyntaxNode, operand As BoundNode, targetType As TypeSymbol) As Boolean
             ' Any of the explicit cast types, as well as New DelegateType(AddressOf Method)
             ' Additionally, AddressOf, if the child AddressOf is the same SyntaxNode (ie, an implicit delegate creation)
+            ' In the case of AddressOf, the operand can be a BoundDelegateCreationExpression, a BoundAddressOfOperator, or
+            ' a BoundBadExpression. For simplicity, we just do a syntax check to make sure it's an AddressOfExpression so
+            ' we don't have to compare against all 3 BoundKinds
             Dim validAddressOfConversionSyntax = operand.Syntax.Kind() = SyntaxKind.AddressOfExpression AndAlso
                                                  (conversionSyntax.Kind() = SyntaxKind.CTypeExpression OrElse
                                                   conversionSyntax.Kind() = SyntaxKind.DirectCastExpression OrElse
