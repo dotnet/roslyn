@@ -2637,13 +2637,14 @@ class C
             var text = @"
 class C
 {
-    static void Main() => A();
+    static void Main() { A(); B(); }
 
-    static void A(int? x = default) => System.Console.WriteLine(x?.ToString() ?? ""null"");
+    static void A(int? x = default) => System.Console.Write(x.HasValue);
+    static void B(int? x = default(int?)) => System.Console.Write(x.HasValue);
 }";
             var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "null");
+            CompileAndVerify(comp, expectedOutput: "FalseFalse");
         }
     }
 }
