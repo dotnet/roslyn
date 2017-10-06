@@ -1356,7 +1356,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
             Dim eventReferenceInstance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() If(eventSymbol.IsShared, Nothing, Create(boundInstance)))
 
-            Dim EventReference As Lazy(Of IEventReferenceExpression) = New Lazy(Of IEventReferenceExpression)(Function() As IEventReferenceExpression
+            Dim eventReference As Lazy(Of IEventReferenceExpression) = New Lazy(Of IEventReferenceExpression)(Function() As IEventReferenceExpression
                                                                                                                   Return New LazyEventReferenceExpression(eventSymbol,
                                                                                                                                                           eventReferenceInstance,
                                                                                                                                                           eventSymbol,
@@ -1372,7 +1372,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return DeriveArguments(eventInvocation.Arguments, eventInvocation.Method.Parameters)
                 End Function)
 
-            Return New LazyRaiseEventStatement(EventReference, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyRaiseEventStatement(eventReference, argumentsInEvaluationOrder, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundAddHandlerStatementOperation(boundAddHandlerStatement As BoundAddHandlerStatement) As IExpressionStatement
