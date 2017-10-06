@@ -815,6 +815,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 LogString(" (IsVirtual)");
             }
 
+            Assert.Null(operation.Type);
+
             VisitMemberReferenceExpressionCommon(operation);
         }
 

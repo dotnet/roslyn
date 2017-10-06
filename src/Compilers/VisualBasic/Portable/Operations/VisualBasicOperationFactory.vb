@@ -608,21 +608,21 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Shared Function IsDelegateCreation(conversionKind As ConversionKind, conversionSyntax As SyntaxNode, operand As BoundNode, targetType As TypeSymbol) As Boolean
             ' Any of the explicit cast types, as well as New DelegateType(AddressOf Method)
             ' Additionally, AddressOf, if the child AddressOf is the same SyntaxNode (ie, an implicit delegate creation)
-            Dim validAddressOfConversionSyntax = (conversionSyntax.Kind() = SyntaxKind.CTypeExpression OrElse
+            Dim validAddressOfConversionSyntax = operand.Syntax.Kind() = SyntaxKind.AddressOfExpression AndAlso
+                                                 (conversionSyntax.Kind() = SyntaxKind.CTypeExpression OrElse
                                                   conversionSyntax.Kind() = SyntaxKind.DirectCastExpression OrElse
                                                   conversionSyntax.Kind() = SyntaxKind.TryCastExpression OrElse
                                                   conversionSyntax.Kind() = SyntaxKind.ObjectCreationExpression OrElse
                                                   (conversionSyntax.Kind() = SyntaxKind.AddressOfExpression AndAlso
-                                                   ReferenceEquals(conversionSyntax, operand.Syntax))) AndAlso
-                                                 operand.Syntax.Kind() = SyntaxKind.AddressOfExpression
+                                                   conversionSyntax Is operand.Syntax))
 
-            Dim validLambdaConversionSyntax = operand.Kind = BoundKind.Lambda OrElse
+            Dim validLambdaConversionNode = operand.Kind = BoundKind.Lambda OrElse
                                               operand.Kind = BoundKind.QueryLambda OrElse
                                               operand.Kind = BoundKind.UnboundLambda
 
             Dim validTargetType = targetType.IsDelegateType()
 
-            Return validTargetType AndAlso (validAddressOfConversionSyntax OrElse validLambdaConversionSyntax)
+            Return validTargetType AndAlso (validAddressOfConversionSyntax OrElse validLambdaConversionNode)
         End Function
 
         ''' <summary>
