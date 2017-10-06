@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If original conversion has become something else with unknown precision, add an explicit identity cast.
             if (!_inExpressionLambda &&
                 node.ExplicitCastInCode &&
-                IsFloatPointExpressionOfUnknownPrecision(result))
+                IsFloatingPointExpressionOfUnknownPrecision(result))
             {
                 result = MakeConversionNode(
                     node.Syntax,
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static bool IsFloatPointExpressionOfUnknownPrecision(BoundExpression rewrittenNode)
+        private static bool IsFloatingPointExpressionOfUnknownPrecision(BoundExpression rewrittenNode)
         {
             if (rewrittenNode == null)
             {
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Sequence:
                     var sequence = (BoundSequence)rewrittenNode;
-                    return IsFloatPointExpressionOfUnknownPrecision(sequence.Value);
+                    return IsFloatingPointExpressionOfUnknownPrecision(sequence.Value);
 
                 case BoundKind.Conversion:
                     // lowered conversions have definite precision unless they are implicit identity casts
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     
                     // 4.1.6 C# spec: To force a value of a floating point type to the exact precision of its type, an explicit cast can be used.
                     // If this is not an identity conversion of a float with unknown precision, strip away the identity conversion.
-                    if (!IsFloatPointExpressionOfUnknownPrecision(rewrittenOperand))
+                    if (!IsFloatingPointExpressionOfUnknownPrecision(rewrittenOperand))
                     {
                         return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenOperand);
                     }
