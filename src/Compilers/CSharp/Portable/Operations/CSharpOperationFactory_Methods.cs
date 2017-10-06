@@ -66,7 +66,8 @@ namespace Microsoft.CodeAnalysis.Semantics
                 }
                 else
                 {
-                    initializerSyntax = initializer.Syntax;
+                    // There is no explicit syntax for the initializer, so we use the initializerValue's syntax and mark the operation as implicit.
+                    initializerSyntax = initializerValue.Syntax;
                     isImplicit = true;
                 }
 

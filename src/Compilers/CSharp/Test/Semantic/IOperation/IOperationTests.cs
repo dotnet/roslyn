@@ -145,5 +145,28 @@ public class C
 
             VerifyParentOperations(model);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestGetOperationForVariableInitializer()
+        {
+            string source = @"
+class Test
+{
+    void M()
+    {
+        var x /*<bind>*/= 1/*</bind>*/;
+        System.Console.WriteLine(x);
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableInitializer (OperationKind.VariableInitializer) (Syntax: '= 1')
+  ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }
