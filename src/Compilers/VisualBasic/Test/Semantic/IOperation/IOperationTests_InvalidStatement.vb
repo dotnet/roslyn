@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits SemanticModelTestBase
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18077"), WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
+        <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidVariableDeclarationStatement()
             Dim source = <![CDATA[
 Class Program
@@ -22,9 +22,15 @@ End Class
 ]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim x, 1 As Integer')
-  IVariableDeclaration: x As System.Int32 (OperationKind.VariableDeclaration) (Syntax: 'x')
-  IVariableDeclaration:  As System.Int32 (OperationKind.VariableDeclaration) (Syntax: '')
+IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim x, 1 As Integer')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'x')
+    Variables: Local_1: x As System.Int32
+    Initializer: 
+      null
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: '')
+    Variables: Local_1:  As System.Int32
+    Initializer: 
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -437,7 +443,7 @@ BC30781: 'Continue' must be followed by 'Do', 'For' or 'While'.
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18225"), WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
+        <Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")>
         Public Sub InvalidCaseStatement_OutsideSwitchBlock()
             Dim source = <![CDATA[
 Module Program
@@ -447,8 +453,11 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'Case 0')
-  Children(1): IOperation:  (OperationKind.None) (Syntax: 'Case 0')
+IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Case 0')
+  Children(1):
+      ISingleValueCaseClause (CaseKind.SingleValue) (OperationKind.CaseClause, IsInvalid) (Syntax: '0')
+        Value: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
