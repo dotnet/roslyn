@@ -27,9 +27,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TExpressionSyntax : SyntaxNode
         where TBinaryExpressionSyntax : TExpressionSyntax
     {
-        private static MethodInfo s_getOperationInfo =
-            typeof(SemanticModel).GetTypeInfo().GetDeclaredMethod("GetOperationInternal");
-
         protected abstract SyntaxNode GetBody(TMemberDeclarationSyntax containingMember);
         protected abstract bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination);
         protected abstract SyntaxNode GetTypeBlock(SyntaxNode node);
@@ -109,7 +106,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var blockStatementOpt = default(IBlockStatement);
             if (bodyOpt != null)
             {
-                blockStatementOpt = GetOperation(semanticModel, bodyOpt, cancellationToken) as IBlockStatement;
+                blockStatementOpt = semanticModel.GetOperation(bodyOpt, cancellationToken) as IBlockStatement;
                 if (blockStatementOpt == null)
                 {
                     return;
@@ -157,7 +154,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         {
             foreach (var child in condition.Syntax.DescendantNodes().OfType<TExpressionSyntax>())
             {
-                var childOperation = GetOperation(semanticModel, child, cancellationToken);
+                var childOperation = semanticModel.GetOperation(child, cancellationToken);
                 if (IsParameterReference(childOperation, parameter))
                 {
                     return true;
@@ -204,15 +201,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             fieldOrProperty = null;
             return false;
-        }
-
-        protected static IOperation GetOperation(
-            SemanticModel semanticModel,
-            SyntaxNode node,
-            CancellationToken cancellationToken)
-        {
-            return (IOperation)s_getOperationInfo.Invoke(
-                semanticModel, new object[] { node, cancellationToken });
         }
 
         protected class MyCodeAction : CodeAction.DocumentChangeAction

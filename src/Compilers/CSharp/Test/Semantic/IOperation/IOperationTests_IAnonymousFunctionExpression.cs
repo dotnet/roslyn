@@ -205,17 +205,17 @@ class Program
             var variableDeclaration = syntaxTree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
             var lambdaSyntax = (LambdaExpressionSyntax)variableDeclaration.Declaration.Variables.Single().Initializer.Value;
 
-            var variableDeclarationOperation = (IVariableDeclarationStatement)semanticModel.GetOperationInternal(variableDeclaration);
+            var variableDeclarationOperation = (IVariableDeclarationStatement)semanticModel.GetOperation(variableDeclaration);
             var variableTreeLambdaOperation = (IAnonymousFunctionExpression)variableDeclarationOperation.Declarations.Single().Initializer;
-            var lambdaOperation = (IAnonymousFunctionExpression)semanticModel.GetOperationInternal(lambdaSyntax);
+            var lambdaOperation = (IAnonymousFunctionExpression)semanticModel.GetOperation(lambdaSyntax);
 
             // Assert that both ways of getting to the lambda (requesting the lambda directly, and requesting via the lambda syntax)
             // return the same bound node.
             Assert.Same(variableTreeLambdaOperation, lambdaOperation);
 
-            var variableDeclarationOperationSecondRequest = (IVariableDeclarationStatement)semanticModel.GetOperationInternal(variableDeclaration);
+            var variableDeclarationOperationSecondRequest = (IVariableDeclarationStatement)semanticModel.GetOperation(variableDeclaration);
             var variableTreeLambdaOperationSecondRequest = (IAnonymousFunctionExpression)variableDeclarationOperation.Declarations.Single().Initializer;
-            var lambdaOperationSecondRequest = (IAnonymousFunctionExpression)semanticModel.GetOperationInternal(lambdaSyntax);
+            var lambdaOperationSecondRequest = (IAnonymousFunctionExpression)semanticModel.GetOperation(lambdaSyntax);
 
             // Assert that, when request the variable declaration or the lambda for a second time, there is no rebinding of the
             // underlying UnboundLambda, and we get the same IAnonymousFunctionExpression as before
