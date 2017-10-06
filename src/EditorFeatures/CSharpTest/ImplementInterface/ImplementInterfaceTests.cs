@@ -6834,23 +6834,23 @@ class Class : IInterface
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task TestRefReadOnlyWithMethod_Parameters()
+        public async Task TestInWithMethod_Parameters()
         {
             await TestInRegularAndScriptAsync(
 @"interface ITest
 {
-    void Method(ref readonly int p);
+    void Method(in int p);
 }
 public class Test : [|ITest|]
 {
 }",
 @"interface ITest
 {
-    void Method(ref readonly int p);
+    void Method(in int p);
 }
 public class Test : ITest
 {
-    public void Method(ref readonly int p)
+    public void Method(in int p)
     {
         throw new System.NotImplementedException();
     }
@@ -6903,23 +6903,23 @@ public class Test : ITest
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task TestRefReadOnlyWithIndexer_Parameters()
+        public async Task TestInWithIndexer_Parameters()
         {
             await TestInRegularAndScriptAsync(
 @"interface ITest
 {
-    int this[ref readonly int p] { set; }
+    int this[in int p] { set; }
 }
 public class Test : [|ITest|]
 {
 }",
 @"interface ITest
 {
-    int this[ref readonly int p] { set; }
+    int this[in int p] { set; }
 }
 public class Test : ITest
 {
-    public int this[ref readonly int p] { set => throw new System.NotImplementedException(); }
+    public int this[in int p] { set => throw new System.NotImplementedException(); }
 }");
         }
 

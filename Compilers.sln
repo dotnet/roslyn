@@ -471,6 +471,10 @@ Global
 		{E512C6C1-F085-4AD7-B0D9-E8F1A0A2A510} = {B20208C3-D3A6-4020-A274-6BE3786D29FB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
+<<<<<<< HEAD
 		SolutionGuid = {57522CAE-64BA-4446-9037-E57E417C036C}
+=======
+		SolutionGuid = {6F599E08-A9EA-4FAA-897F-5D824B0210E6}
+>>>>>>> master
 	EndGlobalSection
 EndGlobal

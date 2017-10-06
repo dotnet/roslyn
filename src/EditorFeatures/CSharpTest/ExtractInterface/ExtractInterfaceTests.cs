@@ -1094,13 +1094,13 @@ class $$Test<T, U>
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
-        public async Task TestRefReadOnlyWithMethod_Parameters()
+        public async Task TestInWithMethod_Parameters()
         {
             var markup = @"
 using System;
 class $$TestClass
 {
-    public void Method(ref readonly int p1)
+    public void Method(in int p1)
     {
     }
 }";
@@ -1108,7 +1108,7 @@ class $$TestClass
             await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode:
 @"interface ITestClass
 {
-    void Method(ref readonly int p1);
+    void Method(in int p1);
 }");
         }
 
@@ -1147,19 +1147,19 @@ class $$TestClass
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
-        public async Task TestRefReadOnlyWithIndexer_Parameters()
+        public async Task TestInWithIndexer_Parameters()
         {
             var markup = @"
 using System;
 class $$TestClass
 {
-    public int this[ref readonly int p1] { set { } }
+    public int this[in int p1] { set { } }
 }";
 
             await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode:
 @"interface ITestClass
 {
-    int this[ref readonly int p1] { set; }
+    int this[in int p1] { set; }
 }");
         }
 

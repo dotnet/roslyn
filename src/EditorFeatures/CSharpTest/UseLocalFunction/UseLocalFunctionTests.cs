@@ -1145,25 +1145,25 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
-        public async Task TestRefReadOnlyWithParameters()
+        public async Task TestInWithParameters()
         {
             await TestInRegularAndScriptAsync(
 @"
-delegate void D(ref readonly int p);
+delegate void D(in int p);
 class C
 {
     void M()
     {
-        D [||]lambda = (ref readonly int p) => throw null;
+        D [||]lambda = (in int p) => throw null;
     }
 }",
 @"
-delegate void D(ref readonly int p);
+delegate void D(in int p);
 class C
 {
     void M()
     {
-        void lambda(ref readonly int p) => throw null;
+        void lambda(in int p) => throw null;
     }
 }");
         }

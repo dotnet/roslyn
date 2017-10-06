@@ -87,6 +87,7 @@
   It is used to perform intermediate binding, and will not survive the local rewriting.
   -->
   <Node Name="BoundDeconstructValuePlaceholder" Base="BoundValuePlaceholderBase">
+    <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
   </Node>
 
   <!-- only used by codegen -->

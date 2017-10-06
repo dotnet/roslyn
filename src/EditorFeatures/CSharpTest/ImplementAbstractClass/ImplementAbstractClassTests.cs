@@ -1574,23 +1574,23 @@ class C : AbstractClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public async Task TestRefReadOnlyWithMethod_Parameters()
+        public async Task TestInWithMethod_Parameters()
         {
             await TestInRegularAndScriptAsync(
 @"abstract class TestParent
 {
-    public abstract void Method(ref readonly int p);
+    public abstract void Method(in int p);
 }
 public class [|Test|] : TestParent
 {
 }",
 @"abstract class TestParent
 {
-    public abstract void Method(ref readonly int p);
+    public abstract void Method(in int p);
 }
 public class Test : TestParent
 {
-    public override void Method(ref readonly int p)
+    public override void Method(in int p)
     {
         throw new System.NotImplementedException();
     }
@@ -1643,23 +1643,23 @@ public class Test : TestParent
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public async Task TestRefReadOnlyWithIndexer_Parameters()
+        public async Task TestInWithIndexer_Parameters()
         {
             await TestInRegularAndScriptAsync(
 @"abstract class TestParent
 {
-    public abstract int this[ref readonly int p] { set; }
+    public abstract int this[in int p] { set; }
 }
 public class [|Test|] : TestParent
 {
 }",
 @"abstract class TestParent
 {
-    public abstract int this[ref readonly int p] { set; }
+    public abstract int this[in int p] { set; }
 }
 public class Test : TestParent
 {
-    public override int this[ref readonly int p] { set => throw new System.NotImplementedException(); }
+    public override int this[in int p] { set => throw new System.NotImplementedException(); }
 }");
         }
 

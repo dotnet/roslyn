@@ -1328,7 +1328,7 @@ class EntryPoint
         }
 
         [Fact]
-        public void PassingNameOfToRefReadOnlyShouldCopy()
+        public void PassingNameOfToInShouldCopy()
         {
             CompileAndVerify(@"
 class Program
@@ -1337,7 +1337,7 @@ class Program
     {
         M(nameof(Main));
     }
-    private static void M(ref readonly string value)
+    private static void M(in string value)
     {
         System.Console.WriteLine(value);
     }

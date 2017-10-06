@@ -378,7 +378,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.Call:
                         var call = (BoundCall)expression;
-                        if (refKind != RefKind.None && refKind != RefKind.RefReadOnly)
+
+                        // NOTE: There are two kinds of 'In' arguments that we may see at this point:
+                        //       - `RefKindExtensions.StrictIn`     (originally specified with 'In' modifier)
+                        //       - `RefKind.In`                     (specified with no modifiers and matched an 'In' parameter)
+                        //
+                        //       It is allowed to spill ordinary `In` arguments by value if reference-preserving spilling is not possible.
+                        //       The "strict" ones do not permit implicit copying, so the same situation should result in an error.
+                        if (refKind != RefKind.None && refKind != RefKind.In)
                         {
                             Debug.Assert(call.Method.RefKind != RefKind.None);
                             _F.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, _F.Syntax.Location, call.Method);
@@ -389,6 +396,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.ConditionalOperator:
                         var conditional = (BoundConditionalOperator)expression;
+                        // NOTE: There are two kinds of 'In' arguments that we may see at this point:
+                        //       - `RefKindExtensions.StrictIn`     (originally specified with 'In' modifier)
+                        //       - `RefKind.In`                     (specified with no modifiers and matched an 'In' parameter)
+                        //
+                        //       It is allowed to spill ordinary `In` arguments by value if reference-preserving spilling is not possible.
+                        //       The "strict" ones do not permit implicit copying, so the same situation should result in an error.
                         if (refKind != RefKind.None && refKind != RefKind.RefReadOnly)
                         {
                             Debug.Assert(conditional.IsByRef);
@@ -794,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 receiver = node.ReceiverOpt;
                 var refKind = node.Method.ContainingType.IsReadOnly?
-                                                    RefKind.RefReadOnly:
+                                                    RefKind.In:
                                                     ReceiverSpillRefKind(receiver);
 
                 receiver = Spill(receiverBuilder, VisitExpression(ref receiverBuilder, receiver), refKind: refKind);

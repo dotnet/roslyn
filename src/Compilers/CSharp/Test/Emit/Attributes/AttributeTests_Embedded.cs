@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis
 }
 class Test
 {
-    public void M(ref readonly int p)
+    public void M(in int p)
     {
         // This should trigger generating another EmbeddedAttribute
     }
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis
             var code = @"
 class Test
 {
-    public void M(ref readonly int p)
+    public void M(in int p)
     {
         // This should trigger generating another EmbeddedAttribute
     }
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis
 [assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(Microsoft.CodeAnalysis.EmbeddedAttribute))]
 class Test
 {
-    public void M(ref readonly int p)
+    public void M(in int p)
     {
         // This should trigger generating another EmbeddedAttribute
     }
@@ -276,7 +276,7 @@ namespace OtherNamespace
 class Test
 {
     // This should trigger generating another EmbeddedAttribute
-    public void M(ref readonly int p)
+    public void M(in int p)
     {
         var obj = new OtherNamespace.TestReference(); // This should be fine
     }
@@ -307,7 +307,7 @@ namespace System
 }
 public class Test
 {
-    public void M(ref readonly object x) { } // should trigger synthesizing IsReadOnly
+    public void M(in object x) { } // should trigger synthesizing IsReadOnly
 }";
 
             CreateCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
@@ -328,31 +328,31 @@ namespace System
 }
 public class Test
 {
-    public object M(ref readonly object x) { return x; } // should trigger synthesizing IsReadOnly
+    public object M(in object x) { return x; } // should trigger synthesizing IsReadOnly
 }";
 
             CreateCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
-                // (4,18): error CS0518: Predefined type 'System.Object' is not defined or imported
-                //     public class Attribute {}
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Attribute").WithArguments("System.Object"),
-                // (7,14): error CS0518: Predefined type 'System.Object' is not defined or imported
-                // public class Test
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Test").WithArguments("System.Object"),
                 // (5,18): error CS0518: Predefined type 'System.Object' is not defined or imported
                 //     public class Void {}
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Void").WithArguments("System.Object").WithLocation(5, 18),
-                // (9,34): error CS0518: Predefined type 'System.Object' is not defined or imported
-                //     public object M(ref readonly object x) { return x; } // should trigger synthesizing IsReadOnly
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Object").WithLocation(9, 34),
+                // (7,14): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // public class Test
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Test").WithArguments("System.Object").WithLocation(7, 14),
+                // (4,18): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //     public class Attribute {}
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Attribute").WithArguments("System.Object").WithLocation(4, 18),
+                // (9,24): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //     public object M(in object x) { return x; } // should trigger synthesizing IsReadOnly
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Object").WithLocation(9, 24),
                 // (9,12): error CS0518: Predefined type 'System.Object' is not defined or imported
-                //     public object M(ref readonly object x) { return x; } // should trigger synthesizing IsReadOnly
+                //     public object M(in object x) { return x; } // should trigger synthesizing IsReadOnly
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object").WithArguments("System.Object").WithLocation(9, 12),
-                // (5,18): error CS1729: 'object' does not contain a constructor that takes 0 arguments
-                //     public class Void {}
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Void").WithArguments("object", "0").WithLocation(5, 18),
                 // (4,18): error CS1729: 'object' does not contain a constructor that takes 0 arguments
                 //     public class Attribute {}
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Attribute").WithArguments("object", "0").WithLocation(4, 18),
+                // (5,18): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+                //     public class Void {}
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Void").WithArguments("object", "0").WithLocation(5, 18),
                 // (7,14): error CS1729: 'object' does not contain a constructor that takes 0 arguments
                 // public class Test
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test").WithArguments("object", "0").WithLocation(7, 14));
@@ -369,7 +369,7 @@ namespace System
 }
 public class Test
 {
-    public object M(ref readonly object x) { return x; } // should trigger synthesizing IsReadOnly
+    public object M(in object x) { return x; } // should trigger synthesizing IsReadOnly
 }";
 
             CreateCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
@@ -400,7 +400,7 @@ namespace System
 }
 public class Test
 {
-    public void M(ref readonly object x) { } // should trigger synthesizing IsReadOnly
+    public void M(in object x) { } // should trigger synthesizing IsReadOnly
 }";
 
             CreateCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),

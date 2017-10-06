@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -28,8 +28,10 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IAwaitExpression (OperationKind.AwaitExpression, Type: System.Void) (Syntax: 'Await M2()')
-  Expression: IInvocationExpression ( Function C.M2() As System.Threading.Tasks.Task) (OperationKind.InvocationExpression, Type: System.Threading.Tasks.Task) (Syntax: 'M2()')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C) (Syntax: 'M2')
+  Expression: 
+    IInvocationExpression ( Function C.M2() As System.Threading.Tasks.Task) (OperationKind.InvocationExpression, Type: System.Threading.Tasks.Task) (Syntax: 'M2()')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C, IsImplicit) (Syntax: 'M2')
       Arguments(0)
 ]]>.Value
 
@@ -53,7 +55,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IAwaitExpression (OperationKind.AwaitExpression, Type: System.Void) (Syntax: 'Await t')
-  Expression: IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: System.Threading.Tasks.Task) (Syntax: 't')
+  Expression: 
+    IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: System.Threading.Tasks.Task) (Syntax: 't')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -77,7 +80,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IAwaitExpression (OperationKind.AwaitExpression, Type: System.Int32) (Syntax: 'Await t')
-  Expression: IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: System.Threading.Tasks.Task(Of System.Int32)) (Syntax: 't')
+  Expression: 
+    IParameterReferenceExpression: t (OperationKind.ParameterReferenceExpression, Type: System.Threading.Tasks.Task(Of System.Int32)) (Syntax: 't')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -100,7 +104,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IAwaitExpression (OperationKind.AwaitExpression, Type: System.Void, IsInvalid) (Syntax: 'Await UndefinedTask')
-  Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'UndefinedTask')
+  Expression: 
+    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'UndefinedTask')
       Children(0)
 ]]>.Value
 
@@ -128,7 +133,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IAwaitExpression (OperationKind.AwaitExpression, Type: System.Void, IsInvalid) (Syntax: 'Await i')
-  Expression: IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
+  Expression: 
+    IParameterReferenceExpression: i (OperationKind.ParameterReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'i')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -155,7 +161,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IAwaitExpression (OperationKind.AwaitExpression, Type: System.Void, IsInvalid) (Syntax: 'Await')
-  Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
+  Expression: 
+    IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
       Children(0)
 ]]>.Value
 
@@ -183,7 +190,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'Await t')
-  Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Await t')
+  Expression: 
+    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Await t')
       Children(2):
           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Await')
             Children(0)

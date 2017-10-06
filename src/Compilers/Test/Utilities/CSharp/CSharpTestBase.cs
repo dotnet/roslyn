@@ -1165,7 +1165,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         protected static string GetOperationTreeForTest<TSyntaxNode>(
             string testSrc,
-            string expectedOperationTree,
             CSharpCompilationOptions compilationOptions = null,
             CSharpParseOptions parseOptions = null,
             bool useLatestFrameworkReferences = false)
@@ -1193,7 +1192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             bool useLatestFrameworkReferences = false)
             where TSyntaxNode : SyntaxNode
         {
-            var actualOperationTree = GetOperationTreeForTest<TSyntaxNode>(testSrc, expectedOperationTree, compilationOptions, parseOptions, useLatestFrameworkReferences);
+            var actualOperationTree = GetOperationTreeForTest<TSyntaxNode>(testSrc, compilationOptions, parseOptions, useLatestFrameworkReferences);
             OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
         }
 
@@ -1261,7 +1260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             var comp = CreateCompilation(
                 text,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
-                options: options ?? TestOptions.ReleaseExe,
+                options: options,
                 parseOptions: parseOptions);
 
 
@@ -1283,21 +1282,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         private static string spanSource = @"
 namespace System
 {
-    public ref struct Span<T> 
+    public readonly ref struct Span<T> 
     {
         public ref T this[int i] => throw null;
         public override int GetHashCode() => 1;
-        public int Length { get; private set; }
+        public int Length { get; }
 
         unsafe public Span(void* pointer, int length)
         {
             this.Length = length;
         }
+        public Span(T[] arr)
+        {
+            this.Length = arr.Length;
+        }
 
         public void CopyTo(Span<T> other){}
     }
 
-    public ref struct ReadOnlySpan<T>
+    public readonly ref struct ReadOnlySpan<T>
     {
         public ref readonly T this[int i] => throw null;
         public override int GetHashCode() => 2;
@@ -1305,12 +1308,11 @@ namespace System
         public void CopyTo(Span<T> other){}
     }
 
-    public ref struct SpanLike<T>
+    public readonly ref struct SpanLike<T>
     {
-        public Span<T> field;
+        public readonly Span<T> field;
     }
-}
-";
+}";
         #endregion
     }
 }

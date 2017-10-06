@@ -2901,6 +2901,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ConstantValue.False;
                     }
 
+                    // * Otherwise, if the other type is a restricted type, we know no conversion is possible.
+                    if (targetType.IsRestrictedType() || operandType.IsRestrictedType())
+                    {
+                        return ConstantValue.False;
+                    }
+
                     // * Otherwise, we give up. Though there are other situations in which we can deduce that
                     //   the result will always be false, such as scenarios 6 and 7, but we do not attempt
                     //   to deduce this.

@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return RefKind.Ref;
                 case SyntaxKind.OutKeyword:
                     return RefKind.Out;
+                case SyntaxKind.InKeyword:
+                    return RefKind.In;
                 case SyntaxKind.None:
                     return RefKind.None;
                 default:

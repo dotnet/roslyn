@@ -56,6 +56,51 @@ unsafe class Program
         }
 
         [Fact]
+        public void InArgs_CSharp7()
+        {
+            var text = @"
+class Program
+{
+    static void M(in int x)
+    {
+    }
+
+    int this[in int x]
+    {
+        get
+        {
+            return 1;
+        }
+    }
+
+    static void Test1()
+    {
+        int x = 1;
+        M(in x);
+
+        _ = (new Program())[in x];
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1), options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (4,19): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     static void M(in int x)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("readonly references", "7.2").WithLocation(4, 19),
+                // (8,14): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     int this[in int x]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("readonly references", "7.2").WithLocation(8, 14),
+                // (19,11): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         M(in x);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("readonly references", "7.2").WithLocation(19, 11),
+                // (21,29): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         _ = (new Program())[in x];
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("readonly references", "7.2").WithLocation(21, 29)
+            );
+        }
+
+        [Fact]
         public void RefReadonlyReturn_Unexpected()
         {
             var text = @"
@@ -97,7 +142,7 @@ class Program
                 // (11,41): error CS1519: Invalid token 'operator' in class, struct, or interface member declaration
                 //     public static ref readonly Program  operator  +(Program x, Program y)
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(11, 41),
-                // (12,5): error CS1519: Invalid token '{' in class, struct, or interface member declaration
+                // (12,5): error CS1519: Invalid token '{' ref readonly class, struct, or interface member declaration
                 //     {
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(12, 5),
                 // (12,5): error CS1519: Invalid token '{' in class, struct, or interface member declaration
@@ -221,10 +266,10 @@ class Test
                 // (7,39): error CS1002: ; expected
                 //     ref readonly int Invalid() => ref readonly value;
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(7, 39),
-                // (7,53): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                // (7,53): error CS1519: Invalid token ';' ref readonly class, struct, or interface member declaration
                 //     ref readonly int Invalid() => ref readonly value;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(7, 53),
-                // (7,53): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                // (7,53): error CS1519: Invalid token ';' ref readonly class, struct, or interface member declaration
                 //     ref readonly int Invalid() => ref readonly value;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(7, 53));
         }
@@ -282,7 +327,7 @@ class Test
             CreateStandardCompilation(@"
 class Test
 {
-    void M(ref readonly int p)
+    void M(in int p)
     {
     }
     void N()
@@ -292,26 +337,60 @@ class Test
     }
 }").GetParseDiagnostics().Verify(
                 // (10,15): error CS1525: Invalid expression term 'readonly'
-                //         M(ref readonly x);
+                //         M(in x);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(10, 15),
                 // (10,15): error CS1026: ) expected
-                //         M(ref readonly x);
+                //         M(in x);
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(10, 15),
                 // (10,15): error CS1002: ; expected
-                //         M(ref readonly x);
+                //         M(in x);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(10, 15),
                 // (10,15): error CS0106: The modifier 'readonly' is not valid for this item
-                //         M(ref readonly x);
+                //         M(in x);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(10, 15),
                 // (10,25): error CS1001: Identifier expected
-                //         M(ref readonly x);
+                //         M(in x);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(10, 25),
                 // (10,25): error CS1002: ; expected
-                //         M(ref readonly x);
+                //         M(in x);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(10, 25),
                 // (10,25): error CS1513: } expected
-                //         M(ref readonly x);
+                //         M(in x);
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(10, 25));
+        }
+
+        [Fact]
+        public void InAtCallSite()
+        {
+            CreateStandardCompilation(@"
+class Test
+{
+    void M(in int p)
+    {
+    }
+    void N()
+    {
+        int x = 0;
+        M(in x);
+    }
+}").GetParseDiagnostics().Verify();
+        }
+
+        [Fact]
+        public void NothingAtCallSite()
+        {
+            CreateStandardCompilation(@"
+class Test
+{
+    void M(in int p)
+    {
+    }
+    void N()
+    {
+        int x = 0;
+        M(x);
+    }
+}").GetParseDiagnostics().Verify();
         }
 
         [Fact]
@@ -355,6 +434,50 @@ public class Test
                 // (4,57): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
                 //     public static ref readonly bool operator!(Test obj) => throw null;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(4, 57));
+        }
+
+        [Fact]
+        public void InNotAllowedInReturnType()
+        {
+            CreateStandardCompilation(@"
+class Test
+{
+    in int M() => throw null;
+}").VerifyDiagnostics(
+                // (4,5): error CS1519: Invalid token 'in' in class, struct, or interface member declaration
+                //     in int M() => throw null;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "in").WithArguments("in").WithLocation(4, 5));
+        }
+
+        [Fact]
+        public void RefReadOnlyNotAllowedInParameters()
+        {
+            CreateStandardCompilation(@"
+class Test
+{
+    void M(ref readonly int p) => throw null;
+}").VerifyDiagnostics(
+                // (4,16): error CS1031: Type expected
+                //     void M(ref readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "readonly").WithLocation(4, 16),
+                // (4,16): error CS1001: Identifier expected
+                //     void M(ref readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(4, 16),
+                // (4,16): error CS1026: ) expected
+                //     void M(ref readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(4, 16),
+                // (4,16): error CS1002: ; expected
+                //     void M(ref readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(4, 16),
+                // (4,30): error CS1003: Syntax error, ',' expected
+                //     void M(ref readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(4, 30),
+                // (4,10): error CS0501: 'Test.M(ref ?)' must declare a body because it is not marked abstract, extern, or partial
+                //     void M(ref readonly int p) => throw null;
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M").WithArguments("Test.M(ref ?)").WithLocation(4, 10),
+                // (4,29): warning CS0169: The field 'Test.p' is never used
+                //     void M(ref readonly int p) => throw null;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "p").WithArguments("Test.p").WithLocation(4, 29));
         }
     }
 }
