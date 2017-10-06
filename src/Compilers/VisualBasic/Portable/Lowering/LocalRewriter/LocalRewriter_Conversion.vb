@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' If original conversion has become something else with unknown precision, add an explicit identity cast.
                     result = node.Update(
                         result,
-                        node.ConversionKind,
+                        ConversionKind.Identity,
                         checked:=False,
                         explicitCastInCode:=True,
                         constantValueOpt:=node.ConstantValueOpt,
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If node.Operand.Kind = BoundKind.UserDefinedConversion Then
                 If _inExpressionLambda Then
                     Return node.Update(DirectCast(Visit(node.Operand), BoundExpression),
-                                       ConversionKind.Identity,
+                                       node.ConversionKind,
                                        node.Checked,
                                        node.ExplicitCastInCode,
                                        node.ConstantValueOpt,
