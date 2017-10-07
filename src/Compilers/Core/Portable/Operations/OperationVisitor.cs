@@ -489,6 +489,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             DefaultVisit(operation);
         }
+        
+        public virtual void VisitRaiseEventStatement(IRaiseEventStatement operation)
+        {
+            DefaultVisit(operation);
+        }
     }
 
     /// <summary>
@@ -983,6 +988,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         public virtual TResult VisitTranslatedQueryExpression(ITranslatedQueryExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
+        }
+        
+        public virtual TResult VisitRaiseEventStatement(IRaiseEventStatement operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument); 
         }
     }
 }

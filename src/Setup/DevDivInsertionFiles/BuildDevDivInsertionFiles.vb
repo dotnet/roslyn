@@ -326,6 +326,7 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll",
         "Microsoft.CodeAnalysis.Workspaces.dll",
         "Microsoft.DiaSymReader.dll",
+        "Microsoft.DiaSymReader.Converter.dll",
         "Microsoft.DiaSymReader.Converter.Xml.dll",
         "Microsoft.DiaSymReader.Native.amd64.dll",
         "Microsoft.DiaSymReader.Native.x86.dll",
@@ -865,11 +866,12 @@ Public Class BuildDevDivInsertionFiles
         add("UnitTests\EditorServicesTest\BasicUndo.dll")
         add("UnitTests\EditorServicesTest\Moq.dll")
         add("UnitTests\EditorServicesTest\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll")
-        add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.PortablePdb.dll")
-        add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.Converter.Xml.dll")
-        add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.dll")
-        add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.Native.amd64.dll")
-        add("UnitTests\EditorServicesTest\Microsoft.DiaSymReader.Native.x86.dll")
+        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.PortablePdb.dll")
+        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.Converter.dll")
+        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.Converter.Xml.dll")
+        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.dll")
+        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.Native.amd64.dll")
+        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.Native.x86.dll")
         add("UnitTests\EditorServicesTest\Microsoft.VisualStudio.Platform.VSEditor.Interop.dll")
         add("Vsix\ExpressionEvaluatorPackage\Microsoft.VisualStudio.Debugger.Engine.dll")
         add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.Diagnostics.Runtime.dll")
