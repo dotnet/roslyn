@@ -96,16 +96,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case Feature.InferredTupleNames
                     Return LanguageVersion.VisualBasic15_3
 
-                Case Feature.OptionalParameterDefault
-                    Return LanguageVersion.VisualBasic15_3 ' PROTOTYPE: Temporary Langauge Version
-
                 Case Feature.LeadingDigitSeparator,
                     Feature.NonTrailingNamedArguments,
                     Feature.PrivateProtected
                     Return LanguageVersion.VisualBasic15_5
 
                 Case Feature.OptionalParameterDefault
-                    Return LanguageVersion.VisualBasic15_3 ' PROTOTYPE: Temporary Langauge Version
+                    Return LanguageVersion.VisualBasic15_5 ' PROTOTYPE: Temporary Langauge Version
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
