@@ -1047,6 +1047,7 @@ End Interface
 
         <WorkItem(578129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578129")>
         <Fact()>
+        <Trait("LanguageFeature", "DefaultOptionalParameter")>
         Public Sub Bug578129()
             Dim source =
 <compilation>
