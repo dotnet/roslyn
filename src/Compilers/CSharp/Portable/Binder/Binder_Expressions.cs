@@ -2233,7 +2233,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundKind.PropertyAccess:
                     case BoundKind.IndexerAccess:
-                        hadError = !CheckValueKind(argumentSyntax, arg, BindValueKind.RefOrOut, false, diagnostics);
+                        var requiredValueKind = origRefKind == RefKind.In ? BindValueKind.ReadonlyRef : BindValueKind.RefOrOut;
+                        hadError = !CheckValueKind(argumentSyntax, arg, requiredValueKind, false, diagnostics);
                         return;
                 }
             }
@@ -2483,7 +2484,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression BindArgumentExpression(DiagnosticBag diagnostics, ExpressionSyntax argumentExpression, RefKind refKind, bool allowArglist)
         {
-            BindValueKind valueKind = refKind == RefKind.None ? BindValueKind.RValue : BindValueKind.RefOrOut;
+            BindValueKind valueKind = 
+                refKind == RefKind.None ? 
+                        BindValueKind.RValue :
+                        refKind == RefKind.In ?
+                            BindValueKind.ReadonlyRef:
+                            BindValueKind.RefOrOut;
 
             BoundExpression argument;
             if (allowArglist)
@@ -2536,7 +2542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (argument.Kind == BoundKind.OutDeconstructVarPendingInference)
                 {
                     TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
-                    arguments[arg] = ((OutDeconstructVarPendingInference)argument).SetInferredType(parameterType, success: true);
+                    arguments[arg] = ((OutDeconstructVarPendingInference)argument).SetInferredType(parameterType, this, success: true);
                 }
                 else if (argument.Kind == BoundKind.DiscardExpression && !argument.HasExpressionType())
                 {
@@ -3962,6 +3968,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expanded,
                 argsToParamsOpt,
                 resultKind,
+                implicitReceiver.Type,
                 binderOpt: this,
                 type: boundMember.Type,
                 hasErrors: hasErrors);

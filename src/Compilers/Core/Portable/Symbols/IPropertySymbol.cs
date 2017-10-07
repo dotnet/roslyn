@@ -46,6 +46,11 @@ namespace Microsoft.CodeAnalysis
         bool ReturnsByRefReadonly { get; }
 
         /// <summary>
+        /// Returns the RefKind of the property.
+        /// </summary>
+        RefKind RefKind { get; }
+
+        /// <summary>
         /// The type of the property. 
         /// </summary>
         ITypeSymbol Type { get; }

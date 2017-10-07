@@ -27,14 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var pattern = BindPattern(node.Pattern, expression, expressionType, hasErrors, diagnostics);
+            var pattern = BindPattern(node.Pattern, expressionType, hasErrors, diagnostics);
             return new BoundIsPatternExpression(
                 node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node), hasErrors);
         }
 
         internal BoundPattern BindPattern(
             PatternSyntax node,
-            BoundExpression operand,
             TypeSymbol operandType,
             bool hasErrors,
             DiagnosticBag diagnostics,
@@ -44,11 +43,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.DeclarationPattern:
                     return BindDeclarationPattern(
-                        (DeclarationPatternSyntax)node, operand, operandType, hasErrors, diagnostics);
+                        (DeclarationPatternSyntax)node, operandType, hasErrors, diagnostics);
 
                 case SyntaxKind.ConstantPattern:
                     return BindConstantPattern(
-                        (ConstantPatternSyntax)node, operand, operandType, hasErrors, diagnostics, wasSwitchCase);
+                        (ConstantPatternSyntax)node, operandType, hasErrors, diagnostics, wasSwitchCase);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -57,19 +56,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundConstantPattern BindConstantPattern(
             ConstantPatternSyntax node,
-            BoundExpression operand,
             TypeSymbol operandType,
             bool hasErrors,
             DiagnosticBag diagnostics,
             bool wasSwitchCase)
         {
             bool wasExpression;
-            return BindConstantPattern(node, operand, operandType, node.Expression, hasErrors, diagnostics, out wasExpression, wasSwitchCase);
+            return BindConstantPattern(node, operandType, node.Expression, hasErrors, diagnostics, out wasExpression, wasSwitchCase);
         }
 
         internal BoundConstantPattern BindConstantPattern(
             CSharpSyntaxNode node,
-            BoundExpression operand,
             TypeSymbol operandType,
             ExpressionSyntax patternExpression,
             bool hasErrors,
@@ -133,7 +130,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool CheckValidPatternType(
             CSharpSyntaxNode typeSyntax,
-            BoundExpression operand,
             TypeSymbol operandType,
             TypeSymbol patternType,
             bool patternTypeWasInSource,
@@ -142,10 +138,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)operandType != null);
             Debug.Assert((object)patternType != null);
-
-            // Because we do not support recursive patterns, we always have an operand
-            Debug.Assert((object)operand != null);
-            // Once we support recursive patterns that will be relaxed.
 
             if (operandType.IsErrorType() || patternType.IsErrorType())
             {
@@ -232,12 +224,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundPattern BindDeclarationPattern(
             DeclarationPatternSyntax node,
-            BoundExpression operand,
             TypeSymbol operandType,
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(operand != null && operandType != (object)null);
+            Debug.Assert(operandType != (object)null);
 
             var typeSyntax = node.Type;
 
@@ -262,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                hasErrors |= CheckValidPatternType(typeSyntax, operand, operandType, declType,
+                hasErrors |= CheckValidPatternType(typeSyntax, operandType, declType,
                                                    isVar: isVar, patternTypeWasInSource: true, diagnostics: diagnostics);
             }
 

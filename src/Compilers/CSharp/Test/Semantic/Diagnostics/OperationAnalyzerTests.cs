@@ -1371,33 +1371,29 @@ class A
         int[] ints = new int[] { 1, 2, 3 };
         foreach (int i in ints)
         {
-            int *j = &i;  // CS0459
+            int *j = &i;  
         }
 
         fixed (int *i = &_i)
         {
-            int **j = &i;  // CS0459
+            int **j = &i;  
         }
     }
 
     private int _i = 0;
 }";
             CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeReleaseDll)
-            .VerifyDiagnostics(Diagnostic(ErrorCode.ERR_InvalidAddrOp, "a + b").WithLocation(7, 18),
-                Diagnostic(ErrorCode.ERR_AddrOnReadOnlyLocal, "i").WithLocation(28, 23),
-                Diagnostic(ErrorCode.ERR_AddrOnReadOnlyLocal, "i").WithLocation(33, 24))
+            .VerifyDiagnostics(Diagnostic(ErrorCode.ERR_InvalidAddrOp, "a + b").WithLocation(7, 18))
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new AddressOfTestAnalyzer() }, null, null, false,
-                Diagnostic(AddressOfTestAnalyzer.AddressOfDescriptor.Id, "&(a + b)").WithLocation(7, 16),
-                Diagnostic(AddressOfTestAnalyzer.InvalidAddressOfReferenceDescriptor.Id, "a + b").WithLocation(7, 18),
-                Diagnostic(AddressOfTestAnalyzer.AddressOfDescriptor.Id, "&a").WithLocation(9, 16),
-                Diagnostic(AddressOfTestAnalyzer.AddressOfDescriptor.Id, "&x").WithLocation(15, 17),
-                Diagnostic(AddressOfTestAnalyzer.AddressOfDescriptor.Id, "&(*p)").WithLocation(16, 12),
-                Diagnostic(AddressOfTestAnalyzer.AddressOfDescriptor.Id, "&p[0]").WithLocation(17, 12),
-                Diagnostic(AddressOfTestAnalyzer.AddressOfDescriptor.Id, "&i").WithLocation(28, 22),
-                Diagnostic(AddressOfTestAnalyzer.InvalidAddressOfReferenceDescriptor.Id, "i").WithLocation(28, 23),
-                Diagnostic(AddressOfTestAnalyzer.AddressOfDescriptor.Id, "&_i").WithLocation(31, 25),
-                Diagnostic(AddressOfTestAnalyzer.AddressOfDescriptor.Id, "&i").WithLocation(33, 23),
-                Diagnostic(AddressOfTestAnalyzer.InvalidAddressOfReferenceDescriptor.Id, "i").WithLocation(33, 24));
+                Diagnostic("AddressOfOperation", "&(a + b)").WithLocation(7, 16),
+                Diagnostic("InvalidAddressOfReference", "a + b").WithLocation(7, 18),
+                Diagnostic("AddressOfOperation", "&a").WithLocation(9, 16),
+                Diagnostic("AddressOfOperation", "&i").WithLocation(28, 22),
+                Diagnostic("AddressOfOperation", "&_i").WithLocation(31, 25),
+                Diagnostic("AddressOfOperation", "&i").WithLocation(33, 23),
+                Diagnostic("AddressOfOperation", "&x").WithLocation(15, 17),
+                Diagnostic("AddressOfOperation", "&(*p)").WithLocation(16, 12),
+                Diagnostic("AddressOfOperation", "&p[0]").WithLocation(17, 12));
         }
 
         [Fact]

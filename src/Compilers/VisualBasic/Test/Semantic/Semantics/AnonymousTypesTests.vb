@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -23,32 +23,47 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'New With {. ...  = .b + .a}')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>) (Syntax: 'New With {. ...  = .b + .a}')
+  Operand: 
+    IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>) (Syntax: 'New With {. ...  = .b + .a}')
       Initializers(3):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1) (Syntax: '.a = 1')
-            Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'a')
-                Instance Receiver: null
-            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+            Left: 
+              IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'a')
+                Instance Receiver: 
+                  null
+            Right: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.b = .a')
-            Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.b As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'b')
-                Instance Receiver: null
-            Right: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.a')
-                Instance Receiver: null
+            Left: 
+              IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.b As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'b')
+                Instance Receiver: 
+                  null
+            Right: 
+              IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.a')
+                Instance Receiver: 
+                  null
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '.c = .b + .a')
-            Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.c As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'c')
-                Instance Receiver: null
-            Right: IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '.b + .a')
-                Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.b As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.b')
-                    Instance Receiver: null
-                Right: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.a')
-                    Instance Receiver: null
+            Left: 
+              IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.c As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'c')
+                Instance Receiver: 
+                  null
+            Right: 
+              IBinaryOperatorExpression (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32) (Syntax: '.b + .a')
+                Left: 
+                  IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.b As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.b')
+                    Instance Receiver: 
+                      null
+                Right: 
+                  IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32, c As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: '.a')
+                    Instance Receiver: 
+                      null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeErrorInFieldReference()
@@ -62,18 +77,26 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New With {. ... s, .b = .a}')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As ?, b As ?>, IsInvalid) (Syntax: 'New With {. ... s, .b = .a}')
+  Operand: 
+    IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As ?, b As ?>, IsInvalid) (Syntax: 'New With {. ... s, .b = .a}')
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.a = sss')
-            Left: IPropertyReferenceExpression: Property <anonymous type: a As ?, b As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
-                Instance Receiver: null
-            Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'sss')
+            Left: 
+              IPropertyReferenceExpression: Property <anonymous type: a As ?, b As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
+                Instance Receiver: 
+                  null
+            Right: 
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'sss')
                 Children(0)
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?) (Syntax: '.b = .a')
-            Left: IPropertyReferenceExpression: Property <anonymous type: a As ?, b As ?>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'b')
-                Instance Receiver: null
-            Right: IPropertyReferenceExpression: Property <anonymous type: a As ?, b As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: '.a')
-                Instance Receiver: null
+            Left: 
+              IPropertyReferenceExpression: Property <anonymous type: a As ?, b As ?>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'b')
+                Instance Receiver: 
+                  null
+            Right: 
+              IPropertyReferenceExpression: Property <anonymous type: a As ?, b As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: '.a')
+                Instance Receiver: 
+                  null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -84,7 +107,7 @@ BC30451: 'sss' is not declared. It may be inaccessible due to its protection lev
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldOfRestrictedType()
@@ -103,37 +126,50 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim v1 As O ... h {.a = tr}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'v1')
       Variables: Local_1: v1 As System.Object
-      Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New With {.a = tr}')
+      Initializer: 
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New With {.a = tr}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.TypedReference>, IsInvalid) (Syntax: 'New With {.a = tr}')
+          Operand: 
+            IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.TypedReference>, IsInvalid) (Syntax: 'New With {.a = tr}')
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.TypedReference, IsInvalid) (Syntax: '.a = tr')
-                    Left: IPropertyReferenceExpression: Property <anonymous type: a As System.TypedReference>.a As System.TypedReference (Static) (OperationKind.PropertyReferenceExpression, Type: System.TypedReference) (Syntax: 'a')
-                        Instance Receiver: null
-                    Right: IParameterReferenceExpression: tr (OperationKind.ParameterReferenceExpression, Type: System.TypedReference, IsInvalid) (Syntax: 'tr')
+                    Left: 
+                      IPropertyReferenceExpression: Property <anonymous type: a As System.TypedReference>.a As System.TypedReference (Static) (OperationKind.PropertyReferenceExpression, Type: System.TypedReference) (Syntax: 'a')
+                        Instance Receiver: 
+                          null
+                    Right: 
+                      IParameterReferenceExpression: tr (OperationKind.ParameterReferenceExpression, Type: System.TypedReference, IsInvalid) (Syntax: 'tr')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim v2 As O ... a = {{tr}}}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'v2')
       Variables: Local_1: v2 As System.Object
-      Initializer: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New With {.a = {{tr}}}')
+      Initializer: 
+        IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New With {.a = {{tr}}}')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-          Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.TypedReference(,)>, IsInvalid) (Syntax: 'New With {.a = {{tr}}}')
+          Operand: 
+            IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.TypedReference(,)>, IsInvalid) (Syntax: 'New With {.a = {{tr}}}')
               Initializers(1):
                   ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.TypedReference(,), IsInvalid) (Syntax: '.a = {{tr}}')
-                    Left: IPropertyReferenceExpression: Property <anonymous type: a As System.TypedReference(,)>.a As System.TypedReference(,) (Static) (OperationKind.PropertyReferenceExpression, Type: System.TypedReference(,)) (Syntax: 'a')
-                        Instance Receiver: null
-                    Right: IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.TypedReference(,), IsInvalid) (Syntax: '{{tr}}')
+                    Left: 
+                      IPropertyReferenceExpression: Property <anonymous type: a As System.TypedReference(,)>.a As System.TypedReference(,) (Static) (OperationKind.PropertyReferenceExpression, Type: System.TypedReference(,)) (Syntax: 'a')
+                        Instance Receiver: 
+                          null
+                    Right: 
+                      IArrayCreationExpression (OperationKind.ArrayCreationExpression, Type: System.TypedReference(,), IsInvalid) (Syntax: '{{tr}}')
                         Dimension Sizes(2):
-                            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '{{tr}}')
-                            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '{{tr}}')
-                        Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{{tr}}')
+                            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '{{tr}}')
+                            ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '{{tr}}')
+                        Initializer: 
+                          IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid, IsImplicit) (Syntax: '{{tr}}')
                             Element Values(1):
                                 IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{tr}')
                                   Element Values(1):
                                       IParameterReferenceExpression: tr (OperationKind.ParameterReferenceExpression, Type: System.TypedReference, IsInvalid) (Syntax: 'tr')
   ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
-    Statement: null
+    Statement: 
+      null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
-    ReturnedValue: null
+    ReturnedValue: 
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -150,7 +186,7 @@ BC31396: 'TypedReference' cannot be made nullable, and cannot be used as the dat
 
             VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeReferenceToOuterTypeField()
@@ -165,18 +201,27 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.Int32, b As <anonymous type: c As ?>>, IsInvalid) (Syntax: 'New With {. ...  {.c = .a}}')
   Initializers(2):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1) (Syntax: '.a = 1')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As <anonymous type: c As ?>>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'a')
-            Instance Receiver: null
-        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As <anonymous type: c As ?>>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'a')
+            Instance Receiver: 
+              null
+        Right: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: <anonymous type: c As ?>, IsInvalid) (Syntax: '.b = New With {.c = .a}')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As <anonymous type: c As ?>>.b As <anonymous type: c As ?> (Static) (OperationKind.PropertyReferenceExpression, Type: <anonymous type: c As ?>) (Syntax: 'b')
-            Instance Receiver: null
-        Right: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: c As ?>, IsInvalid) (Syntax: 'New With {.c = .a}')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As <anonymous type: c As ?>>.b As <anonymous type: c As ?> (Static) (OperationKind.PropertyReferenceExpression, Type: <anonymous type: c As ?>) (Syntax: 'b')
+            Instance Receiver: 
+              null
+        Right: 
+          IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: c As ?>, IsInvalid) (Syntax: 'New With {.c = .a}')
             Initializers(1):
                 ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.c = .a')
-                  Left: IPropertyReferenceExpression: Property <anonymous type: c As ?>.c As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'c')
-                      Instance Receiver: null
-                  Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.a')
+                  Left: 
+                    IPropertyReferenceExpression: Property <anonymous type: c As ?>.c As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'c')
+                      Instance Receiver: 
+                        null
+                  Right: 
+                    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.a')
                       Children(0)
 ]]>.Value
 
@@ -188,7 +233,7 @@ BC36557: 'a' is not a member of '<anonymous type>'; it does not exist in the cur
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldReferenceOutOfOrder01()
@@ -202,18 +247,26 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New With {. ... c, .c = .b}')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: b As ?, c As ?>, IsInvalid) (Syntax: 'New With {. ... c, .c = .b}')
+  Operand: 
+    IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: b As ?, c As ?>, IsInvalid) (Syntax: 'New With {. ... c, .c = .b}')
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.b = .c')
-            Left: IPropertyReferenceExpression: Property <anonymous type: b As ?, c As ?>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'b')
-                Instance Receiver: null
-            Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.c')
+            Left: 
+              IPropertyReferenceExpression: Property <anonymous type: b As ?, c As ?>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'b')
+                Instance Receiver: 
+                  null
+            Right: 
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.c')
                 Children(0)
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?) (Syntax: '.c = .b')
-            Left: IPropertyReferenceExpression: Property <anonymous type: b As ?, c As ?>.c As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'c')
-                Instance Receiver: null
-            Right: IPropertyReferenceExpression: Property <anonymous type: b As ?, c As ?>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: '.b')
-                Instance Receiver: null
+            Left: 
+              IPropertyReferenceExpression: Property <anonymous type: b As ?, c As ?>.c As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'c')
+                Instance Receiver: 
+                  null
+            Right: 
+              IPropertyReferenceExpression: Property <anonymous type: b As ?, c As ?>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: '.b')
+                Instance Receiver: 
+                  null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -224,7 +277,7 @@ BC36559: Anonymous type member property 'c' cannot be used to infer the type of 
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldReferenceOutOfOrder02()
@@ -238,17 +291,24 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: 'New With {. ... .c, .c = 1}')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: b As ?, c As System.Int32>, IsInvalid) (Syntax: 'New With {. ... .c, .c = 1}')
+  Operand: 
+    IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: b As ?, c As System.Int32>, IsInvalid) (Syntax: 'New With {. ... .c, .c = 1}')
       Initializers(2):
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.b = .c')
-            Left: IPropertyReferenceExpression: Property <anonymous type: b As ?, c As System.Int32>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'b')
-                Instance Receiver: null
-            Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.c')
+            Left: 
+              IPropertyReferenceExpression: Property <anonymous type: b As ?, c As System.Int32>.b As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'b')
+                Instance Receiver: 
+                  null
+            Right: 
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.c')
                 Children(0)
           ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1) (Syntax: '.c = 1')
-            Left: IPropertyReferenceExpression: Property <anonymous type: b As ?, c As System.Int32>.c As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'c')
-                Instance Receiver: null
-            Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+            Left: 
+              IPropertyReferenceExpression: Property <anonymous type: b As ?, c As System.Int32>.c As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'c')
+                Instance Receiver: 
+                  null
+            Right: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -259,7 +319,7 @@ BC36559: Anonymous type member property 'c' cannot be used to infer the type of 
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldInitializedWithInstanceMethod()
@@ -274,9 +334,12 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As ?>, IsInvalid) (Syntax: 'New With {. ... ToString()}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.a = .ToString()')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.ToString()')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
+            Instance Receiver: 
+              null
+        Right: 
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.ToString()')
             Children(1):
                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.ToString')
                   Children(0)
@@ -290,7 +353,7 @@ BC36557: 'ToString' is not a member of '<anonymous type>'; it does not exist in 
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldInitializedWithSharedMethod()
@@ -305,9 +368,12 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As ?>, IsInvalid) (Syntax: 'New With {. ... , Nothing)}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.a = .Refer ... g, Nothing)')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.ReferenceE ... g, Nothing)')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
+            Instance Receiver: 
+              null
+        Right: 
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.ReferenceE ... g, Nothing)')
             Children(3):
                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.ReferenceEquals')
                   Children(0)
@@ -323,7 +389,7 @@ BC36557: 'ReferenceEquals' is not a member of '<anonymous type>'; it does not ex
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldInitializedWithExtensionMethod()
@@ -343,9 +409,12 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As ?>, IsInvalid) (Syntax: 'New With {.a = .EM()}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.a = .EM()')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.EM()')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
+            Instance Receiver: 
+              null
+        Right: 
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.EM()')
             Children(1):
                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.EM')
                   Children(0)
@@ -359,7 +428,7 @@ BC36557: 'EM' is not a member of '<anonymous type>'; it does not exist in the cu
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldInitializedWithConstructorCall()
@@ -374,9 +443,12 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As ?>, IsInvalid) (Syntax: 'New With {.a = .New()}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.a = .New()')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.New()')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
+            Instance Receiver: 
+              null
+        Right: 
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.New()')
             Children(1):
                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.New')
                   Children(0)
@@ -390,7 +462,7 @@ BC36557: 'New' is not a member of '<anonymous type>'; it does not exist in the c
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldOfVoidType()
@@ -406,13 +478,17 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As ?>, IsInvalid) (Syntax: 'New With {. ...  SubName()}')
   Initializers(1):
-      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.a = SubName()')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'SubName()')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '.a = SubName()')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
+            Instance Receiver: 
+              null
+        Right: 
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'SubName()')
             Children(1):
                 IInvocationExpression (Sub ModuleA.SubName()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'SubName()')
-                  Instance Receiver: null
+                  Instance Receiver: 
+                    null
                   Arguments(0)
 ]]>.Value
 
@@ -424,7 +500,7 @@ BC30491: Expression does not produce a value.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldNameWithGeneric()
@@ -439,14 +515,21 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.Int32, b As System.Int32>, IsInvalid) (Syntax: 'New With {. ... f Integer)}')
   Initializers(2):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1) (Syntax: '.a = 1')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'a')
-            Instance Receiver: null
-        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'a')
+            Instance Receiver: 
+              null
+        Right: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, IsInvalid) (Syntax: '.b = .a(Of Integer)')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32>.b As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'b')
-            Instance Receiver: null
-        Right: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: '.a(Of Integer)')
-            Instance Receiver: null
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32>.b As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'b')
+            Instance Receiver: 
+              null
+        Right: 
+          IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, b As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: '.a(Of Integer)')
+            Instance Receiver: 
+              null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -457,7 +540,7 @@ BC32045: 'Public Property a As T0' has no type parameters and so cannot have typ
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldWithSyntaxError()
@@ -472,9 +555,12 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As ?>, IsInvalid) (Syntax: 'New With {.a = .}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: '.a = .')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
+            Instance Receiver: 
+              null
+        Right: 
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.')
             Children(0)
 ]]>.Value
 
@@ -486,7 +572,7 @@ BC30203: Identifier expected.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldWithNothingLiteral()
@@ -501,18 +587,22 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.Object>) (Syntax: 'New With {.a = Nothing}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Object, Constant: null) (Syntax: '.a = Nothing')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Object>.a As System.Object (Static) (OperationKind.PropertyReferenceExpression, Type: System.Object) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'Nothing')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As System.Object>.a As System.Object (Static) (OperationKind.PropertyReferenceExpression, Type: System.Object) (Syntax: 'a')
+            Instance Receiver: 
+              null
+        Right: 
+          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object, Constant: null) (Syntax: 'Nothing')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Operand: ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
+            Operand: 
+              ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldNameInferenceFromGeneric01()
@@ -533,9 +623,11 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: $0 As System.Int32>, IsInvalid) (Syntax: 'New With {N ... f Integer)}')
   Initializers(1):
       IInvocationExpression ( Function AM.A.F(Of System.Int32)() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'New A().F(Of Integer)')
-        Instance Receiver: IObjectCreationExpression (Constructor: Sub AM.A..ctor()) (OperationKind.ObjectCreationExpression, Type: AM.A, IsInvalid) (Syntax: 'New A()')
+        Instance Receiver: 
+          IObjectCreationExpression (Constructor: Sub AM.A..ctor()) (OperationKind.ObjectCreationExpression, Type: AM.A, IsInvalid) (Syntax: 'New A()')
             Arguments(0)
-            Initializer: null
+            Initializer: 
+              null
         Arguments(0)
 ]]>.Value
 
@@ -547,7 +639,7 @@ BC36556: Anonymous type member name can be inferred only from a simple or qualif
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldNameInferenceFromXml01()
@@ -573,7 +665,7 @@ BC36556: Anonymous type member name can be inferred only from a simple or qualif
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics, additionalReferences:=XmlReferences)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldNameInferenceFromXml02()
@@ -594,7 +686,7 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics, additionalReferences:=XmlReferences)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldNameInferenceFromXml03()
@@ -619,7 +711,7 @@ BC36613: Anonymous type member name cannot be inferred from an XML identifier th
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics, additionalReferences:=XmlReferences)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <WorkItem(544370, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544370")>
         <Fact>
@@ -639,19 +731,23 @@ IBlockStatement (4 statements, 2 locals) (OperationKind.BlockStatement, IsInvali
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Dim err = N ...  {<a/>.<_>}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'err')
       Variables: Local_1: err As <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>
-      Initializer: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>, IsInvalid) (Syntax: 'New With {<a/>.<_>}')
+      Initializer: 
+        IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: $0 As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>, IsInvalid) (Syntax: 'New With {<a/>.<_>}')
           Initializers(1):
               IOperation:  (OperationKind.None, IsInvalid) (Syntax: '<a/>.<_>')
   IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Dim ok = Ne ... {<a/>.<__>}')
     IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'ok')
       Variables: Local_1: ok As <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>
-      Initializer: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>) (Syntax: 'New With {<a/>.<__>}')
+      Initializer: 
+        IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: __ As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)>) (Syntax: 'New With {<a/>.<__>}')
           Initializers(1):
               IOperation:  (OperationKind.None) (Syntax: '<a/>.<__>')
   ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Sub')
-    Statement: null
+    Statement: 
+      null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
-    ReturnedValue: null
+    ReturnedValue: 
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -662,7 +758,7 @@ BC36613: Anonymous type member name cannot be inferred from an XML identifier th
 
             VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics, additionalReferences:=XmlReferences)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldNameInferenceFromExpression01()
@@ -678,8 +774,10 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: $0 As System.Int32>, IsInvalid) (Syntax: 'New With {a * 2}')
   Initializers(1):
       IBinaryOperatorExpression (BinaryOperatorKind.Multiply, Checked) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: 'a * 2')
-        Left: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'a')
-        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+        Left: 
+          ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'a')
+        Right: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -690,7 +788,7 @@ BC36556: Anonymous type member name can be inferred only from a simple or qualif
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldNameInferenceFromExpression02()
@@ -706,9 +804,12 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: a As System.Int32, a As System.Int32>, IsInvalid) (Syntax: 'New With {.a = 1, a}')
   Initializers(2):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1) (Syntax: '.a = 1')
-        Left: IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, a As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'a')
-            Instance Receiver: null
-        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: a As System.Int32, a As System.Int32>.a As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'a')
+            Instance Receiver: 
+              null
+        Right: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
       ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'a')
 ]]>.Value
 
@@ -720,7 +821,7 @@ BC36547: Anonymous type member or property 'a' is already declared.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldNameInferenceFromExpression03()
@@ -739,9 +840,11 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: FLD As System.Int32, FLD As System.Int32>, IsInvalid) (Syntax: 'New With {a ... D, a.FLD()}')
   Initializers(2):
       IPropertyReferenceExpression: Property ModuleA.S.FLD As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'a.FLD')
-        Instance Receiver: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: ModuleA.S) (Syntax: 'a')
+        Instance Receiver: 
+          ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: ModuleA.S) (Syntax: 'a')
       IPropertyReferenceExpression: Property ModuleA.S.FLD As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'a.FLD()')
-        Instance Receiver: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: ModuleA.S, IsInvalid) (Syntax: 'a')
+        Instance Receiver: 
+          ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: ModuleA.S, IsInvalid) (Syntax: 'a')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -752,7 +855,7 @@ BC36547: Anonymous type member or property 'FLD' is already declared.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldNameInferenceFromExpression04()
@@ -769,13 +872,17 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: x As System.Int32, x As System.Int32>, IsInvalid) (Syntax: 'New With {.x = 1, a!x}')
   Initializers(2):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32, Constant: 1) (Syntax: '.x = 1')
-        Left: IPropertyReferenceExpression: Property <anonymous type: x As System.Int32, x As System.Int32>.x As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x')
-            Instance Receiver: null
-        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: x As System.Int32, x As System.Int32>.x As System.Int32 (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'x')
+            Instance Receiver: 
+              null
+        Right: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
       IPropertyReferenceExpression: Property System.Collections.Generic.Dictionary(Of System.String, System.Int32).Item(key As System.String) As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'a!x')
-        Instance Receiver: ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), IsInvalid) (Syntax: 'a')
+        Instance Receiver: 
+          ILocalReferenceExpression: a (OperationKind.LocalReferenceExpression, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), IsInvalid) (Syntax: 'a')
         Arguments(1):
-            IArgument (ArgumentKind.Explicit, Matching Parameter: key) (OperationKind.Argument, IsInvalid) (Syntax: 'x')
+            IArgument (ArgumentKind.Explicit, Matching Parameter: key) (OperationKind.Argument, IsInvalid, IsImplicit) (Syntax: 'x')
               ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "x", IsInvalid) (Syntax: 'x')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -789,7 +896,7 @@ BC36547: Anonymous type member or property 'x' is already declared.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldInitializedWithAddressOf()
@@ -806,16 +913,19 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key a As ?>, IsInvalid) (Syntax: 'New With {K ... ddressOf S}')
   Initializers(1):
-      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid) (Syntax: 'Key .a = AddressOf S')
-        Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'AddressOf S')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Key .a = AddressOf S')
+        Left: 
+          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As ?>.a As ? (Static) (OperationKind.PropertyReferenceExpression, Type: ?) (Syntax: 'a')
+            Instance Receiver: 
+              null
+        Right: 
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: 'AddressOf S')
             Children(1):
                 IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf S')
                   Children(1):
                       IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'S')
                         Children(1):
-                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid) (Syntax: 'S')
+                            IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Program, IsInvalid, IsImplicit) (Syntax: 'S')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -826,7 +936,7 @@ BC30491: Expression does not produce a value.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldInitializedWithDelegate01()
@@ -848,27 +958,40 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key x As System.String, Key a As System.String>, IsInvalid) (Syntax: 'New With {' ... ).Invoke()}')
   Initializers(2):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, Constant: "--value--") (Syntax: 'Key .x = "--value--"')
-        Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.String, Key a As System.String>.x As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'x')
-            Instance Receiver: null
-        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "--value--") (Syntax: '"--value--"')
+        Left: 
+          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.String, Key a As System.String>.x As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'x')
+            Instance Receiver: 
+              null
+        Right: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "--value--") (Syntax: '"--value--"')
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid) (Syntax: 'Key .a = Di ... )).Invoke()')
-        Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.String, Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
-            Instance Receiver: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
+        Left: 
+          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.String, Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'a')
+            Instance Receiver: 
+              null
+        Right: 
+          IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
+            Instance Receiver: 
+              IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nd Function')
-                    IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Function()  ... nd Function')
+                Operand: 
+                  IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nd Function')
+                    IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Function()  ... nd Function')
                       Locals: Local_1: <anonymous local> As System.String
                       IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Return .x.ToString()')
-                        ReturnedValue: IInvocationExpression (virtual Function System.String.ToString() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: '.x.ToString()')
-                            Instance Receiver: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.String, Key a As System.String>.x As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String, IsInvalid) (Syntax: '.x')
-                                Instance Receiver: null
+                        ReturnedValue: 
+                          IInvocationExpression (virtual Function System.String.ToString() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: '.x.ToString()')
+                            Instance Receiver: 
+                              IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key x As System.String, Key a As System.String>.x As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String, IsInvalid) (Syntax: '.x')
+                                Instance Receiver: 
+                                  null
                             Arguments(0)
                       ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
-                        Statement: null
+                        Statement: 
+                          null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-                        ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
+                        ReturnedValue: 
+                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
 
@@ -880,7 +1003,7 @@ BC36549: Anonymous type property 'x' cannot be used in the definition of a lambd
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldInitializedWithDelegate02()
@@ -901,29 +1024,38 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key a As System.String>, IsInvalid) (Syntax: 'New With {' ... ).Invoke()}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid) (Syntax: 'Key .a = Di ... )).Invoke()')
-        Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
-            Instance Receiver: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
+        Left: 
+          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'a')
+            Instance Receiver: 
+              null
+        Right: 
+          IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
+            Instance Receiver: 
+              IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nd Function')
-                    IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Function()  ... nd Function')
+                Operand: 
+                  IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nd Function')
+                    IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Function()  ... nd Function')
                       Locals: Local_1: <anonymous local> As System.String
                       IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Return .a.ToString()')
-                        ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: '.a.ToString()')
+                        ReturnedValue: 
+                          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: '.a.ToString()')
                             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.a.ToString()')
+                            Operand: 
+                              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.a.ToString()')
                                 Children(1):
-                                    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.a.ToString')
+                                    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '.a.ToString')
                                       Children(1):
                                           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.a.ToString')
                                             Children(1):
                                                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.a')
                                                   Children(0)
                       ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
-                        Statement: null
+                        Statement: 
+                          null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-                        ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
+                        ReturnedValue: 
+                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
 
@@ -935,7 +1067,7 @@ BC36559: Anonymous type member property 'a' cannot be used to infer the type of 
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldInitializedWithDelegate03()
@@ -956,29 +1088,38 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key a As System.String>, IsInvalid) (Syntax: 'New With {' ... ).Invoke()}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid) (Syntax: 'Key .a = Di ... )).Invoke()')
-        Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
-            Instance Receiver: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
+        Left: 
+          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'a')
+            Instance Receiver: 
+              null
+        Right: 
+          IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
+            Instance Receiver: 
+              IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nd Function')
-                    IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Function()  ... nd Function')
+                Operand: 
+                  IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nd Function')
+                    IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Function()  ... nd Function')
                       Locals: Local_1: <anonymous local> As System.String
                       IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Return .x.ToString()')
-                        ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: '.x.ToString()')
+                        ReturnedValue: 
+                          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: '.x.ToString()')
                             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x.ToString()')
+                            Operand: 
+                              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x.ToString()')
                                 Children(1):
-                                    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x.ToString')
+                                    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '.x.ToString')
                                       Children(1):
                                           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x.ToString')
                                             Children(1):
                                                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x')
                                                   Children(0)
                       ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
-                        Statement: null
+                        Statement: 
+                          null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-                        ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
+                        ReturnedValue: 
+                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
 
@@ -990,7 +1131,7 @@ BC36557: 'x' is not a member of '<anonymous type>'; it does not exist in the cur
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeFieldInitializedWithDelegate04()
@@ -1013,41 +1154,55 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Key a As System.String>, IsInvalid) (Syntax: 'New With {' ... ).Invoke()}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, IsInvalid) (Syntax: 'Key .a = Di ... )).Invoke()')
-        Left: IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'a')
-            Instance Receiver: null
-        Right: IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
-            Instance Receiver: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
+        Left: 
+          IPropertyReferenceExpression: ReadOnly Property <anonymous type: Key a As System.String>.a As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'a')
+            Instance Receiver: 
+              null
+        Right: 
+          IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
+            Instance Receiver: 
+              IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nd Function')
-                    IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Function()  ... nd Function')
+                Operand: 
+                  IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nd Function')
+                    IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Function()  ... nd Function')
                       Locals: Local_1: <anonymous local> As System.String
                       IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Return Dire ... )).Invoke()')
-                        ReturnedValue: IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
-                            Instance Receiver: IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
+                        ReturnedValue: 
+                          IInvocationExpression (virtual Function System.Func(Of System.String).Invoke() As System.String) (OperationKind.InvocationExpression, Type: System.String, IsInvalid) (Syntax: 'DirectCast( ... )).Invoke()')
+                            Instance Receiver: 
+                              IConversionExpression (Explicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Func(Of System.String), IsInvalid) (Syntax: 'DirectCast( ... Of String))')
                                 Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                Operand: IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nd Function')
-                                    IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Function()  ... nd Function')
+                                Operand: 
+                                  IAnonymousFunctionExpression (Symbol: Function () As System.String) (OperationKind.AnonymousFunctionExpression, Type: null, IsInvalid) (Syntax: 'Function()  ... nd Function')
+                                    IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement, IsInvalid, IsImplicit) (Syntax: 'Function()  ... nd Function')
                                       Locals: Local_1: <anonymous local> As System.String
                                       IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'Return .x.ToString()')
-                                        ReturnedValue: IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: '.x.ToString()')
+                                        ReturnedValue: 
+                                          IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: '.x.ToString()')
                                             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                            Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x.ToString()')
+                                            Operand: 
+                                              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x.ToString()')
                                                 Children(1):
-                                                    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x.ToString')
+                                                    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid, IsImplicit) (Syntax: '.x.ToString')
                                                       Children(1):
                                                           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x.ToString')
                                                             Children(1):
                                                                 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '.x')
                                                                   Children(0)
                                       ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
-                                        Statement: null
+                                        Statement: 
+                                          null
                                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-                                        ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
+                                        ReturnedValue: 
+                                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
                             Arguments(0)
                       ILabeledStatement (Label: exit) (OperationKind.LabeledStatement) (Syntax: 'End Function')
-                        Statement: null
+                        Statement: 
+                          null
                       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-                        ReturnedValue: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
+                        ReturnedValue: 
+                          ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'End Function')
             Arguments(0)
 ]]>.Value
 
@@ -1059,7 +1214,7 @@ BC36557: 'x' is not a member of '<anonymous type>'; it does not exist in the cur
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <WorkItem(542940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542940")>
         <Fact>
@@ -1076,16 +1231,19 @@ End Module]]>.Value
 IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: Default As System.String>) (Syntax: 'New With {. ... t = "Test"}')
   Initializers(1):
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.String, Constant: "Test") (Syntax: '.Default = "Test"')
-        Left: IPropertyReferenceExpression: Property <anonymous type: Default As System.String>.Default As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Default')
-            Instance Receiver: null
-        Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Test") (Syntax: '"Test"')
+        Left: 
+          IPropertyReferenceExpression: Property <anonymous type: Default As System.String>.Default As System.String (Static) (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'Default')
+            Instance Receiver: 
+              null
+        Right: 
+          ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Test") (Syntax: '"Test"')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
             VerifyOperationTreeAndDiagnosticsForTest(Of AnonymousObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
-        
+
         <WorkItem(543286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543286")>
         <Fact>
         Public Sub AnonymousTypeInALambdaInGenericMethod1()
@@ -1113,7 +1271,7 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
             Dim verifier = CompileAndVerify(compilation, expectedOutput:="{ x2 = 0 }")
         End Sub
-        
+
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub AnonymousTypeInALambdaInGenericMethod1_OperationTree()
@@ -1136,7 +1294,8 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'New With {x2}')
   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-  Operand: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: x2 As T>) (Syntax: 'New With {x2}')
+  Operand: 
+    IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <anonymous type: x2 As T>) (Syntax: 'New With {x2}')
       Initializers(1):
           ILocalReferenceExpression: x2 (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'x2')
 ]]>.Value

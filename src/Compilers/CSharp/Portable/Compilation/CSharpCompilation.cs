@@ -2201,15 +2201,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (symbol.IsPartialDefinition())
-            {
-                MethodSymbol implementationPart = ((MethodSymbol)symbol).PartialImplementationPart;
-                if ((object)implementationPart != null)
-                {
-                    return implementationPart.IsDefinedInSourceTree(tree, span);
-                }
-            }
-
             if (symbol.Kind == SymbolKind.Method && symbol.IsImplicitlyDeclared && ((MethodSymbol)symbol).MethodKind == MethodKind.Constructor)
             {
                 // Include implicitly declared constructor if containing type is included

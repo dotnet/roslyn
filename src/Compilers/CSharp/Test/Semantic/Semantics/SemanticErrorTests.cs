@@ -8536,41 +8536,51 @@ class FixedTest
         }
 
         [Fact]
-        public void CS0255ERR_StackallocInCatchFinally()
+        public void CS0255ERR_StackallocInFinally()
         {
             var text = @"
-using System;
-
-public class TestTryFinally
+unsafe class Test
 {
-   public static unsafe void Test()
-   {
-      int i = 123;
-      string s = ""Some string"";
-      object o = s;
-
-      try
-      {
-         // Conversion is not valid; o contains a string not an int
-         i = (int) o;
-      }
-
-      finally
-      {
-         Console.Write(""i = {0}"", i);
-         int* fib = stackalloc int[100];   // CS0255
-      }
-   }
-
-   public static void Main()
-   {
-   }
-}
-";
+    void M()
+    {
+        try
+        {
+            // Something        
+        }
+        finally
+        {
+            int* fib = stackalloc int[100];
+        }
+    }
+}";
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (21,21): error CS0255: stackalloc may not be used in a catch or finally block
-                //          int* fib = stackalloc int[100];   // CS0255
-                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int[100]"));
+                // (12,24): error CS0255: stackalloc may not be used in a catch or finally block
+                //             int* fib = stackalloc int[100];
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int[100]").WithLocation(12, 24));
+        }
+
+        [Fact]
+        public void CS0255ERR_StackallocInCatch()
+        {
+            var text = @"
+unsafe class Test
+{
+    void M()
+    {
+        try
+        {
+            // Something        
+        }
+        catch
+        {
+            int* fib = stackalloc int[100];
+        }
+    }
+}";
+            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (12,24): error CS0255: stackalloc may not be used in a catch or finally block
+                //             int* fib = stackalloc int[100];
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int[100]").WithLocation(12, 24));
         }
 
         [Fact]
@@ -10250,8 +10260,9 @@ public class Test
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "h1a").WithArguments("H1<A>.implicit operator G1<A>(H1<A>)", "H0.implicit operator G0(H0)", "H1<A>", "G0"));
         }
 
+        [WorkItem(22306, "https://github.com/dotnet/roslyn/issues/22306")]
         [Fact]
-        public void CS0459ERR_AddrOnReadOnlyLocal()
+        public void AddrOnReadOnlyLocal()
         {
             var text = @"
 class A
@@ -10261,25 +10272,19 @@ class A
         int[] ints = new int[] { 1, 2, 3 };
         foreach (int i in ints)
         {
-            int *j = &i;  // CS0459
+            int *j = &i;  
         }
 
         fixed (int *i = &_i)
         {
-            int **j = &i;  // CS0459
+            int **j = &i;  
         }
     }
 
     private int _i = 0;
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (9,23): error CS0459: Cannot take the address of a read-only local variable
-                //             int *j = &i;  // CS0459
-                Diagnostic(ErrorCode.ERR_AddrOnReadOnlyLocal, "i"),
-                // (14,24): error CS0459: Cannot take the address of a read-only local variable
-                //             int **j = &i;  // CS0459
-                Diagnostic(ErrorCode.ERR_AddrOnReadOnlyLocal, "i"));
+            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]

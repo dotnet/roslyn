@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             ITypeSymbol returnType,
-            bool returnsByRef,
+            RefKind refKind,
             ImmutableArray<IMethodSymbol> explicitInterfaceImplementations,
             string name,
             ImmutableArray<ITypeParameterSymbol> typeParameters,
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             : base(containingType, attributes, declaredAccessibility, modifiers, name, returnTypeAttributes)
         {
             this.ReturnType = returnType;
-            this.RefKind = returnsByRef ? RefKind.Ref : RefKind.None;
+            this.RefKind = refKind;
             this.TypeParameters = typeParameters.NullToEmpty();
             this.Parameters = parameters.NullToEmpty();
             this.MethodKind = methodKind;
@@ -39,13 +39,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.OriginalDefinition = this;
         }
 
-        public RefKind RefKind { get; }
-
         protected override CodeGenerationSymbol Clone()
         {
             var result = new CodeGenerationMethodSymbol(this.ContainingType,
                 this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers,
-                this.ReturnType, this.ReturnsByRef, this.ExplicitInterfaceImplementations,
+                this.ReturnType, this.RefKind, this.ExplicitInterfaceImplementations,
                 this.Name, this.TypeParameters, this.Parameters, this.GetReturnTypeAttributes());
 
             CodeGenerationMethodInfo.Attach(result,
@@ -79,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 return RefKind == RefKind.RefReadOnly;
             }
         }
+
+        public override RefKind RefKind { get; }
 
         public override ImmutableArray<ITypeSymbol> TypeArguments
             => this.TypeParameters.As<ITypeSymbol>();

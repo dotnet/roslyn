@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -21,7 +21,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return')
-  ReturnedValue: null
+  ReturnedValue: 
+    null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -41,7 +42,9 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return True')
-  ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')]]>.Value
+  ReturnedValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -60,7 +63,9 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IReturnStatement (OperationKind.YieldReturnStatement) (Syntax: 'Yield 0')
-  ReturnedValue: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')]]>.Value
+  ReturnedValue: 
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
@@ -80,7 +85,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return')
-  ReturnedValue: null
+  ReturnedValue: 
+    null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

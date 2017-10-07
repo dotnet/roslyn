@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
             Dim reference = CreateCSharpCompilation("
 public class TestRef
 {
-    public static void M(ref readonly int x)
+    public static void M(in int x)
     {
         System.Console.WriteLine(x);
     }
@@ -39,7 +39,7 @@ End Class
             Dim reference = CreateCSharpCompilation("
 public class TestRef
 {
-    public void M(ref readonly int x)
+    public void M(in int x)
     {
         System.Console.WriteLine(x);
     }
@@ -66,7 +66,7 @@ End Class
             Dim reference = CreateCSharpCompilation("
 public class TestRef
 {
-    public int this[ref readonly int p]
+    public int this[in int p]
     {
         set
         {
@@ -96,7 +96,7 @@ End Class
             Dim reference = CreateCSharpCompilation("
 public struct TestRef
 {
-    public TestRef(ref readonly int value)
+    public TestRef(in int value)
     {
         System.Console.WriteLine(value);
     }
@@ -121,7 +121,7 @@ End Class
             Dim reference = CreateCSharpCompilation("
 public class TestRef
 {
-    public virtual void M(ref readonly int x)
+    public virtual void M(in int x)
     {
         System.Console.WriteLine(x);
     }
@@ -154,7 +154,7 @@ BC30657: 'M' has a return type that is not supported or parameter types that are
             Dim reference = CreateCSharpCompilation("
 public abstract class TestRef
 {
-    public abstract void M(ref readonly int x);
+    public abstract void M(in int x);
 }", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
 
             Dim source =
@@ -426,7 +426,7 @@ BC30643: Property 'P' is of an unsupported type.
             Dim reference = CreateCSharpCompilation("
 public class TestRef
 {
-    public virtual int this[ref readonly int p] => 0;
+    public virtual int this[in int p] => 0;
 }", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
 
             Dim source =
@@ -456,7 +456,7 @@ BC30643: Property 'TestRef.Item(p As )' is of an unsupported type.
             Dim reference = CreateCSharpCompilation("
 public abstract class TestRef
 {
-    public abstract int this[ref readonly int p] { set; }
+    public abstract int this[in int p] { set; }
 }", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
 
             Dim source =
@@ -569,9 +569,9 @@ BC30643: Property 'TestRef.Item(p As )' is of an unsupported type.
         End Sub
 
         <Fact>
-        Public Sub UsingLambdasOfRefReadOnlyDelegatesIsNotSupported_Invoke_Parameters()
+        Public Sub UsingLambdasOfInDelegatesIsNotSupported_Invoke_Parameters()
             Dim reference = CreateCSharpCompilation("
-public delegate void D(ref readonly int p);
+public delegate void D(in int p);
 ", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
 
             Dim source =
@@ -596,9 +596,9 @@ BC30657: 'D' has a return type that is not supported or parameter types that are
         End Sub
 
         <Fact>
-        Public Sub UsingLambdasOfRefReadOnlyDelegatesIsNotSupported_BeginInvoke_Parameters()
+        Public Sub UsingLambdasOfInDelegatesIsNotSupported_BeginInvoke_Parameters()
             Dim reference = CreateCSharpCompilation("
-public delegate void D(ref readonly int p);
+public delegate void D(in int p);
 ", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
 
             Dim source =
@@ -623,9 +623,9 @@ BC30657: 'BeginInvoke' has a return type that is not supported or parameter type
         End Sub
 
         <Fact>
-        Public Sub UsingLambdasOfRefReadOnlyDelegatesIsNotSupported_EndInvoke_Parameters()
+        Public Sub UsingLambdasOfInDelegatesIsNotSupported_EndInvoke_Parameters()
             Dim reference = CreateCSharpCompilation("
-public delegate void D(ref readonly int p);
+public delegate void D(in int p);
 ", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
 
             Dim source =
@@ -706,11 +706,11 @@ BC30657: 'EndInvoke' has a return type that is not supported or parameter types 
             Dim reference = CreateCSharpCompilation("
 public class TestRef
 {
-    public virtual void PrintMul(ref readonly int x)
+    public virtual void PrintMul(in int x)
     {
         System.Console.WriteLine(x * 2);
     }
-    public void PrintMul(ref readonly long x)
+    public void PrintMul(in long x)
     {
         System.Console.WriteLine(x * 4);
     }
@@ -771,14 +771,14 @@ End Class
             Dim reference = CreateCSharpCompilation("
 public class TestRef
 {
-    public virtual int this[ref readonly int x]
+    public virtual int this[in int x]
     {
         set
         {
             System.Console.WriteLine(x * 2);
         }
     }
-    public int this[ref readonly long x]
+    public int this[in long x]
     {
         set
         {
