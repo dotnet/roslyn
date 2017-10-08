@@ -159,8 +159,6 @@
                 case ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath:
                 case ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden:
                 case ErrorCode.WRN_FilterIsConstantTrue:
-                case ErrorCode.WRN_FilterIsConstantFalse:
-                case ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch:
                 case ErrorCode.WRN_UnimplementedCommandLineSwitch:
                 case ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName:
                 case ErrorCode.WRN_RefCultureMismatch:
@@ -178,6 +176,8 @@
                 case ErrorCode.WRN_Experimental:
                 case ErrorCode.WRN_DefaultInSwitch:
                 case ErrorCode.WRN_UnreferencedLocalFunction:
+                case ErrorCode.WRN_FilterIsConstantFalse:
+                case ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch:
                     return true;
                 default:
                     return false;
