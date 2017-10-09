@@ -7948,7 +7948,7 @@ class C {
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(21789, "https://github.com/dotnet/roslyn/issues/21789")]
-        public async Task FormatMultipleAttributeOnSameLineAsField()
+        public async Task FormatMultipleAttributeOnSameLineAsField1()
         {
             await AssertFormatAsync(
 @"
@@ -7962,6 +7962,25 @@ class C
 class C {
     [Attr1]
     [Attr2]
+    [Attr3][Attr4]   int   i;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(21789, "https://github.com/dotnet/roslyn/issues/21789")]
+        public async Task FormatMultipleAttributesOnSameLineAsField2()
+        {
+            await AssertFormatAsync(
+@"
+class C
+{
+    [Attr1]
+    [Attr2]
+    [Attr3] [Attr4] int i;
+}",
+@"
+class C {
+    [Attr1][Attr2]
     [Attr3][Attr4]   int   i;
 }");
         }

@@ -73,11 +73,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 //      [Import] public int Field1;
                 //      [Import] public int Field2;
                 var attributes = memberDeclNode.GetAttributes();
-                for (int i = 0; i < attributes.Count; ++i)
+                var endToken = node.GetLastToken(includeZeroWidth: true);
+                for (var i = 0; i < attributes.Count; ++i)
                 {
                     AddSuppressWrappingIfOnSingleLineOperation(list,
                         attributes[i].GetFirstToken(includeZeroWidth: true),
-                        node.GetLastToken(includeZeroWidth: true));
+                        endToken);
                 }
 
                 var propertyDeclNode = node as PropertyDeclarationSyntax;
