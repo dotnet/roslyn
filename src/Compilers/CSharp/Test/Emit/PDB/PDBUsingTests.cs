@@ -1198,7 +1198,7 @@ namespace X
       </scope>
     </method>
   </methods>
-</symbols>");
+</symbols>", options: PdbValidationOptions.SkipConversionValidation); // TODO: https://github.com/dotnet/roslyn/issues/18004
         }
 
         [Fact]
@@ -1390,7 +1390,7 @@ namespace X
       </scope>
     </method>
   </methods>
-</symbols>");
+</symbols>", options: PdbValidationOptions.SkipConversionValidation); // TODO: https://github.com/dotnet/roslyn/issues/18004
         }
 
         [Fact]
