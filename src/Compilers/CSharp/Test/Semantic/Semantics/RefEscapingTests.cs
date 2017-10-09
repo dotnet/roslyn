@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -14,6 +12,118 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
     public class RefEscapingTests : CompilingTestBase
     {
+        [Fact]
+        public void RefStructUsing()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+class C
+{
+    void M()
+    {
+        using (var x = GetRefStruct())
+        {
+        }
+    }
+    S2 GetRefStruct() => default;
+    ref struct S2
+    {
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,16): error CS1674: 'C.S2': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                //         using (var x = GetRefStruct())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var x = GetRefStruct()").WithArguments("C.S2").WithLocation(6, 16));
+        }
+
+        [Fact]
+        public void RefStructAnonymous()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    object M()
+    {
+        Span<int> outer = new Span<int>(new int[10]);
+        Span<int> inner = stackalloc int[10];
+
+        return new { Outer = outer, Inner = inner };
+    }
+}", options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (10,22): error CS0828: Cannot assign 'Span<int>' to anonymous type property
+                //         return new { Outer = outer, Inner = inner };
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Outer = outer").WithArguments("System.Span<int>").WithLocation(10, 22),
+                // (10,37): error CS0828: Cannot assign 'Span<int>' to anonymous type property
+                //         return new { Outer = outer, Inner = inner };
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Inner = inner").WithArguments("System.Span<int>").WithLocation(10, 37));
+        }
+
+        [Fact]
+        public void RefStructInFor()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M()
+    {
+        Span<int> outer;
+        for (Span<int> inner = stackalloc int[10];; inner = outer)
+        {
+            outer = inner;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (10,21): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //             outer = inner;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(10, 21));
+        }
+
+        [Fact]
+        public void RefStructInLock()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+
+class C
+{
+    void M()
+    {
+        Span<int> s = stackalloc int[10];
+        lock (s)
+        {
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,15): error CS0185: 'Span<int>' is not a reference type as required by the lock statement
+                //         lock (s)
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "s").WithArguments("System.Span<int>").WithLocation(9, 15));
+        }
+
+        [Fact]
+        public void RefStructEscapeInIterator()
+
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+using System.Collections;
+class C
+{
+    IEnumerable Gen()
+    {
+        Span<int> s = stackalloc int[10];
+        yield return s;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,22): error CS8352: Cannot use local 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         yield return s;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s").WithArguments("s").WithLocation(9, 22));
+        }
+
         [Fact()]
         public void RefLikeReturnEscape()
         {
@@ -2365,16 +2475,12 @@ class Program
             // also OK
             (true ? ref local : ref local) = (false ? global : local);
         }
-
-        public static void Main()
-        {
-        }
     }
 ";
             var comp = CreateCompilationWithMscorlibAndSpan(text);
             comp.VerifyDiagnostics();
 
-            var compiled = CompileAndVerify(comp,expectedOutput: "", verify: false);
+            var compiled = CompileAndVerify(comp, verify: false);
             compiled.VerifyIL("C.M(ref System.Span<int>)", @"
 {
   // Code size        8 (0x8)

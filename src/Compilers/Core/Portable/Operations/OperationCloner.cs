@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new OmittedArgumentExpression(((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        internal override IOperation VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation, object argument)
+        public override IOperation VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation, object argument)
         {
             return new ArrayElementReferenceExpression(Visit(operation.ArrayReference), VisitArray(operation.Indices), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
@@ -489,6 +489,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override IOperation VisitTranslatedQueryExpression(ITranslatedQueryExpression operation, object argument)
         {
             return new TranslatedQueryExpression(Visit(operation.Expression), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitRaiseEventStatement(IRaiseEventStatement operation, object argument)
+        {
+            return new RaiseEventStatement(Visit(operation.EventReference), VisitArray(operation.ArgumentsInEvaluationOrder), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
     }
 }

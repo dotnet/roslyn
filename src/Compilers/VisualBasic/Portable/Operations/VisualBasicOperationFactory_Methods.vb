@@ -267,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim adds = statement.Kind = BoundKind.AddHandlerStatement
             Return New EventAssignmentExpression(
                 eventReference, Create(statement.Handler), adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=statement.WasCompilerGenerated)
-        End Function
+        End Function        
 
         Friend Class Helper
             Friend Shared Function DeriveUnaryOperatorKind(operatorKind As VisualBasic.UnaryOperatorKind) As UnaryOperatorKind

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -31,7 +31,8 @@ class C
 IOperation:  (OperationKind.None) (Syntax: 'Conditional(field)')
   Children(1):
       IFieldReferenceExpression: System.String C.field (Static) (OperationKind.FieldReferenceExpression, Type: System.String, Constant: ""field"") (Syntax: 'field')
-        Instance Receiver: null
+        Instance Receiver: 
+          null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -52,8 +53,10 @@ M2(out /*<bind>*/int i/*</bind>*/);
 ";
             string expectedOperationTree = @"
 IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int i')
-  Expression: IFieldReferenceExpression: System.Int32 Script.i (IsDeclaration: True) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Script) (Syntax: 'i')
+  Expression: 
+    IFieldReferenceExpression: System.Int32 Script.i (IsDeclaration: True) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Script, IsImplicit) (Syntax: 'i')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -72,11 +75,15 @@ IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32)
 ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(int i1, int i2)')
   Elements(2):
       IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int i1')
-        Expression: IFieldReferenceExpression: System.Int32 Script.i1 (IsDeclaration: True) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i1')
-            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Script) (Syntax: 'i1')
+        Expression: 
+          IFieldReferenceExpression: System.Int32 Script.i1 (IsDeclaration: True) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i1')
+            Instance Receiver: 
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Script, IsImplicit) (Syntax: 'i1')
       IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int i2')
-        Expression: IFieldReferenceExpression: System.Int32 Script.i2 (IsDeclaration: True) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i2')
-            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Script) (Syntax: 'i2')
+        Expression: 
+          IFieldReferenceExpression: System.Int32 Script.i2 (IsDeclaration: True) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i2')
+            Instance Receiver: 
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Script, IsImplicit) (Syntax: 'i2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -98,8 +105,10 @@ M2(out /*<bind>*/var i/*</bind>*/);
 ";
             string expectedOperationTree = @"
 IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var i')
-  Expression: IFieldReferenceExpression: System.Int32 Script.i (IsDeclaration: True) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i')
-      Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Script) (Syntax: 'i')
+  Expression: 
+    IFieldReferenceExpression: System.Int32 Script.i (IsDeclaration: True) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i')
+      Instance Receiver: 
+        IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Script, IsImplicit) (Syntax: 'i')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -118,11 +127,15 @@ IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32)
 ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(var i1, var i2)')
   Elements(2):
       IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var i1')
-        Expression: IFieldReferenceExpression: System.Int32 Script.i1 (IsDeclaration: True) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i1')
-            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Script) (Syntax: 'i1')
+        Expression: 
+          IFieldReferenceExpression: System.Int32 Script.i1 (IsDeclaration: True) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i1')
+            Instance Receiver: 
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Script, IsImplicit) (Syntax: 'i1')
       IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var i2')
-        Expression: IFieldReferenceExpression: System.Int32 Script.i2 (IsDeclaration: True) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i2')
-            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Script) (Syntax: 'i2')
+        Expression: 
+          IFieldReferenceExpression: System.Int32 Script.i2 (IsDeclaration: True) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i2')
+            Instance Receiver: 
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Script, IsImplicit) (Syntax: 'i2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -139,12 +152,15 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 i1, System.
 ";
             string expectedOperationTree = @"
 IDeclarationExpression (OperationKind.DeclarationExpression, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: 'var (i1, i2)')
-  Expression: ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(i1, i2)')
+  Expression: 
+    ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(i1, i2)')
       Elements(2):
           IFieldReferenceExpression: System.Int32 Script.i1 (IsDeclaration: True) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i1')
-            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Script) (Syntax: 'i1')
+            Instance Receiver: 
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Script, IsImplicit) (Syntax: 'i1')
           IFieldReferenceExpression: System.Int32 Script.i2 (IsDeclaration: True) (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'i2')
-            Instance Receiver: IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Script) (Syntax: 'i2')
+            Instance Receiver: 
+              IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: Script, IsImplicit) (Syntax: 'i2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

@@ -1,12 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -20,6 +14,319 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
     public class SpanStackSafetyTests : CompilingTestBase
     {
+        [Fact]
+        public void SpanToSpanSwitch()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M(Span<string> s)
+    {
+        switch (s)
+        {
+            case Span<string> span:
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SpanToObjectPatternSwitch()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+
+class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case Span<int> span:
+                break;
+            default:
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (10,18): error CS8121: An expression of type 'object' cannot be handled by a pattern of type 'Span<int>'.
+                //             case Span<int> span:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("object", "System.Span<int>").WithLocation(10, 18),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17));
+        }
+
+        [Fact]
+        public void SpanToGenericPatternSwitch()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M<T>(T t)
+    {
+        switch (t)
+        {
+            case Span<int> span:
+                break;
+            default:
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,18): error CS8121: An expression of type 'T' cannot be handled by a pattern of type 'Span<int>'.
+                //             case Span<int> span:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18),
+                // (10,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17));
+        }
+
+        [Fact]
+        public void SpanToGenericPatternSwitch2()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M<T>(T t) where T : struct
+    {
+        switch (t)
+        {
+            case Span<int> span:
+                break;
+            default:
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,18): error CS8121: An expression of type 'T' cannot be handled by a pattern of type 'Span<int>'.
+                //             case Span<int> span:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18),
+                // (10,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17));
+        }
+
+        [Fact]
+        public void ObjectToSpanPatternSwitch()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M(Span<string> s)
+    {
+        switch (s)
+        {
+            case Span<object> span:
+                break;
+            case object o:
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'Span<object>'.
+                //             case Span<object> span:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<object>").WithArguments("System.Span<string>", "System.Span<object>").WithLocation(9, 18),
+                // (11,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'object'.
+                //             case object o:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("System.Span<string>", "object").WithLocation(11, 18),
+                // (10,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17));
+        }
+
+        [Fact]
+        public void GenericToSpanPatternSwitch()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M<T>(Span<string> s)
+    {
+        switch (s)
+        {
+            case T t:
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'T'.
+                //             case T t:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<string>", "T").WithLocation(9, 18),
+                // (10,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17));
+        }
+
+        [Fact]
+        public void GenericToSpanPatternSwitch2()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M<T>(Span<string> s) where T : struct
+    {
+        switch (s)
+        {
+            case T t:
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'T'.
+                //             case T t:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<string>", "T").WithLocation(9, 18),
+                // (10,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17));
+        }
+
+        [Fact]
+        public void SpanToSpanIsExpr()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    bool M(Span<string> s) => s is Span<string> && s is Span<string> span;
+}");
+            comp.VerifyDiagnostics(
+                // (5,31): warning CS0183: The given expression is always of the provided ('Span<string>') type
+                //     bool M(Span<string> s) => s is Span<string> && s is Span<string> span;
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "s is Span<string>").WithArguments("System.Span<string>").WithLocation(5, 31));
+        }
+
+        [Fact]
+        public void ObjectToSpanIsExpr()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M(object o)
+    {
+        if (o is Span<int>)
+        { }
+        if (o is Span<int> s)
+        { }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('Span<int>') type
+                //         if (o is Span<int>)
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "o is Span<int>").WithArguments("System.Span<int>").WithLocation(7, 13),
+                // (9,18): error CS8121: An expression of type 'object' cannot be handled by a pattern of type 'Span<int>'.
+                //         if (o is Span<int> s)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("object", "System.Span<int>").WithLocation(9, 18));
+        }
+
+        [Fact]
+        public void GenericToSpanIsExpr()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M<T>(T t)
+    {
+        if (t is Span<int>)
+        { }
+        if (t is Span<int> s)
+        { }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('Span<int>') type
+                //         if (t is Span<int>)
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "t is Span<int>").WithArguments("System.Span<int>").WithLocation(7, 13),
+                // (9,18): error CS8121: An expression of type 'T' cannot be handled by a pattern of type 'Span<int>'.
+                //         if (t is Span<int> s)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18));
+        }
+
+        [Fact]
+        public void SpanToObjectIsExpr()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M(Span<int> s)
+    {
+        if (s is object) { }
+        if (s is object o) { }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('object') type
+                //         if (s is object) { }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is object").WithArguments("object").WithLocation(7, 13),
+                // (8,18): error CS8121: An expression of type 'Span<int>' cannot be handled by a pattern of type 'object'.
+                //         if (s is object o) { }
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("System.Span<int>", "object").WithLocation(8, 18));
+        }
+
+        [Fact]
+        public void SpanToGenericIsExpr()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M<T>(Span<int> s)
+    {
+        if (s is T) { }
+        if (s is T t) { }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('T') type
+                //         if (s is T) { }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is T").WithArguments("T").WithLocation(7, 13),
+                // (8,18): error CS8121: An expression of type 'Span<int>' cannot be handled by a pattern of type 'T'.
+                //         if (s is T t) { }
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<int>", "T").WithLocation(8, 18));
+        }
+
+        [Fact]
+        public void SpanToGenericIsExpr2()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M<T>(Span<int> s) where T : struct
+    {
+        if (s is T) { }
+        if (s is T t) { }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('T') type
+                //         if (s is T) { }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is T").WithArguments("T").WithLocation(7, 13),
+                // (8,18): error CS8121: An expression of type 'Span<int>' cannot be handled by a pattern of type 'T'.
+                //         if (s is T t) { }
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<int>", "T").WithLocation(8, 18));
+        }
+
         [Fact]
         public void TrivialBoxing()
         {

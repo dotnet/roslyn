@@ -1163,7 +1163,7 @@ End Class
                  Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Mumble, Sub(s As Object, a As System.EventArgs)
                            End Sub").WithLocation(10, 9),
                  Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(10, 20),
-                 Diagnostic(MemberReferenceAnalyzer.FieldReferenceDescriptor.Id, "Mumble").WithLocation(12, 20),   ' Bug: This should be an event reference. https://github.com/dotnet/roslyn/issues/8345
+                 Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(12, 20),
                  Diagnostic(MemberReferenceAnalyzer.HandlerRemovedDescriptor.Id, "RemoveHandler Mumble, AddressOf Mumbler").WithLocation(16, 9),
                  Diagnostic(MemberReferenceAnalyzer.EventReferenceDescriptor.Id, "Mumble").WithLocation(16, 23)
             )

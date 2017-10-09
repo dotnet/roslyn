@@ -89,6 +89,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 LogString(", IsInvalid");
             }
 
+            // IsImplicit
+            if (operation.IsImplicit)
+            {
+                LogString(", IsImplicit");
+            }
+
+
             LogString(")");
 
             // Syntax
@@ -233,8 +240,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             if (operation == null)
             {
+                Indent();
                 LogString("null");
                 LogNewLine();
+                Unindent();
                 return;
             }
 
@@ -249,6 +258,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 Unindent();
             }
+            Assert.True(operation.Syntax.Language == operation.Language);
         }
 
         private void Visit(IOperation operation, string header)
@@ -257,6 +267,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Indent();
             LogString($"{header}: ");
+            LogNewLine();
             Visit(operation);
             Unindent();
         }
@@ -311,14 +322,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private void VisitChildren(IOperation operation)
         {
             var children = operation.Children.WhereNotNull().ToImmutableArray();
-            if (!children.IsEmpty|| operation.Kind != OperationKind.None)
+            if (!children.IsEmpty || operation.Kind != OperationKind.None)
             {
                 VisitArray(children, "Children", logElementCount: true);
             }
         }
 
         private void VisitArray<T>(ImmutableArray<T> list, string header, bool logElementCount, bool logNullForDefault = false)
-            where T: IOperation
+            where T : IOperation
         {
             VisitArrayCommon(list, header, logElementCount, logNullForDefault, VisitOperationArrayElement);
         }
@@ -644,7 +655,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArguments(operation);
         }
 
-        private void VisitArguments(IHasArgumentsExpression operation)
+        private void VisitArguments(IHasArguments operation)
         {
             VisitArray(operation.ArgumentsInEvaluationOrder, "Arguments", logElementCount: true);
         }
@@ -730,7 +741,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
         }
 
-        internal override void VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation)
+        public override void VisitArrayElementReferenceExpression(IArrayElementReferenceExpression operation)
         {
             LogString(nameof(IArrayElementReferenceExpression));
             LogCommonPropertiesAndNewLine(operation);
@@ -832,7 +843,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var kindStr = operation.Adds ? "EventAdd" : "EventRemove";
             LogString($"{nameof(IEventAssignmentExpression)} ({kindStr})");
-            LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.EventReference, header: "Event Reference");
@@ -1457,6 +1467,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Expression, "Expression");
+        }
+
+        public override void VisitRaiseEventStatement(IRaiseEventStatement operation)
+        {
+            LogString(nameof(IRaiseEventStatement));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.EventReference, header: "Event Reference");
+            VisitArguments(operation);
         }
 
         #endregion
