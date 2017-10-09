@@ -1025,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             if (isThisKeyword &&
-                (token.IsKind(SyntaxKind.RefKeyword) || token.IsKind(SyntaxKind.ReadOnlyKeyword)) &&
+                (token.IsKind(SyntaxKind.RefKeyword) || token.IsKind(SyntaxKind.InKeyword)) &&
                 token.Parent.GetParent().IsDelegateOrConstructorOrLocalFunctionOrMethodParameterList())
             {
                 var parameter = token.GetAncestor<ParameterSyntax>();

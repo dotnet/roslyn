@@ -3009,7 +3009,7 @@ public class C
             return temp1;
         }
 
-        public static ref dynamic F1(ref readonly int arg1, ref dynamic d, ref readonly int arg2)
+        public static ref dynamic F1(in int arg1, ref dynamic d, in int arg2)
         {
             if (arg1 == arg2) throw null;
 

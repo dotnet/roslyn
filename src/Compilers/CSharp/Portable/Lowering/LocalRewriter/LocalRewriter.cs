@@ -575,6 +575,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.FieldAccess:
                     return true;
 
+                case BoundKind.ConditionalOperator:
+                    return ((BoundConditionalOperator)receiver).IsByRef;
+
                 case BoundKind.Call:
                     return ((BoundCall)receiver).Method.RefKind == RefKind.Ref;
             }
@@ -594,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var parameter in symbol.Parameters)
                 {
-                    if (parameter.RefKind == RefKind.RefReadOnly)
+                    if (parameter.RefKind == RefKind.In)
                     {
                         foundRefReadOnly = true;
                         break;

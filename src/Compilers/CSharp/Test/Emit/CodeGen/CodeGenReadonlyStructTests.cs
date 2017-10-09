@@ -387,7 +387,7 @@ class Program
     {
         Test(default(S1));
     }
-    static void Test(ref readonly S1 arg)
+    static void Test(in S1 arg)
     {
         System.Console.Write(arg.M1());
         System.Console.Write(arg.ToString());
@@ -814,29 +814,29 @@ class Program
             NamedTypeSymbol namedType = comp.GetTypeByMetadataName("Program+S1");
             Assert.True(namedType.IsReadOnly);
             Assert.Equal(RefKind.Out, namedType.Constructors[0].ThisParameter.RefKind);
-            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("M1").ThisParameter.RefKind);
-            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("ToString").ThisParameter.RefKind);
+            Assert.Equal(RefKind.In, namedType.GetMethod("M1").ThisParameter.RefKind);
+            Assert.Equal(RefKind.In, namedType.GetMethod("ToString").ThisParameter.RefKind);
 
             // S1<T>
             namedType = comp.GetTypeByMetadataName("Program+S1`1");
             Assert.True(namedType.IsReadOnly);
             Assert.Equal(RefKind.Out, namedType.Constructors[0].ThisParameter.RefKind);
-            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("M1").ThisParameter.RefKind);
-            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("ToString").ThisParameter.RefKind);
+            Assert.Equal(RefKind.In, namedType.GetMethod("M1").ThisParameter.RefKind);
+            Assert.Equal(RefKind.In, namedType.GetMethod("ToString").ThisParameter.RefKind);
 
             // T
             TypeSymbol type = namedType.TypeParameters[0];
             Assert.True(namedType.IsReadOnly);
             Assert.Equal(RefKind.Out, namedType.Constructors[0].ThisParameter.RefKind);
-            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("M1").ThisParameter.RefKind);
-            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("ToString").ThisParameter.RefKind);
+            Assert.Equal(RefKind.In, namedType.GetMethod("M1").ThisParameter.RefKind);
+            Assert.Equal(RefKind.In, namedType.GetMethod("ToString").ThisParameter.RefKind);
 
             // S1<object>
             namedType = namedType.Construct(comp.ObjectType);
             Assert.True(namedType.IsReadOnly);
             Assert.Equal(RefKind.Out, namedType.Constructors[0].ThisParameter.RefKind);
-            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("M1").ThisParameter.RefKind);
-            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("ToString").ThisParameter.RefKind);
+            Assert.Equal(RefKind.In, namedType.GetMethod("M1").ThisParameter.RefKind);
+            Assert.Equal(RefKind.In, namedType.GetMethod("ToString").ThisParameter.RefKind);
 
             // S2
             namedType = comp.GetTypeByMetadataName("Program+S2");
@@ -970,29 +970,29 @@ class Program
             NamedTypeSymbol namedType = comp.GetTypeByMetadataName("Program+S1");
             Assert.True(namedType.IsReadOnly);
             Assert.Equal(RefKind.Out, namedType.Constructors[0].ThisParameter.RefKind);
-            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("M1").ThisParameter.RefKind);
-            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("ToString").ThisParameter.RefKind);
+            Assert.Equal(RefKind.In, namedType.GetMethod("M1").ThisParameter.RefKind);
+            Assert.Equal(RefKind.In, namedType.GetMethod("ToString").ThisParameter.RefKind);
 
             // S1<T>
             namedType = comp.GetTypeByMetadataName("Program+S1`1");
             Assert.True(namedType.IsReadOnly);
             Assert.Equal(RefKind.Out, namedType.Constructors[0].ThisParameter.RefKind);
-            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("M1").ThisParameter.RefKind);
-            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("ToString").ThisParameter.RefKind);
+            Assert.Equal(RefKind.In, namedType.GetMethod("M1").ThisParameter.RefKind);
+            Assert.Equal(RefKind.In, namedType.GetMethod("ToString").ThisParameter.RefKind);
 
             // T
             TypeSymbol type = namedType.TypeParameters[0];
             Assert.True(namedType.IsReadOnly);
             Assert.Equal(RefKind.Out, namedType.Constructors[0].ThisParameter.RefKind);
-            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("M1").ThisParameter.RefKind);
-            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("ToString").ThisParameter.RefKind);
+            Assert.Equal(RefKind.In, namedType.GetMethod("M1").ThisParameter.RefKind);
+            Assert.Equal(RefKind.In, namedType.GetMethod("ToString").ThisParameter.RefKind);
 
             // S1<object>
             namedType = namedType.Construct(comp.ObjectType);
             Assert.True(namedType.IsReadOnly);
             Assert.Equal(RefKind.Out, namedType.Constructors[0].ThisParameter.RefKind);
-            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("M1").ThisParameter.RefKind);
-            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("ToString").ThisParameter.RefKind);
+            Assert.Equal(RefKind.In, namedType.GetMethod("M1").ThisParameter.RefKind);
+            Assert.Equal(RefKind.In, namedType.GetMethod("ToString").ThisParameter.RefKind);
 
             // S2
             namedType = comp.GetTypeByMetadataName("Program+S2");

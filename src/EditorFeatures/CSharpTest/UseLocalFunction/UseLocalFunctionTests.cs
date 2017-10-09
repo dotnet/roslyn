@@ -1143,5 +1143,53 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestInWithParameters()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+delegate void D(in int p);
+class C
+{
+    void M()
+    {
+        D [||]lambda = (in int p) => throw null;
+    }
+}",
+@"
+delegate void D(in int p);
+class C
+{
+    void M()
+    {
+        void lambda(in int p) => throw null;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestRefReadOnlyWithReturnType()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+delegate ref readonly int D();
+class C
+{
+    void M()
+    {
+        D [||]lambda = () => throw null;
+    }
+}",
+@"
+delegate ref readonly int D();
+class C
+{
+    void M()
+    {
+        ref readonly int lambda() => throw null;
+    }
+}");
+        }
     }
 }

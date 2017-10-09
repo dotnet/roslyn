@@ -111,7 +111,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     var analyzer = lazyProvider.Value.CreateIncrementalAnalyzer(workspace);
-                    coordinator.AddAnalyzer(analyzer, metadata.HighPriorityForActiveFile);
+                    if (analyzer != null)
+                    {
+                        coordinator.AddAnalyzer(analyzer, metadata.HighPriorityForActiveFile);
+                    }
                 }
             }
         }
