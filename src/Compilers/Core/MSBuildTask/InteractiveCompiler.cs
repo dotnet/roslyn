@@ -192,9 +192,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     var commandLine = commandLineBuilder.ToString();
 
                     // ToolExe delegates back to ToolName if the override is not
-                    // set.  So, if ToolExe != ToolName, we know ToolExe is
-                    // explicitly overriden - so use it as a native invocation.
-                    if (string.IsNullOrEmpty(ToolPath) || ToolExe == ToolName)
+                    // set.  So, if ToolExe == ToolName, we know ToolExe is not
+                    // explicitly overriden.  So, if both ToolPath is unset and
+                    // ToolExe == ToolName, we know nothing is overridden, and
+                    // we can use our own csc.
+                    if (string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName)
                     {
                         _dotnetHostInfo = DotnetHost.CreateManagedInvocationTool(ToolName, commandLine);
                     }
@@ -202,7 +204,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     {
                         // Explicitly provided ToolPath or ToolExe, don't try to
                         // figure anything out
-                        _dotnetHostInfo = DotnetHost.CreateNativeInvocationTool(Path.Combine(ToolPath, ToolExe), commandLine);
+                        _dotnetHostInfo = DotnetHost.CreateNativeInvocationTool(Path.Combine(ToolPath ?? "", ToolExe), commandLine);
                     }
                 }
                 return _dotnetHostInfo;
