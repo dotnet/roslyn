@@ -940,22 +940,16 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       32 (0x20)
-  .maxstack  3
-  .locals init (string V_0, //x
-                string V_1) //y
-  IL_0000:  ldstr      ""goodbye""
-  IL_0005:  stloc.0
-  IL_0006:  ldnull
-  IL_0007:  stloc.0
-  IL_0008:  ldstr      ""hello""
-  IL_000d:  stloc.1
-  IL_000e:  ldstr      ""{0}{1}""
-  IL_0013:  ldloc.0
-  IL_0014:  ldloc.1
-  IL_0015:  call       ""string string.Format(string, object, object)""
-  IL_001a:  call       ""void System.Console.WriteLine(string)""
-  IL_001f:  ret
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init (string V_0) //y
+  IL_0000:  ldnull
+  IL_0001:  ldstr      ""hello""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""string string.Concat(string, string)""
+  IL_000d:  call       ""void System.Console.WriteLine(string)""
+  IL_0012:  ret
 } ");
         }
 
