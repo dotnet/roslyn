@@ -975,11 +975,10 @@ class Class1
 IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y)  ... Point(0, 1)')
   Left: 
     IDeclarationExpression (OperationKind.DeclarationExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y)')
-      Expression: 
-        ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
-          Elements(2):
-              ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
-              ILocalReferenceExpression: y (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
+      ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: '(x, y)')
+        Elements(2):
+            ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
+            ILocalReferenceExpression: y (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'y')
   Right: 
     IObjectCreationExpression (Constructor: Point..ctor(System.Int32 x, System.Int32 y)) (OperationKind.ObjectCreationExpression, Type: Point) (Syntax: 'new Point(0, 1)')
       Arguments(2):
@@ -1038,11 +1037,10 @@ IForEachLoopStatement (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 
     Local_2: System.UInt32 y
   LoopControlVariable: 
     IDeclarationExpression (OperationKind.DeclarationExpression, Type: (System.UInt32 x, System.UInt32 y)) (Syntax: 'var (x, y)')
-      Expression: 
-        ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32 x, System.UInt32 y)) (Syntax: '(x, y)')
-          Elements(2):
-              ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.UInt32) (Syntax: 'x')
-              ILocalReferenceExpression: y (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.UInt32) (Syntax: 'y')
+      ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32 x, System.UInt32 y)) (Syntax: '(x, y)')
+        Elements(2):
+            ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.UInt32) (Syntax: 'x')
+            ILocalReferenceExpression: y (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.UInt32) (Syntax: 'y')
   Collection: 
     IConversionExpression (Implicit, TryCast: False, Unchecked) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'new Point[] ... int(0, 1) }')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
@@ -1111,11 +1109,9 @@ IDeconstructionAssignmentExpression (OperationKind.DeconstructionAssignmentExpre
     ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32 x, System.UInt32 y)) (Syntax: '(uint x, uint y)')
       Elements(2):
           IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.UInt32) (Syntax: 'uint x')
-            Expression: 
-              ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.UInt32) (Syntax: 'x')
+            ILocalReferenceExpression: x (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.UInt32) (Syntax: 'x')
           IDeclarationExpression (OperationKind.DeclarationExpression, Type: System.UInt32) (Syntax: 'uint y')
-            Expression: 
-              ILocalReferenceExpression: y (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.UInt32) (Syntax: 'y')
+            ILocalReferenceExpression: y (IsDeclaration: True) (OperationKind.LocalReferenceExpression, Type: System.UInt32) (Syntax: 'y')
   Right: 
     IObjectCreationExpression (Constructor: Point..ctor(System.Int32 x, System.Int32 y)) (OperationKind.ObjectCreationExpression, Type: Point) (Syntax: 'new Point(0, 1)')
       Arguments(2):

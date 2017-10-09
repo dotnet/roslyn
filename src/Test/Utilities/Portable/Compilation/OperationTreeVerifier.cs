@@ -1230,7 +1230,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IDeclarationExpression));
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.Expression, "Expression");
+            Visit(operation.Expression);
         }
 
         public override void VisitCompoundAssignmentExpression(ICompoundAssignmentExpression operation)
