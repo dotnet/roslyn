@@ -40,7 +40,7 @@
     <file src="$additionalFilesPath$/RunVbc.cmd" target="tools/bincore" />
 
     <!-- References that are either not in the target framework or are a higher version -->
-    <file src="Exes\CscCore\publish\System.*.dll" target="tools\bincore" />
-    <file src="Exes\CscCore\publish\runtimes\**" target="tools\bincore\runtimes" />
+    <file src="Exes/CscCore/publish/System.*.dll" target="tools/bincore" />
+    <file src="Exes/CscCore/publish/runtimes/**" target="tools/bincore/runtimes" />
   </files>
 </package>
