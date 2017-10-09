@@ -1255,6 +1255,33 @@ class C
         }
 
         [Fact]
+        [WorkItem(18629, "https://github.com/dotnet/roslyn/issues/18629")]
+        public void ValueTupleRequiredWhenRightHandSideIsTupleButNoReferenceEmitted()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        int x, y;
+        (x, y) = (1, 2);
+    }
+}
+";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+
+            Action<PEAssembly> assemblyValidator = assembly =>
+            {
+                var reader = assembly.GetMetadataReader();
+                var names = reader.GetAssemblyRefNames().Select(name => reader.GetString(name));
+                Assert.Empty(names.Where(name => name.Contains("ValueTuple")));
+            };
+
+            CompileAndVerify(comp, assemblyValidator: assemblyValidator);
+        }
+
+        [Fact]
         public void ValueTupleReturnMissingMemberWithCSharp7()
         {
             string source = @"
